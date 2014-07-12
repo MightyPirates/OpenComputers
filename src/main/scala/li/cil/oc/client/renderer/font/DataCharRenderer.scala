@@ -4,7 +4,9 @@ import li.cil.oc.util.FontUtil
 import org.lwjgl.opengl.GL11
 
 class DataCharRenderer extends DynamicCharRenderer {
-  val parser: FontParser = ???
+  val parser = new FontParserUnifont()
+
+  override def canDisplay(c: Char) = true
 
   override def charWidth: Double = parser.getGlyphWidth
 

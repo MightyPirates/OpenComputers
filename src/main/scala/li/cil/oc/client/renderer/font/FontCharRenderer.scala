@@ -3,14 +3,21 @@ package li.cil.oc.client.renderer.font
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.geom.{PathIterator, Point2D}
+import java.io.InputStream
 
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.glu.{GLU, GLUtessellatorCallbackAdapter}
 
 class FontCharRenderer(val font: Font) extends DynamicCharRenderer {
+  def this(name: String, size: Int) = this(new Font(name, Font.PLAIN, size))
+
+  def this(stream: InputStream, size: Int) = this(Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(size))
+
   private val context = new FontRenderContext(font.getTransform, true, true)
   private val callback = new FontCharRenderer.Callback()
   private val maxCharBounds = font.getMaxCharBounds(context)
+
+  def canDisplay(c: Char) = font.canDisplay(c)
 
   def charWidth = maxCharBounds.getWidth
 

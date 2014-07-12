@@ -14,13 +14,7 @@ import scala.collection.mutable
  * Font renderer that dynamically generates lookup textures by rendering a font
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
-class DynamicFontRenderer(val font: Font) extends TextureFontRenderer {
-  def this(name: String, size: Int) = this(new Font(name, Font.PLAIN, size))
-
-  def this(stream: InputStream, size: Int) = this(Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(size))
-
-  private val charRenderer: DynamicCharRenderer = new FontCharRenderer(font)
-
+class DynamicFontRenderer(val charRenderer: DynamicCharRenderer) extends TextureFontRenderer {
   private val textures = mutable.ArrayBuffer(new DynamicFontRenderer.CharTexture(this))
 
   private val charMap = mutable.Map.empty[Char, DynamicFontRenderer.CharIcon]
@@ -68,7 +62,7 @@ class DynamicFontRenderer(val font: Font) extends TextureFontRenderer {
   }
 
   private def createCharIcon(char: Char): DynamicFontRenderer.CharIcon = {
-    if (!font.canDisplay(char)) {
+    if (!charRenderer.canDisplay(char)) {
       if (char == '?') null
       else charMap.getOrElseUpdate('?', createCharIcon('?'))
     }
