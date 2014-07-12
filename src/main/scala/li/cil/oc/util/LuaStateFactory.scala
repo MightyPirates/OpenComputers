@@ -76,15 +76,15 @@ object LuaStateFactory {
 
     val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
     val libNames = Array(
-      "native.32.arm.so",
-      "native.32.bsd.so",
+      "native.64.dll",
+      "native.64.dylib",
+      "native.64.so",
+      "native.64.bsd.so",
       "native.32.dll",
       "native.32.dylib",
       "native.32.so",
-      "native.64.bsd.so",
-      "native.64.dll",
-      "native.64.dylib",
-      "native.64.so"
+      "native.32.bsd.so",
+      "native.32.arm.so"
     )
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")
