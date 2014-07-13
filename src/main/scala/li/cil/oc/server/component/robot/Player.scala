@@ -1,5 +1,7 @@
 package li.cil.oc.server.component.robot
 
+import java.util.UUID
+
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
@@ -18,8 +20,8 @@ import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
 import net.minecraft.world.WorldServer
-import net.minecraftforge.common.{ForgeHooks, MinecraftForge}
 import net.minecraftforge.common.util.{FakePlayer, ForgeDirection}
+import net.minecraftforge.common.{ForgeHooks, MinecraftForge}
 import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
@@ -36,7 +38,7 @@ object Player {
     val name = Settings.get.nameFormat.
       replace("$player$", robot.owner).
       replace("$random$", randomId)
-    new GameProfile(null, name)
+    new GameProfile(UUID.randomUUID().toString, name)
   }
 }
 
