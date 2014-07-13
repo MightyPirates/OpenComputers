@@ -34,7 +34,7 @@ class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
       tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
     }
     if (nbt.hasKey(Settings.namespace + "strength")) {
-      tooltip.add(Localization.Analyzer.WirelessStrength(nbt.getDouble(Settings.namespace + "strength")).toString)
+      tooltip.add(Localization.Analyzer.WirelessStrength(nbt.getDouble(Settings.namespace + "strength")).getUnformattedTextForChat)
     }
   }
 

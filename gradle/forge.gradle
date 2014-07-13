@@ -1,6 +1,13 @@
+repositories {
+    maven {
+        name = "ic2"
+        url = "http://maven.ic2.player.to/"
+    }
+}
 dependencies {
     compile "codechicken:CodeChickenLib:${config.cc.mc.version}-${config.ccl.version}:dev"
     compile "codechicken:ForgeMultipart:${config.cc.mc.version}-${config.fmp.version}:dev"
+    compile "net.industrial-craft:industrialcraft-2:2.2.509-experimental:api"
 }
 
 minecraft {

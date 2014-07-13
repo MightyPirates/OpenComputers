@@ -41,7 +41,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
     val nbt = accessor.getNBTData
     val node = nbt.getCompoundTag(Settings.namespace + "computer").getCompoundTag("node")
     if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedTextForChat)
     }
   }
 

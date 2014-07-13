@@ -38,16 +38,16 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
   @Optional.Method(modid = "IC2")
-  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
+  override def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double) = {
     lastInjectedAmount = amount
     amount - tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
   }
 
   @Optional.Method(modid = "IC2")
-  def getMaxSafeInput = Integer.MAX_VALUE
+  override def getSinkTier = Int.MaxValue
 
   @Optional.Method(modid = "IC2")
-  def demandedEnergyUnits = {
+  override def getDemandedEnergy = {
     if (Settings.get.ignorePower || isClient) 0
     else {
       var force = false

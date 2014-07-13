@@ -14,7 +14,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{IIcon}
+import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -39,7 +39,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag("node")
     if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedTextForChat)
     }
   }
 
