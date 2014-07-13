@@ -211,15 +211,15 @@ public class MathLib extends TwoArgFunction {
 			return valueOf( random.nextDouble() );
 		}
 		public LuaValue call(LuaValue a) {
-			long m = a.checklong();
+			double m = a.checkdouble();
 			if (m<1) argerror(1, "interval is empty");
-			return valueOf( (long)(random.nextDouble() * m) + 1L );
+			return valueOf( Math.floor(random.nextDouble() * m) + 1L );
 		}
 		public LuaValue call(LuaValue a, LuaValue b) {
-			long m = a.checklong();
-			long n = b.checklong();
+			double m = a.checkdouble();
+			double n = b.checkdouble();
 			if (n<m) argerror(2, "interval is empty");
-			return valueOf( (long)(random.nextDouble() * (n - m + 1)) + m );
+			return valueOf( Math.floor(random.nextDouble() * (n - m + 1)) + m );
 		}
 		
 	}
