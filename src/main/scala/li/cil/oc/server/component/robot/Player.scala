@@ -38,7 +38,7 @@ object Player {
     val name = Settings.get.nameFormat.
       replace("$player$", robot.owner).
       replace("$random$", randomId)
-    new GameProfile(UUID.randomUUID().toString, name)
+    new GameProfile(UUID.randomUUID(), name)
   }
 }
 
