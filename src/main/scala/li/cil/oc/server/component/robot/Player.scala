@@ -1,5 +1,7 @@
 package li.cil.oc.server.component.robot
 
+import java.util.UUID
+
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
@@ -36,7 +38,7 @@ object Player {
     val name = Settings.get.nameFormat.
       replace("$player$", robot.owner).
       replace("$random$", randomId)
-    new GameProfile(null, name)
+    new GameProfile(UUID.randomUUID().toString, name)
   }
 }
 
