@@ -76,15 +76,15 @@ object LuaStateFactory {
 
     val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
     val libNames = Array(
-      "native.32.arm.so",
-      "native.32.bsd.so",
+      "native.64.dll",
+      "native.64.dylib",
+      "native.64.so",
+      "native.64.bsd.so",
       "native.32.dll",
       "native.32.dylib",
       "native.32.so",
-      "native.64.bsd.so",
-      "native.64.dll",
-      "native.64.dylib",
-      "native.64.so"
+      "native.32.bsd.so",
+      "native.32.arm.so"
     )
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")
@@ -247,17 +247,18 @@ object LuaStateFactory {
         // necessarily thread-safe.
         val random = new Random
         state.pushScalaFunction(lua => {
+          val r = random.nextDouble()
           lua.getTop match {
-            case 0 => lua.pushNumber(random.nextDouble())
+            case 0 => lua.pushNumber(r)
             case 1 =>
-              val u = lua.checkNumber(1).toInt
+              val u = lua.checkNumber(1)
               lua.checkArg(1, 1 <= u, "interval is empty")
-              lua.pushInteger(1 + random.nextInt(u))
+              lua.pushNumber(math.floor(r * u) + 1)
             case 2 =>
-              val l = lua.checkNumber(1).toInt
-              val u = lua.checkNumber(2).toInt
-              lua.checkArg(1, l <= u, "interval is empty")
-              lua.pushInteger(l + random.nextInt(u - (l - 1)))
+              val l = lua.checkNumber(1)
+              val u = lua.checkNumber(2)
+              lua.checkArg(2, l <= u, "interval is empty")
+              lua.pushNumber(math.floor(r * (u - l + 1)) + l)
             case _ => throw new IllegalArgumentException("wrong number of arguments")
           }
           1
@@ -265,7 +266,7 @@ object LuaStateFactory {
         state.setField(-2, "random")
 
         state.pushScalaFunction(lua => {
-          random.setSeed(lua.checkInteger(1))
+          random.setSeed(lua.checkNumber(1).toLong)
           0
         })
         state.setField(-2, "randomseed")
