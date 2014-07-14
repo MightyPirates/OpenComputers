@@ -39,6 +39,7 @@ class Settings(config: Config) {
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
   val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
+  val useOldTextureFontRenderer = config.getBoolean("client.useOldTextureFontRenderer")
 
   // ----------------------------------------------------------------------- //
   // computer
