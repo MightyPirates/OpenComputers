@@ -78,7 +78,6 @@ public class JseBaseLib extends org.luaj.vm3.lib.BaseLib {
 		return env;
 	}
 
-
 	/** 
 	 * Try to open a file in the current working directory, 
 	 * or fall back to base opener if not found.
@@ -95,11 +94,11 @@ public class JseBaseLib extends org.luaj.vm3.lib.BaseLib {
 	 */
 	public InputStream findResource(String filename) {
 		File f = new File(filename);
-		if ( ! f.exists() )
+		if (!f.exists())
 			return super.findResource(filename);
 		try {
 			return new FileInputStream(f);
-		} catch ( IOException ioe ) {
+		} catch (IOException ioe) {
 			return null;
 		}
 	}

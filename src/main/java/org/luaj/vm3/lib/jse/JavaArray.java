@@ -42,43 +42,40 @@ import org.luaj.vm3.lib.OneArgFunction;
 class JavaArray extends LuaUserdata {
 
 	static final LuaValue LENGTH = valueOf("length");
-	
+
 	static final LuaTable array_metatable;
 	static {
 		array_metatable = new LuaTable();
 		array_metatable.rawset(LuaValue.LEN, new OneArgFunction() {
 			public LuaValue call(LuaValue u) {
-				return LuaValue.valueOf(Array.getLength(((LuaUserdata)u).m_instance));
+				return LuaValue.valueOf(Array.getLength(((LuaUserdata) u).m_instance));
 			}
 		});
 	}
-	
+
 	JavaArray(Object instance) {
 		super(instance);
 		setmetatable(array_metatable);
 	}
-	
+
 	public LuaValue get(LuaValue key) {
-		if ( key.equals(LENGTH) )
+		if (key.equals(LENGTH))
 			return valueOf(Array.getLength(m_instance));
-		if ( key.isint() ) {
+		if (key.isint()) {
 			int i = key.toint() - 1;
-			return i>=0 && i<Array.getLength(m_instance)?
-				CoerceJavaToLua.coerce(Array.get(m_instance,key.toint()-1)):
-				NIL;
+			return i >= 0 && i < Array.getLength(m_instance) ? CoerceJavaToLua.coerce(Array.get(m_instance, key.toint() - 1)) : NIL;
 		}
 		return super.get(key);
 	}
 
 	public void set(LuaValue key, LuaValue value) {
-		if ( key.isint() ) {
+		if (key.isint()) {
 			int i = key.toint() - 1;
-			if ( i>=0 && i<Array.getLength(m_instance) )
-				Array.set(m_instance,i,CoerceLuaToJava.coerce(value, m_instance.getClass().getComponentType()));
-			else if ( m_metatable==null || ! settable(this,key,value) )
-					error("array index out of bounds");
-		}
-		else
+			if (i >= 0 && i < Array.getLength(m_instance))
+				Array.set(m_instance, i, CoerceLuaToJava.coerce(value, m_instance.getClass().getComponentType()));
+			else if (m_metatable == null || !settable(this, key, value))
+				error("array index out of bounds");
+		} else
 			super.set(key, value);
-	} 	
+	}
 }

@@ -70,19 +70,18 @@ import org.luaj.vm3.lib.LibFunction;
  * @see <a href="http://www.lua.org/manual/5.2/manual.html#6.9">Lua 5.2 OS Lib Reference</a>
  */
 public class JseOsLib extends org.luaj.vm3.lib.OsLib {
-	
+
 	/** return code indicating the execute() threw an I/O exception */
-	public static int EXEC_IOEXCEPTION =  1;
-	
+	public static int EXEC_IOEXCEPTION = 1;
+
 	/** return code indicating the execute() was interrupted */
 	public static int EXEC_INTERRUPTED = -2;
-	
+
 	/** return code indicating the execute() threw an unknown exception */
-	public static int EXEC_ERROR       = -3;
-	
+	public static int EXEC_ERROR = -3;
+
 	/** public constructor */
-	public JseOsLib() {
-	}
+	public JseOsLib() {}
 
 	protected Varargs execute(String command) {
 		int exitValue;
@@ -102,27 +101,27 @@ public class JseOsLib extends org.luaj.vm3.lib.OsLib {
 
 	protected void remove(String filename) throws IOException {
 		File f = new File(filename);
-		if ( ! f.exists() )
+		if (!f.exists())
 			throw new IOException("No such file or directory");
-		if ( ! f.delete() )
+		if (!f.delete())
 			throw new IOException("Failed to delete");
 	}
 
 	protected void rename(String oldname, String newname) throws IOException {
 		File f = new File(oldname);
-		if ( ! f.exists() )
+		if (!f.exists())
 			throw new IOException("No such file or directory");
-		if ( ! f.renameTo(new File(newname)) )
+		if (!f.renameTo(new File(newname)))
 			throw new IOException("Failed to delete");
 	}
 
 	protected String tmpname() {
 		try {
-			java.io.File f = java.io.File.createTempFile(TMP_PREFIX ,TMP_SUFFIX);
+			java.io.File f = java.io.File.createTempFile(TMP_PREFIX, TMP_SUFFIX);
 			return f.getName();
-		} catch ( IOException ioe ) {
+		} catch (IOException ioe) {
 			return super.tmpname();
 		}
 	}
-	
+
 }

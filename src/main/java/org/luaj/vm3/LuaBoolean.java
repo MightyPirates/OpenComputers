@@ -43,10 +43,10 @@ public final class LuaBoolean extends LuaValue {
 
 	/** The singleton instance representing lua {@code true} */
 	static final LuaBoolean _TRUE = new LuaBoolean(true);
-	
+
 	/** The singleton instance representing lua {@code false} */
 	static final LuaBoolean _FALSE = new LuaBoolean(false);
-	
+
 	/** Shared static metatable for boolean values represented in lua. */
 	public static LuaValue s_metatable;
 
@@ -92,12 +92,12 @@ public final class LuaBoolean extends LuaValue {
 	public boolean optboolean(boolean defval) {
 		return this.v;
 	}
-	
+
 	public boolean checkboolean() {
 		return v;
 	}
-	
-	public LuaValue getmetatable() { 
-		return s_metatable; 
+
+	public LuaValue getmetatable() {
+		return s_metatable;
 	}
 }

@@ -38,10 +38,10 @@ interface Metatable {
 	public LuaValue toLuaValue();
 
 	/** Return an instance of Slot appropriate for the given key and value. */
-	public Slot entry( LuaValue key, LuaValue value );
+	public Slot entry(LuaValue key, LuaValue value);
 
 	/** Returns the given value wrapped in a weak reference if appropriate. */
-	public LuaValue wrap( LuaValue value );
+	public LuaValue wrap(LuaValue value);
 
 	/**
 	 * Returns the value at the given index in the array, or null if it is a weak reference that

@@ -29,7 +29,7 @@ import org.luaj.vm3.LuaString;
 public class FuncArgs extends SyntaxElement {
 
 	public final List<Exp> exps;
-	
+
 	/** exp1,exp2... */
 	public static FuncArgs explist(List<Exp> explist) {
 		return new FuncArgs(explist);
@@ -51,12 +51,12 @@ public class FuncArgs extends SyntaxElement {
 
 	public FuncArgs(LuaString string) {
 		this.exps = new ArrayList<Exp>();
-		this.exps.add( Exp.constant(string) );
+		this.exps.add(Exp.constant(string));
 	}
 
 	public FuncArgs(TableConstructor table) {
 		this.exps = new ArrayList<Exp>();
-		this.exps.add( table );
+		this.exps.add(table);
 	}
 
 	public void accept(Visitor visitor) {

@@ -27,9 +27,10 @@ public class FuncBody extends SyntaxElement {
 	public NameScope scope;
 
 	public FuncBody(ParList parlist, Block block) {
-		this.parlist = parlist!=null? parlist: ParList.EMPTY_PARLIST;
+		this.parlist = parlist != null ? parlist : ParList.EMPTY_PARLIST;
 		this.block = block;
 	}
+
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}

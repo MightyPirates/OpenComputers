@@ -104,7 +104,7 @@ public class JsePlatform {
 		globals.load(new LuajavaLib());
 		LoadState.install(globals);
 		LuaC.install(globals);
-		return globals;		
+		return globals;
 	}
 
 	/** Create standard globals including the {@link debug} library.
@@ -120,7 +120,6 @@ public class JsePlatform {
 		globals.load(new DebugLib());
 		return globals;
 	}
-
 
 	/** Simple wrapper for invoking a lua function with command line arguments.  
 	 * The supplied function is first given a new Globals object, 

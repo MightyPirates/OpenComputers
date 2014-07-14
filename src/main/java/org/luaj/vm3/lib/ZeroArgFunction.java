@@ -49,9 +49,8 @@ abstract public class ZeroArgFunction extends LibFunction {
 	abstract public LuaValue call();
 
 	/** Default constructor */
-	public ZeroArgFunction() {
-	}
-	
+	public ZeroArgFunction() {}
+
 	public LuaValue call(LuaValue arg) {
 		return call();
 	}
@@ -67,4 +66,4 @@ abstract public class ZeroArgFunction extends LibFunction {
 	public Varargs invoke(Varargs varargs) {
 		return call();
 	}
-} 
+}
