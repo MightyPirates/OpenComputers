@@ -24,7 +24,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     case Some(buffer: api.component.TextBuffer) => buffer
   }.headOption.orNull
 
-  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor).exists(_ == driver.item.Keyboard)
+  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor).contains(driver.item.Keyboard)
 
   private val withScreenHeight = 242
   private val noScreenHeight = 108
@@ -120,8 +120,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       GL11.glTranslatef(bufferX, bufferY, 0)
       RenderState.disableLighting()
       RenderState.makeItBlend()
-      val scaleX = 48f / buffer.getWidth
-      val scaleY = 14f / buffer.getHeight
+      val scaleX = (bufferWidth - 2) / buffer.renderWidth
+      val scaleY = (bufferHeight - 2) / buffer.renderHeight
       val scale = math.min(scaleX, scaleY)
       if (scaleX > scale) {
         GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
@@ -129,7 +129,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       else if (scaleY > scale) {
         GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
       }
-      GL11.glScalef(scale, scale, scale)
+      GL11.glScaled(scale, scale, scale)
       GL11.glScaled(this.scale, this.scale, 1)
       BufferRenderer.drawText(buffer)
     }
