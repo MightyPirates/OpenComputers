@@ -38,38 +38,43 @@ object BufferRenderer {
 
       GL11.glBegin(GL11.GL_QUADS)
 
+      val c0 = 0
+      val c1 = 7
+      val c2 = 9
+      val c3 = 16
+
       // Top border (left corner, middle bar, right corner).
       drawBorder(
         0, 0, margin, margin,
-        0, 0, 7, 7)
+        c0, c0, c1, c1)
       drawBorder(
         margin, 0, innerWidth, margin,
-        7, 0, 8, 7)
+        c1 + 0.25, c0, c2 - 0.25, c1)
       drawBorder(
         margin + innerWidth, 0, margin, margin,
-        8, 0, 15, 7)
+        c2, c0, c3, c1)
 
       // Middle area (left bar, screen background, right bar).
       drawBorder(
         0, margin, margin, innerHeight,
-        0, 7, 7, 8)
+        c0, c1 + 0.25, c1, c2 - 0.25)
       drawBorder(
         margin, margin, innerWidth, innerHeight,
-        7, 7, 8, 8)
+        c1 + 0.25, c1 + 0.25, c2 - 0.25, c2 - 0.25)
       drawBorder(
         margin + innerWidth, margin, margin, innerHeight,
-        8, 7, 15, 8)
+        c2, c1 + 0.25, c3, c2 - 0.25)
 
       // Bottom border (left corner, middle bar, right corner).
       drawBorder(
         0, margin + innerHeight, margin, margin,
-        0, 8, 7, 15)
+        c0, c2, c1, c3)
       drawBorder(
         margin, margin + innerHeight, innerWidth, margin,
-        7, 8, 8, 15)
+        c1 + 0.25, c2, c2 - 0.25, c3)
       drawBorder(
         margin + innerWidth, margin + innerHeight, margin, margin,
-        8, 8, 15, 15)
+        c2, c2, c3, c3)
 
       GL11.glEnd()
 
@@ -93,7 +98,7 @@ object BufferRenderer {
     }
     else false
 
-  private def drawBorder(x: Double, y: Double, w: Double, h: Double, u1: Int, v1: Int, u2: Int, v2: Int) = {
+  private def drawBorder(x: Double, y: Double, w: Double, h: Double, u1: Double, v1: Double, u2: Double, v2: Double) = {
     val u1d = u1 / 16.0
     val u2d = u2 / 16.0
     val v1d = v1 / 16.0
