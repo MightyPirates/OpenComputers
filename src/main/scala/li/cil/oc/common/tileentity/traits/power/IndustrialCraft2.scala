@@ -38,9 +38,17 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
   @Optional.Method(modid = "IC2")
-  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
+  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
     lastInjectedAmount = amount
-    amount - tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
+    var energy = amount * Settings.ratioIC2
+    // Work around IC2 being uncooperative and always just passing 'unknown' along here.
+    if (directionFrom == ForgeDirection.UNKNOWN) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS if energy > 0) {
+        energy -= tryChangeBuffer(side, energy)
+      }
+      energy / Settings.ratioIC2
+    }
+    else amount - tryChangeBuffer(directionFrom, energy) / Settings.ratioIC2
   }
 
   @Optional.Method(modid = "IC2")
