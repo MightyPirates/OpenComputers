@@ -21,7 +21,6 @@
 ******************************************************************************/
 package org.luaj.vm3;
 
-
 /** Upvalue used with Closure formulation
  * <p>
  * @see LuaClosure
@@ -37,7 +36,7 @@ public final class UpValue {
 	 * @param stack the stack
 	 * @param index the index on the stack for the upvalue
 	 */
-	public UpValue( LuaValue[] stack, int index) {
+	public UpValue(LuaValue[] stack, int index) {
 		this.array = stack;
 		this.index = index;
 	}
@@ -45,7 +44,7 @@ public final class UpValue {
 	public String toString() {
 		return index + "/" + array.length + " " + array[index];
 	}
-	
+
 	/** 
 	 * Convert this upvalue to a Java String
 	 * @return the Java String for this upvalue.
@@ -54,7 +53,7 @@ public final class UpValue {
 	public String tojstring() {
 		return array[index].tojstring();
 	}
-	
+
 	/**
 	 * Get the value of the upvalue
 	 * @return the {@link LuaValue} for this upvalue
@@ -62,15 +61,15 @@ public final class UpValue {
 	public final LuaValue getValue() {
 		return array[index];
 	}
-	
+
 	/**
 	 * Set the value of the upvalue
 	 * @param the {@link LuaValue} to set it to
 	 */
-	public final void setValue( LuaValue value ) {
+	public final void setValue(LuaValue value) {
 		array[index] = value;
 	}
-	
+
 	/**
 	 * Close this upvalue so it is no longer on the stack
 	 */

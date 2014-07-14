@@ -121,27 +121,26 @@ import org.luaj.vm3.Varargs;
  * such as {@link BaseLib} or {@link TableLib} for other examples.  
  */
 abstract public class LibFunction extends LuaFunction {
-	
+
 	/** User-defined opcode to differentiate between instances of the library function class. 
 	 * <p>
 	 * Subclass will typicall switch on this value to provide the specific behavior for each function. 
 	 */
 	protected int opcode;
-	
+
 	/** The common name for this function, useful for debugging.
 	 * <p>
 	 * Binding functions initialize this to the name to which it is bound.
 	 */
 	protected String name;
-	
+
 	/** Default constructor for use by subclasses */
-	protected LibFunction() {		
-	}
-	
+	protected LibFunction() {}
+
 	public String tojstring() {
-		return name != null? name: super.tojstring();
+		return name != null ? name : super.tojstring();
 	}
-	
+
 	/** 
 	 * Bind a set of library functions.  
 	 * <p>
@@ -152,10 +151,10 @@ abstract public class LibFunction extends LuaFunction {
 	 * @param names array of String names, one for each function.
 	 * @see #bind(LuaValue, Class, String[], int)  
 	 */
-	protected void bind(LuaValue env, Class factory,  String[] names ) {
-		bind( env, factory, names, 0 );
+	protected void bind(LuaValue env, Class factory, String[] names) {
+		bind(env, factory, names, 0);
 	}
-	
+
 	/** 
 	 * Bind a set of library functions, with an offset  
 	 * <p>
@@ -167,18 +166,18 @@ abstract public class LibFunction extends LuaFunction {
 	 * @param firstopcode the first opcode to use  
 	 * @see #bind(LuaValue, Class, String[])  
 	 */
-	protected void bind(LuaValue env, Class factory,  String[] names, int firstopcode ) {
+	protected void bind(LuaValue env, Class factory, String[] names, int firstopcode) {
 		try {
-			for ( int i=0, n=names.length; i<n; i++ ) {
+			for (int i = 0, n = names.length; i < n; i++) {
 				LibFunction f = (LibFunction) factory.newInstance();
 				f.opcode = firstopcode + i;
 				f.name = names[i];
 				env.set(f.name, f);
 			}
-		} catch ( Exception e ) {
-			throw new LuaError( "bind failed: "+e );
+		} catch (Exception e) {
+			throw new LuaError("bind failed: " + e);
 		}
-	}	
+	}
 
 	/** Java code generation utility to allocate storage for upvalue, leave it empty */
 	protected static LuaValue[] newupe() {
@@ -189,34 +188,44 @@ abstract public class LibFunction extends LuaFunction {
 	protected static LuaValue[] newupn() {
 		return new LuaValue[] { NIL };
 	}
-	
+
 	/** Java code generation utility to allocate storage for upvalue, initialize with value */
 	protected static LuaValue[] newupl(LuaValue v) {
 		return new LuaValue[] { v };
 	}
 
 	public LuaValue call() {
-		return argerror(1,"value");
+		return argerror(1, "value");
 	}
+
 	public LuaValue call(LuaValue a) {
 		return call();
 	}
+
 	public LuaValue call(LuaValue a, LuaValue b) {
 		return call(a);
 	}
+
 	public LuaValue call(LuaValue a, LuaValue b, LuaValue c) {
-		return call(a,b);
+		return call(a, b);
 	}
+
 	public LuaValue call(LuaValue a, LuaValue b, LuaValue c, LuaValue d) {
-		return call(a,b,c);
+		return call(a, b, c);
 	}
+
 	public Varargs invoke(Varargs args) {
-		switch(args.narg()) {
-		case 0: return call();
-		case 1: return call(args.arg1());
-		case 2: return call(args.arg1(),args.arg(2));
-		case 3: return call(args.arg1(),args.arg(2),args.arg(3));
-		default: return call(args.arg1(),args.arg(2),args.arg(3),args.arg(4));
+		switch (args.narg()) {
+		case 0:
+			return call();
+		case 1:
+			return call(args.arg1());
+		case 2:
+			return call(args.arg1(), args.arg(2));
+		case 3:
+			return call(args.arg1(), args.arg(2), args.arg(3));
+		default:
+			return call(args.arg1(), args.arg(2), args.arg(3), args.arg(4));
 		}
 	}
-} 
+}

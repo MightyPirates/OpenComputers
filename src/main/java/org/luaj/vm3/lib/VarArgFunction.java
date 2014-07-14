@@ -47,9 +47,8 @@ import org.luaj.vm3.Varargs;
  */
 abstract public class VarArgFunction extends LibFunction {
 
-	public VarArgFunction() {
-	}
-	
+	public VarArgFunction() {}
+
 	public LuaValue call() {
 		return invoke(NONE).arg1();
 	}
@@ -59,11 +58,11 @@ abstract public class VarArgFunction extends LibFunction {
 	}
 
 	public LuaValue call(LuaValue arg1, LuaValue arg2) {
-		return invoke(varargsOf(arg1,arg2)).arg1();
+		return invoke(varargsOf(arg1, arg2)).arg1();
 	}
 
 	public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
-		return invoke(varargsOf(arg1,arg2,arg3)).arg1();
+		return invoke(varargsOf(arg1, arg2, arg3)).arg1();
 	}
 
 	/** 
@@ -76,8 +75,8 @@ abstract public class VarArgFunction extends LibFunction {
 	public Varargs invoke(Varargs args) {
 		return onInvoke(args).eval();
 	}
-	
+
 	public Varargs onInvoke(Varargs args) {
 		return invoke(args);
 	}
-} 
+}

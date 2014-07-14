@@ -49,11 +49,10 @@ import org.luaj.vm3.Varargs;
 abstract public class OneArgFunction extends LibFunction {
 
 	abstract public LuaValue call(LuaValue arg);
-	
+
 	/** Default constructor */
-	public OneArgFunction() {
-	}
-		
+	public OneArgFunction() {}
+
 	public final LuaValue call() {
 		return call(NIL);
 	}
@@ -69,4 +68,4 @@ abstract public class OneArgFunction extends LibFunction {
 	public Varargs invoke(Varargs varargs) {
 		return call(varargs.arg1());
 	}
-} 
+}

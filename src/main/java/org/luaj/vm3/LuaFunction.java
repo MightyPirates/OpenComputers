@@ -32,34 +32,33 @@ package org.luaj.vm3;
  * @see LibFunction
  * @see LuaClosure
  */
-abstract
-public class LuaFunction extends LuaValue {
-	
+abstract public class LuaFunction extends LuaValue {
+
 	/** Shared static metatable for all functions and closures. */
 	public static LuaValue s_metatable;
 
 	public int type() {
 		return TFUNCTION;
 	}
-	
+
 	public String typename() {
 		return "function";
 	}
-	
+
 	public boolean isfunction() {
 		return true;
 	}
 
-	public LuaFunction checkfunction()  {
+	public LuaFunction checkfunction() {
 		return this;
 	}
-	
+
 	public LuaFunction optfunction(LuaFunction defval) {
-		return this; 
+		return this;
 	}
 
-	public LuaValue getmetatable() { 
-		return s_metatable; 
+	public LuaValue getmetatable() {
+		return s_metatable;
 	}
 
 	public String tojstring() {
@@ -75,9 +74,9 @@ public class LuaFunction extends LuaValue {
 	 */
 	public String classnamestub() {
 		String s = getClass().getName();
-		return s.substring(Math.max(s.lastIndexOf('.'),s.lastIndexOf('$'))+1);
+		return s.substring(Math.max(s.lastIndexOf('.'), s.lastIndexOf('$')) + 1);
 	}
-	
+
 	/** Return a human-readable name for this function.  Returns the last part of the class name by default.
 	 * Is overridden by LuaClosure to return the source file and line, and by LibFunctions to return the name.
 	 * @return common name for this function.  */

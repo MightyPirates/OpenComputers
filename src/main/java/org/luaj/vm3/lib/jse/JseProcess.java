@@ -30,7 +30,7 @@ import java.io.OutputStream;
 public class JseProcess {
 
 	final Process process;
-	final Thread input,output,error;
+	final Thread input, output, error;
 
 	/** Construct a process around a command, with specified streams to redirect input and output to.
 	 * 
@@ -42,7 +42,7 @@ public class JseProcess {
 	 * @see Process
 	 */
 	public JseProcess(String[] cmd, InputStream stdin, OutputStream stdout, OutputStream stderr) throws IOException {
-		this(Runtime.getRuntime().exec(cmd), stdin, stdout, stderr);	
+		this(Runtime.getRuntime().exec(cmd), stdin, stdout, stderr);
 	}
 
 	/** Construct a process around a command, with specified streams to redirect input and output to.
@@ -55,14 +55,14 @@ public class JseProcess {
 	 * @see Process
 	 */
 	public JseProcess(String cmd, InputStream stdin, OutputStream stdout, OutputStream stderr) throws IOException {
-		this(Runtime.getRuntime().exec(cmd), stdin, stdout, stderr);	
+		this(Runtime.getRuntime().exec(cmd), stdin, stdout, stderr);
 	}
 
 	private JseProcess(Process process, InputStream stdin, OutputStream stdout, OutputStream stderr) {
 		this.process = process;
-		input = stdin == null? null: copyBytes(stdin, process.getOutputStream(), null, process.getOutputStream());
-		output = stdout == null? null: copyBytes(process.getInputStream(), stdout, process.getInputStream(), null);
-		error = stderr == null? null: copyBytes(process.getErrorStream(), stderr, process.getErrorStream(), null);
+		input = stdin == null ? null : copyBytes(stdin, process.getOutputStream(), null, process.getOutputStream());
+		output = stdout == null ? null : copyBytes(process.getInputStream(), stdout, process.getInputStream(), null);
+		error = stderr == null ? null : copyBytes(process.getErrorStream(), stderr, process.getErrorStream(), null);
 	}
 
 	/** Get the exit value of the process. */
@@ -87,9 +87,7 @@ public class JseProcess {
 	}
 
 	/** Create a thread to copy bytes from input to output. */
-	private Thread copyBytes(final InputStream input,
-			final OutputStream output, final InputStream ownedInput,
-			final OutputStream ownedOutput) {
+	private Thread copyBytes(final InputStream input, final OutputStream output, final InputStream ownedInput, final OutputStream ownedOutput) {
 		Thread t = (new Thread() {
 			public void run() {
 				try {

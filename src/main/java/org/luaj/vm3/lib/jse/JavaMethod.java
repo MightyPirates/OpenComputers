@@ -46,28 +46,27 @@ import org.luaj.vm3.Varargs;
 class JavaMethod extends JavaMember {
 
 	static final Map methods = Collections.synchronizedMap(new HashMap());
-	
+
 	static JavaMethod forMethod(Method m) {
 		JavaMethod j = (JavaMethod) methods.get(m);
-		if ( j == null )
-			methods.put( m, j = new JavaMethod(m) );
+		if (j == null)
+			methods.put(m, j = new JavaMethod(m));
 		return j;
 	}
-	
+
 	static LuaFunction forMethods(JavaMethod[] m) {
 		return new Overload(m);
 	}
-	
+
 	final Method method;
-	
+
 	private JavaMethod(Method m) {
-		super( m.getParameterTypes(), m.getModifiers() );
+		super(m.getParameterTypes(), m.getModifiers());
 		this.method = m;
 		try {
 			if (!m.isAccessible())
 				m.setAccessible(true);
-		} catch (SecurityException s) {
-		}
+		} catch (SecurityException s) {}
 	}
 
 	public LuaValue call() {
@@ -81,26 +80,26 @@ class JavaMethod extends JavaMember {
 	public LuaValue call(LuaValue arg1, LuaValue arg2) {
 		return invokeMethod(arg1.checkuserdata(), arg2);
 	}
-	
+
 	public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
 		return invokeMethod(arg1.checkuserdata(), LuaValue.varargsOf(arg2, arg3));
 	}
-	
+
 	public Varargs invoke(Varargs args) {
 		return invokeMethod(args.checkuserdata(1), args.subargs(2));
 	}
-	
+
 	LuaValue invokeMethod(Object instance, Varargs args) {
 		Object[] a = convertArgs(args);
 		try {
-			return CoerceJavaToLua.coerce( method.invoke(instance, a) );
+			return CoerceJavaToLua.coerce(method.invoke(instance, a));
 		} catch (InvocationTargetException e) {
 			throw new LuaError(e.getTargetException());
 		} catch (Exception e) {
-			return LuaValue.error("coercion error "+e);
+			return LuaValue.error("coercion error " + e);
 		}
 	}
-	
+
 	/**
 	 * LuaValue that represents an overloaded Java method.
 	 * <p>
@@ -113,7 +112,7 @@ class JavaMethod extends JavaMember {
 	static class Overload extends LuaFunction {
 
 		final JavaMethod[] methods;
-		
+
 		Overload(JavaMethod[] methods) {
 			this.methods = methods;
 		}
@@ -129,11 +128,11 @@ class JavaMethod extends JavaMember {
 		public LuaValue call(LuaValue arg1, LuaValue arg2) {
 			return invokeBestMethod(arg1.checkuserdata(), arg2);
 		}
-		
+
 		public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
 			return invokeBestMethod(arg1.checkuserdata(), LuaValue.varargsOf(arg2, arg3));
 		}
-		
+
 		public Varargs invoke(Varargs args) {
 			return invokeBestMethod(args.checkuserdata(1), args.subargs(2));
 		}
@@ -141,20 +140,20 @@ class JavaMethod extends JavaMember {
 		private LuaValue invokeBestMethod(Object instance, Varargs args) {
 			JavaMethod best = null;
 			int score = CoerceLuaToJava.SCORE_UNCOERCIBLE;
-			for ( int i=0; i<methods.length; i++ ) {
+			for (int i = 0; i < methods.length; i++) {
 				int s = methods[i].score(args);
-				if ( s < score ) {
+				if (s < score) {
 					score = s;
 					best = methods[i];
-					if ( score == 0 )
+					if (score == 0)
 						break;
 				}
 			}
-			
+
 			// any match? 
-			if ( best == null )
+			if (best == null)
 				LuaValue.error("no coercible public method");
-			
+
 			// invoke it
 			return best.invokeMethod(instance, args);
 		}

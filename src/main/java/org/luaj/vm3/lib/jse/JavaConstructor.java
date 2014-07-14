@@ -47,33 +47,33 @@ import org.luaj.vm3.lib.VarArgFunction;
 class JavaConstructor extends JavaMember {
 
 	static final Map constructors = Collections.synchronizedMap(new HashMap());
-	
+
 	static JavaConstructor forConstructor(Constructor c) {
 		JavaConstructor j = (JavaConstructor) constructors.get(c);
-		if ( j == null )
-			constructors.put( c, j = new JavaConstructor(c) );
+		if (j == null)
+			constructors.put(c, j = new JavaConstructor(c));
 		return j;
 	}
-	
+
 	public static LuaValue forConstructors(JavaConstructor[] array) {
 		return new Overload(array);
 	}
 
 	final Constructor constructor;
-	
+
 	private JavaConstructor(Constructor c) {
-		super( c.getParameterTypes(), c.getModifiers() );
+		super(c.getParameterTypes(), c.getModifiers());
 		this.constructor = c;
 	}
-	
+
 	public Varargs invoke(Varargs args) {
 		Object[] a = convertArgs(args);
 		try {
-			return CoerceJavaToLua.coerce( constructor.newInstance(a) );
+			return CoerceJavaToLua.coerce(constructor.newInstance(a));
 		} catch (InvocationTargetException e) {
 			throw new LuaError(e.getTargetException());
 		} catch (Exception e) {
-			return LuaValue.error("coercion error "+e);
+			return LuaValue.error("coercion error " + e);
 		}
 	}
 
@@ -87,7 +87,8 @@ class JavaConstructor extends JavaMember {
 	 * when key is "new" and there is more than one public constructor.
 	 */
 	static class Overload extends VarArgFunction {
-		final JavaConstructor[] constructors; 
+		final JavaConstructor[] constructors;
+
 		public Overload(JavaConstructor[] c) {
 			this.constructors = c;
 		}
@@ -95,20 +96,20 @@ class JavaConstructor extends JavaMember {
 		public Varargs invoke(Varargs args) {
 			JavaConstructor best = null;
 			int score = CoerceLuaToJava.SCORE_UNCOERCIBLE;
-			for ( int i=0; i<constructors.length; i++ ) {
+			for (int i = 0; i < constructors.length; i++) {
 				int s = constructors[i].score(args);
-				if ( s < score ) {
+				if (s < score) {
 					score = s;
 					best = constructors[i];
-					if ( score == 0 )
+					if (score == 0)
 						break;
 				}
 			}
-			
+
 			// any match? 
-			if ( best == null )
+			if (best == null)
 				LuaValue.error("no coercible public method");
-			
+
 			// invoke it
 			return best.invoke(args);
 		}

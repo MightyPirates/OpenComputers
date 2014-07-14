@@ -28,10 +28,10 @@ package org.luaj.vm3.ast;
 public class SyntaxElement {
 	/** The line number on which the element begins. */
 	public int beginLine;
-	
+
 	/** The column at which the element begins. */
 	public short beginColumn;
-	
+
 	/** The line number on which the element ends. */
 	public int endLine;
 

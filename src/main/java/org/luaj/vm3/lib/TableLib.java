@@ -73,20 +73,23 @@ public class TableLib extends TwoArgFunction {
 			return argerror(1, "table expected, got no value");
 		}
 	}
-	
+
 	// "concat" (table [, sep [, i [, j]]]) -> string
 	static class concat extends TableLibFunction {
 		public LuaValue call(LuaValue list) {
-			return list.checktable().concat(EMPTYSTRING,1,list.length());
+			return list.checktable().concat(EMPTYSTRING, 1, list.length());
 		}
+
 		public LuaValue call(LuaValue list, LuaValue sep) {
-			return list.checktable().concat(sep.checkstring(),1,list.length());
+			return list.checktable().concat(sep.checkstring(), 1, list.length());
 		}
+
 		public LuaValue call(LuaValue list, LuaValue sep, LuaValue i) {
-			return list.checktable().concat(sep.checkstring(),i.checkint(),list.length());
+			return list.checktable().concat(sep.checkstring(), i.checkint(), list.length());
 		}
+
 		public LuaValue call(LuaValue list, LuaValue sep, LuaValue i, LuaValue j) {
-			return list.checktable().concat(sep.checkstring(),i.checkint(),j.checkint());
+			return list.checktable().concat(sep.checkstring(), i.checkint(), j.checkint());
 		}
 	}
 
@@ -95,16 +98,18 @@ public class TableLib extends TwoArgFunction {
 		public LuaValue call(LuaValue list) {
 			return argerror(2, "value expected");
 		}
+
 		public LuaValue call(LuaValue table, LuaValue value) {
-			table.checktable().insert(table.length()+1,value);
+			table.checktable().insert(table.length() + 1, value);
 			return NONE;
 		}
+
 		public LuaValue call(LuaValue table, LuaValue pos, LuaValue value) {
-			table.checktable().insert(pos.checkint(),value);
+			table.checktable().insert(pos.checkint(), value);
 			return NONE;
 		}
 	}
-	
+
 	// "pack" (...) -> table
 	static class pack extends VarArgFunction {
 		public Varargs invoke(Varargs args) {
@@ -119,6 +124,7 @@ public class TableLib extends TwoArgFunction {
 		public LuaValue call(LuaValue list) {
 			return list.checktable().remove(0);
 		}
+
 		public LuaValue call(LuaValue list, LuaValue pos) {
 			return list.checktable().remove(pos.checkint());
 		}
@@ -127,7 +133,7 @@ public class TableLib extends TwoArgFunction {
 	// "sort" (table [, comp])
 	static class sort extends TwoArgFunction {
 		public LuaValue call(LuaValue table, LuaValue compare) {
-			table.checktable().sort(compare.isnil()? NIL: compare.checkfunction());
+			table.checktable().sort(compare.isnil() ? NIL : compare.checkfunction());
 			return NONE;
 		}
 	}
@@ -137,9 +143,12 @@ public class TableLib extends TwoArgFunction {
 		public Varargs invoke(Varargs args) {
 			LuaTable t = args.checktable(1);
 			switch (args.narg()) {
-			case 1: return t.unpack();
-			case 2: return t.unpack(args.checkint(2));
-			default: return t.unpack(args.checkint(2), args.checkint(3));
+			case 1:
+				return t.unpack();
+			case 2:
+				return t.unpack(args.checkint(2));
+			default:
+				return t.unpack(args.checkint(2), args.checkint(3));
 			}
 		}
 	}

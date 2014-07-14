@@ -21,7 +21,6 @@
 ******************************************************************************/
 package org.luaj.vm3;
 
-
 /**
  * RuntimeException that is thrown and caught in response to a lua error. 
  * <p>
@@ -36,13 +35,13 @@ package org.luaj.vm3;
  */
 public class LuaError extends RuntimeException {
 	private static final long serialVersionUID = 1L;
-	
+
 	protected int level;
-	
+
 	protected String fileline;
-	
+
 	protected String traceback;
-	
+
 	protected Throwable cause;
 
 	public String getMessage() {
@@ -62,7 +61,7 @@ public class LuaError extends RuntimeException {
 	 * @param cause the Throwable that caused the error, if known.  
 	 */
 	public LuaError(Throwable cause) {
-		super( "vm error: "+cause );
+		super("vm error: " + cause);
 		this.cause = cause;
 		this.level = 1;
 	}
@@ -73,9 +72,9 @@ public class LuaError extends RuntimeException {
 	 * @param message message to supply
 	 */
 	public LuaError(String message) {
-		super( message );
+		super(message);
 		this.level = 1;
-	}		
+	}
 
 	/**
 	 * Construct a LuaError with a message, and level to draw line number information from.
@@ -83,10 +82,9 @@ public class LuaError extends RuntimeException {
 	 * @param level where to supply line info from in call stack
 	 */
 	public LuaError(String message, int level) {
-		super( message );
+		super(message);
 		this.level = level;
-	}	
-
+	}
 
 	/** 
 	 * Get the cause, if any.
@@ -94,6 +92,5 @@ public class LuaError extends RuntimeException {
 	public Throwable getCause() {
 		return cause;
 	}
-
 
 }

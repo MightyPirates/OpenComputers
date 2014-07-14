@@ -80,46 +80,33 @@ import org.luaj.vm3.Varargs;
  * @see <a href="http://www.lua.org/manual/5.1/manual.html#5.8">http://www.lua.org/manual/5.1/manual.html#5.8</a>
  */
 public class OsLib extends TwoArgFunction {
-	public static String TMP_PREFIX    = ".luaj";
-	public static String TMP_SUFFIX    = "tmp";
+	public static String TMP_PREFIX = ".luaj";
+	public static String TMP_SUFFIX = "tmp";
 
-	private static final int CLOCK     = 0;
-	private static final int DATE      = 1;
-	private static final int DIFFTIME  = 2;
-	private static final int EXECUTE   = 3;
-	private static final int EXIT      = 4;
-	private static final int GETENV    = 5;
-	private static final int REMOVE    = 6;
-	private static final int RENAME    = 7;
+	private static final int CLOCK = 0;
+	private static final int DATE = 1;
+	private static final int DIFFTIME = 2;
+	private static final int EXECUTE = 3;
+	private static final int EXIT = 4;
+	private static final int GETENV = 5;
+	private static final int REMOVE = 6;
+	private static final int RENAME = 7;
 	private static final int SETLOCALE = 8;
-	private static final int TIME      = 9;
-	private static final int TMPNAME   = 10;
+	private static final int TIME = 9;
+	private static final int TMPNAME = 10;
 
-	private static final String[] NAMES = {
-		"clock",
-		"date",
-		"difftime",
-		"execute",
-		"exit",
-		"getenv",
-		"remove",
-		"rename",
-		"setlocale",
-		"time",
-		"tmpname",
-	};
-	
+	private static final String[] NAMES = { "clock", "date", "difftime", "execute", "exit", "getenv", "remove", "rename", "setlocale", "time", "tmpname", };
+
 	private static final long t0 = System.currentTimeMillis();
 	private static long tmpnames = t0;
 
 	protected Globals globals;
-	
+
 	/** 
 	 * Create and OsLib instance.   
 	 */
-	public OsLib() {
-	}
-	
+	public OsLib() {}
+
 	public LuaValue call(LuaValue modname, LuaValue env) {
 		globals = env.checkglobals();
 		LuaTable os = new LuaTable();
@@ -135,20 +122,21 @@ public class OsLib extends TwoArgFunction {
 			this.opcode = opcode;
 			this.name = name;
 		}
+
 		public Varargs invoke(Varargs args) {
 			try {
-				switch ( opcode ) {
+				switch (opcode) {
 				case CLOCK:
 					return valueOf(clock());
 				case DATE: {
 					String s = args.optjstring(1, "%c");
-					double t = args.isnumber(2)? args.todouble(2): time(null);
+					double t = args.isnumber(2) ? args.todouble(2) : time(null);
 					if (s.equals("*t")) {
 						Calendar d = Calendar.getInstance();
-						d.setTime(new Date((long)(t*1000)));
+						d.setTime(new Date((long) (t * 1000)));
 						LuaTable tbl = LuaValue.tableOf();
 						tbl.set("year", LuaValue.valueOf(d.get(Calendar.YEAR)));
-						tbl.set("month", LuaValue.valueOf(d.get(Calendar.MONTH)+1));
+						tbl.set("month", LuaValue.valueOf(d.get(Calendar.MONTH) + 1));
 						tbl.set("day", LuaValue.valueOf(d.get(Calendar.DAY_OF_MONTH)));
 						tbl.set("hour", LuaValue.valueOf(d.get(Calendar.HOUR)));
 						tbl.set("min", LuaValue.valueOf(d.get(Calendar.MINUTE)));
@@ -158,10 +146,10 @@ public class OsLib extends TwoArgFunction {
 						tbl.set("isdst", LuaValue.valueOf(isDaylightSavingsTime(d)));
 						return tbl;
 					}
-					return valueOf( date(s, t==-1? time(null): t) );
+					return valueOf(date(s, t == -1 ? time(null) : t));
 				}
 				case DIFFTIME:
-					return valueOf(difftime(args.checkdouble(1),args.checkdouble(2)));
+					return valueOf(difftime(args.checkdouble(1), args.checkdouble(2)));
 				case EXECUTE:
 					return execute(args.optjstring(1, null));
 				case EXIT:
@@ -169,7 +157,7 @@ public class OsLib extends TwoArgFunction {
 					return NONE;
 				case GETENV: {
 					final String val = getenv(args.checkjstring(1));
-					return val!=null? valueOf(val): NIL;
+					return val != null ? valueOf(val) : NIL;
 				}
 				case REMOVE:
 					remove(args.checkjstring(1));
@@ -178,8 +166,8 @@ public class OsLib extends TwoArgFunction {
 					rename(args.checkjstring(1), args.checkjstring(2));
 					return LuaValue.TRUE;
 				case SETLOCALE: {
-					String s = setlocale(args.optjstring(1,null), args.optjstring(2, "all"));
-					return s!=null? valueOf(s): NIL;
+					String s = setlocale(args.optjstring(1, null), args.optjstring(2, "all"));
+					return s != null ? valueOf(s) : NIL;
 				}
 				case TIME:
 					return valueOf(time(args.opttable(1, null)));
@@ -187,7 +175,7 @@ public class OsLib extends TwoArgFunction {
 					return valueOf(tmpname());
 				}
 				return NONE;
-			} catch ( IOException e ) {
+			} catch (IOException e) {
 				return varargsOf(NIL, valueOf(e.getMessage()));
 			}
 		}
@@ -199,7 +187,7 @@ public class OsLib extends TwoArgFunction {
 	 * OsLib class was loaded.
 	 */
 	protected double clock() {
-		return (System.currentTimeMillis()-t0) / 1000.;
+		return (System.currentTimeMillis() - t0) / 1000.;
 	}
 
 	/**
@@ -233,82 +221,83 @@ public class OsLib extends TwoArgFunction {
 	 */
 	public String date(String format, double time) {
 		Calendar d = Calendar.getInstance();
-		d.setTime(new Date((long)(time*1000)));
+		d.setTime(new Date((long) (time * 1000)));
 		if (format.startsWith("!")) {
 			time -= timeZoneOffset(d);
-			d.setTime(new Date((long)(time*1000)));
+			d.setTime(new Date((long) (time * 1000)));
 			format = format.substring(1);
 		}
 		byte[] fmt = format.getBytes();
 		final int n = fmt.length;
 		Buffer result = new Buffer(n);
 		byte c;
-		for ( int i = 0; i < n; ) {
-			switch ( c = fmt[i++ ] ) {
+		for (int i = 0; i < n;) {
+			switch (c = fmt[i++]) {
 			case '\n':
-				result.append( "\n" );
+				result.append("\n");
 				break;
 			default:
-				result.append( c );
+				result.append(c);
 				break;
 			case '%':
-				if (i >= n) break;
-				switch ( c = fmt[i++ ] ) {
+				if (i >= n)
+					break;
+				switch (c = fmt[i++]) {
 				default:
-					LuaValue.argerror(1, "invalid conversion specifier '%"+c+"'");
+					LuaValue.argerror(1, "invalid conversion specifier '%" + c + "'");
 					break;
 				case '%':
-					result.append( (byte)'%' );
+					result.append((byte) '%');
 					break;
 				case 'a':
-					result.append(WeekdayNameAbbrev[d.get(Calendar.DAY_OF_WEEK)-1]);
+					result.append(WeekdayNameAbbrev[d.get(Calendar.DAY_OF_WEEK) - 1]);
 					break;
 				case 'A':
-					result.append(WeekdayName[d.get(Calendar.DAY_OF_WEEK)-1]);
+					result.append(WeekdayName[d.get(Calendar.DAY_OF_WEEK) - 1]);
 					break;
 				case 'b':
 					result.append(MonthNameAbbrev[d.get(Calendar.MONTH)]);
 					break;
 				case 'B':
 					result.append(MonthName[d.get(Calendar.MONTH)]);
-					break;					 
-				case 'c': 
+					break;
+				case 'c':
 					result.append(date("%a %b %d %H:%M:%S %Y", time));
 					break;
 				case 'd':
-					result.append(String.valueOf(100+d.get(Calendar.DAY_OF_MONTH)).substring(1));
+					result.append(String.valueOf(100 + d.get(Calendar.DAY_OF_MONTH)).substring(1));
 					break;
 				case 'H':
-					result.append(String.valueOf(100+d.get(Calendar.HOUR_OF_DAY)).substring(1));
+					result.append(String.valueOf(100 + d.get(Calendar.HOUR_OF_DAY)).substring(1));
 					break;
 				case 'I':
-					result.append(String.valueOf(100+(d.get(Calendar.HOUR_OF_DAY)%12)).substring(1));
+					result.append(String.valueOf(100 + (d.get(Calendar.HOUR_OF_DAY) % 12)).substring(1));
 					break;
 				case 'j': { // day of year.
 					Calendar y0 = beginningOfYear(d);
 					int dayOfYear = (int) ((d.getTime().getTime() - y0.getTime().getTime()) / (24 * 3600L * 1000L));
-					result.append(String.valueOf(1001+dayOfYear).substring(1));
+					result.append(String.valueOf(1001 + dayOfYear).substring(1));
 					break;
 				}
 				case 'm':
-					result.append(String.valueOf(101+d.get(Calendar.MONTH)).substring(1));
+					result.append(String.valueOf(101 + d.get(Calendar.MONTH)).substring(1));
 					break;
 				case 'M':
-					result.append(String.valueOf(100+d.get(Calendar.MINUTE)).substring(1));
+					result.append(String.valueOf(100 + d.get(Calendar.MINUTE)).substring(1));
 					break;
 				case 'p':
-					result.append(d.get(Calendar.HOUR_OF_DAY) < 12? "AM": "PM");
+					result.append(d.get(Calendar.HOUR_OF_DAY) < 12 ? "AM" : "PM");
 					break;
 				case 'S':
-					result.append(String.valueOf(100+d.get(Calendar.SECOND)).substring(1));
+					result.append(String.valueOf(100 + d.get(Calendar.SECOND)).substring(1));
 					break;
 				case 'U':
 					result.append(String.valueOf(weekNumber(d, 0)));
 					break;
 				case 'w':
-					result.append(String.valueOf((d.get(Calendar.DAY_OF_WEEK)+6)%7));
+					result.append(String.valueOf((d.get(Calendar.DAY_OF_WEEK) + 6) % 7));
 					break;
-				case 'W': 
+				case 'W':
 					result.append(String.valueOf(weekNumber(d, 1)));
 					break;
 				case 'x':
@@ -328,7 +317,7 @@ public class OsLib extends TwoArgFunction {
 					final int a = Math.abs(tzo);
 					final String h = String.valueOf(100 + a / 60).substring(1);
 					final String m = String.valueOf(100 + a % 60).substring(1);
-					result.append((tzo>=0? "+": "-") + h + m);
+					result.append((tzo >= 0 ? "+" : "-") + h + m);
 					break;
 				}
 				}
@@ -336,7 +325,7 @@ public class OsLib extends TwoArgFunction {
 		}
 		return result.tojstring();
 	}
-	
+
 	private static final String[] WeekdayNameAbbrev = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	private static final String[] WeekdayName = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 	private static final String[] MonthNameAbbrev = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -353,9 +342,9 @@ public class OsLib extends TwoArgFunction {
 		y0.set(Calendar.MILLISECOND, 0);
 		return y0;
 	}
-	
+
 	private int weekNumber(Calendar d, int startDay) {
-		Calendar y0 =  beginningOfYear(d);
+		Calendar y0 = beginningOfYear(d);
 		y0.set(Calendar.DAY_OF_MONTH, 1 + (startDay + 8 - y0.get(Calendar.DAY_OF_WEEK)) % 7);
 		if (y0.after(d)) {
 			y0.set(Calendar.YEAR, y0.get(Calendar.YEAR) - 1);
@@ -364,25 +353,16 @@ public class OsLib extends TwoArgFunction {
 		long dt = d.getTime().getTime() - y0.getTime().getTime();
 		return 1 + (int) (dt / (7L * 24L * 3600L * 1000L));
 	}
-	
+
 	private int timeZoneOffset(Calendar d) {
-		int localStandarTimeMillis = ( 
-				d.get(Calendar.HOUR_OF_DAY) * 3600 +
-				d.get(Calendar.MINUTE) * 60 +
-				d.get(Calendar.SECOND)) * 1000;
-		return d.getTimeZone().getOffset(
-				1,
-				d.get(Calendar.YEAR),
-				d.get(Calendar.MONTH),
-				d.get(Calendar.DAY_OF_MONTH),
-				d.get(Calendar.DAY_OF_WEEK), 
-				localStandarTimeMillis) / 1000;
+		int localStandarTimeMillis = (d.get(Calendar.HOUR_OF_DAY) * 3600 + d.get(Calendar.MINUTE) * 60 + d.get(Calendar.SECOND)) * 1000;
+		return d.getTimeZone().getOffset(1, d.get(Calendar.YEAR), d.get(Calendar.MONTH), d.get(Calendar.DAY_OF_MONTH), d.get(Calendar.DAY_OF_WEEK), localStandarTimeMillis) / 1000;
 	}
-	
+
 	private boolean isDaylightSavingsTime(Calendar d) {
-		return timeZoneOffset(d) != d.getTimeZone().getRawOffset() / 1000;		
+		return timeZoneOffset(d) != d.getTimeZone().getRawOffset() / 1000;
 	}
-	
+
 	/** 
 	 * This function is equivalent to the C function system. 
 	 * It passes command to be executed by an operating system shell. 
@@ -390,7 +370,7 @@ public class OsLib extends TwoArgFunction {
 	 * If command is absent, then it returns nonzero if a shell 
 	 * is available and zero otherwise.
 	 * @param command command to pass to the system
-	 */ 
+	 */
 	protected Varargs execute(String command) {
 		return varargsOf(NIL, valueOf("exit"), ONE);
 	}
@@ -422,7 +402,7 @@ public class OsLib extends TwoArgFunction {
 	 * @throws IOException if it fails
 	 */
 	protected void remove(String filename) throws IOException {
-		throw new IOException( "not implemented" );
+		throw new IOException("not implemented");
 	}
 
 	/**
@@ -434,7 +414,7 @@ public class OsLib extends TwoArgFunction {
 	 * @throws IOException if it fails
 	 */
 	protected void rename(String oldname, String newname) throws IOException {
-		throw new IOException( "not implemented" );
+		throw new IOException("not implemented");
 	}
 
 	/**
@@ -475,7 +455,7 @@ public class OsLib extends TwoArgFunction {
 		} else {
 			Calendar c = Calendar.getInstance();
 			c.set(Calendar.YEAR, table.get("year").checkint());
-			c.set(Calendar.MONTH, table.get("month").checkint()-1);
+			c.set(Calendar.MONTH, table.get("month").checkint() - 1);
 			c.set(Calendar.DAY_OF_MONTH, table.get("day").checkint());
 			c.set(Calendar.HOUR, table.get("hour").optint(12));
 			c.set(Calendar.MINUTE, table.get("min").optint(0));
@@ -500,8 +480,8 @@ public class OsLib extends TwoArgFunction {
 	 * @return String filename to use
 	 */
 	protected String tmpname() {
-		synchronized ( OsLib.class ) {
-			return TMP_PREFIX+(tmpnames++)+TMP_SUFFIX;
+		synchronized (OsLib.class) {
+			return TMP_PREFIX + (tmpnames++) + TMP_SUFFIX;
 		}
 	}
 }
