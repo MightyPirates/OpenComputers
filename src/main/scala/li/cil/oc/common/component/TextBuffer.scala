@@ -127,7 +127,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   @Callback(doc = """function():table -- The list of keyboards attached to the screen.""")
   def getKeyboards(context: Context, args: Arguments): Array[AnyRef] = {
     context.pause(0.25)
-    node.host match {
+    owner match {
       case screen: tileentity.Screen =>
         Array(screen.screens.map(_.node).flatMap(_.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address)).toArray)
       case _ =>
