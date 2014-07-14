@@ -53,17 +53,12 @@ import org.luaj.vm3.Varargs;
  */
 public class Bit32Lib extends TwoArgFunction {
 
-	public Bit32Lib() {
-	}
+	public Bit32Lib() {}
 
 	public LuaValue call(LuaValue modname, LuaValue env) {
 		LuaTable t = new LuaTable();
-		bind(t, Bit32LibV.class, new String[] {
-			"band", "bnot", "bor", "btest", "bxor", "extract", "replace"
-		});
-		bind(t, Bit32Lib2.class, new String[] {
-			"arshift", "lrotate", "lshift", "rrotate", "rshift"
-		});
+		bind(t, Bit32LibV.class, new String[] { "band", "bnot", "bor", "btest", "bxor", "extract", "replace" });
+		bind(t, Bit32Lib2.class, new String[] { "arshift", "lrotate", "lshift", "rrotate", "rshift" });
 		env.set("bit32", t);
 		env.get("package").get("loaded").set("bit32", t);
 		return t;
@@ -71,17 +66,21 @@ public class Bit32Lib extends TwoArgFunction {
 
 	static final class Bit32LibV extends VarArgFunction {
 		public Varargs invoke(Varargs args) {
-			switch ( opcode ) {
-			case 0: return Bit32Lib.band( args );
-			case 1: return Bit32Lib.bnot( args );
-			case 2: return Bit32Lib.bor( args );
-			case 3: return Bit32Lib.btest( args );
-			case 4: return Bit32Lib.bxor( args );
+			switch (opcode) {
+			case 0:
+				return Bit32Lib.band(args);
+			case 1:
+				return Bit32Lib.bnot(args);
+			case 2:
+				return Bit32Lib.bor(args);
+			case 3:
+				return Bit32Lib.btest(args);
+			case 4:
+				return Bit32Lib.bxor(args);
 			case 5:
-				return Bit32Lib.extract( args.checkint(1), args.checkint(2), args.optint(3, 1) );
+				return Bit32Lib.extract(args.checkint(1), args.checkint(2), args.optint(3, 1));
 			case 6:
-				return Bit32Lib.replace( args.checkint(1), args.checkint(2),
-						args.checkint(3), args.optint(4, 1) );
+				return Bit32Lib.replace(args.checkint(1), args.checkint(2), args.checkint(3), args.optint(4, 1));
 			}
 			return NIL;
 		}
@@ -90,16 +89,21 @@ public class Bit32Lib extends TwoArgFunction {
 	static final class Bit32Lib2 extends TwoArgFunction {
 
 		public LuaValue call(LuaValue arg1, LuaValue arg2) {
-			switch ( opcode ) {
-			case 0: return Bit32Lib.arshift(arg1.checkint(), arg2.checkint());
-			case 1: return Bit32Lib.lrotate(arg1.checkint(), arg2.checkint());
-			case 2: return Bit32Lib.lshift(arg1.checkint(), arg2.checkint());
-			case 3: return Bit32Lib.rrotate(arg1.checkint(), arg2.checkint());
-			case 4: return Bit32Lib.rshift(arg1.checkint(), arg2.checkint());
+			switch (opcode) {
+			case 0:
+				return Bit32Lib.arshift(arg1.checkint(), arg2.checkint());
+			case 1:
+				return Bit32Lib.lrotate(arg1.checkint(), arg2.checkint());
+			case 2:
+				return Bit32Lib.lshift(arg1.checkint(), arg2.checkint());
+			case 3:
+				return Bit32Lib.rrotate(arg1.checkint(), arg2.checkint());
+			case 4:
+				return Bit32Lib.rshift(arg1.checkint(), arg2.checkint());
 			}
 			return NIL;
 		}
-		
+
 	}
 
 	static LuaValue arshift(int x, int disp) {
@@ -130,40 +134,40 @@ public class Bit32Lib extends TwoArgFunction {
 		}
 	}
 
-	static Varargs band( Varargs args ) {
+	static Varargs band(Varargs args) {
 		int result = -1;
-		for ( int i = 1; i <= args.narg(); i++ ) {
+		for (int i = 1; i <= args.narg(); i++) {
 			result &= args.checkint(i);
 		}
-		return bitsToValue( result );
+		return bitsToValue(result);
 	}
 
-	static Varargs bnot( Varargs args ) {
-		return bitsToValue( ~args.checkint(1) );
+	static Varargs bnot(Varargs args) {
+		return bitsToValue(~args.checkint(1));
 	}
 
-	static Varargs bor( Varargs args ) {
+	static Varargs bor(Varargs args) {
 		int result = 0;
-		for ( int i = 1; i <= args.narg(); i++ ) {
+		for (int i = 1; i <= args.narg(); i++) {
 			result |= args.checkint(i);
 		}
-		return bitsToValue( result );
+		return bitsToValue(result);
 	}
 
-	static Varargs btest( Varargs args ) {
+	static Varargs btest(Varargs args) {
 		int bits = -1;
-		for ( int i = 1; i <= args.narg(); i++ ) {
+		for (int i = 1; i <= args.narg(); i++) {
 			bits &= args.checkint(i);
 		}
-		return valueOf( bits != 0 );
+		return valueOf(bits != 0);
 	}
 
-	static Varargs bxor( Varargs args ) {
+	static Varargs bxor(Varargs args) {
 		int result = 0;
-		for ( int i = 1; i <= args.narg(); i++ ) {
+		for (int i = 1; i <= args.narg(); i++) {
 			result ^= args.checkint(i);
 		}
-		return bitsToValue( result );
+		return bitsToValue(result);
 	}
 
 	static LuaValue lrotate(int x, int disp) {
@@ -212,7 +216,7 @@ public class Bit32Lib extends TwoArgFunction {
 		return bitsToValue(n);
 	}
 
-	private static LuaValue bitsToValue( int x ) {
-		return ( x < 0 ) ? valueOf((double) ((long) x & 0xFFFFFFFFL)) : valueOf(x); 
+	private static LuaValue bitsToValue(int x) {
+		return (x < 0) ? valueOf((double) ((long) x & 0xFFFFFFFFL)) : valueOf(x);
 	}
 }

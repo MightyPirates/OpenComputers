@@ -113,7 +113,7 @@ import org.luaj.vm3.lib.ResourceFinder;
 public class Globals extends LuaTable {
 
 	/** The current default input stream. */
-	public InputStream STDIN  = null;
+	public InputStream STDIN = null;
 
 	/** The current default output stream. */
 	public PrintStream STDOUT = System.out;
@@ -123,16 +123,16 @@ public class Globals extends LuaTable {
 
 	/** The installed ResourceFinder for looking files by name. */
 	public ResourceFinder finder;
-	
+
 	/** The currently running thread.  Should not be changed by non-library code. */
 	public LuaThread running = new LuaThread(this);
 
 	/** The BaseLib instance loaded into this Globals */
 	public BaseLib baselib;
-	
+
 	/** The PackageLib instance loaded into this Globals */
 	public PackageLib package_;
-	
+
 	/** The DebugLib instance loaded into this Globals, or null if debugging is not enabled */
 	public DebugLib debuglib;
 
@@ -153,12 +153,12 @@ public class Globals extends LuaTable {
 		/** Load the supplied input stream into a prototype. */
 		Prototype undump(InputStream stream, String chunkname) throws IOException;
 	}
-	
+
 	/** Check that this object is a Globals object, and return it, otherwise throw an error. */
 	public Globals checkglobals() {
 		return this;
 	}
-	
+
 	/** The installed loader. 
 	 * @see Loader */
 	public Loader loader;
@@ -178,9 +178,9 @@ public class Globals extends LuaTable {
 	 */
 	public LuaValue loadfile(String filename) {
 		try {
-			return load(finder.findResource(filename), "@"+filename, "bt", this);
+			return load(finder.findResource(filename), "@" + filename, "bt", this);
 		} catch (Exception e) {
-			return error("load "+filename+": "+e);
+			return error("load " + filename + ": " + e);
 		}
 	}
 
@@ -193,7 +193,7 @@ public class Globals extends LuaTable {
 	public LuaValue load(String script, String chunkname) {
 		return load(new StrReader(script), chunkname);
 	}
-	
+
 	/** Convenience function to load a string value as a script.  Must be lua source.
 	 * @param script Contents of a lua script, such as "print 'hello, world.'"
 	 * @return LuaValue that may be executed via .call(), .invoke(), or .method() calls.
@@ -202,7 +202,7 @@ public class Globals extends LuaTable {
 	public LuaValue load(String script) {
 		return load(new StrReader(script), script);
 	}
-	
+
 	/** Load the content form a reader as a text file.  Must be lua source. 
 	 * The source is converted to UTF-8, so any characters appearing in quoted literals 
 	 * above the range 128 will be converted into multiple bytes.  */
@@ -218,7 +218,7 @@ public class Globals extends LuaTable {
 		} catch (LuaError l) {
 			throw l;
 		} catch (Exception e) {
-			return error("load "+chunkname+": "+e);
+			return error("load " + chunkname + ": " + e);
 		}
 	}
 
@@ -241,10 +241,10 @@ public class Globals extends LuaTable {
 		if (mode.indexOf('t') >= 0) {
 			return compilePrototype(is, chunkname);
 		}
-		error("Failed to load prototype "+chunkname+" using mode '"+mode+"'");
+		error("Failed to load prototype " + chunkname + " using mode '" + mode + "'");
 		return null;
 	}
-	
+
 	/** Compile lua source from a Reader into a Prototype. The characters in the reader 
 	 * are converted to bytes using the UTF-8 encoding, so a string literal containing 
 	 * characters with codepoints 128 or above will be converted into multiple bytes. 
@@ -252,7 +252,7 @@ public class Globals extends LuaTable {
 	public Prototype compilePrototype(Reader reader, String chunkname) throws IOException {
 		return compilePrototype(new UTF8Stream(reader), chunkname);
 	}
-	
+
 	/** Compile lua source from an InputStream into a Prototype. 
 	 * The input is assumed to be UTf-8, but since bytes in the range 128-255 are passed along as 
 	 * literal bytes, any ASCII-compatible encoding such as ISO 8859-1 may also be used.  
@@ -279,20 +279,24 @@ public class Globals extends LuaTable {
 		final String s;
 		int i = 0;
 		final int n;
+
 		StrReader(String s) {
 			this.s = s;
 			n = s.length();
 		}
+
 		public void close() throws IOException {
 			i = n;
 		}
+
 		public int read() throws IOException {
 			return i < n ? s.charAt(i++) : -1;
 		}
+
 		public int read(char[] cbuf, int off, int len) throws IOException {
 			int j = 0;
 			for (; j < len && i < n; ++j, ++i)
-				cbuf[off+j] = s.charAt(i);
+				cbuf[off + j] = s.charAt(i);
 			return j > 0 || len == 0 ? j : -1;
 		}
 	}
@@ -303,30 +307,38 @@ public class Globals extends LuaTable {
 	abstract static class AbstractBufferedStream extends InputStream {
 		protected byte[] b;
 		protected int i = 0, j = 0;
+
 		protected AbstractBufferedStream(int buflen) {
 			this.b = new byte[buflen];
 		}
+
 		abstract protected int avail() throws IOException;
+
 		public int read() throws IOException {
 			int a = avail();
 			return (a <= 0 ? -1 : 0xff & b[i++]);
 		}
+
 		public int read(byte[] b) throws IOException {
 			return read(b, 0, b.length);
 		}
+
 		public int read(byte[] b, int i0, int n) throws IOException {
 			int a = avail();
-			if (a <= 0) return -1;
+			if (a <= 0)
+				return -1;
 			final int n_read = Math.min(a, n);
-			System.arraycopy(this.b,  i,  b,  i0,  n_read);
+			System.arraycopy(this.b, i, b, i0, n_read);
 			i += n_read;
 			return n_read;
 		}
+
 		public long skip(long n) throws IOException {
 			final long k = Math.min(n, j - i);
 			i += k;
 			return k;
-		}		
+		}
+
 		public int available() throws IOException {
 			return j - i;
 		}
@@ -339,12 +351,15 @@ public class Globals extends LuaTable {
 	static class UTF8Stream extends AbstractBufferedStream {
 		private final char[] c = new char[32];
 		private final Reader r;
+
 		UTF8Stream(Reader r) {
 			super(96);
 			this.r = r;
 		}
+
 		protected int avail() throws IOException {
-			if (i < j) return j - i;
+			if (i < j)
+				return j - i;
 			int n = r.read(c);
 			if (n < 0)
 				return -1;
@@ -358,11 +373,12 @@ public class Globals extends LuaTable {
 			j = LuaString.encodeToUtf8(c, n, b, i = 0);
 			return j;
 		}
+
 		public void close() throws IOException {
 			r.close();
 		}
 	}
-	
+
 	/** Simple buffered InputStream that supports mark.
 	 * Used to examine an InputStream for a 4-byte binary lua signature, 
 	 * and fall back to text input when the signature is not found,
@@ -371,16 +387,21 @@ public class Globals extends LuaTable {
 	 */
 	static class BufferedStream extends AbstractBufferedStream {
 		private final InputStream s;
+
 		public BufferedStream(InputStream s) {
 			this(128, s);
 		}
+
 		BufferedStream(int buflen, InputStream s) {
 			super(buflen);
 			this.s = s;
 		}
+
 		protected int avail() throws IOException {
-			if (i < j) return j - i;
-			if (j >= b.length) i = j = 0;
+			if (i < j)
+				return j - i;
+			if (j >= b.length)
+				i = j = 0;
 			// leave previous bytes in place to implement mark()/reset().
 			int n = s.read(b, j, b.length - j);
 			if (n < 0)
@@ -395,9 +416,11 @@ public class Globals extends LuaTable {
 			j += n;
 			return n;
 		}
+
 		public void close() throws IOException {
 			s.close();
 		}
+
 		public synchronized void mark(int n) {
 			if (i > 0 || n > b.length) {
 				byte[] dest = n > b.length ? new byte[n] : b;
@@ -407,9 +430,11 @@ public class Globals extends LuaTable {
 				b = dest;
 			}
 		}
+
 		public boolean markSupported() {
 			return true;
 		}
+
 		public synchronized void reset() throws IOException {
 			i = 0;
 		}

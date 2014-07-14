@@ -62,64 +62,64 @@ import org.luaj.vm3.LuaValue;
  * @see LuajavaLib
  */
 public class CoerceJavaToLua {
-	
-	static interface Coercion { 
-		public LuaValue coerce( Object javaValue );
+
+	static interface Coercion {
+		public LuaValue coerce(Object javaValue);
 	};
-	
+
 	static final Map COERCIONS = new HashMap();
-	
+
 	static {
 		Coercion boolCoercion = new Coercion() {
-			public LuaValue coerce( Object javaValue ) {
+			public LuaValue coerce(Object javaValue) {
 				Boolean b = (Boolean) javaValue;
-				return b.booleanValue()? LuaValue.TRUE: LuaValue.FALSE;
-			} 
-		} ;
+				return b.booleanValue() ? LuaValue.TRUE : LuaValue.FALSE;
+			}
+		};
 		Coercion intCoercion = new Coercion() {
-			public LuaValue coerce( Object javaValue ) {
+			public LuaValue coerce(Object javaValue) {
 				Number n = (Number) javaValue;
-				return LuaInteger.valueOf( n.intValue() );
-			} 
-		} ;
+				return LuaInteger.valueOf(n.intValue());
+			}
+		};
 		Coercion charCoercion = new Coercion() {
-			public LuaValue coerce( Object javaValue ) {
+			public LuaValue coerce(Object javaValue) {
 				Character c = (Character) javaValue;
-				return LuaInteger.valueOf( c.charValue() );
-			} 
-		} ;
+				return LuaInteger.valueOf(c.charValue());
+			}
+		};
 		Coercion doubleCoercion = new Coercion() {
-			public LuaValue coerce( Object javaValue ) {
+			public LuaValue coerce(Object javaValue) {
 				Number n = (Number) javaValue;
-				return LuaDouble.valueOf( n.doubleValue() );
-			} 
-		} ;
+				return LuaDouble.valueOf(n.doubleValue());
+			}
+		};
 		Coercion stringCoercion = new Coercion() {
-			public LuaValue coerce( Object javaValue ) {
-				return LuaString.valueOf( javaValue.toString() );
-			} 
-		} ;
+			public LuaValue coerce(Object javaValue) {
+				return LuaString.valueOf(javaValue.toString());
+			}
+		};
 		Coercion bytesCoercion = new Coercion() {
-			public LuaValue coerce( Object javaValue ) {
+			public LuaValue coerce(Object javaValue) {
 				return LuaValue.valueOf((byte[]) javaValue);
-			} 
-		} ;
+			}
+		};
 		Coercion classCoercion = new Coercion() {
-			public LuaValue coerce( Object javaValue ) {
+			public LuaValue coerce(Object javaValue) {
 				return JavaClass.forClass((Class) javaValue);
-			} 
-		} ;
-		COERCIONS.put( Boolean.class, boolCoercion );
-		COERCIONS.put( Byte.class, intCoercion );
-		COERCIONS.put( Character.class, charCoercion );
-		COERCIONS.put( Short.class, intCoercion );
-		COERCIONS.put( Integer.class, intCoercion );
-		COERCIONS.put( Long.class, doubleCoercion );
-		COERCIONS.put( Float.class, doubleCoercion );
-		COERCIONS.put( Double.class, doubleCoercion );
-		COERCIONS.put( String.class, stringCoercion );
-		COERCIONS.put( byte[].class, bytesCoercion );
-		COERCIONS.put( Class.class, classCoercion );
+			}
+		};
+		COERCIONS.put(Boolean.class, boolCoercion);
+		COERCIONS.put(Byte.class, intCoercion);
+		COERCIONS.put(Character.class, charCoercion);
+		COERCIONS.put(Short.class, intCoercion);
+		COERCIONS.put(Integer.class, intCoercion);
+		COERCIONS.put(Long.class, doubleCoercion);
+		COERCIONS.put(Float.class, doubleCoercion);
+		COERCIONS.put(Double.class, doubleCoercion);
+		COERCIONS.put(String.class, stringCoercion);
+		COERCIONS.put(byte[].class, bytesCoercion);
+		COERCIONS.put(Class.class, classCoercion);
 	}
 
 	/**
@@ -140,15 +140,13 @@ public class CoerceJavaToLua {
 	 * @see LuaUserdata
 	 */
 	public static LuaValue coerce(Object o) {
-		if ( o == null )
+		if (o == null)
 			return LuaValue.NIL;
 		Class clazz = o.getClass();
-		Coercion c = (Coercion) COERCIONS.get( clazz );
-		if ( c == null ) {
-			c = clazz.isArray()? arrayCoercion:
-				o instanceof LuaValue ? luaCoercion:
-					instanceCoercion;
-			COERCIONS.put( clazz, c );
+		Coercion c = (Coercion) COERCIONS.get(clazz);
+		if (c == null) {
+			c = clazz.isArray() ? arrayCoercion : o instanceof LuaValue ? luaCoercion : instanceCoercion;
+			COERCIONS.put(clazz, c);
 		}
 		return c.coerce(o);
 	}
@@ -158,17 +156,17 @@ public class CoerceJavaToLua {
 			return new JavaInstance(javaValue);
 		}
 	};
-	
+
 	// should be userdata? 
 	static final Coercion arrayCoercion = new Coercion() {
 		public LuaValue coerce(Object javaValue) {
 			return new JavaArray(javaValue);
 		}
-	};	
+	};
 
 	static final Coercion luaCoercion = new Coercion() {
-		public LuaValue coerce( Object javaValue ) {
+		public LuaValue coerce(Object javaValue) {
 			return (LuaValue) javaValue;
-		} 
-	} ;
+		}
+	};
 }

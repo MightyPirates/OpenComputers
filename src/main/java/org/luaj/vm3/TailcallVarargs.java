@@ -45,50 +45,49 @@ public class TailcallVarargs extends Varargs {
 	private LuaValue func;
 	private Varargs args;
 	private Varargs result;
-	
+
 	public TailcallVarargs(LuaValue f, Varargs args) {
 		this.func = f;
 		this.args = args;
 	}
-	
+
 	public TailcallVarargs(LuaValue object, LuaValue methodname, Varargs args) {
 		this.func = object.get(methodname);
 		this.args = LuaValue.varargsOf(object, args);
 	}
-	
+
 	public boolean isTailcall() {
 		return true;
 	}
-	
+
 	public Varargs eval() {
-		while ( result == null ) {
+		while (result == null) {
 			Varargs r = func.onInvoke(args);
 			if (r.isTailcall()) {
 				TailcallVarargs t = (TailcallVarargs) r;
 				func = t.func;
 				args = t.args;
-			}
-			else {
-				result = r;			
+			} else {
+				result = r;
 				func = null;
 				args = null;
 			}
 		}
 		return result;
 	}
-	
-	public LuaValue arg( int i ) {
-		if ( result == null )
+
+	public LuaValue arg(int i) {
+		if (result == null)
 			eval();
 		return result.arg(i);
 	}
-	
+
 	public LuaValue arg1() {
 		if (result == null)
 			eval();
 		return result.arg1();
 	}
-	
+
 	public int narg() {
 		if (result == null)
 			eval();

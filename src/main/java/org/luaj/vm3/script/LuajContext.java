@@ -49,7 +49,7 @@ public class LuajContext extends SimpleScriptContext implements ScriptContext {
 	private final PrintStream stdout;
 	/** The initial value of globals.STDERR */
 	private final PrintStream stderr;
-	
+
 	/** Construct a LuajContext with its own globals which may
 	 * be debug globals depending on the value of the system
 	 * property 'org.luaj.debug'
@@ -60,8 +60,7 @@ public class LuajContext extends SimpleScriptContext implements ScriptContext {
 	 * have negative impact on performance.
 	 */
 	public LuajContext() {
-		this("true".equals(System.getProperty("org.luaj.debug")),
-			"true".equals(System.getProperty("org.luaj.luajc")));
+		this("true".equals(System.getProperty("org.luaj.debug")), "true".equals(System.getProperty("org.luaj.luajc")));
 	}
 
 	/** Construct a LuajContext with its own globals, which
@@ -78,62 +77,62 @@ public class LuajContext extends SimpleScriptContext implements ScriptContext {
 	 * reqwuires bcel to be on the class path.
 	 */
 	public LuajContext(boolean createDebugGlobals, boolean useLuaJCCompiler) {
-		globals = createDebugGlobals?
-    		JsePlatform.debugGlobals():
-    		JsePlatform.standardGlobals();
-    	stdin = globals.STDIN;
-    	stdout = globals.STDOUT;
-    	stderr = globals.STDERR;
+		globals = createDebugGlobals ? JsePlatform.debugGlobals() : JsePlatform.standardGlobals();
+		stdin = globals.STDIN;
+		stdout = globals.STDOUT;
+		stderr = globals.STDERR;
 	}
-	
+
 	@Override
 	public void setErrorWriter(Writer writer) {
-		globals.STDERR = writer != null?
-				new PrintStream(new WriterOutputStream(writer)):
-				stderr;
+		globals.STDERR = writer != null ? new PrintStream(new WriterOutputStream(writer)) : stderr;
 	}
 
 	@Override
 	public void setReader(Reader reader) {
-		globals.STDIN = reader != null?
-				new ReaderInputStream(reader):
-				stdin;
+		globals.STDIN = reader != null ? new ReaderInputStream(reader) : stdin;
 	}
 
 	@Override
 	public void setWriter(Writer writer) {
-		globals.STDOUT = writer != null?
-				new PrintStream(new WriterOutputStream(writer), true):
-				stdout;
+		globals.STDOUT = writer != null ? new PrintStream(new WriterOutputStream(writer), true) : stdout;
 	}
 
 	static final class WriterOutputStream extends OutputStream {
 		final Writer w;
+
 		WriterOutputStream(Writer w) {
 			this.w = w;
 		}
+
 		public void write(int b) throws IOException {
-			w.write(new String(new byte[] {(byte)b}));
+			w.write(new String(new byte[] { (byte) b }));
 		}
+
 		public void write(byte[] b, int o, int l) throws IOException {
 			w.write(new String(b, o, l));
 		}
+
 		public void write(byte[] b) throws IOException {
 			w.write(new String(b));
 		}
+
 		public void close() throws IOException {
 			w.close();
 		}
+
 		public void flush() throws IOException {
 			w.flush();
 		}
 	}
-	
+
 	static final class ReaderInputStream extends InputStream {
 		final Reader r;
+
 		ReaderInputStream(Reader r) {
 			this.r = r;
 		}
+
 		public int read() throws IOException {
 			return r.read();
 		}

@@ -67,7 +67,7 @@ public class CoroutineLib extends TwoArgFunction {
 	static int coroutine_count = 0;
 
 	Globals globals;
-	
+
 	public LuaValue call(LuaValue modname, LuaValue env) {
 		globals = env.checkglobals();
 		LuaTable coroutine = new LuaTable();
@@ -91,7 +91,7 @@ public class CoroutineLib extends TwoArgFunction {
 	final class resume extends VarArgFunction {
 		public Varargs invoke(Varargs args) {
 			final LuaThread t = args.checkthread(1);
-			return t.resume( args.subargs(2) );
+			return t.resume(args.subargs(2));
 		}
 	}
 
@@ -105,13 +105,13 @@ public class CoroutineLib extends TwoArgFunction {
 	static final class status extends LibFunction {
 		public LuaValue call(LuaValue t) {
 			LuaThread lt = t.checkthread();
-			return valueOf( lt.getStatus() );
+			return valueOf(lt.getStatus());
 		}
 	}
-	
+
 	final class yield extends VarArgFunction {
 		public Varargs invoke(Varargs args) {
-			return globals.yield( args );
+			return globals.yield(args);
 		}
 	}
 
@@ -125,15 +125,17 @@ public class CoroutineLib extends TwoArgFunction {
 
 	final class wrapper extends VarArgFunction {
 		final LuaThread luathread;
+
 		wrapper(LuaThread luathread) {
 			this.luathread = luathread;
 		}
+
 		public Varargs invoke(Varargs args) {
 			final Varargs result = luathread.resume(args);
-			if ( result.arg1().toboolean() ) {
+			if (result.arg1().toboolean()) {
 				return result.subargs(2);
 			} else {
-				return error( result.arg(2).tojstring() );
+				return error(result.arg(2).tojstring());
 			}
 		}
 	}

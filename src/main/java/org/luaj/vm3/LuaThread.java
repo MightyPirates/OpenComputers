@@ -21,7 +21,6 @@
 ******************************************************************************/
 package org.luaj.vm3;
 
-
 import java.lang.ref.WeakReference;
 
 /** 
@@ -67,23 +66,18 @@ public class LuaThread extends LuaValue {
 	 * This can be changed by Java startup code if desired.
 	 */
 	static long thread_orphan_check_interval = 30000;
-	
-	public static final int STATUS_INITIAL       = 0;
-	public static final int STATUS_SUSPENDED     = 1;
-	public static final int STATUS_RUNNING       = 2;
-	public static final int STATUS_NORMAL        = 3;
-	public static final int STATUS_DEAD          = 4;
-	public static final String[] STATUS_NAMES = { 
-		"suspended", 
-		"suspended", 
-		"running", 
-		"normal", 
-		"dead",};
-	
+
+	public static final int STATUS_INITIAL = 0;
+	public static final int STATUS_SUSPENDED = 1;
+	public static final int STATUS_RUNNING = 2;
+	public static final int STATUS_NORMAL = 3;
+	public static final int STATUS_DEAD = 4;
+	public static final String[] STATUS_NAMES = { "suspended", "suspended", "running", "normal", "dead", };
+
 	public final State state;
 
-	public static final int        MAX_CALLSTACK = 256;
-	
+	public static final int MAX_CALLSTACK = 256;
+
 	/** Interval to check for LuaThread dereferencing.  */
 	public static int GC_INTERVAL = 30000;
 
@@ -107,48 +101,47 @@ public class LuaThread extends LuaValue {
 	public int lastline;
 	public int bytecodes;
 
-	
 	/** Private constructor for main thread only */
 	public LuaThread(Globals globals) {
 		state = new State(globals, this, null);
 		state.status = STATUS_RUNNING;
 		this.globals = globals;
 	}
-	
+
 	/** 
 	 * Create a LuaThread around a function and environment
 	 * @param func The function to execute
 	 */
-	public LuaThread(Globals globals, LuaValue func) {	
+	public LuaThread(Globals globals, LuaValue func) {
 		LuaValue.assert_(func != null, "function cannot be null");
 		state = new State(globals, this, func);
 		this.globals = globals;
 	}
-	
+
 	public int type() {
 		return LuaValue.TTHREAD;
 	}
-	
+
 	public String typename() {
 		return "thread";
 	}
-	
+
 	public boolean isthread() {
 		return true;
 	}
-	
+
 	public LuaThread optthread(LuaThread defval) {
 		return this;
 	}
-	
+
 	public LuaThread checkthread() {
 		return this;
 	}
-	
-	public LuaValue getmetatable() { 
-		return s_metatable; 
+
+	public LuaValue getmetatable() {
+		return s_metatable;
 	}
-	
+
 	public String getStatus() {
 		return STATUS_NAMES[state.status];
 	}
@@ -160,8 +153,7 @@ public class LuaThread extends LuaValue {
 	public Varargs resume(Varargs args) {
 		final LuaThread.State s = this.state;
 		if (s.status > LuaThread.STATUS_SUSPENDED)
-			return LuaValue.varargsOf(LuaValue.FALSE, 
-					LuaValue.valueOf("cannot resume "+(s.status==LuaThread.STATUS_DEAD? "dead": "non-suspended")+" coroutine"));
+			return LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("cannot resume " + (s.status == LuaThread.STATUS_DEAD ? "dead" : "non-suspended") + " coroutine"));
 		return s.lua_resume(this, args);
 	}
 
@@ -179,7 +171,7 @@ public class LuaThread extends LuaValue {
 			this.lua_thread = new WeakReference(lua_thread);
 			this.function = function;
 		}
-		
+
 		public synchronized void run() {
 			try {
 				Varargs a = this.args;
@@ -199,8 +191,8 @@ public class LuaThread extends LuaValue {
 				globals.running = new_thread;
 				this.args = args;
 				if (this.status == STATUS_INITIAL) {
-					this.status = STATUS_RUNNING; 
-					new Thread(this, "Coroutine-"+(++coroutine_count)).start();
+					this.status = STATUS_RUNNING;
+					new Thread(this, "Coroutine-" + (++coroutine_count)).start();
 				} else {
 					this.notify();
 				}
@@ -208,9 +200,7 @@ public class LuaThread extends LuaValue {
 					previous_thread.state.status = STATUS_NORMAL;
 				this.status = STATUS_RUNNING;
 				this.wait();
-				return (this.error != null? 
-					LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf(this.error)):
-					LuaValue.varargsOf(LuaValue.TRUE, this.result));
+				return (this.error != null ? LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf(this.error)) : LuaValue.varargsOf(LuaValue.TRUE, this.result));
 			} catch (InterruptedException ie) {
 				throw new OrphanedThread();
 			} finally {
@@ -219,7 +209,7 @@ public class LuaThread extends LuaValue {
 				this.error = null;
 				globals.running = previous_thread;
 				if (previous_thread != null)
-					globals.running.state.status =STATUS_RUNNING;
+					globals.running.state.status = STATUS_RUNNING;
 			}
 		}
 
@@ -245,5 +235,5 @@ public class LuaThread extends LuaValue {
 			}
 		}
 	}
-		
+
 }

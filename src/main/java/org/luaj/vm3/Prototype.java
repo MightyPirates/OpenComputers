@@ -83,7 +83,7 @@ package org.luaj.vm3;
 
 public class Prototype {
 	/* constants used by the function */
-	public LuaValue[] k; 
+	public LuaValue[] k;
 	public int[] code;
 	/* functions defined inside the function */
 	public Prototype[] p;
@@ -93,24 +93,23 @@ public class Prototype {
 	public LocVars[] locvars;
 	/* upvalue information */
 	public Upvaldesc[] upvalues;
-	public LuaString  source;
+	public LuaString source;
 	public int linedefined;
 	public int lastlinedefined;
 	public int numparams;
 	public int is_vararg;
 	public int maxstacksize;
 
-
 	public Prototype() {}
-	
+
 	public Prototype(int n_upvalues) {
 		upvalues = new Upvaldesc[n_upvalues];
 	}
-	
+
 	public String toString() {
-		return source + ":" + linedefined+"-"+lastlinedefined;
+		return source + ":" + linedefined + "-" + lastlinedefined;
 	}
-	
+
 	/** Get the name of a local variable.
 	 * 
 	 * @param number the local variable number to look up
@@ -118,25 +117,25 @@ public class Prototype {
 	 * @return the name, or null if not found
 	 */
 	public LuaString getlocalname(int number, int pc) {
-	  int i;
-	  for (i = 0; i<locvars.length && locvars[i].startpc <= pc; i++) {
-	    if (pc < locvars[i].endpc) {  /* is variable active? */
-	    	number--;
-	      if (number == 0)
-	        return locvars[i].varname;
-	    }
-	  }
-	  return null;  /* not found */
+		int i;
+		for (i = 0; i < locvars.length && locvars[i].startpc <= pc; i++) {
+			if (pc < locvars[i].endpc) { /* is variable active? */
+				number--;
+				if (number == 0)
+					return locvars[i].varname;
+			}
+		}
+		return null; /* not found */
 	}
-	
+
 	public String shortsource() {
 		String name = source.tojstring();
-        if ( name.startsWith("@") || name.startsWith("=") )
-        	if (name.length() <= Lua.MAXSRC)
-        		name = name.substring(1);
-        	else
-        		name = name.substring(1,Lua.MAXSRC - 3) + "...";
-		else if ( name.startsWith("\033") )
+		if (name.startsWith("@") || name.startsWith("="))
+			if (name.length() <= Lua.MAXSRC)
+				name = name.substring(1);
+			else
+				name = name.substring(1, Lua.MAXSRC - 3) + "...";
+		else if (name.startsWith("\033"))
 			name = "binary string";
 		else {
 			int nl = name.indexOf('\n');
@@ -150,6 +149,6 @@ public class Prototype {
 			sbName.append("\"]");
 			name = sbName.toString();
 		}
-        return name;
+		return name;
 	}
 }

@@ -23,8 +23,9 @@ package org.luaj.vm3.compiler;
 
 public class IntPtr {
 	int i;
-	IntPtr() {
-	}
+
+	IntPtr() {}
+
 	IntPtr(int value) {
 		this.i = value;
 	}

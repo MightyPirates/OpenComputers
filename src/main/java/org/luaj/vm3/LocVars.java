@@ -27,13 +27,13 @@ package org.luaj.vm3;
 public class LocVars {
 	/** The local variable name */
 	public LuaString varname;
-	
-	/** The instruction offset when the variable comes into scope */ 
+
+	/** The instruction offset when the variable comes into scope */
 	public int startpc;
-	
-	/** The instruction offset when the variable goes out of scope */ 
+
+	/** The instruction offset when the variable goes out of scope */
 	public int endpc;
-	
+
 	/**
 	 * Construct a LocVars instance. 
 	 * @param varname The local variable name
@@ -45,8 +45,8 @@ public class LocVars {
 		this.startpc = startpc;
 		this.endpc = endpc;
 	}
-	
+
 	public String tojstring() {
-		return varname+" "+startpc+"-"+endpc;
+		return varname + " " + startpc + "-" + endpc;
 	}
 }

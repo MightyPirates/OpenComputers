@@ -27,7 +27,6 @@ import java.io.InputStream;
 
 import org.luaj.vm3.compiler.DumpState;
 
-
 /**
 * Class to undump compiled lua bytecode into a {@link Prototype} instances.
 * <p>
@@ -86,62 +85,60 @@ public class LoadState implements Globals.Undumper {
 
 	/** Shared instance of Globals.Undumper to use loading prototypes from binary lua files */
 	public static final Globals.Undumper instance = new LoadState();
-	
+
 	/** format corresponding to non-number-patched lua, all numbers are floats or doubles */
-	public static final int NUMBER_FORMAT_FLOATS_OR_DOUBLES    = 0;
+	public static final int NUMBER_FORMAT_FLOATS_OR_DOUBLES = 0;
 
 	/** format corresponding to non-number-patched lua, all numbers are ints */
-	public static final int NUMBER_FORMAT_INTS_ONLY            = 1;
-	
+	public static final int NUMBER_FORMAT_INTS_ONLY = 1;
+
 	/** format corresponding to number-patched lua, all numbers are 32-bit (4 byte) ints */
-	public static final int NUMBER_FORMAT_NUM_PATCH_INT32      = 4;
-	
+	public static final int NUMBER_FORMAT_NUM_PATCH_INT32 = 4;
+
 	// type constants	
-	public static final int LUA_TINT            = (-2);
-	public static final int LUA_TNONE			= (-1);
-	public static final int LUA_TNIL			= 0;
-	public static final int LUA_TBOOLEAN		= 1;
-	public static final int LUA_TLIGHTUSERDATA	= 2;
-	public static final int LUA_TNUMBER			= 3;
-	public static final int LUA_TSTRING			= 4;
-	public static final int LUA_TTABLE			= 5;
-	public static final int LUA_TFUNCTION		= 6;
-	public static final int LUA_TUSERDATA		= 7;
-	public static final int LUA_TTHREAD			= 8;
-	public static final int LUA_TVALUE          = 9;
-	
+	public static final int LUA_TINT = (-2);
+	public static final int LUA_TNONE = (-1);
+	public static final int LUA_TNIL = 0;
+	public static final int LUA_TBOOLEAN = 1;
+	public static final int LUA_TLIGHTUSERDATA = 2;
+	public static final int LUA_TNUMBER = 3;
+	public static final int LUA_TSTRING = 4;
+	public static final int LUA_TTABLE = 5;
+	public static final int LUA_TFUNCTION = 6;
+	public static final int LUA_TUSERDATA = 7;
+	public static final int LUA_TTHREAD = 8;
+	public static final int LUA_TVALUE = 9;
+
 	/** The character encoding to use for file encoding.  Null means the default encoding */
 	public static String encoding = null;
-	
+
 	/** Signature byte indicating the file is a compiled binary chunk */
-	public static final byte[] LUA_SIGNATURE	= { '\033', 'L', 'u', 'a' };
+	public static final byte[] LUA_SIGNATURE = { '\033', 'L', 'u', 'a' };
 
 	/** Data to catch conversion errors */
 	public static final byte[] LUAC_TAIL = { (byte) 0x19, (byte) 0x93, '\r', '\n', (byte) 0x1a, '\n', };
-	
 
 	/** Name for compiled chunks */
 	public static final String SOURCE_BINARY_STRING = "binary string";
 
-
 	/** for header of binary files -- this is Lua 5.2 */
-	public static final int LUAC_VERSION		= 0x52;
+	public static final int LUAC_VERSION = 0x52;
 
 	/** for header of binary files -- this is the official format */
-	public static final int LUAC_FORMAT		= 0;
+	public static final int LUAC_FORMAT = 0;
 
 	/** size of header of binary files */
-	public static final int LUAC_HEADERSIZE		= 12;
+	public static final int LUAC_HEADERSIZE = 12;
 
 	// values read from the header
-	private int     luacVersion;
-	private int     luacFormat;
+	private int luacVersion;
+	private int luacFormat;
 	private boolean luacLittleEndian;
-	private int     luacSizeofInt;
-	private int     luacSizeofSizeT;
-	private int     luacSizeofInstruction;
-	private int     luacSizeofLuaNumber;
-	private int 	luacNumberFormat;
+	private int luacSizeofInt;
+	private int luacSizeofSizeT;
+	private int luacSizeofInstruction;
+	private int luacSizeofLuaNumber;
+	private int luacNumberFormat;
 
 	/** input stream from which we are loading */
 	public final DataInputStream is;
@@ -149,13 +146,13 @@ public class LoadState implements Globals.Undumper {
 	/** Name of what is being loaded? */
 	String name;
 
-	private static final LuaValue[]     NOVALUES    = {};
-	private static final Prototype[] NOPROTOS    = {};
-	private static final LocVars[]   NOLOCVARS   = {};
-	private static final LuaString[]  NOSTRVALUES = {};
-	private static final Upvaldesc[]  NOUPVALDESCS = {};
-	private static final int[]       NOINTS      = {};
-	
+	private static final LuaValue[] NOVALUES = {};
+	private static final Prototype[] NOPROTOS = {};
+	private static final LocVars[] NOLOCVARS = {};
+	private static final LuaString[] NOSTRVALUES = {};
+	private static final Upvaldesc[] NOUPVALDESCS = {};
+	private static final int[] NOINTS = {};
+
 	/** Read buffer */
 	private byte[] buf = new byte[512];
 
@@ -163,101 +160,97 @@ public class LoadState implements Globals.Undumper {
 	public static void install(Globals globals) {
 		globals.undumper = instance;
 	}
-	
+
 	/** Load a 4-byte int value from the input stream
 	 * @return the int value laoded.  
 	 **/
 	int loadInt() throws IOException {
-		is.readFully(buf,0,4);
-		return luacLittleEndian? 
-				(buf[3] << 24) | ((0xff & buf[2]) << 16) | ((0xff & buf[1]) << 8) | (0xff & buf[0]):
-				(buf[0] << 24) | ((0xff & buf[1]) << 16) | ((0xff & buf[2]) << 8) | (0xff & buf[3]);
+		is.readFully(buf, 0, 4);
+		return luacLittleEndian ? (buf[3] << 24) | ((0xff & buf[2]) << 16) | ((0xff & buf[1]) << 8) | (0xff & buf[0]) : (buf[0] << 24) | ((0xff & buf[1]) << 16) | ((0xff & buf[2]) << 8) | (0xff & buf[3]);
 	}
-	
+
 	/** Load an array of int values from the input stream
 	 * @return the array of int values laoded.  
 	 **/
 	int[] loadIntArray() throws IOException {
 		int n = loadInt();
-		if ( n == 0 )
+		if (n == 0)
 			return NOINTS;
-		
+
 		// read all data at once
 		int m = n << 2;
-		if ( buf.length < m )
+		if (buf.length < m)
 			buf = new byte[m];
-		is.readFully(buf,0,m);
+		is.readFully(buf, 0, m);
 		int[] array = new int[n];
-		for ( int i=0, j=0; i<n; ++i, j+=4 )
-			array[i] = luacLittleEndian? 
-					(buf[j+3] << 24) | ((0xff & buf[j+2]) << 16) | ((0xff & buf[j+1]) << 8) | (0xff & buf[j+0]):
-					(buf[j+0] << 24) | ((0xff & buf[j+1]) << 16) | ((0xff & buf[j+2]) << 8) | (0xff & buf[j+3]);
+		for (int i = 0, j = 0; i < n; ++i, j += 4)
+			array[i] = luacLittleEndian ? (buf[j + 3] << 24) | ((0xff & buf[j + 2]) << 16) | ((0xff & buf[j + 1]) << 8) | (0xff & buf[j + 0]) : (buf[j + 0] << 24) | ((0xff & buf[j + 1]) << 16) | ((0xff & buf[j + 2]) << 8) | (0xff & buf[j + 3]);
 
 		return array;
 	}
-	
+
 	/** Load a long  value from the input stream
 	 * @return the long value laoded.  
 	 **/
 	long loadInt64() throws IOException {
-		int a,b;
-		if ( this.luacLittleEndian ) {
+		int a, b;
+		if (this.luacLittleEndian) {
 			a = loadInt();
 			b = loadInt();
 		} else {
 			b = loadInt();
 			a = loadInt();
 		}
-		return (((long)b)<<32) | (((long)a)&0xffffffffL);
+		return (((long) b) << 32) | (((long) a) & 0xffffffffL);
 	}
 
 	/** Load a lua strin gvalue from the input stream
 	 * @return the {@link LuaString} value laoded.  
 	 **/
 	LuaString loadString() throws IOException {
-		int size = this.luacSizeofSizeT == 8? (int) loadInt64(): loadInt();
-		if ( size == 0 )
+		int size = this.luacSizeofSizeT == 8 ? (int) loadInt64() : loadInt();
+		if (size == 0)
 			return null;
 		byte[] bytes = new byte[size];
-		is.readFully( bytes, 0, size );
-		return LuaString.valueOf( bytes, 0, bytes.length - 1 );
+		is.readFully(bytes, 0, size);
+		return LuaString.valueOf(bytes, 0, bytes.length - 1);
 	}
-	
+
 	/**
 	 * Convert bits in a long value to a {@link LuaValue}. 
 	 * @param bits long value containing the bits
 	 * @return {@link LuaInteger} or {@link LuaDouble} whose value corresponds to the bits provided.
 	 */
-	public static LuaValue longBitsToLuaNumber( long bits ) {
-		if ( ( bits & ( ( 1L << 63 ) - 1 ) ) == 0L ) {
+	public static LuaValue longBitsToLuaNumber(long bits) {
+		if ((bits & ((1L << 63) - 1)) == 0L) {
 			return LuaValue.ZERO;
 		}
-		
-		int e = (int)((bits >> 52) & 0x7ffL) - 1023;
-		
-		if ( e >= 0 && e < 31 ) {
+
+		int e = (int) ((bits >> 52) & 0x7ffL) - 1023;
+
+		if (e >= 0 && e < 31) {
 			long f = bits & 0xFFFFFFFFFFFFFL;
 			int shift = 52 - e;
-			long intPrecMask = ( 1L << shift ) - 1;
-			if ( ( f & intPrecMask ) == 0 ) {
-				int intValue = (int)( f >> shift ) | ( 1 << e );
-				return LuaInteger.valueOf( ( ( bits >> 63 ) != 0 ) ? -intValue : intValue );
+			long intPrecMask = (1L << shift) - 1;
+			if ((f & intPrecMask) == 0) {
+				int intValue = (int) (f >> shift) | (1 << e);
+				return LuaInteger.valueOf(((bits >> 63) != 0) ? -intValue : intValue);
 			}
 		}
-		
-		return LuaValue.valueOf( Double.longBitsToDouble(bits) );
+
+		return LuaValue.valueOf(Double.longBitsToDouble(bits));
 	}
-	
+
 	/** 
 	 * Load a number from a binary chunk
 	 * @return the {@link LuaValue} loaded
 	 * @throws IOException if an i/o exception occurs
 	 */
 	LuaValue loadNumber() throws IOException {
-		if ( luacNumberFormat == NUMBER_FORMAT_INTS_ONLY ) {
-			return LuaInteger.valueOf( loadInt() );
+		if (luacNumberFormat == NUMBER_FORMAT_INTS_ONLY) {
+			return LuaInteger.valueOf(loadInt());
 		} else {
-			return longBitsToLuaNumber( loadInt64() );
+			return longBitsToLuaNumber(loadInt64());
 		}
 	}
 
@@ -268,17 +261,17 @@ public class LoadState implements Globals.Undumper {
 	 */
 	void loadConstants(Prototype f) throws IOException {
 		int n = loadInt();
-		LuaValue[] values = n>0? new LuaValue[n]: NOVALUES;
-		for ( int i=0; i<n; i++ ) {
-			switch ( is.readByte() ) {
+		LuaValue[] values = n > 0 ? new LuaValue[n] : NOVALUES;
+		for (int i = 0; i < n; i++) {
+			switch (is.readByte()) {
 			case LUA_TNIL:
 				values[i] = LuaValue.NIL;
 				break;
 			case LUA_TBOOLEAN:
-				values[i] = (0 != is.readUnsignedByte()? LuaValue.TRUE: LuaValue.FALSE);
+				values[i] = (0 != is.readUnsignedByte() ? LuaValue.TRUE : LuaValue.FALSE);
 				break;
 			case LUA_TINT:
-				values[i] = LuaInteger.valueOf( loadInt() );
+				values[i] = LuaInteger.valueOf(loadInt());
 				break;
 			case LUA_TNUMBER:
 				values[i] = loadNumber();
@@ -291,19 +284,18 @@ public class LoadState implements Globals.Undumper {
 			}
 		}
 		f.k = values;
-		
+
 		n = loadInt();
-		Prototype[] protos = n>0? new Prototype[n]: NOPROTOS;
-		for ( int i=0; i<n; i++ )
+		Prototype[] protos = n > 0 ? new Prototype[n] : NOPROTOS;
+		for (int i = 0; i < n; i++)
 			protos[i] = loadFunction(f.source);
 		f.p = protos;
 	}
 
-
 	void loadUpvalues(Prototype f) throws IOException {
 		int n = loadInt();
-		f.upvalues = n>0? new Upvaldesc[n]: NOUPVALDESCS;
-		for (int i=0; i<n; i++) {
+		f.upvalues = n > 0 ? new Upvaldesc[n] : NOUPVALDESCS;
+		for (int i = 0; i < n; i++) {
 			boolean instack = is.readByte() != 0;
 			int idx = ((int) is.readByte()) & 0xff;
 			f.upvalues[i] = new Upvaldesc(null, instack, idx);
@@ -315,20 +307,20 @@ public class LoadState implements Globals.Undumper {
 	 * @param f the function Prototype
 	 * @throws IOException if there is an i/o exception
 	 */
-	void loadDebug( Prototype f ) throws IOException {
+	void loadDebug(Prototype f) throws IOException {
 		f.source = loadString();
 		f.lineinfo = loadIntArray();
 		int n = loadInt();
-		f.locvars = n>0? new LocVars[n]: NOLOCVARS;
-		for ( int i=0; i<n; i++ ) {
+		f.locvars = n > 0 ? new LocVars[n] : NOLOCVARS;
+		for (int i = 0; i < n; i++) {
 			LuaString varname = loadString();
 			int startpc = loadInt();
 			int endpc = loadInt();
 			f.locvars[i] = new LocVars(varname, startpc, endpc);
 		}
-		
+
 		n = loadInt();
-		for ( int i=0; i<n; i++ )
+		for (int i = 0; i < n; i++)
 			f.upvalues[i].name = loadString();
 	}
 
@@ -340,10 +332,10 @@ public class LoadState implements Globals.Undumper {
 	 */
 	public Prototype loadFunction(LuaString p) throws IOException {
 		Prototype f = new Prototype();
-////		this.L.push(f);
-//		f.source = loadString();
-//		if ( f.source == null )
-//			f.source = p;
+		////		this.L.push(f);
+		//		f.source = loadString();
+		//		if ( f.source == null )
+		//			f.source = p;
 		f.linedefined = loadInt();
 		f.lastlinedefined = loadInt();
 		f.numparams = is.readUnsignedByte();
@@ -353,13 +345,13 @@ public class LoadState implements Globals.Undumper {
 		loadConstants(f);
 		loadUpvalues(f);
 		loadDebug(f);
-		
+
 		// TODO: add check here, for debugging purposes, I believe
 		// see ldebug.c
-//		 IF (!luaG_checkcode(f), "bad code");
-		
-//		 this.L.pop();
-		 return f;
+		//		 IF (!luaG_checkcode(f), "bad code");
+
+		//		 this.L.pop();
+		return f;
 	}
 
 	/**
@@ -375,9 +367,9 @@ public class LoadState implements Globals.Undumper {
 		luacSizeofInstruction = is.readByte();
 		luacSizeofLuaNumber = is.readByte();
 		luacNumberFormat = is.readByte();
-		for (int i=0; i < LUAC_TAIL.length; ++i)
+		for (int i = 0; i < LUAC_TAIL.length; ++i)
 			if (is.readByte() != LUAC_TAIL[i])
-				throw new LuaError("Unexpeted byte in luac tail of header, index="+i);
+				throw new LuaError("Unexpeted byte in luac tail of header, index=" + i);
 	}
 
 	/**
@@ -389,19 +381,16 @@ public class LoadState implements Globals.Undumper {
 	 */
 	public Prototype undump(InputStream stream, String chunkname) throws IOException {
 		// check rest of signature
-		if ( stream.read() != LUA_SIGNATURE[0] 
-		   || stream.read() != LUA_SIGNATURE[1]
-	       || stream.read() != LUA_SIGNATURE[2]
-		   || stream.read() != LUA_SIGNATURE[3] )
+		if (stream.read() != LUA_SIGNATURE[0] || stream.read() != LUA_SIGNATURE[1] || stream.read() != LUA_SIGNATURE[2] || stream.read() != LUA_SIGNATURE[3])
 			return null;
-		
+
 		// load file as a compiled chunk
 		String sname = getSourceName(chunkname);
-		LoadState s = new LoadState( stream, sname );
+		LoadState s = new LoadState(stream, sname);
 		s.loadHeader();
 
 		// check format
-		switch ( s.luacNumberFormat ) {
+		switch (s.luacNumberFormat) {
 		case NUMBER_FORMAT_FLOATS_OR_DOUBLES:
 		case NUMBER_FORMAT_INTS_ONLY:
 		case NUMBER_FORMAT_NUM_PATCH_INT32:
@@ -409,29 +398,29 @@ public class LoadState implements Globals.Undumper {
 		default:
 			throw new LuaError("unsupported int size");
 		}
-		return s.loadFunction( LuaString.valueOf(sname) );
+		return s.loadFunction(LuaString.valueOf(sname));
 	}
-	
+
 	/**
 	 * Construct a source name from a supplied chunk name
 	 * @param name String name that appears in the chunk
 	 * @return source file name
 	 */
-    public static String getSourceName(String name) {
-        String sname = name;
-        if ( name.startsWith("@") || name.startsWith("=") )
+	public static String getSourceName(String name) {
+		String sname = name;
+		if (name.startsWith("@") || name.startsWith("="))
 			sname = name.substring(1);
-		else if ( name.startsWith("\033") )
+		else if (name.startsWith("\033"))
 			sname = SOURCE_BINARY_STRING;
-        return sname;
-    }
+		return sname;
+	}
 
 	/** Private constructor for create a load state */
-	private LoadState( InputStream stream, String name ) {
+	private LoadState(InputStream stream, String name) {
 		this.name = name;
-		this.is = new DataInputStream( stream );
+		this.is = new DataInputStream(stream);
 	}
-	
+
 	private LoadState() {
 		this.name = "";
 		this.is = null;
