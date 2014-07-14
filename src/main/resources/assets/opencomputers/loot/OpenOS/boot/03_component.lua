@@ -97,6 +97,11 @@ function component.setPrimary(componentType, address)
 end
 
 -------------------------------------------------------------------------------
+for address in component.list('screen') do
+  if #component.invoke(address,'getKeyboards') > 0 then
+    component.setPrimary('screen',address)
+  end
+end
 
 local function onComponentAdded(_, address, componentType)
   if not (primaries[componentType] or adding[componentType]) then
