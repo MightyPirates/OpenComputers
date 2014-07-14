@@ -7,7 +7,6 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity.traits.{Colored, Inventory}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
@@ -17,6 +16,9 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 trait Delegate {
+  type Icon = net.minecraft.util.IIcon
+  type IconRegister = net.minecraft.client.renderer.texture.IIconRegister
+
   val unlocalizedName: String
 
   var showInItemList = true
@@ -129,10 +131,10 @@ trait Delegate {
     }
 
   @SideOnly(Side.CLIENT)
-  def icon(side: ForgeDirection): Option[IIcon] = None
+  def icon(side: ForgeDirection): Option[Icon] = None
 
   @SideOnly(Side.CLIENT)
-  def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Option[IIcon] = icon(localSide)
+  def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
 
   def itemBounds(): Unit = parent.setBlockBoundsForItemRender()
 
@@ -140,7 +142,7 @@ trait Delegate {
   def preItemRender() {}
 
   @SideOnly(Side.CLIENT)
-  def registerIcons(iconRegister: IIconRegister) {}
+  def registerIcons(iconRegister: IconRegister) {}
 
   // ----------------------------------------------------------------------- //
 

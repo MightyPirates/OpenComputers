@@ -11,18 +11,17 @@ import li.cil.oc.server.component.robot
 import li.cil.oc.util.{ItemUtils, Tooltip}
 import li.cil.oc.{Blocks, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{AxisAlignedBB, IIcon, MovingObjectPosition, Vec3}
+import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "Robot"
 
-  private var icon: IIcon = _
+  private var icon: Icon = _
 
   var moving = new ThreadLocal[Option[tileentity.Robot]] {
     override protected def initialValue = None
@@ -72,7 +71,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   override def icon(side: ForgeDirection) = Some(icon)
 
   @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IIconRegister) {
+  override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
   }

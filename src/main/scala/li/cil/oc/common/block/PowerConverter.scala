@@ -7,10 +7,8 @@ import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.Mods
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -19,7 +17,7 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   showInItemList = !Settings.get.ignorePower
 
-  private val icons = Array.fill[IIcon](6)(null)
+  private val icons = Array.fill[Icon](6)(null)
 
   private val formatter = new DecimalFormat("#.#")
 
@@ -54,7 +52,7 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 

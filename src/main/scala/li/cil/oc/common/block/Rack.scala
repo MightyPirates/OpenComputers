@@ -7,7 +7,6 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.{IBlockAccess, World}
@@ -24,7 +23,7 @@ class Rack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDeleg
 
   override def icon(side: ForgeDirection) = Some(Textures.Rack.icons(side.ordinal))
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     Textures.Rack.icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     Textures.Rack.icons(ForgeDirection.UP.ordinal) = Textures.Rack.icons(ForgeDirection.DOWN.ordinal)
 

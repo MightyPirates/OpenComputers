@@ -3,15 +3,14 @@ package li.cil.oc.common.block
 import java.util
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.{Settings, api}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Settings, api}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{AxisAlignedBB, IIcon, MovingObjectPosition, StatCollector}
+import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, StatCollector}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -19,7 +18,7 @@ import org.lwjgl.opengl.GL11
 class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Keyboard"
 
-  var icon: IIcon = null
+  var icon: Icon = null
 
   showInItemList = false
 
@@ -41,7 +40,7 @@ class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def icon(side: ForgeDirection) = Some(icon)
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":keyboard")
   }
 

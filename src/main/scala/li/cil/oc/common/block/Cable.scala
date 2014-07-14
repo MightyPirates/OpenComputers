@@ -12,18 +12,17 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{AxisAlignedBB, IIcon}
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Cable"
 
-  private var icon: IIcon = _
+  private var icon: Icon = _
 
   // ----------------------------------------------------------------------- //
 
@@ -35,7 +34,7 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   override def icon(side: ForgeDirection) = Some(icon)
 
   @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IIconRegister) {
+  override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
   }

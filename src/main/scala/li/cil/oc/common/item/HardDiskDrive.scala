@@ -3,7 +3,6 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.Settings
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -43,7 +42,7 @@ class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
     })
   }
 
-  override def registerIcons(iconRegister: IIconRegister) {
+  override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":disk_harddrive" + tier)

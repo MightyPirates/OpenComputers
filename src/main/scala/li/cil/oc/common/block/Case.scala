@@ -9,10 +9,8 @@ import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, Tooltip}
 import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{IIcon}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -46,8 +44,8 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
   }
 
   private object Icons {
-    val on = Array.fill[IIcon](6)(null)
-    val off = Array.fill[IIcon](6)(null)
+    val on = Array.fill[Icon](6)(null)
+    val off = Array.fill[Icon](6)(null)
   }
 
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
@@ -62,7 +60,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
   private def getIcon(side: ForgeDirection, isOn: Boolean) =
     Some(if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal))
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
     Icons.on(ForgeDirection.DOWN.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.off(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)

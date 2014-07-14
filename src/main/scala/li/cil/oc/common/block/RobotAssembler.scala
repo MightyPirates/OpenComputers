@@ -6,17 +6,15 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 class RobotAssembler(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "RobotAssembler"
 
-  private val icons = Array.fill[IIcon](6)(null)
+  private val icons = Array.fill[Icon](6)(null)
 
   // ----------------------------------------------------------------------- //
 
@@ -30,7 +28,7 @@ class RobotAssembler(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.DOWN || side == ForgeDirection.UP
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":assembler_top")
 

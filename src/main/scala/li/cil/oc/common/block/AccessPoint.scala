@@ -7,10 +7,8 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{IIcon}
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
@@ -18,7 +16,7 @@ import net.minecraftforge.common.util.ForgeDirection
 class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "WirelessRouter"
 
-  private val icons = Array.fill[IIcon](6)(null)
+  private val icons = Array.fill[Icon](6)(null)
 
   // ----------------------------------------------------------------------- //
 
@@ -40,7 +38,7 @@ class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_wireless_top")
 

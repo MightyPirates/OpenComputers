@@ -3,10 +3,9 @@ package li.cil.oc.common.block
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
 import li.cil.oc.{Blocks, Settings}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
-import net.minecraft.util.{IIcon, MovingObjectPosition}
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -15,7 +14,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   showInItemList = false
 
-  private var icon: IIcon = _
+  private var icon: Icon = _
 
   // ----------------------------------------------------------------------- //
 
@@ -25,7 +24,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   override def icon(side: ForgeDirection) = Some(icon)
 
   @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IIconRegister) {
+  override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
   }

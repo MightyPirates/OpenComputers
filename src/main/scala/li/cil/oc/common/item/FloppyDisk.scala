@@ -4,15 +4,13 @@ import java.util
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
 
 class FloppyDisk(val parent: Delegator) extends Delegate {
   val unlocalizedName = "FloppyDisk"
 
-  val icons = Array.fill[IIcon](16)(null)
+  val icons = Array.fill[Icon](16)(null)
 
   @SideOnly(Side.CLIENT)
   override def icon(stack: ItemStack, pass: Int) =
@@ -31,7 +29,7 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
-  override def registerIcons(iconRegister: IIconRegister) {
+  override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
     icons(0) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_black")

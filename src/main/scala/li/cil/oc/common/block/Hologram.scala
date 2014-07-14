@@ -8,10 +8,9 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{AxisAlignedBB, IIcon}
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -34,7 +33,7 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
     }
   }
 
-  private val icons = Array.fill[IIcon](6)(null)
+  private val icons = Array.fill[Icon](6)(null)
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
 
@@ -54,7 +53,7 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
     parent.setBlockBounds(AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 0.5f, 1))
   }
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":hologram_top" + tier)
 

@@ -6,7 +6,6 @@ import li.cil.oc.Settings
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.{BundledRedstone, Mods, WirelessRedstone}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -38,7 +37,7 @@ class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate {
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
-  override def registerIcons(iconRegister: IIconRegister) {
+  override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":card_redstone" + tier)

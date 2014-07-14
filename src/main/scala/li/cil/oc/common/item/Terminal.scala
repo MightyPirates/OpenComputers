@@ -8,11 +8,9 @@ import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.IIcon
 import net.minecraft.world.World
 
 class Terminal(val parent: Delegator) extends Delegate {
@@ -20,8 +18,8 @@ class Terminal(val parent: Delegator) extends Delegate {
 
   override def maxStackSize = 1
 
-  private var iconOn: Option[IIcon] = None
-  private var iconOff: Option[IIcon] = None
+  private var iconOn: Option[Icon] = None
+  private var iconOff: Option[Icon] = None
 
   def hasServer(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")
 
@@ -40,7 +38,7 @@ class Terminal(val parent: Delegator) extends Delegate {
   @SideOnly(Side.CLIENT)
   override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
     icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":terminal"))

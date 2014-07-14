@@ -12,17 +12,15 @@ import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Charger"
 
-  private val icons = Array.fill[IIcon](6)(null)
+  private val icons = Array.fill[Icon](6)(null)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
@@ -42,7 +40,7 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
   @SideOnly(Side.CLIENT)
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = Some(icons(localSide.ordinal()))
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 

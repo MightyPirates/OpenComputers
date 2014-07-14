@@ -4,7 +4,6 @@ import java.util
 
 import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -30,7 +29,7 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends Delegate {
 
   override def maxDamage(stack: ItemStack) = 100
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_battery" + tier)

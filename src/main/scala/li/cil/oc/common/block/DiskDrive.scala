@@ -8,10 +8,8 @@ import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{IIcon}
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
@@ -19,7 +17,7 @@ import net.minecraftforge.common.util.ForgeDirection
 class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "DiskDrive"
 
-  private val icons = Array.fill[IIcon](6)(null)
+  private val icons = Array.fill[Icon](6)(null)
 
   // ----------------------------------------------------------------------- //
 
@@ -47,7 +45,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 

@@ -9,7 +9,6 @@ import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, PackedColor, Tooltip}
 import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
@@ -235,7 +234,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
       case _ => Icons.b2
     })
 
-  override def registerIcons(iconRegister: IIconRegister) = {
+  override def registerIcons(iconRegister: IconRegister) = {
     Icons.b = iconRegister.registerIcon(Settings.resourceDomain + ":screen/b")
     Icons.b2 = iconRegister.registerIcon(Settings.resourceDomain + ":screen/b2")
     Icons.bbl = iconRegister.registerIcon(Settings.resourceDomain + ":screen/bbl")

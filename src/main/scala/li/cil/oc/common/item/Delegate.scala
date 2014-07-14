@@ -3,18 +3,20 @@ package li.cil.oc.common.item
 import java.util
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, api}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.util.{ItemCosts, Rarity}
-import net.minecraft.client.renderer.texture.IIconRegister
+import li.cil.oc.{Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{IIcon, StatCollector}
+import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import org.lwjgl.input
 
 trait Delegate {
+  type Icon = net.minecraft.util.IIcon
+  type IconRegister = net.minecraft.client.renderer.texture.IIconRegister
+
   val parent: Delegator
 
   val unlocalizedName: String
@@ -23,7 +25,7 @@ trait Delegate {
 
   val itemId = parent.add(this)
 
-  private var _icon: Option[IIcon] = None
+  private var _icon: Option[Icon] = None
 
   def maxStackSize = 64
 
@@ -90,16 +92,16 @@ trait Delegate {
   def maxDamage(stack: ItemStack) = 0
 
   @SideOnly(Side.CLIENT)
-  def icon: Option[IIcon] = _icon
+  def icon: Option[Icon] = _icon
 
   @SideOnly(Side.CLIENT)
-  protected def icon_=(value: IIcon) = _icon = Option(value)
+  protected def icon_=(value: Icon) = _icon = Option(value)
 
   @SideOnly(Side.CLIENT)
-  def icon(stack: ItemStack, pass: Int): Option[IIcon] = icon
+  def icon(stack: ItemStack, pass: Int): Option[Icon] = icon
 
   @SideOnly(Side.CLIENT)
-  def registerIcons(iconRegister: IIconRegister) {}
+  def registerIcons(iconRegister: IconRegister) {}
 
   // ----------------------------------------------------------------------- //
 
