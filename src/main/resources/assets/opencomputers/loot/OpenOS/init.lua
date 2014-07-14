@@ -15,9 +15,16 @@ do
   function rom.close(handle) return rom.invoke("close", handle) end
   function rom.inits(file) return ipairs(rom.invoke("list", "boot")) end
   function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
+  
+  local screen = component.list('screen')()
+  for address in component.list('screen') do
+    if #component.invoke(address, 'getKeyboards') > 0 then
+      screen = address
+    end
+  end
 
   -- Report boot progress if possible.
-  local gpu, screen = component.list("gpu")(), component.list("screen")()
+  local gpu = component.list("gpu")()
   local w, h
   if gpu and screen then
     component.invoke(gpu, "bind", screen)
