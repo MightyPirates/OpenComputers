@@ -172,7 +172,7 @@ public class DebugLib extends TwoArgFunction {
 			DebugInfo ar = callstack.auxgetinfo(what, (LuaFunction) func, frame);
 			LuaTable info = new LuaTable();
 			if (what.indexOf('S') >= 0) {
-				info.set(WHAT, LUA);
+				info.set(WHAT, valueOf(ar.what));
 				info.set(SOURCE, valueOf(ar.source));
 				info.set(SHORT_SRC, valueOf(ar.short_src));
 				info.set(LINEDEFINED, valueOf(ar.linedefined));
@@ -184,14 +184,15 @@ public class DebugLib extends TwoArgFunction {
 			if (what.indexOf('u') >= 0) {
 				info.set(NUPS, valueOf(ar.nups));
 				info.set(NPARAMS, valueOf(ar.nparams));
-				info.set(ISVARARG, ar.isvararg? ONE: ZERO);
+				info.set(ISVARARG, ar.isvararg? TRUE: FALSE);
 			}
 			if (what.indexOf('n') >= 0) {
-				info.set(NAME, LuaValue.valueOf(ar.name!=null? ar.name: "?"));
-				info.set(NAMEWHAT, LuaValue.valueOf(ar.namewhat));
+				if (ar.name != null)
+					info.set(NAME, valueOf(ar.name));
+				info.set(NAMEWHAT, valueOf(ar.namewhat));
 			}
 			if (what.indexOf('t') >= 0) {
-				info.set(ISTAILCALL, ZERO);
+				info.set(ISTAILCALL, FALSE);
 			}
 			if (what.indexOf('L') >= 0) {
 				LuaTable lines = new LuaTable();
@@ -484,7 +485,7 @@ public class DebugLib extends TwoArgFunction {
 				this.linedefined = -1;
 				this.lastlinedefined = -1;
 				this.what = "Java";
-				this.short_src = f.name();
+				this.short_src = "[Java]";
 			}
 		}
 	}

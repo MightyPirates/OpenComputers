@@ -132,9 +132,24 @@ public class Prototype {
 	public String shortsource() {
 		String name = source.tojstring();
         if ( name.startsWith("@") || name.startsWith("=") )
-			name = name.substring(1);
+        	if (name.length() <= Lua.MAXSRC)
+        		name = name.substring(1);
+        	else
+        		name = name.substring(1,Lua.MAXSRC - 3) + "...";
 		else if ( name.startsWith("\033") )
 			name = "binary string";
+		else {
+			int nl = name.indexOf('\n');
+			StringBuilder sbName = new StringBuilder("[string \"");
+			if (name.length() < Lua.MAXSRC - 15 && nl == -1)
+				sbName.append(name);
+			else {
+				sbName.append(name.substring(0, Math.min(nl == -1 ? name.length() : nl, Lua.MAXSRC - 15)));
+				sbName.append("...");
+			}
+			sbName.append("\"]");
+			name = sbName.toString();
+		}
         return name;
 	}
 }

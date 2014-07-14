@@ -341,7 +341,7 @@ public class Lua {
 	/* number of list items to accumulate before a SETLIST instruction */
 	public static final int LFIELDS_PER_FLUSH = 50;
 
-	private static final int MAXSRC = 80;
+	public static final int MAXSRC = 60;
 
 	public static String chunkid( String source ) {
 		 if ( source.startsWith("=") )

@@ -185,7 +185,7 @@ public class BaseLib extends TwoArgFunction implements ResourceFinder {
 	final class load extends VarArgFunction {
 		public Varargs invoke(Varargs args) {
 			LuaValue ld = args.arg1();
-			args.argcheck(ld.isstring() || ld.isfunction(), 1, "ld must be string or function");
+			args.argcheck(ld.isstring() || ld.isfunction(), 1, "function expected, got " + ld.typename());
 			String source = args.optjstring(2, ld.isstring()? ld.tojstring(): "=(load)");
 			String mode = args.optjstring(3, "bt");
 			LuaValue env = args.optvalue(4, globals);
