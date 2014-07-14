@@ -7,7 +7,6 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Inventory
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
@@ -17,6 +16,9 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 trait Delegate {
+  type Icon = net.minecraft.util.Icon
+  type IconRegister = net.minecraft.client.renderer.texture.IconRegister
+
   val unlocalizedName: String
 
   var showInItemList = true

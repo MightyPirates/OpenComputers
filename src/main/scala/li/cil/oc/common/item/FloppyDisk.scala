@@ -2,12 +2,10 @@ package li.cil.oc.common.item
 
 import java.util
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
-import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Icon
 
 class FloppyDisk(val parent: Delegator) extends Delegate {
   val unlocalizedName = "FloppyDisk"

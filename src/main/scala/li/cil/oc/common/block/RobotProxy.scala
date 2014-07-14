@@ -11,11 +11,10 @@ import li.cil.oc.server.component.robot
 import li.cil.oc.util.{ItemUtils, Tooltip}
 import li.cil.oc.{Blocks, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{AxisAlignedBB, Icon, MovingObjectPosition, Vec3}
+import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 

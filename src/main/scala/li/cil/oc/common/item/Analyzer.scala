@@ -6,7 +6,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Localization, Settings}
-import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World

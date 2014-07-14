@@ -4,7 +4,6 @@ import java.util
 
 import li.cil.oc.Settings
 import li.cil.oc.util.{PackedColor, Tooltip}
-import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 

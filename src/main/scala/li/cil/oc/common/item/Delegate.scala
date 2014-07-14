@@ -3,18 +3,20 @@ package li.cil.oc.common.item
 import java.util
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, api}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.util.{ItemCosts, Rarity}
-import net.minecraft.client.renderer.texture.IconRegister
+import li.cil.oc.{Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{Icon, StatCollector}
+import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import org.lwjgl.input
 
 trait Delegate {
+  type Icon = net.minecraft.util.Icon
+  type IconRegister = net.minecraft.client.renderer.texture.IconRegister
+
   val parent: Delegator
 
   val unlocalizedName: String

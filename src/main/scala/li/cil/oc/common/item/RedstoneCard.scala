@@ -6,7 +6,6 @@ import li.cil.oc.Settings
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.{BundledRedstone, Mods, WirelessRedstone}
-import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 

@@ -3,10 +3,9 @@ package li.cil.oc.common.block
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
 import li.cil.oc.{Blocks, Settings}
-import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
-import net.minecraft.util.{Icon, MovingObjectPosition}
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
