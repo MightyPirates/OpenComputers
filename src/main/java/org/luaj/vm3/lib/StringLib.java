@@ -23,6 +23,7 @@ package org.luaj.vm3.lib;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 
 import org.luaj.vm3.LuaClosure;
 import org.luaj.vm3.Buffer;
@@ -248,6 +249,7 @@ public class StringLib extends TwoArgFunction {
 						result.append( (byte)L_ESC );
 					} else {
 						arg++;
+						args.checkvalue(arg);
 						FormatDesc fdsc = new FormatDesc(args, fmt, i );
 						i += fdsc.length;
 						switch ( fdsc.conversion ) {
@@ -256,12 +258,22 @@ public class StringLib extends TwoArgFunction {
 							break;
 						case 'i':
 						case 'd':
-							fdsc.format( result, args.checkint( arg ) );
+							// Still not right, but works better
+							double sNum = args.checkdouble( arg );
+							long sINum = args.checklong( arg );
+							double sDiff = sNum - sINum;
+							args.argcheck(-1 < sDiff && sDiff < 1, arg, "not a number in proper range");
+							fdsc.format( result, args.checklong( arg ) );
 							break;
 						case 'o':
 						case 'u':
 						case 'x':
 						case 'X':
+							// Still not right, but works better
+							double uNum = args.checkdouble( arg );
+							long uINum = args.checklong( arg );
+							double uDiff = uNum - uINum;
+							args.argcheck(-1 < uDiff && uDiff < 1 && uINum >= 0, arg, "not a non-negative number in proper range");
 							fdsc.format( result, args.checklong( arg ) );
 							break;
 						case 'e':
@@ -288,6 +300,8 @@ public class StringLib extends TwoArgFunction {
 						}
 					}
 				}
+				else
+					error("invalid option '%' to 'format'");
 			}
 		}
 		
@@ -354,7 +368,7 @@ public class StringLib extends TwoArgFunction {
 				default: moreFlags = false; break;
 				}
 			}
-			if ( p - start > MAX_FLAGS )
+			if ( p - start - 1 > MAX_FLAGS )
 				error("invalid format (repeated flags)");
 			
 			width = -1;
@@ -389,8 +403,13 @@ public class StringLib extends TwoArgFunction {
 		}
 		
 		public void format(Buffer buf, byte c) {
-			// TODO: not clear that any of width, precision, or flags apply here.
+			if ( !leftAdjust )
+				pad( buf, ' ', width - 1 );
+			
 			buf.append(c);
+			
+			if ( leftAdjust )
+				pad( buf, ' ', width - 1 );
 		}
 		
 		public void format(Buffer buf, long number) {
@@ -416,6 +435,108 @@ public class StringLib extends TwoArgFunction {
 				if ( conversion == 'X' )
 					digits = digits.toUpperCase();
 			}
+			
+			int minwidth = digits.length();
+			int ndigits = minwidth;
+			int nzeros;
+			
+			boolean allowPlusSpace = conversion == 'd' || conversion == 'i';
+			
+			if ( number < 0 ) {
+				ndigits--;
+			} else if ( allowPlusSpace && (explicitPlus || space) ) {
+				minwidth++;
+			}
+			
+			if ( alternateForm ) {
+				switch ( conversion ) {
+				case 'o':
+					minwidth++;
+					break;
+				case 'x':
+				case 'X':
+					minwidth+=2;
+					break;
+				}
+			}
+			
+			if ( precision > ndigits )
+				nzeros = precision - ndigits;
+			else if ( precision == -1 && zeroPad && width > minwidth )
+				nzeros = width - minwidth;
+			else
+				nzeros = 0;
+			
+			minwidth += nzeros;
+			int nspaces = width > minwidth ? width - minwidth : 0;
+			
+			if ( !leftAdjust )
+				pad( buf, ' ', nspaces );
+			
+			if ( number < 0 ) {
+				if ( nzeros > 0 ) {
+					buf.append( (byte)'-' );
+					digits = digits.substring( 1 );
+				}
+			} else if ( allowPlusSpace && explicitPlus ) {
+				buf.append( (byte)'+' );
+			} else if ( allowPlusSpace && space ) {
+				buf.append( (byte)' ' );
+			}
+			
+			if ( alternateForm ) {
+				switch ( conversion ) {
+				case 'o':
+					buf.append( (byte)'0' );
+					break;
+				case 'x':
+					buf.append( "0x" );
+					break;
+				case 'X':
+					buf.append( "0X" );
+					break;
+				}
+			}
+			
+			if ( nzeros > 0 )
+				pad( buf, '0', nzeros );
+			
+			buf.append( digits );
+			
+			if ( leftAdjust )
+				pad( buf, ' ', nspaces );
+		}
+		
+		public void format(Buffer buf, double number) {
+			// TODO: force positive sign
+			
+			int precise = precision == -1 ? 6 : precision;
+			String addDot = alternateForm || precise > 0 ? "." : "";
+			
+			DecimalFormat scientificFormat = new DecimalFormat("0" + addDot + new String(new char[precise]).replace("\0", "0") + "E00");
+			DecimalFormat floatingFormat   = new DecimalFormat("0" + addDot + new String(new char[precise]).replace("\0", "0"));
+			
+			String digits;
+			
+			switch ( conversion ) {
+			case 'e':
+			case 'E':
+				digits = scientificFormat.format( number );
+				break;
+			case 'f':
+				digits = floatingFormat.format(number);
+				break;
+			case 'g':
+			case 'G':
+			default:
+				// TODO: g, G
+				// TODO: precision
+				digits = String.valueOf( number );
+				break;
+			}
+			
+			if ( conversion == 'e' || conversion == 'g' )
+				digits = digits.toLowerCase();
 			
 			int minwidth = digits.length();
 			int ndigits = minwidth;
@@ -460,16 +581,20 @@ public class StringLib extends TwoArgFunction {
 				pad( buf, ' ', nspaces );
 		}
 		
-		public void format(Buffer buf, double x) {
-			// TODO
-			buf.append( String.valueOf( x ) );
-		}
-		
 		public void format(Buffer buf, LuaString s) {
 			int nullindex = s.indexOf( (byte)'\0', 0 );
 			if ( nullindex != -1 )
 				s = s.substring( 0, nullindex );
-			buf.append(s);
+			
+			int newLength = precision == -1 ? s.length() : Math.min(precision, s.length());
+			
+			if ( !leftAdjust )
+				pad( buf, ' ', width - newLength );
+			
+			buf.append(s.substring(0, newLength));
+			
+			if ( leftAdjust )
+				pad( buf, ' ', width - newLength );
 		}
 		
 		public static final void pad(Buffer buf, char c, int n) {

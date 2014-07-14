@@ -14,7 +14,7 @@ local function toggleBlink()
     cursorBlink.state = not cursorBlink.state
     if cursorBlink.state then
       cursorBlink.alt = component.gpu.get(cursorX, cursorY)
-      component.gpu.set(cursorX, cursorY, unicode.char(0x2588)) -- solid block
+      component.gpu.set(cursorX, cursorY, string.rep(unicode.char(0x2588), unicode.charWidth(cursorBlink.alt))) -- solid block
     else
       component.gpu.set(cursorX, cursorY, cursorBlink.alt)
     end
@@ -49,6 +49,10 @@ function term.setCursor(col, row)
   if cursorBlink and cursorBlink.state then
     toggleBlink()
   end
+  local wide, right = term.isWide(cursorX, cursorY)
+  if wide and right then
+    cursorX = cursorX - 1
+  end
   cursorX = math.floor(col)
   cursorY = math.floor(row)
 end
@@ -76,6 +80,20 @@ function term.setCursorBlink(enabled)
   end
 end
 
+function term.isWide(x, y)
+  local charLeft, char = component.gpu.get(x - 1, y), component.gpu.get(x, y)
+  if unicode.isWide(char) then
+    -- The char at the specified position is a wide char.
+    return true
+  elseif char == " " and charLeft and unicode.isWide(charLeft) then
+    -- The char left to the specified position is a wide char.
+    return true, true
+  else
+    -- Not a wide char.
+    return false
+  end
+end
+
 function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
@@ -86,14 +104,14 @@ function term.read(history, dobreak)
   table.insert(history, "")
   local offset = term.getCursor() - 1
   local scrollX, scrollY = 0, #history - 1
+  local cursorX = 1
 
   local function getCursor()
-    local cx, cy = term.getCursor()
-    return cx - offset + scrollX, 1 + scrollY
+    return cursorX, 1 + scrollY
   end
 
   local function line()
-    local cbx, cby = getCursor()
+    local _, cby = getCursor()
     return history[cby]
   end
 
@@ -123,6 +141,7 @@ function term.read(history, dobreak)
       component.gpu.set(1 + offset, cy, str)
     end
 
+    cursorX = nbx
     term.setCursor(nbx - scrollX + offset, cy)
   end
 
@@ -193,14 +212,15 @@ function term.read(history, dobreak)
     copyIfNecessary()
     local cbx, cby = getCursor()
     if cbx <= unicode.len(line()) then
+      local cw = unicode.charWidth(unicode.sub(line(), cbx))
       history[cby] = unicode.sub(line(), 1, cbx - 1) ..
                      unicode.sub(line(), cbx + 1)
       local cx, cy = term.getCursor()
       local w, h = component.gpu.getResolution()
-      component.gpu.copy(cx + 1, cy, w - cx, 1, -1, 0)
+      component.gpu.copy(cx + cw, cy, w - cx, 1, -cw, 0)
       local br = cbx + (w - cx)
       local char = unicode.sub(line(), br, br)
-      if not char or unicode.len(char) == 0 then
+      if not char or unicode.wlen(char) == 0 then
         char = " "
       end
       component.gpu.set(w, cy, char)
@@ -215,13 +235,13 @@ function term.read(history, dobreak)
     history[cby] = unicode.sub(line(), 1, cbx - 1) ..
                    value ..
                    unicode.sub(line(), cbx)
-    local len = unicode.len(value)
+    local len = unicode.wlen(value)
     local n = w - (cx - 1) - len
     if n > 0 then
       component.gpu.copy(cx, cy, n, 1, len, 0)
     end
     component.gpu.set(cx, cy, value)
-    right(len)
+    right(unicode.len(value))
   end
 
   local function onKeyDown(char, code)
@@ -329,7 +349,7 @@ function term.write(value, wrap)
     return
   end
   value = tostring(value)
-  if unicode.len(value) == 0 then
+  if unicode.wlen(value) == 0 then
     return
   end
   do
@@ -354,7 +374,7 @@ function term.write(value, wrap)
     end
     line, value, nl = text.wrap(value, wrapAfter, margin)
     component.gpu.set(cursorX, cursorY, line)
-    cursorX = cursorX + unicode.len(line)
+    cursorX = cursorX + unicode.wlen(line)
     if nl or (cursorX > w and wrap) then
       cursorX = 1
       cursorY = cursorY + 1

@@ -2,6 +2,7 @@ package li.cil.oc.server.component.machine.luac
 
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
+import li.cil.oc.util.FontUtil
 
 class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -55,6 +56,40 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       1
     })
     lua.setField(-2, "upper")
+
+    lua.pushScalaFunction(lua => {
+      lua.pushBoolean(FontUtil.wcwidth(lua.checkString(1).codePointAt(0)) > 1)
+      1
+    })
+    lua.setField(-2, "isWide")
+
+    lua.pushScalaFunction(lua => {
+      lua.pushInteger(FontUtil.wcwidth(lua.checkString(1).codePointAt(0)))
+      1
+    })
+    lua.setField(-2, "charWidth")
+
+    lua.pushScalaFunction(lua => {
+      val value = lua.checkString(1)
+      lua.pushInteger(value.toCharArray.map(FontUtil.wcwidth(_)).sum)
+      1
+    })
+    lua.setField(-2, "wlen")
+
+    lua.pushScalaFunction(lua => {
+      val value = lua.checkString(1)
+      val count = lua.checkInteger(2)
+      var width = 0
+      var end = 0
+      while (width < count) {
+        width += FontUtil.wcwidth(value(end))
+        end += 1
+      }
+      if (end > 1) lua.pushString(value.substring(0, end - 1))
+      else lua.pushString("")
+      1
+    })
+    lua.setField(-2, "wtrunc")
 
     lua.setGlobal("unicode")
   }

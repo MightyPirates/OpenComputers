@@ -40,7 +40,7 @@ object ExtendedArguments {
 
     def checkSideForFace(n: Int, facing: ForgeDirection) = checkSide(n, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite): _*)
 
-    private def checkSide(n: Int, allowed: ForgeDirection*) = {
+    def checkSide(n: Int, allowed: ForgeDirection*) = {
       val side = args.checkInteger(n)
       if (side < 0 || side > 5) {
         throw new IllegalArgumentException("invalid side")

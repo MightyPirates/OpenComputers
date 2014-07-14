@@ -109,8 +109,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
           val lineColor = color(y)
           val c = s(y - row)
           changed = changed || (line(col) != c) || (lineColor(col) != packed)
-          line(col) = c
-          lineColor(col) = packed
+          setChar(line, lineColor, col, c)
         }
         changed
       }
@@ -121,11 +120,12 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         var changed = false
         val line = buffer(row)
         val lineColor = color(row)
-        for (x <- col until math.min(col + s.length, width)) if (x >= 0) {
+        var bx = math.max(col, 0)
+        for (x <- bx until math.min(col + s.length, width) if bx < line.length) {
           val c = s(x - col)
-          changed = changed || (line(x) != c) || (lineColor(x) != packed)
-          line(x) = c
-          lineColor(x) = packed
+          changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
+          setChar(line, lineColor, bx, c)
+          bx += FontUtil.wcwidth(c)
         }
         changed
       }
@@ -140,10 +140,11 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     for (y <- math.max(row, 0) until math.min(row + h, height)) {
       val line = buffer(y)
       val lineColor = color(y)
-      for (x <- math.max(col, 0) until math.min(col + w, width)) {
-        changed = changed || (line(x) != c) || (lineColor(x) != packed)
-        line(x) = c
-        lineColor(x) = packed
+      var bx = math.max(col, 0)
+      for (x <- bx until math.min(col + w, width) if bx < line.length) {
+        changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
+        setChar(line, lineColor, bx, c)
+        bx += FontUtil.wcwidth(c)
       }
     }
     changed
@@ -180,12 +181,33 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
               changed = changed || (nl(nx) != ol(ox)) || (nc(nx) != oc(ox))
               nl(nx) = ol(ox)
               nc(nx) = oc(ox)
+              for (offset <- 1 until FontUtil.wcwidth(nl(nx))) {
+                nl(nx + offset) = ol(' ')
+                nc(nx + offset) = oc(nx)
+              }
             case _ => /* Got no source column. */
           }
         case _ => /* Got no source row. */
       }
     }
     changed
+  }
+
+  private def setChar(line: Array[Char], lineColor: Array[Short], x: Int, c: Char) {
+    if (FontUtil.wcwidth(c) > 1 && x >= line.length - 1) {
+      // Don't allow setting wide chars in right-most col.
+      return
+    }
+    if (x > 0 && line(x) == ' ' && FontUtil.wcwidth(line(x - 1)) > 1) {
+      // Don't allow setting the cell following a wide char.
+      return
+    }
+    line(x) = c
+    lineColor(x) = packed
+    for (x1 <- x + 1 until x + FontUtil.wcwidth(c)) {
+      line(x1) = ' '
+      lineColor(x1) = packed
+    }
   }
 
   def load(nbt: NBTTagCompound): Unit = {
@@ -195,7 +217,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
 
     val b = nbt.getTagList("buffer", NBT.TAG_STRING)
     for (i <- 0 until math.min(h, b.tagCount)) {
-      set(0, i, b.getStringTagAt(i), vertical = false)
+      val value = b.getStringTagAt(i)
+      System.arraycopy(value.toCharArray, 0, buffer(i), 0, math.min(value.length, buffer(i).length))
     }
 
     val depth = ColorDepth.values.apply(nbt.getInteger("depth") min (ColorDepth.values.length - 1) max 0)

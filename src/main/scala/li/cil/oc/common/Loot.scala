@@ -5,6 +5,7 @@ import java.util.Random
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.util.Color
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
@@ -12,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
 import net.minecraftforge.common.{ChestGenHooks, DimensionManager}
 import net.minecraftforge.event.world.WorldEvent
+import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -78,21 +80,21 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
   private def parseLootDisks(list: java.util.Properties, acc: mutable.Map[String, (ItemStack, Int)]) {
     for (key <- list.stringPropertyNames if key != "OpenOS") {
       val value = list.getProperty(key)
-      val splitAt = value.lastIndexOf(':')
-      if (splitAt >= 0) {
-        val (name, count) = value.splitAt(splitAt)
-        try {
-          acc += key ->(createLootDisk(name, key), count.substring(1).toInt)
-        }
-        catch {
-          case _: Throwable => OpenComputers.log.warn("Bad loot descriptor: " + value)
-        }
+      try value.split(":") match {
+        case Array(name, count, color) =>
+          acc += key -> ((createLootDisk(name, key, Some(color)), count.toInt))
+        case Array(name, count) =>
+          acc += key -> ((createLootDisk(name, key), count.toInt))
+        case _ =>
+          acc += key -> ((createLootDisk(value, key), 1))
       }
-      else acc += key ->(createLootDisk(value, key), 1)
+      catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARN, "Bad loot descriptor: " + value, t)
+      }
     }
   }
 
-  private def createLootDisk(name: String, path: String) = {
+  private def createLootDisk(name: String, path: String, color: Option[String] = None) = {
     val data = new NBTTagCompound()
     data.setString(Settings.namespace + "fs.label", name)
 
@@ -100,6 +102,11 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
     tag.setTag(Settings.namespace + "data", data)
     // Store this top level, so it won't get wiped on save.
     tag.setString(Settings.namespace + "lootPath", path)
+    color match {
+      case Some(oreDictName) =>
+        tag.setInteger(Settings.namespace + "color", Color.dyes.indexOf(oreDictName))
+      case _ =>
+    }
 
     val disk = api.Items.get("lootDisk").createItemStack(1)
     disk.setTagCompound(tag)

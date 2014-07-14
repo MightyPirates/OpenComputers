@@ -5,6 +5,7 @@ import java.util.concurrent.{Callable, TimeUnit}
 import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
+import li.cil.oc.Settings
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
@@ -13,8 +14,8 @@ import org.lwjgl.opengl.GL11
 
 object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEntity, Int] {
   val renderer =
-    new font.StaticFontRenderer()
-//    new font.DynamicFontRenderer("Terminal", 11)
+    if (Settings.get.useOldTextureFontRenderer) new font.StaticFontRenderer()
+    else new font.DynamicFontRenderer()
 
   private val cache = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(2, TimeUnit.SECONDS).
