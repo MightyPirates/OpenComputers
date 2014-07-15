@@ -104,7 +104,7 @@ local function execute(env, command, ...)
   if not program then
     return false, reason
   end
-  for i = 1, args.n do
+  for i = 1, #args do
     for _, arg in ipairs(evaluate(args[i])) do
       table.insert(eargs, arg)
     end
