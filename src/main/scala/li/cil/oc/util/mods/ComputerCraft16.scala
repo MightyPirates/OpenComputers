@@ -6,7 +6,7 @@ import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.media.IMedia
 import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral, IPeripheralProvider}
 import li.cil.oc
-import li.cil.oc.common.tileentity.{ComputerWrapper, Router}
+import li.cil.oc.common.tileentity.{ComputerWrapper, Switch}
 import li.cil.oc.server.fs.{CC16FileSystem, CC16WritableFileSystem}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -17,7 +17,7 @@ object ComputerCraft16 {
   def init() {
     ComputerCraftAPI.registerPeripheralProvider(new IPeripheralProvider {
       override def getPeripheral(world: World, x: Int, y: Int, z: Int, side: Int) = world.getBlockTileEntity(x, y, z) match {
-        case router: Router => new RouterPeripheral(router)
+        case switch: Switch => new RouterPeripheral(switch)
         case _ => null
       }
     })
@@ -33,32 +33,32 @@ object ComputerCraft16 {
     case ro: IMount => new CC16FileSystem(ro)
   }
 
-  class RouterPeripheral(val router: Router) extends IPeripheral {
-    override def getType = router.getType
+  class RouterPeripheral(val switch: Switch) extends IPeripheral {
+    override def getType = switch.getType
 
     override def attach(computer: IComputerAccess) {
-      router.computers += computer -> new ComputerWrapper {
+      switch.computers += computer -> new ComputerWrapper {
         override def id = computer.getID
 
         override def attachmentName = computer.getAttachmentName
 
         override def queueEvent(name: String, args: Array[AnyRef]) = computer.queueEvent(name, args)
       }
-      router.openPorts += computer -> mutable.Set.empty
+      switch.openPorts += computer -> mutable.Set.empty
     }
 
     override def detach(computer: IComputerAccess) {
-      router.computers -= computer
-      router.openPorts -= computer
+      switch.computers -= computer
+      switch.openPorts -= computer
     }
 
-    override def getMethodNames = router.getMethodNames
+    override def getMethodNames = switch.getMethodNames
 
     override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) =
-      router.callMethod(computer, computer.getID, computer.getAttachmentName, method, arguments)
+      switch.callMethod(computer, computer.getID, computer.getAttachmentName, method, arguments)
 
     override def equals(other: IPeripheral) = other match {
-      case rp: RouterPeripheral => rp.router == router
+      case peripheral: RouterPeripheral => peripheral.switch == switch
       case _ => false
     }
   }

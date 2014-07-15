@@ -52,5 +52,5 @@ class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.WirelessRouter)
+  override def createTileEntity(world: World) = Some(new tileentity.AccessPoint)
 }

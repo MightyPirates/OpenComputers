@@ -2,10 +2,10 @@ package li.cil.oc.common.block
 
 import java.util
 
-import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -40,12 +40,12 @@ class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Router)
+  override def createTileEntity(world: World) = Some(new tileentity.Switch)
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getBlockTileEntity(x, y, z) match {
-      case switch: tileentity.Router =>
+      case switch: tileentity.Switch =>
         if (!player.isSneaking) {
           if (!world.isRemote) {
             player.openGui(OpenComputers, GuiType.Switch.id, world, x, y, z)
@@ -53,7 +53,6 @@ class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
           true
         }
         else false
-
     }
   }
 }

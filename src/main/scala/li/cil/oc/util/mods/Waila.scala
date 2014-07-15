@@ -18,8 +18,8 @@ object Waila {
     registrar.registerSyncedNBTKey(Settings.namespace + "node", classOf[tileentity.Hologram])
     registrar.registerSyncedNBTKey(Settings.namespace + "keyboard", classOf[tileentity.Keyboard])
     registrar.registerSyncedNBTKey("node", classOf[tileentity.Screen])
-    registrar.registerSyncedNBTKey(Settings.namespace + "componentNodes", classOf[tileentity.WirelessRouter])
-    registrar.registerSyncedNBTKey(Settings.namespace + "strength", classOf[tileentity.WirelessRouter])
+    registrar.registerSyncedNBTKey(Settings.namespace + "componentNodes", classOf[tileentity.AccessPoint])
+    registrar.registerSyncedNBTKey(Settings.namespace + "strength", classOf[tileentity.AccessPoint])
   }
 
   def isSavingForTooltip = new Exception().getStackTrace.exists(_.getClassName.startsWith("mcp.mobius.waila"))

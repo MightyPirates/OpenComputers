@@ -4,11 +4,11 @@ import li.cil.oc.common.{container, tileentity}
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.StatCollector
 
-class Router(playerInventory: InventoryPlayer, val router: tileentity.Router) extends DynamicGuiContainer(new container.Router(playerInventory, router)) {
+class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) extends DynamicGuiContainer(new container.Switch(playerInventory, switch)) {
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRenderer.drawString(
-      StatCollector.translateToLocal(router.getInvName),
+      StatCollector.translateToLocal(switch.getInvName),
       8, 6, 0x404040)
   }
 }

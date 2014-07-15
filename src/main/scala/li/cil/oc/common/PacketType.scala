@@ -25,7 +25,7 @@ object PacketType extends Enumeration {
   RobotMove,
   RobotSelectedSlotChange,
   RotatableState,
-  RouterActivity,
+  SwitchActivity,
   TextBufferColorChange,
   TextBufferCopy,
   TextBufferDepthChange,

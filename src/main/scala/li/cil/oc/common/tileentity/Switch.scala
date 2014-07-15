@@ -28,7 +28,7 @@ import li.cil.oc.api.driver.{Processor, Memory, Slot}
 // old API, so there should be no ClassNotFoundExceptions anyway.
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
+class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
   var lastMessage = 0L
 
   val computers = mutable.Map.empty[AnyRef, ComputerWrapper]
@@ -94,7 +94,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
       val packet = api.Network.newPacket(s"cc${computerId}_$attachmentName", null, sendPort, data.toArray)
       result(tryEnqueuePacket(ForgeDirection.UNKNOWN, packet))
-    case "isWireless" => result(this.isInstanceOf[WirelessRouter])
+    case "isWireless" => result(this.isInstanceOf[AccessPoint])
     case _ => null
   }
 
@@ -127,7 +127,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
     val now = System.currentTimeMillis()
     if (now - lastMessage >= (relayDelay - 1) * 50) {
       lastMessage = now
-      PacketSender.sendRouterActivity(this)
+      PacketSender.sendSwitchActivity(this)
     }
   }
 
