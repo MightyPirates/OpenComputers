@@ -2,17 +2,18 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
+import li.cil.oc.api.Driver
+import li.cil.oc.api.driver
+import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Message, Packet}
+import li.cil.oc.common.{InventorySlots, item}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Items, Settings, api}
-import li.cil.oc.common.item
+import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
 
 import scala.collection.mutable
-import net.minecraft.item.ItemStack
-import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Processor, Memory, Slot}
 
 // Note on the CC1.5+1.6 compatibility
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,38 +148,41 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
     }
   }
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
-    case (1, Some(driver)) => driver.slot(stack) == Slot.Memory
-    case (0, Some(driver)) => driver.slot(stack) == Slot.Processor
-    case _ => false
-  }
-
-  override def getInvName = Settings.namespace + "container.Switch"
-
-  override def getSizeInventory = 2
+  // ----------------------------------------------------------------------- //
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
     Driver.driverFor(stack) match {
-      case mem: Memory =>
-        maxQueueSize = queueDefaultSize + (Items.multi.subItem(stack) match {
-          case Some(ram: item.Memory) => (ram.tier + 1) * queueUpgradeSize
-          case _ => (mem.tier(stack) + 1) * (queueUpgradeSize * 2)
+      case driver if driver.slot(stack) == Slot.Processor =>
+        relayDelay = relayBaseDelay - (driver.tier(stack) * relayDelayPerUpgrade)
+      case driver if driver.slot(stack) == Slot.Memory =>
+        relayAmount = relayBaseAmount + (Items.multi.subItem(stack) match {
+          case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
+          case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         })
-      case cpu: Processor =>
-        relayDelay = relayDefaultDelay -
-          (cpu.tier(stack) * relayUpgradeDelay)
+      case driver if driver.slot(stack) == Slot.HardDiskDrive =>
+        maxQueueSize = queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade
     }
   }
-
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    slot match {
-      case 0 => relayDelay = relayDefaultDelay
-      case 1 => maxQueueSize = queueDefaultSize
+    Driver.driverFor(stack) match {
+      case driver if driver.slot(stack) == Slot.Processor => relayDelay = relayBaseDelay
+      case driver if driver.slot(stack) == Slot.Memory => relayAmount = relayBaseAmount
+      case driver if driver.slot(stack) == Slot.HardDiskDrive => maxQueueSize = queueBaseSize
     }
   }
+
+  override def getInvName = Settings.namespace + "container.Switch"
+
+  override def getSizeInventory = InventorySlots.switch.length
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+    Option(Driver.driverFor(stack)).fold(false)(driver => {
+      val provided = InventorySlots.switch(slot)
+      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
+    })
 
 }
 

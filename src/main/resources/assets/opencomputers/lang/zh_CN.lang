@@ -71,6 +71,7 @@ oc:gui.Robot.TurnOn=开启
 # Containers
 oc:container.Case=计算机
 oc:container.DiskDrive=磁盘驱动
+oc:container.Switch=路由器
 
 # Item / Block Tooltips
 oc:tooltip.Acid=一种有毒的假液相物质,通常只有某些海盗会使用它们.[nl]它的腐蚀特性令它非常完美地适用于蚀刻电路板的材料.

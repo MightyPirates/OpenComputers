@@ -152,6 +152,7 @@ oc:gui.Terminal.InvalidKey=Ungültiger Schlüssel, vermutlich wurde eine andere 
 oc:gui.Terminal.OutOfRange=Kein Signal.
 
 # Containers
+oc:container.AccessPoint=Access Point
 oc:container.Case=Computer
 oc:container.Disassembler=Recycler
 oc:container.DiskDrive=Diskettenlaufwerk

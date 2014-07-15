@@ -197,6 +197,12 @@ object InventorySlots {
     )
   )
 
+  val switch = Array(
+    InventorySlot(Slot.Processor, Tier.Three),
+    InventorySlot(Slot.Memory, Tier.Three),
+    InventorySlot(Slot.HardDiskDrive, Tier.Three)
+  )
+
   object Tier {
     val None = -1
     val One = 0

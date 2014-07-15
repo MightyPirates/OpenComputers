@@ -152,6 +152,7 @@ oc:gui.Terminal.InvalidKey=Invalid key, most likely another terminal has been bo
 oc:gui.Terminal.OutOfRange=No signal.
 
 # Containers
+oc:container.AccessPoint=Access Point
 oc:container.Case=Computer
 oc:container.Disassembler=Disassembler
 oc:container.DiskDrive=Disk Drive

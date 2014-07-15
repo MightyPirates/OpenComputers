@@ -19,16 +19,27 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
 
-  protected def queueDefaultSize = Settings.get.switchDefaultMaxQueueSize
-  protected def queueUpgradeSize = Settings.get.switchQueueSizeUpgrade
-  protected def relayDefaultDelay = Settings.get.switchDefaultRelayDelay
-  protected def relayUpgradeDelay = Settings.get.switchRelayDelayUpgrade
+  protected var maxQueueSize = queueBaseSize
 
-  protected var maxQueueSize = Settings.get.switchDefaultMaxQueueSize
+  protected var relayDelay = relayBaseDelay
+
+  protected var relayAmount = relayBaseAmount
 
   protected var relayCooldown = -1
 
-  protected var relayDelay = Settings.get.switchDefaultRelayDelay
+  // ----------------------------------------------------------------------- //
+
+  protected def queueBaseSize = Settings.get.switchDefaultMaxQueueSize
+
+  protected def queueSizePerUpgrade = Settings.get.switchQueueSizeUpgrade
+
+  protected def relayBaseDelay = Settings.get.switchDefaultRelayDelay
+
+  protected def relayDelayPerUpgrade = Settings.get.switchRelayDelayUpgrade
+
+  protected def relayBaseAmount = Settings.get.switchDefaultRelayAmount
+
+  protected def relayAmountPerUpgrade = Settings.get.switchRelayAmountUpgrade
 
   // ----------------------------------------------------------------------- //
 
@@ -45,8 +56,10 @@ trait Hub extends traits.Environment with SidedEnvironment {
       relayCooldown -= 1
     }
     else if (queue.nonEmpty) queue.synchronized {
-      val (sourceSide, packet) = queue.dequeue()
-      relayPacket(sourceSide, packet)
+      for (i <- 0 until math.min(queue.size, relayAmount)) {
+        val (sourceSide, packet) = queue.dequeue()
+        relayPacket(sourceSide, packet)
+      }
       if (queue.nonEmpty) {
         relayCooldown = relayDelay
       }

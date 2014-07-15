@@ -5,7 +5,8 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 
 class Switch(playerInventory: InventoryPlayer, switch: tileentity.Switch) extends Player(playerInventory, switch) {
-  addSlotToContainer(60, 35, api.driver.Slot.Processor)
-  addSlotToContainer(95, 35, api.driver.Slot.Memory)
+  addSlotToContainer(151, 15, api.driver.Slot.Processor)
+  addSlotToContainer(151, 34, api.driver.Slot.Memory)
+  addSlotToContainer(151, 53, api.driver.Slot.HardDiskDrive)
   addPlayerInventorySlots(8, 84)
 }

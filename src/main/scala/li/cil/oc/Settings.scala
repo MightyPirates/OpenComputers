@@ -200,10 +200,12 @@ class Settings(config: Config) {
 
   // ----------------------------------------------------------------------- //
   // switch
-  val switchDefaultMaxQueueSize = config.getInt("switch.defaultMaxQueueSize") max 1
   val switchQueueSizeUpgrade = config.getInt("switch.queueSizeUpgrade") max 0
+  val switchDefaultMaxQueueSize = config.getInt("switch.defaultMaxQueueSize") max 1
   val switchRelayDelayUpgrade = config.getInt("switch.relayDelayUpgrade") max 0
   val switchDefaultRelayDelay = config.getInt("switch.defaultRelayDelay") max switchRelayDelayUpgrade * 3
+  val switchRelayAmountUpgrade = config.getInt("switch.relayAmountUpgrade") max 0
+  val switchDefaultRelayAmount = config.getInt("switch.defaultRelayAmount") max 1
 
   // ----------------------------------------------------------------------- //
   // misc

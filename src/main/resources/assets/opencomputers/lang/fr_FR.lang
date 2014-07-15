@@ -79,6 +79,7 @@ oc:gui.Robot.TurnOn=Allumer
 # Containers
 oc:container.Case=Ordinateur
 oc:container.DiskDrive=Disque dur
+oc:container.Switch=Routeur
 
 # Item / Block Tooltips
 oc:tooltip.Acid=Un produit semi-liquide très toxique, uniquement bu par certains pirates. Grâce à ses propriétés corrosives, il est très utile à la gravure de circuits imprimés.
@@ -119,8 +120,8 @@ oc:tooltip.Robot=Contrairement aux ordinateurs, les robots peuvent se déplacer 
 # The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fNiveau§7: §a%s§7.
 oc:tooltip.Robot_StoredEnergy=§fEnergie stockée§7: §a%s§7.
-oc:tooltip.Router=Permet de connecter différents réseaux entre eux. Seulement des messages réseau seront transmis, les composants ne seront pas visibles via celui ci. A utiliser pour séparer des réseaux tout en leur permettant de communiquer entre eux, grâce aux Cartes réseau, par exemple.
 oc:tooltip.Screen=Affiche du texte, contrôlé par une Carte graphique dans un Boitier.[nl] Résolution maximum: §f%sx%s§7.[nl] Couleurs maximales: §f%s§7.
+oc:tooltip.Switch=Permet de connecter différents réseaux entre eux. Seulement des messages réseau seront transmis, les composants ne seront pas visibles via celui ci. A utiliser pour séparer des réseaux tout en leur permettant de communiquer entre eux, grâce aux Cartes réseau, par exemple.
 oc:tooltip.TooLong=Maintenez la touche [§f%s§7] pour plus d'informations.
 oc:tooltip.Transistor=Un élément basique constituant la plupart des pièces d'un ordinateur. Il est un peu tordu, mais il fait son boulot.
 oc:tooltip.UpgradeCrafting=Permet aux robots d'utiliser le coin en haut à gauche de leur inventaire comme table d'artisanat. Vous devez respecter la position des objets comme pour un artisanat normal.

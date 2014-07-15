@@ -14,7 +14,7 @@ import net.minecraftforge.common.ForgeDirection
 class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Switch"
 
-  private val icons = Array.fill[Icon](6)(null)
+  protected val icons = Array.fill[Icon](6)(null)
 
   // ----------------------------------------------------------------------- //
 

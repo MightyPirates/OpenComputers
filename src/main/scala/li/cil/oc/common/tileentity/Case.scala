@@ -99,13 +99,7 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
 
   override def getInvName = Settings.namespace + "container.Case"
 
-  override def getSizeInventory = tier match {
-    case 0 => 6
-    case 1 => 7
-    case 2 => 9
-    case 3 => 9
-    case _ => 0
-  }
+  override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
 
   override def isUseableByPlayer(player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {

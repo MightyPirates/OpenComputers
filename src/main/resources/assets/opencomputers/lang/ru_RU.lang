@@ -150,11 +150,13 @@ oc:gui.Terminal.InvalidKey=Неверный ключ, возможно, к се�
 oc:gui.Terminal.OutOfRange=Нет сигнала.
 
 # Containers
+oc:container.AccessPoint=Точка доступа
 oc:container.Case=Компьютер
 oc:container.Disassembler=Разборщик
 oc:container.DiskDrive=Дисковод
 oc:container.Rack=Серверная стойка
 oc:container.Server=Сервер
+oc:container.Switch=Коммутатор
 
 # Keybinds
 key.materialCosts=Показать стоимость материала
