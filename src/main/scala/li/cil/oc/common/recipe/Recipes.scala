@@ -5,8 +5,8 @@ import java.io.{File, FileReader}
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc._
 import li.cil.oc.util.Color
-import li.cil.oc.{api, common, _}
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
@@ -31,7 +31,7 @@ object Recipes {
   }
 
   def addNewBlock(instance: Block, name: String, oreDict: String = null) = {
-    GameRegistry.registerBlock(instance, classOf[common.block.Item], Settings.namespace + name)
+    GameRegistry.registerBlock(instance, classOf[common.block.Item], name)
     Items.registerBlock(instance, name)
     list += new ItemStack(instance) -> name
     register(oreDict, new ItemStack(instance))

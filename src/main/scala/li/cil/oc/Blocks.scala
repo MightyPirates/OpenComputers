@@ -20,10 +20,10 @@ object Blocks {
     blockSpecial = new SpecialDelegator()
     blockSpecialWithRedstone = new SpecialRedstoneDelegator()
 
-    GameRegistry.registerBlock(blockSimple, classOf[Item], Settings.namespace + "simple")
-    GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], Settings.namespace + "simple_redstone")
-    GameRegistry.registerBlock(blockSpecial, classOf[Item], Settings.namespace + "special")
-    GameRegistry.registerBlock(blockSpecialWithRedstone, classOf[Item], Settings.namespace + "special_redstone")
+    GameRegistry.registerBlock(blockSimple, classOf[Item], "simple")
+    GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], "simple_redstone")
+    GameRegistry.registerBlock(blockSpecial, classOf[Item], "special")
+    GameRegistry.registerBlock(blockSpecialWithRedstone, classOf[Item], "special_redstone")
 
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")

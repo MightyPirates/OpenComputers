@@ -1,9 +1,9 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.Mod.EventHandler
-import cpw.mods.fml.common.{Mod, SidedProxy}
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
+import cpw.mods.fml.common.{Mod, SidedProxy}
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.CommandHandler
 import org.apache.logging.log4j.LogManager
@@ -40,6 +40,9 @@ object OpenComputers {
 
   @EventHandler
   def postInit(e: FMLPostInitializationEvent) = proxy.postInit(e)
+
+  @EventHandler
+  def missingMappings(e: FMLMissingMappingsEvent) = proxy.missingMappings(e)
 
   @EventHandler
   def serverStart(e: FMLServerStartingEvent) = CommandHandler.register(e)

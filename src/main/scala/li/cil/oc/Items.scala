@@ -116,7 +116,7 @@ object Items extends ItemAPI {
       }
     }
 
-    GameRegistry.registerItem(multi, Settings.namespace + "item")
+    GameRegistry.registerItem(multi, "item")
 
     Recipes.addItem(new item.Analyzer(multi), "analyzer", "oc:analyzer")
 

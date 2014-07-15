@@ -3,6 +3,7 @@ package li.cil.oc.common
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
+import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.event._
@@ -156,6 +157,45 @@ class Proxy {
       for (item <- items) {
         OreDictionary.registerOre(name, item)
       }
+    }
+  }
+
+  // Yes, this could be boiled down even further, but I like to keep it
+  // explicit like this, because it makes it a) clearer, b) easier to
+  // extend, in case that should ever be needed.
+
+  private val blockRenames = Map(
+    OpenComputers.ID + ":" + Settings.namespace + "simple" -> "simple",
+    OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
+    OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
+    OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
+    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard"
+  )
+
+  private val itemRenames = Map(
+    OpenComputers.ID + ":" + Settings.namespace + "item" -> "item",
+    OpenComputers.ID + ":" + Settings.namespace + "simple" -> "simple",
+    OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
+    OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
+    OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
+    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard"
+  )
+
+  def missingMappings(e: FMLMissingMappingsEvent) {
+    for (missing <- e.get()) {
+      if (missing.`type` == GameRegistry.Type.BLOCK) {
+        blockRenames.get(missing.name) match {
+          case Some(name) => missing.remap(GameRegistry.findBlock(OpenComputers.ID, name))
+          case _ => missing.fail()
+        }
+      }
+      else if (missing.`type` == GameRegistry.Type.ITEM) {
+        itemRenames.get(missing.name) match {
+          case Some(name) => missing.remap(GameRegistry.findItem(OpenComputers.ID, name))
+          case _ => missing.fail()
+        }
+      }
+      else missing.fail()
     }
   }
 }
