@@ -26,6 +26,8 @@ object GuiHandler extends CommonGuiHandler {
         new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
         new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled)
+      case router: tileentity.Router if id == GuiType.Router.id =>
+        new gui.Router(player.inventory, router)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new gui.Server(player.inventory, new ServerInventory {

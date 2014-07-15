@@ -5,10 +5,14 @@ import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
 import li.cil.oc.api.network.{Message, Packet}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Items, Settings, api}
+import li.cil.oc.common.item
 import net.minecraftforge.common.ForgeDirection
 
 import scala.collection.mutable
+import net.minecraft.item.ItemStack
+import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.{Processor, Memory, Slot}
 
 // Note on the CC1.5+1.6 compatibility
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,7 +28,7 @@ import scala.collection.mutable
 // old API, so there should be no ClassNotFoundExceptions anyway.
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
+class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
   var lastMessage = 0L
 
   val computers = mutable.Map.empty[AnyRef, ComputerWrapper]
@@ -142,6 +146,40 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
       }
     }
   }
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
+    case (1, Some(driver)) => driver.slot(stack) == Slot.Memory
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Processor
+    case _ => false
+  }
+
+  override def getInvName = Settings.namespace + "container.Router"
+
+  override def getSizeInventory = 2
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    Driver.driverFor(stack) match {
+      case mem: Memory =>
+        maxQueueSize = queueDefaultSize + (Items.multi.subItem(stack) match {
+          case Some(ram: item.Memory) => (ram.tier + 1) * queueUpgradeSize
+          case _ => (mem.tier(stack) + 1) * (queueUpgradeSize * 2)
+        })
+      case cpu: Processor =>
+        relayDelay = relayDefaultDelay -
+          (cpu.tier(stack) * relayUpgradeDelay)
+    }
+  }
+
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
+    slot match {
+      case 0 => relayDelay = relayDefaultDelay
+      case 1 => maxQueueSize = queueDefaultSize
+    }
+  }
+
 }
 
 // Abstraction layer for CC computers to support 1.5 and 1.6 API.

@@ -199,6 +199,13 @@ class Settings(config: Config) {
   val internetThreads = config.getInt("internet.threads") max 1
 
   // ----------------------------------------------------------------------- //
+  // switch
+  val switchDefaultMaxQueueSize = config.getInt("switch.defaultMaxQueueSize") max 1
+  val switchQueueSizeUpgrade = config.getInt("switch.queueSizeUpgrade") max 0
+  val switchRelayDelayUpgrade = config.getInt("switch.relayDelayUpgrade") max 0
+  val switchDefaultRelayDelay = config.getInt("switch.defaultRelayDelay") max switchRelayDelayUpgrade * 3
+
+  // ----------------------------------------------------------------------- //
   // misc
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1

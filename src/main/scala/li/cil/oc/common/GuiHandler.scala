@@ -21,6 +21,8 @@ abstract class GuiHandler extends IGuiHandler {
         new container.Rack(player.inventory, rack)
       case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
         new container.RobotAssembler(player.inventory, assembler)
+      case router: tileentity.Router if id == GuiType.Router.id =>
+        new container.Router(player.inventory, router)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new container.Server(player.inventory, new ServerInventory {

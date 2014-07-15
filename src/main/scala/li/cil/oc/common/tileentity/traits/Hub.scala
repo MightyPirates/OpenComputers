@@ -19,11 +19,16 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
 
-  protected val maxQueueSize = 20
+  protected def queueDefaultSize = Settings.get.switchDefaultMaxQueueSize
+  protected def queueUpgradeSize = Settings.get.switchQueueSizeUpgrade
+  protected def relayDefaultDelay = Settings.get.switchDefaultRelayDelay
+  protected def relayUpgradeDelay = Settings.get.switchRelayDelayUpgrade
+
+  protected var maxQueueSize = Settings.get.switchDefaultMaxQueueSize
 
   protected var relayCooldown = -1
 
-  protected val relayDelay = 5
+  protected var relayDelay = Settings.get.switchDefaultRelayDelay
 
   // ----------------------------------------------------------------------- //
 
