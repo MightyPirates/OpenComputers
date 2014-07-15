@@ -48,7 +48,7 @@ print("Installing OpenOS to device " .. (choice.getLabel() or choice.address))
 os.sleep(0.25)
 local boot = computer.getBootAddress():sub(1, 3)
 local mnt = choice.address:sub(1, 3)
-local result, reason = os.execute("cp -vfr /mnt/" .. boot .. "/* /mnt/" .. mnt .. "/")
+local result, reason = os.execute("/bin/cp -vr /mnt/" .. boot .. "/* /mnt/" .. mnt .. "/")
 if not result then
   error(reason, 0)
 end

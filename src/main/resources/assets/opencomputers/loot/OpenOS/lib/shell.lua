@@ -88,6 +88,7 @@ end
 function shell.resolveAlias(command, args)
   checkArg(1, command, "string")
   checkArg(2, args, "table", "nil")
+  args = args or {}
   local program, lastProgram = command, nil
   while true do
     local tokens = text.tokenize(shell.getAlias(program) or program)

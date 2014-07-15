@@ -3,8 +3,9 @@ local shell = require("shell")
 
 local args, options = shell.parse(...)
 if #args < 2 then
-  io.write("Usage: cp [-frv] <from...> <to>\n")
-  io.write(" -f: overwrite file if it already exists.\n")
+  io.write("Usage: cp [-inrv] <from...> <to>\n")
+  io.write(" -i: prompt before overwrite (overrides -n option).\n")
+  io.write(" -n: do not overwrite an existing file.\n")
   io.write(" -r: copy directories recursively.\n")
   io.write(" -v: verbose output.")
   return
@@ -25,21 +26,25 @@ end
 
 local result, reason
 
+local function prompt(message)
+  io.write(message .. " ")
+  local result = io.read()
+  return result and result:sub(1, 1):lower() == "y"
+end
+
 local function recurse(fromPath, toPath)
   status(fromPath, toPath)
   if fs.isDirectory(fromPath) then
     if not options.r then
-      io.write("omitting directory '" .. fromPath .. "'\n")
+      io.write("omitting directory `" .. fromPath .. "'\n")
       return true
     end
     if fs.canonical(fromPath) == fs.canonical(fs.path(toPath)) then
-      return nil, "cannot copy a directory, '" .. fromPath .. "', into itself, '" .. toPath .. "'\n"
+      return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'\n"
     end
     if fs.exists(toPath) and not fs.isDirectory(toPath) then
-      if not options.f then
-        return nil, "target file exists"
-      end
-      fs.remove(toPath)
+      -- my real cp always does this, even with -f, -n or -i.
+      return nil, "cannot overwrite non-directory `" .. toPath .. "' with directory `" .. fromPath .. "'"
     end
     fs.makeDirectory(toPath)
     for file in fs.list(fromPath) do
@@ -52,10 +57,27 @@ local function recurse(fromPath, toPath)
   else
     if fs.exists(toPath) then
       if fs.canonical(fromPath) == fs.canonical(toPath) then
-        return nil, "'" .. fromPath .. "' and '" .. toPath .. "' are the same file"
+        return nil, "`" .. fromPath .. "' and `" .. toPath .. "' are the same file"
       end
-      if fs.isDirectory(toPath) or not options.f then
-        return nil, "target file exists"
+      if fs.isDirectory(toPath) then
+        if options.i then
+          if not prompt("overwrite `" .. toPath .. "'?") then
+            return true
+          end
+        elseif options.n then
+          return true
+        else -- yes, even for -f
+          return nil, "cannot overwrite directory `" .. toPath .. "' with non-directory"
+        end
+      else
+        if options.i then
+          if not prompt("overwrite `" .. toPath .. "'?") then
+            return true
+          end
+        elseif options.n then
+          return true
+        end
+        -- else: default to overwriting
       end
       fs.remove(toPath)
     end
