@@ -9,12 +9,12 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
-object RouterRenderer extends TileEntitySpecialRenderer {
+object SwitchRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val router = tileEntity.asInstanceOf[tileentity.Router]
-    val activity = math.max(0, 1 - (System.currentTimeMillis() - router.lastMessage) / 1000.0)
+    val switch = tileEntity.asInstanceOf[tileentity.Switch]
+    val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
       GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 

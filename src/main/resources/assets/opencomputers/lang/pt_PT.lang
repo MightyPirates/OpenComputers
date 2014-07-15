@@ -25,10 +25,10 @@ oc:tile.PowerDistributor.name=Distribuidor de Energia
 oc:tile.Redstone.name=E/S de Redstone
 oc:tile.Robot.name=Robô
 oc:tile.RobotAfterimage.name=Robô
-oc:tile.Router.name=Roteador
 oc:tile.Screen0.name=Ecrã Básico
 oc:tile.Screen1.name=Ecrã Avançado
 oc:tile.Screen2.name=Ecrã Superior
+oc:tile.Switch.name=Roteador
 
 # Items
 oc:item.Acid.name=Grogue
@@ -82,6 +82,7 @@ oc:gui.Robot.TurnOn=Ligar
 # Containers
 oc:container.Case=Computador
 oc:container.DiskDrive=Drive de Disquetes
+oc:container.Switch=Roteador
 
 # Item / Block Tooltips
 oc:tooltip.Acid=Um líquido muito tóxico, geralmente apenas consumido por alguns piratas. Graças à sua natureza corrosiva é perfeito para gravar placas de circuitos.
@@ -122,8 +123,8 @@ oc:tooltip.Robot=Ao contrário dos computadores, os robôs podem mover-se e inte
 # The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fNível§7: §a%s§7.
 oc:tooltip.Robot_StoredEnergy=§fEnergia Armazenada§7: §a%s§7.
-oc:tooltip.Router=Permite interligar redes diferentes. Apenas pacotes de rede serão passados, componentes não serão visiveis em redes vizinhas. Usa isto para separar várias redes e ao mesmo tempo permitir comunicação através de placas de rede, por exemplo.
 oc:tooltip.Screen=Mostra texto, controlado por uma placa gráfica numa Caixa.[nl] Resolução máxima: §f%sx%s§7.[nl] Profundidade de cor máxima: §f%s§7.
+oc:tooltip.Switch=Permite interligar redes diferentes. Apenas pacotes de rede serão passados, componentes não serão visiveis em redes vizinhas. Usa isto para separar várias redes e ao mesmo tempo permitir comunicação através de placas de rede, por exemplo.
 oc:tooltip.TooLong=Prime [§f%s§7] para uma descrição detalhada.
 oc:tooltip.Transistor=Um componente básico do hardware do computador. É um pouco retorcido, mas faz o seu trabalho.
 oc:tooltip.UpgradeCrafting=Permite aos robôs usar a parte superior esquerda do seu inventório para fabricar objectos. Os itens têm de estar alinhados como numa mesa de fabrico.

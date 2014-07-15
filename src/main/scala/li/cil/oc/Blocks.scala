@@ -41,10 +41,10 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotAssembler], Settings.namespace + "robotAssembler")
-    GameRegistry.registerTileEntity(classOf[tileentity.Router], Settings.namespace + "router")
+    GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Switch], Settings.namespace + "switch", Settings.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "serverRack")
-    GameRegistry.registerTileEntity(classOf[tileentity.WirelessRouter], Settings.namespace + "wireless_router")
+    GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.AccessPoint], Settings.namespace + "access_point", Settings.namespace + "wireless_router")
 
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in

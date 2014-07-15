@@ -6,7 +6,7 @@ import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.media.IMedia
 import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral, IPeripheralProvider}
 import li.cil.oc
-import li.cil.oc.common.tileentity.Router
+import li.cil.oc.common.tileentity.Switch
 import li.cil.oc.server.fs.{ComputerCraftFileSystem, ComputerCraftWritableFileSystem}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -17,7 +17,7 @@ object ComputerCraft {
   def init() {
     ComputerCraftAPI.registerPeripheralProvider(new IPeripheralProvider {
       override def getPeripheral(world: World, x: Int, y: Int, z: Int, side: Int) = world.getTileEntity(x, y, z) match {
-        case router: Router => new RouterPeripheral(router)
+        case switch: Switch => new SwitchPeripheral(switch)
         case _ => null
       }
     })
@@ -33,26 +33,26 @@ object ComputerCraft {
     case ro: IMount => new ComputerCraftFileSystem(ro)
   }
 
-  class RouterPeripheral(val router: Router) extends IPeripheral {
-    override def getType = router.getType
+  class SwitchPeripheral(val switch: Switch) extends IPeripheral {
+    override def getType = switch.getType
 
     override def attach(computer: IComputerAccess) {
-      router.computers += computer
-      router.openPorts += computer -> mutable.Set.empty
+      switch.computers += computer
+      switch.openPorts += computer -> mutable.Set.empty
     }
 
     override def detach(computer: IComputerAccess) {
-      router.computers -= computer
-      router.openPorts -= computer
+      switch.computers -= computer
+      switch.openPorts -= computer
     }
 
-    override def getMethodNames = router.getMethodNames
+    override def getMethodNames = switch.getMethodNames
 
     override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) =
-      router.callMethod(computer, context, method, arguments)
+      switch.callMethod(computer, context, method, arguments)
 
     override def equals(other: IPeripheral) = other match {
-      case rp: RouterPeripheral => rp.router == router
+      case peripheral: SwitchPeripheral => peripheral.switch == switch
       case _ => false
     }
   }

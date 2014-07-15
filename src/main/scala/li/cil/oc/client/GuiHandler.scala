@@ -1,13 +1,13 @@
 package li.cil.oc.client
 
+import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
 import li.cil.oc.{Items, Localization, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
-import li.cil.oc.api.component.TextBuffer
-import li.cil.oc.common.item.Tablet
 
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =
@@ -26,6 +26,8 @@ object GuiHandler extends CommonGuiHandler {
         new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
         new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled)
+      case switch: tileentity.Switch if id == GuiType.Switch.id =>
+        new gui.Switch(player.inventory, switch)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new gui.Server(player.inventory, new ServerInventory {

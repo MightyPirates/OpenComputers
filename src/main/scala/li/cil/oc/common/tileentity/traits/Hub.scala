@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.MovingAverage
 import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -18,13 +19,32 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
-  protected val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
+  val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
 
-  protected val maxQueueSize = 20
+  var maxQueueSize = queueBaseSize
 
-  protected var relayCooldown = -1
+  var relayDelay = relayBaseDelay
 
-  protected val relayDelay = 5
+  var relayAmount = relayBaseAmount
+
+  var relayCooldown = -1
+
+  // 20 cycles
+  val packetsPerCycleAvg = new MovingAverage(20)
+
+  // ----------------------------------------------------------------------- //
+
+  protected def queueBaseSize = Settings.get.switchDefaultMaxQueueSize
+
+  protected def queueSizePerUpgrade = Settings.get.switchQueueSizeUpgrade
+
+  protected def relayBaseDelay = Settings.get.switchDefaultRelayDelay
+
+  protected def relayDelayPerUpgrade = Settings.get.switchRelayDelayUpgrade
+
+  protected def relayBaseAmount = Settings.get.switchDefaultRelayAmount
+
+  protected def relayAmountPerUpgrade = Settings.get.switchRelayAmountUpgrade
 
   // ----------------------------------------------------------------------- //
 
@@ -40,14 +60,20 @@ trait Hub extends traits.Environment with SidedEnvironment {
     if (relayCooldown > 0) {
       relayCooldown -= 1
     }
-    else if (queue.nonEmpty) queue.synchronized {
-      val (sourceSide, packet) = queue.dequeue()
-      relayPacket(sourceSide, packet)
-      if (queue.nonEmpty) {
-        relayCooldown = relayDelay
+    else {
+      relayCooldown = -1
+      if (queue.nonEmpty) queue.synchronized {
+        packetsPerCycleAvg += queue.size
+        for (i <- 0 until math.min(queue.size, relayAmount)) {
+          val (sourceSide, packet) = queue.dequeue()
+          relayPacket(sourceSide, packet)
+        }
+        if (queue.nonEmpty) {
+          relayCooldown = relayDelay
+        }
       }
-      else {
-        relayCooldown = -1
+      else if (world.getWorldTime % relayDelay == 0) {
+        packetsPerCycleAvg += 0
       }
     }
   }

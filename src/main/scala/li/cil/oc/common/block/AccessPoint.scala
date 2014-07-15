@@ -13,10 +13,8 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
-class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
-  val unlocalizedName = "WirelessRouter"
-
-  private val icons = Array.fill[Icon](6)(null)
+class AccessPoint(parent: SimpleDelegator) extends Switch(parent) {
+  override val unlocalizedName = "AccessPoint"
 
   // ----------------------------------------------------------------------- //
 
@@ -36,21 +34,12 @@ class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
     }
   }
 
-  override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
-
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_wireless_top")
-
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_side")
-    icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+    super.registerIcons(iconRegister)
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":access_point_top")
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity = true
-
-  override def createTileEntity(world: World) = Some(new tileentity.WirelessRouter)
+  override def createTileEntity(world: World) = Some(new tileentity.AccessPoint)
 }

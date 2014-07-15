@@ -243,8 +243,8 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRouterActivity(t: tileentity.Router) {
-    val pb = new PacketBuilder(PacketType.RouterActivity)
+  def sendSwitchActivity(t: tileentity.Switch) {
+    val pb = new PacketBuilder(PacketType.SwitchActivity)
 
     pb.writeTileEntity(t)
 

@@ -3,16 +3,21 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.Optional
 import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
+import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Message, Packet}
+import li.cil.oc.common.{InventorySlots, item}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Items, Settings, api}
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")
-class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
+class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
   var lastMessage = 0L
 
   val computers = mutable.Buffer.empty[AnyRef]
@@ -65,7 +70,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
       val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
       result(tryEnqueuePacket(ForgeDirection.UNKNOWN, packet))
-    case "isWireless" => result(this.isInstanceOf[WirelessRouter])
+    case "isWireless" => result(this.isInstanceOf[AccessPoint])
     case _ => null
   }
 
@@ -101,7 +106,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
     val now = System.currentTimeMillis()
     if (now - lastMessage >= (relayDelay - 1) * 50) {
       lastMessage = now
-      PacketSender.sendRouterActivity(this)
+      PacketSender.sendSwitchActivity(this)
     }
   }
 
@@ -118,6 +123,55 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
           }
         case _ =>
       }
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    updateLimits(slot, stack)
+  }
+
+  private def updateLimits(slot: Int, stack: ItemStack) {
+    Driver.driverFor(stack) match {
+      case driver if driver.slot(stack) == Slot.Processor =>
+        relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
+      case driver if driver.slot(stack) == Slot.Memory =>
+        relayAmount = math.max(1, relayBaseAmount + (Items.multi.subItem(stack) match {
+          case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
+          case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
+        }))
+      case driver if driver.slot(stack) == Slot.HardDiskDrive =>
+        maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
+    }
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
+    Driver.driverFor(stack) match {
+      case driver if driver.slot(stack) == Slot.Processor => relayDelay = relayBaseDelay
+      case driver if driver.slot(stack) == Slot.Memory => relayAmount = relayBaseAmount
+      case driver if driver.slot(stack) == Slot.HardDiskDrive => maxQueueSize = queueBaseSize
+    }
+  }
+
+  override def getInventoryName = Settings.namespace + "container.Switch"
+
+  override def getSizeInventory = InventorySlots.switch.length
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+    Option(Driver.driverFor(stack)).fold(false)(driver => {
+      val provided = InventorySlots.switch(slot)
+      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
+    })
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    for (slot <- 0 until items.length) items(slot) collect {
+      case stack => updateLimits(slot, stack)
     }
   }
 }
