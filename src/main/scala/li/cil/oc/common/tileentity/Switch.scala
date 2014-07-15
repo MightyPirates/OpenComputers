@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.Optional
 import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Message, Packet}
 import li.cil.oc.common.{InventorySlots, item}
@@ -11,6 +10,7 @@ import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 import scala.collection.mutable
@@ -152,16 +152,20 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
+    updateLimits(slot, stack)
+  }
+
+  private def updateLimits(slot: Int, stack: ItemStack) {
     Driver.driverFor(stack) match {
       case driver if driver.slot(stack) == Slot.Processor =>
-        relayDelay = relayBaseDelay - (driver.tier(stack) * relayDelayPerUpgrade)
+        relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
       case driver if driver.slot(stack) == Slot.Memory =>
-        relayAmount = relayBaseAmount + (Items.multi.subItem(stack) match {
+        relayAmount = math.max(1, relayBaseAmount + (Items.multi.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
-        })
+        }))
       case driver if driver.slot(stack) == Slot.HardDiskDrive =>
-        maxQueueSize = queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade
+        maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
     }
   }
 
@@ -184,6 +188,14 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
       driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
 
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    for (slot <- 0 until items.length) items(slot) collect {
+      case stack => updateLimits(slot, stack)
+    }
+  }
 }
 
 // Abstraction layer for CC computers to support 1.5 and 1.6 API.
