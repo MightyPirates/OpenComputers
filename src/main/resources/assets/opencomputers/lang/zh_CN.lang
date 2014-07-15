@@ -17,10 +17,10 @@ oc:tile.PowerDistributor.name=能量分配器
 oc:tile.Redstone.name=红石I/O
 oc:tile.Robot.name=机器人
 oc:tile.RobotAfterimage.name=机器人
-oc:tile.Router.name=路由器
 oc:tile.Screen0.name=基础屏幕
 oc:tile.Screen1.name=高级屏幕
 oc:tile.Screen2.name=超级屏幕
+oc:tile.Switch.name=路由器
 
 # Items
 oc:item.Acid.name=蚀刻药水
@@ -110,8 +110,8 @@ oc:tooltip.RedstoneCard=能够在计算机和机器人四周接收以及发送�
 oc:tooltip.Robot=和计算机不同,机器人能够移动并且像玩家那些与世界之中的东西交互.[nl]然而,它们§o不能§r§7直接与外设进行交互!
 oc:tooltip.Robot_Level=§f等级§7: §a%s§7.
 oc:tooltip.Robot_StoredEnergy=§f储能§7: §a%s§7.
-oc:tooltip.Router=允许设备相互连接不同的网络.[nl]仅能传递网络信息,通过路由器方式设备并不互相可见.[nl]例如可以通过这种方式来建立独立网络但仍允许其使用网卡通讯.
 oc:tooltip.Screen=由机箱内的显卡控制来显示文本.[nl]最高分辨率:§f%sx%s§7.[nl] 最大色深: §f%s§7.
+oc:tooltip.Switch=允许设备相互连接不同的网络.[nl]仅能传递网络信息,通过路由器方式设备并不互相可见.[nl]例如可以通过这种方式来建立独立网络但仍允许其使用网卡通讯.
 oc:tooltip.TooLong=按住潜行键([§f%s§7])以查看详细提示信息.
 oc:tooltip.Transistor=在多数其他计算机的零件中都很基础的元件.[nl]引脚有点弯了,但还能用.
 oc:tooltip.UpgradeCrafting=使得机器人能够将其物品栏的左上区域作为合成网格来制做物品.[nl]物品栏内物品摆放必须与工作台中一致.

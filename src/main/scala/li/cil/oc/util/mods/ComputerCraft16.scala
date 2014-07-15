@@ -17,7 +17,7 @@ object ComputerCraft16 {
   def init() {
     ComputerCraftAPI.registerPeripheralProvider(new IPeripheralProvider {
       override def getPeripheral(world: World, x: Int, y: Int, z: Int, side: Int) = world.getBlockTileEntity(x, y, z) match {
-        case switch: Switch => new RouterPeripheral(switch)
+        case switch: Switch => new SwitchPeripheral(switch)
         case _ => null
       }
     })
@@ -33,7 +33,7 @@ object ComputerCraft16 {
     case ro: IMount => new CC16FileSystem(ro)
   }
 
-  class RouterPeripheral(val switch: Switch) extends IPeripheral {
+  class SwitchPeripheral(val switch: Switch) extends IPeripheral {
     override def getType = switch.getType
 
     override def attach(computer: IComputerAccess) {
@@ -58,7 +58,7 @@ object ComputerCraft16 {
       switch.callMethod(computer, computer.getID, computer.getAttachmentName, method, arguments)
 
     override def equals(other: IPeripheral) = other match {
-      case peripheral: RouterPeripheral => peripheral.switch == switch
+      case peripheral: SwitchPeripheral => peripheral.switch == switch
       case _ => false
     }
   }

@@ -153,7 +153,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
     case _ => false
   }
 
-  override def getInvName = Settings.namespace + "container.Router"
+  override def getInvName = Settings.namespace + "container.Switch"
 
   override def getSizeInventory = 2
 

@@ -13,10 +13,10 @@ oc:tile.PowerDistributor.name=Distributeur
 oc:tile.Redstone.name=Redstone E/S
 oc:tile.Robot.name=Robot
 oc:tile.RobotAfterimage.name=Robot
-oc:tile.Router.name=Routeur
 oc:tile.Screen0.name=Ecran (Niveau 1)
 oc:tile.Screen1.name=Ecran (Niveau 2)
 oc:tile.Screen2.name=Ecran (Niveau 3)
+oc:tile.Switch.name=Routeur
 
 # Items
 oc:item.Acid.name=Grog

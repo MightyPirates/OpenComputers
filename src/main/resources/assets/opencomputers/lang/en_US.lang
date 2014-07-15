@@ -3,6 +3,7 @@
 # Use [nl] to for a line break.
 
 # Blocks
+oc:tile.AccessPoint.name=Access Point
 oc:tile.Adapter.name=Adapter
 oc:tile.Cable.name=Cable
 oc:tile.Capacitor.name=Capacitor
@@ -24,12 +25,11 @@ oc:tile.Redstone.name=Redstone I/O
 oc:tile.Robot.name=Robot
 oc:tile.RobotAfterimage.name=Robot
 oc:tile.RobotAssembler.name=Robot Assembler
-oc:tile.Router.name=Switch
 oc:tile.Screen0.name=Screen (Tier 1)
 oc:tile.Screen1.name=Screen (Tier 2)
 oc:tile.Screen2.name=Screen (Tier 3)
 oc:tile.ServerRack.name=Server Rack
-oc:tile.WirelessRouter.name=Access Point
+oc:tile.Switch.name=Switch
 
 # Items
 oc:item.AbstractBusCard.name=Abstract Bus Card
@@ -164,6 +164,7 @@ key.materialCosts=Show Material Costs
 key.clipboardPaste=Paste Clipboard
 
 # Item / Block Tooltips
+oc:tooltip.AccessPoint=Acts like a Switch, but additionally receives wireless packets and relays wired packets wirelessly.
 oc:tooltip.AbstractBusCard=Allows interacting with §fStargateTech 2§7's abstract bus by sending and receiving LIP packets.
 oc:tooltip.Acid=A highly toxic pseudo-liquid, usually only consumed by certain pirates. Thanks to its corrosive nature it is perfectly suited for etching circuit boards.
 oc:tooltip.Adapter=Used to control non-component blocks, such as vanilla blocks or blocks from other mods.
@@ -218,11 +219,11 @@ oc:tooltip.Robot=Unlike computers, robots can move around and interact with the 
 oc:tooltip.Robot_Level=§fLevel§7: §a%s§7.
 oc:tooltip.Robot_StoredEnergy=§fStored energy§7: §a%s§7.
 oc:tooltip.RobotAssembler=Allows constructing robots from a number of different computer parts.
-oc:tooltip.Router=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
 oc:tooltip.Screen=Display text, controlled by a Graphics Card in a Case.[nl] Maximum resolution: §f%sx%s§7.[nl] Maximum color depth: §f%s§7.
 oc:tooltip.Server=This is a server, there are many like it, but this one can be upgraded with components much like a computer case can be. It can be run by inserting it into a server rack.[nl] Number of supported terminals: §f%s§7.
 oc:tooltip.Server.Components=Installed components:
 oc:tooltip.ServerRack=Allows the installation of up to four servers. Use a Remote Terminal to access the servers built into this server rack.
+oc:tooltip.Switch=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
 oc:tooltip.Terminal=Allows controlling a server remotely, as long as you are in range of it. Acts like a portable screen and keyboard. Shift-right-click a server in a server rack to bind the terminal to it.
 oc:tooltip.TooLong=Hold [§f%s§7] for a detailed tooltip.
 oc:tooltip.Transistor=A basic element in most other computer parts. It's a bit twisted, but it does the job.
@@ -241,4 +242,3 @@ oc:tooltip.UpgradeSign=Allows reading text on and writing text to signs.
 oc:tooltip.UpgradeSolarGenerator=Can be used to generate energy from sunlight on the go. Requires a clear line of sight to the sky above the robot. Generates energy at %s%% of the speed of a Stirling Engine.
 oc:tooltip.UpgradeTractorBeam=Equips the robot with extremely advanced technology, nicknamed the "Item Magnet". Allows it to pick up items anywhere within 3 blocks of its location.
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.
-oc:tooltip.WirelessRouter=Acts like a Switch, but additionally receives wireless packets and relays wired packets wirelessly.

@@ -3,6 +3,7 @@
 #Suggestions for improvements are welcome
 
 # Blocks
+oc:tile.AccessPoint.name=Access Point
 oc:tile.Adapter.name=Adapter
 oc:tile.Cable.name=Kabel
 oc:tile.Capacitor.name=Kondensator
@@ -24,12 +25,11 @@ oc:tile.Redstone.name=Redstone-I/O
 oc:tile.Robot.name=Roboter
 oc:tile.RobotAfterimage.name=Roboter
 oc:tile.RobotAssembler.name=Roboter-Werkbank
-oc:tile.Router.name=Switch
 oc:tile.Screen0.name=Bildschirm (Stufe 1)
 oc:tile.Screen1.name=Bildschirm (Stufe 2)
 oc:tile.Screen2.name=Bildschirm (Stufe 3)
 oc:tile.ServerRack.name=Serverschrank
-oc:tile.WirelessRouter.name=Access Point
+oc:tile.Switch.name=Switch
 
 # Items
 oc:item.AbstractBusCard.name=Abstrakter-Bus-Karte
@@ -164,6 +164,7 @@ key.materialCosts=Materialkosten anzeigen
 key.clipboardPaste=Zwischenablage einfügen
 
 # Item / Block Tooltips
+oc:tooltip.AccessPoint=Verhält sich wie ein Switch, aber empfängt zusätzlich Drahtlosnachrichten und leitet Pakete aus dem Festnetz drahtlos weiter.
 oc:tooltip.AbstractBusCard=Erlaubt es, LIP-Pakete des Abstrakten Busses von §fStargateTech 2§7 zu senden und zu empfangen.
 oc:tooltip.Acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Dank ihrer korrosiven Eigenschaften ideal zum Bedrucken von Leiterplatten geeignet.
 oc:tooltip.Adapter=Erlaubt es, Blöcke anzusteuern, die keine Komponentenblöcke sind, wie etwa reguläre Minecraft-Blöcke oder Blöcke anderer Mods.
@@ -218,11 +219,11 @@ oc:tooltip.Robot=Im Gegensatz zu normalen Computern können sich Roboter in der 
 oc:tooltip.Robot_Level=§fStufe§7: §a%s§7.
 oc:tooltip.Robot_StoredEnergy=§fGespeicherte Energie§7: §a%s§7.
 oc:tooltip.RobotAssembler=Erlaubt die Fertigung von Robotern aus diversen anderen Computerteilen.
-oc:tooltip.Router=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Switch sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
 oc:tooltip.Screen=Zeigt Text an, gesteuert von Grafikkarten in Computern.[nl] Höchstauflösung: §f%sx%s§7.[nl] Maximale Farbtiefe: §f%s§7.
 oc:tooltip.Server=Ein Server kann wie ein gewöhnliches Computergehäuse mit Komponenten verbessert werden. Um den Server zu starten, muss er in einem Servergehäuse installiert werden.[nl] Anzahl unterstützter Fernbedienungen: §f%s§7.
 oc:tooltip.Server.Components=Installierte Komponenten:
 oc:tooltip.ServerRack=Erlaubt die Installation von bis zu vier Servern. Stellt für jeden eingebauten Server eine virtuelle Tastatur- und Bildschirmkomponente zur Verfügung, welche je eine Fernbedienung repräsentieren.
+oc:tooltip.Switch=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Switch sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
 oc:tooltip.Terminal=Erlaubt es, einen Server aus der Ferne zu steuern, so lange man sich in Reichweite des Servers befindet. Verhält sich wie Bildschirm und Tastatur in einem. Kann mit Shift-Rechtsklick an einen Server in einem Serverschrank gebunden werden.
 oc:tooltip.TooLong=Halte [§f%s§7] gedrückt für mehr Infos.
 oc:tooltip.Transistor=Elementarer Baustein der meisten Computerkomponenten. Nicht zu verwechseln mit Steinelementaren.
@@ -241,4 +242,3 @@ oc:tooltip.UpgradeSign=Erlaubt das Lesen und Schreiben von Text auf Schildern.
 oc:tooltip.UpgradeSolarGenerator=Kann verwendet werden, um unterwegs Energie aus Sonnenlicht zu generieren. Benötigt eine ungehinderte Sicht zum Himmel über dem Roboter. Generiert Energie mit %s%% der Geschwindigkeit eines Stirlingmotors.
 oc:tooltip.UpgradeTractorBeam=Stattet den Roboter mit unglaublich fortschrittlicher Technologie - Kosename: "Gegenstandsmagnet" - aus. Erlaubt es dem Roboter, Gegenstände, innerhalb von 3 Blöcken um sich herum, einzusammeln.
 oc:tooltip.WirelessNetworkCard=Erlaubt das drahtlose Senden von Netzwerknachrichten, zusätzlich zu normalen. Drahtlose Nachrichten werden nur gesendet, wenn eine §fSignalstärke§7 festgelegt wurde!
-oc:tooltip.WirelessRouter=Verhält sich wie ein Switch, aber empfängt zusätzlich Drahtlosnachrichten und leitet Pakete aus dem Festnetz drahtlos weiter.

@@ -12,7 +12,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
-  val unlocalizedName = "Router"
+  val unlocalizedName = "Switch"
 
   private val icons = Array.fill[Icon](6)(null)
 
@@ -26,14 +26,14 @@ class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_top")
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":switch_top")
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_side")
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":switch_side")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
 
-    Textures.Switch.iconSideActivity = iconRegister.registerIcon(Settings.resourceDomain + ":router_side_active")
+    Textures.Switch.iconSideActivity = iconRegister.registerIcon(Settings.resourceDomain + ":switch_side_active")
   }
 
   // ----------------------------------------------------------------------- //

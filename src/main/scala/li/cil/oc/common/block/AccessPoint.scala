@@ -14,7 +14,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
-  val unlocalizedName = "WirelessRouter"
+  val unlocalizedName = "AccessPoint"
 
   private val icons = Array.fill[Icon](6)(null)
 
@@ -40,9 +40,9 @@ class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_wireless_top")
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":access_point_top")
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_side")
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":switch_side")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
