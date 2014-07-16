@@ -67,7 +67,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "network.message" && message.source != robot.node) message.data match {
+    if (message.name == "network.message" && message.source != this.node) message.data match {
       case Array(packet: Packet) => robot.node.sendToReachable(message.name, packet)
       case _ =>
     }

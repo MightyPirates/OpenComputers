@@ -496,7 +496,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "network.message" && message.source != robot.proxy.node) message.data match {
+    if (message.name == "network.message" && message.source != robot.node) message.data match {
       case Array(packet: Packet) => robot.proxy.node.sendToReachable(message.name, packet)
       case _ =>
     }
