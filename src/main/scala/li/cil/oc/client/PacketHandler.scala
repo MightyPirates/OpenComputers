@@ -29,6 +29,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
       case PacketType.DisassemblerActiveChange => onDisassemblerActiveChange(p)
+      case PacketType.FloppyChange => onFloppyChange(p)
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
@@ -122,6 +123,12 @@ class PacketHandler extends CommonPacketHandler {
   def onDisassemblerActiveChange(p: PacketParser) =
     p.readTileEntity[Disassembler]() match {
       case Some(t) => t.isActive = p.readBoolean()
+      case _ => // Invalid packet.
+    }
+
+  def onFloppyChange(p: PacketParser) =
+    p.readTileEntity[DiskDrive]() match {
+      case Some(t) => t.setInventorySlotContents(0, p.readItemStack())
       case _ => // Invalid packet.
     }
 

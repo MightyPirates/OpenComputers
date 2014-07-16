@@ -75,6 +75,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendFloppyChange(t: tileentity.DiskDrive, stack: ItemStack = null) {
+    val pb = new PacketBuilder(PacketType.FloppyChange)
+
+    pb.writeTileEntity(t)
+    pb.writeItemStack(stack)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendHologramClear(t: tileentity.Hologram) {
     val pb = new PacketBuilder(PacketType.HologramClear)
 
