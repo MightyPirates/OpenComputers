@@ -143,8 +143,6 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def getSizeInventory = 4
 
-  override def getInvName = Settings.namespace + "container.Rack"
-
   override def getInventoryStackLimit = 1
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) = {

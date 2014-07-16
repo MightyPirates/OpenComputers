@@ -1,6 +1,5 @@
 package li.cil.oc.common.inventory
 
-import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.common.InventorySlots
 import net.minecraft.entity.player.EntityPlayer
@@ -15,7 +14,7 @@ trait ServerInventory extends ItemStackInventory {
     case _ => 8
   }
 
-  override def getInvName = Settings.namespace + "container.Server"
+  override protected def inventoryName = "Server"
 
   override def getInventoryStackLimit = 1
 

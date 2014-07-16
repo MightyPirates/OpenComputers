@@ -156,8 +156,8 @@ oc:container.AccessPoint=Access Point
 oc:container.Case=Computer
 oc:container.Disassembler=Recycler
 oc:container.DiskDrive=Diskettenlaufwerk
-oc:container.Rack=Serverschrank
 oc:container.Server=Server
+oc:container.ServerRack=Serverschrank
 oc:container.Switch=Switch
 
 # Keybinds

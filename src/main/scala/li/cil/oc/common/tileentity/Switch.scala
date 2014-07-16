@@ -178,8 +178,6 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
     }
   }
 
-  override def getInvName = Settings.namespace + "container.Switch"
-
   override def getSizeInventory = InventorySlots.switch.length
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =

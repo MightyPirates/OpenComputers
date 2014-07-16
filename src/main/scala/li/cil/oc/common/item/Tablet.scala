@@ -121,8 +121,6 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
 
   override def getSizeInventory = items.length
 
-  override def getInvName = Settings.namespace + "container.Tablet"
-
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 
   override def isUseableByPlayer(player: EntityPlayer) = canInteract(player.getCommandSenderName)

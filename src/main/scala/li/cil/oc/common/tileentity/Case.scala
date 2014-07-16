@@ -97,8 +97,6 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
     recomputeMaxComponents()
   }
 
-  override def getInvName = Settings.namespace + "container.Case"
-
   override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
 
   override def isUseableByPlayer(player: EntityPlayer) =

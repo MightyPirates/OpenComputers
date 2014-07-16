@@ -63,6 +63,10 @@ trait Inventory extends IInventory {
 
   override def isInvNameLocalized = false
 
+  override def getInvName = Settings.namespace + "container." + inventoryName
+
+  protected def inventoryName = getClass.getSimpleName
+
   // ----------------------------------------------------------------------- //
 
   def load(nbt: NBTTagCompound) {
