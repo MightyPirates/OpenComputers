@@ -45,45 +45,45 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   object Icons {
     var b, b2, bbl, bbl2, bbm, bbm2, bbr, bbr2, bhb, bhb2, bhm, bhm2, bht, bht2, bml, bmm, bmr, btl, btm, btr, bvb, bvb2, bvm, bvt, f, f2, fbl, fbl2, fbm, fbm2, fbr, fbr2, fhb, fhb2, fhm, fhm2, fht, fht2, fml, fmm, fmr, ftl, ftm, ftr, fvb, fvb2, fvm, fvt = null: IIcon
 
-    lazy val fh = Array(fht, fhm, fhb)
-    lazy val fv = Array(fvt, fvm, fvb)
-    lazy val bh = Array(bht, bhm, bhb)
-    lazy val bv = Array(bvt, bvm, bvb)
+    def fh = Array(fht, fhm, fhb)
+    def fv = Array(fvt, fvm, fvb)
+    def bh = Array(bht, bhm, bhb)
+    def bv = Array(bvt, bvm, bvb)
 
-    lazy val fth = Array(ftl, ftm, ftr)
-    lazy val fmh = Array(fml, fmm, fmr)
-    lazy val fbh = Array(fbl, fbm, fbr)
-    lazy val bth = Array(btl, btm, btr)
-    lazy val bmh = Array(bml, bmm, bmr)
-    lazy val bbh = Array(bbl, bbm, bbr)
+    def fth = Array(ftl, ftm, ftr)
+    def fmh = Array(fml, fmm, fmr)
+    def fbh = Array(fbl, fbm, fbr)
+    def bth = Array(btl, btm, btr)
+    def bmh = Array(bml, bmm, bmr)
+    def bbh = Array(bbl, bbm, bbr)
 
-    lazy val ftv = Array(ftl, fml, fbl)
-    lazy val fmv = Array(ftm, fmm, fbm)
-    lazy val fbv = Array(ftr, fmr, fbr)
-    lazy val btv = Array(btl, bml, bbl)
-    lazy val bmv = Array(btm, bmm, bbm)
-    lazy val bbv = Array(btr, bmr, bbr)
+    def ftv = Array(ftl, fml, fbl)
+    def fmv = Array(ftm, fmm, fbm)
+    def fbv = Array(ftr, fmr, fbr)
+    def btv = Array(btl, bml, bbl)
+    def bmv = Array(btm, bmm, bbm)
+    def bbv = Array(btr, bmr, bbr)
 
-    lazy val fh2 = Array(fht2, fhm2, fhb2)
-    lazy val fv2 = Array(fvt, fvm, fvb2)
-    lazy val bh2 = Array(bht2, bhm2, bhb2)
-    lazy val bv2 = Array(bvt, bvm, bvb2)
-    lazy val fbh2 = Array(fbl2, fbm2, fbr2)
-    lazy val bbh2 = Array(bbl2, bbm2, bbr2)
+    def fh2 = Array(fht2, fhm2, fhb2)
+    def fv2 = Array(fvt, fvm, fvb2)
+    def bh2 = Array(bht2, bhm2, bhb2)
+    def bv2 = Array(bvt, bvm, bvb2)
+    def fbh2 = Array(fbl2, fbm2, fbr2)
+    def bbh2 = Array(bbl2, bbm2, bbr2)
 
-    lazy val fud = Icons.fh2 ++ Icons.fv2 ++ Icons.fth ++ Icons.fmh ++ Icons.fbh2
-    lazy val bud = Icons.bh2.reverse ++ Icons.bv2 ++ Icons.bth.reverse ++ Icons.bmh.reverse ++ Icons.bbh2.reverse
-    lazy val fsn = Icons.fh ++ Icons.fv ++ Icons.fth ++ Icons.fmh ++ Icons.fbh
-    lazy val few = Icons.fv ++ Icons.fh ++ Icons.ftv ++ Icons.fmv ++ Icons.fbv
-    lazy val bsn = Icons.bh ++ Icons.bv ++ Icons.bth ++ Icons.bmh ++ Icons.bbh
-    lazy val bew = Icons.bv ++ Icons.bh ++ Icons.btv ++ Icons.bmv ++ Icons.bbv
+    def fud = Icons.fh2 ++ Icons.fv2 ++ Icons.fth ++ Icons.fmh ++ Icons.fbh2
+    def bud = Icons.bh2.reverse ++ Icons.bv2 ++ Icons.bth.reverse ++ Icons.bmh.reverse ++ Icons.bbh2.reverse
+    def fsn = Icons.fh ++ Icons.fv ++ Icons.fth ++ Icons.fmh ++ Icons.fbh
+    def few = Icons.fv ++ Icons.fh ++ Icons.ftv ++ Icons.fmv ++ Icons.fbv
+    def bsn = Icons.bh ++ Icons.bv ++ Icons.bth ++ Icons.bmh ++ Icons.bbh
+    def bew = Icons.bv ++ Icons.bh ++ Icons.btv ++ Icons.bmv ++ Icons.bbv
 
-    lazy val sud = Array(Icons.bvt, Icons.bvm, Icons.bvb2)
-    lazy val sse = Array(Icons.bhb2, Icons.bhm2, Icons.bht2)
-    lazy val snw = Array(Icons.bht2, Icons.bhm2, Icons.bhb2)
+    def sud = Array(Icons.bvt, Icons.bvm, Icons.bvb2)
+    def sse = Array(Icons.bhb2, Icons.bhm2, Icons.bht2)
+    def snw = Array(Icons.bht2, Icons.bhm2, Icons.bhb2)
 
-    lazy val th = Array(Icons.bhb, Icons.bhm, Icons.bht)
-    lazy val tv = Array(Icons.bvb, Icons.bvm, Icons.bvt)
+    def th = Array(Icons.bhb, Icons.bhm, Icons.bht)
+    def tv = Array(Icons.bvb, Icons.bvm, Icons.bvt)
   }
 
   // This an ugly monstrosity, but it's still better than having to manually
