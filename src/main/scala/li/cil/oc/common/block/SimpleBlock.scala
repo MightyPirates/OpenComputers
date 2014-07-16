@@ -6,7 +6,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.ItemCosts
+import li.cil.oc.util.{Tooltip, ItemCosts}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.player.EntityPlayer
@@ -42,6 +42,7 @@ class SimpleBlock(material: Material) extends Block(material) {
 
   @SideOnly(Side.CLIENT)
   def tooltipLines(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(getUnlocalizedName))
     if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMENU)) {
       ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
     }

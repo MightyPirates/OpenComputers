@@ -14,10 +14,19 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
-  val unlocalizedName = "Case" + tier
+class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware with SimpleDelegate {
+  override val unlocalizedName = super.unlocalizedName + tier
 
-  def tier: Int
+  override protected def customTextures = Array(
+    Some("CaseTop"),
+    Some("CaseTop"),
+    Some("CaseBack"),
+    Some("CaseFront"),
+    Some("CaseSide"),
+    Some("CaseSide")
+  )
+
+  private val iconsOn = new Array[Icon](6)
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.epic).apply(tier)
 
@@ -43,11 +52,6 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
     }
   }
 
-  private object Icons {
-    val on = Array.fill[Icon](6)(null)
-    val off = Array.fill[Icon](6)(null)
-  }
-
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
     getIcon(localSide, world.getTileEntity(x, y, z) match {
       case computer: tileentity.Case => computer.isRunning
@@ -58,24 +62,14 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
   override def icon(side: ForgeDirection) = getIcon(side, isOn = false)
 
   private def getIcon(side: ForgeDirection, isOn: Boolean) =
-    Some(if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal))
+    if (isOn) Some(iconsOn(side.ordinal)) else super.icon(side)
 
   override def registerIcons(iconRegister: IconRegister) = {
-    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
-    Icons.on(ForgeDirection.DOWN.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
-    Icons.off(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
-    Icons.on(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.UP.ordinal)
-
-    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_back")
-    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_back_on")
-
-    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_front")
-    Icons.on(ForgeDirection.SOUTH.ordinal) = Icons.off(ForgeDirection.SOUTH.ordinal)
-
-    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_side")
-    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_side_on")
-    Icons.off(ForgeDirection.EAST.ordinal) = Icons.off(ForgeDirection.WEST.ordinal)
-    Icons.on(ForgeDirection.EAST.ordinal) = Icons.on(ForgeDirection.WEST.ordinal)
+    super.registerIcons(iconRegister)
+    System.arraycopy(icons, 0, iconsOn, 0, icons.length)
+    iconsOn(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseBackOn")
+    iconsOn(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseSideOn")
+    iconsOn(ForgeDirection.EAST.ordinal) = iconsOn(ForgeDirection.WEST.ordinal)
   }
 
   // ----------------------------------------------------------------------- //
@@ -109,24 +103,4 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
       case c: tileentity.Case => c.canInteract(player.getCommandSenderName)
       case _ => super.removedByEntity(world, x, y, z, player)
     }
-}
-
-object Case {
-
-  class Tier1(parent: SimpleDelegator) extends Case(parent) {
-    def tier = 0
-  }
-
-  class Tier2(parent: SimpleDelegator) extends Case(parent) {
-    def tier = 1
-  }
-
-  class Tier3(parent: SimpleDelegator) extends Case(parent) {
-    def tier = 2
-  }
-
-  class TierCreative(parent: SimpleDelegator) extends Case(parent) {
-    def tier = 3
-  }
-
 }

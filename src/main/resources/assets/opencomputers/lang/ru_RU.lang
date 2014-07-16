@@ -154,8 +154,8 @@ oc:container.AccessPoint=Точка доступа
 oc:container.Case=Компьютер
 oc:container.Disassembler=Разборщик
 oc:container.DiskDrive=Дисковод
-oc:container.Rack=Серверная стойка
 oc:container.Server=Сервер
+oc:container.ServerRack=Серверная стойка
 oc:container.Switch=Коммутатор
 
 # Keybinds

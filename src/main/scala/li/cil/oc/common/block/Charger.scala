@@ -3,11 +3,9 @@ package li.cil.oc.common.block
 import java.util
 
 import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
@@ -18,13 +16,14 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
-  val unlocalizedName = "Charger"
-
-  private val icons = Array.fill[Icon](6)(null)
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
-  }
+  override protected def customTextures = Array(
+    None,
+    None,
+    Some("ChargerSide"),
+    Some("ChargerFront"),
+    Some("ChargerSide"),
+    Some("ChargerSide")
+  )
 
   @Optional.Method(modid = "Waila")
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
@@ -35,22 +34,10 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
     }
   }
 
-  override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
-
-  @SideOnly(Side.CLIENT)
-  override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = Some(icons(localSide.ordinal()))
-
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
-
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":charger_side")
-    icons(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":charger_front")
-    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-
-    Textures.Charger.iconFrontCharging = iconRegister.registerIcon(Settings.resourceDomain + ":charger_front_on")
-    Textures.Charger.iconSideCharging = iconRegister.registerIcon(Settings.resourceDomain + ":charger_side_on")
+    super.registerIcons(iconRegister)
+    Textures.Charger.iconFrontCharging = iconRegister.registerIcon(Settings.resourceDomain + ":ChargerFrontOn")
+    Textures.Charger.iconSideCharging = iconRegister.registerIcon(Settings.resourceDomain + ":ChargerSideOn")
   }
 
   override def createTileEntity(world: World) = Some(new tileentity.Charger())

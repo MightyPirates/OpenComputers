@@ -17,11 +17,8 @@ import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
-  val baseName = "Screen"
-  val unlocalizedName = baseName + tier
-
-  def tier: Int
+class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware with SimpleDelegate {
+  override val unlocalizedName = super.unlocalizedName + tier
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
@@ -31,7 +28,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
-    tooltip.addAll(Tooltip.get(baseName, w, h, depth))
+    tooltip.addAll(Tooltip.get(super.unlocalizedName, w, h, depth))
   }
 
   @Optional.Method(modid = "Waila")
@@ -363,20 +360,4 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
         }
       case _ => super.validRotations(world, x, y, z)
     }
-}
-
-object Screen {
-
-  class Tier1(parent: SimpleDelegator) extends Screen(parent) {
-    def tier = 0
-  }
-
-  class Tier2(parent: SimpleDelegator) extends Screen(parent) {
-    def tier = 1
-  }
-
-  class Tier3(parent: SimpleDelegator) extends Screen(parent) {
-    def tier = 2
-  }
-
 }

@@ -10,8 +10,6 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
-  val unlocalizedName = "RobotAfterimage"
-
   showInItemList = false
 
   private var icon: Icon = _
@@ -66,7 +64,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
         robot.moveFromX == x &&
         robot.moveFromY == y &&
         robot.moveFromZ == z =>
-        robot.proxy.getBlockType.removedByPlayer(world, player, robot.x, robot.y, robot.z)
+        robot.proxy.getBlockType.removedByPlayer(world, player, robot.x, robot.y, robot.z, false)
       case _ => super.removedByEntity(world, x, y, z, player) // Probably broken by the robot we represent.
     }
   }

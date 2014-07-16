@@ -111,8 +111,8 @@ oc:gui.Terminal.OutOfRange=沒訊號.
 # Containers
 oc:container.Case=電腦
 oc:container.DiskDrive=硬碟
-oc:container.Rack=伺服器機架
 oc:container.Server=伺服器
+oc:container.ServerRack=伺服器機架
 oc:container.Switch=路由器
 
 # Item / Block Tooltips

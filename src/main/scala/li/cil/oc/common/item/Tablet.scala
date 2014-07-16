@@ -21,15 +21,7 @@ import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
 
 class Tablet(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "Tablet"
-
   override def maxStackSize = 1
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
-
-    icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":tablet"))
-  }
 
   override def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
     Tablet.get(stack, player).update(world, player, slot, selected)
@@ -127,8 +119,6 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
   override def componentContainer = this
 
   override def getSizeInventory = items.length
-
-  override def getInventoryName = Settings.namespace + "container.Tablet"
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 

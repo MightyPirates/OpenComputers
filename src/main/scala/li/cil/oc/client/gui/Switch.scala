@@ -2,6 +2,7 @@ package li.cil.oc.client.gui
 
 import java.text.DecimalFormat
 
+import li.cil.oc.Localization
 import li.cil.oc.common.{container, tileentity}
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.StatCollector
@@ -17,13 +18,13 @@ class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) ex
       8, 6, 0x404040)
 
     fontRendererObj.drawString(
-      StatCollector.translateToLocal("Transfer rate"),
+      Localization.Switch.TransferRate,
       14, 20, 0x404040)
     fontRendererObj.drawString(
-      StatCollector.translateToLocal("Packets / cycle"),
+      Localization.Switch.PacketsPerCycle,
       14, 39, 0x404040)
     fontRendererObj.drawString(
-      StatCollector.translateToLocal("Queue size"),
+      Localization.Switch.QueueSize,
       14, 58, 0x404040)
 
     fontRendererObj.drawString(

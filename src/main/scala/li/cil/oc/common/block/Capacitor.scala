@@ -4,25 +4,21 @@ import java.util
 
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Tooltip
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.{IBlockAccess, World}
-import net.minecraftforge.common.util.ForgeDirection
 
 class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
-  val unlocalizedName = "Capacitor"
-
-  private val icons = Array.fill[Icon](6)(null)
-
-  // ----------------------------------------------------------------------- //
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
-  }
+  override protected def customTextures = Array(
+    None,
+    Some("CapacitorTop"),
+    Some("CapacitorSide"),
+    Some("CapacitorSide"),
+    Some("CapacitorSide"),
+    Some("CapacitorSide")
+  )
 
   @Optional.Method(modid = "Waila")
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
@@ -30,18 +26,6 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
     if (node.hasKey("buffer")) {
       tooltip.add(Localization.Analyzer.StoredEnergy(node.getDouble("buffer").toInt.toString).getUnformattedTextForChat)
     }
-  }
-
-  override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":capacitor_top")
-
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":capacitor")
-    icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
   }
 
   override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5

@@ -148,6 +148,9 @@ oc:gui.ServerRack.Left=Left
 oc:gui.ServerRack.Right=Right
 oc:gui.ServerRack.Top=Top
 oc:gui.ServerRack.WirelessRange=Range
+oc:gui.Switch.TransferRate=Cycle rate
+oc:gui.Switch.PacketsPerCycle=Packets / cycle
+oc:gui.Switch.QueueSize=Queue size
 oc:gui.Terminal.InvalidKey=Invalid key, most likely another terminal has been bound to the server.
 oc:gui.Terminal.OutOfRange=No signal.
 
@@ -156,9 +159,9 @@ oc:container.AccessPoint=Access Point
 oc:container.Case=Computer
 oc:container.Disassembler=Disassembler
 oc:container.DiskDrive=Disk Drive
-oc:container.Rack=Server Rack
-oc:container.Switch=Switch
 oc:container.Server=Server
+oc:container.ServerRack=Server Rack
+oc:container.Switch=Switch
 
 # Keybinds
 key.materialCosts=Show Material Costs

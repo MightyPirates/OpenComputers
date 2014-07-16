@@ -16,7 +16,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
-  val unlocalizedName = "Keyboard"
+  override val unlocalizedName = "Keyboard"
 
   var icon: Icon = null
 

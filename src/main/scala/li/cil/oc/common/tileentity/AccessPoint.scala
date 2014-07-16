@@ -81,10 +81,6 @@ class AccessPoint extends Switch with WirelessEndpoint {
 
   // ----------------------------------------------------------------------- //
 
-  override def getInventoryName = Settings.namespace + "container.AccessPoint"
-
-  // ----------------------------------------------------------------------- //
-
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     if (nbt.hasKey(Settings.namespace + "strength")) {

@@ -9,7 +9,7 @@ import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.client.renderer.{TextBufferRenderCache, PetRenderer, WirelessNetworkDebugRenderer}
 import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.common.tileentity.Rack
+import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
 import li.cil.oc.util.Audio
 import li.cil.oc.{Items, OpenComputers, client}
@@ -39,7 +39,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Geolyzer], GeolyzerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.ServerRack], RackRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotAssembler], RobotAssemblerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Switch], SwitchRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.AccessPoint], SwitchRenderer)
@@ -65,7 +65,7 @@ private[oc] class Proxy extends CommonProxy {
     FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
 
     MinecraftForge.EVENT_BUS.register(PetRenderer)
-    MinecraftForge.EVENT_BUS.register(Rack)
+    MinecraftForge.EVENT_BUS.register(ServerRack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
   }

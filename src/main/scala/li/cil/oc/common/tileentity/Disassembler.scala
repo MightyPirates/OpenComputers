@@ -196,7 +196,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     })
     buffer = nbt.getDouble(Settings.namespace + "buffer")
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
-    isActive = !queue.isEmpty
+    isActive = queue.nonEmpty
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -222,8 +222,6 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def getSizeInventory = 1
 
   override def getInventoryStackLimit = 64
-
-  override def getInventoryName = Settings.namespace + "container.Disassembler"
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     api.Items.get(stack) == api.Items.get("robot") ||

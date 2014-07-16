@@ -12,7 +12,7 @@ import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class Terminal(val rack: tileentity.Rack, val number: Int) {
+class Terminal(val rack: tileentity.ServerRack, val number: Int) {
   val buffer = {
     val screenItem = api.Items.get("screen1").createItemStack(1)
     val buffer = api.Driver.driverFor(screenItem).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]

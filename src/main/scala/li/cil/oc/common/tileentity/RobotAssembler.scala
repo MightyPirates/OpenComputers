@@ -141,8 +141,6 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   // ----------------------------------------------------------------------- //
 
-  override def getInventoryName = Settings.namespace + "container.RobotAssembler"
-
   override def getSizeInventory = InventorySlots.assembler(0).length
 
   override def getInventoryStackLimit = 1

@@ -12,7 +12,7 @@ import net.minecraft.util.StatCollector
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends DynamicGuiContainer(new container.Rack(playerInventory, rack)) {
+class Rack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRack) extends DynamicGuiContainer(new container.Rack(playerInventory, rack)) {
   protected var powerButtons = new Array[ImageButton](4)
 
   protected var sideButtons = new Array[GuiButton](4)

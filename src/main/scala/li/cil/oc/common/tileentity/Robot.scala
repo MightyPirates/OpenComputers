@@ -594,8 +594,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  override def getInventoryName = Settings.namespace + "container.Robot"
-
   var getSizeInventory = actualInventorySize
 
   override def getInventoryStackLimit = 64

@@ -4,7 +4,7 @@ import java.util
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.util.{ItemCosts, Rarity}
+import li.cil.oc.util.{ItemCosts, Rarity, Tooltip}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -19,7 +19,11 @@ trait Delegate {
 
   val parent: Delegator
 
-  val unlocalizedName: String
+  def unlocalizedName = getClass.getSimpleName
+
+  protected def tooltipName = Option(unlocalizedName)
+
+  protected def tooltipData = Seq.empty[Any]
 
   var showInItemList = true
 
@@ -67,6 +71,13 @@ trait Delegate {
 
   @SideOnly(Side.CLIENT)
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    if (tooltipName.isDefined) {
+      tooltip.addAll(Tooltip.get(tooltipName.get, tooltipData: _*))
+    }
+    tooltipCosts(stack, tooltip)
+  }
+
+  protected def tooltipCosts(stack: ItemStack, tooltip: java.util.List[String]) {
     if (ItemCosts.hasCosts(stack)) {
       if (KeyBindings.showMaterialCosts) {
         ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
@@ -101,7 +112,9 @@ trait Delegate {
   def icon(stack: ItemStack, pass: Int): Option[Icon] = icon
 
   @SideOnly(Side.CLIENT)
-  def registerIcons(iconRegister: IconRegister) {}
+  def registerIcons(iconRegister: IconRegister) {
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":" + unlocalizedName)
+  }
 
   // ----------------------------------------------------------------------- //
 

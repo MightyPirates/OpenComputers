@@ -1,20 +1,14 @@
 package li.cil.oc.common.item
 
-import java.util
-
 import li.cil.oc.Settings
-import li.cil.oc.util.Tooltip
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 class UpgradeBattery(val parent: Delegator, val tier: Int) extends Delegate {
-  val baseName = "UpgradeBattery"
-  val unlocalizedName = baseName + tier
+  override val unlocalizedName = super.unlocalizedName + tier
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(baseName, Settings.get.bufferCapacitorUpgrades(tier).toInt))
-    super.tooltipLines(stack, player, tooltip, advanced)
-  }
+  override protected def tooltipName = Option(super.unlocalizedName)
+
+  override protected def tooltipData = Seq(Settings.get.bufferCapacitorUpgrades(tier).toInt)
 
   override def isDamageable = true
 
@@ -28,10 +22,4 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends Delegate {
   }
 
   override def maxDamage(stack: ItemStack) = 100
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
-
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_battery" + tier)
-  }
 }

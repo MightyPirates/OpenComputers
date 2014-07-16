@@ -4,11 +4,15 @@ import java.util
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
+import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 class FloppyDisk(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "FloppyDisk"
+  // Necessary for anonymous subclasses used for loot disks.
+  override def unlocalizedName = "FloppyDisk"
+
+  override protected def tooltipName = None
 
   val icons = Array.fill[Icon](16)(null)
 
@@ -30,23 +34,10 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
   }
 
   override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
-
-    icons(0) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_black")
-    icons(1) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_red")
-    icons(2) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_green")
-    icons(3) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_brown")
-    icons(4) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_blue")
-    icons(5) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_purple")
-    icons(6) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_cyan")
-    icons(7) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_lightGray")
-    icons(8) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_gray")
-    icons(9) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_pink")
-    icons(10) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_lime")
-    icons(11) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_yellow")
-    icons(12) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_lightBlue")
-    icons(13) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_magenta")
-    icons(14) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_orange")
-    icons(15) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_white")
+    val baseTextureName = Settings.resourceDomain + ":" + unlocalizedName + "_"
+    Color.dyes.zipWithIndex.foreach {
+      case (color, index) =>
+        icons(index) = iconRegister.registerIcon(baseTextureName + color)
+    }
   }
 }

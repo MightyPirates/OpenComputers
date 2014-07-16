@@ -13,8 +13,7 @@ import net.minecraft.world.World
 import scala.collection.mutable
 
 class Server(val parent: Delegator, val tier: Int) extends Delegate {
-  val baseName = "Server"
-  val unlocalizedName = baseName + tier
+  override val unlocalizedName = super.unlocalizedName + tier
 
   override def rarity = Rarity.byTier(tier)
 
@@ -27,7 +26,7 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
   }
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(baseName, Settings.get.terminalsPerTier(tier)))
+    tooltip.addAll(Tooltip.get(super.unlocalizedName, Settings.get.terminalsPerTier(tier)))
     HelperInventory.container = stack
     HelperInventory.reinitialize()
     val items = mutable.Map.empty[String, Int]
@@ -41,13 +40,7 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
         tooltip.add("- " + items(itemName) + "x " + itemName)
       }
     }
-    super.tooltipLines(stack, player, tooltip, advanced)
-  }
-
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
-
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":server" + tier)
+    tooltipCosts(stack, tooltip)
   }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {

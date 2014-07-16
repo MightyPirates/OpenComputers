@@ -148,6 +148,9 @@ oc:gui.ServerRack.Left=Links
 oc:gui.ServerRack.Right=Rechts
 oc:gui.ServerRack.Top=Oben
 oc:gui.ServerRack.WirelessRange=Reichweite
+oc:gui.Switch.TransferRate=Taktung
+oc:gui.Switch.PacketsPerCycle=Pakete / Zyklus
+oc:gui.Switch.QueueSize=Puffergröße
 oc:gui.Terminal.InvalidKey=Ungültiger Schlüssel, vermutlich wurde eine andere Fernbedienung an den Server gebunden.
 oc:gui.Terminal.OutOfRange=Kein Signal.
 
@@ -156,8 +159,8 @@ oc:container.AccessPoint=Access Point
 oc:container.Case=Computer
 oc:container.Disassembler=Recycler
 oc:container.DiskDrive=Diskettenlaufwerk
-oc:container.Rack=Serverschrank
 oc:container.Server=Server
+oc:container.ServerRack=Serverschrank
 oc:container.Switch=Switch
 
 # Keybinds

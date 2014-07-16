@@ -100,7 +100,7 @@ object PacketHandler extends CommonPacketHandler {
   def onComputerState(p: PacketParser) =
     p.readTileEntity[TileEntity]() match {
       case Some(t: Computer) => t.setRunning(p.readBoolean())
-      case Some(t: Rack) =>
+      case Some(t: ServerRack) =>
         val number = p.readInt()
         if (number == -1) {
           t.range = p.readInt()
@@ -366,7 +366,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onServerPresence(p: PacketParser) =
-    p.readTileEntity[Rack]() match {
+    p.readTileEntity[ServerRack]() match {
       case Some(t) => for (i <- 0 until t.isPresent.length) {
         if (p.readBoolean()) {
           t.isPresent(i) = Some(p.readUTF())

@@ -7,6 +7,7 @@ import cpw.mods.fml.common.eventhandler.{EventPriority, SubscribeEvent}
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.Entity
 import net.minecraftforge.client.event.RenderPlayerEvent
@@ -44,6 +45,15 @@ object PetRenderer {
 
     GL11.glPushMatrix()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    if (e.entityPlayer != Minecraft.getMinecraft.thePlayer) {
+      val localPos = Minecraft.getMinecraft.thePlayer.getPosition(e.partialRenderTick)
+      val playerPos = e.entityPlayer.getPosition(e.partialRenderTick)
+      val correction = 1.62 - (if (e.entityPlayer.isSneaking) 0.125 else 0)
+      GL11.glTranslated(
+        playerPos.xCoord - localPos.xCoord,
+        playerPos.yCoord - localPos.yCoord + correction,
+        playerPos.zCoord - localPos.zCoord)
+    }
 
     GL11.glEnable(GL11.GL_LIGHTING)
     GL11.glDisable(GL11.GL_BLEND)

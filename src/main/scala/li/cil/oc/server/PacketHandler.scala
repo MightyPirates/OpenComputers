@@ -8,7 +8,6 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
 import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.{Localization, Settings, api}
-import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraftforge.common.DimensionManager
@@ -47,7 +46,7 @@ object PacketHandler extends CommonPacketHandler {
         case player: EntityPlayerMP => trySetComputerPower(t.computer, p.readBoolean(), player)
         case _ =>
       }
-      case Some(r: Rack) => r.servers(p.readInt()) match {
+      case Some(r: ServerRack) => r.servers(p.readInt()) match {
         case Some(server) => p.player match {
           case player: EntityPlayerMP => trySetComputerPower(server.machine, p.readBoolean(), player)
           case _ =>
@@ -156,7 +155,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onServerRange(p: PacketParser) =
-    p.readTileEntity[Rack]() match {
+    p.readTileEntity[ServerRack]() match {
       case Some(rack) => p.player match {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           rack.range = math.min(math.max(0, p.readInt()), Settings.get.maxWirelessRange).toInt
@@ -167,7 +166,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onServerSide(p: PacketParser) =
-    p.readTileEntity[Rack]() match {
+    p.readTileEntity[ServerRack]() match {
       case Some(rack) => p.player match {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           val number = p.readInt()

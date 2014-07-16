@@ -340,7 +340,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(container)
   }
 
-  def sendServerPresence(t: tileentity.Rack) {
+  def sendServerPresence(t: tileentity.ServerRack) {
     val pb = new PacketBuilder(PacketType.ServerPresence)
 
     pb.writeTileEntity(t)
@@ -355,7 +355,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendServerState(t: tileentity.Rack) {
+  def sendServerState(t: tileentity.ServerRack) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
@@ -365,7 +365,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendServerState(t: tileentity.Rack, number: Int, player: Option[EntityPlayerMP] = None) {
+  def sendServerState(t: tileentity.ServerRack, number: Int, player: Option[EntityPlayerMP] = None) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)

@@ -96,6 +96,14 @@ object Localization {
     def WirelessRange = localizeImmediately("gui.ServerRack.WirelessRange")
   }
 
+  object Switch {
+    def TransferRate = localizeImmediately("gui.Switch.TransferRate")
+
+    def PacketsPerCycle = localizeImmediately("gui.Switch.PacketsPerCycle")
+
+    def QueueSize = localizeImmediately("gui.Switch.QueueSize")
+  }
+
   object Terminal {
     def InvalidKey = localizeLater("gui.Terminal.InvalidKey")
 
