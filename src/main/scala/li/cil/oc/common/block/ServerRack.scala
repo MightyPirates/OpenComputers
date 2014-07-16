@@ -1,42 +1,32 @@
 package li.cil.oc.common.block
 
-import java.util
-
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.OpenComputers
 import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.Tooltip
-import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
-class Rack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
-  val unlocalizedName = "ServerRack"
-
-  // ----------------------------------------------------------------------- //
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
-  }
-
-  override def icon(side: ForgeDirection) = Some(Textures.Rack.icons(side.ordinal))
+class ServerRack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
+  override protected def customTextures = Array(
+    None,
+    None,
+    Some("ServerRackSide"),
+    Some("ServerRackFront"),
+    Some("ServerRackSide"),
+    Some("ServerRackSide")
+  )
 
   override def registerIcons(iconRegister: IconRegister) = {
-    Textures.Rack.icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    Textures.Rack.icons(ForgeDirection.UP.ordinal) = Textures.Rack.icons(ForgeDirection.DOWN.ordinal)
-
-    Textures.Rack.icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_side")
-    Textures.Rack.icons(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_front")
-    Textures.Rack.icons(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_side")
-    Textures.Rack.icons(ForgeDirection.EAST.ordinal) = Textures.Rack.icons(ForgeDirection.WEST.ordinal)
+    super.registerIcons(iconRegister)
+    System.arraycopy(icons, 0, Textures.Rack.icons, 0, icons.length)
   }
 
   @SideOnly(Side.CLIENT)
   override def mixedBrightness(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     world.getBlockTileEntity(x, y, z) match {
-      case rack: tileentity.Rack =>
+      case rack: tileentity.ServerRack =>
         def brightness(x: Int, y: Int, z: Int) = world.getLightBrightnessForSkyBlocks(x, y, z, parent.getLightValue(world, x, y, z))
         val value = brightness(x + rack.facing.offsetX, y + rack.facing.offsetY, z + rack.facing.offsetZ)
         val skyBrightness = (value >> 20) & 15
@@ -50,7 +40,7 @@ class Rack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDeleg
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Rack)
+  override def createTileEntity(world: World) = Some(new tileentity.ServerRack)
 
   // ----------------------------------------------------------------------- //
 

@@ -7,10 +7,10 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
-  val baseName = "HardDiskDrive"
-  val unlocalizedName = baseName + tier
-
+  override val unlocalizedName = super.unlocalizedName + tier
   val kiloBytes = Settings.get.hddSizes(tier)
+
+  override protected def tooltipName = None
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound) {
@@ -40,11 +40,5 @@ class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
     else {
       localizedName + " (%dKB)".format(kiloBytes)
     })
-  }
-
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
-
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":disk_harddrive" + tier)
   }
 }

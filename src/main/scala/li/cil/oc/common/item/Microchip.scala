@@ -1,26 +1,11 @@
 package li.cil.oc.common.item
 
-import java.util
-
-import li.cil.oc.Settings
-import li.cil.oc.util.{Rarity, Tooltip}
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import li.cil.oc.util.Rarity
 
 class Microchip(val parent: Delegator, val tier: Int) extends Delegate {
-  val baseName = "Microchip"
-  val unlocalizedName = baseName + tier
+  override val unlocalizedName = super.unlocalizedName + tier
+
+  override protected def tooltipName = Option(super.unlocalizedName)
 
   override def rarity = Rarity.byTier(tier)
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(baseName))
-    super.tooltipLines(stack, player, tooltip, advanced)
-  }
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
-
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":microchip" + tier)
-  }
 }

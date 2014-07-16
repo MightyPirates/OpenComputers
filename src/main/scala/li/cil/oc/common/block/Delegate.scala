@@ -4,8 +4,10 @@ import java.util
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Inventory
+import li.cil.oc.util.Tooltip
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
@@ -19,13 +21,17 @@ trait Delegate {
   type Icon = net.minecraft.util.Icon
   type IconRegister = net.minecraft.client.renderer.texture.IconRegister
 
-  val unlocalizedName: String
+  def unlocalizedName = getClass.getSimpleName
 
   var showInItemList = true
 
   def blockId: Int
 
   def parent: Delegator[_]
+
+  val icons = new Array[Icon](6)
+
+  protected def customTextures = Array.fill[Option[String]](6)(None)
 
   def setBlock(world: World, x: Int, y: Int, z: Int, flags: Int) = {
     world.setBlock(x, y, z, parent.blockID, blockId, flags)
@@ -105,7 +111,9 @@ trait Delegate {
   def rarity = EnumRarity.common
 
   @SideOnly(Side.CLIENT)
-  def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
+  def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
 
   @Optional.Method(modid = "Waila")
   def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
@@ -129,7 +137,7 @@ trait Delegate {
     }
 
   @SideOnly(Side.CLIENT)
-  def icon(side: ForgeDirection): Option[Icon] = None
+  def icon(side: ForgeDirection): Option[Icon] = Some(icons(side.ordinal))
 
   @SideOnly(Side.CLIENT)
   def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
@@ -140,7 +148,22 @@ trait Delegate {
   def preItemRender() {}
 
   @SideOnly(Side.CLIENT)
-  def registerIcons(iconRegister: IconRegister) {}
+  def registerIcons(iconRegister: IconRegister) {
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":GenericTop")
+    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":GenericSide")
+    icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+
+    val custom = customTextures
+    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+      custom(side.ordinal) match {
+        case Some(name) => icons(side.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":" + name)
+        case _ =>
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 

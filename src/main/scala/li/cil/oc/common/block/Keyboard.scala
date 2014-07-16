@@ -4,7 +4,6 @@ import java.util
 
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Tooltip
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
@@ -15,13 +14,7 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
-  val unlocalizedName = "Keyboard"
-
   var icon: Icon = null
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
-  }
 
   @Optional.Method(modid = "Waila")
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {

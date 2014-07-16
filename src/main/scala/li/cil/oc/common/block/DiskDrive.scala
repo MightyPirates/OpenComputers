@@ -15,14 +15,17 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
-  val unlocalizedName = "DiskDrive"
-
-  private val icons = Array.fill[Icon](6)(null)
-
-  // ----------------------------------------------------------------------- //
+  override protected def customTextures = Array(
+    None,
+    None,
+    Some("DiskDriveSide"),
+    Some("DiskDriveFront"),
+    Some("DiskDriveSide"),
+    Some("DiskDriveSide")
+  )
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+    super.tooltipLines(stack, player, tooltip, advanced)
     if (Mods.ComputerCraft.isAvailable) {
       tooltip.addAll(Tooltip.get(unlocalizedName + ".CC"))
     }
@@ -41,18 +44,6 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
         tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
       }
     }
-  }
-
-  override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
-
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":disk_drive_side")
-    icons(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":disk_drive_front")
-    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
   }
 
   // ----------------------------------------------------------------------- //

@@ -39,7 +39,7 @@ class PacketHandler extends CommonPacketHandler {
         case player: EntityPlayerMP => trySetComputerPower(t.computer, p.readBoolean(), player)
         case _ =>
       }
-      case Some(r: Rack) => r.servers(p.readInt()) match {
+      case Some(r: ServerRack) => r.servers(p.readInt()) match {
         case Some(server) => p.player match {
           case player: EntityPlayerMP => trySetComputerPower(server.machine, p.readBoolean(), player)
           case _ =>
@@ -148,7 +148,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onServerRange(p: PacketParser) =
-    p.readTileEntity[Rack]() match {
+    p.readTileEntity[ServerRack]() match {
       case Some(rack) => p.player match {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           rack.range = math.min(math.max(0, p.readInt()), Settings.get.maxWirelessRange).toInt
@@ -159,7 +159,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onServerSide(p: PacketParser) =
-    p.readTileEntity[Rack]() match {
+    p.readTileEntity[ServerRack]() match {
       case Some(rack) => p.player match {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           val number = p.readInt()

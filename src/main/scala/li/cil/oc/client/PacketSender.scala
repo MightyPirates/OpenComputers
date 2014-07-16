@@ -124,7 +124,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerPower(t: Rack, number: Int, power: Boolean) {
+  def sendServerPower(t: ServerRack, number: Int, power: Boolean) {
     val pb = new PacketBuilder(PacketType.ComputerPower)
 
     pb.writeTileEntity(t)
@@ -134,7 +134,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerRange(t: Rack, range: Int) {
+  def sendServerRange(t: ServerRack, range: Int) {
     val pb = new PacketBuilder(PacketType.ServerRange)
 
     pb.writeTileEntity(t)
@@ -143,7 +143,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerSide(t: Rack, number: Int, side: ForgeDirection) {
+  def sendServerSide(t: ServerRack, number: Int, side: ForgeDirection) {
     val pb = new PacketBuilder(PacketType.ServerSide)
 
     pb.writeTileEntity(t)

@@ -22,15 +22,7 @@ import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 
 class Tablet(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "Tablet"
-
   override def maxStackSize = 1
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
-
-    icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":tablet"))
-  }
 
   override def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
     Tablet.get(stack, player).update(world, player, slot, selected)

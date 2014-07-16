@@ -19,7 +19,7 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
-  val unlocalizedName = "Robot"
+  override val unlocalizedName = "Robot"
 
   private var icon: Icon = _
 
@@ -35,7 +35,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     addLines(stack, tooltip)
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+    super.tooltipLines(stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.RobotData(stack)
       for (component <- info.containers ++ info.components) {

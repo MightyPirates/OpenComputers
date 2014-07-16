@@ -2,7 +2,6 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.Settings
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.{BundledRedstone, Mods, WirelessRedstone}
@@ -10,36 +9,29 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate {
-  val baseName = "RedstoneCard"
-  val unlocalizedName = baseName + tier
+  override val unlocalizedName = super.unlocalizedName + tier
 
   showInItemList = tier == Tier.One || BundledRedstone.isAvailable || WirelessRedstone.isAvailable
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(baseName))
+    tooltip.addAll(Tooltip.get(super.unlocalizedName))
     if (tier == Tier.Two) {
       if (Mods.ProjectRed.isAvailable) {
-        tooltip.addAll(Tooltip.get(baseName + ".ProjectRed"))
+        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".ProjectRed"))
       }
       if (Mods.RedLogic.isAvailable) {
-        tooltip.addAll(Tooltip.get(baseName + ".RedLogic"))
+        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedLogic"))
       }
       if (Mods.MineFactoryReloaded.isAvailable) {
-        tooltip.addAll(Tooltip.get(baseName + ".RedNet"))
+        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedNet"))
       }
       if (Mods.WirelessRedstoneCBE.isAvailable) {
-        tooltip.addAll(Tooltip.get(baseName + ".WirelessCBE"))
+        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessCBE"))
       }
       if (Mods.WirelessRedstoneSV.isAvailable) {
-        tooltip.addAll(Tooltip.get(baseName + ".WirelessSV"))
+        tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessSV"))
       }
     }
-    super.tooltipLines(stack, player, tooltip, advanced)
-  }
-
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
-
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":card_redstone" + tier)
+    tooltipCosts(stack, tooltip)
   }
 }

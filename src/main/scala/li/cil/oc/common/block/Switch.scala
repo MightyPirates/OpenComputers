@@ -1,39 +1,25 @@
 package li.cil.oc.common.block
 
-import java.util
-
 import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
-  val unlocalizedName = "Switch"
-
-  protected val icons = Array.fill[Icon](6)(null)
-
-  // ----------------------------------------------------------------------- //
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
-  }
-
-  override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
+  override protected def customTextures = Array(
+    None,
+    Some("SwitchTop"),
+    Some("SwitchSide"),
+    Some("SwitchSide"),
+    Some("SwitchSide"),
+    Some("SwitchSide")
+  )
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":switch_top")
-
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":switch_side")
-    icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-
-    Textures.Switch.iconSideActivity = iconRegister.registerIcon(Settings.resourceDomain + ":switch_side_active")
+    super.registerIcons(iconRegister)
+    Textures.Switch.iconSideActivity = iconRegister.registerIcon(Settings.resourceDomain + ":SwitchSideOn")
   }
 
   // ----------------------------------------------------------------------- //

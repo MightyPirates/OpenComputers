@@ -11,7 +11,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
+class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
   val machine = Machine.create(this)
 
   val inventory = new NetworkedInventory()

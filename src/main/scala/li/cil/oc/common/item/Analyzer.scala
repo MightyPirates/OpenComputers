@@ -1,24 +1,14 @@
 package li.cil.oc.common.item
 
-import java.util
-
+import li.cil.oc.Localization
 import li.cil.oc.api.network._
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.Tooltip
-import li.cil.oc.{Localization, Settings}
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class Analyzer(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "Analyzer"
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
-    super.tooltipLines(stack, player, tooltip, advanced)
-  }
-
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player match {
       case realPlayer: EntityPlayerMP =>
@@ -63,11 +53,5 @@ class Analyzer(val parent: Delegator) extends Delegate {
       player.sendChatToPlayer(Localization.Analyzer.Address(address))
       PacketSender.sendAnalyze(address, player)
     }
-  }
-
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
-
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":analyzer")
   }
 }

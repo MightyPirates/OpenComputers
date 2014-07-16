@@ -12,11 +12,14 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class Disassembler(val parent: SimpleDelegator) extends SimpleDelegate {
-  val unlocalizedName = "Disassembler"
-
-  private val icons = Array.fill[Icon](6)(null)
-
-  // ----------------------------------------------------------------------- //
+  override protected def customTextures = Array(
+    None,
+    Some("DisassemblerTop"),
+    Some("DisassemblerSide"),
+    Some("DisassemblerSide"),
+    Some("DisassemblerSide"),
+    Some("DisassemblerSide")
+  )
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName, (Settings.get.disassemblerBreakChance * 100).toInt.toString))
@@ -25,16 +28,9 @@ class Disassembler(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":disassembler_top")
-    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
-
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":disassembler_side")
-    icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-
-    Textures.Disassembler.iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":disassembler_side_on")
-    Textures.Disassembler.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":disassembler_top_on")
+    super.registerIcons(iconRegister)
+    Textures.Disassembler.iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":DisassemblerSideOn")
+    Textures.Disassembler.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":DisassemblerTopOn")
   }
 
   // ----------------------------------------------------------------------- //

@@ -20,7 +20,7 @@ object GuiHandler extends CommonGuiHandler {
         new gui.DiskDrive(player.inventory, drive)
       case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>
         new gui.Robot(player.inventory, proxy.robot)
-      case rack: tileentity.Rack if id == GuiType.Rack.id =>
+      case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
         new gui.Rack(player.inventory, rack)
       case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
         new gui.RobotAssembler(player.inventory, assembler)
@@ -54,7 +54,7 @@ object GuiHandler extends CommonGuiHandler {
             val address = stack.getTagCompound.getString(Settings.namespace + "server")
             val key = stack.getTagCompound.getString(Settings.namespace + "key")
             if (key != null && !key.isEmpty && address != null && !address.isEmpty) {
-              tileentity.Rack.list.keys.
+              tileentity.ServerRack.list.keys.
                 flatMap(_.terminals).
                 find(term => term.rack.isPresent(term.number) match {
                 case Some(value) => value == address

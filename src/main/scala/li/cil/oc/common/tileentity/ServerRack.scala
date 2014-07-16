@@ -22,7 +22,7 @@ import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
+class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
@@ -228,12 +228,12 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override protected def initialize() {
     super.initialize()
-    Rack.list += this -> Unit
+    ServerRack.list += this -> Unit
   }
 
   override protected def dispose() {
     super.dispose()
-    Rack.list -= this
+    ServerRack.list -= this
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
@@ -384,8 +384,8 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def rotate(axis: ForgeDirection) = false
 }
 
-object Rack {
-  val list = mutable.WeakHashMap.empty[Rack, Unit]
+object ServerRack {
+  val list = mutable.WeakHashMap.empty[ServerRack, Unit]
 
   @ForgeSubscribe
   def onWorldUnload(e: WorldEvent.Unload) {

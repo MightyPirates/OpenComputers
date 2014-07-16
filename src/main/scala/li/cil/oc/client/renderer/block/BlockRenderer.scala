@@ -106,7 +106,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: keyboard")
 
         result
-      case rack: tileentity.Rack =>
+      case rack: tileentity.ServerRack =>
         val previousRenderAllFaces = renderer.renderAllFaces
         val u1 = 1 / 16f
         val u2 = 15 / 16f

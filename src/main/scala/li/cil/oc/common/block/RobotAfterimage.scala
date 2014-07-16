@@ -10,8 +10,6 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
-  val unlocalizedName = "RobotAfterimage"
-
   showInItemList = false
 
   private var icon: Icon = _

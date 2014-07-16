@@ -1,45 +1,17 @@
 package li.cil.oc.common.block
 
-import java.util
-
 import codechicken.lib.vec.Cuboid6
 import codechicken.multipart.{JNormalOcclusion, NormalOcclusionTest, TFacePart, TileMultipart}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.Settings
 import li.cil.oc.api.network.{Environment, SidedEnvironment}
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.Mods
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
-  val unlocalizedName = "Cable"
-
-  private var icon: Icon = _
-
-  // ----------------------------------------------------------------------- //
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
-  }
-
-  @SideOnly(Side.CLIENT)
-  override def icon(side: ForgeDirection) = Some(icon)
-
-  @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Cable)

@@ -6,7 +6,6 @@ import java.util.UUID
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -14,8 +13,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
 class Terminal(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "Terminal"
-
   override def maxStackSize = 1
 
   private var iconOn: Option[Icon] = None
@@ -25,7 +22,6 @@ class Terminal(val parent: Delegator) extends Delegate {
 
   @SideOnly(Side.CLIENT)
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
     super.tooltipLines(stack, player, tooltip, advanced)
     if (hasServer(stack)) {
       val server = stack.getTagCompound.getString(Settings.namespace + "server")
@@ -41,15 +37,13 @@ class Terminal(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":terminal"))
-
-    iconOn = Option(iconRegister.registerIcon(Settings.resourceDomain + ":terminal_on"))
-    iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":terminal_off"))
+    iconOn = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOn"))
+    iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOff"))
   }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getBlockTileEntity(x, y, z) match {
-      case rack: tileentity.Rack if side == rack.facing.ordinal() =>
+      case rack: tileentity.ServerRack if side == rack.facing.ordinal() =>
         val l = 2 / 16.0
         val h = 14 / 16.0
         val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
