@@ -119,11 +119,14 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
   }
 
   def clientLoggedIn(clientHandler: NetHandler, manager: INetworkManager, login: Packet1Login) {
-    PetRenderer.hidden.clear()
-    if (Settings.get.hideOwnPet) {
-      PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+    val player = clientHandler.getPlayer
+    if (player == Minecraft.getMinecraft.thePlayer) {
+      PetRenderer.hidden.clear()
+      if (Settings.get.hideOwnPet) {
+        PetRenderer.hidden += player.getCommandSenderName
+      }
+      ClientPacketSender.sendPetVisibility()
     }
-    ClientPacketSender.sendPetVisibility()
   }
 
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
