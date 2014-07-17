@@ -3,7 +3,7 @@ This is an addon for OpenComputers, providing drivers for additional blocks to b
 [Download](http://ci.cil.li/job/OpenComponents/)
 --------
 
-OpenComponents is generally in continuous development, in that support for more blocks is added. Any 'deeper' changes will not be made in the master branch, meaning it should generally be considered stable. Meaning you can simply get the [latest build from the Jenkins build server](http://ci.cil.li/job/OpenComponents/).
+OpenComponents is generally in continuous development, in that support for more blocks is added. Any 'deeper' changes will not be made in the master branch, meaning it should generally be considered stable. Meaning you can simply get the [latest build from the Jenkins build server](http://ci.cil.li/job/OpenComponents-MC1.6.4/).
 
 Contributing
 ------------
