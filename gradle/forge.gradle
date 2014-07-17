@@ -30,13 +30,13 @@ processResources {
         expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
     }
     from(sourceSets.main.resources.srcDirs) {
-        include 'reference.conf'
+        include 'application.conf'
         filter { line ->
             line.replaceAll("@VERSION@", project.simpleVersion)
         }
     }
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
-        exclude 'reference.conf'
+        exclude 'application.conf'
     }
 }
