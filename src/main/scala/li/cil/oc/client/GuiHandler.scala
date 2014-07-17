@@ -21,7 +21,7 @@ object GuiHandler extends CommonGuiHandler {
       case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>
         new gui.Robot(player.inventory, proxy.robot)
       case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
-        new gui.Rack(player.inventory, rack)
+        new gui.ServerRack(player.inventory, rack)
       case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
         new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>

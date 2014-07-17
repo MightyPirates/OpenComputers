@@ -56,7 +56,7 @@ object Textures extends ResourceManagerReloadListener {
     var iconTopOn: Icon = _
   }
 
-  object Rack {
+  object ServerRack {
     val icons = Array.fill[Icon](6)(null)
   }
 

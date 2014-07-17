@@ -20,7 +20,7 @@ class ServerRack(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
-    System.arraycopy(icons, 0, Textures.Rack.icons, 0, icons.length)
+    System.arraycopy(icons, 0, Textures.ServerRack.icons, 0, icons.length)
   }
 
   @SideOnly(Side.CLIENT)

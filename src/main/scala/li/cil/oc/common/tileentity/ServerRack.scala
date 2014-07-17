@@ -1,15 +1,17 @@
 package li.cil.oc.common.tileentity
 
+import java.util.logging.Level
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Analyzable, Connector, Node, Visibility}
 import li.cil.oc.client.Sound
 import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Waila
-import li.cil.oc.{Localization, Settings, api, common}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
@@ -238,13 +240,14 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.readFromNBT(nbt)
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
-        val server = new component.Server(this, slot)
-        servers(slot) = Some(server)
+        servers(slot) = Some(new component.Server(this, slot))
       }
     }
     for ((serverNbt, slot) <- nbt.getTagList(Settings.namespace + "servers").iterator[NBTTagCompound].zipWithIndex if slot < servers.length) {
       servers(slot) match {
-        case Some(server) => server.load(serverNbt)
+        case Some(server) => try server.load(serverNbt) catch {
+          case t: Throwable => OpenComputers.log.log(Level.WARNING, "Failed restoring server state. Please report this!", t)
+        }
         case _ =>
       }
     }
@@ -252,7 +255,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     val terminalsNbt = nbt.getTagList(Settings.namespace + "terminals").iterator[NBTTagCompound].toArray
     for (i <- 0 until math.min(terminals.length, terminalsNbt.length)) {
-      terminals(i).load(terminalsNbt(i))
+      try terminals(i).load(terminalsNbt(i)) catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Failed restoring terminal state. Please report this!", t)
+      }
     }
     range = nbt.getInteger(Settings.namespace + "range")
   }
@@ -263,7 +268,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       nbt.setNewTagList(Settings.namespace + "servers", servers map {
         case Some(server) =>
           val serverNbt = new NBTTagCompound()
-          server.save(serverNbt)
+          try server.save(serverNbt) catch {
+            case t: Throwable => OpenComputers.log.log(Level.WARNING, "Failed saving server state. Please report this!", t)
+          }
           serverNbt
         case _ => new NBTTagCompound()
       })
@@ -272,7 +279,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
-      t.save(terminalNbt)
+      try t.save(terminalNbt) catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Failed saving terminal state. Please report this!", t)
+      }
       terminalNbt
     }))
     nbt.setInteger(Settings.namespace + "range", range)

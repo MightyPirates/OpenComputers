@@ -143,7 +143,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
           else {
             val isBack = front == side.getOpposite
             if (isBack) {
-              renderer.setOverrideBlockTexture(Textures.Rack.icons(ForgeDirection.NORTH.ordinal))
+              renderer.setOverrideBlockTexture(Textures.ServerRack.icons(ForgeDirection.NORTH.ordinal))
             }
             renderer.setRenderBounds(lx, v1, lz, hx, v2, hz)
             renderer.renderStandardBlock(block, x, y, z)
