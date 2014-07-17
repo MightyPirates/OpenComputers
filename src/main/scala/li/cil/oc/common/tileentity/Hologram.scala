@@ -261,7 +261,7 @@ class Hologram(val isClient: Boolean, var tier: Int) extends traits.Environment 
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer) {
+    if (isServer && node != null) {
       if (dirty) {
         cooldown -= 1
         if (cooldown <= 0) this.synchronized {
