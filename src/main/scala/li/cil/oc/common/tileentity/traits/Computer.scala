@@ -9,7 +9,7 @@ import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.Waila
+import li.cil.oc.util.mods.{Mods, Waila}
 import li.cil.oc.{Localization, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
@@ -148,7 +148,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (computer != null && !Waila.isSavingForTooltip) {
+    if (computer != null && (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip)) {
       nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
     }
   }

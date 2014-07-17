@@ -43,7 +43,7 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def onWorldJoin() {
     super.onWorldJoin()
-    common.EventHandler.schedule(this)
+    common.EventHandler.schedule(() => tile)
   }
 
   override def onWorldSeparate() {
