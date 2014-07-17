@@ -10,7 +10,9 @@ import net.minecraftforge.common.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 
-class AccessPoint extends Switch with WirelessEndpoint {
+class AccessPoint(isClient: Boolean) extends Switch(isClient) with WirelessEndpoint {
+  def this() = this(false)
+
   var strength = Settings.get.maxWirelessRange
 
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withComponent("access_point").create())

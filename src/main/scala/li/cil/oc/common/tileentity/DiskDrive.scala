@@ -12,7 +12,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import li.cil.oc.util.ExtendedNBT._
 
-class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
+class DiskDrive(val isClient: Boolean) extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
+  def this() = this(false)
+
   val node = api.Network.newNode(this, Visibility.None).create()
 
   // ----------------------------------------------------------------------- //

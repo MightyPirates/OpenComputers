@@ -7,7 +7,9 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class PowerDistributor extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
+class PowerDistributor(val isClient: Boolean) extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
+  def this() = this(false)
+
   val node = null
 
   private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).

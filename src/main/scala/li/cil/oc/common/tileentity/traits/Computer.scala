@@ -9,7 +9,7 @@ import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.Waila
+import li.cil.oc.util.mods.{Mods, Waila}
 import li.cil.oc.{Localization, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
@@ -21,9 +21,7 @@ import scala.collection.mutable
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
 trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Owner {
-  def isRemote: Boolean
-
-  private lazy val _computer = if (isRemote) null else Machine.create(this)
+  private lazy val _computer = if (isClient) null else Machine.create(this)
 
   def computer = _computer
 
@@ -148,7 +146,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (computer != null && !Waila.isSavingForTooltip) {
+    if (computer != null && (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip)) {
       nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
     }
   }

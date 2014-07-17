@@ -29,7 +29,9 @@ import scala.collection.mutable
 // old API, so there should be no ClassNotFoundExceptions anyway.
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
+class Switch(val isClient: Boolean) extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
+  def this() = this(false)
+
   var lastMessage = 0L
 
   val computers = mutable.Map.empty[AnyRef, ComputerWrapper]

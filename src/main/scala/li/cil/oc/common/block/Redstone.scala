@@ -29,5 +29,5 @@ class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDel
     }
   }
 
-  override def createTileEntity(world: World) = Some(new tileentity.Redstone())
+  override def createTileEntity(world: World) = Some(new tileentity.Redstone(world.isRemote))
 }

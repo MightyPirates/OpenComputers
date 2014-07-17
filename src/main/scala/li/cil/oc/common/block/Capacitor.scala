@@ -33,7 +33,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Capacitor)
+  override def createTileEntity(world: World) = Some(new tileentity.Capacitor(world.isRemote))
 
   // ----------------------------------------------------------------------- //
 

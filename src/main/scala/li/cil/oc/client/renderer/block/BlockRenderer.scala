@@ -1,6 +1,7 @@
 package li.cil.oc.client.renderer.block
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
+import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.tileentity.{CableRenderer, RobotRenderer}
 import li.cil.oc.common.block._
@@ -13,7 +14,7 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
-  var getRenderId = -1
+  def getRenderId = Settings.blockRenderId
 
   override def shouldRender3DInInventory() = true
 

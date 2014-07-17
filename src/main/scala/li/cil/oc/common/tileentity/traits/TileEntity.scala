@@ -2,7 +2,6 @@ package li.cil.oc.common.tileentity.traits
 
 import java.util.logging.Level
 
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.Sound
@@ -21,9 +20,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def block = getBlockType
 
-  def isClient = FMLCommonHandler.instance.getEffectiveSide.isClient
+  def isClient: Boolean
 
-  def isServer = FMLCommonHandler.instance.getEffectiveSide.isServer
+  def isServer = !isClient
 
   // ----------------------------------------------------------------------- //
 
