@@ -3,10 +3,9 @@ package li.cil.oc.common.block
 import java.util
 import java.util.Random
 
-import cpw.mods.fml.common.{FMLCommonHandler, Optional}
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, Colored, Rotatable}
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.{Color, ItemCosts}
@@ -347,7 +346,7 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
     }
   }
 
-  override def getRenderType = if (FMLCommonHandler.instance.getEffectiveSide.isClient) BlockRenderer.getRenderId else -1
+  override def getRenderType = Settings.blockRenderId
 
   override def getLightOpacity(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {

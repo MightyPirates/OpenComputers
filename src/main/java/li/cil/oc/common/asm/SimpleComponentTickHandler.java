@@ -1,6 +1,5 @@
 package li.cil.oc.common.asm;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import li.cil.oc.api.Network;
@@ -19,7 +18,7 @@ public final class SimpleComponentTickHandler {
     }
 
     public static void schedule(final TileEntity tileEntity) {
-        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+        if (tileEntity.hasWorldObj() && !tileEntity.getWorldObj().isRemote) {
             synchronized (pending) {
                 pending.add(new Runnable() {
                     @Override

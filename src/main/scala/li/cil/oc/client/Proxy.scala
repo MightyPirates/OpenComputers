@@ -7,12 +7,12 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
-import li.cil.oc.client.renderer.{TextBufferRenderCache, PetRenderer, WirelessNetworkDebugRenderer}
+import li.cil.oc.client.renderer.{PetRenderer, TextBufferRenderCache, WirelessNetworkDebugRenderer}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
 import li.cil.oc.util.Audio
-import li.cil.oc.{Items, OpenComputers, client}
+import li.cil.oc.{Items, OpenComputers, Settings, client}
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 
@@ -29,7 +29,7 @@ private[oc] class Proxy extends CommonProxy {
 
     NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
 
-    BlockRenderer.getRenderId = RenderingRegistry.getNextAvailableRenderId
+    Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
     RenderingRegistry.registerBlockHandler(BlockRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Cable], CableRenderer)

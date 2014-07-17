@@ -9,7 +9,9 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with Analyzable {
+class Adapter(val isClient: Boolean) extends traits.Environment with Analyzable {
+  def this() = this(false)
+
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)

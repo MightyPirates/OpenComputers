@@ -40,5 +40,5 @@ class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDel
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
   }
 
-  override def createTileEntity(world: World) = Some(new tileentity.Redstone())
+  override def createTileEntity(world: World) = Some(new tileentity.Redstone(world.isRemote))
 }

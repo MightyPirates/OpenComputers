@@ -82,7 +82,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = Some(new tileentity.Case(tier, world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Case(world.isRemote, tier))
 
   // ----------------------------------------------------------------------- //
 
