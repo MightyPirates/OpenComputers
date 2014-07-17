@@ -4,7 +4,7 @@ import codechicken.lib.vec.{Cuboid6, Vector3}
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Message, Node, Visibility}
-import li.cil.oc.api.{Network, Items, network}
+import li.cil.oc.api.{Items, network}
 import li.cil.oc.client.renderer.tileentity.CableRenderer
 import li.cil.oc.common.block.{Cable, Delegator}
 import li.cil.oc.util.ExtendedNBT._
