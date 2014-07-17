@@ -17,7 +17,9 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")
-class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
+class Switch(val isClient: Boolean) extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
+  def this() = this(false)
+
   var lastMessage = 0L
 
   val computers = mutable.Buffer.empty[AnyRef]

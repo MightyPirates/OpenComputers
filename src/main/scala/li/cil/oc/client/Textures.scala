@@ -56,7 +56,7 @@ object Textures {
     var iconTopOn: IIcon = _
   }
 
-  object Rack {
+  object ServerRack {
     val icons = Array.fill[IIcon](6)(null)
   }
 

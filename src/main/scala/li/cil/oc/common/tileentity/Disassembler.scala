@@ -19,7 +19,9 @@ import org.apache.logging.log4j.Level
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
+class Disassembler(val isClient: Boolean) extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
+  def this() = this(false)
+
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()

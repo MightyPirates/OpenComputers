@@ -34,5 +34,5 @@ class AccessPoint(parent: SimpleDelegator) extends Switch(parent) {
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = Some(new tileentity.AccessPoint)
+  override def createTileEntity(world: World) = Some(new tileentity.AccessPoint(world.isRemote))
 }

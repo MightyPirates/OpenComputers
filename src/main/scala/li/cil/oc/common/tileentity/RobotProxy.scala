@@ -12,10 +12,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
-  def this() = this(new Robot(false))
-
-  override def isRemote = robot.isClient
+class RobotProxy(val isClient: Boolean, val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
+  def this() = this(false, new Robot(false))
 
   // ----------------------------------------------------------------------- //
 

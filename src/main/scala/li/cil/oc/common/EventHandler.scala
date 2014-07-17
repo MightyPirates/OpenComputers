@@ -1,6 +1,5 @@
 package li.cil.oc.common
 
-import codechicken.multipart.TMultiPart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
@@ -14,8 +13,8 @@ import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.{LuaStateFactory, mods}
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.util.{LuaStateFactory, mods}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -29,38 +28,46 @@ import scala.collection.mutable
 object EventHandler {
   val pending = mutable.Buffer.empty[() => Unit]
 
-  def schedule(tileEntity: TileEntity) =
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
+  def schedule(tileEntity: TileEntity) {
+    if (tileEntity.hasWorldObj && !tileEntity.getWorldObj.isRemote) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity))
     }
+  }
 
   @Optional.Method(modid = "ForgeMultipart")
-  def schedule(part: TMultiPart) =
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
-      pending += (() => Network.joinOrCreateNetwork(part.tile))
+  def schedule(tileEntity: () => TileEntity) {
+    pending.synchronized {
+      pending += (() => Network.joinOrCreateNetwork(tileEntity()))
     }
-
-  @Optional.Method(modid = "IC2")
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2) = if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
-    pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
-      MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
-      tileEntity.addedToPowerGrid = true
-    })
   }
 
   @Optional.Method(modid = "IC2")
-  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) = if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
-    pending += (() => if (tileEntity.addedToPowerGrid) {
-      MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
-      tileEntity.addedToPowerGrid = false
-    })
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2) {
+    if (tileEntity.hasWorldObj && !tileEntity.getWorldObj.isRemote) pending.synchronized {
+      pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
+        tileEntity.addedToPowerGrid = true
+      })
+    }
   }
 
-  def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) = if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
-    pending += (() => if (!rs.owner.isInvalid) {
-      mods.WirelessRedstone.addReceiver(rs)
-      mods.WirelessRedstone.updateOutput(rs)
-    })
+  @Optional.Method(modid = "IC2")
+  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) {
+    if (tileEntity.hasWorldObj && !tileEntity.getWorldObj.isRemote) pending.synchronized {
+      pending += (() => if (tileEntity.addedToPowerGrid) {
+        MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
+        tileEntity.addedToPowerGrid = false
+      })
+    }
+  }
+
+  def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
+    if (rs.owner.isServer) pending.synchronized {
+      pending += (() => if (!rs.owner.isInvalid) {
+        mods.WirelessRedstone.addReceiver(rs)
+        mods.WirelessRedstone.updateOutput(rs)
+      })
+    }
   }
 
   @SubscribeEvent

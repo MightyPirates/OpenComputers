@@ -10,7 +10,9 @@ import net.minecraft.util.{AxisAlignedBB, Vec3}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class MotionSensor extends traits.Environment {
+class MotionSensor(val isClient: Boolean) extends traits.Environment {
+  def this() = this(false)
+
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("motion_sensor").
     withConnector().

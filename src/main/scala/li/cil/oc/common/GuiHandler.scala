@@ -18,7 +18,7 @@ abstract class GuiHandler extends IGuiHandler {
       case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>
         new container.Robot(player.inventory, proxy.robot)
       case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
-        new container.Rack(player.inventory, rack)
+        new container.ServerRack(player.inventory, rack)
       case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
         new container.RobotAssembler(player.inventory, assembler)
       case switch: tileentity.Switch if id == GuiType.Switch.id =>

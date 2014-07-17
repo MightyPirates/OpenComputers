@@ -5,32 +5,35 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Analyzable, Connector, Node, Visibility}
 import li.cil.oc.client.Sound
 import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.Waila
-import li.cil.oc.{Localization, Settings, api, common}
+import li.cil.oc.util.mods.{Mods, Waila}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
+import org.apache.logging.log4j.Level
 import stargatetech2.api.bus.IBusDevice
 
 import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
+class ServerRack(val isClient: Boolean) extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
+  def this() = this(false)
+
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
     padTo(servers.length, ForgeDirection.UNKNOWN).toArray
 
-  val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
+  lazy val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
 
   var range = 16
 
@@ -240,29 +243,34 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.readFromNBT(nbt)
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
-        val server = new component.Server(this, slot)
-        servers(slot) = Some(server)
+        servers(slot) = Some(new component.Server(this, slot))
       }
     }
     nbt.getTagList(Settings.namespace + "servers", NBT.TAG_COMPOUND).foreach((list, index) =>
       if (index < servers.length) servers(index) match {
-        case Some(server) => server.load(list.getCompoundTagAt(index))
+        case Some(server) => try server.load(list.getCompoundTagAt(index)) catch {
+          case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed restoring server state. Please report this!", t)
+        }
         case _ =>
       })
     val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").map(ForgeDirection.getOrientation(_))
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     nbt.getTagList(Settings.namespace + "terminals", NBT.TAG_COMPOUND).
-      foreach((list, index) => if (index < terminals.length) terminals(index).load(list.getCompoundTagAt(index)))
+      foreach((list, index) => if (index < terminals.length) try terminals(index).load(list.getCompoundTagAt(index)) catch {
+      case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed restoring terminal state. Please report this!", t)
+    })
     range = nbt.getInteger(Settings.namespace + "range")
   }
 
   // Side check for Waila (and other mods that may call this client side).
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
-    if (!Waila.isSavingForTooltip) {
+    if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip) {
       nbt.setNewTagList(Settings.namespace + "servers", servers map {
         case Some(server) =>
           val serverNbt = new NBTTagCompound()
-          server.save(serverNbt)
+          try server.save(serverNbt) catch {
+            case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed saving server state. Please report this!", t)
+          }
           serverNbt
         case _ => new NBTTagCompound()
       })
@@ -271,7 +279,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
-      t.save(terminalNbt)
+      try t.save(terminalNbt) catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed saving terminal state. Please report this!", t)
+      }
       terminalNbt
     }))
     nbt.setInteger(Settings.namespace + "range", range)

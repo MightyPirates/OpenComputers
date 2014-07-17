@@ -74,7 +74,7 @@ class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware wit
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = Some(new tileentity.Case(tier, world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Case(world.isRemote, tier))
 
   // ----------------------------------------------------------------------- //
 
