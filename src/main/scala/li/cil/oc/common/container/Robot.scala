@@ -59,7 +59,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+    if (robot.isServer) {
       val currentBuffer = robot.globalBuffer.toInt / factor
       if (currentBuffer != lastSentBuffer) {
         lastSentBuffer = currentBuffer

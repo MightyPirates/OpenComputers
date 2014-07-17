@@ -4,7 +4,9 @@ import li.cil.oc.api.network.{Node, Visibility}
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.ForgeDirection
 
-class Capacitor extends traits.Environment {
+class Capacitor(val isClient: Boolean) extends traits.Environment {
+  def this() = this(false)
+
   // Start with maximum theoretical capacity, gets reduced after validation.
   // This is done so that we don't lose energy while loading.
   val node = api.Network.newNode(this, Visibility.Network).
