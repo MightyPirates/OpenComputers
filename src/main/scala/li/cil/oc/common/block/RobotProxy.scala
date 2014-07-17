@@ -87,8 +87,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def createTileEntity(world: World) = {
     moving.get match {
-      case Some(robot) => Some(new tileentity.RobotProxy(robot))
-      case _ => Some(new tileentity.RobotProxy(new tileentity.Robot(world.isRemote)))
+      case Some(robot) => Some(new tileentity.RobotProxy(world.isRemote, robot))
+      case _ => Some(new tileentity.RobotProxy(world.isRemote, new tileentity.Robot(world.isRemote)))
     }
   }
 

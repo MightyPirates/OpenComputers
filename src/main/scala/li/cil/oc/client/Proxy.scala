@@ -12,7 +12,7 @@ import li.cil.oc.client.renderer.{PetRenderer, TextBufferRenderCache, WirelessNe
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
-import li.cil.oc.{Items, OpenComputers}
+import li.cil.oc.{Settings, Items, OpenComputers}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.ReloadableResourceManager
 import net.minecraftforge.client.MinecraftForgeClient
@@ -30,7 +30,7 @@ private[oc] class Proxy extends CommonProxy {
 
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
-    BlockRenderer.getRenderId = RenderingRegistry.getNextAvailableRenderId
+    Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
     RenderingRegistry.registerBlockHandler(BlockRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Cable], CableRenderer)

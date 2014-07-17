@@ -23,7 +23,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
 
   override def slotClick(slot: Int, mouseClick: Int, holdingShift: Int, player: EntityPlayer) = {
     val result = super.slotClick(slot, mouseClick, holdingShift, player)
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+    if (player.getEntityWorld != null && !player.getEntityWorld.isRemote) {
       detectAndSendChanges() // We have to enforce this more than MC does itself
       // because stacks can change their... "character" just by being inserted in
       // certain containers - by being assigned an address.
@@ -36,7 +36,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     val slot = Option(inventorySlots.get(index)).map(_.asInstanceOf[Slot]).orNull
     if (slot != null && slot.getHasStack) {
       tryTransferStackInSlot(slot, slot.inventory == otherInventory)
-      if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+      if (player.getEntityWorld != null && !player.getEntityWorld.isRemote) {
         detectAndSendChanges()
       }
     }
