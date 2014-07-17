@@ -51,7 +51,7 @@ class DynamicFontRenderer extends TextureFontRenderer {
       else charMap.getOrElseUpdate('?', createCharIcon('?'))
     }
     else {
-      if (textures.last.isFull) {
+      if (textures.last.isFull(char)) {
         textures += new DynamicFontRenderer.CharTexture(this)
         textures.last.bind()
       }
@@ -88,7 +88,7 @@ object DynamicFontRenderer {
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
     }
 
-    def isFull = chars >= capacity
+    def isFull(char: Char) = chars + FontUtil.wcwidth(char) > capacity
 
     def add(char: Char) = {
       val glyphWidth = FontUtil.wcwidth(char)
