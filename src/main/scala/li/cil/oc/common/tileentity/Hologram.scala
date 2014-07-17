@@ -9,8 +9,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.util.ForgeDirection
 
-class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable {
-  def this() = this(0)
+class Hologram(val isClient: Boolean, var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable {
+  def this() = this(false, 0)
 
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("hologram").

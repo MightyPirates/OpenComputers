@@ -52,7 +52,7 @@ trait Component extends network.Component with Node {
       throw new IllegalArgumentException("Trying to set computer visibility to '" + value + "' on a '" + name +
         "' node with reachability '" + reachability + "'. It will be limited to the node's reachability.")
     }
-    if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
       if (network != null) _visibility match {
         case Visibility.Neighbors => value match {
           case Visibility.Network => addTo(reachableNodes)

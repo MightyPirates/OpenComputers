@@ -226,6 +226,7 @@ object Settings {
   val hologramMaxScaleByTier = Array(3, 4)
   val robotComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
+  var blockRenderId = -1
 
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.

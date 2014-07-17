@@ -12,7 +12,9 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")
-class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
+class Router(val isClient: Boolean) extends traits.Hub with traits.NotAnalyzable with IPeripheral {
+  def this() = this(false)
+
   var lastMessage = 0L
 
   val computers = mutable.Buffer.empty[AnyRef]
