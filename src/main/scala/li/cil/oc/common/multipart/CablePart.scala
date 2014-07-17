@@ -43,8 +43,8 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def onWorldJoin() {
     super.onWorldJoin()
-    if (world != null && !world.isRemote) common.EventHandler.pending.synchronized {
-      common.EventHandler.pending += (() => Network.joinOrCreateNetwork(tile))
+    if (world != null && !world.isRemote) {
+      common.EventHandler.schedule(() => tile)
     }
   }
 

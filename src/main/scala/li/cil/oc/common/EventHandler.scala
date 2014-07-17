@@ -1,6 +1,5 @@
 package li.cil.oc.common
 
-import codechicken.multipart.TMultiPart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
@@ -32,6 +31,13 @@ object EventHandler {
   def schedule(tileEntity: TileEntity) {
     if (tileEntity.hasWorldObj && !tileEntity.getWorldObj.isRemote) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity))
+    }
+  }
+
+  @Optional.Method(modid = "ForgeMultipart")
+  def schedule(tileEntity: () => TileEntity) {
+    pending.synchronized {
+      pending += (() => Network.joinOrCreateNetwork(tileEntity()))
     }
   }
 
