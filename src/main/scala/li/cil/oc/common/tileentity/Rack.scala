@@ -28,7 +28,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
     padTo(servers.length, ForgeDirection.UNKNOWN).toArray
 
-  val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
+  lazy val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
 
   var range = 16
 

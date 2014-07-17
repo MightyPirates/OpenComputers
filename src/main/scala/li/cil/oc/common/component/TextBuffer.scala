@@ -58,8 +58,8 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     powerConsumptionPerTick * (mw * mh) / (w * h)
   }
 
-  val proxy =
-    if (FMLCommonHandler.instance.getEffectiveSide.isClient) new TextBuffer.ClientProxy(this)
+  lazy val proxy =
+    if (owner.world.isRemote) new TextBuffer.ClientProxy(this)
     else new TextBuffer.ServerProxy(this)
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
@@ -350,7 +350,9 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (FMLCommonHandler.instance.getEffectiveSide.isClient) {
+    // World is null on server (standard readFromNBT) and non-null on client
+    // (from readFromNBTForClient / description packet).
+    if (owner.world != null) {
       if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
       TextBuffer.registerClientBuffer(this)
