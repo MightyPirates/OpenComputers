@@ -28,7 +28,9 @@ for i = 1, #dirs do
     end
     local lsd = {}
     local lsf = {}
+    local m = 1
     for f in list do
+      m = math.max(m, f:len())
       if f:sub(-1) == "/" then
         if options.p then
           table.insert(lsd, f)
@@ -38,7 +40,8 @@ for i = 1, #dirs do
       else
         table.insert(lsf, f)
       end
-    end
+  end
+  m = m + 2
     table.sort(lsd)
     table.sort(lsf)
     setColor(0x66CCFF)
@@ -59,7 +62,8 @@ for i = 1, #dirs do
         setColor(0xFFFFFF)
       end
       if options.a or f:sub(1, 1) ~= "." then
-        io.write(f .. "\t")
+        io.write(f .. string.rep(' ',m - f:len()) )
+        
         if options.l then
           setColor(0xFFFFFF)
           io.write(fs.size(fs.concat(path, f)), "\n")
