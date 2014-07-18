@@ -1,44 +1,52 @@
-local component = require('component')
-local unicode = require('unicode')
-local term = require('term')
-local shell = require('shell')
-
+local component = require("component")
+local shell = require("shell")
+local text = require("text")
 
 local args, options = shell.parse(...)
-local listFunctions = false
+local count = tonumber(options.limit) or math.huge
 
-local max = tonumber(options ['n']) or math.huge
-filter = args [#args]
+local components = {}
+local padTo = 1
 
-local t = {}
-local m = 1
-local tm = 1
-
-for k,v in component.list( filter ) do
-	if v:len () > m then m = v:len () end
-	if type(v):len() > tm then tm = type(v):len() end
-
-	t[k]=v
+if #args == 0 then -- get all components if no filters given.
+  args[1] = ""
+end
+for _, filter in ipairs(args) do
+  for address, name in component.list(filter) do
+    if name:len() > padTo then
+      padTo = name:len() + 2
+    end
+    components[address] = name
+  end
 end
 
-local i = 1
-m = m + 10
-for k,v in pairs (t) do
-	if i <= max then
-		term.write ( v .. string.rep (' ', m - v:len()) .. tostring(k) .. "\n" )
+padTo = padTo + 8 - padTo % 8
+for address, name in pairs(components) do
+  io.write(text.padRight(name, padTo) .. address .. '\n')
 
-		if options ['l'] == true then
-			local _p = component.proxy(k)
-			local m = 1
-			for _k,_v in pairs (_p) do
-				if _k:len () > m then m = _k:len() end
-			end
-			m = m + 3
+  if options.l then
+    local proxy = component.proxy(address)
+    local padTo = 1
+    local methods = {}
+    for name, member in pairs(proxy) do
+      if type(member) == "table" or type(member) == "function" then
+        if name:len() > padTo then
+          padTo = name:len() + 2
+        end
+        table.insert(methods, name)
+      end
+    end
+    table.sort(methods)
+    padTo = padTo + 8 - padTo % 8
 
-			for _k,_v in pairs(_p) do
-				term.write ( ' ' .. _k .. string.rep (' ', m-_k:len()) .. type(_v) .. string.rep(' ', tm - type(_v):len() + 3) .. tostring(_v) .. "\n" )
-			end
-		end
-	end
-	i = i + 1
+    for _, name in ipairs(methods) do
+      local doc = tostring(proxy[name])
+      io.write("  " .. text.padRight(name, padTo) .. doc .. '\n')
+    end
+  end
+
+  count = count - 1
+  if count <= 0 then
+    break
+  end
 end
