@@ -51,7 +51,7 @@ class Rack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDeleg
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Rack)
+  override def createTileEntity(world: World) = Some(new tileentity.Rack())
 
   // ----------------------------------------------------------------------- //
 

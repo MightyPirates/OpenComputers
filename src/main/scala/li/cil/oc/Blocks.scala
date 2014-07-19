@@ -1,6 +1,7 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.block._
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity
@@ -65,22 +66,22 @@ object Blocks {
     Recipes.addBlock(new Switch(blockSimple), "switch", "oc:switch")
     // Copied to simple block for automatic conversion from old format (when
     // screens did not take redstone inputs) to keep save format compatible.
-    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier1(blockSimpleWithRedstone), "screen1", "oc:screen1")
-    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier2(blockSimpleWithRedstone), "screen2", "oc:screen2")
-    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier3(blockSimpleWithRedstone), "screen3", "oc:screen3")
+    blockSimple.subBlocks += Recipes.addBlock(new Screen(blockSimpleWithRedstone, Tier.One), "screen1", "oc:screen1")
+    blockSimple.subBlocks += Recipes.addBlock(new Screen(blockSimpleWithRedstone, Tier.Two), "screen2", "oc:screen2")
+    blockSimple.subBlocks += Recipes.addBlock(new Screen(blockSimpleWithRedstone, Tier.Three), "screen3", "oc:screen3")
 
     // v1.2.0
     Recipes.addBlock(new Rack(blockSpecialWithRedstone), "rack", "oc:rack")
 
     // v1.2.2
-    Recipes.addBlock(new Hologram.Tier1(blockSpecial), "hologram1", "oc:hologram1")
+    Recipes.addBlock(new Hologram(blockSpecial, Tier.One), "hologram1", "oc:hologram1")
     Recipes.addBlock(new AccessPoint(blockSimple), "accessPoint", "oc:accessPoint")
 
     // v1.2.6
     Items.registerBlock(new Case.TierCreative(blockSimpleWithRedstone), "caseCreative")
 
     // v1.3.0
-    Recipes.addBlock(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
+    Recipes.addBlock(new Hologram(blockSpecial, Tier.Two), "hologram2", "oc:hologram2")
     Recipes.addBlock(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
     Recipes.addBlock(new RobotAssembler(blockSpecial), "robotAssembler", "oc:robotAssembler")
     Recipes.addBlock(new Disassembler(blockSimple), "disassembler", "oc:disassembler")

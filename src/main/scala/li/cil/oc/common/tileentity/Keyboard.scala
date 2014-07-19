@@ -8,9 +8,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatable with SidedEnvironment with Analyzable {
-  def this() = this(false)
-
+class Keyboard extends traits.Environment with traits.Rotatable with SidedEnvironment with Analyzable {
   override def validFacings = ForgeDirection.VALID_DIRECTIONS
 
   val keyboard = {

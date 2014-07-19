@@ -42,5 +42,5 @@ class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Router)
+  override def createTileEntity(world: World) = Some(new tileentity.Router())
 }
