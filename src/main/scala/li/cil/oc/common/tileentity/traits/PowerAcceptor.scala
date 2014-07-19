@@ -5,4 +5,4 @@ trait PowerAcceptor
   with power.BuildCraft
   with power.IndustrialCraft2
   with power.ThermalExpansion
-//  with power.UniversalElectricity
+  with power.UniversalElectricity
