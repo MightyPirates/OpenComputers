@@ -3,9 +3,9 @@ package li.cil.oc.common.block
 import java.util
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.{Settings, api}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Settings, api}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -49,7 +49,7 @@ class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Keyboard())
 
   // DEPRECATED Seems this isn't available anymore with stack info, use real
   // items in 1.7 when needed since IDs are no problem anymore.

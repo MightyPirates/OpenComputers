@@ -15,10 +15,8 @@ import net.minecraft.util.{AxisAlignedBB, IIcon}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
+class Hologram(val parent: SpecialDelegator, val tier: Int) extends SpecialDelegate {
   val unlocalizedName = "Hologram" + tier
-
-  def tier: Int
 
   override def rarity = Array(EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
@@ -68,17 +66,5 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Hologram(world.isRemote, tier))
-}
-
-object Hologram {
-
-  class Tier1(parent: SpecialDelegator) extends Hologram(parent) {
-    def tier = 0
-  }
-
-  class Tier2(parent: SpecialDelegator) extends Hologram(parent) {
-    def tier = 1
-  }
-
+  override def createTileEntity(world: World) = Some(new tileentity.Hologram(tier))
 }

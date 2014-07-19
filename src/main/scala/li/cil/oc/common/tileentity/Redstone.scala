@@ -9,9 +9,7 @@ import li.cil.oc.util.mods.BundledRedstone
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Redstone(val isClient: Boolean) extends Environment with BundledRedstoneAware {
-  def this() = this(false)
-
+class Redstone extends Environment with BundledRedstoneAware {
   val instance = if (BundledRedstone.isAvailable) new component.Redstone[BundledRedstoneAware](this) with component.RedstoneBundled else new component.Redstone(this)
   val node = instance.node
   if (node != null) {

@@ -8,7 +8,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, Colored, Rotatable}
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.{Color, ItemCosts}
+import li.cil.oc.util.{Color, ItemCosts, SideTracker}
 import li.cil.oc.{CreativeTab, Settings}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -242,11 +242,15 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
     case _ => false
   }
 
-  override def createTileEntity(world: World, metadata: Int): TileEntity =
+  override def createTileEntity(world: World, metadata: Int): TileEntity = {
+    if (!world.isRemote) {
+      SideTracker.addServerThread()
+    }
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.createTileEntity(world).orNull
       case _ => null
     }
+  }
 
   // ----------------------------------------------------------------------- //
 

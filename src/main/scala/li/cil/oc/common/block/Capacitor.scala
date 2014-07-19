@@ -11,7 +11,7 @@ import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{IIcon}
+import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -52,7 +52,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Capacitor(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Capacitor())
 
   // ----------------------------------------------------------------------- //
 

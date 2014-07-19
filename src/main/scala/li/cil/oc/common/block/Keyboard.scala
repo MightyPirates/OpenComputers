@@ -34,7 +34,7 @@ class Keyboard extends SimpleBlock(Material.rock) {
 
   override def hasTileEntity(metadata: Int) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Keyboard(world.isRemote)
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Keyboard()
 
   override def updateTick(world: World, x: Int, y: Int, z: Int, rng: Random) =
     world.getTileEntity(x, y, z) match {

@@ -48,7 +48,7 @@ class RobotAssembler(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.RobotAssembler(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.RobotAssembler())
 
   // ----------------------------------------------------------------------- //
 

@@ -5,9 +5,7 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.block.Block
 import net.minecraftforge.fluids.FluidRegistry
 
-class Geolyzer(val isClient: Boolean) extends traits.Environment {
-  def this() = this(false)
-
+class Geolyzer extends traits.Environment {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("geolyzer").
     withConnector().
