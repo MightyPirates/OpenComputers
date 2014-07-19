@@ -1,11 +1,11 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
 import li.cil.oc.client.gui.Icons
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.IInventory
 
@@ -59,7 +59,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+    if (SideTracker.isServer) {
       val currentBuffer = robot.globalBuffer.toInt / factor
       if (currentBuffer != lastSentBuffer) {
         lastSentBuffer = currentBuffer

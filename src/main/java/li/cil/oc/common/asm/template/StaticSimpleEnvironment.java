@@ -1,11 +1,11 @@
 package li.cil.oc.common.asm.template;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.common.asm.SimpleComponentTickHandler;
+import li.cil.oc.util.SideTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
@@ -26,7 +26,7 @@ public final class StaticSimpleEnvironment {
     public static Node node(final SimpleComponentImpl self) {
         // Save ourselves the lookup time in the hash map and avoid mixing in
         // client side tile entities into the map when in single player.
-        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+        if (SideTracker.isClient()) {
             return null;
         }
         if (!nodes.containsKey(self)) {

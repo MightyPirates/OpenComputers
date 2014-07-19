@@ -1,7 +1,6 @@
 package li.cil.oc.common.component
 
 import com.google.common.base.Strings
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.Container
@@ -12,7 +11,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.PackedColor
+import li.cil.oc.util.{PackedColor, SideTracker}
 import li.cil.oc.{Settings, api, util}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -59,7 +58,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   }
 
   val proxy =
-    if (FMLCommonHandler.instance.getEffectiveSide.isClient) new TextBuffer.ClientProxy(this)
+    if (SideTracker.isClient) new TextBuffer.ClientProxy(this)
     else new TextBuffer.ServerProxy(this)
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
@@ -350,7 +349,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (FMLCommonHandler.instance.getEffectiveSide.isClient) {
+    if (SideTracker.isClient) {
       if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
       TextBuffer.registerClientBuffer(this)

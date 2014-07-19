@@ -1,9 +1,9 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
 import li.cil.oc.client.gui.Icons
 import li.cil.oc.common.InventorySlots.InventorySlot
+import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{IInventory, Slot}
 
@@ -31,7 +31,7 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
     }
 
   override protected def clearIfInvalid(player: EntityPlayer) {
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer && getHasStack && !isItemValid(getStack)) {
+    if (SideTracker.isServer && getHasStack && !isItemValid(getStack)) {
       val stack = getStack
       putStack(null)
       player.inventory.addItemStackToInventory(stack)

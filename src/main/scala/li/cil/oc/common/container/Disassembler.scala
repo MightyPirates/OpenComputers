@@ -1,8 +1,8 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
 
 class Disassembler(playerInventory: InventoryPlayer, disassembler: tileentity.Disassembler) extends Player(playerInventory, disassembler) {
@@ -21,7 +21,7 @@ class Disassembler(playerInventory: InventoryPlayer, disassembler: tileentity.Di
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+    if (SideTracker.isServer) {
       if (math.abs(disassembler.progress - disassemblyProgress) > 0.2) {
         disassemblyProgress = disassembler.progress
         sendProgressBarUpdate(0, (disassemblyProgress * 5).toInt)

@@ -6,6 +6,7 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.Sound
+import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet132TileEntityData
@@ -21,9 +22,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def block = getBlockType
 
-  def isClient = FMLCommonHandler.instance.getEffectiveSide.isClient
+  def isClient = SideTracker.isClient
 
-  def isServer = FMLCommonHandler.instance.getEffectiveSide.isServer
+  def isServer = SideTracker.isServer
 
   // ----------------------------------------------------------------------- //
 

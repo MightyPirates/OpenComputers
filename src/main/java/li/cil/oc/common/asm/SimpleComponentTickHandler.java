@@ -1,9 +1,9 @@
 package li.cil.oc.common.asm;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.TickType;
 import li.cil.oc.api.Network;
+import li.cil.oc.util.SideTracker;
 import net.minecraft.tileentity.TileEntity;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public final class SimpleComponentTickHandler implements ITickHandler {
     }
 
     public static void schedule(final TileEntity tileEntity) {
-        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+        if (SideTracker.isServer()) {
             synchronized (pending) {
                 pending.add(new Runnable() {
                     @Override
