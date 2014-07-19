@@ -7,6 +7,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity.traits.{Colored, Inventory}
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.Mods
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
@@ -117,7 +118,7 @@ trait Delegate {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
   }
 

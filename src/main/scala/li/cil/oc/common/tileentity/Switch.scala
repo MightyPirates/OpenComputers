@@ -16,7 +16,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-@Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")
+@Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = Mods.IDs.ComputerCraft)
 class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
   var lastMessage = 0L
 
@@ -28,25 +28,25 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def getType = "oc_adapter"
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def attach(computer: IComputerAccess) {
     computers += computer
     openPorts += computer -> mutable.Set.empty
   }
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def detach(computer: IComputerAccess) {
     computers -= computer
     openPorts -= computer
   }
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def getMethodNames = Array("open", "isOpen", "close", "closeAll", "maxPacketSize", "transmit", "isWireless")
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) = getMethodNames()(method) match {
     case "open" =>
       val port = checkPort(arguments, 0)
@@ -74,7 +74,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
     case _ => null
   }
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def equals(other: IPeripheral) = other == this
 
   // ----------------------------------------------------------------------- //

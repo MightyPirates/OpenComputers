@@ -8,6 +8,7 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.{ItemUtils, Tooltip}
 import li.cil.oc.{Blocks, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
@@ -44,7 +45,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     }
   }
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     addLines(stack, tooltip)
   }

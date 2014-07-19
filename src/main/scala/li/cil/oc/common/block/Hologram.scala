@@ -5,6 +5,7 @@ import java.util
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.item.{EnumRarity, ItemStack}
@@ -26,7 +27,7 @@ class Hologram(val parent: SpecialDelegator, val tier: Int) extends SpecialDeleg
 
   override def rarity = Array(EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
     if (node.hasKey("address")) {

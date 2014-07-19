@@ -24,7 +24,7 @@ import stargatetech2.api.bus.IBusDevice
 import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
-@Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
+@Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
 class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
@@ -54,7 +54,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def canConnect(side: ForgeDirection) = side != facing
 
-  @Method(modid = "StargateTech2")
+  @Method(modid = Mods.IDs.StargateTech2)
   override def getInterfaces(side: Int) = if (side != facing.ordinal) {
     super.getInterfaces(side)
   }

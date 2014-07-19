@@ -16,7 +16,7 @@ class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate {
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(super.unlocalizedName))
     if (tier == Tier.Two) {
-      if (Mods.ProjectRed.isAvailable) {
+      if (Mods.ProjectRedTransmission.isAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".ProjectRed"))
       }
     if (Mods.RedLogic.isAvailable) {

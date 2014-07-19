@@ -476,7 +476,7 @@ class SpecialDelegator extends Delegator[SpecialDelegate] {
   }
 }
 
-@Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = "MineFactoryReloaded")
+@Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = Mods.IDs.MineFactoryReloaded)
 trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnectableRedNet {
   override def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
 

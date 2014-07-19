@@ -7,11 +7,12 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.util.mods
+import li.cil.oc.util.mods.Mods
 import net.minecraft.nbt.NBTTagCompound
 
 @Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = "WR-CBE|Core"),
-  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = "WR-CBE|Core")
+  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
+  new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
 trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDevice with WirelessTransmittingDevice {
   var wirelessFrequency = 0
@@ -65,7 +66,7 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "WR-CBE|Core")
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
       wirelessInput = on
@@ -73,16 +74,16 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
     }
   }
 
-  @Optional.Method(modid = "WR-CBE|Core")
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getPosition = Vector3.fromTileEntityCenter(owner)
 
-  @Optional.Method(modid = "WR-CBE|Core")
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getDimension = owner.world.provider.dimensionId
 
-  @Optional.Method(modid = "WR-CBE|Core")
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getFreq = wirelessFrequency
 
-  @Optional.Method(modid = "WR-CBE|Core")
+  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getAttachedEntity = null
 
   // ----------------------------------------------------------------------- //

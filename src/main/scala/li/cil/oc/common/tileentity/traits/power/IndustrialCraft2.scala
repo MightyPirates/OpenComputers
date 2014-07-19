@@ -7,7 +7,7 @@ import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.util.ForgeDirection
 
-@Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
+@Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
 trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
@@ -34,10 +34,10 @@ trait IndustrialCraft2 extends Common with IEnergySink {
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   override def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
     lastInjectedAmount = amount
     var energy = amount * Settings.ratioIC2
@@ -51,10 +51,10 @@ trait IndustrialCraft2 extends Common with IEnergySink {
     else amount - tryChangeBuffer(directionFrom, energy) / Settings.ratioIC2
   }
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   override def getSinkTier = Int.MaxValue
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   override def getDemandedEnergy = {
     if (Settings.get.ignorePower || isClient) 0
     else {

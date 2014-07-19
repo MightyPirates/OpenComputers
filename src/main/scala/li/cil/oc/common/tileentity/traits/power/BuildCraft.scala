@@ -1,15 +1,16 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import buildcraft.api.power.{IPowerReceptor, PowerHandler}
-import cpw.mods.fml.common.{ModAPIManager, Optional}
+import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
+import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.util.ForgeDirection
 
-@Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power")
+@Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = Mods.IDs.BuildCraftPower)
 trait BuildCraft extends Common with IPowerReceptor {
   private var powerHandler: Option[AnyRef] = None
 
-  private lazy val useBuildCraftPower = isServer && !Settings.get.ignorePower && ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power")
+  private lazy val useBuildCraftPower = isServer && !Settings.get.ignorePower && Mods.BuildCraftPower.isAvailable
 
   // ----------------------------------------------------------------------- //
 
@@ -28,7 +29,7 @@ trait BuildCraft extends Common with IPowerReceptor {
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "BuildCraftAPI|power")
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
   def getPowerProvider = {
     if (powerHandler.isEmpty) {
       val handler = new PowerHandler(this, PowerHandler.Type.MACHINE)
@@ -43,7 +44,7 @@ trait BuildCraft extends Common with IPowerReceptor {
     else null
   }
 
-  @Optional.Method(modid = "BuildCraftAPI|power")
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
   def getPowerReceiver(side: ForgeDirection) =
     if (canConnectPower(side))
       getPowerProvider.getPowerReceiver
@@ -52,6 +53,6 @@ trait BuildCraft extends Common with IPowerReceptor {
   // Don't strip, also defined by AbstractBusAware trait.
   def getWorld = getWorldObj
 
-  @Optional.Method(modid = "BuildCraftAPI|power")
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
   def doWork(workProvider: PowerHandler) {}
 }

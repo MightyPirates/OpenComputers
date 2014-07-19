@@ -533,23 +533,23 @@ local libcomputer = {
   maxEnergy = computer.maxEnergy,
 
   getBootAddress = computer.getBootAddress,
-  setBootAddress = function(address)
-    return spcall(computer.setBootAddress, address)
+  setBootAddress = function(...)
+    return spcall(computer.setBootAddress, ...)
   end,
 
   users = computer.users,
-  addUser = function(name)
-    return spcall(computer.addUser, name)
+  addUser = function(...)
+    return spcall(computer.addUser, ...)
   end,
-  removeUser = function(name)
-    return spcall(computer.removeUser, name)
+  removeUser = function(...)
+    return spcall(computer.removeUser, ...)
   end,
 
   shutdown = function(reboot)
     coroutine.yield(reboot ~= nil and reboot ~= false)
   end,
-  pushSignal = function(name, ...)
-    return spcall(computer.pushSignal, name, ...)
+  pushSignal = function(...)
+    return spcall(computer.pushSignal, ...)
   end,
   pullSignal = function(timeout)
     local deadline = computer.uptime() +

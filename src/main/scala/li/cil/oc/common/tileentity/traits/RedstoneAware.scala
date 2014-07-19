@@ -11,9 +11,9 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 @Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = "RedLogic"),
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = "RedLogic"),
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = Mods.IDs.RedLogic),
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = Mods.IDs.RedLogic),
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = Mods.IDs.RedLogic)
 ))
 trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
   protected[tileentity] val _input = Array.fill(6)(-1)
@@ -152,15 +152,15 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def onRedstoneInputChanged() = checkRedstoneInputChanged()
 }

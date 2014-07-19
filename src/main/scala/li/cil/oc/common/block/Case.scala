@@ -5,7 +5,7 @@ import java.util
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.util.mods.{BuildCraft, Mods}
 import li.cil.oc.util.{Color, Tooltip}
 import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
@@ -43,7 +43,7 @@ class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware wit
     tooltip.addAll(Tooltip.get("Case", slots))
   }
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val nbt = accessor.getNBTData
     val node = nbt.getCompoundTag(Settings.namespace + "computer").getCompoundTag("node")
