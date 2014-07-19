@@ -54,5 +54,5 @@ class Hologram(val parent: SpecialDelegator, val tier: Int) extends SpecialDeleg
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Hologram(world.isRemote, tier))
+  override def createTileEntity(world: World) = Some(new tileentity.Hologram(tier))
 }

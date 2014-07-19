@@ -48,7 +48,7 @@ class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Keyboard())
 
   // DEPRECATED Seems this isn't available anymore with stack info, use real
   // items in 1.7 when needed since IDs are no problem anymore.

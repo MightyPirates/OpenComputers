@@ -9,8 +9,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.util.ForgeDirection
 
-class Hologram(val isClient: Boolean, var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable {
-  def this() = this(false, 0)
+class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable {
+  def this() = this(0)
 
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("hologram").
@@ -261,7 +261,7 @@ class Hologram(val isClient: Boolean, var tier: Int) extends traits.Environment 
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && node != null) {
+    if (isServer) {
       if (dirty) {
         cooldown -= 1
         if (cooldown <= 0) this.synchronized {

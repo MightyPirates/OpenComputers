@@ -7,14 +7,12 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Analyzable, Component, Visibility}
 import li.cil.oc.common.Sound
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import li.cil.oc.util.ExtendedNBT._
 
-class DiskDrive(val isClient: Boolean) extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
-  def this() = this(false)
-
+class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   // ----------------------------------------------------------------------- //

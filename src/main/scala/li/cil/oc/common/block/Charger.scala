@@ -40,7 +40,7 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
     Textures.Charger.iconSideCharging = iconRegister.registerIcon(Settings.resourceDomain + ":ChargerSideOn")
   }
 
-  override def createTileEntity(world: World) = Some(new tileentity.Charger(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Charger())
 
   override def canConnectToRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 

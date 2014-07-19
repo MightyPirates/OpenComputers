@@ -17,5 +17,5 @@ class MotionSensor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.MotionSensor(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.MotionSensor())
 }

@@ -1,8 +1,8 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
 import li.cil.oc.common.InventorySlots.{InventorySlot, Tier}
+import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.{Container, ICrafting, IInventory, Slot}
 import net.minecraft.item.ItemStack
@@ -23,7 +23,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
 
   override def slotClick(slot: Int, mouseClick: Int, holdingShift: Int, player: EntityPlayer) = {
     val result = super.slotClick(slot, mouseClick, holdingShift, player)
-    if (player.getEntityWorld != null && !player.getEntityWorld.isRemote) {
+    if (SideTracker.isServer) {
       detectAndSendChanges() // We have to enforce this more than MC does itself
       // because stacks can change their... "character" just by being inserted in
       // certain containers - by being assigned an address.
@@ -36,7 +36,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     val slot = Option(inventorySlots.get(index)).map(_.asInstanceOf[Slot]).orNull
     if (slot != null && slot.getHasStack) {
       tryTransferStackInSlot(slot, slot.inventory == otherInventory)
-      if (player.getEntityWorld != null && !player.getEntityWorld.isRemote) {
+      if (SideTracker.isServer) {
         detectAndSendChanges()
       }
     }
