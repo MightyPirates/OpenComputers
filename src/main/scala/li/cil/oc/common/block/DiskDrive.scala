@@ -11,7 +11,7 @@ import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{IIcon}
+import net.minecraft.util.IIcon
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
@@ -61,7 +61,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.DiskDrive(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.DiskDrive())
 
   // ----------------------------------------------------------------------- //
 

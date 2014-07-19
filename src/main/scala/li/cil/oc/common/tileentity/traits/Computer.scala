@@ -22,7 +22,7 @@ import scala.collection.mutable
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
 trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Owner {
-  private lazy val _computer = if (isClient) null else Machine.create(this)
+  private lazy val _computer = if (isServer) Machine.create(this) else null
 
   def computer = _computer
 

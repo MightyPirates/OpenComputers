@@ -44,7 +44,7 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Cable(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Cable())
 
   // ----------------------------------------------------------------------- //
 

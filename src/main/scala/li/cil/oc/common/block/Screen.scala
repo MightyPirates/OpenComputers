@@ -14,15 +14,13 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{IIcon}
+import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
+class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware with SimpleDelegate {
   val baseName = "Screen"
   val unlocalizedName = baseName + tier
-
-  def tier: Int
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
@@ -299,7 +297,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Screen(world.isRemote, tier))
+  override def createTileEntity(world: World) = Some(new tileentity.Screen(tier))
 
   // ----------------------------------------------------------------------- //
 
@@ -364,20 +362,4 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
         }
       case _ => super.validRotations(world, x, y, z)
     }
-}
-
-object Screen {
-
-  class Tier1(parent: SimpleDelegator) extends Screen(parent) {
-    def tier = 0
-  }
-
-  class Tier2(parent: SimpleDelegator) extends Screen(parent) {
-    def tier = 1
-  }
-
-  class Tier3(parent: SimpleDelegator) extends Screen(parent) {
-    def tier = 2
-  }
-
 }

@@ -12,7 +12,7 @@ import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{IIcon}
+import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -82,7 +82,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = Some(new tileentity.Case(world.isRemote, tier))
+  override def createTileEntity(world: World) = Some(new tileentity.Case(tier))
 
   // ----------------------------------------------------------------------- //
 

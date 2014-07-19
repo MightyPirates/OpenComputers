@@ -12,7 +12,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.PackedColor
+import li.cil.oc.util.{PackedColor, SideTracker}
 import li.cil.oc.{Settings, api, util}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -57,8 +57,8 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     powerConsumptionPerTick * (mw * mh) / (w * h)
   }
 
-  lazy val proxy =
-    if (owner.world.isRemote) new TextBuffer.ClientProxy(this)
+  val proxy =
+    if (SideTracker.isClient) new TextBuffer.ClientProxy(this)
     else new TextBuffer.ServerProxy(this)
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
@@ -349,8 +349,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    // World will be null on the server and set on the client.
-    if (owner.world != null) {
+    if (SideTracker.isClient) {
       if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
       TextBuffer.registerClientBuffer(this)

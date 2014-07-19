@@ -1,12 +1,11 @@
 package li.cil.oc.server.network
 
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.{CompoundBlockEnvironment, Registry}
 import li.cil.oc.server.network.Callbacks.{ComponentCallback, PeripheralCallback}
+import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
@@ -52,7 +51,7 @@ trait Component extends network.Component with Node {
       throw new IllegalArgumentException("Trying to set computer visibility to '" + value + "' on a '" + name +
         "' node with reachability '" + reachability + "'. It will be limited to the node's reachability.")
     }
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+    if (SideTracker.isServer) {
       if (network != null) _visibility match {
         case Visibility.Neighbors => value match {
           case Visibility.Network => addTo(reachableNodes)

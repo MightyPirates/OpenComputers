@@ -12,8 +12,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(val isClient: Boolean, var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored {
-  def this() = this(false, 0)
+class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored {
+  def this() = this(0)
 
   color = Color.byTier(tier)
 

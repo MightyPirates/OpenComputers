@@ -2,8 +2,8 @@ package li.cil.oc.common.recipe
 
 import java.util.UUID
 
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.SideTracker
 import li.cil.oc.{Settings, api}
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
@@ -25,7 +25,7 @@ object ExtendedRecipe {
         })
     }
 
-    if (api.Items.get(craftedStack) == linkedCard && FMLCommonHandler.instance.getEffectiveSide.isServer) {
+    if (api.Items.get(craftedStack) == linkedCard && SideTracker.isServer) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver => {
         val nbt = driver.dataTag(craftedStack)
         nbt.setString(Settings.namespace + "tunnel", UUID.randomUUID().toString)
