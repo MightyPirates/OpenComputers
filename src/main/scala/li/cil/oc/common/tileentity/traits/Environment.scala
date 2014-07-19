@@ -19,7 +19,7 @@ trait Environment extends TileEntity with network.Environment with driver.Contai
 
   override def markChanged() = onInventoryChanged()
 
-  protected def isConnected = node != null && node.address != null && node.network != null
+  protected def isConnected = node.address != null && node.network != null
 
   // ----------------------------------------------------------------------- //
 

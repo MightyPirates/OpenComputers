@@ -68,5 +68,5 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.PowerConverter(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.PowerConverter)
 }

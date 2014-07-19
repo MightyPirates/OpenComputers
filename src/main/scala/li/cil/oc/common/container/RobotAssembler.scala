@@ -77,7 +77,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
-    if (assembler.isServer) {
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
       if (isAssembling != assembler.isAssembling) {
         isAssembling = assembler.isAssembling
         sendProgressBarUpdate(0, if (isAssembling) 1 else 0)

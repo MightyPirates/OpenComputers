@@ -8,9 +8,7 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-class DiskDrive(val isClient: Boolean) extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
-  def this() = this(false)
-
+class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   // ----------------------------------------------------------------------- //

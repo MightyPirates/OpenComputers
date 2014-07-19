@@ -5,9 +5,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.ForgeDirection
 
-class PowerConverter(val isClient: Boolean) extends traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable {
-  def this() = this(false)
-
+class PowerConverter extends traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector(Settings.get.bufferConverter).
     create()

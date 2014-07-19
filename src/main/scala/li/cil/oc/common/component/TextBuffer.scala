@@ -1,6 +1,7 @@
 package li.cil.oc.common.component
 
 import com.google.common.base.Strings
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.Container
@@ -57,8 +58,8 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     powerConsumptionPerTick * (mw * mh) / (w * h)
   }
 
-  lazy val proxy =
-    if (owner.world.isRemote) new TextBuffer.ClientProxy(this)
+  val proxy =
+    if (FMLCommonHandler.instance.getEffectiveSide.isClient) new TextBuffer.ClientProxy(this)
     else new TextBuffer.ServerProxy(this)
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
@@ -349,8 +350,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    // World will be null on the server and set on the client.
-    if (owner.world != null) {
+    if (FMLCommonHandler.instance.getEffectiveSide.isClient) {
       if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
       TextBuffer.registerClientBuffer(this)

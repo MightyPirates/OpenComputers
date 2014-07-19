@@ -44,6 +44,6 @@ class Geolyzer(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Geolyzer(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Geolyzer)
 }
 
