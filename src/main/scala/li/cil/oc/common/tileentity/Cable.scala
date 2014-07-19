@@ -3,9 +3,7 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.{api, common}
 
-class Cable(val isClient: Boolean) extends traits.Environment with traits.NotAnalyzable {
-  def this() = this(false)
-
+class Cable extends traits.Environment with traits.NotAnalyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   override def canUpdate = false

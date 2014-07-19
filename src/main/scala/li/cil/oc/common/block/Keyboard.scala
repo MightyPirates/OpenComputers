@@ -34,7 +34,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Keyboard())
 
   override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.isBlockSolidOnSide(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&

@@ -50,7 +50,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.DiskDrive(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.DiskDrive())
 
   // ----------------------------------------------------------------------- //
 

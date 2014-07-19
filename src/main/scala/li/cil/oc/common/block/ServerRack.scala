@@ -40,7 +40,7 @@ class ServerRack(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.ServerRack(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.ServerRack())
 
   // ----------------------------------------------------------------------- //
 

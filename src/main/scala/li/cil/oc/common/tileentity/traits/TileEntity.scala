@@ -5,6 +5,7 @@ import java.util.logging.Level
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.Sound
+import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet132TileEntityData
@@ -20,9 +21,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def block = getBlockType
 
-  def isClient: Boolean
+  def isClient = SideTracker.isClient
 
-  def isServer = !isClient
+  def isServer = SideTracker.isServer
 
   // ----------------------------------------------------------------------- //
 

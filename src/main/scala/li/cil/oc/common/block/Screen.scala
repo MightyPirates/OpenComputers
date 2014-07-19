@@ -294,7 +294,7 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Screen(world.isRemote, tier))
+  override def createTileEntity(world: World) = Some(new tileentity.Screen(tier))
 
   // ----------------------------------------------------------------------- //
 

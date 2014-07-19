@@ -13,7 +13,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.{LuaStateFactory, mods}
+import li.cil.oc.util.{LuaStateFactory, SideTracker, mods}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.inventory.IInventory
@@ -30,21 +30,21 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
   val pending = mutable.Buffer.empty[() => Unit]
 
   def schedule(tileEntity: TileEntity) {
-    if (tileEntity.hasWorldObj && !tileEntity.getWorldObj.isRemote) pending.synchronized {
+    if (SideTracker.isServer) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity))
     }
   }
 
   @Optional.Method(modid = "ForgeMultipart")
   def schedule(tileEntity: () => TileEntity) {
-    pending.synchronized {
+    if (SideTracker.isServer) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity()))
     }
   }
 
   @Optional.Method(modid = "IC2")
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2) {
-    if (tileEntity.hasWorldObj && !tileEntity.getWorldObj.isRemote) pending.synchronized {
+    if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
         MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
         tileEntity.addedToPowerGrid = true
@@ -54,7 +54,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
 
   @Optional.Method(modid = "IC2")
   def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) {
-    if (tileEntity.hasWorldObj && !tileEntity.getWorldObj.isRemote) pending.synchronized {
+    if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (tileEntity.addedToPowerGrid) {
         MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
         tileEntity.addedToPowerGrid = false
@@ -63,7 +63,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
   }
 
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
-    if (rs.owner.isServer) pending.synchronized {
+    if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!rs.owner.isInvalid) {
         mods.WirelessRedstone.addReceiver(rs)
         mods.WirelessRedstone.updateOutput(rs)
