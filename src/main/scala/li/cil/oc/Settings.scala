@@ -249,15 +249,17 @@ object Settings {
 
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.
-  val valueBC = 56280.0
-  val valueIC2 = 22512.0
-  val valueTE = 5628.0
+  val valueBC = 500.0
+  val valueIC2 = 200.0
+  val valueMek = 2000.0 / 3.0
+  val valueTE = 50.0
   val valueUE = 1.0
 
   val valueOC = valueBC
 
   val ratioBC = valueBC / valueOC
   val ratioIC2 = valueIC2 / valueOC
+  val ratioMek = valueMek / valueOC
   val ratioTE = valueTE / valueOC
   val ratioUE = valueUE / valueOC
 
