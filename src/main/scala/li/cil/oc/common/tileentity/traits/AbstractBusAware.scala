@@ -26,7 +26,7 @@ trait AbstractBusAware extends TileEntity with network.Environment {
 
   def installedComponents: Iterable[ManagedEnvironment]
 
-  @Optional.Method(modid = "StargateTech2")
+  @Optional.Method(modid = Mods.IDs.StargateTech2)
   def getInterfaces(side: Int): Array[IBusInterface] =
     if (isAbstractBusAvailable) {
       if (isServer) {

@@ -6,7 +6,7 @@ import cpw.mods.fml.common.Optional
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.util.mods.{BuildCraft, Mods}
 import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
@@ -24,7 +24,7 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
     Some("ChargerSide")
   )
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     accessor.getTileEntity match {
       case charger: tileentity.Charger =>

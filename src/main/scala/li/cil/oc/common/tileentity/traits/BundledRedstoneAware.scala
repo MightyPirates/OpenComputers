@@ -12,9 +12,9 @@ import net.minecraftforge.common.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 
 @Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = "RedLogic"),
-  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = "RedLogic"),
-  new Optional.Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = "ProjRed|Transmission")
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = Mods.IDs.RedLogic),
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = Mods.IDs.RedLogic),
+  new Optional.Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = Mods.IDs.ProjectRedTransmission)
 ))
 trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBundledUpdatable with IBundledTile {
 
@@ -144,7 +144,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
         case _ => null
       }
     } else null
-    val projectRed = if (Mods.ProjectRed.isAvailable && ProjectRed.isAPIAvailable) {
+    val projectRed = if (Mods.ProjectRedTransmission.isAvailable && ProjectRed.isAPIAvailable) {
       Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
     } else null
     (redLogic, projectRed) match {
@@ -172,17 +172,17 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(ForgeDirection.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   def onBundledInputChanged() = checkRedstoneInputChanged()
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "ProjRed|Transmission")
+  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
   def canConnectBundled(side: Int) = isOutputEnabled
 
-  @Optional.Method(modid = "ProjRed|Transmission")
+  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
   def getBundledSignal(side: Int) = bundledOutput(ForgeDirection.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }

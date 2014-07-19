@@ -10,7 +10,7 @@ import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor, IWailaData
 import net.minecraft.item.ItemStack
 
 object Waila {
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   def init(registrar: IWailaRegistrar) {
     registrar.registerBodyProvider(BlockDataProvider, classOf[Delegator[_]])
     registrar.registerSyncedNBTKey(Settings.namespace + "node", classOf[tileentity.Capacitor])

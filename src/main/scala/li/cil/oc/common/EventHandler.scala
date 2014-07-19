@@ -35,14 +35,14 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
     }
   }
 
-  @Optional.Method(modid = "ForgeMultipart")
+  @Optional.Method(modid = Mods.IDs.ForgeMultipart)
   def schedule(tileEntity: () => TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity()))
     }
   }
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
@@ -52,7 +52,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
     }
   }
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (tileEntity.addedToPowerGrid) {
@@ -95,7 +95,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
         if (!LuaStateFactory.isAvailable) {
           p.sendChatToPlayer(Localization.Chat.WarningLuaFallback)
         }
-        if (Mods.ProjectRed.isAvailable && !mods.ProjectRed.isAPIAvailable) {
+        if (Mods.ProjectRedTransmission.isAvailable && !mods.ProjectRed.isAPIAvailable) {
           p.sendChatToPlayer(Localization.Chat.WarningProjectRed)
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {

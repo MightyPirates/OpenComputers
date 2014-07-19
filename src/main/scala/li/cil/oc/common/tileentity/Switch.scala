@@ -28,7 +28,7 @@ import scala.collection.mutable
 // Aside from that, at least for now CC 1.6 is shipping both the new and the
 // old API, so there should be no ClassNotFoundExceptions anyway.
 
-@Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
+@Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = Mods.IDs.ComputerCraft)
 class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
   var lastMessage = 0L
 
@@ -40,13 +40,13 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def getType = "oc_adapter"
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def canAttachToSide(side: Int) = true
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def attach(computer: IComputerAccess) {
     computers += computer -> new ComputerWrapper {
       override def id = computer.getID
@@ -58,20 +58,20 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
     openPorts += computer -> mutable.Set.empty
   }
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def detach(computer: IComputerAccess) {
     computers -= computer
     openPorts -= computer
   }
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def getMethodNames = Array("open", "isOpen", "close", "closeAll", "maxPacketSize", "transmit", "isWireless")
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) =
     callMethod(computer, computer.getID, computer.getAttachmentName, method, arguments)
 
-  @Optional.Method(modid = "ComputerCraft")
+  @Optional.Method(modid = Mods.IDs.ComputerCraft)
   def callMethod(computer: AnyRef, computerId: Int, attachmentName: String, method: Int, arguments: Array[AnyRef]): Array[AnyRef] = getMethodNames()(method) match {
     case "open" =>
       val port = checkPort(arguments, 0)

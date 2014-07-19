@@ -8,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Inventory
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.Mods
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
@@ -115,7 +116,7 @@ trait Delegate {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
   }
 

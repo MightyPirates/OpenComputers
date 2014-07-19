@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
 import li.cil.oc.api.network._
+import li.cil.oc.util.mods.Mods
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -152,22 +153,22 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def checkRedstoneInputChanged() = robot.checkRedstoneInputChanged()
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = robot.connects(wire, blockFace, fromDirection)
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = robot.connectsAroundCorner(wire, blockFace, fromDirection)
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def getBundledCableStrength(blockFace: Int, toDirection: Int) = robot.getBundledCableStrength(blockFace, toDirection)
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def getEmittedSignalStrength(blockFace: Int, toDirection: Int) = robot.getEmittedSignalStrength(blockFace, toDirection)
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def onBundledInputChanged() = robot.onBundledInputChanged()
 
-  @Optional.Method(modid = "RedLogic")
+  @Optional.Method(modid = Mods.IDs.RedLogic)
   override def onRedstoneInputChanged() = robot.onRedstoneInputChanged()
 
   // ----------------------------------------------------------------------- //

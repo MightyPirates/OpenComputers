@@ -4,8 +4,30 @@ import cpw.mods.fml.common.versioning.VersionParser
 import cpw.mods.fml.common.{Loader, ModAPIManager}
 
 object Mods {
-  val BattleGear2 = new SimpleMod("battlegear2")
-  val BuildCraftPower = new SimpleMod("BuildCraftAPI|power")
+
+  object IDs {
+    final val BattleGear2 = "battlegear2"
+    final val BuildCraftPower = "BuildCraftAPI|power"
+    final val ComputerCraft = "ComputerCraft"
+    final val ForgeMultipart = "ForgeMultipart"
+    final val GregTech = "gregtech_addon"
+    final val IndustrialCraft2 = "IC2"
+    final val MineFactoryReloaded = "MineFactoryReloaded"
+    final val NotEnoughItems = "NotEnoughItems"
+    final val PortalGun = "PortalGun"
+    final val ProjectRedTransmission = "ProjRed|Transmission"
+    final val RedLogic = "RedLogic"
+    final val StargateTech2 = "StargateTech2"
+    final val ThermalExpansion = "ThermalExpansion"
+    final val TinkersConstruct = "TConstruct"
+    final val UniversalElectricity = "UniversalElectricity"
+    final val Waila = "Waila"
+    final val WirelessRedstoneCBE = "WR-CBE|Core"
+    final val WirelessRedstoneSV = "WirelessRedstoneCore"
+  }
+
+  val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower)
   val ComputerCraft15 = new Mod {
     val isAvailable = try Class.forName("dan200.computer.api.ComputerCraftAPI") != null catch {
       case _: Throwable => false
@@ -19,26 +41,26 @@ object Mods {
   val ComputerCraft = new Mod {
     override def isAvailable = ComputerCraft15.isAvailable || ComputerCraft16.isAvailable
   }
-  val ForgeMultipart = new SimpleMod("ForgeMultipart")
-  val GregTech = new SimpleMod("gregtech_addon")
-  val IndustrialCraft2 = new SimpleMod("IC2")
-  val MineFactoryReloaded = new SimpleMod("MineFactoryReloaded")
-  val NotEnoughItems = new SimpleMod("NotEnoughItems")
-  val PortalGun = new SimpleMod("PortalGun")
-  val ProjectRed = new SimpleMod("ProjRed|Transmission")
-  val RedLogic = new SimpleMod("RedLogic")
+  val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
+  val GregTech = new SimpleMod(IDs.GregTech)
+  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
+  val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
+  val NotEnoughItems = new SimpleMod(IDs.NotEnoughItems)
+  val PortalGun = new SimpleMod(IDs.PortalGun)
+  val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
+  val RedLogic = new SimpleMod(IDs.RedLogic)
   val StargateTech2 = new Mod {
-    val isAvailable = Loader.isModLoaded("StargateTech2") && {
-      val mod = Loader.instance.getIndexedModList.get("StargateTech2")
+    val isAvailable = Loader.isModLoaded(IDs.StargateTech2) && {
+      val mod = Loader.instance.getIndexedModList.get(IDs.StargateTech2)
       mod.getVersion.startsWith("0.7.")
     }
   }
-  val ThermalExpansion = new SimpleMod("ThermalExpansion")
-  val TinkersConstruct = new SimpleMod("TConstruct")
-  val UniversalElectricity = new SimpleMod("UniversalElectricity@[3.1,)")
-  val Waila = new SimpleMod("Waila")
-  val WirelessRedstoneCBE = new SimpleMod("WR-CBE|Core")
-  val WirelessRedstoneSV = new SimpleMod("WirelessRedstoneCore")
+  val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion)
+  val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
+  val UniversalElectricity = new SimpleMod(IDs.UniversalElectricity + "@[3.1,)")
+  val Waila = new SimpleMod(IDs.Waila)
+  val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
+  val WirelessRedstoneSV = new SimpleMod(IDs.WirelessRedstoneSV)
 
   trait Mod {
     def isAvailable: Boolean

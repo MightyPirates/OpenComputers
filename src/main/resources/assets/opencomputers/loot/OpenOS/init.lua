@@ -13,9 +13,9 @@ do
   function rom.open(file) return rom.invoke("open", file) end
   function rom.read(handle) return rom.invoke("read", handle, math.huge) end
   function rom.close(handle) return rom.invoke("close", handle) end
-  function rom.inits(file) return ipairs(rom.invoke("list", "boot")) end
+  function rom.inits() return ipairs(rom.invoke("list", "boot")) end
   function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
-  
+
   local screen = component.list('screen')()
   for address in component.list('screen') do
     if #component.invoke(address, 'getKeyboards') > 0 then

@@ -31,7 +31,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
     }
   }
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val items = accessor.getNBTData.getTagList(Settings.namespace + "items")
     if (items.tagCount > 0) {

@@ -5,7 +5,7 @@ import java.util
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.util.mods.{BuildCraft, Mods}
 import li.cil.oc.util.{Color, PackedColor, Tooltip}
 import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
@@ -30,7 +30,7 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
     tooltip.addAll(Tooltip.get(super.unlocalizedName, w, h, depth))
   }
 
-  @Optional.Method(modid = "Waila")
+  @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag("node")
     if (node.hasKey("address")) {

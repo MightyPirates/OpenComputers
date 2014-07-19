@@ -7,7 +7,7 @@ import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 
-@Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
+@Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
 trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
@@ -34,10 +34,10 @@ trait IndustrialCraft2 extends Common with IEnergySink {
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
     lastInjectedAmount = amount
     var energy = amount * Settings.ratioIC2
@@ -51,10 +51,10 @@ trait IndustrialCraft2 extends Common with IEnergySink {
     else amount - tryChangeBuffer(directionFrom, energy) / Settings.ratioIC2
   }
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def getMaxSafeInput = Integer.MAX_VALUE
 
-  @Optional.Method(modid = "IC2")
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def demandedEnergyUnits = {
     if (Settings.get.ignorePower || isClient) 0
     else {
