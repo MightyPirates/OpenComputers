@@ -40,15 +40,15 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   override def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
     lastInjectedAmount = amount
-    var energy = amount * Settings.ratioIC2
+    var energy = amount * Settings.ratioIndustrialCraft2
     // Work around IC2 being uncooperative and always just passing 'unknown' along here.
     if (directionFrom == ForgeDirection.UNKNOWN) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if energy > 0) {
         energy -= tryChangeBuffer(side, energy)
       }
-      energy / Settings.ratioIC2
+      energy / Settings.ratioIndustrialCraft2
     }
-    else amount - tryChangeBuffer(directionFrom, energy) / Settings.ratioIC2
+    else amount - tryChangeBuffer(directionFrom, energy) / Settings.ratioIndustrialCraft2
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
@@ -65,7 +65,7 @@ trait IndustrialCraft2 extends Common with IEnergySink {
         val space = size - value
         force = force || (space > size / 2)
         space
-      }).max / Settings.ratioIC2
+      }).max / Settings.ratioIndustrialCraft2
       if (force || lastInjectedAmount <= 0 || demand >= lastInjectedAmount) demand
       else 0
     }

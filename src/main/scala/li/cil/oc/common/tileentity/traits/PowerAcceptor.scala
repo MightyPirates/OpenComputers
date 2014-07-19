@@ -6,4 +6,4 @@ trait PowerAcceptor
   with power.IndustrialCraft2
   with power.Mekanism
   with power.ThermalExpansion
-  with power.UniversalElectricity
+//  with power.UniversalElectricity

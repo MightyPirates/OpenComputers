@@ -12,13 +12,13 @@ trait Mekanism extends Common with IStrictEnergyAcceptor {
   override def canReceiveEnergy(side: ForgeDirection) = canConnectPower(side)
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) = tryChangeBuffer(side, amount * Settings.ratioMek) / Settings.ratioMek
+  override def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) = tryChangeBuffer(side, amount * Settings.ratioMekanism) / Settings.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.ratioMek
+  override def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def getEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBuffer).max / Settings.ratioMek
+  override def getEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBuffer).max / Settings.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
   override def setEnergy(energy: Double) {}

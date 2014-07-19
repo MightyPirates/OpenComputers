@@ -7,7 +7,7 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin.{MCVersion, TransformerExclusio
 import li.cil.oc.common.asm.ClassTransformer
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
-@MCVersion("1.6.4")
+@MCVersion("1.7.10")
 class TransformerLoader extends IFMLLoadingPlugin {
   override def getAccessTransformerClass = null
 

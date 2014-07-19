@@ -115,6 +115,7 @@ class Settings(config: Config) {
   val ignorePower = pureIgnorePower ||
     (!Mods.BuildCraftPower.isAvailable &&
       !Mods.IndustrialCraft2.isAvailable &&
+      !Mods.Mekanism.isAvailable &&
       !Mods.ThermalExpansion.isAvailable &&
       !Mods.UniversalElectricity.isAvailable)
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
@@ -240,19 +241,19 @@ object Settings {
 
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.
-  val valueBC = 500.0
-  val valueIC2 = 200.0
-  val valueMek = 2000.0 / 3.0
-  val valueTE = 50.0
-  val valueUE = 1.0
+  val valueBuildCraft = 500.0
+  val valueIndustrialCraft2 = 200.0
+  val valueMekanism = 2000.0 / 3.0
+  val valueThermalExpansion = 50.0
+  val valueUniversalElectricity = 1.0
 
-  val valueOC = valueBC
+  val valueInternal = valueBuildCraft
 
-  val ratioBC = valueBC / valueOC
-  val ratioIC2 = valueIC2 / valueOC
-  val ratioMek = valueMek / valueOC
-  val ratioTE = valueTE / valueOC
-  val ratioUE = valueUE / valueOC
+  val ratioBuildCraft = valueBuildCraft / valueInternal
+  val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
+  val ratioMekanism = valueMekanism / valueInternal
+  val ratioThermalExpansion = valueThermalExpansion / valueInternal
+  val ratioUniversalElectricity = valueUniversalElectricity / valueInternal
 
   def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 
