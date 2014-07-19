@@ -74,7 +74,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   @SideOnly(Side.CLIENT)
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":GenericTop")
   }
 
   override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
