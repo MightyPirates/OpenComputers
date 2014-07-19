@@ -41,16 +41,19 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
       tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, addExtension(a), addExtension(b)))
     }
     if (Mods.BuildCraftPower.isAvailable) {
-      addRatio("BC", Settings.ratioBC)
+      addRatio("BuildCraft", Settings.ratioBuildCraft)
     }
     if (Mods.IndustrialCraft2.isAvailable) {
-      addRatio("IC2", Settings.ratioIC2)
+      addRatio("IndustrialCraft2", Settings.ratioIndustrialCraft2)
+    }
+    if (Mods.Mekanism.isAvailable) {
+      addRatio("Mekanism", Settings.ratioMekanism)
     }
     if (Mods.ThermalExpansion.isAvailable) {
-      addRatio("TE", Settings.ratioTE)
+      addRatio("ThermalExpansion", Settings.ratioThermalExpansion)
     }
     if (Mods.UniversalElectricity.isAvailable) {
-      addRatio("UE", Settings.ratioUE)
+      addRatio("UniversalElectricity", Settings.ratioUniversalElectricity)
     }
   }
 

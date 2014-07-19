@@ -45,6 +45,7 @@ object Mods {
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val GregTech = new SimpleMod(IDs.GregTech)
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
+  val Mekanism = new SimpleMod(IDs.Mekanism)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
   val NotEnoughItems = new SimpleMod(IDs.NotEnoughItems)
   val PortalGun = new SimpleMod(IDs.PortalGun)

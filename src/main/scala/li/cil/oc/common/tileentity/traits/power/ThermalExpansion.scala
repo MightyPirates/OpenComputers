@@ -13,13 +13,13 @@ trait ThermalExpansion extends Common with IEnergyHandler {
 
   @Optional.Method(modid = Mods.IDs.ThermalExpansion)
   def receiveEnergy(from: ForgeDirection, maxReceive: Int, simulate: Boolean) =
-    (tryChangeBuffer(from, maxReceive * Settings.ratioTE, !simulate) / Settings.ratioTE).toInt
+    (tryChangeBuffer(from, maxReceive * Settings.ratioThermalExpansion, !simulate) / Settings.ratioThermalExpansion).toInt
 
   @Optional.Method(modid = Mods.IDs.ThermalExpansion)
-  def getEnergyStored(from: ForgeDirection) = (globalBuffer(from) / Settings.ratioTE).toInt
+  def getEnergyStored(from: ForgeDirection) = (globalBuffer(from) / Settings.ratioThermalExpansion).toInt
 
   @Optional.Method(modid = Mods.IDs.ThermalExpansion)
-  def getMaxEnergyStored(from: ForgeDirection) = (globalBufferSize(from) / Settings.ratioTE).toInt
+  def getMaxEnergyStored(from: ForgeDirection) = (globalBufferSize(from) / Settings.ratioThermalExpansion).toInt
 
   @Optional.Method(modid = Mods.IDs.ThermalExpansion)
   def extractEnergy(from: ForgeDirection, maxExtract: Int, simulate: Boolean) = 0
