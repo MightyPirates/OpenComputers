@@ -1,11 +1,11 @@
 package li.cil.oc.common
 
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
-import cpw.mods.fml.common.{FMLCommonHandler, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import li.cil.oc._
 import li.cil.oc.api.Network
@@ -85,7 +85,7 @@ object EventHandler {
 
   @SubscribeEvent
   def playerLoggedIn(e: PlayerLoggedInEvent) {
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) e.player match {
+    if (SideTracker.isServer) e.player match {
       case player: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)
