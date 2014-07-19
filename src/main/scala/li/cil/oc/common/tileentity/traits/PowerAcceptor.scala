@@ -4,6 +4,5 @@ trait PowerAcceptor
   extends power.Common
   with power.BuildCraft
   with power.IndustrialCraft2
-
-//  with power.ThermalExpansion
+  with power.ThermalExpansion
 //  with power.UniversalElectricity
