@@ -104,7 +104,7 @@ local function execute(env, command, ...)
   if not program then
     return false, reason
   end
-  for i = 1, #args do
+  for i = 1, args.n do
     for _, arg in ipairs(evaluate(args[i])) do
       table.insert(eargs, arg)
     end
@@ -113,6 +113,7 @@ local function execute(env, command, ...)
   for _, arg in ipairs(table.pack(...)) do
     table.insert(args, arg)
   end
+
   table.insert(args, 1, true)
   args.n = #args
   local thread, reason = process.load(program, env, nil, command)
@@ -122,11 +123,14 @@ local function execute(env, command, ...)
   os.setenv("_", program)
   local result = nil
   -- Emulate CC behavior by making yields a filtered event.pull()
-  while args[1] and coroutine.status(thread) ~= "dead" do
-    result = table.pack(coroutine.resume(thread, table.unpack(args, 2, args.n)))
+  while args[1] and coroutine.status ( thread ) ~= "dead" do
+    local c = (command ..' '.. table.concat ( table.pack (...), ' ' )):match('[^ ]* ?(.*)')
+    if c:len () == 0 then c = nil end
+
+    result = table.pack(coroutine.resume(thread, c ))
     if coroutine.status(thread) ~= "dead" then
       if type(result[2]) == "string" then
-        args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
+        args = table.pack(pcall(event.pull, c ))
       else
         args = {true, n=1}
       end
