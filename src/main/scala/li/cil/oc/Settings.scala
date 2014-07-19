@@ -242,6 +242,7 @@ object Settings {
   // Electricity to provide global power support.
   val valueBC = 500.0
   val valueIC2 = 200.0
+  val valueMek = 2000.0 / 3.0
   val valueTE = 50.0
   val valueUE = 1.0
 
@@ -249,6 +250,7 @@ object Settings {
 
   val ratioBC = valueBC / valueOC
   val ratioIC2 = valueIC2 / valueOC
+  val ratioMek = valueMek / valueOC
   val ratioTE = valueTE / valueOC
   val ratioUE = valueUE / valueOC
 

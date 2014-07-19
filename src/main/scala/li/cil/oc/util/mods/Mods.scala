@@ -12,6 +12,7 @@ object Mods {
     final val ForgeMultipart = "ForgeMultipart"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2API"
+    final val Mekanism = "Mekanism"
     final val MineFactoryReloaded = "MineFactoryReloaded"
     final val NotEnoughItems = "NotEnoughItems"
     final val PortalGun = "PortalGun"
