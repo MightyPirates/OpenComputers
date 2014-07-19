@@ -1,7 +1,6 @@
 package li.cil.oc.common.asm
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.Mods
 import net.minecraft.launchwrapper.{IClassTransformer, LaunchClassLoader}
@@ -12,7 +11,6 @@ import org.objectweb.asm.{ClassReader, ClassWriter, Opcodes}
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-@TransformerExclusions(Array("li.cil.oc.common.asm"))
 class ClassTransformer extends IClassTransformer {
   val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
 
