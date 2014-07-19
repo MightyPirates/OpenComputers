@@ -78,9 +78,9 @@ end
 
 local function downloadFile(url,path,force)
   if options.f or force then
-    wget("-fq",url,path)
+    return wget("-fq",url,path)
   else
-    wget("-q",url,path)
+    return wget("-q",url,path)
   end
 end
 
@@ -349,7 +349,7 @@ local function installPackage(pack,path,update)
   end
   if update then
     term.write("Removing old files...")
-    for i,j in pairs(tPacks[pack]) do
+    for _,j in pairs(tPacks[pack]) do
       fs.remove(j)
     end
     term.write("Done.\n")
@@ -371,9 +371,18 @@ local function installPackage(pack,path,update)
       end
       nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
     end
-    local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
-    if success then
+    local success,response = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
+    if success and response then
       tPacks[pack][i] = nPath
+    else
+      term.write("Error while installing files for package '"..pack.."'. Reverting installation... ")
+      fs.remove(nPath)
+      for o,p in pairs(tPacks[pack]) do
+        fs.remove(p)
+        tPacks[pack][o]=nil
+      end
+      print("Done.\nPlease contact the package author about this problem.")
+      return
     end
   end
   if info.dependencies then
@@ -386,9 +395,18 @@ local function installPackage(pack,path,update)
         nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
       end
       if string.lower(string.sub(i,1,4))=="http" then
-        local success = pcall(downloadFile,i,nPath)
-        if success then
+        local success,response = pcall(downloadFile,i,nPath)
+        if success and response then
           tPacks[pack][i] = nPath
+        else
+          term.write("Error while installing dependency package '"..i.."'. Reverting installation... ")
+          fs.remove(nPath)
+          for o,p in pairs(tPacks[pack]) do
+            fs.remove(p)
+            tPacks[pack][o]=nil
+          end
+          print("Done.\nPlease contact the package author about this problem.")
+          return
         end
       else
         local depInfo = getInformation(string.lower(i))
