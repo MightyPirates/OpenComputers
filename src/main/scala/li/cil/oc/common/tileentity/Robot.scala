@@ -470,7 +470,6 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     super.connectItemNode(node)
     if (node != null) node.host match {
       case buffer: api.component.TextBuffer =>
-        buffer.setMaximumResolution(48, 14)
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
             case keyboard: api.component.Keyboard => buffer.node.connect(keyboard.node)
