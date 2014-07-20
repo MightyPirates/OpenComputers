@@ -50,6 +50,7 @@ trait TextBuffer extends GuiScreen {
   }
 
   protected def drawBufferLayer() {
+    if (buffer == null) return
     val oldWidth = currentWidth
     val oldHeight = currentHeight
     if (buffer != null) {

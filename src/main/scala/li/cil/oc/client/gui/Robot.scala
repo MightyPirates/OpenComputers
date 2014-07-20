@@ -2,6 +2,7 @@ package li.cil.oc.client.gui
 
 import java.util
 
+import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
@@ -26,13 +27,13 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor).contains(driver.item.Keyboard)
 
-  private val withScreenHeight = 242
+  private val withScreenHeight = 256
   private val noScreenHeight = 108
 
   private val deltaY = if (buffer != null) 0 else withScreenHeight - noScreenHeight
 
   xSize = 256
-  ySize = 242 - deltaY
+  ySize = 256 - deltaY
 
   protected var powerButton: ImageButton = _
 
@@ -48,25 +49,23 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   private val slotSize = 18
 
-  override protected val bufferX = 8
-  override protected val bufferY = 8
-  private val bufferWidth = 242.0
-  private val bufferHeight = 128.0
-  private val bufferMargin = BufferRenderer.innerMargin
+  private val maxBufferWidth = 240.0
+  private val maxBufferHeight = 140.0
+
+  private def bufferWidth = math.min(maxBufferWidth, TextBufferRenderCache.renderer.charRenderWidth * 48.0)
+  private def bufferHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * 14.0)
+  override protected def bufferX = (8 + (maxBufferWidth - bufferWidth) / 2).toInt
+  override protected def bufferY = (8 + (maxBufferHeight - bufferHeight) / 2).toInt
 
   private val inventoryX = 169
-  private val inventoryY = 141 - deltaY
+  private val inventoryY = 155 - deltaY
 
   private val scrollX = inventoryX + slotSize * 4 + 2
   private val scrollY = inventoryY
   private val scrollWidth = 8
   private val scrollHeight = 94
 
-  private val powerX = 26
-  private val powerY = 142 - deltaY
-
-  private val powerWidth = 140
-  private val powerHeight = 12
+  private val power = addWidget(new ProgressBar(26, 156 - deltaY))
 
   private val selectionSize = 20
   private val selectionsStates = 17
@@ -92,7 +91,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 139 - deltaY, 18, 18, Textures.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 153 - deltaY, 18, 18, Textures.guiButtonPower, canToggle = true)
     scrollButton = new ImageButton(1, guiLeft + scrollX + 1, guiTop + scrollY + 1, 6, 13, Textures.guiButtonScroll)
     add(buttonList, powerButton)
     add(buttonList, scrollButton)
@@ -102,9 +101,13 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     if (buffer != null) {
       GL11.glTranslatef(bufferX, bufferY, 0)
       RenderState.disableLighting()
+      GL11.glPushMatrix()
+      GL11.glTranslatef(-2, -2, 0)
+      BufferRenderer.drawBackground()
+      GL11.glPopMatrix()
       RenderState.makeItBlend()
-      val scaleX = (bufferWidth - 2) / buffer.renderWidth
-      val scaleY = (bufferHeight - 2) / buffer.renderHeight
+      val scaleX = bufferWidth / buffer.renderWidth
+      val scaleY = bufferHeight / buffer.renderHeight
       val scale = math.min(scaleX, scaleY)
       if (scaleX > scale) {
         GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
@@ -112,7 +115,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       else if (scaleY > scale) {
         GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
       }
-      GL11.glScaled(scale, scale, scale)
+//      GL11.glScaled(scale, scale, scale)
       GL11.glScaled(this.scale, this.scale, 1)
       BufferRenderer.drawText(buffer)
     }
@@ -121,7 +124,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
-    if (func_146978_c(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
+    if (func_146978_c(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Robot.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(
@@ -143,7 +146,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     if (buffer != null) mc.renderEngine.bindTexture(Textures.guiRobot)
     else mc.renderEngine.bindTexture(Textures.guiRobotNoScreen)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
-    drawPowerLevel()
+    power.level = robot.globalBuffer / robot.globalBufferSize
+    drawWidgets()
     if (robot.inventorySize > 0) {
       drawSelection()
     }
@@ -260,8 +264,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
     val bw = w * TextBufferRenderCache.renderer.charRenderWidth
     val bh = h * TextBufferRenderCache.renderer.charRenderHeight
-    val scaleX = math.min(bufferWidth / (bw + bufferMargin * 2.0), 1)
-    val scaleY = math.min(bufferHeight / (bh + bufferMargin * 2.0), 1)
+    val scaleX = math.min(bufferWidth / bw, 1)
+    val scaleY = math.min(bufferHeight / bh, 1)
+    if (recompile) {
+      BufferRenderer.compileBackground(bufferWidth.toInt, bufferHeight.toInt, forRobot = true)
+    }
     math.min(scaleX, scaleY)
   }
 
@@ -283,25 +290,5 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       t.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
       t.draw()
     }
-  }
-
-  private def drawPowerLevel() {
-    val level = robot.globalBuffer / robot.globalBufferSize
-
-    val u0 = 0
-    val u1 = powerWidth / 256.0 * level
-    val v0 = 1 - powerHeight / 256.0
-    val v1 = 1
-    val x = guiLeft + powerX
-    val y = guiTop + powerY
-    val w = powerWidth * level
-
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(x, y, zLevel, u0, v0)
-    t.addVertexWithUV(x, y + powerHeight, zLevel, u0, v1)
-    t.addVertexWithUV(x + w, y + powerHeight, zLevel, u1, v1)
-    t.addVertexWithUV(x + w, y, zLevel, u1, v0)
-    t.draw()
   }
 }

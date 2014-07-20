@@ -26,7 +26,7 @@ object BufferRenderer {
     Textures.init(tm)
   })
 
-  def compileBackground(bufferWidth: Int, bufferHeight: Int) =
+  def compileBackground(bufferWidth: Int, bufferHeight: Int, forRobot: Boolean = false) =
     if (textureManager.isDefined) {
       RenderState.checkError(getClass.getName + ".compileBackground: entering (aka: wasntme)")
 
@@ -39,10 +39,8 @@ object BufferRenderer {
 
       GL11.glBegin(GL11.GL_QUADS)
 
-      val c0 = 0
-      val c1 = 7
-      val c2 = 9
-      val c3 = 16
+      val margin = if (forRobot) 1 else 7
+      val (c0, c1, c2, c3) = if (forRobot) (5, 7, 9, 11) else (0, 7, 9, 16)
 
       // Top border (left corner, middle bar, right corner).
       drawBorder(
