@@ -42,5 +42,17 @@ for path, proxy in pairs(mounts) do
 end
 
 
-result = text.tabulate ( result )
-io.write ( result, "\n" )
+local m = {}
+for _, entry in ipairs ( result ) do
+  for i, e in ipairs (entry) do
+    if m[i] == nil then m[i] = 1 end
+    m[i] = math.max (m[i],tostring(e):len())
+  end
+end
+
+for _, entry in ipairs(result) do
+  for i,e in ipairs (entry) do
+    io.write ( e .. string.rep (' ', (m[i] + 2) - tostring(e):len()) )
+  end
+  io.write ( '\n' )
+end
