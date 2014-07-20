@@ -81,17 +81,20 @@ function term.setCursorBlink(enabled)
 end
 
 function term.isWide(x, y)
-  local charLeft, char = component.gpu.get(x - 1, y), component.gpu.get(x, y)
+  local char = component.gpu.get(x, y)
   if unicode.isWide(char) then
     -- The char at the specified position is a wide char.
     return true
-  elseif char == " " and charLeft and unicode.isWide(charLeft) then
-    -- The char left to the specified position is a wide char.
-    return true, true
-  else
-    -- Not a wide char.
-    return false
   end
+  if char == " " and x > 1 then
+    local charLeft = component.gpu.get(x - 1, y)
+    if charLeft and unicode.isWide(charLeft) then
+      -- The char left to the specified position is a wide char.
+      return true, true
+    end
+  end
+  -- Not a wide char.
+  return false
 end
 
 function term.isAvailable()

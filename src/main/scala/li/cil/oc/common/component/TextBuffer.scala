@@ -273,25 +273,31 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def getForegroundColor(column: Int, row: Int) =
     if (isForegroundFromPalette(column, row)) {
-      PackedColor.extractForeground(data.color(row)(column))
+      PackedColor.extractForeground(color(column, row))
     }
     else {
-      PackedColor.unpackForeground(data.color(row)(column), data.format)
+      PackedColor.unpackForeground(color(column, row), data.format)
     }
 
   override def isForegroundFromPalette(column: Int, row: Int) =
-    data.format.isFromPalette(PackedColor.extractForeground(data.color(row)(column)))
+    data.format.isFromPalette(PackedColor.extractForeground(color(column, row)))
 
   override def getBackgroundColor(column: Int, row: Int) =
     if (isBackgroundFromPalette(column, row)) {
-      PackedColor.extractBackground(data.color(row)(column))
+      PackedColor.extractBackground(color(column, row))
     }
     else {
-      PackedColor.unpackBackground(data.color(row)(column), data.format)
+      PackedColor.unpackBackground(color(column, row), data.format)
     }
 
   override def isBackgroundFromPalette(column: Int, row: Int) =
-    data.format.isFromPalette(PackedColor.extractBackground(data.color(row)(column)))
+    data.format.isFromPalette(PackedColor.extractBackground(color(column, row)))
+
+  private def color(column: Int, row: Int) = {
+    if (column < 0 || column >= getWidth || row < 0 || row >= getHeight)
+      throw new IndexOutOfBoundsException()
+    else data.color(row)(column)
+  }
 
   @SideOnly(Side.CLIENT)
   override def renderText() = relativeLitArea != 0 && proxy.render()
