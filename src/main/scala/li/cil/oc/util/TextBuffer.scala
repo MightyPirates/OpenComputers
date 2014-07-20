@@ -96,7 +96,11 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   }
 
   /** Get the char at the specified index. */
-  def get(col: Int, row: Int) = buffer(row)(col)
+  def get(col: Int, row: Int) = {
+    if (col < 0 || col >= width || row < 0 || row >= height)
+      throw new IndexOutOfBoundsException()
+    else buffer(row)(col)
+  }
 
   /** String based fill starting at a specified location. */
   def set(col: Int, row: Int, s: String, vertical: Boolean): Boolean =
