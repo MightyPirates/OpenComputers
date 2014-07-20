@@ -1,10 +1,8 @@
 package li.cil.oc.client.gui.widget
 
-import net.minecraft.client.gui.inventory.GuiContainer
-
 import scala.collection.mutable
 
-trait WidgetContainer { self: GuiContainer =>
+trait WidgetContainer {
   protected val widgets = mutable.ArrayBuffer.empty[Widget]
 
   def addWidget[T <: Widget](widget: T) = {
@@ -13,11 +11,11 @@ trait WidgetContainer { self: GuiContainer =>
     widget
   }
 
-  def windowX = guiLeft
+  def windowX = 0
 
-  def windowY = guiTop
+  def windowY = 0
 
-  def windowZ = zLevel
+  def windowZ = 0f
 
   def drawWidgets() {
     widgets.foreach(_.draw())
