@@ -9,6 +9,7 @@ object Textures extends ResourceManagerReloadListener {
   val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
   val guiBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/background.png")
+  val guiBar = new ResourceLocation(Settings.resourceDomain, "textures/gui/bar.png")
   val guiBorders = new ResourceLocation(Settings.resourceDomain, "textures/gui/borders.png")
   val guiButtonPower = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
   val guiButtonRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_range.png")
@@ -75,6 +76,7 @@ object Textures extends ResourceManagerReloadListener {
     manager.getResource(fontAliased)
 
     manager.getResource(guiBackground)
+    manager.getResource(guiBar)
     manager.getResource(guiBorders)
     manager.getResource(guiButtonPower)
     manager.getResource(guiButtonRange)

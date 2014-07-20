@@ -2,6 +2,7 @@ package li.cil.oc.client.gui
 
 import java.util
 
+import li.cil.oc.client.gui.widget.WidgetContainer
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.RenderHelper
@@ -14,7 +15,7 @@ import scala.collection.convert.WrapAsScala._
 // transformations that break things! Such fun. Many annoyed. And yes, this
 // is a common issue, have a look at EnderIO and Enchanting Plus. They have
 // to work around this, too.
-abstract class CustomGuiContainer(container: Container) extends GuiContainer(container) {
+abstract class CustomGuiContainer(container: Container) extends GuiContainer(container) with WidgetContainer {
   // Pretty much Scalaified copy-pasta from base-class.
   override def drawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer) {
     copiedDrawHoveringText(text, x, y, font)

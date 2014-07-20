@@ -3,11 +3,11 @@ package li.cil.oc.client.gui
 import java.util
 
 import li.cil.oc.api.driver.{Inventory, Memory, Processor, Slot}
+import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
 import li.cil.oc.common.{container, tileentity}
 import li.cil.oc.{Localization, api}
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
 
@@ -22,11 +22,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
 
   protected var runButton: ImageButton = _
 
-  private val progressX = 28
-  private val progressY = 92
-
-  private val progressWidth = 140
-  private val progressHeight = 12
+  private val progress = addWidget(new ProgressBar(28, 92))
 
   val suggestedComponents = Array(
     "Screen" -> (() => hasComponent("screen1")),
@@ -140,7 +136,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
         drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
       }
     }
-    else if (isPointInRegion(progressX, progressY, progressWidth, progressHeight, mouseX, mouseY)) {
+    else if (isPointInRegion(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(assemblerContainer.assemblyRemainingTime)
       tooltip.add(Localization.RobotAssembler.Progress(assemblerContainer.assemblyProgress, timeRemaining))
@@ -160,30 +156,10 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
     mc.renderEngine.bindTexture(Textures.guiRobotAssembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
-    if (assemblerContainer.isAssembling) {
-      drawProgress()
-    }
+    if (assemblerContainer.isAssembling) progress.level = assemblerContainer.assemblyProgress / 100.0
+    else progress.level = 0
+    drawWidgets()
   }
 
   override def doesGuiPauseGame = false
-
-  private def drawProgress() {
-    val level = assemblerContainer.assemblyProgress / 100.0
-
-    val u0 = 0
-    val u1 = progressWidth / 256.0 * level
-    val v0 = 1 - progressHeight / 256.0
-    val v1 = 1
-    val x = guiLeft + progressX
-    val y = guiTop + progressY
-    val w = progressWidth * level
-
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(x, y, zLevel, u0, v0)
-    t.addVertexWithUV(x, y + progressHeight, zLevel, u0, v1)
-    t.addVertexWithUV(x + w, y + progressHeight, zLevel, u1, v1)
-    t.addVertexWithUV(x + w, y, zLevel, u1, v0)
-    t.draw()
-  }
 }
