@@ -132,7 +132,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       else if (scaleY > scale) {
         GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
       }
-//      GL11.glScaled(scale, scale, scale)
+      GL11.glScaled(scale, scale, scale)
       GL11.glScaled(this.scale, this.scale, 1)
       BufferRenderer.drawText(buffer)
     }
