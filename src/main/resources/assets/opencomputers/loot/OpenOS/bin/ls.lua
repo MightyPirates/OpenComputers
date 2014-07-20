@@ -1,6 +1,7 @@
 local component = require("component")
 local fs = require("filesystem")
 local shell = require("shell")
+local text = require('text')
 
 local dirs, options = shell.parse(...)
 if #dirs == 0 then
@@ -30,6 +31,8 @@ for i = 1, #dirs do
     local lsf = {}
     local m = 1
     for f in list do
+      m = math.max(m,f:len())
+
       if f:sub(-1) == "/" then
         if options.p then
           table.insert(lsd, f)
@@ -46,8 +49,13 @@ for i = 1, #dirs do
     setColor(0x66CCFF)
 
     local i = 1
-    local sWidth = ({component.gpu.getResolution()})[1]
-    local columns = math.floor (sWidth/m)
+    local sWidth = math.huge
+    local columns = math.huge
+
+    if io.output() == io.stdout then
+      sWidth = ({component.gpu.getResolution()})[1]
+      columns = math.floor (sWidth / m)
+    end
     
 
     for _, d in ipairs(lsd) do
