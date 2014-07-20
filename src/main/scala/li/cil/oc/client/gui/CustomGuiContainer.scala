@@ -16,6 +16,12 @@ import scala.collection.convert.WrapAsScala._
 // is a common issue, have a look at EnderIO and Enchanting Plus. They have
 // to work around this, too.
 abstract class CustomGuiContainer(container: Container) extends GuiContainer(container) with WidgetContainer {
+  override def windowX = guiLeft
+
+  override def windowY = guiTop
+
+  override def windowZ = zLevel
+
   // Pretty much Scalaified copy-pasta from base-class.
   override def drawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer) {
     copiedDrawHoveringText(text, x, y, font)
