@@ -10,7 +10,7 @@ import li.cil.oc.common.container.StaticComponentSlot
 import li.cil.oc.common.{container, tileentity}
 import li.cil.oc.server.driver
 import li.cil.oc.util.RenderState
-import li.cil.oc.{Localization, api}
+import li.cil.oc.{Settings, Localization, api}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
@@ -52,8 +52,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val maxBufferWidth = 240.0
   private val maxBufferHeight = 140.0
 
-  private def bufferWidth = math.min(maxBufferWidth, TextBufferRenderCache.renderer.charRenderWidth * 48.0)
-  private def bufferHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * 14.0)
+  private def bufferWidth = math.min(maxBufferWidth, TextBufferRenderCache.renderer.charRenderWidth * Settings.screenResolutionsByTier(0)._1)
+  private def bufferHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * Settings.screenResolutionsByTier(0)._2)
   override protected def bufferX = (8 + (maxBufferWidth - bufferWidth) / 2).toInt
   override protected def bufferY = (8 + (maxBufferHeight - bufferHeight) / 2).toInt
 
@@ -102,7 +102,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       GL11.glTranslatef(bufferX, bufferY, 0)
       RenderState.disableLighting()
       GL11.glPushMatrix()
-      GL11.glTranslatef(-2, -2, 0)
+      GL11.glTranslatef(-3, -3, 0)
       BufferRenderer.drawBackground()
       GL11.glPopMatrix()
       RenderState.makeItBlend()
@@ -115,7 +115,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       else if (scaleY > scale) {
         GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
       }
-//      GL11.glScaled(scale, scale, scale)
+      GL11.glScaled(scale, scale, scale)
       GL11.glScaled(this.scale, this.scale, 1)
       BufferRenderer.drawText(buffer)
     }

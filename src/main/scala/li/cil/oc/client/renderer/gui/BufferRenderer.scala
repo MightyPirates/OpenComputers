@@ -39,7 +39,7 @@ object BufferRenderer {
 
       GL11.glBegin(GL11.GL_QUADS)
 
-      val margin = if (forRobot) 1 else 7
+      val margin = if (forRobot) 2 else 7
       val (c0, c1, c2, c3) = if (forRobot) (5, 7, 9, 11) else (0, 7, 9, 16)
 
       // Top border (left corner, middle bar, right corner).
