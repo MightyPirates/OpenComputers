@@ -2,7 +2,10 @@ package li.cil.oc.common.block
 
 import codechicken.lib.vec.Cuboid6
 import codechicken.multipart.{JNormalOcclusion, NormalOcclusionTest, TFacePart, TileMultipart}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.Settings
 import li.cil.oc.api.network.{Environment, SidedEnvironment}
+import li.cil.oc.client.Textures
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.Mods
@@ -13,6 +16,23 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
+  override protected def customTextures = Array(
+    Some("CablePart"),
+    Some("CablePart"),
+    Some("CablePart"),
+    Some("CablePart"),
+    Some("CablePart"),
+    Some("CablePart")
+  )
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override def registerIcons(iconRegister: IconRegister) {
+    super.registerIcons(iconRegister)
+    Textures.Cable.iconCap = iconRegister.registerIcon(Settings.resourceDomain + ":CableCap")
+  }
+
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Cable())
@@ -25,7 +45,7 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
 
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   // ----------------------------------------------------------------------- //
 
