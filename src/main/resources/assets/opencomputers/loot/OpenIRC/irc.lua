@@ -150,7 +150,11 @@ local function handleCommand(prefix, command, args, message)
   ---------------------------------------------------
   -- General commands
   elseif command == "NICK" then
-    print(name(prefix) .. " is now known as " .. tostring(args[1] or message) .. ".")
+    local oldNick, newNick = name(prefix), tostring(args[1] or message)
+    if oldNick == nick then
+      nick = newNick
+    end
+    print(oldNick .. " is now known as " .. newNick .. ".")
   elseif command == "MODE" then
     if #args == 2 then
       print("[" .. args[1] .. "] " .. name(prefix) .. " set mode".. ( #args[2] > 2 and "s" or "" ) .. " " .. tostring(args[2] or message) .. ".")
@@ -181,7 +185,7 @@ local function handleCommand(prefix, command, args, message)
         local key = mode == "o" and (pfx and "opped" or "deoped") or
           mode == "v" and (pfx and "voiced" or "devoiced") or
           mode == "q" and (pfx and "quieted" or "unquieted") or
-          mode == "b" and (pfx and "baned" or "unbaned") or
+          mode == "b" and (pfx and "banned" or "unbanned") or
           "set " .. setmode[c][1] .. mode .. " on"
         if last ~= key then
           if last then
@@ -427,9 +431,9 @@ local result, reason = pcall(function()
     if sock and line and line ~= "" then
       line = text.trim(line)
       if line:lower():sub(1,4) == "/me " then
-        print("[" .. (target or "?") .. "] You " .. line:sub(5), true)
+        print("[" .. (target or "?") .. "] " .. nick .. " " .. line:sub(5), true)
       elseif line~="" then
-        print("[" .. (target or "?") .. "] me: " .. line, true)
+        print("[" .. (target or "?") .. "] " .. nick .. ": " .. line, true)
       end
       if line:lower():sub(1, 5) == "/msg " then
         local user, message = line:sub(6):match("^(%S+) (.+)$")
@@ -454,9 +458,9 @@ local result, reason = pcall(function()
         end
       elseif line:lower():sub(1, 5) == "/lua " then
         local script = text.trim(line:sub(6))
-        local result, reason = load(script, "=stdin", nil, setmetatable({print=print, socket=sock}, {__index=_G}))
+        local result, reason = load(script, "=stdin", nil, setmetatable({print=print, socket=sock, nick=nick}, {__index=_G}))
         if not result then
-          result, reason = load("return " .. script, "=stdin", nil, setmetatable({print=print, socket=sock}, {__index=_G}))
+          result, reason = load("return " .. script, "=stdin", nil, setmetatable({print=print, socket=sock, nick=nick}, {__index=_G}))
         end
         line = ""
         if not result then
