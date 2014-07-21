@@ -22,7 +22,7 @@ for i = 1, #dirs do
     io.write(reason .. "\n")
   else
     local function setColor(c)
-      if component.gpu.getForeground() ~= c then
+      if component.isAvailable("gpu") and component.gpu.getForeground() ~= c then
         io.stdout:flush()
         component.gpu.setForeground(c)
       end
@@ -31,8 +31,7 @@ for i = 1, #dirs do
     local lsf = {}
     local m = 1
     for f in list do
-      m = math.max(m,f:len())
-
+      m = math.max(m, f:len() + 2)
       if f:sub(-1) == "/" then
         if options.p then
           table.insert(lsd, f)
@@ -43,33 +42,24 @@ for i = 1, #dirs do
         table.insert(lsf, f)
       end
     end
-    m = m + 2
     table.sort(lsd)
     table.sort(lsf)
     setColor(0x66CCFF)
 
-    local i = 1
-    local sWidth = math.huge
+    local col = 1
     local columns = math.huge
-
-    if io.output() == io.stdout then
-      sWidth = ({component.gpu.getResolution()})[1]
-      columns = math.floor (sWidth / m)
+    if component.isAvailable("gpu") and io.output() == io.stdout then
+      columns = math.max(1, math.floor((component.gpu.getResolution() - 1) / m))
     end
-    
 
     for _, d in ipairs(lsd) do
       if options.a or d:sub(1, 1) ~= "." then
-        io.write( text.padRight ( d, m ) )
-        if options.l or io.output() ~= io.stdout then
+        io.write(text.padRight(d, m))
+        if options.l or io.output() ~= io.stdout or col % columns == 0 then
           io.write("\n")
         end
+        col = col + 1
       end
-
-     if sWidth ~= m * columns and i % columns == 0 then
-        io.write  ("\n")
-      end
-      i = i + 1
     end
 
     for _, f in ipairs(lsf) do
@@ -81,21 +71,17 @@ for i = 1, #dirs do
         setColor(0xFFFFFF)
       end
       if options.a or f:sub(1, 1) ~= "." then
-        io.write( text.padRight ( f, m ) )
+        io.write(text.padRight(f, m))
         if options.l then
           setColor(0xFFFFFF)
           io.write(fs.size(fs.concat(path, f)), "\n")
-        elseif io.output() ~= io.stdout then
+        elseif io.output() ~= io.stdout or col % columns == 0 then
           io.write("\n")
         end
+        col = col + 1
       end
-      
-      if sWidth ~= m * columns and i % columns == 0 then
-        io.write  ("\n")
-      end
-      i = i + 1
     end
-    
+
     setColor(0xFFFFFF)
     if options.M then
       io.write("\n" .. tostring(#lsf) .. " File(s)")
