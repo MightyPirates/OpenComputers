@@ -1,6 +1,7 @@
 package li.cil.oc.common
 
 import java.io
+import java.io.{File, FileFilter}
 import java.util.logging.Level
 
 import li.cil.oc.{OpenComputers, Settings}
@@ -15,9 +16,13 @@ import scala.collection.mutable
 // files instead of directly in the tile entity data, avoiding potential
 // problems with the tile entity data becoming too large.
 object SaveHandler {
+  private val uuidRegex = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+
   val saveData = mutable.Map.empty[Int, mutable.Map[ChunkCoordIntPair, mutable.Map[String, Array[Byte]]]]
 
-  def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + "state")
+  def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)
+
+  def statePath = new io.File(savePath, "state")
 
   def scheduleSave(dimension: Int, chunk: ChunkCoordIntPair, name: String, data: Array[Byte]) = saveData.synchronized {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
@@ -47,7 +52,7 @@ object SaveHandler {
       }
       case _ =>
     }
-    val path = savePath
+    val path = statePath
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
     val file = new io.File(chunkPath, name)
@@ -75,7 +80,7 @@ object SaveHandler {
 
   @ForgeSubscribe
   def onChunkSave(e: ChunkDataEvent.Save) = saveData.synchronized {
-    val path = savePath
+    val path = statePath
     val dimension = e.world.provider.dimensionId
     val chunk = e.getChunk.getChunkCoordIntPair
     val dimPath = new io.File(path, dimension.toString)
@@ -106,10 +111,20 @@ object SaveHandler {
   }
 
   @ForgeSubscribe
-  def onWorldSave(e: WorldEvent.Save) = saveData.synchronized {
-    saveData.get(e.world.provider.dimensionId) match {
-      case Some(chunks) => chunks.clear()
-      case _ =>
+  def onWorldSave(e: WorldEvent.Save) {
+    saveData.synchronized {
+      saveData.get(e.world.provider.dimensionId) match {
+        case Some(chunks) => chunks.clear()
+        case _ =>
+      }
     }
+
+    // Delete empty folders that match a drive UUID to keep the state folder clean.
+    savePath.listFiles(new FileFilter {
+      override def accept(file: File) = file.getName.matches(uuidRegex) && file.isDirectory && {
+        val list = file.list()
+        list == null || list.length == 0
+      }
+    }).foreach(_.delete())
   }
 }
