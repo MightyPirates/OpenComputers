@@ -129,7 +129,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
           val c = s(x - col)
           changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
           setChar(line, lineColor, bx, c)
-          bx += FontUtil.wcwidth(c)
+          bx += math.max(1, FontUtil.wcwidth(c))
         }
         changed
       }
@@ -148,7 +148,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       for (x <- bx until math.min(col + w, width) if bx < line.length) {
         changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
         setChar(line, lineColor, bx, c)
-        bx += FontUtil.wcwidth(c)
+        bx += math.max(1, FontUtil.wcwidth(c))
       }
     }
     changed
