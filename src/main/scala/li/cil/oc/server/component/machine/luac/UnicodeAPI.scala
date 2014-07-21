@@ -71,7 +71,7 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val value = lua.checkString(1)
-      lua.pushInteger(value.toCharArray.map(FontUtil.wcwidth(_)).sum)
+      lua.pushInteger(value.toCharArray.map(ch => math.max(1, FontUtil.wcwidth(ch))).sum)
       1
     })
     lua.setField(-2, "wlen")

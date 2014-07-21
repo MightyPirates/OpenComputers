@@ -44,7 +44,7 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
 
     unicode.set( "wlen",  (args: Varargs) => {
       val value = args.checkjstring(1)
-      LuaValue.valueOf(value.toCharArray.map(FontUtil.wcwidth(_)).sum)
+      LuaValue.valueOf(value.toCharArray.map(ch => math.max(1, FontUtil.wcwidth(ch))).sum)
     })
 
     unicode.set("wtrunc", (args: Varargs) => {
