@@ -45,19 +45,21 @@ object PacketSender {
 
   def sendClipboard(address: String, value: String) {
     if (value != null && !value.isEmpty) {
-      if (System.currentTimeMillis() < clipboardCooldown) {
+      if (value.length > 64 * 1024 || System.currentTimeMillis() < clipboardCooldown) {
         val player = Minecraft.getMinecraft.thePlayer
         val handler = Minecraft.getMinecraft.getSoundHandler
         handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
       }
       else {
         clipboardCooldown = System.currentTimeMillis() + value.length / 10
-        val pb = new CompressedPacketBuilder(PacketType.Clipboard)
+        for (part <- value.grouped(16 * 1024)) {
+          val pb = new CompressedPacketBuilder(PacketType.Clipboard)
 
-        pb.writeUTF(address)
-        pb.writeUTF(value.substring(0, math.min(value.length, 64 * 1024)))
+          pb.writeUTF(address)
+          pb.writeUTF(part)
 
-        pb.sendToServer()
+          pb.sendToServer()
+        }
       }
     }
   }
