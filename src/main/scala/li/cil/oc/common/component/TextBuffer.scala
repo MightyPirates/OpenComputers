@@ -69,7 +69,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def update() {
     super.update()
-    if (isDisplaying && owner.world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (isDisplaying && owner.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank
         // versus the number of pixels in the *current* resolution. This is
@@ -438,7 +438,7 @@ object TextBuffer {
 
     def markDirty() {
       dirty = true
-      lastChange = owner.owner.world.getWorldTime
+      lastChange = owner.owner.world.getTotalWorldTime
     }
 
     def render() = false
@@ -483,7 +483,7 @@ object TextBuffer {
   class ClientProxy(val owner: TextBuffer) extends Proxy {
     override def render() = {
       TextBufferRenderCache.render(owner)
-      lastChange == owner.owner.world.getWorldTime
+      lastChange == owner.owner.world.getTotalWorldTime
     }
 
     override def onScreenColorChange() {

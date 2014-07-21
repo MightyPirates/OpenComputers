@@ -269,7 +269,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
           resetDirtyFlag()
         }
       }
-      if (world.getWorldTime % Settings.get.tickFrequency == 0) {
+      if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (litRatio < 0) this.synchronized {
           litRatio = 0
           for (i <- 0 until volume.length) {

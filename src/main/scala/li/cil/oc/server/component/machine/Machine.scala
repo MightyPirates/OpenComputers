@@ -349,7 +349,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     callCounts.synchronized(if (callCounts.size > 0) callCounts.clear())
 
     // Make sure we have enough power.
-    if (worldTime % Settings.get.tickFrequency == 0) {
+    if (owner.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       state.synchronized(state.top match {
         case Machine.State.Paused |
              Machine.State.Restarting |
@@ -367,7 +367,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
 
     // Avoid spamming user list across the network.
-    if (worldTime % 20 == 0 && usersChanged) {
+    if (owner.world.getTotalWorldTime % 20 == 0 && usersChanged) {
       val list = _users.synchronized {
         usersChanged = false
         users

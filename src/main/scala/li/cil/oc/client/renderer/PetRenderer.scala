@@ -35,7 +35,7 @@ object PetRenderer extends ITickHandler {
     if (hidden.contains(name) || !entitledPlayers.contains(name)) return
     rendering = Some(entitledPlayers(name))
 
-    val worldTime = e.entityPlayer.getEntityWorld.getWorldTime
+    val worldTime = e.entityPlayer.getEntityWorld.getTotalWorldTime
     val timeJitter = e.entityPlayer.hashCode ^ 0xFF
     val offset = timeJitter + worldTime / 20.0
     val hover = (math.sin(timeJitter + (worldTime + e.partialRenderTick) / 20.0) * 0.03).toFloat

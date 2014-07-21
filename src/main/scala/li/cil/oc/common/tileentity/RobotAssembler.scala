@@ -97,7 +97,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   override def updateEntity() {
     super.updateEntity()
-    if (robot.isDefined && world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (robot.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
       val success = node.tryChangeBuffer(-want)
       if (success) {

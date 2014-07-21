@@ -264,7 +264,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     }
     super.updateEntity()
     if (isServer) {
-      if (world.getWorldTime % Settings.get.tickFrequency == 0) {
+      if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (info.tier == 3) {
           bot.node.changeBuffer(Double.PositiveInfinity)
         }
