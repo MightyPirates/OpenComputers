@@ -53,9 +53,9 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   // ----------------------------------------------------------------------- //
 
-  private var timeStarted = 0L // Game-world time [ms] for os.uptime().
-
   var worldTime = 0L // Game-world time for os.time().
+
+  private var uptime = 0L // Game-world time [ticks] for os.uptime().
 
   private var cpuTotal = 0L // Pseudo-real-world time [ns] for os.clock().
 
@@ -89,7 +89,13 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   override def users = _users.synchronized(_users.toArray)
 
-  override def upTime() = (worldTime - timeStarted) / 20.0
+  override def upTime() = {
+    // Convert from old saves (set to -timeStarted on load).
+    if (uptime < 0) {
+      uptime = worldTime + uptime
+    }
+    uptime / 20.0
+  }
 
   override def cpuTime = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
 
@@ -111,12 +117,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     case Machine.State.Stopped =>
       processAddedComponents()
       verifyComponents()
-      val rules = owner.world.getWorldInfo.getGameRulesInstance
-      if (rules.hasRule("doDaylightCycle") && !rules.getGameRuleBooleanValue("doDaylightCycle")) {
-        crash("gui.Error.DaylightCycle")
-        false
-      }
-      else if (componentCount > owner.maxComponents) {
+      if (componentCount > owner.maxComponents) {
         crash(owner match {
           case t: tileentity.Case if !t.hasCPU => "gui.Error.NoCPU"
           case s: server.component.Server if !s.hasCPU => "gui.Error.NoCPU"
@@ -132,7 +133,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
         if (Settings.get.ignorePower || node.globalBuffer > cost) {
           init() && {
             switchTo(Machine.State.Starting)
-            timeStarted = owner.world.getWorldTime
+            uptime = 0
             node.sendToReachable("computer.started")
             true
           }
@@ -341,11 +342,9 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       crash("gui.Error.ComponentOverflow")
     }
 
-    // Update world time for time().
+    // Update world time for time() and uptime().
     worldTime = owner.world.getWorldTime
-
-    // We can have rollbacks from '/time set'. Avoid getting negative uptimes.
-    timeStarted = math.min(timeStarted, worldTime)
+    uptime += 1
 
     if (remainIdle > 0) {
       remainIdle -= 1
@@ -612,7 +611,9 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
           }.toArray[AnyRef])
       })
 
-      timeStarted = nbt.getLong("timeStarted")
+      // Convert from old format (time started -> uptime).
+      if (nbt.hasKey("timeStarted")) uptime = -nbt.getLong("timeStarted")
+      else uptime = nbt.getLong("uptime")
       cpuTotal = nbt.getLong("cpuTime")
       remainingPause = nbt.getInteger("remainingPause")
 
@@ -684,7 +685,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       }
       nbt.setTag("signals", signalsNbt)
 
-      nbt.setLong("timeStarted", timeStarted)
+      nbt.setLong("uptime", uptime)
       nbt.setLong("cpuTime", cpuTotal)
       nbt.setInteger("remainingPause", remainingPause)
     }
@@ -727,7 +728,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       state.push(Machine.State.Stopped)
       architecture.close()
       signals.clear()
-      timeStarted = 0
+      uptime = 0
       cpuTotal = 0
       cpuStart = 0
       remainIdle = 0

@@ -2,6 +2,8 @@ package li.cil.oc.client.renderer.font
 
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.{FontUtil, RenderState}
+import net.minecraft.client.Minecraft
+import net.minecraft.client.resources.{ReloadableResourceManager, ResourceManager, ResourceManagerReloadListener}
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl._
 
@@ -11,16 +13,37 @@ import scala.collection.mutable
  * Font renderer that dynamically generates lookup textures by rendering a font
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
-class DynamicFontRenderer extends TextureFontRenderer {
-  private val glyphProvider = new FontParserUnifont()
+class DynamicFontRenderer extends TextureFontRenderer with ResourceManagerReloadListener {
+  private val glyphProvider: IGlyphProvider = new FontParserUnifont()
 
-  private val textures = mutable.ArrayBuffer(new DynamicFontRenderer.CharTexture(this))
+  private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
   private val charMap = mutable.Map.empty[Char, DynamicFontRenderer.CharIcon]
 
-  var activeTexture: CharTexture = textures(0)
+  private var activeTexture: CharTexture = _
 
-  generateChars(basicChars.toCharArray)
+  initialize()
+
+  Minecraft.getMinecraft.getResourceManager match {
+    case reloadable: ReloadableResourceManager => reloadable.registerReloadListener(this)
+    case _ =>
+  }
+
+  def initialize() {
+    for (texture <- textures) {
+      texture.delete()
+    }
+    textures.clear()
+    charMap.clear()
+    textures += new DynamicFontRenderer.CharTexture(this)
+    activeTexture = textures(0)
+    generateChars(basicChars.toCharArray)
+  }
+
+  def onResourceManagerReload(manager: ResourceManager) {
+    glyphProvider.initialize()
+    initialize()
+  }
 
   override protected def charWidth = glyphProvider.getGlyphWidth
 
@@ -40,7 +63,7 @@ class DynamicFontRenderer extends TextureFontRenderer {
 
   override protected def drawChar(tx: Float, ty: Float, char: Char) {
     val icon = charMap(char)
-    if (icon.texture == activeTexture) {
+    if (icon != null && icon.texture == activeTexture) {
       icon.draw(tx, ty)
     }
   }
@@ -83,6 +106,10 @@ object DynamicFontRenderer {
     private val capacity = cols * rows
 
     private var chars = 0
+
+    def delete() {
+      GL11.glDeleteTextures(id)
+    }
 
     def bind() {
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)

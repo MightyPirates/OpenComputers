@@ -89,7 +89,6 @@ oc:gui.Analyzer.Users=§6使用者§f: %s
 oc:gui.Chat.WarningLuaFallback=本機 LUA 函式庫無法使用,電腦將無法維持狀態,他會重新啟動並且載入區塊
 oc:gui.Chat.WarningProjectRed=你正在使用的 Project: Red 模組與 OpenComputers 不相容. 請嘗試更新 Project: Red.
 oc:gui.Error.ComponentOverflow=太多的元件連接到電腦上了
-oc:gui.Error.DaylightCycle=當時間被凍結,電腦將不會工作 (gamerule doDaylightCycle is false).
 oc:gui.Error.InternalError=內部錯誤，請查看日誌文件。這可能是一個錯誤。
 oc:gui.Error.NoCPU=電腦內沒有安裝中央處理器(CPU).
 oc:gui.Error.NoEnergy=沒有能源

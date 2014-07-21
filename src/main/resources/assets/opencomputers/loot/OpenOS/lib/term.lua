@@ -351,7 +351,7 @@ function term.write(value, wrap)
   if not term.isAvailable() then
     return
   end
-  value = tostring(value)
+  value = text.detab(tostring(value))
   if unicode.wlen(value) == 0 then
     return
   end
@@ -362,7 +362,6 @@ function term.write(value, wrap)
       computer.beep()
     end
   end
-  value = text.detab(value)
   local w, h = component.gpu.getResolution()
   if not w then
     return -- gpu lost its screen but the signal wasn't processed yet.
