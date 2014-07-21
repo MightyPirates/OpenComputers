@@ -1,6 +1,6 @@
 package mekanism.api.energy;
 
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.common.ForgeDirection;
 
 /**
  * Implement this if your TileEntity is capable of outputting energy to cables, overriding Mekanism's default implementation.

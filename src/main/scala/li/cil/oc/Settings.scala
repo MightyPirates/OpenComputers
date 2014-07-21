@@ -252,7 +252,7 @@ object Settings {
   // Electricity to provide global power support.
   val valueBuildCraft = 500.0
   val valueIndustrialCraft2 = 200.0
-  val valueMekanism = 2000.0 / 3.0
+  val valueMekanism = 250.0 / 9.0
   val valueThermalExpansion = 50.0
   val valueUniversalElectricity = 1.0
 

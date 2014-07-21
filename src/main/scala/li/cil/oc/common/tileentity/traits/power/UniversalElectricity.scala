@@ -16,13 +16,13 @@ trait UniversalElectricity extends Common with IEnergyInterface with IEnergyCont
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
   override def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) =
-    (tryChangeBuffer(from, receive * Settings.ratioUE, doReceive) / Settings.ratioUE).toLong
+    (tryChangeBuffer(from, receive * Settings.ratioUniversalElectricity, doReceive) / Settings.ratioUniversalElectricity).toLong
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  override def getEnergy(from: ForgeDirection) = (globalBuffer(from) / Settings.ratioUE).toLong
+  override def getEnergy(from: ForgeDirection) = (globalBuffer(from) / Settings.ratioUniversalElectricity).toLong
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  override def getEnergyCapacity(from: ForgeDirection) = (globalBufferSize(from) / Settings.ratioUE).toLong
+  override def getEnergyCapacity(from: ForgeDirection) = (globalBufferSize(from) / Settings.ratioUniversalElectricity).toLong
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
   override def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0

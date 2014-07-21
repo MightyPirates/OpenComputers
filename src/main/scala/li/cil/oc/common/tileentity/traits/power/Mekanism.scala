@@ -4,7 +4,7 @@ import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.util.mods.Mods
 import mekanism.api.energy.IStrictEnergyAcceptor
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.common.ForgeDirection
 
 @Optional.Interface(iface = "mekanism.api.energy.IStrictEnergyAcceptor", modid = Mods.IDs.Mekanism)
 trait Mekanism extends Common with IStrictEnergyAcceptor {
