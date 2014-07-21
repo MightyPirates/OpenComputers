@@ -87,4 +87,4 @@ Open the project and you will be asked to import the Gradle project (check your 
 [pack.mcmeta]: https://github.com/MightyPirates/OpenComputers/blob/master/src/main/resources/pack.mcmeta
 [releases]: https://github.com/MightyPirates/OpenComputers/releases
 [robot names]: https://github.com/MightyPirates/OpenComputers/blob/master/src/main/resources/assets/opencomputers/robot.names
-[wiki]: https://github.com/MightyPirates/OpenComputers/wiki
+[wiki]: https://ocdoc.cil.li/
