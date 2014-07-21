@@ -1,14 +1,18 @@
 package li.cil.oc.common.multipart
 
+import codechicken.lib.lighting.LazyLightMatrix
 import codechicken.lib.vec.{Cuboid6, Vector3}
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.api.{Items, network}
+import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.tileentity.CableRenderer
 import li.cil.oc.common.block.{Cable, Delegator}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api, common}
+import net.minecraft.block.Block
+import net.minecraft.client.Minecraft
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import org.lwjgl.opengl.GL11
@@ -65,11 +69,12 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
   }
 
   @SideOnly(Side.CLIENT)
-  override def renderDynamic(pos: Vector3, frame: Float, pass: Int) {
-    super.renderDynamic(pos, frame, pass)
-    GL11.glTranslated(pos.x, pos.y, pos.z)
-    CableRenderer.renderCable(Cable.neighbors(world, x, y, z))
-    GL11.glTranslated(-pos.x, -pos.y, -pos.z)
+  override def renderStatic(pos: Vector3, olm: LazyLightMatrix, pass: Int) {
+    val (x, y, z) = (pos.x.toInt, pos.y.toInt, pos.z.toInt)
+    val block = api.Items.get("cable").block()
+    val metadata = world.getBlockMetadata(x, y, z)
+    val renderer = Minecraft.getMinecraft.renderGlobal.globalRenderBlocks
+    BlockRenderer.renderCable(Cable.neighbors(world, x, y, z), block, metadata, x, y, z, renderer)
   }
 
   override def onMessage(message: Message) {}

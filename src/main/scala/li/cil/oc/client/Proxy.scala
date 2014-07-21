@@ -33,7 +33,6 @@ private[oc] class Proxy extends CommonProxy {
     Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
     RenderingRegistry.registerBlockHandler(BlockRenderer)
 
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Cable], CableRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Charger], ChargerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)

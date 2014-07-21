@@ -27,7 +27,6 @@ object Textures extends ResourceManagerReloadListener {
   val guiServer = new ResourceLocation(Settings.resourceDomain, "textures/gui/server.png")
   val guiSlot = new ResourceLocation(Settings.resourceDomain, "textures/gui/slot.png")
 
-  val blockCable = new ResourceLocation(Settings.resourceDomain, "textures/blocks/cable.png")
   val blockCaseFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontOn.png")
   val blockHologram = new ResourceLocation(Settings.resourceDomain, "textures/blocks/HologramEffect.png")
   val blockRackFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontOn.png")
@@ -37,6 +36,10 @@ object Textures extends ResourceManagerReloadListener {
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png")
   val upgradeInventory = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_inventory_equipped.png")
+
+  object Cable {
+    var iconCap: Icon = _
+  }
 
   object Charger {
     var iconFrontCharging: Icon = _
@@ -90,7 +93,6 @@ object Textures extends ResourceManagerReloadListener {
     manager.getResource(guiServer)
     manager.getResource(guiSlot)
 
-    manager.getResource(blockCable)
     manager.getResource(blockCaseFrontOn)
     manager.getResource(blockRackFrontOn)
     manager.getResource(blockRobot)
