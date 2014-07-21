@@ -152,7 +152,50 @@ local function handleCommand(prefix, command, args, message)
   elseif command == "NICK" then
     print(name(prefix) .. " is now known as " .. tostring(args[1] or message) .. ".")
   elseif command == "MODE" then
-    print("[" .. args[1] .. "] Mode is now " .. tostring(args[2] or message) .. ".")
+    if #args == 2 then
+      print("[" .. args[1] .. "] " .. name(prefix) .. " set mode".. ( #args[2] > 2 and "s" or "" ) .. " " .. tostring(args[2] or message) .. ".")
+    else
+      local setmode = {}
+      local cumode = "+"
+      args[2]:gsub(".", function(char)
+        if char == "-" or char == "+" then
+          cumode = char
+        else
+          table.insert(setmode, {cumode, char})
+        end
+      end)
+      local d = {}
+      local users = {}
+      for i = 3, #args do
+        users[i-2] = args[i]
+      end
+      users[#users+1] = message
+      local last
+      local ctxt = ""
+      for c = 1, #users do
+        if not setmode[c] then
+          break
+        end
+        local mode = setmode[c][2]
+        local pfx = setmode[c][1]=="+"
+        local key = mode == "o" and (pfx and "opped" or "deoped") or
+          mode == "v" and (pfx and "voiced" or "devoiced") or
+          mode == "q" and (pfx and "quieted" or "unquieted") or
+          mode == "b" and (pfx and "baned" or "unbaned") or
+          "set " .. setmode[c][1] .. mode .. " on"
+        if last ~= key then
+          if last then
+            print(ctxt)
+          end
+          ctxt = "[" .. args[1] .. "] " .. name(prefix) .. " " .. key
+          last = key
+        end
+        ctxt = ctxt .. " " .. users[c]
+      end
+      if #ctxt > 0 then
+        print(ctxt)
+      end
+    end
   elseif command == "QUIT" then
     print(name(prefix) .. " quit (" .. (message or "Quit") .. ").")
   elseif command == "JOIN" then
@@ -164,23 +207,30 @@ local function handleCommand(prefix, command, args, message)
   elseif command == "KICK" then
     print("[" .. args[1] .. "] " .. name(prefix) .. " kicked " .. args[2])
   elseif command == "PRIVMSG" then
-    if string.find(message, "\001TIME\001") then
-      sock:write("NOTICE " .. name(prefix) .. " :\001TIME " .. os.date() .. "\001\r\n")
-      sock:flush()
-    elseif string.find(message, "\001VERSION\001") then
-      sock:write("NOTICE " .. name(prefix) .. " :\001VERSION Minecraft/OpenComputers Lua 5.2\001\r\n")
-      sock:flush()
-    elseif string.find(message, "\001PING") then
-      sock:write("NOTICE " .. name(prefix) .. " :" .. message .. "\001\r\n")
-      sock:flush()
-    end
-    if string.find(message, nick) then
-      computer.beep()
-    end
-    if string.find(message, "\001ACTION") then
-      print("[" .. args[1] .. "] " .. name(prefix) .. string.gsub(string.gsub(message, "\001ACTION", ""), "\001", ""))
+    local ctcp = message:match("^\1(.-)\1$")
+    if ctcp then
+      print("[" .. name(prefix) .. "] CTCP " .. ctcp)
+      local ctcp, param = ctcp:match("^(%S+) ?(.-)$")
+      ctcp = ctcp:upper()
+      if ctcp == "TIME" then
+        sock:write("NOTICE " .. name(prefix) .. " :\001TIME " .. os.date() .. "\001\r\n")
+        sock:flush()
+      elseif ctcp == "VERSION" then
+        sock:write("NOTICE " .. name(prefix) .. " :\001VERSION Minecraft/OpenComputers Lua 5.2\001\r\n")
+        sock:flush()
+      elseif ctcp == "PING" then
+        sock:write("NOTICE " .. name(prefix) .. " :\001PING " .. param .. "\001\r\n")
+        sock:flush()
+      end
     else
-      print("[" .. args[1] .. "] " .. name(prefix) .. ": " .. message)
+      if string.find(message, nick) then
+        computer.beep()
+      end
+      if string.find(message, "\001ACTION") then
+        print("[" .. args[1] .. "] " .. name(prefix) .. string.gsub(string.gsub(message, "\001ACTION", ""), "\001", ""))
+      else
+        print("[" .. args[1] .. "] " .. name(prefix) .. ": " .. message)
+      end
     end
   elseif command == "NOTICE" then
     print("[NOTICE] " .. message)
@@ -377,8 +427,8 @@ local result, reason = pcall(function()
     if sock and line and line ~= "" then
       line = text.trim(line)
       if line:lower():sub(1,4) == "/me " then
-        print("[" .. (target or "?") .. "] You " .. string.gsub(line, "/me ", ""), true)
-      else
+        print("[" .. (target or "?") .. "] You " .. line:sub(5), true)
+      elseif line~="" then
         print("[" .. (target or "?") .. "] me: " .. line, true)
       end
       if line:lower():sub(1, 5) == "/msg " then
