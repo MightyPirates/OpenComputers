@@ -378,7 +378,7 @@ while running do
     local blink = true
     if event == "key_down" then
       onKeyDown(arg1, arg2)
-    elseif event == "clipboard" then
+    elseif event == "clipboard" and not readonly then
       onClipboard(arg1)
     elseif event == "touch" or event == "drag" then
       onClick(arg1, arg2)
