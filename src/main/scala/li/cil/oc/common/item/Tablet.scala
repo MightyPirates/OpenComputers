@@ -109,6 +109,19 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
     }
   }
 
+  override protected def connectItemNode(node: Node) {
+    super.connectItemNode(node)
+    if (node != null) node.host match {
+      case buffer: api.component.TextBuffer => components collect {
+        case Some(keyboard: api.component.Keyboard) => buffer.node.connect(keyboard.node)
+      }
+      case keyboard: api.component.Keyboard => components collect {
+        case Some(buffer: api.component.TextBuffer) => keyboard.node.connect(buffer.node)
+      }
+      case _ =>
+    }
+  }
+
   override def onDisconnect(node: Node) {
     if (node == this.node) {
       disconnectComponents()
@@ -171,7 +184,7 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
 
   // ----------------------------------------------------------------------- //
 
-  override def node = computer.node
+  override def node = Option(computer).fold(null: Node)(_.node)
 
   override def canInteract(player: String) = computer.canInteract(player)
 
