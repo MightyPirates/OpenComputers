@@ -4,6 +4,7 @@ import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
+import org.apache.logging.log4j.Level;
 import org.lwjgl.BufferUtils;
 
 import java.io.BufferedReader;
@@ -11,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.util.logging.Level;
 
 public class FontParserUnifont implements IGlyphProvider {
     private static final byte[] b_set = {(byte) 255, (byte) 255, (byte) 255, (byte) 255};
@@ -28,34 +28,32 @@ public class FontParserUnifont implements IGlyphProvider {
         for (int i = 0; i < glyphs.length; ++i) {
             glyphs[i] = null;
         }
-        final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "unifont.hex")).getInputStream();
-        if (font == null) {
-            OpenComputers.log().warning("Failed opening unifont file.");
-            return;
-        }
         try {
+            final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "unifont.hex")).getInputStream();
             OpenComputers.log().info("Initialized Unifont glyph provider.");
-            final BufferedReader input = new BufferedReader(new InputStreamReader(font));
-            String line;
-            int glyphCount = 0;
-            while ((line = input.readLine()) != null) {
-                glyphCount++;
-                final String[] info = line.split(":");
-                final int charCode = Integer.parseInt(info[0], 16);
-                final byte[] glyph = new byte[info[1].length() >> 1];
-                for (int i = 0; i < glyph.length; i++) {
-                    glyph[i] = (byte) Integer.parseInt(info[1].substring(i * 2, i * 2 + 2), 16);
-                }
-                glyphs[charCode] = glyph;
-            }
-            OpenComputers.log().info("Loaded " + glyphCount + " glyphs.");
-        } catch (IOException ex) {
-            OpenComputers.log().log(Level.WARNING, "Failed loading glyphs.", ex);
-        } finally {
             try {
-                font.close();
-            } catch (IOException ignored) {
+                final BufferedReader input = new BufferedReader(new InputStreamReader(font));
+                String line;
+                int glyphCount = 0;
+                while ((line = input.readLine()) != null) {
+                    glyphCount++;
+                    final String[] info = line.split(":");
+                    final int charCode = Integer.parseInt(info[0], 16);
+                    final byte[] glyph = new byte[info[1].length() >> 1];
+                    for (int i = 0; i < glyph.length; i++) {
+                        glyph[i] = (byte) Integer.parseInt(info[1].substring(i * 2, i * 2 + 2), 16);
+                    }
+                    glyphs[charCode] = glyph;
+                }
+                OpenComputers.log().info("Loaded " + glyphCount + " glyphs.");
+            } finally {
+                try {
+                    font.close();
+                } catch (IOException ignored) {
+                }
             }
+        } catch (IOException ex) {
+            OpenComputers.log().log(Level.WARN, "Failed loading glyphs.", ex);
         }
     }
 

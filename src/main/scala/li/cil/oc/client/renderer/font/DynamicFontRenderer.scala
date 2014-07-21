@@ -3,7 +3,7 @@ package li.cil.oc.client.renderer.font
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.{FontUtil, RenderState}
 import net.minecraft.client.Minecraft
-import net.minecraft.client.resources.{ReloadableResourceManager, ResourceManager, ResourceManagerReloadListener}
+import net.minecraft.client.resources.{IReloadableResourceManager, IResourceManager, IResourceManagerReloadListener}
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl._
 
@@ -13,7 +13,7 @@ import scala.collection.mutable
  * Font renderer that dynamically generates lookup textures by rendering a font
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
-class DynamicFontRenderer extends TextureFontRenderer with ResourceManagerReloadListener {
+class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloadListener {
   private val glyphProvider: IGlyphProvider = new FontParserUnifont()
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
@@ -25,7 +25,7 @@ class DynamicFontRenderer extends TextureFontRenderer with ResourceManagerReload
   initialize()
 
   Minecraft.getMinecraft.getResourceManager match {
-    case reloadable: ReloadableResourceManager => reloadable.registerReloadListener(this)
+    case reloadable: IReloadableResourceManager => reloadable.registerReloadListener(this)
     case _ =>
   }
 
@@ -40,7 +40,7 @@ class DynamicFontRenderer extends TextureFontRenderer with ResourceManagerReload
     generateChars(basicChars.toCharArray)
   }
 
-  def onResourceManagerReload(manager: ResourceManager) {
+  def onResourceManagerReload(manager: IResourceManager) {
     glyphProvider.initialize()
     initialize()
   }
