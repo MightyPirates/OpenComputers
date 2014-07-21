@@ -117,7 +117,6 @@ oc:gui.Chat.WarningLuaFallback=Родные библиотеки Lua не дос
 oc:gui.Chat.WarningPower=Подходящие моды, предоставляющие энергию, не найдены. Компьютеры, мониторы и прочие компоненты §lне будут§f требовать энергию. Для активации данной функции установите один из следующих модов: BuildCraft, IndustrialCraft2, Thermal Expansion или Universal Electricity. Отключите требование энергии в конфиг-файле, чтобы скрыть это предупреждение.
 oc:gui.Chat.WarningProjectRed=Вы используете версию Project: Red, несовместимую с OpenComputers. Попробуйте обновить Project: Red.
 oc:gui.Error.ComponentOverflow=Слишком много компонентов подключено к компьютеру.
-oc:gui.Error.DaylightCycle=Компьютеры не работают, если время заморожено (Правило «doDaylightCycle» установлено на false).
 oc:gui.Error.InternalError=Внутренняя ошибка, пожалуйста посмотрите лог-файл. Возможно, это баг.
 oc:gui.Error.NoCPU=Не установлен центральный процессор.
 oc:gui.Error.NoEnergy=Недостаточно энергии.

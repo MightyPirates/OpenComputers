@@ -119,7 +119,6 @@ oc:gui.Chat.WarningLuaFallback=Die native Lua-Implementierung ist nicht verfügb
 oc:gui.Chat.WarningPower=Es ist keine unterstützte, Strom erzeugende Mod verfügbar. Computer, Bildschirme und alle anderen Komponenten werden §lkeine§f Energie benötigen. Installiere eine der folgenden Mods, um Stromnutzung zu ermöglichen: BuildCraft, IndustrialCraft2, Thermal Expansion oder Universal Electricity. Deaktiviere Stromverbrauch in der Konfiguration, um diese Warnung zu unterdrücken.
 oc:gui.Chat.WarningProjectRed=Die verwendete Version von Project: Red ist nicht mit OpenComputers kompatibel. Aktualisiere bitte deine Version von Project: Red.
 oc:gui.Error.ComponentOverflow=Zu viele Komponenten sind mit dem Computer verbunden.
-oc:gui.Error.DaylightCycle=Computer funktionieren nicht, solange die Zeit angehalten ist (Spielregel doDaylightCycle ist aus).
 oc:gui.Error.InternalError=Interner Fehler, bitte sieh in der Logdatei nach. Das ist wahrscheinlich ein Bug.
 oc:gui.Error.NoCPU=Im Computer ist kein Hauptprozessor (CPU) installiert.
 oc:gui.Error.NoEnergy=Nicht genug Energie.
