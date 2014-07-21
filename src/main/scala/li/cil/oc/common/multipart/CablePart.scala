@@ -7,15 +7,12 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.api.{Items, network}
 import li.cil.oc.client.renderer.block.BlockRenderer
-import li.cil.oc.client.renderer.tileentity.CableRenderer
 import li.cil.oc.common.block.{Cable, Delegator}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api, common}
-import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
-import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._
