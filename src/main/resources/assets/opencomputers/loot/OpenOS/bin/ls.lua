@@ -1,6 +1,7 @@
 local component = require("component")
 local fs = require("filesystem")
 local shell = require("shell")
+local text = require('text')
 
 local dirs, options = shell.parse(...)
 if #dirs == 0 then
@@ -28,7 +29,10 @@ for i = 1, #dirs do
     end
     local lsd = {}
     local lsf = {}
+    local m = 1
     for f in list do
+      m = math.max(m,f:len())
+
       if f:sub(-1) == "/" then
         if options.p then
           table.insert(lsd, f)
@@ -39,17 +43,35 @@ for i = 1, #dirs do
         table.insert(lsf, f)
       end
     end
+    m = m + 2
     table.sort(lsd)
     table.sort(lsf)
     setColor(0x66CCFF)
+
+    local i = 1
+    local sWidth = math.huge
+    local columns = math.huge
+
+    if io.output() == io.stdout then
+      sWidth = ({component.gpu.getResolution()})[1]
+      columns = math.floor (sWidth / m)
+    end
+    
+
     for _, d in ipairs(lsd) do
       if options.a or d:sub(1, 1) ~= "." then
-        io.write(d .. "\t")
+        io.write( text.padRight ( d, m ) )
         if options.l or io.output() ~= io.stdout then
           io.write("\n")
         end
       end
+
+     if sWidth ~= m * columns and i % columns == 0 then
+        io.write  ("\n")
+      end
+      i = i + 1
     end
+
     for _, f in ipairs(lsf) do
       if fs.isLink(fs.concat(path, f)) then
         setColor(0xFFAA00)
@@ -59,7 +81,7 @@ for i = 1, #dirs do
         setColor(0xFFFFFF)
       end
       if options.a or f:sub(1, 1) ~= "." then
-        io.write(f .. "\t")
+        io.write( text.padRight ( f, m ) )
         if options.l then
           setColor(0xFFFFFF)
           io.write(fs.size(fs.concat(path, f)), "\n")
@@ -67,7 +89,13 @@ for i = 1, #dirs do
           io.write("\n")
         end
       end
+      
+      if sWidth ~= m * columns and i % columns == 0 then
+        io.write  ("\n")
+      end
+      i = i + 1
     end
+    
     setColor(0xFFFFFF)
     if options.M then
       io.write("\n" .. tostring(#lsf) .. " File(s)")
