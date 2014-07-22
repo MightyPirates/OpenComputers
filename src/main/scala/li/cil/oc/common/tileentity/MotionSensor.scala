@@ -28,7 +28,7 @@ class MotionSensor extends traits.Environment {
 
   override def updateEntity() {
     super.updateEntity()
-    if (world.getWorldTime % 10 == 0) {
+    if (world.getTotalWorldTime % 10 == 0) {
       // Get a list of all living entities we could possibly detect, using a rough
       // bounding box check, then refining it using the actual distance and an
       // actual visibility check.

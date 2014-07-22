@@ -16,7 +16,7 @@ trait BuildCraft extends Common with IPowerReceptor {
 
   override def updateEntity() {
     super.updateEntity()
-    if (useBuildCraftPower && world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (useBuildCraftPower && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
         val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.ratioBuildCraft
         if (demand > 1) {

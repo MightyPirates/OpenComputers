@@ -20,7 +20,7 @@ class UpgradeChunkloader(val owner: Container) extends component.ManagedComponen
 
   override def update() {
     super.update()
-    if (owner.world.getWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
+    if (owner.world.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
       if (!node.tryChangeBuffer(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
         ticket.foreach(ForgeChunkManager.releaseTicket)
         ticket = None

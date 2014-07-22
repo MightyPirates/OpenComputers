@@ -52,7 +52,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def updateEntity() {
     super.updateEntity()
-    if (world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
         disassemble(decrStackSize(0, 1))
         setActive(queue.nonEmpty)
