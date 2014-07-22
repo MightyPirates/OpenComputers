@@ -2,6 +2,17 @@ local fs = require("filesystem")
 local shell = require("shell")
 
 local args, options = shell.parse(...)
+local f = function (m) 
+  local s = {'','K','M','G'} 
+  for _,f in ipairs (s) do 
+    if m > 1024 then 
+			m = m / 1024 
+		else 
+			return tostring (math.floor(m*100)/100) .. f .. 'B'
+		end
+	end
+	return tostring (math.floor(m*102400)/100) .. s[#s] .. 'B'
+end
 
 local mounts = {}
 if #args == 0 then
@@ -38,7 +49,11 @@ for path, proxy in pairs(mounts) do
       percent = math.ceil(percent * 100) .. "%"
     end
   end
-  table.insert(result, {label, used, available, percent, path})
+  if options['h'] then
+    table.insert(result, {label, f(used), f(available), percent, path})
+  else
+    table.insert(result, {label, used, available, percent, path})
+  end
 end
 
 
