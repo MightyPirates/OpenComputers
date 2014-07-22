@@ -43,6 +43,16 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     node.data.network = wrapper
   })
 
+  // Called by nodes when they may have changed address from loading.
+  def remap(node: MutableNode) {
+    data.find(_._2.data == node) match {
+      case Some((address, vertex)) =>
+        data -= address
+        data += node.address -> vertex
+      case _ => // Eh?
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   def connect(nodeA: MutableNode, nodeB: MutableNode) = {
@@ -144,9 +154,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
   def neighbors(node: ImmutableNode): Iterable[ImmutableNode] = {
     data.get(node.address) match {
-      case Some(n) =>
-        assert(n.data == node)
-        n.edges.map(_.other(n).data)
+      case Some(n) if n.data == node => n.edges.map(_.other(n).data)
       case _ => throw new IllegalArgumentException("Node must be in this network.")
     }
   }
@@ -640,7 +648,7 @@ object Network extends api.detail.NetworkAPI {
 
   // ----------------------------------------------------------------------- //
 
-  private class Wrapper(val network: Network) extends api.network.Network with Distributor {
+  private[network] class Wrapper(val network: Network) extends api.network.Network with Distributor {
     def connect(nodeA: ImmutableNode, nodeB: ImmutableNode) =
       network.connect(nodeA.asInstanceOf[MutableNode], nodeB.asInstanceOf[MutableNode])
 

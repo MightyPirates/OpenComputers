@@ -79,7 +79,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   protected def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) = queue.synchronized {
-    if (packet.ttl > 0 && queue.size < maxQueueSize && !plugs.exists(_.node.address == packet.source)) {
+    if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
       if (relayCooldown < 0) {
         relayCooldown = relayDelay
@@ -159,7 +159,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
   protected def onPlugDisconnect(plug: Plug, node: Node) {}
 
   protected def onPlugMessage(plug: Plug, message: Message) {
-    if (message.name == "network.message") message.data match {
+    if (message.name == "network.message" && !plugs.exists(_.node == message.source)) message.data match {
       case Array(packet: Packet) => tryEnqueuePacket(plug.side, packet)
       case _ =>
     }

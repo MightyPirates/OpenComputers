@@ -5,6 +5,7 @@ import java.nio.ByteBuffer
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
+import li.cil.oc.OpenComputers
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
 import org.lwjgl.BufferUtils
@@ -25,6 +26,8 @@ object Audio {
   private val sources = mutable.Set.empty[Source]
 
   private def volume = Minecraft.getMinecraft.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
+
+  private var errored = false
 
   def play(x: Float, y: Float, z: Float, frequencyInHz: Int, durationInMilliseconds: Int) {
     val distanceBasedGain = math.max(0, 1 - Minecraft.getMinecraft.thePlayer.getDistance(x, y, z) / 12).toFloat
@@ -54,11 +57,17 @@ object Audio {
   }
 
   def update() {
-    sources.synchronized(sources --= sources.filter(_.checkFinished))
+    if (!errored) {
+      sources.synchronized(sources --= sources.filter(_.checkFinished))
 
-    // Clear error stack.
-    if (AL.isCreated) {
-      AL10.alGetError()
+      // Clear error stack.
+      if (AL.isCreated) {
+        try AL10.alGetError() catch {
+          case _: UnsatisfiedLinkError =>
+            OpenComputers.log.warn("Negotiations with OpenAL broke down, disabling sounds.")
+            errored = true
+        }
+      }
     }
   }
 

@@ -7,7 +7,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc._
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Analyzable, Connector, Node, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -39,6 +39,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   private val _isRunning = new Array[Boolean](getSizeInventory)
 
   private var hasChanged = false
+
+  var internalSwitch = false
 
   // For client side rendering.
   var isPresent = Array.fill[Option[String]](getSizeInventory)(None)
@@ -140,6 +142,33 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       }
     }
     (sumBuffer + sumBufferServers, sumSize + sumSizeServers)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
+    if (internalSwitch) {
+      for (slot <- 0 until servers.length) {
+        val side = sides(slot)
+        if (side != sourceSide) {
+          servers(slot) match {
+            case Some(server) => server.node.sendToNeighbors("network.message", packet)
+            case _ =>
+          }
+        }
+      }
+    }
+    else super.relayPacket(sourceSide, packet)
+  }
+
+  override protected def onPlugMessage(plug: Plug, message: Message) {
+    // This check is a little hacky. Basically what we test here is whether
+    // the message was relayed internally, because only internally relayed
+    // network messages originate from the actual server nodes themselves.
+    // The otherwise come from the network card.
+    if (message.name != "network.message" || !(servers collect {
+      case Some(server) => server.node
+    }).contains(message.source)) super.onPlugMessage(plug, message)
   }
 
   // ----------------------------------------------------------------------- //
@@ -258,6 +287,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed restoring terminal state. Please report this!", t)
     })
     range = nbt.getInteger(Settings.namespace + "range")
+    internalSwitch = nbt.getBoolean(Settings.namespace + "internalSwitch")
   }
 
   // Side check for Waila (and other mods that may call this client side).
@@ -283,6 +313,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       terminalNbt
     }))
     nbt.setInteger(Settings.namespace + "range", range)
+    nbt.setBoolean(Settings.namespace + "internalSwitch", internalSwitch)
   }
 
   @SideOnly(Side.CLIENT)

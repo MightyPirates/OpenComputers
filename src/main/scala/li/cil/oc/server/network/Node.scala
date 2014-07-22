@@ -64,7 +64,12 @@ trait Node extends ImmutableNode {
 
   def load(nbt: NBTTagCompound) = {
     if (nbt.hasKey("address")) {
+      val oldAddress = address
       address = nbt.getString("address")
+      if (address != oldAddress) network match {
+        case wrapper: Network.Wrapper => wrapper.network.remap(this)
+        case _ =>
+      }
     }
   }
 

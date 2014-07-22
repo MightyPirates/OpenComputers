@@ -36,6 +36,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
+      case PacketType.ServerSwitchMode => onServerSwitchMode(p)
       case _ => // Invalid packet.
     }
   }
@@ -180,6 +181,16 @@ object PacketHandler extends CommonPacketHandler {
             PacketSender.sendServerState(rack, number)
           }
           else PacketSender.sendServerState(rack, number, Some(player))
+        case _ =>
+      }
+      case _ => // Invalid packet.
+    }
+
+  def onServerSwitchMode(p: PacketParser) =
+    p.readTileEntity[ServerRack]() match {
+      case Some(rack) => p.player match {
+        case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
+          rack.internalSwitch = p.readBoolean()
         case _ =>
       }
       case _ => // Invalid packet.

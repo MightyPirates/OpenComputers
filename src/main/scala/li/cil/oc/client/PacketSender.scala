@@ -158,4 +158,13 @@ object PacketSender {
 
     pb.sendToServer()
   }
+
+  def sendServerSwitchMode(t: ServerRack, internal: Boolean) {
+    val pb = new PacketBuilder(PacketType.ServerSwitchMode)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(internal)
+
+    pb.sendToServer()
+  }
 }

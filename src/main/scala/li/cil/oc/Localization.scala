@@ -93,6 +93,10 @@ object Localization {
 
     def None = localizeImmediately("gui.ServerRack.None")
 
+    def SwitchExternal = localizeImmediately("gui.ServerRack.SwitchExternal")
+
+    def SwitchInternal = localizeImmediately("gui.ServerRack.SwitchInternal")
+
     def WirelessRange = localizeImmediately("gui.ServerRack.WirelessRange")
   }
 

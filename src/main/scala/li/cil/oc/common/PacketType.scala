@@ -49,6 +49,9 @@ object PacketType extends Enumeration {
   MultiPartPlace,
   RobotAssemblerStart,
   RobotStateRequest,
+  ServerRange,
   ServerSide,
-  ServerRange = Value
+  ServerSwitchMode,
+
+  EndOfList = Value
 }
