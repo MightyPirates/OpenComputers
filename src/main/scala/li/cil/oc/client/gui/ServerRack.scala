@@ -13,6 +13,8 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRack) extends DynamicGuiContainer(new container.ServerRack(playerInventory, rack)) {
+  protected var switchButton: ImageButton = _
+
   protected var powerButtons = new Array[ImageButton](4)
 
   protected var sideButtons = new Array[GuiButton](4)
@@ -57,6 +59,9 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
         ClientPacketSender.sendServerRange(rack, range)
       }
     }
+    if (button.id == 10) {
+      ClientPacketSender.sendServerSwitchMode(rack, !rack.internalSwitch)
+    }
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
@@ -64,6 +69,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       powerButtons(i).toggled = rack.isRunning(i)
       sideButtons(i).displayString = sideName(i)
     }
+    switchButton.displayString = if (rack.internalSwitch) Localization.ServerRack.SwitchInternal else Localization.ServerRack.SwitchExternal
     super.drawScreen(mouseX, mouseY, dt)
   }
 
@@ -78,9 +84,11 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       add(buttonList, sideButtons(i))
     }
     for (i <- 0 to 1) {
-      rangeButtons(i) = new ImageButton(8 + i, guiLeft + 8 + i * 48, guiTop + 43, 16, 18, Textures.guiButtonRange, if (i == 0) "-" else "+")
+      rangeButtons(i) = new ImageButton(8 + i, guiLeft + 8 + i * 48, guiTop + 50, 16, 18, Textures.guiButtonRange, if (i == 0) "-" else "+")
       add(buttonList, rangeButtons(i))
     }
+    switchButton = new ImageButton(10, guiLeft + 8, guiTop + 17, 64, 18, Textures.guiButtonSwitch, Localization.ServerRack.SwitchExternal, textIndent = 18)
+    add(buttonList, switchButton)
   }
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
@@ -91,12 +99,13 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       StatCollector.translateToLocal(rack.getInvName),
       8, 6, 0x404040)
 
-    fontRenderer.drawString(Localization.ServerRack.WirelessRange, 8, 31, 0x404040)
+    val rangeY = 39
+    fontRenderer.drawString(Localization.ServerRack.WirelessRange, 8, rangeY, 0x404040)
 
     {
       // Background for range value.
       val tx = 25
-      val ty = 43
+      val ty = 50
       val w = 30
       val h = 18
       val t = Tessellator.instance
@@ -114,7 +123,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
 
     drawCenteredString(fontRenderer,
       rack.range.toString,
-      40, 48, 0xFFFFFF)
+      40, 56, 0xFFFFFF)
 
     for (i <- 0 to 3 if powerButtons(i).func_82252_a) {
       val tooltip = new java.util.ArrayList[String]

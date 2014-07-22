@@ -13,7 +13,8 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
                   val canToggle: Boolean = false,
                   val textColor: Int = 0xE0E0E0,
                   val textDisabledColor: Int = 0xA0A0A0,
-                  val textHoverColor: Int = 0xFFFFA0) extends GuiButton(id, x, y, w, h, text) {
+                  val textHoverColor: Int = 0xFFFFA0,
+                  val textIndent: Int = -1) extends GuiButton(id, x, y, w, h, text) {
 
   var toggled = false
 
@@ -48,7 +49,8 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
           if (!enabled) textDisabledColor
           else if (hoverOverride || field_82253_i) textHoverColor
           else textColor
-        drawCenteredString(mc.fontRenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color)
+        if (textIndent >= 0) drawString(mc.fontRenderer, displayString, textIndent + xPosition, yPosition + (height - 8) / 2, color)
+        else drawCenteredString(mc.fontRenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color)
       }
     }
   }
