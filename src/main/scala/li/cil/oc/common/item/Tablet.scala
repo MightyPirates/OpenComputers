@@ -41,7 +41,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 }
 
-class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentInventory with Container with Owner {
+class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with Container with Owner {
   lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val items = Array(
@@ -53,6 +53,7 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
     Option(api.Items.get("batteryUpgrade2").createItemStack(1)),
     Option(api.Items.get("navigationUpgrade").createItemStack(1)),
     Option(api.Items.get("openOS").createItemStack(1)),
+    Option(api.Items.get("hdd1").createItemStack(1)),
     Option(api.Items.get("wlanCard").createItemStack(1))
   )
 
@@ -230,7 +231,7 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
 
   private var currentHolder: Entity = _
 
-  def get(stack: ItemStack, holder: Entity) = clientCache.synchronized {
+  def get(stack: ItemStack, holder: Entity) = (if (holder.worldObj.isRemote) clientCache else serverCache).synchronized {
     currentStack = stack
     currentHolder = holder
     if (!stack.hasTagCompound) {
@@ -240,18 +241,14 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
       stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
     }
     val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
-    if (holder.worldObj.isRemote)
-      clientCache.get(id, this)
-    else
-      serverCache.get(id, this)
-  }
-
-  def get(stack: ItemStack) = clientCache.synchronized {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-      val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
-      Option(clientCache.getIfPresent(id))
-    }
-    else None
+    val wrapper =
+      if (holder.worldObj.isRemote)
+        clientCache.get(id, this)
+      else
+        serverCache.get(id, this)
+    wrapper.stack = stack
+    wrapper.holder = holder
+    wrapper
   }
 
   def call = {
