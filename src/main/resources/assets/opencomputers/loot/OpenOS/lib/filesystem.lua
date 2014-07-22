@@ -209,17 +209,13 @@ function filesystem.mounts()
   end
   local queue = {mtab}
   return function()
-    if #queue == 0 then
-      return nil
-    else
-      while #queue > 0 do
-        local node = table.remove(queue)
-        for _, child in pairs(node.children) do
-          table.insert(queue, child)
-        end
-        if node.fs then
-          return component.proxy(node.fs), path(node)
-        end
+    while #queue > 0 do
+      local node = table.remove(queue)
+      for _, child in pairs(node.children) do
+        table.insert(queue, child)
+      end
+      if node.fs then
+        return component.proxy(node.fs) or node.fs, path(node)
       end
     end
   end
@@ -269,20 +265,17 @@ function filesystem.umount(fsOrPath)
       return true
     end
   end
-  local function unmount(address)
-    local queue = {mtab}
-    for proxy, path in filesystem.mounts() do
-      if string.sub(proxy.address, 1, address:len()) == address then
-        local node, rest, vnode, vrest = findNode(path)
-        vnode.fs = nil
-        removeEmptyNodes(vnode)
-        return true
-      end
-    end
-  end
   local address = type(fsOrPath) == "table" and fsOrPath.address or fsOrPath
   local result = false
-  while unmount(address) do result = true end
+  for proxy, path in filesystem.mounts() do
+    local addr = type(proxy) == "table" and proxy.address or proxy
+    if string.sub(addr, 1, address:len()) == address then
+      local node, rest, vnode, vrest = findNode(path)
+      vnode.fs = nil
+      removeEmptyNodes(vnode)
+      result = true
+    end
+  end
   return result
 end
 
