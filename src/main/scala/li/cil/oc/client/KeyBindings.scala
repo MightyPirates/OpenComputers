@@ -9,9 +9,9 @@ import net.minecraft.client.settings.KeyBinding
 import org.lwjgl.input.Keyboard
 
 object KeyBindings {
-  def showExtendedTooltips = Keyboard.isKeyDown(extendedTooltip.keyCode)
+  def showExtendedTooltips = Keyboard.isCreated && Keyboard.isKeyDown(extendedTooltip.keyCode)
 
-  def showMaterialCosts = Keyboard.isKeyDown(materialCosts.keyCode)
+  def showMaterialCosts = Keyboard.isCreated && Keyboard.isKeyDown(materialCosts.keyCode)
 
   val extendedTooltip = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
 

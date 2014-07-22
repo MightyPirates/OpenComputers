@@ -6,6 +6,7 @@ import java.util
 import cpw.mods.fml.common.registry.TickRegistry
 import cpw.mods.fml.common.{ITickHandler, TickType}
 import cpw.mods.fml.relauncher.Side
+import li.cil.oc.OpenComputers
 import net.minecraft.client.Minecraft
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.{AL, AL10, Util}
@@ -25,6 +26,8 @@ object Audio extends ITickHandler {
   private val sources = mutable.Set.empty[Source]
 
   private def volume = Minecraft.getMinecraft.gameSettings.soundVolume
+
+  private var errored = false
 
   def play(x: Float, y: Float, z: Float, frequencyInHz: Int, durationInMilliseconds: Int) {
     val distanceBasedGain = math.max(0, 1 - Minecraft.getMinecraft.thePlayer.getDistance(x, y, z) / 12).toFloat
@@ -54,11 +57,17 @@ object Audio extends ITickHandler {
   }
 
   def update() {
-    sources.synchronized(sources --= sources.filter(_.checkFinished))
+    if (!errored) {
+      sources.synchronized(sources --= sources.filter(_.checkFinished))
 
-    // Clear error stack.
-    if (AL.isCreated) {
-      AL10.alGetError()
+      // Clear error stack.
+      if (AL.isCreated) {
+        try AL10.alGetError() catch {
+          case _: UnsatisfiedLinkError =>
+            OpenComputers.log.warning("Negotiations with OpenAL broke down, disabling sounds.")
+            errored = true
+        }
+      }
     }
   }
 
