@@ -133,19 +133,38 @@ public class BaseLib extends TwoArgFunction implements ResourceFinder {
 	// "collectgarbage", // ( opt [,arg] ) -> value
 	static final class collectgarbage extends VarArgFunction {
 		public Varargs invoke(Varargs args) {
-			String s = args.checkjstring(1);
-			if ("collect".equals(s)) {
+			String s = args.optjstring(1, "collect");
+			int ex = args.optint(2, 0);
+			switch (s) {
+			case "stop":
+				return ZERO; // unsupported
+			case "restart":
+				return ZERO; // unsupported
+			case "collect":
 				System.gc();
 				return ZERO;
-			} else if ("count".equals(s)) {
+			case "count":
 				Runtime rt = Runtime.getRuntime();
 				long used = rt.totalMemory() - rt.freeMemory();
 				return varargsOf(valueOf(used / 1024.), valueOf(used % 1024));
-			} else if ("step".equals(s)) {
+			case "step":
 				System.gc();
-				return LuaValue.TRUE;
-			} else {
-				this.argerror("gc op");
+				return TRUE;
+			case "setpause":
+				return ZERO; // TODO: Store this, despite no effect?
+			case "setstepmul":
+				return ZERO; // TODO: Store this, despite no effect?
+			case "setmajorinc":
+				return ZERO; // TODO: Store this, despite no effect?
+			case "isrunning":
+				return TRUE;
+			case "generational":
+				return ZERO; // unsupported
+			case "incremental":
+				return ZERO; // unsupported
+			default:
+				this.argerror(1, "invalid option '" + s + "'");
+				break;
 			}
 			return NIL;
 		}
