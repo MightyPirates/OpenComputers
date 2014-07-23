@@ -1,17 +1,21 @@
 local fs = require("filesystem")
 local shell = require("shell")
+local text = require("text")
 
 local args, options = shell.parse(...)
-local f = function (m) 
-  local s = {'','K','M','G'} 
-  for _,f in ipairs (s) do 
-    if m > 1024 then 
-			m = m / 1024 
-		else 
-			return tostring (math.floor(m*100)/100) .. f .. 'B'
-		end
-	end
-	return tostring (math.floor(m*102400)/100) .. s[#s] .. 'B'
+
+local function formatSize(size)
+  if not options.h then
+    return tostring(size)
+  end
+  local sizes = {"", "K", "M", "G"}
+  local unit = 1
+  local power = options.si and 1000 or 1024
+  while size > power and unit < #sizes do
+    unit = unit + 1
+    size = size / power
+  end
+  return math.floor(size * 10) / 10 .. sizes[unit]
 end
 
 local mounts = {}
@@ -49,25 +53,19 @@ for path, proxy in pairs(mounts) do
       percent = math.ceil(percent * 100) .. "%"
     end
   end
-  if options['h'] then
-    table.insert(result, {label, f(used), f(available), percent, path})
-  else
-    table.insert(result, {label, used, available, percent, path})
-  end
+  table.insert(result, {label, formatSize(used), formatSize(available), tostring(percent), path})
 end
-
 
 local m = {}
-for _, entry in ipairs ( result ) do
-  for i, e in ipairs (entry) do
-    if m[i] == nil then m[i] = 1 end
-    m[i] = math.max (m[i],tostring(e):len())
+for _, row in ipairs(result) do
+  for col, value in ipairs(row) do
+    m[col] = math.max(m[col] or 1, value:len())
   end
 end
 
-for _, entry in ipairs(result) do
-  for i,e in ipairs (entry) do
-    io.write ( e .. string.rep (' ', (m[i] + 2) - tostring(e):len()) )
+for _, row in ipairs(result) do
+  for col, value in ipairs(row) do
+    io.write(text.padRight(value, m[col] + 2))
   end
-  io.write ( '\n' )
+  io.write("\n")
 end
