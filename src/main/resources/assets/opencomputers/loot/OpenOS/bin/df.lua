@@ -2,6 +2,17 @@ local fs = require("filesystem")
 local shell = require("shell")
 
 local args, options = shell.parse(...)
+local f = function (m) 
+  local s = {'','K','M','G'} 
+  for _,f in ipairs (s) do 
+    if m > 1024 then 
+			m = m / 1024 
+		else 
+			return tostring (math.floor(m*100)/100) .. f .. 'B'
+		end
+	end
+	return tostring (math.floor(m*102400)/100) .. s[#s] .. 'B'
+end
 
 local mounts = {}
 if #args == 0 then
@@ -38,10 +49,25 @@ for path, proxy in pairs(mounts) do
       percent = math.ceil(percent * 100) .. "%"
     end
   end
-  table.insert(result, {label, used, available, percent, path})
+  if options['h'] then
+    table.insert(result, {label, f(used), f(available), percent, path})
+  else
+    table.insert(result, {label, used, available, percent, path})
+  end
 end
 
--- TODO tabulate
+
+local m = {}
+for _, entry in ipairs ( result ) do
+  for i, e in ipairs (entry) do
+    if m[i] == nil then m[i] = 1 end
+    m[i] = math.max (m[i],tostring(e):len())
+  end
+end
+
 for _, entry in ipairs(result) do
-  io.write(table.concat(entry, "\t"), "\n")
+  for i,e in ipairs (entry) do
+    io.write ( e .. string.rep (' ', (m[i] + 2) - tostring(e):len()) )
+  end
+  io.write ( '\n' )
 end
