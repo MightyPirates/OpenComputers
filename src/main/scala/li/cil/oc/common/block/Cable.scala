@@ -135,7 +135,7 @@ object Cable {
 
   private def canConnectFromSideIM(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
-      case cable: tileentity.Cable => cable.ImmibisMicroblocks_isSideOpen(side.ordinal)
+      case im: tileentity.traits.ImmibisMicroblock => im.ImmibisMicroblocks_isSideOpen(side.ordinal)
       case _ => true
     }
 }

@@ -1,7 +1,22 @@
 local fs = require("filesystem")
 local shell = require("shell")
+local text = require("text")
 
 local args, options = shell.parse(...)
+
+local function formatSize(size)
+  if not options.h then
+    return tostring(size)
+  end
+  local sizes = {"", "K", "M", "G"}
+  local unit = 1
+  local power = options.si and 1000 or 1024
+  while size > power and unit < #sizes do
+    unit = unit + 1
+    size = size / power
+  end
+  return math.floor(size * 10) / 10 .. sizes[unit]
+end
 
 local mounts = {}
 if #args == 0 then
@@ -24,7 +39,7 @@ for path, proxy in pairs(mounts) do
   local label = proxy.getLabel() or proxy.address
   local used, total = proxy.spaceUsed(), proxy.spaceTotal()
   local available, percent
-  if total == "unlimited" then
+  if total == math.huge then
     used = used or "N/A"
     available = "unlimited"
     percent = "0%"
@@ -38,10 +53,19 @@ for path, proxy in pairs(mounts) do
       percent = math.ceil(percent * 100) .. "%"
     end
   end
-  table.insert(result, {label, used, available, percent, path})
+  table.insert(result, {label, formatSize(used), formatSize(available), tostring(percent), path})
 end
 
--- TODO tabulate
-for _, entry in ipairs(result) do
-  io.write(table.concat(entry, "\t"), "\n")
+local m = {}
+for _, row in ipairs(result) do
+  for col, value in ipairs(row) do
+    m[col] = math.max(m[col] or 1, value:len())
+  end
+end
+
+for _, row in ipairs(result) do
+  for col, value in ipairs(row) do
+    io.write(text.padRight(value, m[col] + 2))
+  end
+  io.write("\n")
 end
