@@ -9,6 +9,7 @@ import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.{Mods, Waila}
@@ -178,7 +179,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) = {
     val descriptor = api.Items.get(stack)
-    descriptor == api.Items.get("server1") || descriptor == api.Items.get("server2") || descriptor == api.Items.get("server3")
+    descriptor == api.Items.get("server1") ||
+      descriptor == api.Items.get("server2") ||
+      descriptor == api.Items.get("server3") ||
+      descriptor == api.Items.get("serverCreative")
   }
 
   // ----------------------------------------------------------------------- //
@@ -229,7 +233,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       }
 
       servers collect {
-        case Some(server) => server.machine.update()
+        case Some(server) =>
+          if (server.tier == Tier.Four && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+            server.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+          }
+          server.machine.update()
       }
 
       if (hasChanged) {

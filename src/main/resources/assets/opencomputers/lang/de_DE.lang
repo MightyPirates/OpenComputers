@@ -75,6 +75,7 @@ oc:item.RedstoneCard1.name=Redstonekarte (Stufe 2)
 oc:item.Server0.name=Server (Stufe 1)
 oc:item.Server1.name=Server (Stufe 2)
 oc:item.Server2.name=Server (Stufe 3)
+oc:item.Server3.name=Server (Kreativ)
 oc:item.Terminal.name=Fernbedienung
 oc:item.Transistor.name=Transistor
 oc:item.UpgradeAngel.name=Schwebe-Upgrade

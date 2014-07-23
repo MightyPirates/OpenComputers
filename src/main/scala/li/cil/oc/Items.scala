@@ -237,5 +237,8 @@ object Items extends ItemAPI {
 
     // Experimental
     registerItem(new item.Tablet(multi), "tablet")
+
+    // 1.3.2 (cont.)
+    registerItem(new item.Server(multi, Tier.Four), "serverCreative")
   }
 }

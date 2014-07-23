@@ -10,24 +10,25 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
     addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
-  for (i <- 0 to 1 + serverInventory.tier) {
+  val verticalSlots = math.min(3, 1 + serverInventory.tier)
+  for (i <- 0 to verticalSlots) {
     val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
     addSlotToContainer(100, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
-  for (i <- 0 to 1 + serverInventory.tier) {
+  for (i <- 0 to verticalSlots) {
     val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
     addSlotToContainer(124, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
-  for (i <- 0 to 1 + serverInventory.tier) {
+  for (i <- 0 to verticalSlots) {
     val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
     addSlotToContainer(148, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
-  for (i <- 1 to serverInventory.tier) {
+  for (i <- 2 to verticalSlots) {
     val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
-    addSlotToContainer(76, 7 + (i + 1) * slotSize, slot.slot, slot.tier)
+    addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   // Show the player's inventory.

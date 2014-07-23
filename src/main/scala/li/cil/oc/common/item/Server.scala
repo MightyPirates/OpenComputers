@@ -3,6 +3,7 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.{Rarity, Tooltip}
 import li.cil.oc.{OpenComputers, Settings}
@@ -26,7 +27,7 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
   }
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(super.unlocalizedName, Settings.get.terminalsPerTier(tier)))
+    tooltip.addAll(Tooltip.get(super.unlocalizedName, Settings.get.terminalsPerTier(math.min(Tier.Three, tier))))
     HelperInventory.container = stack
     HelperInventory.reinitialize()
     val items = mutable.Map.empty[String, Int]
