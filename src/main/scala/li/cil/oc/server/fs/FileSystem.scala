@@ -9,6 +9,7 @@ import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.server.component
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import li.cil.oc.{OpenComputers, Settings, api}
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
 import org.apache.logging.log4j.Level
@@ -115,6 +116,8 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem) =
     asManagedEnvironment(fileSystem, null: Label)
+
+  abstract class ItemLabel(val stack: ItemStack) extends Label
 
   private class ReadOnlyLabel(val label: String) extends Label {
     def setLabel(value: String) = throw new IllegalArgumentException("label is read only")

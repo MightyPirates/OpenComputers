@@ -204,7 +204,9 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   override def initialize() = {
     lua = JsePlatform.debugGlobals()
     lua.set("package", LuaValue.NIL)
+    lua.set("require", LuaValue.NIL)
     lua.set("io", LuaValue.NIL)
+    lua.set("os", LuaValue.NIL)
     lua.set("luajava", LuaValue.NIL)
 
     // Remove some other functions we don't need and are dangerous.

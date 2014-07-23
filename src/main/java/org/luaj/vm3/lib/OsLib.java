@@ -244,7 +244,7 @@ public class OsLib extends TwoArgFunction {
 					break;
 				switch (c = fmt[i++]) {
 				default:
-					LuaValue.argerror(1, "invalid conversion specifier '%" + c + "'");
+					LuaValue.argerror(1, "invalid conversion specifier '%" + (char)c + "'");
 					break;
 				case '%':
 					result.append((byte) '%');

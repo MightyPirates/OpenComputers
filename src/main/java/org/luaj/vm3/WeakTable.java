@@ -118,6 +118,8 @@ public class WeakTable implements Metatable {
 			LuaValue value = strongvalue();
 			if (key != null && value != null) {
 				return new LuaTable.NormalEntry(key, value);
+			} else if (key != null && this.value instanceof WeakValue && ((WeakValue)this.value).ref.get() == null) {
+				return new LuaTable.NormalEntry(key, LuaValue.NIL);
 			} else {
 				this.key = null;
 				this.value = null;
