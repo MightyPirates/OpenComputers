@@ -64,9 +64,16 @@ class Settings(config: Config) {
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
-  val allowBytecode = config.getBoolean("computer.allowBytecode")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
   val executionDelay = config.getInt("computer.executionDelay") max 0
+
+  // ----------------------------------------------------------------------- //
+  // computer.security
+
+  val allowBytecode = config.getBoolean("computer.security.allowBytecode")
+  val allowDebug = config.getBoolean("computer.security.allowDebug")
+  val hardwareSandbox = config.getBoolean("computer.security.kernelSandbox")
+  val disableSandbox = config.getBoolean("computer.security.disableSandbox")
 
   // ----------------------------------------------------------------------- //
   // computer.debug

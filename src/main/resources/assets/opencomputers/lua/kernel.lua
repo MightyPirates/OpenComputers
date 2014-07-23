@@ -41,6 +41,16 @@ local function spcall(...)
   end
 end
 
+local function makeDebug()
+    if system.allowDebug() then
+        return debug
+    else
+        return {
+            traceback = debug.traceback
+        }
+    end
+end
+
 --[[ This is the global environment we make available to userland programs. ]]
 -- You'll notice that we do a lot of wrapping of native functions and adding
 -- parameter checks in those wrappers. This is to avoid errors from the host
@@ -260,13 +270,14 @@ sandbox = {
     tmpname = nil, -- in boot/*_os.lua
   },
 
-  debug = {
-    traceback = debug.traceback
-  },
+  debug = makeDebug(),
 
   checkArg = checkArg
 }
 sandbox._G = sandbox
+if system.disableSandbox() then
+    sandbox.kernel = _G
+end
 
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
