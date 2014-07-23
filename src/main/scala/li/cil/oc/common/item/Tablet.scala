@@ -257,11 +257,12 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
 
   def onRemoval(e: RemovalNotification[String, TabletWrapper]) {
     val tablet = e.getValue
-    tablet.stop()
     if (tablet.node != null) {
+      // Server.
+      tablet.stop()
       tablet.node.remove()
+      tablet.writeToNBT()
     }
-    tablet.writeToNBT()
   }
 
   @ForgeSubscribe
