@@ -49,7 +49,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
     }
   }
 
-  @Callback
+  @Callback(doc = """function(address:string):boolean -- Binds the GPU to the screen with the specified address.""")
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     node.network.node(address) match {
@@ -71,7 +71,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
     }
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number, boolean -- Get the current background color and whether it's from the palette or not.""")
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getBackgroundColor, s.isBackgroundFromPalette))
 
@@ -91,7 +91,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
     })
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number, boolean -- Get the current foreground color and whether it's from the palette or not.""")
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getForegroundColor, s.isForegroundFromPalette))
 
@@ -111,7 +111,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
     })
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(index:number):number -- Get the palette color at the specified palette index.""")
   def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
     screen(s => try result(s.getPaletteColor(index)) catch {
@@ -119,7 +119,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
     })
   }
 
-  @Callback
+  @Callback(doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
   def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
     val color = args.checkInteger(1)
@@ -134,11 +134,11 @@ abstract class GraphicsCard extends component.ManagedComponent {
     })
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- Returns the currently set color depth.""")
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(PackedColor.Depth.bits(s.getColorDepth)))
 
-  @Callback
+  @Callback(doc = """function(depth:number):number -- Set the color depth. Returns the previous value.""")
   def setDepth(context: Context, args: Arguments): Array[AnyRef] = {
     val depth = args.checkInteger(0)
     screen(s => {
@@ -153,15 +153,15 @@ abstract class GraphicsCard extends component.ManagedComponent {
     })
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- Get the maximum supported color depth.""")
   def maxDepth(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(PackedColor.Depth.bits(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))))
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number, number -- Get the current screen resolution.""")
   def getResolution(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getWidth, s.getHeight))
 
-  @Callback
+  @Callback(doc = """function(width:number, height:number):boolean -- Set the screen resolution. Returns true if the resolution changed.""")
   def setResolution(context: Context, args: Arguments): Array[AnyRef] = {
     val w = args.checkInteger(0)
     val h = args.checkInteger(1)
@@ -173,7 +173,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
     screen(s => result(s.setResolution(w, h)))
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number, number -- Get the maximum screen resolution.""")
   def maxResolution(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => {
       val (gmw, gmh) = maxResolution
@@ -182,7 +182,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
       result(math.min(gmw, smw), math.min(gmh, smh))
     })
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(x:number, y:number):string, number, number, number or nil, number or nil -- Get the value displayed on the screen at the specified index, as well as the foreground and background color. If the foreground or background is from the palette, returns the palette indices as fourth and fifth results, else nil, respectively.""")
   def get(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
@@ -357,19 +357,19 @@ object GraphicsCard {
     protected val maxDepth = Settings.screenDepthsByTier(0)
     protected val maxResolution = Settings.screenResolutionsByTier(0)
 
-    @Callback(direct = true, limit = 1)
+    @Callback(direct = true, limit = 1, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
 
-    @Callback(direct = true, limit = 1)
+    @Callback(direct = true, limit = 1, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
     override def fill(context: Context, args: Arguments) = super.fill(context, args)
 
-    @Callback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
     override def set(context: Context, args: Arguments) = super.set(context, args)
 
-    @Callback(direct = true, limit = 2)
+    @Callback(direct = true, limit = 2, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
 
-    @Callback(direct = true, limit = 2)
+    @Callback(direct = true, limit = 2, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
   }
 
@@ -377,19 +377,19 @@ object GraphicsCard {
     protected val maxDepth = Settings.screenDepthsByTier(1)
     protected val maxResolution = Settings.screenResolutionsByTier(1)
 
-    @Callback(direct = true, limit = 2)
+    @Callback(direct = true, limit = 2, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
 
-    @Callback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
     override def fill(context: Context, args: Arguments) = super.fill(context, args)
 
-    @Callback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
     override def set(context: Context, args: Arguments) = super.set(context, args)
 
-    @Callback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
 
-    @Callback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
   }
 
@@ -397,19 +397,19 @@ object GraphicsCard {
     protected val maxDepth = Settings.screenDepthsByTier(2)
     protected val maxResolution = Settings.screenResolutionsByTier(2)
 
-    @Callback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
 
-    @Callback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
     override def fill(context: Context, args: Arguments) = super.fill(context, args)
 
-    @Callback(direct = true, limit = 16)
+    @Callback(direct = true, limit = 16, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
     override def set(context: Context, args: Arguments) = super.set(context, args)
 
-    @Callback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
 
-    @Callback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
   }
 

@@ -101,7 +101,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(doc = """function():boolean -- Returns whether the screen is currently on.""")
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the screen is currently on.""")
   def isOn(computer: Context, args: Arguments): Array[AnyRef] = result(isDisplaying)
 
   @Callback(doc = """function():boolean -- Turns the screen on. Returns true if it was off.""")
@@ -118,8 +118,8 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     result(isDisplaying != oldPowerState, isDisplaying)
   }
 
-  @Callback(doc = """function():number, number -- The aspect ratio of the screen. For multi-block screens this is the number of blocks, horizontal and vertical.""")
-  def getAspectRatio(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(direct = true, doc = """function():number, number -- The aspect ratio of the screen. For multi-block screens this is the number of blocks, horizontal and vertical.""")
+  def getAspectRatio(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     result(aspectRatio._1, aspectRatio._2)
   }
 
@@ -167,7 +167,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def getMaximumHeight = maxResolution._2
 
-  override def setAspectRatio(width: Double, height: Double) = aspectRatio = (width, height)
+  override def setAspectRatio(width: Double, height: Double) = this.synchronized(aspectRatio = (width, height))
 
   override def getAspectRatio = aspectRatio._1 / aspectRatio._2
 

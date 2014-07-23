@@ -27,12 +27,12 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():string -- Get the current label of the file system.""")
   def getLabel(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     if (label != null) result(label.getLabel) else null
   }
 
-  @Callback
+  @Callback(doc = """function(value:string):string -- Sets the label of the file system. Returns the new value, which may be truncated.""")
   def setLabel(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     if (label == null) throw new Exception("filesystem does not support labeling")
     if (args.checkAny(0) == null) label.setLabel(null)
@@ -40,46 +40,44 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     result(label.getLabel)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the file system is read-only.""")
   def isReadOnly(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.isReadOnly)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- The overall capacity of the file system, in bytes.""")
   def spaceTotal(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val space = fileSystem.spaceTotal
-    if (space < 0)
-      Array("unlimited")
-    else
-      result(space)
+    if (space < 0) result(Double.PositiveInfinity)
+    else result(space)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- The currently used capacity of the file system, in bytes.""")
   def spaceUsed(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.spaceUsed)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(path:string):boolean -- Returns whether an object exists at the specified absolute path in the file system.""")
   def exists(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.exists(clean(args.checkString(0))))
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(path:string):number -- Returns the size of the object at the specified absolute path in the file system.""")
   def size(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.size(clean(args.checkString(0))))
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(path:string):boolean -- Returns whether the object at the specified absolute path in the file system is a directory.""")
   def isDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.isDirectory(clean(args.checkString(0))))
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(path:string):number -- Returns the (real world) timestamp of when the object at the specified absolute path in the file system was modified.""")
   def lastModified(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.lastModified(clean(args.checkString(0))))
   }
 
-  @Callback
+  @Callback(doc = """function(path:string):table -- Returns a list of names of objects in the directory at the specified absolute path in the file system.""")
   def list(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     Option(fileSystem.list(clean(args.checkString(0)))) match {
       case Some(list) =>
@@ -89,7 +87,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     }
   }
 
-  @Callback
+  @Callback(doc = """function(path:string):boolean -- Creates a directory at the specified absolute path in the file system. Creates parent directories, if necessary.""")
   def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
@@ -98,7 +96,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     result(success)
   }
 
-  @Callback
+  @Callback(doc = """function(path:string):boolean -- Removes the object at the specified absolute path in the file system.""")
   def remove(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
@@ -107,14 +105,14 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     result(success)
   }
 
-  @Callback
+  @Callback(doc = """function(from:string, to:string):boolean -- Renames/moves an object from the first specified absolute path in the file system to the second.""")
   def rename(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val success = fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1)))
     if (success) makeSomeNoise()
     result(success)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(handle:number) -- Closes an open file descriptor with the specified handle.""")
   def close(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     Option(fileSystem.getHandle(handle)) match {
@@ -128,7 +126,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     null
   }
 
-  @Callback(direct = true, limit = 4)
+  @Callback(direct = true, limit = 4, doc = """function(path:string[, mode:string='r']):number -- Opens a new file descriptor and returns its handle.""")
   def open(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     if (owners.get(context.node.address).fold(false)(_.size >= Settings.get.maxHandles)) {
       throw new IOException("too many open handles")
@@ -142,7 +140,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     result(handle)
   }
 
-  @Callback(direct = true, limit = 4)
+  @Callback(direct = true, limit = 4, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
   def read(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
@@ -174,7 +172,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     }
   }
 
-  @Callback(direct = true, limit = 4)
+  @Callback(direct = true, limit = 4, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
   def seek(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val whence = args.checkString(1)
@@ -193,7 +191,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     }
   }
 
-  @Callback
+  @Callback(doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
   def write(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)

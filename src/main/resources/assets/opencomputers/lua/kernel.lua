@@ -494,6 +494,9 @@ libcomponent = {
       end
     end
   end,
+  methods = function(address)
+    return spcall(component.methods, address)
+  end,
   proxy = function(address)
     checkArg(1, address, "string")
     local type, reason = spcall(component.type, address)

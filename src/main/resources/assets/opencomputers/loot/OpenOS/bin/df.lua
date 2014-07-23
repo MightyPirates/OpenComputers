@@ -24,7 +24,7 @@ for path, proxy in pairs(mounts) do
   local label = proxy.getLabel() or proxy.address
   local used, total = proxy.spaceUsed(), proxy.spaceTotal()
   local available, percent
-  if total == "unlimited" then
+  if total == math.huge then
     used = used or "N/A"
     available = "unlimited"
     percent = "0%"
