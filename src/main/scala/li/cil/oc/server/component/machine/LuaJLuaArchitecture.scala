@@ -208,6 +208,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
       lua.set("require", LuaValue.NIL)
       lua.set("io", LuaValue.NIL)
       lua.set("luajava", LuaValue.NIL)
+      lua.set("os", LuaValue.NIL)
 
       // Remove some other functions we don't need and are dangerous.
       lua.set("dofile", LuaValue.NIL)
