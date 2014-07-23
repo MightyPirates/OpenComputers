@@ -135,36 +135,34 @@ public class BaseLib extends TwoArgFunction implements ResourceFinder {
 		public Varargs invoke(Varargs args) {
 			String s = args.optjstring(1, "collect");
 			int ex = args.optint(2, 0);
-			switch (s) {
-			case "stop":
+			if ( s.equals("stop") ) {
 				return ZERO; // unsupported
-			case "restart":
+			} else if( s.equals("restart") ) {
 				return ZERO; // unsupported
-			case "collect":
+			} else if( s.equals("collect") ) {
 				System.gc();
 				return ZERO;
-			case "count":
+			} else if( s.equals("count") ) {
 				Runtime rt = Runtime.getRuntime();
 				long used = rt.totalMemory() - rt.freeMemory();
 				return varargsOf(valueOf(used / 1024.), valueOf(used % 1024));
-			case "step":
+			} else if( s.equals("step") ) {
 				System.gc();
 				return TRUE;
-			case "setpause":
+			} else if( s.equals("setpause") ) {
 				return ZERO; // TODO: Store this, despite no effect?
-			case "setstepmul":
+			} else if( s.equals("setstepmul") ) {
 				return ZERO; // TODO: Store this, despite no effect?
-			case "setmajorinc":
+			} else if( s.equals("setmajorinc") ) {
 				return ZERO; // TODO: Store this, despite no effect?
-			case "isrunning":
+			} else if( s.equals("isrunning") ) {
 				return TRUE;
-			case "generational":
+			} else if( s.equals("generational") ) {
 				return ZERO; // unsupported
-			case "incremental":
+			} else if( s.equals("incremental") ) {
 				return ZERO; // unsupported
-			default:
+			} else {
 				this.argerror(1, "invalid option '" + s + "'");
-				break;
 			}
 			return NIL;
 		}
