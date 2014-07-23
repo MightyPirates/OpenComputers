@@ -75,6 +75,7 @@ oc:item.RedstoneCard1.name=Redstone Card (Tier 2)
 oc:item.Server0.name=Server (Tier 1)
 oc:item.Server1.name=Server (Tier 2)
 oc:item.Server2.name=Server (Tier 3)
+oc:item.Server3.name=Server (Creative)
 oc:item.Tablet.name=Tablet
 oc:item.Terminal.name=Remote Terminal
 oc:item.Transistor.name=Transistor

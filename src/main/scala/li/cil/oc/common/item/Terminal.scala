@@ -4,6 +4,7 @@ import java.util
 import java.util.UUID
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{OpenComputers, Settings}
@@ -60,7 +61,7 @@ class Terminal(val parent: Delegator) extends Delegate {
                 else {
                   keys -= stack.getTagCompound.getString(Settings.namespace + "key")
                 }
-                val maxSize = Settings.get.terminalsPerTier(server.tier)
+                val maxSize = Settings.get.terminalsPerTier(math.min(Tier.Three, server.tier))
                 while (keys.length >= maxSize) {
                   keys.remove(0)
                 }

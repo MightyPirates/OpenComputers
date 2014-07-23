@@ -194,6 +194,25 @@ object InventorySlots {
       InventorySlot(Slot.HardDiskDrive, Tier.Three),
       InventorySlot(Slot.Card, Tier.Two),
       InventorySlot(Slot.Card, Tier.Two)
+    ),
+
+    Array(
+      InventorySlot(Slot.Card, Tier.Three),
+      InventorySlot(Slot.Card, Tier.Three),
+      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.Memory, Tier.Three),
+      InventorySlot(Slot.Memory, Tier.Three),
+      InventorySlot(Slot.Memory, Tier.Three),
+      InventorySlot(Slot.Memory, Tier.Three),
+      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.Card, Tier.Three),
+      InventorySlot(Slot.Card, Tier.Three)
     )
   )
 

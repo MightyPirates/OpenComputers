@@ -5,6 +5,7 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.{Driver, driver}
 import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.util.Color
 import li.cil.oc.{Settings, common}
 import net.minecraft.entity.player.EntityPlayer
@@ -55,7 +56,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def canUpdate = isServer
 
   override def updateEntity() {
-    if (isServer && tier == 3 && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && tier == Tier.Four && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }

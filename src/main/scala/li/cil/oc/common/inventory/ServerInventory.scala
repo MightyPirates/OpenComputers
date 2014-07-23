@@ -8,11 +8,7 @@ import net.minecraft.item.ItemStack
 trait ServerInventory extends ItemStackInventory {
   def tier: Int
 
-  override def getSizeInventory = tier match {
-    case 1 => 12
-    case 2 => 16
-    case _ => 8
-  }
+  override def getSizeInventory = InventorySlots.server(tier).length
 
   override protected def inventoryName = "Server"
 
