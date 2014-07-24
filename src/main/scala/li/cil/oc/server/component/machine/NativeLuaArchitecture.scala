@@ -12,7 +12,6 @@ import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
-import org.apache.logging.log4j.Level
 
 class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: LuaState = null
@@ -49,7 +48,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   catch {
     case e: Throwable =>
       if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
-        OpenComputers.log.log(Level.WARN, "Exception in Lua callback.", e)
+        OpenComputers.log.warn("Exception in Lua callback.", e)
       }
       e match {
         case _: LimitReachedException =>
@@ -99,7 +98,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           lua.pushString("unsupported operation")
           2
         case e: Throwable =>
-          OpenComputers.log.log(Level.WARN, "Unexpected error in Lua callback.", e)
+          OpenComputers.log.warn("Unexpected error in Lua callback.", e)
           lua.pushBoolean(true)
           lua.pushNil()
           lua.pushString("unknown error")

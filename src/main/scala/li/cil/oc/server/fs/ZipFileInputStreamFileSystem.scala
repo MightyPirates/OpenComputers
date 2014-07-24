@@ -8,7 +8,6 @@ import java.util.zip.{ZipEntry, ZipFile}
 import com.google.common.cache.CacheBuilder
 import li.cil.oc.OpenComputers
 import li.cil.oc.server.fs.ZipFileInputStreamFileSystem.{ArchiveDirectory, ArchiveFile}
-import org.apache.logging.log4j.Level
 
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -127,7 +126,7 @@ object ZipFileInputStreamFileSystem {
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Failed creating ZIP file system.", e)
+        OpenComputers.log.warn("Failed creating ZIP file system.", e)
         null
     }
   }

@@ -8,7 +8,6 @@ import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
-import org.apache.logging.log4j.Level
 
 import scala.collection.mutable
 
@@ -73,7 +72,7 @@ object SaveHandler {
     }
     catch {
       case e: io.IOException =>
-        OpenComputers.log.log(Level.WARN, "Error loading auxiliary tile entity data.", e)
+        OpenComputers.log.warn("Error loading auxiliary tile entity data.", e)
         Array.empty[Byte]
     }
   }
@@ -101,7 +100,7 @@ object SaveHandler {
               fos.close()
             }
             catch {
-              case e: io.IOException => OpenComputers.log.log(Level.WARN, s"Error saving auxiliary tile entity data to '${file.getAbsolutePath}.", e)
+              case e: io.IOException => OpenComputers.log.warn(s"Error saving auxiliary tile entity data to '${file.getAbsolutePath}.", e)
             }
           }
         case _ => chunkPath.delete()

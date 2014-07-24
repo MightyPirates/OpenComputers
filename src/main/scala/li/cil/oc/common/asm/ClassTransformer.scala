@@ -4,7 +4,7 @@ import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.Mods
 import net.minecraft.launchwrapper.{IClassTransformer, LaunchClassLoader}
-import org.apache.logging.log4j.{Level, LogManager}
+import org.apache.logging.log4j.LogManager
 import org.objectweb.asm.tree._
 import org.objectweb.asm.{ClassReader, ClassWriter, Opcodes}
 
@@ -60,7 +60,7 @@ class ClassTransformer extends IClassTransformer {
             }
             catch {
               case e: Throwable =>
-                log.log(Level.WARN, s"Failed injecting component logic into class $name.", e)
+                log.warn(s"Failed injecting component logic into class $name.", e)
             }
           }
         }
@@ -69,7 +69,7 @@ class ClassTransformer extends IClassTransformer {
     }
     catch {
       case t: Throwable =>
-        log.log(Level.WARN, "Something went wrong!", t)
+        log.warn("Something went wrong!", t)
         basicClass
     }
   }

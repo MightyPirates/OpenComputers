@@ -19,7 +19,6 @@ import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
-import org.apache.logging.log4j.Level
 import stargatetech2.api.bus.IBusDevice
 
 import scala.collection.mutable
@@ -284,7 +283,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     nbt.getTagList(Settings.namespace + "servers", NBT.TAG_COMPOUND).foreach((list, index) =>
       if (index < servers.length) servers(index) match {
         case Some(server) => try server.load(list.getCompoundTagAt(index)) catch {
-          case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed restoring server state. Please report this!", t)
+          case t: Throwable => OpenComputers.log.warn("Failed restoring server state. Please report this!", t)
         }
         case _ =>
       })
@@ -292,7 +291,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     nbt.getTagList(Settings.namespace + "terminals", NBT.TAG_COMPOUND).
       foreach((list, index) => if (index < terminals.length) try terminals(index).load(list.getCompoundTagAt(index)) catch {
-      case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed restoring terminal state. Please report this!", t)
+      case t: Throwable => OpenComputers.log.warn("Failed restoring terminal state. Please report this!", t)
     })
     range = nbt.getInteger(Settings.namespace + "range")
     internalSwitch = nbt.getBoolean(Settings.namespace + "internalSwitch")
@@ -305,7 +304,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         case Some(server) =>
           val serverNbt = new NBTTagCompound()
           try server.save(serverNbt) catch {
-            case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed saving server state. Please report this!", t)
+            case t: Throwable => OpenComputers.log.warn("Failed saving server state. Please report this!", t)
           }
           serverNbt
         case _ => new NBTTagCompound()
@@ -316,7 +315,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
       try t.save(terminalNbt) catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARN, "Failed saving terminal state. Please report this!", t)
+        case t: Throwable => OpenComputers.log.warn("Failed saving terminal state. Please report this!", t)
       }
       terminalNbt
     }))

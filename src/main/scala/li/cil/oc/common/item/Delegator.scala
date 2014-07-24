@@ -14,7 +14,6 @@ import net.minecraft.item.{EnumRarity, Item, ItemStack}
 import net.minecraft.util.{IIcon, WeightedRandomChestContent}
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
-import org.apache.logging.log4j.Level
 
 import scala.collection.mutable
 
@@ -134,7 +133,7 @@ class Delegator extends Item {
     super.addInformation(stack, player, tooltip, advanced)
     subItem(stack) match {
       case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced) catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARN, "Error in item tooltip.", t)
+        case t: Throwable => OpenComputers.log.warn("Error in item tooltip.", t)
       }
       case _ => // Nothing to add.
     }

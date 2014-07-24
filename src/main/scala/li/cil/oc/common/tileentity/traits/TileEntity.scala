@@ -7,7 +7,6 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity
-import org.apache.logging.log4j.Level
 
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   def world = getWorldObj
@@ -69,14 +68,14 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   override def getDescriptionPacket = {
     val nbt = new NBTTagCompound()
     try writeToNBTForClient(nbt) catch {
-      case e: Throwable => OpenComputers.log.log(Level.WARN, "There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
+      case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
     }
     if (nbt.hasNoTags) null else new S35PacketUpdateTileEntity(x, y, z, -1, nbt)
   }
 
   override def onDataPacket(manager: NetworkManager, packet: S35PacketUpdateTileEntity) {
     try readFromNBTForClient(packet.func_148857_g()) catch {
-      case e: Throwable => OpenComputers.log.log(Level.WARN, "There was a problem reading a TileEntity description packet. Please report this if you see it!", e)
+      case e: Throwable => OpenComputers.log.warn("There was a problem reading a TileEntity description packet. Please report this if you see it!", e)
     }
   }
 }

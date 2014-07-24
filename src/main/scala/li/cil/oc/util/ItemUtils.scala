@@ -9,7 +9,6 @@ import net.minecraft.item.{ItemMap, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
-import org.apache.logging.log4j.Level
 
 import scala.io.Source
 
@@ -152,7 +151,7 @@ object ItemUtils {
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Failed loading robot name list.", t)
+        OpenComputers.log.warn("Failed loading robot name list.", t)
         Array.empty[String]
     }
 

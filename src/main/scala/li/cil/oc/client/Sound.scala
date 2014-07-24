@@ -13,7 +13,6 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.WorldEvent
-import org.apache.logging.log4j.Level
 import paulscode.sound.{SoundSystem, SoundSystemConfig}
 
 import scala.collection.mutable
@@ -57,7 +56,7 @@ object Sound {
       commandQueue.synchronized {
         while (!commandQueue.isEmpty && commandQueue.head.when < System.currentTimeMillis()) {
           try commandQueue.dequeue()() catch {
-            case t: Throwable => OpenComputers.log.log(Level.WARN, "Error processing sound command.", t)
+            case t: Throwable => OpenComputers.log.warn("Error processing sound command.", t)
           }
         }
       }

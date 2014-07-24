@@ -7,7 +7,6 @@ import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
-import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -111,7 +110,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
         val converted = new util.HashMap[AnyRef, AnyRef]()
         memo += arg -> converted
         converters.foreach(converter => try converter.convert(arg, converted) catch {
-          case t: Throwable => OpenComputers.log.log(Level.WARN, "Type converter threw an exception.", t)
+          case t: Throwable => OpenComputers.log.warn("Type converter threw an exception.", t)
         })
         if (converted.isEmpty) {
           memo += arg -> null

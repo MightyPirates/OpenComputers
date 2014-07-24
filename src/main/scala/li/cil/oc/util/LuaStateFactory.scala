@@ -10,7 +10,6 @@ import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
-import org.apache.logging.log4j.Level
 
 import scala.util.Random
 
@@ -278,7 +277,7 @@ object LuaStateFactory {
       }
       catch {
         case t: Throwable =>
-          OpenComputers.log.log(Level.WARN, "Failed creating Lua state.", t)
+          OpenComputers.log.warn("Failed creating Lua state.", t)
           state.close()
       }
     }
@@ -286,7 +285,7 @@ object LuaStateFactory {
       case _: UnsatisfiedLinkError =>
         OpenComputers.log.error("Failed loading the native libraries.")
       case t: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Failed creating Lua state.", t)
+        OpenComputers.log.warn("Failed creating Lua state.", t)
     }
     None
   }

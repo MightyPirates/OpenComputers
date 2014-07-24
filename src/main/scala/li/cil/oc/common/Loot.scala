@@ -13,7 +13,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
 import net.minecraftforge.common.{ChestGenHooks, DimensionManager}
 import net.minecraftforge.event.world.WorldEvent
-import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -89,7 +88,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
           acc += key -> ((createLootDisk(value, key), 1))
       }
       catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARN, "Bad loot descriptor: " + value, t)
+        case t: Throwable => OpenComputers.log.warn("Bad loot descriptor: " + value, t)
       }
     }
   }

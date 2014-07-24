@@ -21,7 +21,6 @@ import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
-import org.apache.logging.log4j.Level
 import org.lwjgl.opengl.{GL11, GL12}
 
 object RobotRenderer extends TileEntitySpecialRenderer {
@@ -377,7 +376,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           }
           catch {
             case e: Throwable =>
-              OpenComputers.log.log(Level.WARN, "Failed rendering equipped item.", e)
+              OpenComputers.log.warn("Failed rendering equipped item.", e)
               robot.renderingErrored = true
           }
           GL11.glEnable(GL11.GL_CULL_FACE)
@@ -405,7 +404,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         }
         catch {
           case e: Throwable =>
-            OpenComputers.log.log(Level.WARN, "Failed rendering equipped upgrade.", e)
+            OpenComputers.log.warn("Failed rendering equipped upgrade.", e)
             robot.renderingErrored = true
         }
       }

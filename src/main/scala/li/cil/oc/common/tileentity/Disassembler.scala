@@ -14,7 +14,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.oredict.{ShapedOreRecipe, ShapelessOreRecipe}
-import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -166,7 +165,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   }
   catch {
     case t: Throwable =>
-      OpenComputers.log.log(Level.WARN, "Whoops, something went wrong when trying to figure out an item's parts.", t)
+      OpenComputers.log.warn("Whoops, something went wrong when trying to figure out an item's parts.", t)
       Iterable.empty
   }
 

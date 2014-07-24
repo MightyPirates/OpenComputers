@@ -10,7 +10,6 @@ import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
-import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
 import scala.io.{Codec, Source}
@@ -284,7 +283,7 @@ object Settings {
       catch {
         case e: Throwable =>
           if (file.exists()) {
-            OpenComputers.log.log(Level.WARN, "Failed loading config, using defaults.", e)
+            OpenComputers.log.warn("Failed loading config, using defaults.", e)
           }
           settings = new Settings(defaults.getConfig("opencomputers"))
           defaults
@@ -305,7 +304,7 @@ object Settings {
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Failed saving config.", e)
+        OpenComputers.log.warn("Failed saving config.", e)
     }
   }
 
@@ -361,7 +360,7 @@ object Settings {
         (inetAddress: InetAddress, host: String) => host == value || inetAddress == address
     } catch {
       case t: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Invalid entry in internet blacklist / whitelist: " + value, t)
+        OpenComputers.log.warn("Invalid entry in internet blacklist / whitelist: " + value, t)
         (inetAddress: InetAddress, host: String) => true
     }
 

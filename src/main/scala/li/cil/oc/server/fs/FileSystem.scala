@@ -12,7 +12,6 @@ import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
-import org.apache.logging.log4j.Level
 
 object FileSystem extends api.detail.FileSystemAPI {
   lazy val isCaseInsensitive = Settings.get.forceCaseInsensitive || (try {
@@ -33,7 +32,7 @@ object FileSystem extends api.detail.FileSystemAPI {
       // Among the security errors, createNewFile can throw an IOException.
       // We just fall back to assuming case insensitive, since that's always
       // safe in those cases.
-      OpenComputers.log.log(Level.WARN, "Couldn't determine if file system is case sensitive, falling back to insensitive.", t)
+      OpenComputers.log.warn("Couldn't determine if file system is case sensitive, falling back to insensitive.", t)
       true
   })
 

@@ -4,7 +4,6 @@ import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
-import org.apache.logging.log4j.Level;
 import org.lwjgl.BufferUtils;
 
 import java.io.BufferedReader;
@@ -53,7 +52,7 @@ public class FontParserUnifont implements IGlyphProvider {
                 }
             }
         } catch (IOException ex) {
-            OpenComputers.log().log(Level.WARN, "Failed loading glyphs.", ex);
+            OpenComputers.log().warn("Failed loading glyphs.", ex);
         }
     }
 

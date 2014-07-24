@@ -27,7 +27,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
-import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
@@ -134,7 +133,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     val cancel = try MinecraftForge.EVENT_BUS.post(new EntityInteractEvent(this, entity)) catch {
       case t: Throwable =>
         if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
-          OpenComputers.log.log(Level.WARN, "Some event handler screwed up!", t)
+          OpenComputers.log.warn("Some event handler screwed up!", t)
         }
         false
     }
@@ -352,7 +351,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     catch {
       case t: Throwable =>
         if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
-          OpenComputers.log.log(Level.WARN, "Some event handler screwed up!", t)
+          OpenComputers.log.warn("Some event handler screwed up!", t)
         }
         false
     }

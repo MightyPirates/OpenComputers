@@ -4,7 +4,6 @@ import li.cil.oc.client.Textures
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
-import org.apache.logging.log4j.Level
 import org.lwjgl.opengl.GL11
 
 import scala.io.Source
@@ -25,7 +24,7 @@ class StaticFontRenderer extends TextureFontRenderer {
   }
   catch {
     case t: Throwable =>
-      OpenComputers.log.log(Level.WARN, "Failed reading font metadata, using defaults.", t)
+      OpenComputers.log.warn("Failed reading font metadata, using defaults.", t)
       (basicChars, 10, 18)
   }
 

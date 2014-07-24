@@ -21,7 +21,6 @@ import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraftforge.common.util.Constants.NBT
-import org.apache.logging.log4j.Level
 
 import scala.Array.canBuildFrom
 import scala.collection.mutable
@@ -441,7 +440,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
             crash("gui.Error.OutOfMemory")
           case e: Throwable =>
-            OpenComputers.log.log(Level.WARN, "Faulty architecture implementation for synchronized calls.", e)
+            OpenComputers.log.warn("Faulty architecture implementation for synchronized calls.", e)
             crash("gui.Error.InternalError")
         }
 
@@ -624,7 +623,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.log(Level.ERROR, s"""Unexpected error loading a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+        OpenComputers.log.error(s"""Unexpected error loading a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
     else close() // Clean up in case we got a weird state stack.
@@ -691,7 +690,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.log(Level.ERROR, s"""Unexpected error saving a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+        OpenComputers.log.error(s"""Unexpected error saving a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   }
@@ -716,7 +715,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case ex: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Failed initializing computer.", ex)
+        OpenComputers.log.warn("Failed initializing computer.", ex)
         close()
     }
     false
@@ -837,7 +836,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Architecture's runThreaded threw an error. This should never happen!", e)
+        OpenComputers.log.warn("Architecture's runThreaded threw an error. This should never happen!", e)
         crash("gui.Error.InternalError")
     }
 

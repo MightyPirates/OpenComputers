@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-import org.apache.logging.log4j.Level
 
 import scala.reflect.{ClassTag, classTag}
 
@@ -26,7 +25,7 @@ abstract class PacketHandler {
       else dispatch(new PacketParser(new GZIPInputStream(stream), player))
     } catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Received a badly formatted packet.", e)
+        OpenComputers.log.warn("Received a badly formatted packet.", e)
     }
   }
 

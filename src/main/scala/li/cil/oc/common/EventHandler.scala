@@ -21,7 +21,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
-import org.apache.logging.log4j.Level
 
 import scala.collection.mutable
 
@@ -78,7 +77,7 @@ object EventHandler {
       adds
     } foreach (callback => {
       try callback() catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARN, "Error in scheduled tick action.", t)
+        case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
   }

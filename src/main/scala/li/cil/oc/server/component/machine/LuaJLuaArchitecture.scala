@@ -9,7 +9,6 @@ import li.cil.oc.util.ScalaClosure
 import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
-import org.apache.logging.log4j.Level
 import org.luaj.vm3._
 import org.luaj.vm3.lib.jse.JsePlatform
 
@@ -47,7 +46,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   catch {
     case e: Throwable =>
       if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
-        OpenComputers.log.log(Level.WARN, "Exception in Lua callback.", e)
+        OpenComputers.log.warn("Exception in Lua callback.", e)
       }
       e match {
         case _: LimitReachedException =>
@@ -69,7 +68,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
         case _: IOException =>
           LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("i/o error"))
         case e: Throwable =>
-          OpenComputers.log.log(Level.WARN, "Unexpected error in Lua callback.", e)
+          OpenComputers.log.warn("Unexpected error in Lua callback.", e)
           LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("unknown error"))
       }
   }
@@ -191,10 +190,10 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     }
     catch {
       case e: LuaError =>
-        OpenComputers.log.log(Level.WARN, "Kernel crashed. This is a bug!", e)
+        OpenComputers.log.warn("Kernel crashed. This is a bug!", e)
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARN, "Unexpected error in kernel. This is a bug!", e)
+        OpenComputers.log.warn("Unexpected error in kernel. This is a bug!", e)
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
     }
   }

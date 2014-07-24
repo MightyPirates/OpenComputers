@@ -6,7 +6,6 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.ComparableVersion
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.{ChatComponentText, ChatComponentTranslation}
-import org.apache.logging.log4j.Level
 
 import scala.io.Source
 import scala.util.parsing.json.{JSON, JSONArray, JSONObject}
@@ -66,7 +65,7 @@ object UpdateCheck {
       }
     }
     catch {
-      case t: Throwable => OpenComputers.log.log(Level.WARN, "Update check failed.", t)
+      case t: Throwable => OpenComputers.log.warn("Update check failed.", t)
     }
     // Nothing to do, return dummy callback.
     p =>

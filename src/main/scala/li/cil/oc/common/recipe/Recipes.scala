@@ -14,7 +14,6 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.RecipeSorter.Category
 import net.minecraftforge.oredict.{OreDictionary, RecipeSorter}
 import org.apache.commons.io.FileUtils
-import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -118,7 +117,7 @@ object Recipes {
       }
     }
     catch {
-      case e: Throwable => OpenComputers.log.log(Level.ERROR, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
+      case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)
     }
     list.clear()
   }
@@ -151,7 +150,7 @@ object Recipes {
   }
   catch {
     case e: Throwable =>
-      OpenComputers.log.log(Level.ERROR, "Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
+      OpenComputers.log.error("Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
       hide(output)
   }
 
