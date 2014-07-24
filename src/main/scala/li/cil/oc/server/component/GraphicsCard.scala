@@ -71,6 +71,9 @@ abstract class GraphicsCard extends component.ManagedComponent {
     }
   }
 
+  @Callback(doc = """function():string -- Get the address of the screen the GPU is currently bound to.""")
+  def getScreen(context: Context, args: Arguments): Array[AnyRef] = screen(s => result(s.node.address))
+
   @Callback(direct = true, doc = """function():number, boolean -- Get the current background color and whether it's from the palette or not.""")
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getBackgroundColor, s.isBackgroundFromPalette))
