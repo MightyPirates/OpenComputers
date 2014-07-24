@@ -33,6 +33,19 @@ class SystemAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "allowBytecode")
 
+    // Whether debug library should not be stripped
+    lua.pushScalaFunction(lua => {
+      lua.pushBoolean(Settings.get.allowBytecode)
+      1
+    })
+    lua.setField(-2, "allowDebug")
+
+    lua.pushScalaFunction(lua => {
+      lua.pushBoolean(Settings.get.disableSandbox)
+      1
+    })
+    lua.setField(-2, "disableSandbox")
+
     // How long programs may run without yielding before we stop them.
     lua.pushScalaFunction(lua => {
       lua.pushNumber(Settings.get.timeout)

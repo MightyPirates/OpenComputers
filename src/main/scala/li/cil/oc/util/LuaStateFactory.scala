@@ -216,6 +216,27 @@ object LuaStateFactory {
         state.openLib(jnlua.LuaState.Library.TABLE)
         state.pop(8)
 
+        if (!Settings.get.hardwareSandbox) {
+          state.openLib(jnlua.LuaState.Library.IO)
+          state.openLib(jnlua.LuaState.Library.JAVA)
+          state.openLib(jnlua.LuaState.Library.OS)
+          state.openLib(jnlua.LuaState.Library.PACKAGE)
+          state.pop(4)
+
+          state.newTable()
+          state.getGlobal("os")
+          state.setField(-2, "os")
+
+          state.getGlobal("loadfile")
+          state.setField(-2, "loadfile")
+
+          state.getGlobal("dofile")
+          state.setField(-2, "dofile")
+
+          state.setGlobal("native")
+
+        }
+
         // Prepare table for os stuff.
         state.newTable()
         state.setGlobal("os")
