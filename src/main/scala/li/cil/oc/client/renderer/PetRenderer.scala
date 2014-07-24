@@ -20,7 +20,11 @@ import scala.collection.mutable
 object PetRenderer extends ITickHandler {
   val hidden = mutable.Set.empty[String]
 
-  private val entitledPlayers = Map("Kethtar" ->(0.3, 0.9, 0.6))
+  private val entitledPlayers = Map(
+    "Kethtar" -> (0.3, 0.9, 0.6),
+    "Jodarion" -> (1.0, 0.0, 0.0),
+    "DaKaTotal" -> (0.5, 0.7, 1.0)
+  )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(5, TimeUnit.SECONDS).
