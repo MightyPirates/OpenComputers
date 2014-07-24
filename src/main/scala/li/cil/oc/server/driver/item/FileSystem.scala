@@ -2,8 +2,8 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc
 import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.api.fs.Label
 import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
+import li.cil.oc.server.fs.FileSystem.ItemLabel
 import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -38,7 +38,7 @@ object FileSystem extends Item {
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(dataTag(stack))
     val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
-    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ItemLabel(stack), container)
+    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ReadWriteItemLabel(stack), container)
     if (environment != null && environment.node != null) {
       environment.node.asInstanceOf[oc.server.network.Node].address = address
     }
@@ -51,7 +51,7 @@ object FileSystem extends Item {
     }
     else java.util.UUID.randomUUID().toString
 
-  class ItemLabel(val stack: ItemStack) extends Label {
+  private class ReadWriteItemLabel(stack: ItemStack) extends ItemLabel(stack) {
     var label: Option[String] = None
 
     override def getLabel = label.orNull

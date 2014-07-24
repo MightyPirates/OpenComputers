@@ -133,19 +133,36 @@ public class BaseLib extends TwoArgFunction implements ResourceFinder {
 	// "collectgarbage", // ( opt [,arg] ) -> value
 	static final class collectgarbage extends VarArgFunction {
 		public Varargs invoke(Varargs args) {
-			String s = args.checkjstring(1);
-			if ("collect".equals(s)) {
+			String s = args.optjstring(1, "collect");
+			int ex = args.optint(2, 0);
+			if ( s.equals("stop") ) {
+				return ZERO; // unsupported
+			} else if( s.equals("restart") ) {
+				return ZERO; // unsupported
+			} else if( s.equals("collect") ) {
 				System.gc();
 				return ZERO;
-			} else if ("count".equals(s)) {
+			} else if( s.equals("count") ) {
 				Runtime rt = Runtime.getRuntime();
 				long used = rt.totalMemory() - rt.freeMemory();
 				return varargsOf(valueOf(used / 1024.), valueOf(used % 1024));
-			} else if ("step".equals(s)) {
+			} else if( s.equals("step") ) {
 				System.gc();
-				return LuaValue.TRUE;
+				return TRUE;
+			} else if( s.equals("setpause") ) {
+				return ZERO; // TODO: Store this, despite no effect?
+			} else if( s.equals("setstepmul") ) {
+				return ZERO; // TODO: Store this, despite no effect?
+			} else if( s.equals("setmajorinc") ) {
+				return ZERO; // TODO: Store this, despite no effect?
+			} else if( s.equals("isrunning") ) {
+				return TRUE;
+			} else if( s.equals("generational") ) {
+				return ZERO; // unsupported
+			} else if( s.equals("incremental") ) {
+				return ZERO; // unsupported
 			} else {
-				this.argerror("gc op");
+				this.argerror(1, "invalid option '" + s + "'");
 			}
 			return NIL;
 		}
