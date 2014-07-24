@@ -8,10 +8,14 @@ import net.minecraft.tileentity.TileEntity;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // This class is used for adding simple components to the component network.
 // It is triggered from a validate call, and executed in the next update tick.
 public final class SimpleComponentTickHandler implements ITickHandler {
+    private static final Logger log = Logger.getLogger("OpenComputers");
+
     public static final ArrayList<Runnable> pending = new java.util.ArrayList<Runnable>();
 
     public static final SimpleComponentTickHandler Instance = new SimpleComponentTickHandler();
@@ -54,7 +58,11 @@ public final class SimpleComponentTickHandler implements ITickHandler {
             pending.clear();
         }
         for (Runnable runnable : adds) {
-            runnable.run();
+            try {
+                runnable.run();
+            } catch (Throwable t) {
+                log.log(Level.WARNING, "Error in scheduled tick action.", t);
+            }
         }
     }
 }
