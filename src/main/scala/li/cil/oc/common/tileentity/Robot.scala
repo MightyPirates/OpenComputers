@@ -188,6 +188,9 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
         }
         assert(!isInvalid)
       }
+      else {
+        world.setBlockToAir(nx, ny, nz)
+      }
       created
     }
     finally {
