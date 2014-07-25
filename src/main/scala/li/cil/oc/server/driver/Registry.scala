@@ -54,7 +54,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   def driverFor(world: World, x: Int, y: Int, z: Int) =
     blocks.filter(_.worksWith(world, x, y, z)) match {
-      case drivers if !drivers.isEmpty => new CompoundBlockDriver(drivers: _*)
+      case drivers if drivers.nonEmpty => new CompoundBlockDriver(drivers: _*)
       case _ => null
     }
 
