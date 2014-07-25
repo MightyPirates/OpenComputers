@@ -18,12 +18,22 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
     }
   }
 
+  def optAny(index: Int, default: AnyRef) = {
+    if (!isDefined(index)) default
+    else checkAny(index)
+  }
+
   def checkBoolean(index: Int) = {
     checkIndex(index, "boolean")
     args(index) match {
       case value: java.lang.Boolean => value
       case value => throw typeError(index, value, "boolean")
     }
+  }
+
+  def optBoolean(index: Int, default: Boolean) = {
+    if (!isDefined(index)) default
+    else checkBoolean(index)
   }
 
   def checkDouble(index: Int) = {
@@ -34,12 +44,22 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
     }
   }
 
+  def optDouble(index: Int, default: Double) = {
+    if (!isDefined(index)) default
+    else checkDouble(index)
+  }
+
   def checkInteger(index: Int) = {
     checkIndex(index, "number")
     args(index) match {
       case value: java.lang.Double => value.intValue
       case value => throw typeError(index, value, "number")
     }
+  }
+
+  def optInteger(index: Int, default: Int) = {
+    if (!isDefined(index)) default
+    else checkInteger(index)
   }
 
   def checkString(index: Int) = {
@@ -51,6 +71,11 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
     }
   }
 
+  def optString(index: Int, default: String) = {
+    if (!isDefined(index)) default
+    else checkString(index)
+  }
+
   def checkByteArray(index: Int) = {
     checkIndex(index, "string")
     args(index) match {
@@ -58,6 +83,11 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
       case value: Array[Byte] => value
       case value => throw typeError(index, value, "string")
     }
+  }
+
+  def optByteArray(index: Int, default: Array[Byte]) = {
+    if (!isDefined(index)) default
+    else checkByteArray(index)
   }
 
   def checkTable(index: Int) = {
@@ -68,6 +98,11 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
       case value: mutable.Map[_, _] => value
       case value => throw typeError(index, value, "table")
     }
+  }
+
+  def optTable(index: Int, default: Map[_, _]) = {
+    if (!isDefined(index)) default
+    else checkTable(index)
   }
 
   def isBoolean(index: Int) =
@@ -110,6 +145,8 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
       case value: mutable.Map[_, _] => true
       case _ => false
     })
+
+  private def isDefined(index: Int) = index >= 0 && index < args.length
 
   private def checkIndex(index: Int, name: String) =
     if (index < 0) throw new IndexOutOfBoundsException()
