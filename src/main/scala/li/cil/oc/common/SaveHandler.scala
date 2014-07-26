@@ -118,9 +118,14 @@ object SaveHandler {
       }
     }
 
-    // Delete empty folders that match a drive UUID to keep the state folder clean.
+    // Delete empty folders to keep the state folder clean.
     val emptyDirs = savePath.listFiles(new FileFilter {
-      override def accept(file: File) = file.getName.matches(uuidRegex) && file.isDirectory && {
+      override def accept(file: File) = file.isDirectory &&
+        // Make sure we only consider file system folders (UUID).
+        file.getName.matches(uuidRegex) &&
+        // We set the modified time in the save() method of unbuffered file
+        // systems, to avoid deleting in-use folders here.
+        System.currentTimeMillis() - file.lastModified() > 60 * 1000 && {
         val list = file.list()
         list == null || list.length == 0
       }
