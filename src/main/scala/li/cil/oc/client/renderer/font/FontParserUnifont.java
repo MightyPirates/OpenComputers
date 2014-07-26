@@ -19,10 +19,6 @@ public class FontParserUnifont implements IGlyphProvider {
 
     private final byte[][] glyphs = new byte[65536][];
 
-    public FontParserUnifont() {
-        initialize();
-    }
-
     @Override
     public void initialize() {
         for (int i = 0; i < glyphs.length; ++i) {
