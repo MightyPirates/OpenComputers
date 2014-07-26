@@ -7,8 +7,11 @@ import li.cil.occ.mods.Registry;
 import li.cil.occ.mods.appeng.ModAppEng;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
+import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
+import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.thaumcraft.ModThaumcraft;
+import li.cil.occ.mods.thermalexpansion.ModThermalExpansion;
 import li.cil.occ.mods.tmechworks.ModTMechworks;
 import li.cil.occ.mods.vanilla.ModVanilla;
 import net.minecraftforge.common.config.Configuration;
@@ -56,11 +59,15 @@ public class OpenComponents {
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
-        Registry.add(new ModBuildCraft());
-        Registry.add(new ModIndustrialCraft2());
-        Registry.add(new ModThaumcraft());
-        Registry.add(new ModTMechworks());
+
         Registry.add(new ModAppEng());
+        Registry.add(new ModBuildCraft());
+        Registry.add(new ModForestry());
+        Registry.add(new ModIndustrialCraft2());
+        Registry.add(new ModRailcraft());
+        Registry.add(new ModThaumcraft());
+        Registry.add(new ModThermalExpansion());
+        Registry.add(new ModTMechworks());
         Registry.add(new ModVanilla());
 
         // Register the general IPeripheral driver last, if at all, to avoid it
