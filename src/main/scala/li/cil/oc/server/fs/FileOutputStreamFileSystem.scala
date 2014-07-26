@@ -4,6 +4,7 @@ import java.io
 import java.io.RandomAccessFile
 
 import li.cil.oc.api.fs.Mode
+import net.minecraft.nbt.NBTTagCompound
 
 trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputStreamFileSystem {
   override def spaceTotal = -1
@@ -12,7 +13,10 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   // ----------------------------------------------------------------------- //
 
-  override def delete(path: String) = new io.File(root, path).delete()
+  override def delete(path: String) = {
+    val file = new io.File(root, path)
+    file == root || file.delete()
+  }
 
   override def makeDirectory(path: String) = new io.File(root, path).mkdir()
 
@@ -27,6 +31,16 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
       case Mode.Append | Mode.Write => "rw"
       case _ => throw new IllegalArgumentException()
     }), this, id, path, mode))
+
+  // ----------------------------------------------------------------------- //
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+    root.mkdirs()
+    root.setLastModified(System.currentTimeMillis())
+  }
+
+  // ----------------------------------------------------------------------- //
 
   protected class FileHandle(val file: RandomAccessFile, owner: OutputStreamFileSystem, handle: Int, path: String, mode: Mode) extends OutputHandle(owner, handle, path) {
     if (mode == Mode.Write) {

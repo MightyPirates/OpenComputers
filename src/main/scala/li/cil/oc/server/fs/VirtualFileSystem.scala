@@ -44,7 +44,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   override def delete(path: String) = {
     val parts = segments(path)
-    if (parts.isEmpty) false
+    if (parts.isEmpty) true
     else {
       root.get(parts.dropRight(1)) match {
         case Some(parent: VirtualDirectory) => parent.delete(parts.last)
