@@ -13,7 +13,7 @@ object KeyBindings {
 
   def showMaterialCosts = Keyboard.isCreated && Keyboard.isKeyDown(materialCosts.keyCode)
 
-  val extendedTooltip = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
+  def extendedTooltip = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
 
   val materialCosts = new KeyBinding("key.materialCosts", Keyboard.KEY_LMENU)
 
