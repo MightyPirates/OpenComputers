@@ -487,12 +487,12 @@ libcomponent = {
     checkArg(1, filter, "string", "nil")
     local list = spcall(component.list, filter, not not exact)
     local key = nil
-    return function()
+    return setmetatable(list, {__call=function()
       key = next(list, key)
       if key then
         return key, list[key]
       end
-    end
+    end})
   end,
   methods = function(address)
     return spcall(component.methods, address)
