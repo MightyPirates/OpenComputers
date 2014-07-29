@@ -186,6 +186,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
         val robot = proxy.robot
         if (!world.isRemote) {
           if (robot.player == player) return false
+          robot.node.remove()
           robot.saveComponents()
           parent.dropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }
