@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.font;
 
 import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
+import li.cil.oc.util.FontUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.BufferUtils;
@@ -60,11 +61,15 @@ public class FontParserUnifont implements IGlyphProvider {
         if (charCode >= 65536 || glyphs[charCode] == null || glyphs[charCode].length == 0)
             return null;
         final byte[] glyph = glyphs[charCode];
-        int glyphWidth;
-        if (glyph.length == 16) glyphWidth = 8;
-        else if (glyph.length == 32) glyphWidth = 16;
-        else return null;
-        final ByteBuffer buffer = BufferUtils.createByteBuffer(glyphWidth * 16 * 4);
+        final int expectedWidth = FontUtil.wcwidth(charCode);
+        final int glyphWidth = glyph.length / 16;
+        if (glyphWidth != expectedWidth) {
+            if (OpenComputers.log().isLoggable(Level.FINEST)) {
+                OpenComputers.log().finest(String.format("Size of glyph for code point U+%04X (%s) in Unifont (%d) does not match expected width (%d), ignoring.", charCode, String.valueOf((char) charCode), glyphWidth, expectedWidth));
+            }
+            return null;
+        }
+        final ByteBuffer buffer = BufferUtils.createByteBuffer(glyphWidth * getGlyphWidth() * 16 * 4);
         for (byte aGlyph : glyph) {
             int c = ((int) aGlyph) & 0xFF;
             for (int j = 0; j < 8; j++) {
