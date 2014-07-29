@@ -56,13 +56,15 @@ object Mods {
     def isAvailable: Boolean
   }
 
-  class SimpleMod(val id: String) {
-    val isAvailable = {
+  class SimpleMod(val id: String) extends Mod {
+    protected val isModLoaded = {
       val version = VersionParser.parseVersionReference(id)
       if (Loader.isModLoaded(version.getLabel))
         version.containsVersion(Loader.instance.getIndexedModList.get(version.getLabel).getProcessedVersion)
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)
     }
+
+    override def isAvailable = isModLoaded
   }
 
 }
