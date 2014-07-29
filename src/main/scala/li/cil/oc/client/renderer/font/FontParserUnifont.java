@@ -61,8 +61,8 @@ public class FontParserUnifont implements IGlyphProvider {
         final int expectedWidth = FontUtil.wcwidth(charCode);
         final int glyphWidth = glyph.length / 16;
         if (glyphWidth != expectedWidth) {
-            if (OpenComputers.log().isLoggable(Level.FINEST)) {
-                OpenComputers.log().finest(String.format("Size of glyph for code point U+%04X (%s) in Unifont (%d) does not match expected width (%d), ignoring.", charCode, String.valueOf((char) charCode), glyphWidth, expectedWidth));
+            if (OpenComputers.log().isDebugEnabled()) {
+                OpenComputers.log().debug("Size of glyph for code point U+%04X (%s) in Unifont (%d) does not match expected width (%d), ignoring.", charCode, String.valueOf((char) charCode), glyphWidth, expectedWidth);
             }
             return null;
         }
