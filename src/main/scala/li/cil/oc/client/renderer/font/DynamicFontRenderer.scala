@@ -121,7 +121,8 @@ object DynamicFontRenderer {
       val glyphWidth = FontUtil.wcwidth(char)
       val w = owner.charWidth * glyphWidth
       val h = owner.charHeight
-      if (chars + glyphWidth > cols) {
+      // Force line break if we have a char that's wider than what space remains in this row.
+      if (chars % cols + glyphWidth > cols) {
         chars += 1
       }
       val x = chars % cols
