@@ -29,15 +29,15 @@ object Mods {
 
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower)
-  val ComputerCraft15 = new Mod {
-    val isAvailable = try Class.forName("dan200.computer.api.ComputerCraftAPI") != null catch {
+  val ComputerCraft15 = new SimpleMod(IDs.ComputerCraft) {
+    override val isAvailable = isModLoaded && (try Class.forName("dan200.computer.api.ComputerCraftAPI") != null catch {
       case _: Throwable => false
-    }
+    })
   }
-  val ComputerCraft16 = new Mod {
-    val isAvailable = try Class.forName("dan200.computercraft.api.ComputerCraftAPI") != null catch {
+  val ComputerCraft16 = new SimpleMod(IDs.ComputerCraft) {
+    override val isAvailable = isModLoaded && (try Class.forName("dan200.computercraft.api.ComputerCraftAPI") != null catch {
       case _: Throwable => false
-    }
+    })
   }
   val ComputerCraft = new Mod {
     override def isAvailable = ComputerCraft15.isAvailable || ComputerCraft16.isAvailable
@@ -68,13 +68,15 @@ object Mods {
     def isAvailable: Boolean
   }
 
-  class SimpleMod(val id: String) {
-    val isAvailable = {
+  class SimpleMod(val id: String) extends Mod {
+    protected val isModLoaded = {
       val version = VersionParser.parseVersionReference(id)
       if (Loader.isModLoaded(version.getLabel))
         version.containsVersion(Loader.instance.getIndexedModList.get(version.getLabel).getProcessedVersion)
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)
     }
+
+    override def isAvailable = isModLoaded
   }
 
 }
