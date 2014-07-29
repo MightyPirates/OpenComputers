@@ -52,6 +52,8 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   override def getDisplayName = robot.name
 
+  theItemInWorldManager.setBlockReachDistance(1)
+
   // ----------------------------------------------------------------------- //
 
   def updatePositionAndRotation(facing: ForgeDirection, side: ForgeDirection) {
@@ -59,9 +61,9 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     this.side = side
     // Slightly offset in robot's facing to avoid glitches (e.g. Portal Gun).
     val direction = Vec3.createVectorHelper(
-      facing.offsetX + side.offsetX * 0.5 + robot.facing.offsetX * 0.01,
-      facing.offsetY + side.offsetY * 0.5 + robot.facing.offsetY * 0.01,
-      facing.offsetZ + side.offsetZ * 0.5 + robot.facing.offsetZ * 0.01).normalize()
+      facing.offsetX + side.offsetX + robot.facing.offsetX * 0.01,
+      facing.offsetY + side.offsetY + robot.facing.offsetY * 0.01,
+      facing.offsetZ + side.offsetZ + robot.facing.offsetZ * 0.01).normalize()
     val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
     val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
     setLocationAndAngles(robot.x + 0.5, robot.y, robot.z + 0.5, yaw, pitch)
