@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.driver.Container
+import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
@@ -32,24 +33,16 @@ class UpgradeChunkloader(val owner: Container) extends component.ManagedComponen
   def isActive(context: Context, args: Arguments): Array[AnyRef] = result(ticket.isDefined)
 
   @Callback(doc = """function(enabled:boolean):boolean -- Enables or disables the chunkloader.""")
-  def setActive(context: Context, args: Arguments): Array[AnyRef] = {
-    val enabled = args.checkBoolean(0)
-    if (enabled && ticket.isEmpty) {
-      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, owner.world, ForgeChunkManager.Type.NORMAL))
-      ChunkloaderUpgradeHandler.updateLoadedChunk(this)
-    }
-    else if (!enabled && ticket.isDefined) {
-      ticket.foreach(ForgeChunkManager.releaseTicket)
-      ticket = None
-    }
-    result(ticket.isDefined)
-  }
+  def setActive(context: Context, args: Arguments): Array[AnyRef] = result(setActive(args.checkBoolean(0)))
 
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
       ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).
-        orElse(Option(ForgeChunkManager.requestTicket(OpenComputers, owner.world, ForgeChunkManager.Type.NORMAL)))
+        orElse(owner match {
+        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, owner.world, ForgeChunkManager.Type.NORMAL))
+        case _ => None
+      })
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
     }
   }
@@ -60,5 +53,27 @@ class UpgradeChunkloader(val owner: Container) extends component.ManagedComponen
       ticket.foreach(ForgeChunkManager.releaseTicket)
       ticket = None
     }
+  }
+
+  override def onMessage(message: Message) {
+    super.onMessage(message)
+    if (message.name == "computer.stopped") {
+      setActive(enabled = false)
+    }
+    else if (message.name == "computer.started") {
+      setActive(enabled = true)
+    }
+  }
+
+  private def setActive(enabled: Boolean) = {
+    if (enabled && ticket.isEmpty) {
+      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, owner.world, ForgeChunkManager.Type.NORMAL))
+      ChunkloaderUpgradeHandler.updateLoadedChunk(this)
+    }
+    else if (!enabled && ticket.isDefined) {
+      ticket.foreach(ForgeChunkManager.releaseTicket)
+      ticket = None
+    }
+    ticket.isDefined
   }
 }
