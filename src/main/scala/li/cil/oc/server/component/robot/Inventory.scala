@@ -88,7 +88,7 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
               else inventorySlots.find(slot => {
                 val existing = getStackInSlot(slot)
                 existing != null && existing.isItemEqual(stack) &&
-                  (!existing.getHasSubtypes || existing.getItemDamage == stack.getItemDamage) &&
+                  (!existing.getHasSubtypes || (existing.getItemDamage == stack.getItemDamage && ItemStack.areItemStackTagsEqual(existing, stack))) &&
                   (existing.stackSize < math.min(existing.getMaxStackSize, getInventoryStackLimit))
               }).getOrElse(getFirstEmptyStackAccepting(stack))
             if (slot >= firstInventorySlot) {
