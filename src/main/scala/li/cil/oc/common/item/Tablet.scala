@@ -21,8 +21,6 @@ import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
 
 class Tablet(val parent: Delegator) extends Delegate {
-  showInItemList = false // Hide in release builds.
-
   override def maxStackSize = 1
 
   override def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
