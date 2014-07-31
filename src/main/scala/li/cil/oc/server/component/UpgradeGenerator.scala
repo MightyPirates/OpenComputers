@@ -54,7 +54,8 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
       case _ =>
         inventory = Some(stack.splitStack(math.min(stack.stackSize, count)))
     }
-    player.inventory.setInventorySlotContents(owner.selectedSlot, stack)
+    if (stack.stackSize > 0) player.inventory.setInventorySlotContents(owner.selectedSlot, stack)
+    else player.inventory.setInventorySlotContents(owner.selectedSlot, null)
     result(true)
   }
 
