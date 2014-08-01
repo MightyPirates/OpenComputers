@@ -5,5 +5,5 @@ trait PowerAcceptor
   with power.BuildCraft
   with power.IndustrialCraft2
   with power.Mekanism
-  with power.ThermalExpansion
+  with power.RedstoneFlux
 //  with power.UniversalElectricity

@@ -19,6 +19,7 @@ object Mods {
     final val PortalGun = "PortalGun"
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val RedLogic = "RedLogic"
+    final val RedstoneFlux = "CoFHAPI"
     final val StargateTech2 = "StargateTech2"
     final val ThermalExpansion = "ThermalExpansion"
     final val TinkersConstruct = "TConstruct"
@@ -41,6 +42,7 @@ object Mods {
   val PortalGun = new SimpleMod(IDs.PortalGun)
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val RedLogic = new SimpleMod(IDs.RedLogic)
+  val RedstoneFlux = new SimpleMod(IDs.RedstoneFlux)
   val StargateTech2 = new Mod {
     val isAvailable = Loader.isModLoaded(IDs.StargateTech2) && {
       val mod = Loader.instance.getIndexedModList.get(IDs.StargateTech2)

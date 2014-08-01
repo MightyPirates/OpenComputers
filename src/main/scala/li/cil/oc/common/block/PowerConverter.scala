@@ -49,8 +49,8 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
     if (Mods.Mekanism.isAvailable) {
       addRatio("Mekanism", Settings.ratioMekanism)
     }
-    if (Mods.ThermalExpansion.isAvailable) {
-      addRatio("ThermalExpansion", Settings.ratioThermalExpansion)
+    if (Mods.RedstoneFlux.isAvailable) {
+      addRatio("ThermalExpansion", Settings.ratioRedstoneFlux)
     }
     if (Mods.UniversalElectricity.isAvailable) {
       addRatio("UniversalElectricity", Settings.ratioUniversalElectricity)
