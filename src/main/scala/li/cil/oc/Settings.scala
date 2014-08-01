@@ -123,6 +123,7 @@ class Settings(config: Config) {
   val pureIgnorePower = config.getBoolean("power.ignorePower")
   val ignorePower = pureIgnorePower ||
     (!Mods.BuildCraftPower.isAvailable &&
+      !Mods.Factorization.isAvailable &&
       !Mods.IndustrialCraft2.isAvailable &&
       !Mods.Mekanism.isAvailable &&
       !Mods.ThermalExpansion.isAvailable &&
@@ -251,6 +252,7 @@ object Settings {
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.
   val valueBuildCraft = 500.0
+  val valueFactorization = 500.0
   val valueIndustrialCraft2 = 200.0
   val valueMekanism = 250.0 / 9.0
   val valueThermalExpansion = 50.0
@@ -259,6 +261,7 @@ object Settings {
   val valueInternal = valueBuildCraft
 
   val ratioBuildCraft = valueBuildCraft / valueInternal
+  val ratioFactorization = valueFactorization / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioThermalExpansion = valueThermalExpansion / valueInternal

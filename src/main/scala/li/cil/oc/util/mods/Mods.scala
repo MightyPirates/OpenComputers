@@ -9,6 +9,7 @@ object Mods {
     final val BattleGear2 = "battlegear2"
     final val BuildCraftPower = "BuildCraftAPI|power"
     final val ComputerCraft = "ComputerCraft"
+    final val Factorization = "factorization"
     final val ForgeMultipart = "ForgeMultipart"
     final val GregTech = "gregtech_addon"
     final val IndustrialCraft2 = "IC2"
@@ -42,6 +43,7 @@ object Mods {
   val ComputerCraft = new Mod {
     override def isAvailable = ComputerCraft15.isAvailable || ComputerCraft16.isAvailable
   }
+  val Factorization = new SimpleMod(IDs.Factorization)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val GregTech = new SimpleMod(IDs.GregTech)
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
