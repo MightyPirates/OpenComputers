@@ -149,7 +149,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
     if (internalSwitch) {
       for (slot <- 0 until servers.length) {
-        val side = sides(slot)
+        val side = toGlobal(sides(slot))
         if (side != sourceSide) {
           servers(slot) match {
             case Some(server) => server.node.sendToNeighbors("network.message", packet)

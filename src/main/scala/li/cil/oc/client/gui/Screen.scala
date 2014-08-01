@@ -24,7 +24,7 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
 
   override def handleMouseInput() {
     super.handleMouseInput()
-    if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
+    if (hasMouse && Mouse.hasWheel && Mouse.getEventDWheel != 0) {
       val mouseX = Mouse.getEventX * width / mc.displayWidth
       val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1
       val bx = (mouseX - x - bufferMargin) / TextBufferRenderCache.renderer.charRenderWidth + 1
@@ -58,7 +58,7 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
 
   protected override def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
     super.mouseMovedOrUp(mouseX, mouseY, button)
-    if (button >= 0) {
+    if (hasMouse && button >= 0) {
       if (didDrag) {
         val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1
         val by = ((mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight).toInt + 1
