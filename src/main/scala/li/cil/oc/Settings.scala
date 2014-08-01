@@ -113,6 +113,7 @@ class Settings(config: Config) {
   val pureIgnorePower = config.getBoolean("power.ignorePower")
   val ignorePower = pureIgnorePower ||
     (!Mods.BuildCraftPower.isAvailable &&
+      !Mods.ElectricalAge.isAvailable &&
       !Mods.IndustrialCraft2.isAvailable &&
       !Mods.Mekanism.isAvailable &&
       !Mods.ThermalExpansion.isAvailable &&

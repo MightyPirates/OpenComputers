@@ -9,6 +9,7 @@ object Mods {
     final val BattleGear2 = "battlegear2"
     final val BuildCraftPower = "BuildCraftAPI|power"
     final val ComputerCraft = "ComputerCraft"
+    final val ElectricalAge = "Eln"
     final val ForgeMultipart = "ForgeMultipart"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2API"
@@ -29,7 +30,8 @@ object Mods {
 
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower)
-  val ComputerCraft = new SimpleMod("ComputerCraft")
+  val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
+  val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val GregTech = new SimpleMod(IDs.GregTech)
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
