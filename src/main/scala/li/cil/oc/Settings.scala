@@ -113,9 +113,10 @@ class Settings(config: Config) {
   val pureIgnorePower = config.getBoolean("power.ignorePower")
   val ignorePower = pureIgnorePower ||
     (!Mods.BuildCraftPower.isAvailable &&
+      !Mods.ElectricalAge.isAvailable &&
       !Mods.IndustrialCraft2.isAvailable &&
       !Mods.Mekanism.isAvailable &&
-      !Mods.ThermalExpansion.isAvailable &&
+      !Mods.RedstoneFlux.isAvailable &&
       !Mods.UniversalElectricity.isAvailable)
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRate = config.getDouble("power.chargerChargeRate")
@@ -243,7 +244,7 @@ object Settings {
   val valueBuildCraft = 500.0
   val valueIndustrialCraft2 = 200.0
   val valueMekanism = 2000.0 / 3.0
-  val valueThermalExpansion = 50.0
+  val valueRedstoneFlux = 50.0
   val valueUniversalElectricity = 1.0
 
   val valueInternal = valueBuildCraft
@@ -251,7 +252,7 @@ object Settings {
   val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
-  val ratioThermalExpansion = valueThermalExpansion / valueInternal
+  val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
   val ratioUniversalElectricity = valueUniversalElectricity / valueInternal
 
   def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
