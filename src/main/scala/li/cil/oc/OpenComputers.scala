@@ -9,7 +9,7 @@ import li.cil.oc.server.CommandHandler
 import org.apache.logging.log4j.LogManager
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
-  version = OpenComputers.Version, certificateFingerprint = OpenComputers.Fingerprint,
+  version = OpenComputers.Version, /* certificateFingerprint = OpenComputers.Fingerprint, */
   modLanguage = "scala", useMetadata = true)
 object OpenComputers {
   final val ID = "OpenComputers"
@@ -29,8 +29,8 @@ object OpenComputers {
 
   var tampered: Option[FMLFingerprintViolationEvent] = None
 
-  @EventHandler
-  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
+//  @EventHandler
+//  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) = proxy.preInit(e)
