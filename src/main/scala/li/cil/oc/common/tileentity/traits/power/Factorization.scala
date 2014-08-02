@@ -6,9 +6,9 @@ import li.cil.oc.Settings
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 
-@Optional.Interface(iface = "factorization.api.IChargeConductor", modid = Mods.IDs.Factorization)
-trait Factorization extends Common with IChargeConductor {
-  private lazy val charge: AnyRef = new Charge(this)
+trait Factorization extends Common {
+  @Optional.Method(modid = Mods.IDs.Factorization)
+  private lazy val charge: AnyRef = new Charge(this.asInstanceOf[IChargeConductor])
 
   private lazy val useFactorizationPower = isServer && !Settings.get.ignorePower && Mods.Factorization.isAvailable
 
@@ -45,11 +45,11 @@ trait Factorization extends Common with IChargeConductor {
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.Factorization)
-  override def getCharge = charge.asInstanceOf[Charge]
+  def getCharge = charge.asInstanceOf[Charge]
 
   @Optional.Method(modid = Mods.IDs.Factorization)
-  override def getInfo = ""
+  def getInfo = ""
 
   @Optional.Method(modid = Mods.IDs.Factorization)
-  override def getCoord = new Coord(this)
+  def getCoord = new Coord(this)
 }

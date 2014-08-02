@@ -46,7 +46,7 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
     if (Mods.Factorization.isAvailable) {
       addRatio("Factorization", Settings.ratioFactorization)
     }
-    if (Mods.IndustrialCraft2.isAvailable) {
+    if (Mods.IndustrialCraft2.isAvailable || Mods.IndustrialCraft2Classic.isAvailable) {
       addRatio("IndustrialCraft2", Settings.ratioIndustrialCraft2)
     }
     if (Mods.Mekanism.isAvailable) {

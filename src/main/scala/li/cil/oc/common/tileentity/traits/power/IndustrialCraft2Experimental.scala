@@ -1,16 +1,12 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 
-@Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
-trait IndustrialCraft2 extends Common with IEnergySink {
-  var addedToPowerGrid = false
-
+trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   private var lastInjectedAmount = 0.0
 
   private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Mods.IndustrialCraft2.isAvailable
@@ -19,17 +15,17 @@ trait IndustrialCraft2 extends Common with IEnergySink {
 
   override def validate() {
     super.validate()
-    if (useIndustrialCraft2Power && !addedToPowerGrid) EventHandler.scheduleIC2Add(this)
+    if (useIndustrialCraft2Power && !addedToIC2PowerGrid) EventHandler.scheduleIC2Add(this)
   }
 
   override def invalidate() {
     super.invalidate()
-    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   // ----------------------------------------------------------------------- //
@@ -50,9 +46,6 @@ trait IndustrialCraft2 extends Common with IEnergySink {
     }
     else amount - tryChangeBuffer(directionFrom, energy) / Settings.ratioIndustrialCraft2
   }
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def getMaxSafeInput = Integer.MAX_VALUE
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def demandedEnergyUnits = {

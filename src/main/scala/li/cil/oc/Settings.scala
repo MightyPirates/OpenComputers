@@ -121,13 +121,7 @@ class Settings(config: Config) {
   // power
 
   val pureIgnorePower = config.getBoolean("power.ignorePower")
-  val ignorePower = pureIgnorePower ||
-    (!Mods.BuildCraftPower.isAvailable &&
-      !Mods.Factorization.isAvailable &&
-      !Mods.IndustrialCraft2.isAvailable &&
-      !Mods.Mekanism.isAvailable &&
-      !Mods.ThermalExpansion.isAvailable &&
-      !Mods.UniversalElectricity.isAvailable)
+  val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
