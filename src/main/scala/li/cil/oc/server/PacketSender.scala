@@ -7,6 +7,7 @@ import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, til
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -306,6 +307,15 @@ object PacketSender {
     pb.writeChar(c)
 
     pb.sendToNearbyPlayers(container)
+  }
+
+  def sendTextBufferInit(address: String, value: NBTTagCompound, player: EntityPlayerMP) {
+    val pb = new CompressedPacketBuilder(PacketType.TextBufferInit)
+
+    pb.writeUTF(address)
+    pb.writeNBT(value)
+
+    pb.sendToPlayer(player)
   }
 
   def sendTextBufferPaletteChange(address: String, index: Int, color: Int, container: Container) {

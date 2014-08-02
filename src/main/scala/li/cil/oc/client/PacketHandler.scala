@@ -2,7 +2,7 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
-import li.cil.oc.{Localization, Settings}
+import li.cil.oc.Localization
 import li.cil.oc.api.component
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.tileentity._
@@ -12,7 +12,6 @@ import li.cil.oc.util.Audio
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input.Keyboard
 
@@ -57,6 +56,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferCopy => onTextBufferCopy(p)
       case PacketType.TextBufferDepthChange => onTextBufferDepthChange(p)
       case PacketType.TextBufferFill => onTextBufferFill(p)
+      case PacketType.TextBufferInit => onTextBufferInit(p)
       case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p)
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
@@ -329,6 +329,13 @@ object PacketHandler extends CommonPacketHandler {
         val h = p.readInt()
         val c = p.readChar()
         buffer.fill(col, row, w, h, c)
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onTextBufferInit(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: li.cil.oc.common.component.TextBuffer) => buffer.data.load(p.readNBT())
       case _ => // Invalid packet.
     }
   }
