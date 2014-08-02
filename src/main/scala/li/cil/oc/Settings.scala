@@ -316,6 +316,11 @@ object Settings {
       "computer.ramSizes",
       "internet.blacklist",
       "internet.whitelist"
+    ),
+    // Upgrading to version 1.3.3, default power consumption of chunk loader
+    // reduced as discussed in #447.
+    VersionRange.createFromVersionSpec("[1.3.0,1.3.3)") -> Array(
+      "power.cost.chunkloaderCost"
     )
   )
 
