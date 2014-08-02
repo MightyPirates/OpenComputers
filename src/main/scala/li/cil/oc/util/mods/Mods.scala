@@ -33,7 +33,7 @@ object Mods {
 
   private val knownMods = mutable.ArrayBuffer.empty[Mod]
 
-  lazy val isPowerProvidingModPresent = knownMods.exists(_.providesPower)
+  lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
 
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower, providesPower = true)
