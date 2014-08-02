@@ -2,12 +2,14 @@ package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.api.machine.Machine
+import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
 import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{DimensionManager, ForgeDirection}
 
@@ -31,6 +33,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
       case PacketType.ServerSwitchMode => onServerSwitchMode(p)
+      case PacketType.TextBufferInit => onTextBufferInit(p)
       case _ => // Invalid packet.
     }
 
@@ -188,4 +191,19 @@ class PacketHandler extends CommonPacketHandler {
       }
       case _ => // Invalid packet.
     }
+
+  def onTextBufferInit(p: PacketParser) {
+    val address = p.readUTF()
+    p.player match {
+      case entity: EntityPlayerMP =>
+        ComponentTracker.get(address) match {
+          case Some(buffer: TextBuffer) =>
+            val nbt = new NBTTagCompound()
+            buffer.data.save(nbt)
+            PacketSender.sendTextBufferInit(address, nbt, entity)
+          case _ => // Invalid packet.
+        }
+      case _ => // Invalid packet.
+    }
+  }
 }

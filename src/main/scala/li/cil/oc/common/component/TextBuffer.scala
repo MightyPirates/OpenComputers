@@ -7,7 +7,7 @@ import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker, PacketSender => ClientPacketSender}
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{SaveHandler, tileentity}
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -360,7 +360,10 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
       TextBuffer.registerClientBuffer(this)
     }
-    data.load(nbt.getCompoundTag("buffer"))
+    else {
+      if (nbt.hasKey("buffer")) data.load(nbt.getCompoundTag("buffer"))
+      else data.load(SaveHandler.loadNBT(nbt, node.address + "_buffer"))
+    }
 
     if (nbt.hasKey(Settings.namespace + "isOn")) {
       isDisplaying = nbt.getBoolean(Settings.namespace + "isOn")
@@ -390,7 +393,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
       }
     }
 
-    nbt.setNewCompoundTag("buffer", data.save)
+    SaveHandler.scheduleSave(owner, nbt, node.address + "_buffer", data.save _)
     nbt.setBoolean(Settings.namespace + "isOn", isDisplaying)
     nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
   }
@@ -423,6 +426,7 @@ object TextBuffer {
   }
 
   def registerClientBuffer(t: TextBuffer) {
+    ClientPacketSender.sendTextBufferInit(t.proxy.nodeAddress)
     ClientComponentTracker.add(t.proxy.nodeAddress, t)
     clientBuffers ++= mutable.LinkedList(t)
   }

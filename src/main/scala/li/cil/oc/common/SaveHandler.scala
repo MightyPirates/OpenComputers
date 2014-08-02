@@ -1,13 +1,13 @@
 package li.cil.oc.common
 
 import java.io
-import java.io.{File, FileFilter}
+import java.io._
 import java.util.logging.Level
 
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.ForgeSubscribe
@@ -31,8 +31,13 @@ object SaveHandler {
     scheduleSave(owner.world, owner.x, owner.z, nbt, name, data)
   }
 
-  def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
-    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, data)
+  def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    val tmpNbt = new NBTTagCompound()
+    save(tmpNbt)
+    val baos = new ByteArrayOutputStream()
+    val dos = new DataOutputStream(baos)
+    CompressedStreamTools.write(tmpNbt, dos)
+    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, baos.toByteArray)
   }
 
   def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
@@ -46,6 +51,13 @@ object SaveHandler {
     nbt.setInteger("chunkZ", chunk.chunkZPos)
 
     scheduleSave(dimension, chunk, name, data)
+  }
+
+  def loadNBT(nbt: NBTTagCompound, name: String): NBTTagCompound = {
+    val data = load(nbt, name)
+    val bais = new ByteArrayInputStream(data)
+    val dis = new DataInputStream(bais)
+    CompressedStreamTools.read(dis)
   }
 
   def load(nbt: NBTTagCompound, name: String): Array[Byte] = {

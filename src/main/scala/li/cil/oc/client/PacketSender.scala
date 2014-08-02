@@ -163,4 +163,12 @@ object PacketSender {
 
     pb.sendToServer()
   }
+
+  def sendTextBufferInit(address: String) {
+    val pb = new PacketBuilder(PacketType.TextBufferInit)
+
+    pb.writeUTF(address)
+
+    pb.sendToServer()
+  }
 }

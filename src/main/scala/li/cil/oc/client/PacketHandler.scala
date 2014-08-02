@@ -50,6 +50,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferCopy => onTextBufferCopy(p)
       case PacketType.TextBufferDepthChange => onTextBufferDepthChange(p)
       case PacketType.TextBufferFill => onTextBufferFill(p)
+      case PacketType.TextBufferInit => onTextBufferInit(p)
       case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p)
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
@@ -322,6 +323,13 @@ class PacketHandler extends CommonPacketHandler {
         val h = p.readInt()
         val c = p.readChar()
         buffer.fill(col, row, w, h, c)
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onTextBufferInit(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: li.cil.oc.common.component.TextBuffer) => buffer.data.load(p.readNBT())
       case _ => // Invalid packet.
     }
   }
