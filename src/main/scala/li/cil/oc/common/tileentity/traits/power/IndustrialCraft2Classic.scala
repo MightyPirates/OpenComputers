@@ -47,9 +47,9 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
       for (side <- ForgeDirection.VALID_DIRECTIONS if energy > 0) {
         energy -= tryChangeBuffer(side, energy)
       }
-      (energy / Settings.ratioIndustrialCraft2).toInt
+      (energy / Settings.ratioIndustrialCraft2).toInt == 0
     }
-    else (amount - tryChangeBuffer(directionFrom.toForgeDirection, energy) / Settings.ratioIndustrialCraft2).toInt
+    else (amount - tryChangeBuffer(directionFrom.toForgeDirection, energy) / Settings.ratioIndustrialCraft2).toInt == 0
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
