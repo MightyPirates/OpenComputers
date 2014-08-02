@@ -1,13 +1,11 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 
-@Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = Mods.IDs.ThermalExpansion)
-trait ThermalExpansion extends Common with IEnergyHandler {
+trait ThermalExpansion extends Common {
   @Optional.Method(modid = Mods.IDs.ThermalExpansion)
   def canInterface(from: ForgeDirection) = canConnectPower(from)
 
