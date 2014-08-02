@@ -227,7 +227,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     // Change byte order here to allow passing stored color to OpenGL "as-is"
     // (as whole Int, i.e. 0xAABBGGRR, alpha is unused but present for alignment)
     colors(index - 1) = convertColor(value)
-    ServerPacketSender.sendHologramColor(this, index - 1, value)
+    ServerPacketSender.sendHologramColor(this, index - 1, colors(index - 1))
     result(oldValue)
   }
 
