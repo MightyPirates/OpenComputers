@@ -238,8 +238,8 @@ object Settings {
   val valueBuildCraft = 500.0
   val valueFactorization = 6.5
   val valueIndustrialCraft2 = 200.0
-  val valueMekanism = 2000.0 / 3.0
-  val valueRedstoneFlux = 50.0
+  val valueMekanism = 5000.0 / 9.0
+  val valueRedstoneFlux = 35.0
   val valueUniversalElectricity = 1.0
 
   val valueInternal = valueBuildCraft
