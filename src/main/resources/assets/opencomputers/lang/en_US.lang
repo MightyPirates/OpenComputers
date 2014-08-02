@@ -207,6 +207,7 @@ oc:tooltip.Microchip=The chip formerly known as Integrated Circuit. I have no id
 oc:tooltip.MotionSensor=Can detect movement of nearby living beings. Requires clear line-of-sight.
 oc:tooltip.NetworkCard=Allows distant computers connected by other blocks (such as cable) to communicate by sending messages to each other.
 oc:tooltip.PowerConverter.BuildCraft=§fBuildCraft MJ§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.Factorization=§fFactorization Charge§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.IndustrialCraft2=§fIndustrialCraft² EU§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.Mekanism=§fMekanism Joules§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.ThermalExpansion=§fThermal Expansion RF§7: §a%s:%s§7.

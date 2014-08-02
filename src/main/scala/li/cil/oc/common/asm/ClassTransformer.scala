@@ -3,6 +3,7 @@ package li.cil.oc.common.asm
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.util.mods.Mods.Mod
 import net.minecraft.launchwrapper.{IClassTransformer, LaunchClassLoader}
 import org.apache.logging.log4j.LogManager
 import org.objectweb.asm.tree._
@@ -12,9 +13,19 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 class ClassTransformer extends IClassTransformer {
-  val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
+  private val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
 
-  val log = LogManager.getLogger("OpenComputers")
+  private val log = LogManager.getLogger("OpenComputers")
+
+  private lazy val powerTypes = Map[Mod, Array[String]](
+    Mods.BuildCraftPower -> Array("buildcraft/api/power/IPowerReceptor"),
+    Mods.Factorization -> Array("factorization/api/IChargeConductor"),
+    Mods.IndustrialCraft2 -> Array("ic2/api/energy/tile/IEnergySink"),
+    Mods.IndustrialCraft2Classic -> Array("ic2classic/api/energy/tile/IEnergySink"),
+    Mods.Mekanism -> Array("mekanism/api/energy/IStrictEnergyAcceptor"),
+    Mods.RedstoneFlux -> Array("cofh/api/energy/IEnergyHandler")
+//    Mods.UniversalElectricity -> Array("universalelectricity/api/core/grid/INodeProvider", "universalelectricity/api/core/grid/electric/IEnergyContainer")
+  )
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
     var transformedClass = basicClass
@@ -49,6 +60,14 @@ class ClassTransformer extends IClassTransformer {
             log.trace(s"Stripping method ${method.name} from class $name because the following types in its signature are missing: $missing")
           }
           classNode.methods.removeAll(incompleteMethods)
+
+          // Inject available power interfaces into power acceptors.
+          if (classNode.interfaces.contains("li/cil/oc/common/tileentity/traits/PowerAcceptor")) {
+            for ((mod, interfaces) <- powerTypes if mod.isAvailable) {
+              interfaces.foreach(classNode.interfaces.add)
+            }
+          }
+
           transformedClass = writeClass(classNode)
         }
         {

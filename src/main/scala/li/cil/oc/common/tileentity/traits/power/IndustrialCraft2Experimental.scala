@@ -1,16 +1,12 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.util.ForgeDirection
 
-@Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
-trait IndustrialCraft2 extends Common with IEnergySink {
-  var addedToPowerGrid = false
-
+trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   private var lastInjectedAmount = 0.0
 
   private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Mods.IndustrialCraft2.isAvailable
@@ -19,17 +15,17 @@ trait IndustrialCraft2 extends Common with IEnergySink {
 
   override def validate() {
     super.validate()
-    if (useIndustrialCraft2Power && !addedToPowerGrid) EventHandler.scheduleIC2Add(this)
+    if (useIndustrialCraft2Power && !addedToIC2PowerGrid) EventHandler.scheduleIC2Add(this)
   }
 
   override def invalidate() {
     super.invalidate()
-    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   // ----------------------------------------------------------------------- //
@@ -38,7 +34,7 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  override def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
+  def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
     lastInjectedAmount = amount
     var energy = amount * Settings.ratioIndustrialCraft2
     // Work around IC2 being uncooperative and always just passing 'unknown' along here.
@@ -52,10 +48,7 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  override def getSinkTier = Int.MaxValue
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  override def getDemandedEnergy = {
+  def getDemandedEnergy = {
     if (Settings.get.ignorePower || isClient) 0
     else {
       var force = false

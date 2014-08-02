@@ -6,7 +6,6 @@ import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
-import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.client.renderer.PetRenderer
@@ -41,21 +40,41 @@ object EventHandler {
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2) {
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
-        MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
-        tileEntity.addedToPowerGrid = true
+      pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = true
       })
     }
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) {
+  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (tileEntity.addedToPowerGrid) {
-        MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
-        tileEntity.addedToPowerGrid = false
+      pending += (() => if (tileEntity.addedToIC2PowerGrid) {
+        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileUnloadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = false
+      })
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Classic) {
+    if (SideTracker.isServer) pending.synchronized {
+      pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new ic2classic.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2classic.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = true
+      })
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
+  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2Classic) {
+    if (SideTracker.isServer) pending.synchronized {
+      pending += (() => if (tileEntity.addedToIC2PowerGrid) {
+        MinecraftForge.EVENT_BUS.post(new ic2classic.api.energy.event.EnergyTileUnloadEvent(tileEntity.asInstanceOf[ic2classic.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = false
       })
     }
   }

@@ -1,13 +1,11 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.util.ForgeDirection
 
-@Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = Mods.IDs.RedstoneFlux)
-trait RedstoneFlux extends Common with IEnergyHandler {
+trait RedstoneFlux extends Common {
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
   def canConnectEnergy(from: ForgeDirection) = canConnectPower(from)
 

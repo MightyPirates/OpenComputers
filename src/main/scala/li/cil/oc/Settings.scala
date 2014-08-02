@@ -111,13 +111,7 @@ class Settings(config: Config) {
   // power
 
   val pureIgnorePower = config.getBoolean("power.ignorePower")
-  val ignorePower = pureIgnorePower ||
-    (!Mods.BuildCraftPower.isAvailable &&
-      !Mods.ElectricalAge.isAvailable &&
-      !Mods.IndustrialCraft2.isAvailable &&
-      !Mods.Mekanism.isAvailable &&
-      !Mods.RedstoneFlux.isAvailable &&
-      !Mods.UniversalElectricity.isAvailable)
+  val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
@@ -242,6 +236,7 @@ object Settings {
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.
   val valueBuildCraft = 500.0
+  val valueFactorization = 6.5
   val valueIndustrialCraft2 = 200.0
   val valueMekanism = 2000.0 / 3.0
   val valueRedstoneFlux = 50.0
@@ -250,6 +245,7 @@ object Settings {
   val valueInternal = valueBuildCraft
 
   val ratioBuildCraft = valueBuildCraft / valueInternal
+  val ratioFactorization = valueFactorization / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
