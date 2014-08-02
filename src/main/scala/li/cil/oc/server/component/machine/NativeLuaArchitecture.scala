@@ -12,7 +12,6 @@ import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.ChunkCoordIntPair
 
 class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: LuaState = null
@@ -328,29 +327,14 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // on. First, clear the stack, meaning the current kernel.
       lua.setTop(0)
 
-      // Since we have no world yet, we rely on the dimension we were saved in.
-      // Same goes for the chunk. This also works around issues with computers
-      // being moved (e.g. Redstone in Motion).
-      val dimension = nbt.getInteger("dimension")
-      val chunk =
-        if (nbt.hasKey("chunkX") && nbt.hasKey("chunkZ"))
-          new ChunkCoordIntPair(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
-        else
-          new ChunkCoordIntPair(machine.owner.x >> 4, machine.owner.z >> 4)
-      val kernel =
-        if (nbt.hasKey("kernel")) nbt.getByteArray("kernel")
-        else SaveHandler.load(dimension, chunk, machine.node.address + "_kernel")
-      persistence.unpersist(kernel)
+      persistence.unpersist(SaveHandler.load(nbt, machine.node.address + "_kernel"))
       if (!lua.isThread(1)) {
         // This shouldn't really happen, but there's a chance it does if
         // the save was corrupt (maybe someone modified the Lua files).
         throw new LuaRuntimeException("Invalid kernel.")
       }
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
-        val stack =
-          if (nbt.hasKey("stack")) nbt.getByteArray("stack")
-          else SaveHandler.load(dimension, chunk, machine.node.address + "_stack")
-        persistence.unpersist(stack)
+        persistence.unpersist(SaveHandler.load(nbt, machine.node.address + "_stack"))
         if (!(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
           // Same as with the above, should not really happen normally, but
           // could for the same reasons.
@@ -389,19 +373,12 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // Save the kernel state (which is always at stack index one).
       assert(lua.isThread(1))
 
-      // We have to save the dimension and chunk coordinates, because they are
-      // not available on load / may have changed if the computer was moved.
-      val dimension = machine.owner.world.provider.dimensionId
-      val chunk = new ChunkCoordIntPair(machine.owner.x >> 4, machine.owner.z >> 4)
-      nbt.setInteger("dimension", dimension)
-      nbt.setInteger("chunkX", chunk.chunkXPos)
-      nbt.setInteger("chunkZ", chunk.chunkZPos)
-      SaveHandler.scheduleSave(dimension, chunk, machine.node.address + "_kernel", persistence.persist(1))
+      SaveHandler.scheduleSave(machine.owner, nbt, machine.node.address + "_kernel", persistence.persist(1))
       // While in a driver call we have one object on the global stack: either
       // the function to call the driver with, or the result of the call.
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         assert(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
-        SaveHandler.scheduleSave(dimension, chunk, machine.node.address + "_stack", persistence.persist(2))
+        SaveHandler.scheduleSave(machine.owner, nbt, machine.node.address + "_stack", persistence.persist(2))
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)

@@ -4,8 +4,11 @@ import java.io
 import java.io.{File, FileFilter}
 import java.util.logging.Level
 
+import li.cil.oc.api.driver.Container
+import li.cil.oc.api.machine.Owner
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
@@ -23,6 +26,37 @@ object SaveHandler {
   def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)
 
   def statePath = new io.File(savePath, "state")
+
+  def scheduleSave(owner: Owner, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+    scheduleSave(owner.world, owner.x, owner.z, nbt, name, data)
+  }
+
+  def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, data)
+  }
+
+  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+    val dimension = world.provider.dimensionId
+    val chunk = new ChunkCoordIntPair(x >> 4, z >> 4)
+
+    // We have to save the dimension and chunk coordinates, because they are
+    // not available on load / may have changed if the computer was moved.
+    nbt.setInteger("dimension", dimension)
+    nbt.setInteger("chunkX", chunk.chunkXPos)
+    nbt.setInteger("chunkZ", chunk.chunkZPos)
+
+    scheduleSave(dimension, chunk, name, data)
+  }
+
+  def load(nbt: NBTTagCompound, name: String): Array[Byte] = {
+    // Since we have no world yet, we rely on the dimension we were saved in.
+    // Same goes for the chunk. This also works around issues with computers
+    // being moved (e.g. Redstone in Motion).
+    val dimension = nbt.getInteger("dimension")
+    val chunk = new ChunkCoordIntPair(nbt.getInteger("chunkX"), nbt.getInteger("chunkZ"))
+
+    load(dimension, chunk, name)
+  }
 
   def scheduleSave(dimension: Int, chunk: ChunkCoordIntPair, name: String, data: Array[Byte]) = saveData.synchronized {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
