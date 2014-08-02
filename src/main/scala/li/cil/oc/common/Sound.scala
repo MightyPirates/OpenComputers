@@ -9,7 +9,7 @@ object Sound {
   val lastPlayed = mutable.WeakHashMap.empty[Container, Long]
 
   def play(container: Container, name: String) {
-    container.world.playSoundEffect(container.xPosition, container.yPosition, container.zPosition, Settings.resourceDomain + ":" + name, 1, 1)
+    container.world.playSoundEffect(container.xPosition, container.yPosition, container.zPosition, Settings.resourceDomain + ":" + name, Settings.get.soundVolume, 1)
   }
 
   def playDiskInsert(container: Container) {
