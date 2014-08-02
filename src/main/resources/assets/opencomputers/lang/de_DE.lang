@@ -206,6 +206,7 @@ oc:tooltip.Microchip=Tritt auch unter dem Alias Integrierter Schaltkreis auf. Ke
 oc:tooltip.MotionSensor=Kann Bewegungen sich in der Nähe befindender Lebewesen erkennen. Benötigt eine klare Sichtlinie.
 oc:tooltip.NetworkCard=Erlaubt es Computern, die über mehrere Blöcke miteinander verbunden sind (z.B. Kabel), mittels Netzwerknachrichten zu kommunizieren.
 oc:tooltip.PowerConverter.BuildCraft=§fBuildCraft MJ§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.Factorization=§fFactorization Charge§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.IndustrialCraft2=§fIndustrialCraft² EU§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.Mekanism=§fMekanism Joules§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.ThermalExpansion=§fThermal Expansion RF§7: §a%s:%s§7.

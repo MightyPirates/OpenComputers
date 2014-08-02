@@ -43,6 +43,9 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
     if (Mods.BuildCraftPower.isAvailable) {
       addRatio("BuildCraft", Settings.ratioBuildCraft)
     }
+    if (Mods.Factorization.isAvailable) {
+      addRatio("Factorization", Settings.ratioFactorization)
+    }
     if (Mods.IndustrialCraft2.isAvailable) {
       addRatio("IndustrialCraft2", Settings.ratioIndustrialCraft2)
     }

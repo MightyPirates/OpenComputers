@@ -20,7 +20,7 @@ trait Factorization extends Common with IChargeConductor {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
         val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.ratioFactorization
         if (demand > 1) {
-          val power = getCharge.tryTake(demand.toInt)
+          val power = getCharge.deplete(demand.toInt)
           tryChangeBuffer(side, power * Settings.ratioFactorization)
         }
       }
