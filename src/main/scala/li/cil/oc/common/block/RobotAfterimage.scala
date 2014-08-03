@@ -39,6 +39,8 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def opacity(world: World, x: Int, y: Int, z: Int) = 0
 
+  override def isAir(world: World, x: Int, y: Int, z: Int) = true
+
   override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
   override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false

@@ -50,6 +50,8 @@ trait Delegate {
 
   def explosionResistance(entity: Entity): Float = parent.getExplosionResistance(entity)
 
+  def isAir(world: World, x: Int, y: Int, z: Int) = false
+
   def isNormalCube(world: World, x: Int, y: Int, z: Int) = true
 
   def validRotations(world: World, x: Int, y: Int, z: Int) = validRotations_

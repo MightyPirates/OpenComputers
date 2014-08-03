@@ -171,7 +171,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
           // If we broke some replaceable block (like grass) play its break sound.
           if (blockId > 0) {
             val block = Block.blocksList(blockId)
-            if (block != null) {
+            if (block != null && !Delegator.subBlock(block, metadata).exists(_ == Blocks.robotAfterimage)) {
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockFlowing]) {
