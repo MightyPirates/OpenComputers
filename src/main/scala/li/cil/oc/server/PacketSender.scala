@@ -359,6 +359,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(container)
   }
 
+  def sendScreenTouchMode(t: tileentity.Screen, value: Boolean) {
+    val pb = new PacketBuilder(PacketType.ScreenTouchMode)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(value)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendServerPresence(t: tileentity.ServerRack) {
     val pb = new PacketBuilder(PacketType.ServerPresence)
 

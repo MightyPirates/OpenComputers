@@ -55,6 +55,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
       case PacketType.TextBufferSet => onTextBufferSet(p)
+      case PacketType.ScreenTouchMode => onScreenTouchMode(p)
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case _ => // Invalid packet.
@@ -372,6 +373,12 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
   }
+
+  def onScreenTouchMode(p: PacketParser) =
+    p.readTileEntity[Screen]() match {
+      case Some(t) => t.invertTouchMode = p.readBoolean()
+      case _ => // Invalid packet.
+    }
 
   def onServerPresence(p: PacketParser) =
     p.readTileEntity[ServerRack]() match {

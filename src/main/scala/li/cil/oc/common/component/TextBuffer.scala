@@ -10,7 +10,6 @@ import li.cil.oc.client.{ComponentTracker => ClientComponentTracker, PacketSende
 import li.cil.oc.common.{SaveHandler, tileentity}
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker, PacketSender => ServerPacketSender}
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{PackedColor, SideTracker}
 import li.cil.oc.{Settings, api, util}
 import net.minecraft.entity.player.EntityPlayer
@@ -361,8 +360,12 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
       TextBuffer.registerClientBuffer(this)
     }
     else {
-      if (nbt.hasKey("buffer")) data.load(nbt.getCompoundTag("buffer"))
-      else data.load(SaveHandler.loadNBT(nbt, node.address + "_buffer"))
+      if (nbt.hasKey("buffer")) {
+        data.load(nbt.getCompoundTag("buffer"))
+      }
+      else if (!Strings.isNullOrEmpty(node.address)) {
+        data.load(SaveHandler.loadNBT(nbt, node.address + "_buffer"))
+      }
     }
 
     if (nbt.hasKey(Settings.namespace + "isOn")) {

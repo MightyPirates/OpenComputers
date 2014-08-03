@@ -41,6 +41,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   var cachedBounds: Option[AxisAlignedBB] = None
 
+  var invertTouchMode = false
+
   private val arrows = mutable.Set.empty[EntityArrow]
 
   color = Color.byTier(tier)
@@ -75,6 +77,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     screens.clear()
     screens += this
     cachedBounds = None
+    invertTouchMode = false
   }
 
   def click(player: EntityPlayer, hitX: Double, hitY: Double, hitZ: Double): Boolean = {
@@ -246,12 +249,14 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     color = Color.byTier(tier)
     super.readFromNBT(nbt)
     hadRedstoneInput = nbt.getBoolean(Settings.namespace + "hadRedstoneInput")
+    invertTouchMode = nbt.getBoolean(Settings.namespace + "invertTouchMode")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
     nbt.setBoolean(Settings.namespace + "hadRedstoneInput", hadRedstoneInput)
+    nbt.setBoolean(Settings.namespace + "invertTouchMode", invertTouchMode)
   }
 
   // ----------------------------------------------------------------------- //
