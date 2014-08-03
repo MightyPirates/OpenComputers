@@ -36,6 +36,9 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
   def isAddedToEnergyNet = addedToIC2PowerGrid
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
+  def getMaxSafeInput = Integer.MAX_VALUE
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
   def acceptsEnergyFrom(emitter: TileEntity, direction: Direction) = canConnectPower(direction.toForgeDirection)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)

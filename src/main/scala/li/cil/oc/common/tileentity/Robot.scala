@@ -160,7 +160,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
         assert(x == nx && y == ny && z == nz)
         world.setBlock(ox, oy, oz, net.minecraft.init.Blocks.air, 0, 1)
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
-        assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
+        assert(Delegator.subBlock(world, ox, oy, oz).contains(Blocks.robotAfterimage))
         // Here instead of Lua callback so that it gets called on client, too.
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
@@ -172,7 +172,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
         else {
           // If we broke some replaceable block (like grass) play its break sound.
           if (!wasAir) {
-            if (block != null) {
+            if (block != null && !Delegator.subBlock(block, metadata).contains(Blocks.robotAfterimage)) {
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
