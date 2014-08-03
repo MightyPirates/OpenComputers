@@ -259,6 +259,17 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     nbt.setBoolean(Settings.namespace + "invertTouchMode", invertTouchMode)
   }
 
+  @SideOnly(Side.CLIENT) override
+  def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    invertTouchMode = nbt.getBoolean("invertTouchMode")
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setBoolean("invertTouchMode", invertTouchMode)
+  }
+
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
