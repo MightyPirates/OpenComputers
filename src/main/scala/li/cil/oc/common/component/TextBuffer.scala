@@ -360,8 +360,12 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
       TextBuffer.registerClientBuffer(this)
     }
     else {
-      if (nbt.hasKey("buffer")) data.load(nbt.getCompoundTag("buffer"))
-      else data.load(SaveHandler.loadNBT(nbt, node.address + "_buffer"))
+      if (nbt.hasKey("buffer")) {
+        data.load(nbt.getCompoundTag("buffer"))
+      }
+      else if (!Strings.isNullOrEmpty(node.address)) {
+        data.load(SaveHandler.loadNBT(nbt, node.address + "_buffer"))
+      }
     }
 
     if (nbt.hasKey(Settings.namespace + "isOn")) {

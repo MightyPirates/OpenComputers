@@ -36,6 +36,7 @@ object PacketType extends Enumeration {
   TextBufferPowerChange,
   TextBufferResolutionChange,
   TextBufferSet,
+  ScreenTouchMode,
   ServerPresence,
   Sound,
 
