@@ -28,6 +28,7 @@ object Mods {
     final val ThermalExpansion = "ThermalExpansion"
     final val TinkersConstruct = "TConstruct"
     final val UniversalElectricity = "UniversalElectricity"
+    final val VersionChecker = "VersionChecker"
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"
     final val WirelessRedstoneSV = "WirelessRedstoneCore"
@@ -62,6 +63,7 @@ object Mods {
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
   val UniversalElectricity = new SimpleMod(IDs.UniversalElectricity + "@[3.1,)", providesPower = true)
+  val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
   val WirelessRedstoneSV = new SimpleMod(IDs.WirelessRedstoneSV)

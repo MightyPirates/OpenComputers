@@ -17,10 +17,12 @@ import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -136,8 +138,24 @@ class Proxy {
     }
     MinecraftForge.EVENT_BUS.register(Loot)
 
-    OpenComputers.log.info("Initializing Waila support.")
-    FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
+    if (Mods.Waila.isAvailable) {
+      OpenComputers.log.info("Initializing Waila support.")
+      FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
+    }
+
+    if (Mods.VersionChecker.isAvailable) {
+      UpdateCheck.info onSuccess {
+        case Some(release) =>
+          val nbt = new NBTTagCompound()
+          nbt.setString("newVersion", release.tag_name)
+          nbt.setString("updateUrl", "https://github.com/MightyPirates/OpenComputers/releases")
+          nbt.setBoolean("isDirectLink", false)
+          if (release.body != null) {
+            nbt.setString("changeLog", release.body.replaceAll("\r\n", "\n"))
+          }
+          FMLInterModComms.sendRuntimeMessage(OpenComputers.ID, Mods.IDs.VersionChecker, "addUpdate", nbt)
+      }
+    }
   }
 
   def postInit(e: FMLPostInitializationEvent) {
