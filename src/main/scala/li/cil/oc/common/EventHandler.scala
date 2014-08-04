@@ -22,6 +22,8 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object EventHandler {
   val pending = mutable.Buffer.empty[() => Unit]
@@ -121,7 +123,11 @@ object EventHandler {
         ServerPacketSender.sendPetVisibility(None, Some(player))
         // Do update check in local games and for OPs.
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.func_152596_g(player.getGameProfile)) {
-          UpdateCheck.checkForPlayer(player)
+          Future {
+            UpdateCheck.info onSuccess {
+              case Some(release) => player.addChatMessage(Localization.Chat.InfoNewVersion(release.tag_name))
+            }
+          }
         }
       case _ =>
     }
