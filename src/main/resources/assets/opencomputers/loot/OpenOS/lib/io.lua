@@ -70,8 +70,8 @@ end
 
 function io.lines(filename, ...)
   if filename then
-    local result, reason = io.open(filename)
-    if not result then
+    local file, reason = io.open(filename)
+    if not file then
       error(reason, 2)
     end
     local args = table.pack(...)
