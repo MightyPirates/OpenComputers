@@ -248,15 +248,13 @@ function term.read(history, dobreak, hint)
   end
 
   local function tab()
-    if hint then
-      local after = hint(line())
-      if type(after) == "string" then
-        local _, cby = getCursor()
-        history[cby] = after
-      end
-      redraw() --hint might have printed sth
-      ende()
+    local after = hint(line())
+    if type(after) == "string" then
+      local _, cby = getCursor()
+      history[cby] = after
     end
+    redraw() --hint might have printed sth
+    ende()
   end
 
   local function onKeyDown(char, code)
@@ -277,7 +275,7 @@ function term.read(history, dobreak, hint)
       up()
     elseif code == keyboard.keys.down then
       down()
-    elseif code == keyboard.keys.tab then
+    elseif code == keyboard.keys.tab and hint then
       tab()
     elseif code == keyboard.keys.enter then
       local cbx, cby = getCursor()
