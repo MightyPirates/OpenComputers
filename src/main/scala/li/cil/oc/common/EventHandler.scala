@@ -132,8 +132,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {
           Future {
             UpdateCheck.info onSuccess {
-              case Some(release) => p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").
-                addFormatted(Settings.namespace + "gui.Chat.NewVersion", release.tag_name))
+              case Some(release) => p.sendChatToPlayer(Localization.Chat.InfoNewVersion(release.tag_name))
             }
           }
         }
