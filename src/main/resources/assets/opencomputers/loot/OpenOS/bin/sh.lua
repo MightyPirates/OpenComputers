@@ -160,7 +160,7 @@ local function getMatchingPrograms(pattern)
   local res = {}
   for dir in string.gmatch(os.getenv("PATH"), "[a-zA-Z0-9/.]+") do
     for file in fs.list(dir) do
-      if string.match("/" .. file, "/" .. pattern) and file:match("(.+)[.]lua") then
+      if string.match(file, "^" .. pattern .. "(.+)[.]lua") then
         res[#res+1] = file:match("(.+).lua")
       end
     end
