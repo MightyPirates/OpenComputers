@@ -21,7 +21,6 @@ import net.minecraft.network.packet.{NetHandler, Packet1Login}
 import net.minecraft.network.{INetworkManager, NetLoginHandler}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.MinecraftForge
 
 import scala.collection.mutable
