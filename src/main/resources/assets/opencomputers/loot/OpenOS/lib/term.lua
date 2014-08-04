@@ -101,7 +101,7 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak)
+function term.read(history, dobreak, hint)
   checkArg(1, history, "table", "nil")
   history = history or {}
   table.insert(history, "")
@@ -247,6 +247,18 @@ function term.read(history, dobreak)
     right(unicode.len(value))
   end
 
+  local function tab()
+    if hint then
+      local after = hint(line())
+      if type(after) == "string" then
+        local _, cby = getCursor()
+        history[cby] = after
+      end
+      redraw() --hint might have printed sth
+      ende()
+    end
+  end
+
   local function onKeyDown(char, code)
     term.setCursorBlink(false)
     if code == keyboard.keys.back then
@@ -265,6 +277,8 @@ function term.read(history, dobreak)
       up()
     elseif code == keyboard.keys.down then
       down()
+    elseif code == keyboard.keys.tab then
+      tab()
     elseif code == keyboard.keys.enter then
       local cbx, cby = getCursor()
       if cby ~= #history then -- bring entry to front
