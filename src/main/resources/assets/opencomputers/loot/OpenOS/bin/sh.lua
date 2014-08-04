@@ -148,6 +148,76 @@ end
 local args, options = shell.parse(...)
 local history = {}
 
+local lastSearch
+
+local function drawPrompt()
+  local foreground = component.gpu.setForeground(0xFF0000)
+  term.write(expand(os.getenv("PS1") or "$ "))
+  component.gpu.setForeground(foreground)
+end
+
+local function getMatchingPrograms(pattern)
+  local res = {}
+  for dir in string.gmatch(os.getenv("PATH"), "[a-zA-Z0-9/.]+") do
+    for file in fs.list(dir) do
+      if string.match("/" .. file, "/" .. pattern) and file:match("(.+)[.]lua") then
+        res[#res+1] = file:match("(.+).lua")
+      end
+    end
+  end
+  return res
+end
+
+local function getMatchingFiles(pattern)
+  local res = {}
+  local dir = fs.isDirectory(pattern) and pattern or fs.path(pattern) or "/"
+  local name = (dir == pattern) and "" or fs.name(pattern) or ""
+  for file in fs.list(dir) do
+    if string.match("/" .. file, "/" .. name) then
+      res[#res+1] = file
+    end
+  end
+  return res
+end
+
+local function hintHandler(line)
+  local base, space, after = string.match(line, "(.+)(%s)(.+)")
+  local searchProgram = not base
+  if not base then
+    base = ""
+    after = line or ""
+  end
+  if searchProgram then
+    local matches
+    if after:find("[/.]") == 1 then
+      matches = getMatchingFiles(after)
+    else
+      matches = getMatchingPrograms(after)
+    end
+    if #matches == 1 then
+      lastSearch = ""
+      return matches[1] .. " "
+    end
+    if lastSearch == line then
+      term.write("\n")
+      for _, name in ipairs(matches) do term.write(name .. " ", true)end
+      term.write("\n")drawPrompt()
+    end
+  else
+    local matches = getMatchingFiles(after)
+    if #matches == 1 then
+      lastSearch = ""
+      return base .. space .. matches[1] .. " "
+    end
+    if lastSearch == line then
+      term.write("\n")
+      for _, name in ipairs(matches) do term.write(name .. " ", true)end
+      term.write("\n")drawPrompt()
+    end
+  end
+  lastSearch = line
+end
+
 if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
   -- interactive shell.
   while true do
@@ -158,10 +228,8 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       term.clear()
     end
     while term.isAvailable() do
-      local foreground = component.gpu.setForeground(0xFF0000)
-      term.write(expand(os.getenv("PS1") or "$ "))
-      component.gpu.setForeground(foreground)
-      local command = term.read(history)
+      drawPrompt()
+      local command = term.read(history, nil, hintHandler)
       if not command then
         term.write("exit\n")
         return -- eof
