@@ -21,9 +21,12 @@ import net.minecraft.network.packet.{NetHandler, Packet1Login}
 import net.minecraft.network.{INetworkManager, NetLoginHandler}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.MinecraftForge
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object EventHandler extends ITickHandler with IConnectionHandler with ICraftingHandler {
   val pending = mutable.Buffer.empty[() => Unit]
@@ -127,7 +130,12 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
         ServerPacketSender.sendPetVisibility(None, Some(p))
         // Do update check in local games and for OPs.
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {
-          UpdateCheck.checkForPlayer(p)
+          Future {
+            UpdateCheck.info onSuccess {
+              case Some(release) => p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").
+                addFormatted(Settings.namespace + "gui.Chat.NewVersion", release.tag_name))
+            }
+          }
         }
       case _ =>
     }

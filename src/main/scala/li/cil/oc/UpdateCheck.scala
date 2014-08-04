@@ -1,81 +1,61 @@
 package li.cil.oc
 
-import java.net.{HttpURLConnection, URL}
+import java.io.InputStreamReader
+import java.net.URL
 import java.util.logging.Level
 
+import com.google.gson.Gson
+import com.google.gson.stream.JsonReader
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.ComparableVersion
-import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.util.ChatMessageComponent
 
-import scala.io.Source
-import scala.util.parsing.json.{JSON, JSONArray, JSONObject}
+import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object UpdateCheck {
-  val releasesUrl = new URL("https://api.github.com/repos/MightyPirates/OpenComputers/releases")
+  private val releasesUrl = new URL("https://api.github.com/repos/MightyPirates/OpenComputers/releases")
 
-  val version = Loader.instance.getIndexedModList.get("OpenComputers").getVersion
-  val majorVersion = try version.split('.')(0).toInt catch {
-    case _: Throwable => 0
+  var info = Future {
+    initialize()
   }
 
-  // Lazy to make initialize() execute once from the first thread that tries to
-  // read it. If other threads are spawned while it's running they will wait,
-  // because lazy initializers are synchronized.
-  lazy val result = initialize()
-
-  def checkForPlayer(player: EntityPlayerMP) = if (Settings.get.updateCheck) {
-    new Thread() {
-      override def run() = result(player)
-    }.start()
-  }
-
-  def initialize(): EntityPlayerMP => Unit = {
-    try {
-      OpenComputers.log.info("Starting version check.")
-      releasesUrl.openConnection match {
-        case conn: HttpURLConnection =>
-          conn.setRequestMethod("GET")
-          conn.setDoOutput(false)
-          JSON.parseRaw(Source.fromInputStream(conn.getInputStream).mkString) match {
-            case Some(array: JSONArray) =>
-              val candidates = array.list.filter(_.isInstanceOf[JSONObject]).map(node => {
-                val obj = node.asInstanceOf[JSONObject].obj
-                (obj("tag_name").asInstanceOf[String], !obj("prerelease").asInstanceOf[Boolean])
-              }).filter {
-                case (tag, isRelease) => matchesVersion(tag) && isRelease
-              }
-              if (candidates.nonEmpty) {
-                val newest = candidates.maxBy {
-                  case (tagName, _) => new ComparableVersion(tagName.stripPrefix("v"))
-                }
-                val tag = newest._1
-                val tagVersion = new ComparableVersion(tag.stripPrefix("v"))
-                val modVersion = new ComparableVersion(version)
-                if (tagVersion.compareTo(modVersion) > 0) {
-                  OpenComputers.log.info(s"A newer version is available: ($tag})")
-                  return (player: EntityPlayerMP) =>
-                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addFormatted(Settings.namespace + "gui.Chat.NewVersion", tag))
-                }
-              }
-              OpenComputers.log.info("Running the latest version.")
-            case _ => OpenComputers.log.warning("Unexpected response from Github.")
+  private def initialize(): Option[Release] = {
+    if (Settings.get.updateCheck && OpenComputers.Version != "@VERSION@") {
+      try {
+        OpenComputers.log.info("Starting OpenComputers version check.")
+        val reader = new JsonReader(new InputStreamReader(releasesUrl.openStream()))
+        reader.beginArray()
+        val candidates = mutable.ArrayBuffer.empty[Release]
+        while (reader.hasNext) {
+          val release: Release = new Gson().fromJson(reader, classOf[Release])
+          if (!release.prerelease) {
+            candidates += release
           }
-        case _ => OpenComputers.log.warning("Failed to connect to Github.")
+        }
+        reader.endArray()
+        if (candidates.nonEmpty) {
+          val latest = candidates.maxBy(release => new ComparableVersion(release.tag_name.stripPrefix("v")))
+          val remoteVersion = new ComparableVersion(latest.tag_name.stripPrefix("v"))
+          val localVersion = new ComparableVersion(Loader.instance.getIndexedModList.get("OpenComputers").getVersion)
+          if (remoteVersion.compareTo(localVersion) > 0) {
+            OpenComputers.log.info(s"A newer version of OpenComputers is available: ${latest.tag_name}.")
+            return Some(latest)
+          }
+        }
+        OpenComputers.log.info("Running the latest OpenComputers version.")
+      }
+      catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Update check for OpenComputers failed.", t)
       }
     }
-    catch {
-      case t: Throwable => OpenComputers.log.log(Level.WARNING, "Update check failed.", t)
-    }
-    // Nothing to do, return dummy callback.
-    p =>
+    None
   }
 
-  def matchesVersion(tag: String) = try {
-    tag.stripPrefix("v").split('.')(0).toInt == majorVersion
-  }
-  catch {
-    case _: Throwable => false
+  class Release {
+    var tag_name = ""
+    var body = ""
+    var prerelease = false
   }
 
 }
