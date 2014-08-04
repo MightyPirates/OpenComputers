@@ -78,6 +78,9 @@ sandbox = {
   rawset = rawset,
   select = select,
   setmetatable = function(t, mt)
+    if type(mt) ~= "table" then
+      return setmetatable(t, mt)
+    end
     local gc = rawget(mt, "__gc")
     if type(gc) == "function" then
       -- For all user __gc functions we enforce a much tighter deadline.
