@@ -7,7 +7,7 @@ local function findOverride(filter)
   local override
   pcall(function()
     for level = 1, math.huge do
-      local path, env = require("shell").running(level)
+      local path, env = require("process").running(level)
       if not path or override then
         return
       end
@@ -21,7 +21,7 @@ end
 
 local function setInput(value)
   if not pcall(function()
-    local path, env = require("shell").running()
+    local path, env = require("process").running()
     programs[env] = programs[env] or {}
     programs[env].input = value
   end)
@@ -32,7 +32,7 @@ end
 
 local function setOutput(value)
   if not pcall(function()
-    local path, env = require("shell").running()
+    local path, env = require("process").running()
     programs[env] = programs[env] or {}
     programs[env].output = value
   end)
