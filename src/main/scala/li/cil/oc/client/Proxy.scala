@@ -13,6 +13,7 @@ import li.cil.oc.client.renderer.{PetRenderer, TextBufferRenderCache, WirelessNe
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
+import li.cil.oc.util.Audio
 import li.cil.oc.{Items, OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.ReloadableResourceManager
@@ -64,8 +65,9 @@ private[oc] class Proxy extends CommonProxy {
 
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
+    TickRegistry.registerTickHandler(Audio, Side.CLIENT)
     TickRegistry.registerTickHandler(HologramRenderer, Side.CLIENT)
-    TickRegistry.registerTickHandler(TextBufferRenderCache, Side.CLIENT)
     TickRegistry.registerTickHandler(PetRenderer, Side.CLIENT)
+    TickRegistry.registerTickHandler(TextBufferRenderCache, Side.CLIENT)
   }
 }
