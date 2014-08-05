@@ -7,9 +7,9 @@ import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.util.ForgeDirection
 
 trait BuildCraft extends Common {
-  private var powerHandler: Option[AnyRef] = None
+  private lazy val useBuildCraftPower = isServer && Mods.BuildCraftPower.isAvailable
 
-  private lazy val useBuildCraftPower = isServer && !Settings.get.ignorePower && Mods.BuildCraftPower.isAvailable
+  private var powerHandler: Option[AnyRef] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -30,7 +30,7 @@ trait BuildCraft extends Common {
 
   @Optional.Method(modid = Mods.IDs.BuildCraftPower)
   def getPowerProvider = {
-    if (powerHandler.isEmpty) {
+    if (Mods.BuildCraftPower.isAvailable && powerHandler.isEmpty) {
       val handler = new PowerHandler(this.asInstanceOf[IPowerReceptor], PowerHandler.Type.MACHINE)
       if (handler != null) {
         handler.configure(1, 320, Float.MaxValue, 640)
@@ -45,7 +45,7 @@ trait BuildCraft extends Common {
 
   @Optional.Method(modid = Mods.IDs.BuildCraftPower)
   def getPowerReceiver(side: ForgeDirection) =
-    if (canConnectPower(side))
+    if (Mods.BuildCraftPower.isAvailable && canConnectPower(side))
       getPowerProvider.getPowerReceiver
     else null
 

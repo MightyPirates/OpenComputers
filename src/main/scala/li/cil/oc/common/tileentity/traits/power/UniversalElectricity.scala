@@ -8,9 +8,9 @@ import universalelectricity.api.core.grid.electric.IElectricNode
 import universalelectricity.api.core.grid.{INode, INodeProvider}
 
 trait UniversalElectricity extends Common {
-  private lazy val ueNode: AnyRef = universalelectricity.api.core.grid.NodeRegistry.get(this.asInstanceOf[INodeProvider], classOf[IElectricNode])
+  private lazy val useUniversalElectricityPower = isServer && Mods.UniversalElectricity.isAvailable
 
-  private lazy val useUniversalElectricityPower = isServer && !Settings.get.ignorePower && Mods.BuildCraftPower.isAvailable
+  private lazy val ueNode: AnyRef = universalelectricity.api.core.grid.NodeRegistry.get(this.asInstanceOf[INodeProvider], classOf[IElectricNode])
 
   // ----------------------------------------------------------------------- //
 
@@ -33,8 +33,8 @@ trait UniversalElectricity extends Common {
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
   def getNode[N <: INode](nodeType: Class[N], from: ForgeDirection) = {
-    if (canConnectPower(from) && nodeType == classOf[IElectricNode]) ueNode.asInstanceOf[N]
-    else null.asInstanceOf[N]
+    if (Mods.UniversalElectricity.isAvailable && canConnectPower(from) && nodeType == classOf[IElectricNode]) ueNode.asInstanceOf[N]
+    else null
   }
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)

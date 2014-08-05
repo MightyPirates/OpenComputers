@@ -7,10 +7,12 @@ import net.minecraftforge.common.util.ForgeDirection
 
 trait Mekanism extends Common {
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  def canReceiveEnergy(side: ForgeDirection) = canConnectPower(side)
+  def canReceiveEnergy(side: ForgeDirection) = Mods.Mekanism.isAvailable && canConnectPower(side)
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) = tryChangeBuffer(side, amount * Settings.ratioMekanism) / Settings.ratioMekanism
+  def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) =
+    if (!Mods.Mekanism.isAvailable) 0
+    else tryChangeBuffer(side, amount * Settings.ratioMekanism) / Settings.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
   def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.ratioMekanism

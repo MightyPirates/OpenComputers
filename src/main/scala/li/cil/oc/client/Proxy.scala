@@ -2,7 +2,7 @@ package li.cil.oc.client
 
 import cpw.mods.fml.client.registry.{ClientRegistry, RenderingRegistry}
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
+import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
@@ -27,7 +27,7 @@ private[oc] class Proxy extends CommonProxy {
   override def init(e: FMLInitializationEvent) {
     super.init(e)
 
-    NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
+    OpenComputers.channel.register(client.PacketHandler)
 
     Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
     RenderingRegistry.registerBlockHandler(BlockRenderer)
@@ -48,25 +48,20 @@ private[oc] class Proxy extends CommonProxy {
 
     MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
 
-    OpenComputers.channel.register(client.PacketHandler)
-
     ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
-  }
-
-  override def postInit(e: FMLPostInitializationEvent) {
-    super.postInit(e)
-
-    FMLCommonHandler.instance.bus.register(Audio)
-    FMLCommonHandler.instance.bus.register(HologramRenderer)
-    FMLCommonHandler.instance.bus.register(PetRenderer)
-    FMLCommonHandler.instance.bus.register(ScreenRenderer)
-    FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
 
     MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(ServerRack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
+
+    NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
+
+    FMLCommonHandler.instance.bus.register(Audio)
+    FMLCommonHandler.instance.bus.register(HologramRenderer)
+    FMLCommonHandler.instance.bus.register(PetRenderer)
+    FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
   }
 }

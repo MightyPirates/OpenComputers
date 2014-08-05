@@ -111,13 +111,14 @@ class Settings(config: Config) {
   // power
 
   val pureIgnorePower = config.getBoolean("power.ignorePower")
-  val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
+  lazy val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
   val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
+  val powerModBlacklist = config.getStringList("power.modBlacklist")
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0

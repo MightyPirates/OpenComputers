@@ -67,6 +67,9 @@ class Proxy {
   }
 
   def init(e: FMLInitializationEvent) {
+    OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
+    OpenComputers.channel.register(server.PacketHandler)
+
     OpenComputers.log.info("Initializing OpenComputers drivers.")
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
@@ -115,19 +118,26 @@ class Proxy {
 
     OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
+
     OpenComputers.log.info("Initializing event handlers.")
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
-    OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
-    OpenComputers.channel.register(server.PacketHandler)
 
-    Loot.init()
+    FMLCommonHandler.instance.bus.register(EventHandler)
+    FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
+    FMLCommonHandler.instance.bus.register(Tablet)
 
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
+    MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(Loot)
+    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
+    MinecraftForge.EVENT_BUS.register(SaveHandler)
+    MinecraftForge.EVENT_BUS.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
+
     if (Mods.TinkersConstruct.isAvailable) {
       OpenComputers.log.info("Initializing Tinker's Construct tool support.")
       MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)
@@ -136,13 +146,6 @@ class Proxy {
       OpenComputers.log.info("Initializing electric tool support.")
       MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
     }
-    MinecraftForge.EVENT_BUS.register(Loot)
-
-    if (Mods.Waila.isAvailable) {
-      OpenComputers.log.info("Initializing Waila support.")
-      FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
-    }
-
     if (Mods.VersionChecker.isAvailable) {
       UpdateCheck.info onSuccess {
         case Some(release) =>
@@ -156,19 +159,15 @@ class Proxy {
           FMLInterModComms.sendRuntimeMessage(OpenComputers.ID, Mods.IDs.VersionChecker, "addUpdate", nbt)
       }
     }
+    if (Mods.Waila.isAvailable) {
+      OpenComputers.log.info("Initializing Waila support.")
+      FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
+    }
   }
 
   def postInit(e: FMLPostInitializationEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
-
-    FMLCommonHandler.instance.bus.register(EventHandler)
-    FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
-    FMLCommonHandler.instance.bus.register(Tablet)
-    MinecraftForge.EVENT_BUS.register(EventHandler)
-    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
-    MinecraftForge.EVENT_BUS.register(SaveHandler)
-    MinecraftForge.EVENT_BUS.register(Tablet)
   }
 
   private def registerExclusive(name: String, items: ItemStack*) {

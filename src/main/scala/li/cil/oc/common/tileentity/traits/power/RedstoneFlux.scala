@@ -7,11 +7,12 @@ import net.minecraftforge.common.util.ForgeDirection
 
 trait RedstoneFlux extends Common {
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
-  def canConnectEnergy(from: ForgeDirection) = canConnectPower(from)
+  def canConnectEnergy(from: ForgeDirection) = Mods.RedstoneFlux.isAvailable && canConnectPower(from)
 
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
   def receiveEnergy(from: ForgeDirection, maxReceive: Int, simulate: Boolean) =
-    (tryChangeBuffer(from, maxReceive * Settings.ratioRedstoneFlux, !simulate) / Settings.ratioRedstoneFlux).toInt
+    if (!Mods.RedstoneFlux.isAvailable) 0
+    else (tryChangeBuffer(from, maxReceive * Settings.ratioRedstoneFlux, !simulate) / Settings.ratioRedstoneFlux).toInt
 
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
   def getEnergyStored(from: ForgeDirection) = (globalBuffer(from) / Settings.ratioRedstoneFlux).toInt
