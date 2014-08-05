@@ -204,11 +204,7 @@ local function hintHandler(line)
       end
     end
     
-    if lastSearch == line then
-      term.write("\n")
-      for _, name in ipairs(matches) do term.write(name .. " ", true)end
-      term.write("\n")drawPrompt()
-    end
+    if lastSearch == line then return matches end
   else
     local matches = getMatchingFiles(after)
     if #matches == 1 then
@@ -216,11 +212,7 @@ local function hintHandler(line)
       local ret = base .. space .. after .. matches[1]:gsub(after:match("[/]*(%w+)$"),"",1)
       return ret:gsub("[^/]$","%1 ")
     end
-    if lastSearch == line then
-      term.write("\n")
-      for _, name in ipairs(matches) do term.write(name .. " ", true)end
-      term.write("\n")drawPrompt()
-    end
+    if lastSearch == line then return matches end
   end
   lastSearch = line
 end
@@ -235,8 +227,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       term.clear()
     end
     while term.isAvailable() do
-      drawPrompt()
-      local command = term.read(history, nil, hintHandler)
+      local command = term.read(history, nil, hintHandler, drawPrompt)
       if not command then
         term.write("exit\n")
         return -- eof
