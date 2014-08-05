@@ -258,7 +258,7 @@ function term.read(history, dobreak, hint, prompt)
       history[cby] = after
     elseif type(after) == "table" or type(after) == "function" then
       term.write("\n")
-      for _, v in type(after) == "table" and pairs(after) or (function()return _,after end) do
+      for _, name in type(after) == "table" and pairs(after) or (function()local _,v pcall(after) return v,v  end) do
         term.write(name .. " ", true)
       end
       term.write("\n")
