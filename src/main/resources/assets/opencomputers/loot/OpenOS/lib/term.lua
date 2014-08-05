@@ -101,13 +101,17 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak, hint)
+function term.read(history, dobreak, hint, prompt)
   checkArg(1, history, "table", "nil")
   history = history or {}
   table.insert(history, "")
   local offset = term.getCursor() - 1
   local scrollX, scrollY = 0, #history - 1
   local cursorX = 1
+
+  if type(prompt) == "function" then
+    pcall(prompt)
+  end
 
   local function getCursor()
     return cursorX, 1 + scrollY
@@ -252,8 +256,15 @@ function term.read(history, dobreak, hint)
     if type(after) == "string" then
       local _, cby = getCursor()
       history[cby] = after
+    elseif type(after) == "table" or type(after) == "function" then
+      term.write("\n")
+      for _, v in type(after) == "table" and pairs(after) or (function()return _,after end) do
+        term.write(name .. " ", true)
+      end
+      term.write("\n")
+      if type(prompt) == "function" then pcall(prompt)end
     end
-    redraw() --hint might have printed sth
+    redraw()
     ende()
   end
 
