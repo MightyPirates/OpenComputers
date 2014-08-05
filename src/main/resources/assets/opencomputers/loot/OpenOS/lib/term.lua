@@ -105,13 +105,16 @@ function term.read(history, dobreak, hint, prompt)
   checkArg(1, history, "table", "nil")
   history = history or {}
   table.insert(history, "")
+  
+  if type(prompt) == "function" then
+    pcall(prompt)
+  elseif type(prompt) == "string" then
+    term.write(prompt)
+  end
+  
   local offset = term.getCursor() - 1
   local scrollX, scrollY = 0, #history - 1
   local cursorX = 1
-
-  if type(prompt) == "function" then
-    pcall(prompt)
-  end
 
   local function getCursor()
     return cursorX, 1 + scrollY
@@ -256,13 +259,22 @@ function term.read(history, dobreak, hint, prompt)
     if type(after) == "string" then
       local _, cby = getCursor()
       history[cby] = after
-    elseif type(after) == "table" or type(after) == "function" then
+    elseif type(after) == "table" then
       term.write("\n")
-      for _, name in type(after) == "table" and pairs(after) or (function()local _,v pcall(after) return v,v  end) do
+      for _, name in pairs(after) do
         term.write(name .. " ", true)
       end
       term.write("\n")
-      if type(prompt) == "function" then pcall(prompt)end
+      if type(prompt) == "function" then pcall(prompt)
+      elseif type(prompt) == "string" then term.write(prompt)end
+    elseif type(after) == "function" then
+      term.write("\n")
+      for name in after do --This is possibly not the best solution
+        term.write(name .. " ", true)
+      end
+      term.write("\n")
+      if type(prompt) == "function" then pcall(prompt)
+      elseif type(prompt) == "string" then term.write(prompt)end
     end
     redraw()
     ende()
