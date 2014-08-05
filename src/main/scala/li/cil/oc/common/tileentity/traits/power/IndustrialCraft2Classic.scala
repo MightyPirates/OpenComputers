@@ -11,7 +11,7 @@ import net.minecraftforge.common.ForgeDirection
 trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
   private var lastInjectedAmount = 0.0
 
-  private lazy val useIndustrialCraft2ClassicPower = isServer && !Settings.get.ignorePower && Mods.IndustrialCraft2Classic.isAvailable
+  private lazy val useIndustrialCraft2ClassicPower = isServer && Mods.IndustrialCraft2Classic.isAvailable
 
   // ----------------------------------------------------------------------- //
 
@@ -36,7 +36,7 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
   def isAddedToEnergyNet = addedToIC2PowerGrid
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
-  def acceptsEnergyFrom(emitter: TileEntity, direction: Direction) = canConnectPower(direction.toForgeDirection)
+  def acceptsEnergyFrom(emitter: TileEntity, direction: Direction) = Mods.IndustrialCraft2Classic.isAvailable && canConnectPower(direction.toForgeDirection)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
   def injectEnergy(directionFrom: Direction, amount: Int) = {
@@ -54,7 +54,7 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
   def demandsEnergy = {
-    if (Settings.get.ignorePower || isClient) 0
+    if (!useIndustrialCraft2ClassicPower) 0
     else {
       var force = false
       val demand = ForgeDirection.VALID_DIRECTIONS.map(side => {

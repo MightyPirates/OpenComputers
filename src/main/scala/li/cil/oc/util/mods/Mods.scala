@@ -2,6 +2,7 @@ package li.cil.oc.util.mods
 
 import cpw.mods.fml.common.versioning.VersionParser
 import cpw.mods.fml.common.{Loader, ModAPIManager}
+import li.cil.oc.Settings
 
 import scala.collection.mutable
 
@@ -90,7 +91,9 @@ object Mods {
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)
     }
 
-    override def isAvailable = isModLoaded
+    protected val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
+
+    override def isAvailable = isModLoaded && isPowerModEnabled
   }
 
 }

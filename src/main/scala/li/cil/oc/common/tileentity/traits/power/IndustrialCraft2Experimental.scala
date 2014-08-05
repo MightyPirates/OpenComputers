@@ -9,7 +9,7 @@ import net.minecraftforge.common.ForgeDirection
 trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   private var lastInjectedAmount = 0.0
 
-  private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Mods.IndustrialCraft2.isAvailable
+  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2.isAvailable
 
   // ----------------------------------------------------------------------- //
 
@@ -31,7 +31,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = Mods.IndustrialCraft2.isAvailable && canConnectPower(direction)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
@@ -49,7 +49,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def demandedEnergyUnits = {
-    if (Settings.get.ignorePower || isClient) 0
+    if (!useIndustrialCraft2Power) 0
     else {
       var force = false
       val demand = ForgeDirection.VALID_DIRECTIONS.map(side => {

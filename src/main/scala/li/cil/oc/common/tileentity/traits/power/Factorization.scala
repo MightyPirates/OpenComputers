@@ -7,10 +7,10 @@ import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 
 trait Factorization extends Common {
+  private lazy val useFactorizationPower = isServer && Mods.Factorization.isAvailable
+
   @Optional.Method(modid = Mods.IDs.Factorization)
   private lazy val charge: AnyRef = new Charge(this.asInstanceOf[IChargeConductor])
-
-  private lazy val useFactorizationPower = isServer && !Settings.get.ignorePower && Mods.Factorization.isAvailable
 
   // ----------------------------------------------------------------------- //
 
@@ -45,7 +45,7 @@ trait Factorization extends Common {
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.Factorization)
-  def getCharge = charge.asInstanceOf[Charge]
+  def getCharge = if (Mods.Factorization.isAvailable) charge.asInstanceOf[Charge] else null
 
   @Optional.Method(modid = Mods.IDs.Factorization)
   def getInfo = ""
