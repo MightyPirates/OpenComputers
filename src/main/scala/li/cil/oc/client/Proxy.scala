@@ -1,10 +1,11 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.client.registry.{ClientRegistry, KeyBindingRegistry, RenderingRegistry}
-import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
+import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.TickRegistry
 import cpw.mods.fml.relauncher.Side
+import li.cil.oc.client.gui.Icons
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
@@ -12,7 +13,7 @@ import li.cil.oc.client.renderer.{PetRenderer, TextBufferRenderCache, WirelessNe
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
-import li.cil.oc.{Settings, Items, OpenComputers}
+import li.cil.oc.{Items, OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.ReloadableResourceManager
 import net.minecraftforge.client.MinecraftForgeClient
@@ -27,8 +28,6 @@ private[oc] class Proxy extends CommonProxy {
 
   override def init(e: FMLInitializationEvent) = {
     super.init(e)
-
-    NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
     Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
     RenderingRegistry.registerBlockHandler(BlockRenderer)
@@ -49,7 +48,13 @@ private[oc] class Proxy extends CommonProxy {
 
     MinecraftForgeClient.registerItemRenderer(Items.multi.itemID, ItemRenderer)
 
-    MinecraftForge.EVENT_BUS.register(gui.Icons)
+    KeyBindingRegistry.registerKeyBinding(KeyBindings.Handler)
+
+    MinecraftForge.EVENT_BUS.register(Icons)
+    MinecraftForge.EVENT_BUS.register(PetRenderer)
+    MinecraftForge.EVENT_BUS.register(ServerRack)
+    MinecraftForge.EVENT_BUS.register(TextBuffer)
+    MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
 
     Minecraft.getMinecraft.getResourceManager match {
       case manager: ReloadableResourceManager =>
@@ -57,18 +62,10 @@ private[oc] class Proxy extends CommonProxy {
       case _ =>
     }
 
-    KeyBindingRegistry.registerKeyBinding(KeyBindings.Handler)
-  }
-
-  override def postInit(e: FMLPostInitializationEvent) {
-    super.postInit(e)
+    NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
     TickRegistry.registerTickHandler(HologramRenderer, Side.CLIENT)
     TickRegistry.registerTickHandler(TextBufferRenderCache, Side.CLIENT)
     TickRegistry.registerTickHandler(PetRenderer, Side.CLIENT)
-    MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
-    MinecraftForge.EVENT_BUS.register(ServerRack)
-    MinecraftForge.EVENT_BUS.register(TextBuffer)
-    MinecraftForge.EVENT_BUS.register(PetRenderer)
   }
 }

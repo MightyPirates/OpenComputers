@@ -123,14 +123,27 @@ class Proxy {
     OpenComputers.log.info("Initializing event handlers.")
 
     GameRegistry.registerCraftingHandler(EventHandler)
+    GameRegistry.registerPlayerTracker(Keyboard)
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(Loot)
+    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
+    MinecraftForge.EVENT_BUS.register(SaveHandler)
+    MinecraftForge.EVENT_BUS.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
+
+    NetworkRegistry.instance.registerConnectionHandler(EventHandler)
+
+    TickRegistry.registerTickHandler(EventHandler, Side.SERVER)
+    TickRegistry.registerTickHandler(SimpleComponentTickHandler.Instance, Side.SERVER)
+    TickRegistry.registerTickHandler(Tablet, Side.CLIENT)
+    TickRegistry.registerTickHandler(Tablet, Side.SERVER)
+
     if (Mods.TinkersConstruct.isAvailable) {
       OpenComputers.log.info("Initializing Tinker's Construct tool support.")
       MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)
@@ -139,25 +152,15 @@ class Proxy {
       OpenComputers.log.info("Initializing electric tool support.")
       MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
     }
-    MinecraftForge.EVENT_BUS.register(Loot)
-
-    OpenComputers.log.info("Initializing Waila support.")
-    FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
+    if (Mods.Waila.isAvailable) {
+      OpenComputers.log.info("Initializing Waila support.")
+      FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
+    }
   }
 
   def postInit(e: FMLPostInitializationEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
-
-    TickRegistry.registerTickHandler(EventHandler, Side.SERVER)
-    TickRegistry.registerTickHandler(SimpleComponentTickHandler.Instance, Side.SERVER)
-    TickRegistry.registerTickHandler(Tablet, Side.CLIENT)
-    TickRegistry.registerTickHandler(Tablet, Side.SERVER)
-    GameRegistry.registerPlayerTracker(Keyboard)
-    NetworkRegistry.instance.registerConnectionHandler(EventHandler)
-    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
-    MinecraftForge.EVENT_BUS.register(SaveHandler)
-    MinecraftForge.EVENT_BUS.register(Tablet)
   }
 
   private def registerExclusive(name: String, items: ItemStack*) {
