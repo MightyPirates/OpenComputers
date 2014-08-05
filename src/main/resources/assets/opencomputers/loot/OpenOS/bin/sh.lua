@@ -173,7 +173,7 @@ local function getMatchingFiles(pattern)
   local dir = fs.isDirectory(pattern) and pattern or fs.path(pattern) or "/"
   local name = (dir == pattern) and "" or fs.name(pattern) or ""
   for file in fs.list(dir) do
-    if string.match("/" .. file, "/" .. name) then
+    if string.match(file, "^" .. name) then
       res[#res+1] = file
     end
   end
@@ -191,13 +191,19 @@ local function hintHandler(line)
     local matches
     if after:find("[/.]") == 1 then
       matches = getMatchingFiles(after)
+      if #matches == 1 then
+        lastSearch = ""
+        local ret = base .. (space or "") .. after .. matches[1]:gsub(after:match("[/]*(%w+)$"),"",1)
+        return ret:gsub("[^/]$","%1 ")
+      end
     else
       matches = getMatchingPrograms(after)
+      if #matches == 1 then
+        lastSearch = ""
+        return matches[1] .. " "
+      end
     end
-    if #matches == 1 then
-      lastSearch = ""
-      return matches[1] .. " "
-    end
+    
     if lastSearch == line then
       term.write("\n")
       for _, name in ipairs(matches) do term.write(name .. " ", true)end
@@ -207,7 +213,8 @@ local function hintHandler(line)
     local matches = getMatchingFiles(after)
     if #matches == 1 then
       lastSearch = ""
-      return base .. space .. matches[1] .. " "
+      local ret = base .. space .. after .. matches[1]:gsub(after:match("[/]*(%w+)$"),"",1)
+      return ret:gsub("[^/]$","%1 ")
     end
     if lastSearch == line then
       term.write("\n")
