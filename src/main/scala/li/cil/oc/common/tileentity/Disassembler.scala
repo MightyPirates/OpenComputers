@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._

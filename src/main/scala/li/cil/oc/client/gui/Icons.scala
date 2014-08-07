@@ -3,7 +3,7 @@ package li.cil.oc.client.gui
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import net.minecraft.util.IIcon
 import net.minecraftforge.client.event.TextureStitchEvent
 

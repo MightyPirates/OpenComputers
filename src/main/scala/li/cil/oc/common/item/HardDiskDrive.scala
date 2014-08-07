@@ -6,7 +6,7 @@ import li.cil.oc.Settings
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
+class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate with ItemTier {
   override val unlocalizedName = super.unlocalizedName + tier
   val kiloBytes = Settings.get.hddSizes(tier)
 

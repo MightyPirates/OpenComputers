@@ -7,7 +7,7 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory

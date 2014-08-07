@@ -9,7 +9,7 @@ import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.{Mods, Waila}

@@ -4,8 +4,7 @@ import java.util
 import java.util.UUID
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.common.{GuiType, Tier, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer

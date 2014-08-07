@@ -4,8 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.{Driver, driver}
-import li.cil.oc.common.InventorySlots
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.{InventorySlots, Tier}
 import li.cil.oc.util.Color
 import li.cil.oc.{Settings, common}
 import net.minecraft.entity.player.EntityPlayer

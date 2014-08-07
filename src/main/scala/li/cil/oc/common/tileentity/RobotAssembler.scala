@@ -4,8 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.{Slot, UpgradeContainer}
 import li.cil.oc.api.network.{SidedEnvironment, Visibility}
-import li.cil.oc.common.InventorySlots
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.{InventorySlots, Tier}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils

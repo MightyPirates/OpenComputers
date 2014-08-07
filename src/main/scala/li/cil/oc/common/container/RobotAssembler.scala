@@ -2,8 +2,7 @@ package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.gui.Icons
-import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.common.{InventorySlots, tileentity}
+import li.cil.oc.common.{InventorySlots, Tier, tileentity}
 import li.cil.oc.util.{ItemUtils, SideTracker}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.InventoryPlayer
