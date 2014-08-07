@@ -361,8 +361,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       for (number <- 0 until servers.length) {
         val serverSide = sides(number)
         servers(number) match {
-          case Some(server) if toGlobal(serverSide) == plug.side =>
-            plug.node.connect(server.machine.node)
+          case Some(server) =>
+            if (toGlobal(serverSide) == plug.side) plug.node.connect(server.machine.node)
+            else api.Network.joinNewNetwork(server.machine.node)
             terminals(number).connect(server.machine.node)
           case _ =>
         }
