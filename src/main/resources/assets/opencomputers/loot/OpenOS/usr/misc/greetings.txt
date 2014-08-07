@@ -24,3 +24,4 @@ If you encounter out of memory errors, throw more RAM at your computer.
 Have you tried turning it off and on again?
 To disable this greeting, install OpenOS to a writeable medium and delete `/etc/motd`.
 Change the text size by changing the screen resolution - try using the `resolution` program.
+Did you know OpenComputers has a forum? No? Well, it's at http://oc.cil.li
