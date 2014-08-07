@@ -73,9 +73,13 @@ trait Delegate {
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     if (tooltipName.isDefined) {
       tooltip.addAll(Tooltip.get(tooltipName.get, tooltipData: _*))
+      tooltipExtended(stack, tooltip)
     }
     tooltipCosts(stack, tooltip)
   }
+
+  // For stuff that goes to the normal 'extended' tooltip, before the costs.
+  protected def tooltipExtended(stack: ItemStack, tooltip: java.util.List[String]) {}
 
   protected def tooltipCosts(stack: ItemStack, tooltip: java.util.List[String]) {
     if (ItemCosts.hasCosts(stack)) {

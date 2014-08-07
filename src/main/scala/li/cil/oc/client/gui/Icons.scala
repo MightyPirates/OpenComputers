@@ -2,7 +2,7 @@ package li.cil.oc.client.gui
 
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import net.minecraft.util.Icon
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.event.ForgeSubscribe

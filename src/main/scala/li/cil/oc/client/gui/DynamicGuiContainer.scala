@@ -1,7 +1,7 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator

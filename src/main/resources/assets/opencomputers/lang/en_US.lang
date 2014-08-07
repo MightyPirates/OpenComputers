@@ -235,6 +235,7 @@ oc:tooltip.ServerRack=Allows the installation of up to four servers. Use a Remot
 oc:tooltip.Switch=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
 oc:tooltip.Tablet=EXPERIMENTAL - FOR TESTING ONLY [nl] This it a test for item-based computers. It cannot be crafted. Report bugs with it if you test it!
 oc:tooltip.Terminal=Allows controlling a server remotely, as long as you are in range of it. Acts like a portable screen and keyboard. Shift-right-click a server in a server rack to bind the terminal to it.
+oc:tooltip.Tier=§8Tier %s
 oc:tooltip.TooLong=Hold [§f%s§7] for a detailed tooltip.
 oc:tooltip.Transistor=A basic element in most other computer parts. It's a bit twisted, but it does the job.
 oc:tooltip.UpgradeAngel=Allows robots to place blocks in thin air, even if there is no point of reference.

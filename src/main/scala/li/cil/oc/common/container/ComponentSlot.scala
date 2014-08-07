@@ -2,7 +2,7 @@ package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack

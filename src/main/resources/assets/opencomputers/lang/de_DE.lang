@@ -233,6 +233,7 @@ oc:tooltip.Server.Components=Installierte Komponenten:
 oc:tooltip.ServerRack=Erlaubt die Installation von bis zu vier Servern. Stellt für jeden eingebauten Server eine virtuelle Tastatur- und Bildschirmkomponente zur Verfügung, welche je eine Fernbedienung repräsentieren.
 oc:tooltip.Switch=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Switch sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
 oc:tooltip.Terminal=Erlaubt es, einen Server aus der Ferne zu steuern, so lange man sich in Reichweite des Servers befindet. Verhält sich wie Bildschirm und Tastatur in einem. Kann mit Shift-Rechtsklick an einen Server in einem Serverschrank gebunden werden.
+oc:tooltip.Tier=§8Stufe %s
 oc:tooltip.TooLong=Halte [§f%s§7] gedrückt für mehr Infos.
 oc:tooltip.Transistor=Elementarer Baustein der meisten Computerkomponenten. Nicht zu verwechseln mit Steinelementaren.
 oc:tooltip.UpgradeAngel=Erlaubt es Robotern, Blöcke in die Luft zu setzen, selbst wenn kein Referenzblock daneben existiert.

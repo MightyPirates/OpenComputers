@@ -2,9 +2,8 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
-import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.{Loot, item}
+import li.cil.oc.common.{Loot, Tier, item}
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block

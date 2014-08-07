@@ -118,6 +118,8 @@ object Localization {
 
   object Tooltip {
     def Materials = localizeImmediately("tooltip.Materials")
+
+    def Tier(tier: Int) = localizeImmediately("tooltip.Tier", tier.toString)
   }
 
 }

@@ -1,7 +1,8 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.api
-import li.cil.oc.common.InventorySlots.{InventorySlot, Tier}
+import li.cil.oc.common.InventorySlots.InventorySlot
+import li.cil.oc.common.Tier
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.{Container, ICrafting, IInventory, Slot}

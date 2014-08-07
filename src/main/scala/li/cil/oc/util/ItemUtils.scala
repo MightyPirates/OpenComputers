@@ -4,7 +4,7 @@ import java.util.logging.Level
 
 import com.google.common.base.Strings
 import li.cil.oc.api.Persistable
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, OpenComputers, Settings, api, server}
 import net.minecraft.item.{Item, ItemMap, ItemStack}

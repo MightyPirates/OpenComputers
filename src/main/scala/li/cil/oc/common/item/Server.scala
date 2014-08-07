@@ -2,9 +2,8 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.common.GuiType
-import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.{GuiType, Tier}
 import li.cil.oc.util.{Rarity, Tooltip}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
@@ -16,6 +15,10 @@ import scala.collection.mutable
 class Server(val parent: Delegator, val tier: Int) extends Delegate {
   override val unlocalizedName = super.unlocalizedName + tier
 
+  override protected def tooltipName = Option(super.unlocalizedName)
+
+  override protected def tooltipData = Seq(Settings.get.terminalsPerTier(math.min(Tier.Three, tier)))
+
   override def rarity = Rarity.byTier(tier)
 
   override def maxStackSize = 1
@@ -26,8 +29,8 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
     var container: ItemStack = null
   }
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(super.unlocalizedName, Settings.get.terminalsPerTier(math.min(Tier.Three, tier))))
+  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
+    super.tooltipExtended(stack, tooltip)
     HelperInventory.container = stack
     HelperInventory.reinitialize()
     val items = mutable.Map.empty[String, Int]
@@ -41,7 +44,6 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
         tooltip.add("- " + items(itemName) + "x " + itemName)
       }
     }
-    tooltipCosts(stack, tooltip)
   }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
