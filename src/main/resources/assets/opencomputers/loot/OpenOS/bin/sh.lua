@@ -207,12 +207,13 @@ local function hintHandler(line)
     if lastSearch == line then return matches end
   else
     local matches = getMatchingFiles(after)
-    if #matches == 1 then
-      lastSearch = ""
-      local ret = base .. space .. after .. matches[1]:gsub(after:match("[/]*(%w+)$"),"",1)
-      return ret:gsub("[^/]$","%1 ")
+    
+    for k in ipairs(matches)do
+      local ret = base .. space .. after .. (matches[k]):gsub(after:match("[/]*(%w+)$") or "","",1)
+      matches[k] = ret:gsub("[^/]$","%1 "):gsub("/$","")
     end
-    if lastSearch == line then return matches end
+    
+    return matches
   end
   lastSearch = line
 end
@@ -227,7 +228,8 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       term.clear()
     end
     while term.isAvailable() do
-      local command = term.read(history, nil, hintHandler, drawPrompt)
+      drawPrompt()
+      local command = term.read(history, nil, hintHandler)
       if not command then
         term.write("exit\n")
         return -- eof
