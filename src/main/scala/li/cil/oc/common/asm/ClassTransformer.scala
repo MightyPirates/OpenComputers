@@ -64,8 +64,20 @@ class ClassTransformer extends IClassTransformer {
 
           // Inject available power interfaces into power acceptors.
           if (classNode.interfaces.contains("li/cil/oc/common/tileentity/traits/PowerAcceptor")) {
+            def missingImplementations(interfaceName: String) = {
+              val node = classNodeFor(interfaceName)
+              if (node == null) Seq(s"Interface ${interfaceName.replaceAll("/", ".")} not found.")
+              else node.methods.filterNot(im => classNode.methods.exists(cm => im.name == cm.name && im.desc == cm.desc)).map(method => s"Missing implementation of ${method.name + method.desc}")
+            }
             for ((mod, interfaces) <- powerTypes if mod.isAvailable) {
-              interfaces.foreach(classNode.interfaces.add)
+              val missing = interfaces.flatMap(missingImplementations)
+              if (missing.isEmpty) {
+                interfaces.foreach(classNode.interfaces.add)
+              }
+              else {
+                log.warning(s"Skipping power support for mod ${mod.id}.")
+                missing.foreach(log.warning)
+              }
             }
           }
 
