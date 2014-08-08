@@ -13,7 +13,8 @@ public class ModThaumcraft implements IMod {
 
     @Override
     public void initialize() {
-        Driver.add(new ConverterIAspectContainer());
         Driver.add(new DriverAspectContainer());
+
+        Driver.add(new ConverterIAspectContainer());
     }
 }

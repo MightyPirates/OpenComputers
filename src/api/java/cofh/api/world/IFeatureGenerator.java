@@ -15,7 +15,7 @@ import net.minecraft.world.gen.feature.WorldGenerator;
 public interface IFeatureGenerator {
 
 	/**
-	 * Returns the name of the feature, used for displaying in the World.cfg file.
+	 * Returns the name of the feature, used for unique identification in configs and retrogen.
 	 */
 	public String getFeatureName();
 

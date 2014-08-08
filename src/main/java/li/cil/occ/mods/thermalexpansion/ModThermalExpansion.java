@@ -4,7 +4,7 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public final class ModThermalExpansion implements IMod {
-    public static final String MOD_ID = "ThermalExpansion";
+    public static final String MOD_ID = "CoFHLib";
 
     @Override
     public String getModId() {
@@ -14,6 +14,8 @@ public final class ModThermalExpansion implements IMod {
     @Override
     public void initialize() {
         Driver.add(new DriverEnderEnergy());
+        Driver.add(new DriverEnderFluid());
+        Driver.add(new DriverEnderItem());
         Driver.add(new DriverEnergyHandler());
         Driver.add(new DriverEnergyInfo());
         Driver.add(new DriverLamp());

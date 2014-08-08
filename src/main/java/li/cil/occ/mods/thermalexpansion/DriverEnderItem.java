@@ -1,6 +1,5 @@
 package li.cil.occ.mods.thermalexpansion;
 
-import cofh.api.transport.IEnderEnergyHandler;
 import cofh.api.transport.IEnderItemHandler;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
@@ -26,14 +25,10 @@ public final class DriverEnderItem extends DriverTileEntity {
             super(tileEntity, "ender_item");
         }
 
-
-
         @Callback(doc = "function():boolean --  Returns whether the tileentity can receive items.")
         public Object[] canReceiveItems(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveItems()};
         }
-
-
 
         @Callback(doc = "function():boolean --  Returns whether the tileentity can send items.")
         public Object[] canSendItems(final Context context, final Arguments args) {
@@ -49,10 +44,10 @@ public final class DriverEnderItem extends DriverTileEntity {
         public Object[] setFrequency(final Context context, final Arguments args) {
             return new Object[]{tileEntity.setFrequency(args.checkInteger(0))};
         }
+
         @Callback(doc = "function():string --  Returns the name of the channel.")
         public Object[] getChannelString(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getChannelString()};
         }
-
     }
 }

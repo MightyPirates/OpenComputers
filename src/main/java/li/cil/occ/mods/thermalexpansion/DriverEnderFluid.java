@@ -1,6 +1,5 @@
 package li.cil.occ.mods.thermalexpansion;
 
-import cofh.api.transport.IEnderEnergyHandler;
 import cofh.api.transport.IEnderFluidHandler;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
@@ -26,20 +25,15 @@ public final class DriverEnderFluid extends DriverTileEntity {
             super(tileEntity, "ender_fluid");
         }
 
-
         @Callback(doc = "function():boolean --  Returns whether the tileentity can receive fluids.")
         public Object[] canReceiveFluid(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveFluid()};
         }
 
-
-
         @Callback(doc = "function():boolean --  Returns whether the tileentity can send fluids.")
         public Object[] canSendFluid(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendFluid()};
         }
-
-
 
         @Callback(doc = "function():number --  Returns the frequency.")
         public Object[] getFrequency(final Context context, final Arguments args) {

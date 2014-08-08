@@ -1,4 +1,4 @@
-package cofh.api.core;
+package cofh.api.tileentity;
 
 /**
  * Implement this interface on objects which can report information about their energy usage.

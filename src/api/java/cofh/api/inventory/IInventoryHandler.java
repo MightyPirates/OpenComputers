@@ -1,4 +1,4 @@
-package cofh.api.item;
+package cofh.api.inventory;
 
 import java.util.List;
 

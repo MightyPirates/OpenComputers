@@ -1,6 +1,6 @@
 package li.cil.occ.mods.thermalexpansion;
 
-import cofh.api.core.IEnergyInfo;
+import cofh.api.tileentity.IEnergyInfo;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;

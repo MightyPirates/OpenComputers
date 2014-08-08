@@ -24,8 +24,8 @@ public final class RegistryEnderAttuned {
 
 	public static Configuration linkConf;
 
-	public static Map<String, String> clientFrequencyNames;
-	public static Map<String, String> clientFrequencyNamesReversed;
+	public static Map<String, String> clientFrequencyNames = new LinkedHashMap<String, String>();
+	public static Map<String, String> clientFrequencyNamesReversed = new LinkedHashMap<String, String>();
 
 	public static void clear() {
 
@@ -272,8 +272,8 @@ public final class RegistryEnderAttuned {
 
 	public static void clearClientNames() {
 
-		clientFrequencyNames = new LinkedHashMap<String, String>();
-		clientFrequencyNamesReversed = new LinkedHashMap<String, String>();
+		clientFrequencyNames.clear();
+		clientFrequencyNamesReversed.clear();
 	}
 
 	public static void addClientNames(String owner, String name) {

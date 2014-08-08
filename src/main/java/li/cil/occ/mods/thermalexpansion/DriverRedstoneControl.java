@@ -53,7 +53,6 @@ public final class DriverRedstoneControl extends DriverTileEntity {
             return new Object[]{tileEntity.isPowered()};
         }
 
-
         @Callback(doc = "function():boolean --  Sets whether the control tp disabled.")
         public Object[] setControlDisable(final Context context, final Arguments args) {
             tileEntity.setControl(IRedstoneControl.ControlMode.DISABLED);

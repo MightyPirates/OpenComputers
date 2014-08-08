@@ -30,14 +30,10 @@ public final class DriverEnderEnergy extends DriverTileEntity {
             return new Object[]{tileEntity.canReceiveEnergy()};
         }
 
-
-
         @Callback(doc = "function():boolean --  Returns whether the tileentity can send energy.")
         public Object[] canSendEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendEnergy()};
         }
-
-
 
         @Callback(doc = "function():number --  Returns the frequency.")
         public Object[] getFrequency(final Context context, final Arguments args) {
@@ -48,10 +44,10 @@ public final class DriverEnderEnergy extends DriverTileEntity {
         public Object[] setFrequency(final Context context, final Arguments args) {
             return new Object[]{tileEntity.setFrequency(args.checkInteger(0))};
         }
+
         @Callback(doc = "function():string --  Returns the name of the channel.")
         public Object[] getChannelString(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getChannelString()};
         }
-
     }
 }
