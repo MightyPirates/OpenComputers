@@ -56,6 +56,8 @@ object Mods {
   val RedLogic = new SimpleMod(IDs.RedLogic)
   val RedstoneFlux = new SimpleMod(IDs.RedstoneFlux, providesPower = true)
   val StargateTech2 = new Mod {
+    def id = IDs.StargateTech2
+
     val isAvailable = Loader.isModLoaded(IDs.StargateTech2) && {
       val mod = Loader.instance.getIndexedModList.get(IDs.StargateTech2)
       mod.getVersion.startsWith("0.7.")
@@ -71,6 +73,8 @@ object Mods {
 
   trait Mod {
     knownMods += this
+
+    def id: String
 
     def isAvailable: Boolean
 
