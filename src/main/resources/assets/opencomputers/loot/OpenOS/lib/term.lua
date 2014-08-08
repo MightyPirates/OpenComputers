@@ -101,16 +101,22 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak, hint, prompt)
+function term.read(history, dobreak, hint)
   checkArg(1, history, "table", "nil")
+  checkArg(3, hint, "function", "table", "nil")
   history = history or {}
   table.insert(history, "")
   local offset = term.getCursor() - 1
   local scrollX, scrollY = 0, #history - 1
   local cursorX = 1
 
-  local hintCache = (type(hint)=="table" and #hint > 1)and hint
-  local selectedHint = 0
+  if type(hint) == "table" then
+    local hintTable = hint
+    hint = function()
+      return hintTable
+    end
+  end
+  local hintCache, hintIndex
 
   local function getCursor()
     return cursorX, 1 + scrollY
@@ -119,6 +125,10 @@ function term.read(history, dobreak, hint, prompt)
   local function line()
     local _, cby = getCursor()
     return history[cby]
+  end
+
+  local function clearHint()
+    hintCache = nil
   end
 
   local function setCursor(nbx, nby)
@@ -149,6 +159,7 @@ function term.read(history, dobreak, hint, prompt)
 
     cursorX = nbx
     term.setCursor(nbx - scrollX + offset, cy)
+    clearHint()
   end
 
   local function copyIfNecessary()
@@ -216,6 +227,7 @@ function term.read(history, dobreak, hint, prompt)
 
   local function delete()
     copyIfNecessary()
+    clearHint()
     local cbx, cby = getCursor()
     if cbx <= unicode.len(line()) then
       local cw = unicode.charWidth(unicode.sub(line(), cbx))
@@ -235,6 +247,7 @@ function term.read(history, dobreak, hint, prompt)
 
   local function insert(value)
     copyIfNecessary()
+    clearHint()
     local cx, cy = term.getCursor()
     local cbx, cby = getCursor()
     local w, h = component.gpu.getResolution()
@@ -250,61 +263,58 @@ function term.read(history, dobreak, hint, prompt)
     right(unicode.len(value))
   end
 
-  local function tab()
-    if not hintCache then
-      if type(hint) == "function" then
-        local h = hint(line())
-        if type(h) == "string" then
-          local _, cby = getCursor()
-          history[cby] = after
-        elseif type(h) == "table" and #h > 0 then
-          hintCache = h
-          selectedHint = 1
-          local _, cby = getCursor()
-          history[cby] = hintCache[selectedHint] or ""
-        end
+  local function tab(direction)
+    local cbx, cby = getCursor()
+    if not hintCache then -- hint is never nil, see onKeyDown
+      hintCache = hint(line(), cbx)
+      hintIndex = 0
+      if type(hintCache) == "string" then
+        hintCache = {hintCache}
       end
-    else
-      selectedHint = (selectedHint+1)<=#hintCache and (selectedHint+1) or 1
-      local _, cby = getCursor()
-      history[cby] = hintCache[selectedHint] or ""
+      if type(hintCache) ~= "table" or #hintCache < 1 then
+        hintCache = nil -- invalid hint
+      end
     end
-    redraw()
-    ende()
-  end
-
-  local function cleanHint()
-    if type(hint) ~= "table" then
-      hintCache = nil
+    if hintCache then
+      hintIndex = (hintIndex + direction + #hintCache - 1) % #hintCache + 1
+      history[cby] = tostring(hintCache[hintIndex])
+      -- because all other cases of the cursor being moved will result
+      -- in the hint cache getting invalidated we do that in setCursor,
+      -- so we have to back it up here to restore it after moving.
+      local savedCache = hintCache
+      redraw()
+      ende()
+      if #savedCache > 1 then -- stop if only one hint exists.
+        hintCache = savedCache
+      end
     end
   end
 
   local function onKeyDown(char, code)
     term.setCursorBlink(false)
     if code == keyboard.keys.back then
-      if left() then delete() end cleanHint()
+      if left() then delete() end
     elseif code == keyboard.keys.delete then
-      delete()cleanHint()
+      delete()
     elseif code == keyboard.keys.left then
       left()
     elseif code == keyboard.keys.right then
       right()
     elseif code == keyboard.keys.home then
-      home()cleanHint()
+      home()
     elseif code == keyboard.keys["end"] then
-      ende()cleanHint()
+      ende()
     elseif code == keyboard.keys.up then
       up()
     elseif code == keyboard.keys.down then
       down()
     elseif code == keyboard.keys.tab and hint then
-      tab()
+      tab(keyboard.isShiftDown() and -1 or 1)
     elseif code == keyboard.keys.enter then
       local cbx, cby = getCursor()
       if cby ~= #history then -- bring entry to front
         history[#history] = line()
         table.remove(history, cby)
-        cleanHint()
       end
       return true, history[#history] .. "\n"
     elseif keyboard.isControlDown() and code == keyboard.keys.d then
@@ -317,7 +327,6 @@ function term.read(history, dobreak, hint, prompt)
       return true, nil
     elseif not keyboard.isControl(char) then
       insert(unicode.char(char))
-      cleanHint()
     end
     term.setCursorBlink(true)
     term.setCursorBlink(true) -- force toggle to caret

@@ -6,6 +6,7 @@ local process = require("process")
 local shell = require("shell")
 local term = require("term")
 local text = require("text")
+local unicode = require("unicode")
 
 local function expand(value)
   local result = value:gsub("%$(%w+)", os.getenv):gsub("%$%b{}",
@@ -148,74 +149,66 @@ end
 local args, options = shell.parse(...)
 local history = {}
 
-local lastSearch
-
-local function drawPrompt()
-  local foreground = component.gpu.setForeground(0xFF0000)
-  term.write(expand(os.getenv("PS1") or "$ "))
-  component.gpu.setForeground(foreground)
-end
-
-local function getMatchingPrograms(pattern)
-  local res = {}
-  for dir in string.gmatch(os.getenv("PATH"), "[a-zA-Z0-9/.]+") do
-    for file in fs.list(dir) do
-      if string.match(file, "^" .. pattern .. "(.+)[.]lua") then
-        res[#res+1] = file:match("(.+).lua")
-      end
-    end
-  end
-  return res
-end
-
-local function getMatchingFiles(pattern)
-  local res = {}
-  local dir = fs.isDirectory(pattern) and pattern or fs.path(pattern) or "/"
-  local name = (dir == pattern) and "" or fs.name(pattern) or ""
-  for file in fs.list(dir) do
-    if string.match(file, "^" .. name) then
-      res[#res+1] = file
-    end
-  end
-  return res
-end
-
-local function hintHandler(line)
-  local base, space, after = string.match(line, "(.+)(%s)(.+)")
-  local searchProgram = not base
-  if not base then
-    base = ""
-    after = line or ""
-  end
-  if searchProgram then
-    local matches
-    if after:find("[/.]") == 1 then
-      matches = getMatchingFiles(after)
-      if #matches == 1 then
-        lastSearch = ""
-        local ret = base .. (space or "") .. after .. matches[1]:gsub(after:match("[/]*(%w+)$"),"",1)
-        return ret:gsub("[^/]$","%1 ")
-      end
-    else
-      matches = getMatchingPrograms(after)
-      if #matches == 1 then
-        lastSearch = ""
-        return matches[1] .. " "
-      end
-    end
-    
-    if lastSearch == line then return matches end
+local function getMatchingPrograms(baseName)
+  local result = {}
+  -- TODO only matching files with .lua extension for now, might want to
+  --      extend this to other extensions at some point? env var? file attrs?
+  if not baseName or #baseName == 0 then
+    baseName = "^(.*)%.lua$"
   else
-    local matches = getMatchingFiles(after)
-    
-    for k in ipairs(matches)do
-      local ret = base .. space .. after .. (matches[k]):gsub(after:match("[/]*(%w+)$") or "","",1)
-      matches[k] = ret:gsub("[^/]$","%1 "):gsub("/$","")
-    end
-    
-    return matches
+    baseName = "^(" .. baseName .. ".*)%.lua$"
   end
-  lastSearch = line
+  for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
+    for file in fs.list(basePath) do
+      local match = file:match(baseName)
+      if match then
+        table.insert(result, match)
+      end
+    end
+  end
+  return result
+end
+
+local function getMatchingFiles(baseName)
+  local result, basePath = {}
+  -- note: we strip the trailing / to make it easier to navigate through
+  -- directories using tab completion (since entering the / will then serve
+  -- as the intention to go into the currently hinted one).
+  if fs.isDirectory(baseName) then
+    basePath = baseName
+    baseName = "^(.-)/?$"
+  else
+    basePath = fs.path(baseName) or "/"
+    baseName = "^(" .. fs.name(baseName) .. ".-)/?$"
+  end
+  for file in fs.list(basePath) do
+    local match = file:match(baseName)
+    if match then
+      table.insert(result, fs.concat(basePath, match))
+    end
+  end
+  return result
+end
+
+local function hintHandler(line, cursor)
+  local line = unicode.sub(line, 1, cursor - 1)
+  if not line or #line < 1 then
+    return nil
+  end
+  local result
+  local prefix, partial = string.match(line, "^(.+%s)(.+)$")
+  local searchInPath = not prefix and not line:find("/")
+  if searchInPath then
+    -- first part and no path, look for programs in the $PATH
+    result = getMatchingPrograms(line)
+  else -- just look normal files
+    result = getMatchingFiles(partial or line)
+  end
+  for i = 1, #result do
+    result[i] = (prefix or "") .. result[i] .. (searchInPath and " " or "")
+  end
+  table.sort(result)
+  return result
 end
 
 if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
@@ -228,7 +221,9 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       term.clear()
     end
     while term.isAvailable() do
-      drawPrompt()
+      local foreground = component.gpu.setForeground(0xFF0000)
+      term.write(expand(os.getenv("PS1") or "$ "))
+      component.gpu.setForeground(foreground)
       local command = term.read(history, nil, hintHandler)
       if not command then
         term.write("exit\n")
