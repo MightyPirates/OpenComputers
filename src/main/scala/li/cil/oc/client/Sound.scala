@@ -52,9 +52,9 @@ object Sound {
   }
 
   private def processQueue() {
-    if (!commandQueue.isEmpty) {
+    if (commandQueue.nonEmpty) {
       commandQueue.synchronized {
-        while (!commandQueue.isEmpty && commandQueue.head.when < System.currentTimeMillis()) {
+        while (commandQueue.nonEmpty && commandQueue.head.when < System.currentTimeMillis()) {
           try commandQueue.dequeue()() catch {
             case t: Throwable => OpenComputers.log.warn("Error processing sound command.", t)
           }

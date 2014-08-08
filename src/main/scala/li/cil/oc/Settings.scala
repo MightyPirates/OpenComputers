@@ -238,6 +238,7 @@ object Settings {
   // Electricity to provide global power support.
   val valueBuildCraft = 500.0
   val valueFactorization = 6.5
+  val valueGalacticraft = 24.0
   val valueIndustrialCraft2 = 200.0
   val valueMekanism = 5000.0 / 9.0
   val valueRedstoneFlux = 35.0
@@ -247,6 +248,7 @@ object Settings {
 
   val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioFactorization = valueFactorization / valueInternal
+  val ratioGalacticraft = valueGalacticraft / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
