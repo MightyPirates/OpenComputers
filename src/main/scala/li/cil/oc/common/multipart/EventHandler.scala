@@ -17,12 +17,23 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.entity.player.{PlayerDestroyItemEvent, PlayerInteractEvent}
 
 object EventHandler {
+  private var currentlyPlacing = false
+
   @ForgeSubscribe
   def playerInteract(event: PlayerInteractEvent) {
-    val player = event.entityPlayer
-    if (event.action == Action.RIGHT_CLICK_BLOCK && player.getEntityWorld.isRemote) {
-      if (place(player)) {
-        event.setCanceled(true)
+    this.synchronized {
+      if (currentlyPlacing) return
+      try {
+        currentlyPlacing = true
+        val player = event.entityPlayer
+        if (event.action == Action.RIGHT_CLICK_BLOCK && player.getEntityWorld.isRemote) {
+          if (place(player)) {
+            event.setCanceled(true)
+          }
+        }
+      }
+      finally {
+        currentlyPlacing = false
       }
     }
   }
