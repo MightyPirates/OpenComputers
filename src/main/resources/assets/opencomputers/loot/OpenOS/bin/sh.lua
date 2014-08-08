@@ -174,7 +174,9 @@ local function getMatchingFiles(baseName)
   -- note: we strip the trailing / to make it easier to navigate through
   -- directories using tab completion (since entering the / will then serve
   -- as the intention to go into the currently hinted one).
-  if fs.isDirectory(baseName) then
+  -- if we have a directory but no trailing slash there may be alternatives
+  -- on the same level, so don't look inside that directory... (cont.)
+  if fs.isDirectory(baseName) and baseName:sub(-1) == "/" then
     basePath = baseName
     baseName = "^(.-)/?$"
   else
@@ -186,6 +188,11 @@ local function getMatchingFiles(baseName)
     if match then
       table.insert(result, fs.concat(basePath, match))
     end
+  end
+  -- (cont.) but if there's only one match and it's a directory, *then* we
+  -- do want to add the trailing slash here.
+  if #result == 1 and fs.isDirectory(result[1]) then
+    result[1] = result[1] .. "/"
   end
   return result
 end
@@ -202,7 +209,7 @@ local function hintHandler(line, cursor)
     -- first part and no path, look for programs in the $PATH
     result = getMatchingPrograms(line)
   else -- just look normal files
-    result = getMatchingFiles(partial or line)
+    result = getMatchingFiles(shell.resolve(partial or line))
   end
   for i = 1, #result do
     result[i] = (prefix or "") .. result[i] .. (searchInPath and " " or "")
