@@ -55,7 +55,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
     if (caseTier >= 0) Settings.robotComplexityByTier(caseTier) else 0
   }
 
-  def start() {
+  def start(finishImmediately: Boolean) {
     if (!isAssembling && robot.isEmpty && complexity <= maxComplexity) {
       for (slot <- 0 until getSizeInventory) {
         val stack = getStackInSlot(slot)
@@ -75,7 +75,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
       val stack = api.Items.get("robot").createItemStack(1)
       data.save(stack)
       robot = Some(stack)
-      if (data.tier == Tier.Four) {
+      if (finishImmediately || data.tier == Tier.Four) {
         // Creative tier, finish instantly.
         totalRequiredEnergy = 0
       }
@@ -98,7 +98,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
     super.updateEntity()
     if (robot.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
-      val success = node.tryChangeBuffer(-want)
+      val success = Settings.get.ignorePower || node.tryChangeBuffer(-want)
       if (success) {
         requiredEnergy -= want
       }

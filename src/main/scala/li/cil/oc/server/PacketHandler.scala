@@ -10,6 +10,7 @@ import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{DimensionManager, ForgeDirection}
 
@@ -141,7 +142,10 @@ class PacketHandler extends CommonPacketHandler {
 
   def onRobotAssemblerStart(p: PacketParser) =
     p.readTileEntity[RobotAssembler]() match {
-      case Some(assembler) => assembler.start()
+      case Some(assembler) => assembler.start(p.player match {
+        case player: EntityPlayerMP => player.theItemInWorldManager.isCreative
+        case _ => false
+      })
       case _ => // Invalid packet.
     }
 
