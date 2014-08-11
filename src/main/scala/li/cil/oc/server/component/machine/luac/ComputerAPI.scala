@@ -1,5 +1,6 @@
 package li.cil.oc.server.component.machine.luac
 
+import com.naef.jnlua.LuaState
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
@@ -58,6 +59,8 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       // This is *very* unlikely, but still: avoid this getting larger than
       // what we report as the total memory.
+      println(lua.getTotalMemory - lua.getFreeMemory)
+      println(lua.gc(LuaState.GcAction.COUNT, 0) * 1024)
       lua.pushInteger(((lua.getFreeMemory min (lua.getTotalMemory - owner.kernelMemory)) / owner.ramScale).toInt)
       1
     })

@@ -3,12 +3,11 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc._
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
-import li.cil.oc.common.Tier
 import li.cil.oc.common.block.Delegator
+import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
 import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
@@ -495,7 +494,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.UpgradeContainer) => driver.providedSlot(stack)
+      case Some(driver: api.driver.UpgradeContainer) => Slot.fromApi(driver.providedSlot(stack))
       case _ => Slot.None
     }
   }
@@ -518,7 +517,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
 
   def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => driver.slot(stack) == Slot.Disk
+      case Some(driver) => Slot.fromApi(driver.slot(stack)) == Slot.Floppy
       case _ => false
     }
     case _ => false
@@ -637,7 +636,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       // logic making the differentiation of assembler and containers generic.
       driver != server.driver.item.Screen &&
         driver != server.driver.item.Keyboard &&
-        driver.slot(stack) == containerSlotType(i) &&
+        Slot.fromApi(driver.slot(stack)) == containerSlotType(i) &&
         driver.tier(stack) <= containerSlotTier(i)
     case (i, _) if isInventorySlot(i) => true // Normal inventory.
     case _ => false // Invalid slot.

@@ -5,7 +5,12 @@ package li.cil.oc.api.driver;
  * <p/>
  * This is used to determine which item components may go into which slots in
  * a computer's or robot's inventory.
+ *
+ * @deprecated This will be removed in 1.4, where slot types will then be
+ * referred to by name (using strings) instead, to make this system more
+ * flexible (not requiring an API change for each new slot type, e.g.).
  */
+@Deprecated
 public enum Slot {
     /**
      * Invalid slot type.

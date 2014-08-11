@@ -2,10 +2,10 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.api.driver.{Inventory, Memory, Processor, Slot}
+import li.cil.oc.api.driver.{Inventory, Memory, Processor}
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
-import li.cil.oc.common.{container, tileentity}
+import li.cil.oc.common.{Slot, container, tileentity}
 import li.cil.oc.{Localization, api}
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
@@ -69,7 +69,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
 
   private def hasFileSystem = assembler.items.exists {
     case Some(stack) => Option(api.Driver.driverFor(stack)) match {
-      case Some(driver) => driver.slot(stack) == Slot.Disk || driver.slot(stack) == Slot.HardDiskDrive
+      case Some(driver) => Slot.fromApi(driver.slot(stack)) == Slot.Floppy || Slot.fromApi(driver.slot(stack)) == Slot.HDD
       case _ => false
     }
     case _ => false

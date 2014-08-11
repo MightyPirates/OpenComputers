@@ -1,7 +1,6 @@
 package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api
 import li.cil.oc.common.Tier
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.Slot
@@ -13,7 +12,7 @@ import scala.collection.convert.WrapAsScala._
 trait ComponentSlot extends Slot {
   def container: Player
 
-  def slot: api.driver.Slot
+  def slot: String
 
   def tier: Int
 

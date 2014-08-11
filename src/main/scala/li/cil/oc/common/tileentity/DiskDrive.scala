@@ -3,9 +3,8 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Analyzable, Component, Visibility}
-import li.cil.oc.common.Sound
+import li.cil.oc.common.{Slot, Sound}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -30,7 +29,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   override def getSizeInventory = 1
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
-    case (0, Some(driver)) => driver.slot(stack) == Slot.Disk
+    case (0, Some(driver)) => Slot.fromApi(driver.slot(stack)) == Slot.Floppy
     case _ => false
   }
 

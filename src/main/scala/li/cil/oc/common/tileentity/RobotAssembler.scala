@@ -2,9 +2,9 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Slot, UpgradeContainer}
+import li.cil.oc.api.driver.UpgradeContainer
 import li.cil.oc.api.network._
-import li.cil.oc.common.{InventorySlots, Tier}
+import li.cil.oc.common.{InventorySlots, Slot, Tier}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
@@ -168,7 +168,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
       caseTier != Tier.None && {
         val info = InventorySlots.assembler(caseTier)(slot)
         Option(Driver.driverFor(stack)) match {
-          case Some(driver) if info.slot != Slot.None && info.tier != Tier.None => driver.slot(stack) == info.slot && driver.tier(stack) <= info.tier
+          case Some(driver) if info.slot != Slot.None && info.tier != Tier.None => Slot.fromApi(driver.slot(stack)) == info.slot && driver.tier(stack) <= info.tier
           case _ => false
         }
       }
