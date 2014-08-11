@@ -144,6 +144,10 @@ class Proxy {
     TickRegistry.registerTickHandler(Tablet, Side.CLIENT)
     TickRegistry.registerTickHandler(Tablet, Side.SERVER)
 
+    if (Mods.ThermalExpansion.isAvailable) {
+      OpenComputers.log.info("Initializing Redstone Flux tool support.")
+      MinecraftForge.EVENT_BUS.register(RedstoneFluxToolHandler)
+    }
     if (Mods.TinkersConstruct.isAvailable) {
       OpenComputers.log.info("Initializing Tinker's Construct tool support.")
       MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)

@@ -429,7 +429,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     Option(robot.getStackInSlot(0)) match {
       case Some(item) =>
         if (item.isItemStackDamageable) {
-          result(item.getMaxDamage - item.getItemDamage)
+          result(item.getMaxDamage - item.getItemDamage, item.getMaxDamage - item.getItemDamageForDisplay, item.getMaxDamage)
         }
         else result(Unit, "tool cannot be damaged")
       case _ => result(Unit, "no tool equipped")
