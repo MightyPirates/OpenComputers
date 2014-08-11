@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.{Slot, UpgradeContainer}
-import li.cil.oc.api.network.{SidedEnvironment, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.common.{InventorySlots, Tier}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -14,7 +14,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 class RobotAssembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {
-  val node = api.Network.newNode(this, Visibility.None).
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
     create()
 
@@ -55,11 +56,11 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
     if (caseTier >= 0) Settings.robotComplexityByTier(caseTier) else 0
   }
 
-  def start(finishImmediately: Boolean) {
+  def start(finishImmediately: Boolean = false): Boolean = this.synchronized {
     if (!isAssembling && robot.isEmpty && complexity <= maxComplexity) {
       for (slot <- 0 until getSizeInventory) {
         val stack = getStackInSlot(slot)
-        if (stack != null && !isItemValidForSlot(slot, stack)) return
+        if (stack != null && !isItemValidForSlot(slot, stack)) return false
       }
       val data = new ItemUtils.RobotData()
       data.tier = ItemUtils.caseTier(items(0).get)
@@ -87,8 +88,22 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
       for (slot <- 0 until getSizeInventory) items(slot) = None
       onInventoryChanged()
+
+      true
     }
+    else false
   }
+
+  // ----------------------------------------------------------------------- //
+
+  @Callback(doc = """function(): string, number[, number] -- The current state of the assember, `busy' or `idle', followed by the progress or complexity and maximum complexity, respectively.""")
+  def status(context: Context, args: Arguments): Array[Object] = {
+    if (isAssembling) result("busy", progress)
+    else result("idle", complexity, maxComplexity)
+  }
+
+  @Callback(doc = """function():boolean -- Start assembling, if possible. Returns whether assembly was started or not.""")
+  def start(context: Context, args: Arguments): Array[Object] = result(start())
 
   // ----------------------------------------------------------------------- //
 
