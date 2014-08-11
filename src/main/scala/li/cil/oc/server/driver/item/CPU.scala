@@ -6,7 +6,7 @@ import li.cil.oc.common.item
 import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
 
-object Processor extends Item with driver.Processor {
+object CPU extends Item with driver.Processor {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("cpu1"), api.Items.get("cpu2"), api.Items.get("cpu3"))
 
   override def createEnvironment(stack: ItemStack, container: Container) = null

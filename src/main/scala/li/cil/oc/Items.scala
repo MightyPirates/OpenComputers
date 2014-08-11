@@ -239,5 +239,10 @@ object Items extends ItemAPI {
 
     // 1.3.2 (cont.)
     registerItem(new item.Server(multi, Tier.Four), "serverCreative")
+
+    // 1.3.3
+    Recipes.addItem(new item.ComponentBus(multi, Tier.One), "componentBus1", "oc:componentBus1")
+    Recipes.addItem(new item.ComponentBus(multi, Tier.Two), "componentBus2", "oc:componentBus2")
+    Recipes.addItem(new item.ComponentBus(multi, Tier.Three), "componentBus3", "oc:componentBus3")
   }
 }

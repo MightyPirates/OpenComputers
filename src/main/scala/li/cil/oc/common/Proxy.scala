@@ -68,6 +68,8 @@ class Proxy {
 
   def init(e: FMLInitializationEvent) {
     OpenComputers.log.info("Initializing OpenComputers drivers.")
+    api.Driver.add(driver.item.ComponentBus)
+    api.Driver.add(driver.item.CPU)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
@@ -76,7 +78,6 @@ class Proxy {
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
     api.Driver.add(driver.item.Keyboard)
-    api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.Screen)
     api.Driver.add(driver.item.UpgradeAngel)
