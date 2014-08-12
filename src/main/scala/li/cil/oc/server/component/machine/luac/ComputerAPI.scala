@@ -59,8 +59,6 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       // This is *very* unlikely, but still: avoid this getting larger than
       // what we report as the total memory.
-      println(lua.getTotalMemory - lua.getFreeMemory)
-      println(lua.gc(LuaState.GcAction.COUNT, 0) * 1024)
       lua.pushInteger(((lua.getFreeMemory min (lua.getTotalMemory - owner.kernelMemory)) / owner.ramScale).toInt)
       1
     })

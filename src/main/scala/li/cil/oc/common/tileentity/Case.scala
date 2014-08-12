@@ -6,9 +6,11 @@ import li.cil.oc.api.{Driver, driver}
 import li.cil.oc.common.{InventorySlots, Slot, Tier}
 import li.cil.oc.util.Color
 import li.cil.oc.{Settings, common}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.server.MinecraftServer
 import net.minecraftforge.common.ForgeDirection
 
 class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored {
@@ -24,6 +26,19 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def getWorld = world
 
   var maxComponents = 0
+
+  private def isCreativeCase = tier == Tier.Four
+
+  // ----------------------------------------------------------------------- //
+
+  private def serverPlayer(player: String): EntityPlayer = MinecraftServer.getServer.getConfigurationManager.getPlayerForUsername(player)
+
+  @SideOnly(Side.CLIENT)
+  private def clientPlayer: EntityPlayer = Minecraft.getMinecraft.thePlayer // Avoid client class getting loaded on server.
+
+  override def canInteract(player: String) =
+    super.canInteract(player) &&
+      (!isCreativeCase || Option(if (isServer) serverPlayer(player) else clientPlayer).exists(_.capabilities.isCreativeMode))
 
   def recomputeMaxComponents() {
     maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
@@ -51,10 +66,12 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     case _ => false
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def canUpdate = isServer
 
   override def updateEntity() {
-    if (isServer && tier == Tier.Four && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && isCreativeCase && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
@@ -100,7 +117,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def isUseableByPlayer(player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: traits.TileEntity if t == this && computer.canInteract(player.getCommandSenderName) =>
+      case t: traits.TileEntity if t == this && canInteract(player.getCommandSenderName) =>
         player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
       case _ => false
     }
