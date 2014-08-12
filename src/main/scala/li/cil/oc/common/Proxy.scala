@@ -70,6 +70,7 @@ class Proxy {
     OpenComputers.log.info("Initializing OpenComputers drivers.")
     api.Driver.add(driver.item.ComponentBus)
     api.Driver.add(driver.item.CPU)
+    api.Driver.add(driver.item.DebugCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
