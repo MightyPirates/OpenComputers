@@ -126,21 +126,21 @@ local function execute(env, command, ...)
   while args[1] and coroutine.status(thread) ~= "dead" do
     result = table.pack(coroutine.resume(thread, table.unpack(args, 2, args.n)))
     if coroutine.status(thread) ~= "dead" then
-      if type(result[2]) == "string" then
-        args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-      else
-        args = {true, n=1}
-      end
+      args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
     end
   end
   if not args[1] then
-    return false, args[2]
+    return false, debug.traceback(thread, args[2])
   end
-  if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
-    if result[2].code then
-      return true
-    else
-      return false, "terminated"
+  if not result[1] then
+    if type(result[2]) == "table" and result[2].reason == "terminated" then
+      if result[2].code then
+        return true
+      else
+        return false, "terminated"
+      end
+    elseif type(result[2]) == "string" then
+      result[2] = debug.traceback(thread, result[2])
     end
   end
   return table.unpack(result, 1, result.n)
