@@ -41,6 +41,25 @@ local function spcall(...)
   end
 end
 
+local function sgc(self)
+  local oldDeadline, oldHitDeadline = deadline, hitDeadline
+  local mt = debug.getmetatable(self)
+  mt = rawget(mt, "mt")
+  local gc = rawget(mt, "__gc")
+  if type(gc) ~= "function" then
+    return
+  end
+  local co = coroutine.create(gc)
+  debug.sethook(co, checkDeadline, "", hookInterval)
+  deadline, hitDeadline = math.min(oldDeadline, computer.realTime() + 0.5), true
+  local result, reason = coroutine.resume(co, self)
+  debug.sethook(co)
+  deadline, hitDeadline = oldDeadline, oldHitDeadline
+  if not result then
+    error(reason, 0)
+  end
+end
+
 --[[ This is the global environment we make available to userland programs. ]]
 -- You'll notice that we do a lot of wrapping of native functions and adding
 -- parameter checks in those wrappers. This is to avoid errors from the host
@@ -53,8 +72,15 @@ sandbox = {
   error = error,
   _G = nil, -- see below
   getmetatable = function(t)
-    if type(t) == "string" then return nil end
-    return getmetatable(t)
+    if type(t) == "string" then -- don't allow messing with the string mt
+      return nil
+    end
+    local result = getmetatable(t)
+    -- check if we have a wrapped __gc using mt
+    if type(result) == "table" and rawget(result, "__gc") == sgc then
+      result = rawget(result, "mt")
+    end
+    return result
   end,
   ipairs = ipairs,
   load = function(ld, source, mode, env)
@@ -81,29 +107,21 @@ sandbox = {
     if type(mt) ~= "table" then
       return setmetatable(t, mt)
     end
-    local gc = rawget(mt, "__gc")
-    if type(gc) == "function" then
+    if type(rawget(mt, "__gc")) == "function" then
       -- For all user __gc functions we enforce a much tighter deadline.
       -- This is because these functions may be called from the main
       -- thread under certain circumstanced (such as when saving the world),
       -- which can lead to noticeable lag if the __gc function behaves badly.
-      rawset(mt, "__gc", function(self)
-        local oldDeadline, oldHitDeadline = deadline, hitDeadline
-        local co = coroutine.create(gc)
-        debug.sethook(co, checkDeadline, "", hookInterval)
-        deadline, hitDeadline = math.min(oldDeadline, computer.realTime() + 0.5), true
-        local result, reason = coroutine.resume(co, self)
-        debug.sethook(co)
-        checkDeadline()
-        deadline, hitDeadline = oldDeadline, oldHitDeadline
-        if not result then
-          error(reason, 0)
-        end
-      end)
+      local sbmt = {} -- sandboxed metatable. only for __gc stuff, so it's
+                      -- kinda ok to have a shallow copy instead... meh.
+      for k, v in pairs(mt) do
+        sbmt[k] = v
+      end
+      sbmt.mt = mt
+      sbmt.__gc = sgc
+      mt = sbmt
     end
-    local result = setmetatable(t, mt)
-    rawset(mt, "__gc", gc)
-    return result
+    return setmetatable(t, mt)
   end,
   tonumber = tonumber,
   tostring = tostring,

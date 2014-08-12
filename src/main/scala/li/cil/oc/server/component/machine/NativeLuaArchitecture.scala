@@ -258,7 +258,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     }
     catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+       OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
       case e: LuaGcMetamethodException =>
         if (e.getMessage != null) new ExecutionResult.Error("kernel panic:\n" + e.getMessage)
@@ -347,9 +347,15 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       for (api <- apis) {
         api.load(nbt)
       }
+
+      try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
+        case t: Throwable =>
+          OpenComputers.log.warning(s"Error cleaning up loaded computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          machine.crash("error in garbage collector, most likely __gc method timed out")
+      }
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
+        OpenComputers.log.warning(s"Could not unpersist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         machine.stop()
         machine.start()
     }
@@ -385,6 +391,12 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
       for (api <- apis) {
         api.save(nbt)
+      }
+
+      try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
+        case t: Throwable =>
+          OpenComputers.log.warning(s"Error cleaning up loaded computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          machine.crash("error in garbage collector, most likely __gc method timed out")
       }
     } catch {
       case e: LuaRuntimeException =>
