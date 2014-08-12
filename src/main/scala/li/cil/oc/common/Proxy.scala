@@ -139,7 +139,7 @@ class Proxy {
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
 
-    if (Mods.ThermalExpansion.isAvailable) {
+    if (Mods.RedstoneFlux.isAvailable) {
       OpenComputers.log.info("Initializing Redstone Flux tool support.")
       MinecraftForge.EVENT_BUS.register(RedstoneFluxToolHandler)
     }

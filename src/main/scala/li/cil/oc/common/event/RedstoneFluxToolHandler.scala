@@ -1,11 +1,11 @@
 package li.cil.oc.common.event
 
 import cofh.api.energy.IEnergyContainerItem
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedTool
-import net.minecraftforge.event.ForgeSubscribe
 
 object RedstoneFluxToolHandler {
-  @ForgeSubscribe
+  @SubscribeEvent
   def onRobotApplyDamageRate(e: RobotUsedTool.ApplyDamageRate) {
     (e.toolBeforeUse.getItem, e.toolAfterUse.getItem) match {
       case (energyBefore: IEnergyContainerItem, energyAfter: IEnergyContainerItem) =>

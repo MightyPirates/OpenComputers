@@ -25,7 +25,7 @@ object Mods {
     final val PortalGun = "PortalGun"
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val RedLogic = "RedLogic"
-    final val RedstoneFlux = "CoFHAPI"
+    final val RedstoneFlux = "CoFHAPI|energy"
     final val StargateTech2 = "StargateTech2"
     final val ThermalExpansion = "ThermalExpansion"
     final val TinkersConstruct = "TConstruct"

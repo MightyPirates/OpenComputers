@@ -31,7 +31,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   // ----------------------------------------------------------------------- //
 
-  private def serverPlayer(player: String): EntityPlayer = MinecraftServer.getServer.getConfigurationManager.getPlayerForUsername(player)
+  private def serverPlayer(player: String): EntityPlayer = MinecraftServer.getServer.getConfigurationManager.func_152612_a(player)
 
   @SideOnly(Side.CLIENT)
   private def clientPlayer: EntityPlayer = Minecraft.getMinecraft.thePlayer // Avoid client class getting loaded on server.
