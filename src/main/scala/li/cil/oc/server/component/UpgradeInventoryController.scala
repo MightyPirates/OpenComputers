@@ -52,7 +52,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
     val stack = owner.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
       InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
-        case Some(inventory) =>
+        case Some(inventory) if inventory.isUseableByPlayer(owner.player) =>
           val slot = args.checkSlot(inventory, 1)
           if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, facing.getOpposite, slot, count)) {
             // Cannot drop into that inventory.
@@ -82,7 +82,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
     val count = args.optionalItemCount(2)
 
     InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
-      case Some(inventory) =>
+      case Some(inventory) if inventory.isUseableByPlayer(owner.player) =>
         val slot = args.checkSlot(inventory, 1)
         if (InventoryUtils.extractFromInventorySlot(owner.player.inventory.addItemStackToInventory, inventory, facing.getOpposite, slot, count)) {
           context.pause(Settings.get.suckDelay)

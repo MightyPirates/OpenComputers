@@ -71,6 +71,8 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
 
     OpenComputers.log.info("Initializing OpenComputers drivers.")
+    api.Driver.add(driver.item.ComponentBus)
+    api.Driver.add(driver.item.CPU)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
@@ -79,7 +81,6 @@ class Proxy {
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
     api.Driver.add(driver.item.Keyboard)
-    api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.Screen)
     api.Driver.add(driver.item.UpgradeAngel)
@@ -138,6 +139,10 @@ class Proxy {
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
 
+    if (Mods.ThermalExpansion.isAvailable) {
+      OpenComputers.log.info("Initializing Redstone Flux tool support.")
+      MinecraftForge.EVENT_BUS.register(RedstoneFluxToolHandler)
+    }
     if (Mods.TinkersConstruct.isAvailable) {
       OpenComputers.log.info("Initializing Tinker's Construct tool support.")
       MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)

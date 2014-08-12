@@ -98,12 +98,6 @@ internetCard {
   input: [["oc:materialInterweb", "oc:circuitChip2", torchRedstoneActive]
           ["", "oc:materialCard", obsidian]]
 }
-linkedCard {
-  input: [[eyeOfEnder, "", eyeOfEnder]
-          ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
-          ["oc:circuitChip3", "", "oc:circuitChip3"]]
-  output: 2 # Note: all resulting cards are linked to each other.
-}
 redstoneCard1 {
   input: [[torchRedstoneActive, "oc:circuitChip1", ""]
           ["", "oc:materialCard", ""]]
@@ -119,6 +113,12 @@ lanCard {
 wlanCard {
   input: [[enderPearl, "oc:circuitChip2", ""]
           ["", "oc:materialCard", ""]]
+}
+linkedCard {
+  input: [[eyeOfEnder, "", eyeOfEnder]
+          ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
+          ["oc:circuitChip3", "", "oc:circuitChip3"]]
+  output: 2 # Note: all resulting cards are linked to each other.
 }
 
 angelUpgrade {
@@ -193,7 +193,7 @@ tractorBeamUpgrade {
 }
 
 cardContainer1 {
-  input: [[ingotIron, "oc:materialTransistor", ingotIron]
+  input: [[ingotIron, "oc:circuitChip1", ingotIron]
           [craftingPiston, chest, ""]
           [ingotIron, "oc:materialCard", ingotIron]]
 }
@@ -279,6 +279,21 @@ alu {
   input: [[nuggetIron, redstone, nuggetIron]
           ["oc:materialTransistor", "oc:circuitChip1", "oc:materialTransistor"]
           [nuggetIron, "oc:materialTransistor", nuggetIron]]
+}
+componentBus1 {
+  input: [[nuggetIron, redstone, nuggetIron]
+          ["oc:circuitChip1", "oc:materialCU", ""]
+          [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
+componentBus2 {
+  input: [[nuggetGold, redstone, nuggetGold]
+          ["oc:circuitChip2", "oc:materialCU", ""]
+          [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
+}
+componentBus3 {
+  input: [[emerald, redstone, emerald]
+          ["oc:circuitChip3", "oc:materialCU", ""]
+          [emerald, "oc:materialCircuitBoardPrinted", emerald]]
 }
 cpu1 {
   input: [[nuggetIron, redstone, nuggetIron]

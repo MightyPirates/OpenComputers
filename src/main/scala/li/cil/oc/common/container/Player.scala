@@ -1,8 +1,7 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.api
+import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
-import li.cil.oc.common.Tier
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.{Container, ICrafting, IInventory, Slot}
@@ -86,7 +85,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     }
   }
 
-  def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None, tier: Int = Tier.Any) {
+  def addSlotToContainer(x: Int, y: Int, slot: String = common.Slot.None, tier: Int = common.Tier.Any) {
     val index = inventorySlots.size
     addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier))
   }

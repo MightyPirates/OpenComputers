@@ -1,10 +1,10 @@
 package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api
 import li.cil.oc.client.gui.Icons
-import li.cil.oc.common.{Tier, tileentity}
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.SideTracker
+import li.cil.oc.{api, common}
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.IInventory
 
@@ -17,7 +17,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   private val noScreenHeight = 108
   val deltaY = if (hasScreen) 0 else withScreenHeight - noScreenHeight
 
-  addSlotToContainer(170 + 0 * slotSize, 232 - deltaY, api.driver.Slot.Tool)
+  addSlotToContainer(170 + 0 * slotSize, 232 - deltaY, common.Slot.Tool)
   addSlotToContainer(170 + 1 * slotSize, 232 - deltaY, robot.containerSlotType(1), robot.containerSlotTier(1))
   addSlotToContainer(170 + 2 * slotSize, 232 - deltaY, robot.containerSlotType(2), robot.containerSlotTier(2))
   addSlotToContainer(170 + 3 * slotSize, 232 - deltaY, robot.containerSlotType(3), robot.containerSlotTier(3))
@@ -76,7 +76,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   override def canInteractWith(player: EntityPlayer) =
     super.canInteractWith(player) && robot.canInteract(player.getCommandSenderName)
 
-  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, api.driver.Slot.None, Tier.Any) {
+  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.None, common.Tier.Any) {
     def isValid = robot.isInventorySlot(getSlotIndex)
 
     @SideOnly(Side.CLIENT)
@@ -84,7 +84,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
     override def getBackgroundIconIndex = {
       if (isValid) super.getBackgroundIconIndex
-      else Icons.get(Tier.None)
+      else Icons.get(common.Tier.None)
     }
 
     override def getStack = {

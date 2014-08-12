@@ -112,16 +112,52 @@ wlanCard {
   input: [[enderPearl, "oc:circuitChip2", ""]
           ["", "oc:lanCard", ""]]
 }
+linkedCard {
+  input: [[eyeOfEnder, "", eyeOfEnder]
+          ["oc:wlanCard", "oc:materialInterweb", "oc:wlanCard"]
+          ["oc:circuitChip3", "", "oc:circuitChip3"]]
+  output: 2 # Note: all resulting cards are linked to each other.
+}
 
+batteryUpgrade1 {
+  input: [[ingotIron, nuggetGold, ingotIron]
+          ["oc:transistor", "oc:capacitor", "oc:transistor"]
+          [ingotIron, nuggetGold, ingotIron]]
+}
+batteryUpgrade2 {
+  input: [[ingotGold, "oc:capacitor", ingotGold]
+          ["oc:transistor", nuggetGold, "oc:transistor"]
+          [ingotGold, "oc:capacitor", ingotGold]]
+}
+batteryUpgrade3 {
+  input: [[diamond, "oc:capacitor", diamond]
+          ["oc:transistor", "oc:capacitor", "oc:transistor"]
+          [diamond, "oc:capacitor", diamond]]
+}
 craftingUpgrade {
   input: [[ingotIron, craftingPiston, ingotIron]
           ["oc:circuitChip1", workbench, "oc:circuitChip1"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+experienceUpgrade {
+  input: [[ingotGold, "oc:analyzer", ingotGold]
+          ["oc:circuitChip3", emerald, "oc:circuitChip3"]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
+}
 generatorUpgrade {
   input: [[ingotIron, "", ingotIron]
           ["oc:circuitChip1", craftingPiston, "oc:circuitChip1"]
           ["oc:materialCircuitBoardPrinted", ingotIron, "oc:materialCircuitBoardPrinted"]]
+}
+inventoryUpgrade {
+  input: [[ingotIron, hopper, ingotIron]
+          [dispenser, chest, craftingPiston]
+          [ingotIron, "oc:circuitChip1", ingotIron]]
+}
+inventoryControllerUpgrade {
+  input: [[ingotGold, "oc:circuitChip2", ingotGold]
+          [dispenser, "oc:inventoryUpgrade", craftingPiston]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]
@@ -194,6 +230,21 @@ alu {
   input: [[diode, torchRedstoneActive, diode]
           ["oc:materialTransistor", "oc:materialTransistor", "oc:materialTransistor"]
           [nuggetIron, redstone, nuggetIron]]
+}
+componentBus1 {
+  input: [[nuggetIron, redstone, nuggetIron]
+          ["oc:circuitChip1", "oc:materialCU", ""]
+          [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
+componentBus2 {
+  input: [[nuggetGold, "oc:ram3", nuggetGold]
+          ["oc:circuitChip2", "oc:componentBus1", ""]
+          [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
+}
+componentBus3 {
+  input: [[diamond, "oc:ram5", diamond]
+          ["oc:circuitChip3", "oc:componentBus2", ""]
+          [diamond, "oc:materialCircuitBoardPrinted", diamond]]
 }
 cpu1 {
   input: [[nuggetIron, redstone, nuggetIron]
@@ -281,6 +332,11 @@ diskDrive {
   input: [[ingotIron, "oc:circuitChip1", ingotIron]
           [craftingPiston, stickWood, ""]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+geolyzer {
+  input: [[ingotGold, "oc:analyzer", ingotGold]
+          [eyeOfEnder, "oc:circuitChip2", eyeOfEnder]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 keyboard {
   input: [["oc:materialButtonGroup", "oc:materialButtonGroup", "oc:materialButtonGroup"]

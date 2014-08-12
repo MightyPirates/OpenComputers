@@ -2,9 +2,9 @@ package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.gui.Icons
-import li.cil.oc.common.{InventorySlots, Tier, tileentity}
+import li.cil.oc.{Settings, common}
+import li.cil.oc.common.{InventorySlots, tileentity}
 import li.cil.oc.util.{ItemUtils, SideTracker}
-import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 
@@ -12,11 +12,11 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   // Computer case.
   {
     val index = inventorySlots.size
-    addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, api.driver.Slot.None, Tier.Any) {
+    addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, common.Slot.None, common.Tier.Any) {
       @SideOnly(Side.CLIENT) override
       def func_111238_b() = !isAssembling && super.func_111238_b()
 
-      override def getBackgroundIconIndex = if (isAssembling) Icons.get(Tier.None) else super.getBackgroundIconIndex
+      override def getBackgroundIconIndex = if (isAssembling) Icons.get(common.Tier.None) else super.getBackgroundIconIndex
     })
   }
 
