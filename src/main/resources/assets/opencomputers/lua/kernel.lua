@@ -379,7 +379,7 @@ local userdataCallback = {
     local methods = spcall(userdata.methods, wrappedUserdata[self.proxy])
     for name, direct in pairs(methods) do
       if name == self.name then
-        return invoke(userdata, direct, wrappedUserdata[self.proxy], name, ...)
+        return invoke(userdata, direct, self.proxy, name, ...)
       end
     end
     error("no such method", 1)

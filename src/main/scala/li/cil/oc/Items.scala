@@ -244,5 +244,6 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.ComponentBus(multi, Tier.One), "componentBus1", "oc:componentBus1")
     Recipes.addItem(new item.ComponentBus(multi, Tier.Two), "componentBus2", "oc:componentBus2")
     Recipes.addItem(new item.ComponentBus(multi, Tier.Three), "componentBus3", "oc:componentBus3")
+    registerItem(new item.DebugCard(multi), "debugCard")
   }
 }
