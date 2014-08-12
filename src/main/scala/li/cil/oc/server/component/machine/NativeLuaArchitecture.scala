@@ -388,10 +388,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       }
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
+        OpenComputers.log.warning(s"Could not persist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
       case e: LuaGcMetamethodException =>
-        OpenComputers.log.warning("Could not persist computer.\n" + e.toString)
+        OpenComputers.log.warning(s"Could not persist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}")
         nbt.removeTag("state")
     }
 
