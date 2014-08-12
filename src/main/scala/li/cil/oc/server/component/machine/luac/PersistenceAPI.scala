@@ -122,26 +122,32 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def persist(index: Int): Array[Byte] = {
     if (Settings.get.allowPersistence) {
       configure()
-      lua.getGlobal("eris") // ... eris
-      lua.getField(-1, "persist") // ... eris persist
-      if (lua.isFunction(-1)) {
-        lua.getField(LuaState.REGISTRYINDEX, "perms") // ... eris persist perms
-        lua.pushValue(index) // ... eris persist perms obj
-        try {
-          lua.call(2, 1) // ... eris str?
-        } catch {
-          case e: Throwable =>
-            lua.pop(1)
-            throw e
-        }
-        if (lua.isString(-1)) {
-          // ... eris str
-          val result = lua.toByteArray(-1)
-          lua.pop(2) // ...
-          return result
+      try {
+        lua.gc(LuaState.GcAction.STOP, 0)
+        lua.getGlobal("eris") // ... eris
+        lua.getField(-1, "persist") // ... eris persist
+        if (lua.isFunction(-1)) {
+          lua.getField(LuaState.REGISTRYINDEX, "perms") // ... eris persist perms
+          lua.pushValue(index) // ... eris persist perms obj
+          try {
+            lua.call(2, 1) // ... eris str?
+          } catch {
+            case e: Throwable =>
+              lua.pop(1)
+              throw e
+          }
+          if (lua.isString(-1)) {
+            // ... eris str
+            val result = lua.toByteArray(-1)
+            lua.pop(2) // ...
+            return result
+          } // ... eris :(
         } // ... eris :(
-      } // ... eris :(
-      lua.pop(2) // ...
+        lua.pop(2) // ...
+      }
+      finally {
+        lua.gc(LuaState.GcAction.RESTART, 0)
+      }
     }
     Array[Byte]()
   }
@@ -149,17 +155,23 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def unpersist(value: Array[Byte]): Boolean = {
     if (Settings.get.allowPersistence) {
       configure()
-      lua.getGlobal("eris") // ... eris
-      lua.getField(-1, "unpersist") // ... eris unpersist
-      if (lua.isFunction(-1)) {
-        lua.getField(LuaState.REGISTRYINDEX, "uperms") // ... eris persist uperms
-        lua.pushByteArray(value) // ... eris unpersist uperms str
-        lua.call(2, 1) // ... eris obj
-        lua.insert(-2) // ... obj eris
+      try {
+        lua.gc(LuaState.GcAction.STOP, 0)
+        lua.getGlobal("eris") // ... eris
+        lua.getField(-1, "unpersist") // ... eris unpersist
+        if (lua.isFunction(-1)) {
+          lua.getField(LuaState.REGISTRYINDEX, "uperms") // ... eris persist uperms
+          lua.pushByteArray(value) // ... eris unpersist uperms str
+          lua.call(2, 1) // ... eris obj
+          lua.insert(-2) // ... obj eris
+          lua.pop(1)
+          return true
+        } // ... :(
         lua.pop(1)
-        return true
-      } // ... :(
-      lua.pop(1)
+      }
+      finally {
+        lua.gc(LuaState.GcAction.RESTART, 0)
+      }
     }
     false
   }
