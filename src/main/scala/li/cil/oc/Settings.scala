@@ -239,7 +239,10 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
-  val hologramMaxScaleByTier = Array(3, 4)
+  val hologramMaxScaleByTier = Array(
+    (config.getDouble("client.hologramMaxScaleTier1") max 20 min 1),
+    (config.getDouble("client.hologramMaxScaleTier2") max 20 min 1)
+  )
   val robotComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId = -1
