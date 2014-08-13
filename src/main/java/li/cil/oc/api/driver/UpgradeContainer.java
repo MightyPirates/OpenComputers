@@ -21,7 +21,11 @@ public interface UpgradeContainer extends Item {
      *
      * @param stack the item stack to get the provided slot type for.
      * @return the slot type provided by that dynamic slot upgrade.
+     * @deprecated This will be replaced in 1.4, where slot types will then be
+     * referred to by name (using Strings) instead, to make this system more
+     * flexible (not requiring an API change for each new slot type, e.g.).
      */
+    @Deprecated
     Slot providedSlot(ItemStack stack);
 
     /**
