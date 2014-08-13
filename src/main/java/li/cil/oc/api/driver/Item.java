@@ -1,10 +1,8 @@
 package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.ManagedEnvironment;
-import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 
 /**
  * Interface for item component drivers.
@@ -72,7 +70,11 @@ public interface Item {
      *
      * @param stack the item stack to get the slot type for.
      * @return the slot type of the specified item.
+     * @deprecated This will be replaced in 1.4, where slot types will then be
+     * referred to by name (using Strings) instead, to make this system more
+     * flexible (not requiring an API change for each new slot type, e.g.).
      */
+    @Deprecated
     Slot slot(ItemStack stack);
 
     /**

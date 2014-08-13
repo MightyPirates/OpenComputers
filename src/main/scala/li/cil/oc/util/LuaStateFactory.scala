@@ -93,7 +93,7 @@ object LuaStateFactory {
 
     // Try to find a working lib.
     for (library <- libNames if !haveNativeLibrary) {
-      OpenComputers.log.debug(s"Trying native library '$library'...")
+      OpenComputers.log.trace(s"Trying native library '$library'...")
       val libraryUrl = classOf[Machine].getResource(libPath + library)
       if (libraryUrl != null) {
         // Create a temporary file.
@@ -179,7 +179,7 @@ object LuaStateFactory {
         }
         catch {
           case _: Throwable =>
-            OpenComputers.log.debug(s"Could not load native library '${file.getName}'.")
+            OpenComputers.log.trace(s"Could not load native library '${file.getName}'.")
             file.delete()
         }
       }
