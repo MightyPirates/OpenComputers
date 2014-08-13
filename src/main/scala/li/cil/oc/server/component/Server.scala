@@ -48,7 +48,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
     case _ => 0
   }))
 
-  lazy val maxComponents = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
+  lazy val maxComponents = if (!hasCPU) 0 else inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Processor) => driver.supportedComponents(item)
       case _ => 0
