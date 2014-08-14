@@ -373,7 +373,7 @@ function term.read(history, dobreak, hint, yieldable)
     if not yieldable then
       ok, name, address, charOrValue, code = pcall(event.pull)
     else
-      ok, name, address, charOrValue, code = pcall(event.pull(0))
+      ok, name, address, charOrValue, code = pcall(event.pull,0)
     end
     if (not ok) and (not yieldable) then
       cleanup()
