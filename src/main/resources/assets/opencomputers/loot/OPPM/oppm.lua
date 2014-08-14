@@ -111,13 +111,13 @@ local function readFromFile(fNum)
   return serial.unserialize(sPacks) or {-1}
 end
 
-local function saveToFile(tPacks)
+local function saveToFile(packs)
   local file,msg = io.open("/etc/opdata.svd","wb")
   if not file then
     io.stderr:write("Error while trying to save package names: "..msg)
     return
   end
-  local sPacks = serial.serialize(tPacks)
+  local sPacks = serial.serialize(packs)
   file:write(sPacks)
   file:close()
 end
@@ -155,7 +155,7 @@ local function listPackages(filter)
       end
     end
     local lRepos = readFromFile(2)
-    if lRepos then
+    if lRepos and lRepos.repos then
       for _,j in pairs(lRepos.repos) do
         for k in pairs(j) do
           if not k.hidden then
@@ -166,8 +166,8 @@ local function listPackages(filter)
     end
   else
     local lPacks = {}
-    local tPacks = readFromFile(1)
-    for i in pairs(tPacks) do
+    local packs = readFromFile(1)
+    for i in pairs(packs) do
       table.insert(lPacks,i)
     end
     packages = lPacks
@@ -185,8 +185,8 @@ local function listPackages(filter)
   return packages
 end
 
-local function printPackages(tPacks)
-  if tPacks==nil or not tPacks[1] then
+local function printPackages(packs)
+  if packs==nil or not packs[1] then
     print("No package matching specified filter found.")
     return
   end
@@ -194,7 +194,7 @@ local function printPackages(tPacks)
   local xRes,yRes = gpu.getResolution()
   print("--OpenPrograms Package list--")
   local xCur,yCur = term.getCursor()
-  for _,j in ipairs(tPacks) do
+  for _,j in ipairs(packs) do
     term.write(j.."\n")
     yCur = yCur+1
     if yCur>yRes-1 then
@@ -276,6 +276,8 @@ local function provideInfo(pack)
   end
 end
 
+local tPacks = readFromFile(1)
+
 local function installPackage(pack,path,update)
   update = update or false
   if not pack then
@@ -292,7 +294,6 @@ local function installPackage(pack,path,update)
   end
   pack = string.lower(pack)
 
-  local tPacks = readFromFile(1)
   if not tPacks then
     io.stderr:write("Error while trying to read local package names")
     return
@@ -309,14 +310,19 @@ local function installPackage(pack,path,update)
     print("Updating package "..pack)
     path = nil
     for i,j in pairs(info.files) do
-      for k,v in pairs(tPacks[pack]) do
-        if k==i then
-          path = string.gsub(fs.path(v),j.."/?$","/")
+      if tPacks[pack] then
+        for k,v in pairs(tPacks[pack]) do
+          if k==i then
+            path = string.gsub(fs.path(v),j.."/?$","/")
+            break
+          end
+        end
+        if path then
           break
         end
-      end
-      if path then
-        break
+      else
+        io.stderr:write("error while checking update path")
+        return
       end
     end
     path = shell.resolve(string.gsub(path,"^/?","/"),nil)
@@ -386,7 +392,7 @@ local function installPackage(pack,path,update)
     end
   end
   if info.dependencies then
-    term.write("Done.\nInstalling Dependencies...")
+    term.write("Done.\nInstalling Dependencies...\n")
     for i,j in pairs(info.dependencies) do
       local nPath
       if string.find(j,"^//") then
@@ -413,7 +419,7 @@ local function installPackage(pack,path,update)
         if not depInfo then
           term.write("\nDependency package "..i.." does not exist.")
         end
-        installPackage(string.lower(i),fs.concat(path,j))
+        installPackage(string.lower(i),fs.concat(path,j),update)
       end
     end
   end
@@ -475,8 +481,8 @@ local function updatePackage(pack)
 end
 
 if args[1] == "list" then
-  local tPacks = listPackages(args[2])
-  printPackages(tPacks)
+  local packs = listPackages(args[2])
+  printPackages(packs)
 elseif args[1] == "info" then
   provideInfo(args[2])
 elseif args[1] == "install" then
