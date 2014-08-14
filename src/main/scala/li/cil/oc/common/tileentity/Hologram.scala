@@ -123,18 +123,23 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     null
   }
 
-  @Callback(direct = true, limit = 128, doc = """function(x:number, z:number, height:number, value:number or boolean) -- Fills a column to the specified height.""")
+  @Callback(direct = true, limit = 128, doc = """function(x:number, z:number[, minY:number], maxY:number, value:number or boolean) -- Fills an interval of a column with the specified value.""")
   def fill(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val (x, _, z) = checkCoordinates(args, 0, -1, 1)
-    val height = math.min(32, math.max(0, args.checkInteger(2)))
-    val value = checkColor(args, 3)
+    val (minY, maxY, value) =
+      if (args.count > 4)
+        (math.min(32, math.max(1, args.checkInteger(2))), math.min(32, math.max(1, args.checkInteger(3))), checkColor(args, 4))
+      else
+        (1, math.min(32, math.max(1, args.checkInteger(2))), checkColor(args, 3))
+    if (minY > maxY) throw new IllegalArgumentException("interval is empty")
 
+    val mask = (0xFFFFFFFF >>> (31 - (maxY - minY))) << (minY - 1)
     val lbit = value & 1
     val hbit = (value >>> 1) & 1
-    if (lbit == 0 || height == 0) volume(x + z * width) = 0
-    else volume(x + z * width) = 0xFFFFFFFF >>> (32 - height)
-    if (hbit == 0 || height == 0) volume(x + z * width + width * width) = 0
-    else volume(x + z * width + width * width) = 0xFFFFFFFF >>> (32 - height)
+    if (lbit == 0 || height == 0) volume(x + z * width) &= ~mask
+    else volume(x + z * width) |= mask
+    if (hbit == 0 || height == 0) volume(x + z * width + width * width) &= ~mask
+    else volume(x + z * width + width * width) |= mask
 
     setDirty(x, z)
     null
