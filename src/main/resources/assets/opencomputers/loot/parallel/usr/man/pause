@@ -1,0 +1,20 @@
+NAME
+  parallel.pause
+  
+CALLS
+  parallel.pause(uid)
+  parallel.pause(uid, amount)
+  
+RETURNS
+  boolean: true - if succeeded.
+  boolean: false, string: errmsg - if failed.
+  
+DESCRIPTION
+  Pauses thread for a given amount (default = 1) until it is unpaused.
+  You can pause thread harder (amount = 2+) to make it not unpause after more than one parallel.unpause calls. 
+  coroutine.Pause(thread) has the same effect as coroutine.Unpause(thread, -1). 
+  
+EXAMPLES
+  parallel.pause(targetThreadUID)
+  parallel.pause(targetThreadUID, 3)
+  parallel.pause(targetThreadUID, -math.huge)

@@ -1,9 +1,9 @@
 NAME
-  paralel.pause
+  parallel.pause
   
 CALLS
-  paralel.unpause(uid)
-  paralel.unpause(uid, amount)
+  parallel.unpause(uid)
+  parallel.unpause(uid, amount)
   
 RETURNS
   boolean: true - if succeeded.
@@ -14,6 +14,6 @@ DESCRIPTION
   coroutine.unpause(thread) has the same effect as coroutine.pause(thread, -1). 
   
 EXAMPLES
-  paralel.unpause(targetThreadUID)
-  paralel.unpause(targetThreadUID, 3)
-  paralel.unpause(targetThreadUID, math.huge)
+  parallel.unpause(targetThreadUID)
+  parallel.unpause(targetThreadUID, 3)
+  parallel.unpause(targetThreadUID, math.huge)

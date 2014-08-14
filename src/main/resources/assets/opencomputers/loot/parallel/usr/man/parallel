@@ -1,8 +1,8 @@
 NAME
-  paralel (Library) - paralel coroutine manager, providing interaction between them.
+  parallel (Library) - parallel coroutine manager, providing interaction between them.
 
 SYNOPSIS
-  none, see paralel.manager or specific function.
+  none, see parallel.manager or specific function.
   
 DESCRIPTION
   Coroutine Manager adds few useful possibilities.
@@ -22,21 +22,21 @@ DESCRIPTION
         With coroutine.setName() you can set human-friendly names for threads or use it to tag, group and filter coroutines. Get Name with coroutine.getName()
 
 EXAMPLES (see specific functions)
-  man spawn - paralel.spawn(fn, ...)
-  man yield - paralel.yield([sleep][, filter])
-  man pause - paralel.pause(uid, [amount])
-  man unpause - paralel.unpause(uid, [amount])
-  man kill - paralel.kill(uid)
-  man dig - paralel.dig(uid)
-  man setName - paralel.setName(uid, name)
-  man getName - paralel.getName(uid)
-  man setFilter - paralel.setFilter(uid, [filter])
-  man getFilter - paralel.getFilter(uid)
-  man setAnswer - paralel.setAnswer(uid, answer)
-  man getAnswer - paralel.getAnswer(uid, [msg])
-  man ask - paralel.ask(uid, msg)
-  man whisper - paralel.whisper(uid, ...)
-  man getThreads - paralel.getThreads()
-  man getThread - paralel.getThread([uid])
-  man exit - paralel.exit()
+  man spawn - parallel.spawn(fn, ...)
+  man yield - parallel.yield([sleep][, filter])
+  man pause - parallel.pause(uid, [amount])
+  man unpause - parallel.unpause(uid, [amount])
+  man kill - parallel.kill(uid)
+  man dig - parallel.dig(uid)
+  man setName - parallel.setName(uid, name)
+  man getName - parallel.getName(uid)
+  man setFilter - parallel.setFilter(uid, [filter])
+  man getFilter - parallel.getFilter(uid)
+  man setAnswer - parallel.setAnswer(uid, answer)
+  man getAnswer - parallel.getAnswer(uid, [msg])
+  man ask - parallel.ask(uid, msg)
+  man whisper - parallel.whisper(uid, ...)
+  man getThreads - parallel.getThreads()
+  man getThread - parallel.getThread([uid])
+  man exit - parallel.exit()
   man properties - Properties

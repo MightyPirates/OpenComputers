@@ -1,7 +1,7 @@
-local paralel = {}
+local parallel = {}
 
 -- Sanitization happens here
-function paralel.spawn(fn, ...)
+function parallel.spawn(fn, ...)
   local err
   if type(fn) == "function" then 
     fn = fn
@@ -22,7 +22,7 @@ function paralel.spawn(fn, ...)
     ["name"] = "anonymous",
   })
 end
-function paralel.yield( sleep_filter, filter_sleep )
+function parallel.yield( sleep_filter, filter_sleep )
   local sleep, filter
   if type(sleep_filter) == "number" then sleep = sleep_filter; filter = filter_sleep end
   if type(sleep_filter) == "string" then sleep = filter_sleep; filter = sleep_filter end
@@ -33,7 +33,7 @@ function paralel.yield( sleep_filter, filter_sleep )
     ["sleep"] = sleep
   })
 end
-function paralel.pause(uid, amount)
+function parallel.pause(uid, amount)
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   if type(amount) ~= "number" then amount = 1 end
   return coroutine.yield({
@@ -42,25 +42,25 @@ function paralel.pause(uid, amount)
     ["amount"] = amount,
   })  
 end
-function paralel.unpause(uid, amount)
+function parallel.unpause(uid, amount)
   local amount = -(amount or 1)
-  return paralel.Pause( uid, amount )
+  return parallel.Pause( uid, amount )
 end
-function paralel.kill(uid)
+function parallel.kill(uid)
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   return coroutine.yield({
     ["flag"] = "RoCoWa_kill",
     ["uid"] = uid,
   })
 end
-function paralel.dig(uid)
+function parallel.dig(uid)
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   return coroutine.yield({
     ["flag"] = "RoCoWa_dig",
     ["uid"] = uid,
   })
 end
-function paralel.setName( uid, name )
+function parallel.setName(uid, name)
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   local ok, err = pcall(checkArg, 1, name, "string"); if not ok then return ok, err end
   return coroutine.yield({
@@ -69,14 +69,14 @@ function paralel.setName( uid, name )
     ["name"] = name,
   })
 end
-function paralel.getName( uid )
+function parallel.getName(uid)
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   return coroutine.yield({
     ["flag"] = "RoCoWa_getName",
     ["uid"] = uid,
   })
 end
-function paralel.setFilter( uid, filter )
+function parallel.setFilter( uid, filter )
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   local ok, err = pcall(checkArg, 1, filter, "string", "nil"); if not ok then return ok, err end
   return coroutine.yield({
@@ -85,19 +85,19 @@ function paralel.setFilter( uid, filter )
     ["filter"] = filter,
   })
 end
-function paralel.getFilter( uid )
+function parallel.getFilter( uid )
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   return coroutine.yield({
     ["flag"] = "RoCoWa_getFilter",
     ["uid"] = uid,
   })
 end
-function paralel.setAnswer(uid, answer)
+function parallel.setAnswer(uid, answer)
   if answer ~= nil then
     local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   else
     answer = uid
-    uid = paralel.getThread()
+    uid = parallel.getThread()
   end  
   return coroutine.yield({
     ["flag"] = "RoCoWa_setAnswer",
@@ -105,7 +105,7 @@ function paralel.setAnswer(uid, answer)
     ["answer"] = answer,
   })  
 end
-function paralel.getAnswer(uid, msg)
+function parallel.getAnswer(uid, msg)
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   return coroutine.yield({
     ["flag"] = "RoCoWa_getAnswer",
@@ -113,10 +113,10 @@ function paralel.getAnswer(uid, msg)
     ["msg"] = msg,
   })  
 end
-function paralel.ask(uid, msg)
-  return paralel.getAnswer(uid, msg)
+function parallel.ask(uid, msg)
+  return parallel.getAnswer(uid, msg)
 end
-function paralel.whisper(uid, ...)
+function parallel.whisper(uid, ...)
   local ok, err = pcall(checkArg, 1, uid, "string"); if not ok then return ok, err end
   return coroutine.yield({
     ["flag"] = "RoCoWa_whisper",
@@ -124,18 +124,18 @@ function paralel.whisper(uid, ...)
     ["args"] = { ... },
   })  
 end
-function paralel.getThreads()
+function parallel.getThreads()
   return coroutine.yield({
     ["flag"] = "RoCoWa_getThreads"
   })
 end
-function paralel.getThread( uid )
+function parallel.getThread( uid )
   return coroutine.yield({
     ["flag"] = "RoCoWa_getThread",
     ["uid"] = uid,
   })
 end
-function paralel.exit()
+function parallel.exit()
   return coroutine.yield({
     ["flag"] = "RoCoWa_exit",
   })
@@ -149,7 +149,7 @@ end
 --]]
 
 -- Magic happens here
-function paralel.manager( firstThread )
+function parallel.manager( firstThread )
 
   -- You should provide better versions of these functions.
   local getUid = getUid or function () return tostring(math.random(10000000,99999999)) end
@@ -180,7 +180,7 @@ function paralel.manager( firstThread )
             str = term.read()
             local fn, err = load(str)
             if fn and str ~="" and str ~="\n" then 
-              paralel.spawn(fn) 
+              parallel.spawn(fn) 
               term.write("executed...")
             else
               if err then term.write(err) end
@@ -462,5 +462,5 @@ function paralel.manager( firstThread )
   end
   logger.info("Out-of-threads!\n")
 end
-return paralel
+return parallel
 

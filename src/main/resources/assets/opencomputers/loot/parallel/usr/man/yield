@@ -1,11 +1,11 @@
 NAME
-  paralel.yield
+  parallel.yield
   
 CALLS
-  paralel.yield()
-  paralel.yield(number)
-  paralel.yield(string)
-  paralel.yield(number, string)
+  parallel.yield()
+  parallel.yield(number)
+  parallel.yield(string)
+  parallel.yield(number, string)
 
 RETURNS
   undefined list: signal
@@ -18,10 +18,10 @@ DESCRIPTION
   It DOES pass control to the next thread.
 
 EXAMPLES
-  paralel.yield()
-  paralel.yield(3)
-  paralel.yield("key_down")
-  paralel.yield(3, "key_down")
+  parallel.yield()
+  parallel.yield(3)
+  parallel.yield("key_down")
+  parallel.yield(3, "key_down")
   
   
   
