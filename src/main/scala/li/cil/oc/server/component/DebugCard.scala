@@ -43,53 +43,53 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
-    @Callback
+    @Callback(doc = """function():number -- Gets the numeric id of the current dimension.""")
     def getDimensionId(context: Context, args: Arguments): Array[AnyRef] =
       result(world.provider.dimensionId)
 
-    @Callback
+    @Callback(doc = """function():string -- Gets the name of the current dimension.""")
     def getDimensionName(context: Context, args: Arguments): Array[AnyRef] =
       result(world.provider.getDimensionName)
 
-    @Callback
+    @Callback(doc = """function():number -- Gets the seed of the world.""")
     def getSeed(context: Context, args: Arguments): Array[AnyRef] =
       result(world.getSeed)
 
-    @Callback
+    @Callback(doc = """function():boolean -- Returns whether it is currently raining.""")
     def isRaining(context: Context, args: Arguments): Array[AnyRef] =
       result(world.isRaining)
 
-    @Callback
+    @Callback(doc = """function(value:boolean) -- Sets whether it is currently raining.""")
     def setRaining(context: Context, args: Arguments): Array[AnyRef] = {
       world.getWorldInfo.setRaining(args.checkBoolean(0))
       null
     }
 
-    @Callback
+    @Callback(doc = """function():boolean -- Returns whether it is currently thundering.""")
     def isThundering(context: Context, args: Arguments): Array[AnyRef] =
       result(world.isThundering)
 
-    @Callback
+    @Callback(doc = """function(value:boolean) -- Sets whether it is currently thundering.""")
     def setThundering(context: Context, args: Arguments): Array[AnyRef] = {
       world.getWorldInfo.setThundering(args.checkBoolean(0))
       null
     }
 
-    @Callback
+    @Callback(doc = """function():number -- Get the current world time.""")
     def getTime(context: Context, args: Arguments): Array[AnyRef] =
       result(world.getWorldTime)
 
-    @Callback
+    @Callback(doc = """function(value:number) -- Set the current world time.""")
     def setTime(context: Context, args: Arguments): Array[AnyRef] = {
       world.setWorldTime(args.checkDouble(0).toLong)
       null
     }
 
-    @Callback
+    @Callback(doc = """function():number, number, number -- Get the current spawn point coordinates.""")
     def getSpawnPoint(context: Context, args: Arguments): Array[AnyRef] =
       result(world.getWorldInfo.getSpawnX, world.getWorldInfo.getSpawnY, world.getWorldInfo.getSpawnZ)
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number) -- Set the spawn point coordinates.""")
     def setSpawnPoint(context: Context, args: Arguments): Array[AnyRef] = {
       world.getWorldInfo.setSpawnPosition(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       null
@@ -97,40 +97,55 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number):number -- Get the ID of the block at the specified coordinates.""")
     def getBlockId(context: Context, args: Arguments): Array[AnyRef] =
       result(Block.getIdFromBlock(world.getBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number):number -- Get the metadata of the block at the specified coordinates.""")
     def getMetadata(context: Context, args: Arguments): Array[AnyRef] =
       result(world.getBlockMetadata(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates is loaded.""")
     def isLoaded(context: Context, args: Arguments): Array[AnyRef] =
       result(world.blockExists(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates has a tile entity.""")
     def hasTileEntity(context: Context, args: Arguments): Array[AnyRef] = {
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val block = world.getBlock(x, y, z)
       result(block != null && block.hasTileEntity(world.getBlockMetadata(x, y, z)))
     }
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light opacity of the block at the specified coordinates.""")
     def getLightOpacity(context: Context, args: Arguments): Array[AnyRef] =
       result(world.getBlockLightOpacity(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light value (emission) of the block at the specified coordinates.""")
     def getLightValue(context: Context, args: Arguments): Array[AnyRef] =
       result(world.getBlockLightValue(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number):number -- Get whether the block at the specified coordinates is directly under the sky.""")
     def canSeeSky(context: Context, args: Arguments): Array[AnyRef] =
       result(world.canBlockSeeTheSky(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
 
-    @Callback
+    @Callback(doc = """function(x:number, y:number, z:number, id:number, meta:number):number -- Set the block at the specified coordinates.""")
     def setBlock(context: Context, args: Arguments): Array[AnyRef] =
       result(world.setBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2), Block.getBlockById(args.checkInteger(3)), args.checkInteger(4), 3))
+
+    @Callback(doc = """function(x1:number, y1:number, z1:number, x2:number, y2:number, z2:number, id:number, meta:number):number -- Set all blocks in the area defined by the two corner points (x1, y1, z1) and (x2, y2, z2).""")
+    def setBlocks(context: Context, args: Arguments): Array[AnyRef] = {
+      val (xMin, yMin, zMin) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      val (xMax, yMax, zMax) = (args.checkInteger(3), args.checkInteger(4), args.checkInteger(5))
+      val (block, metadata) = (Block.getBlockById(args.checkInteger(6)), args.checkInteger(7))
+      for (x <- math.min(xMin, xMax) to math.max(xMin, xMax)) {
+        for (y <- math.min(yMin, yMax) to math.max(yMin, yMax)) {
+          for (z <- math.min(zMin, zMax) to math.max(zMin, zMax)) {
+            world.setBlock(x, y, z, block, metadata, 3)
+          }
+        }
+      }
+      null
+    }
 
     // ----------------------------------------------------------------------- //
 
@@ -154,4 +169,5 @@ object DebugCard {
       Array(args map unwrap: _*)
     }
   }
+
 }
