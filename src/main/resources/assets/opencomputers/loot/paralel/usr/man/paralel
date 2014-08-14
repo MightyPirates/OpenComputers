@@ -1,0 +1,42 @@
+NAME
+  paralel (Library) - paralel coroutine manager, providing interaction between them.
+
+SYNOPSIS
+  none, see paralel.manager or specific function.
+  
+DESCRIPTION
+  Coroutine Manager adds few useful possibilities.
+    Manage dynamic number of coroutines
+        With coroutine.Spawn() you can spawn a new sister level thread
+        With coroutine.Kill() you can exclusively kill a sister level thread
+        Every thread has a property that at value 0 is unpaused and at positive value is paused, but negative values resets to 0, therefore coroutine.Unpause(thread, math.huge) will effectively unpause anything.
+    Compatibility with coroutine.yield(), and more
+        With coroutine.setFilter() you can set filter to any thread, for example for a thread you just spawned.
+    Interact between coroutines
+        With coroutine.Whisper() you can exclusively send arguments to a specific thread. When target thread is about to be resumed, it first resumes with first whispered arguments, then resumes again with next whispered arguments, ..., and lastly with event data from above as arguments if not filtered. Whispered arguments bypasses filters.
+        With coroutine.Ask() you can ask values from a specific thread if it was readied correctly with coroutine.Cycle().
+    Pause and unpause other coroutines (therefore saving their state)
+        Use coroutine.Pause() and coroutine.Unpause()
+    Implement a task manager
+        With coroutine.getThreads() you can get info about all threads or couroutine.getThread() will point to calling thread or return info about a specific thread.
+        With coroutine.setName() you can set human-friendly names for threads or use it to tag, group and filter coroutines. Get Name with coroutine.getName()
+
+EXAMPLES (see specific functions)
+  man spawn - paralel.spawn(fn, ...)
+  man yield - paralel.yield([sleep][, filter])
+  man pause - paralel.pause(uid, [amount])
+  man unpause - paralel.unpause(uid, [amount])
+  man kill - paralel.kill(uid)
+  man dig - paralel.dig(uid)
+  man setName - paralel.setName(uid, name)
+  man getName - paralel.getName(uid)
+  man setFilter - paralel.setFilter(uid, [filter])
+  man getFilter - paralel.getFilter(uid)
+  man setAnswer - paralel.setAnswer(uid, answer)
+  man getAnswer - paralel.getAnswer(uid, [msg])
+  man ask - paralel.ask(uid, msg)
+  man whisper - paralel.whisper(uid, ...)
+  man getThreads - paralel.getThreads()
+  man getThread - paralel.getThread([uid])
+  man exit - paralel.exit()
+  man properties - Properties
