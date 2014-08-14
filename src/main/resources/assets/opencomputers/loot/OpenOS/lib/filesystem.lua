@@ -157,7 +157,10 @@ end
 
 function filesystem.isLink(path)
   local node, rest, vnode, vrest = findNode(filesystem.path(path))
-  return not vrest and vnode.links[filesystem.name(path)] ~= nil
+  if not vrest and vnode.links[filesystem.name(path)] ~= nil then
+    return true, vnode.links[filesystem.name(path)]
+  end
+  return false
 end
 
 function filesystem.link(target, linkpath)
