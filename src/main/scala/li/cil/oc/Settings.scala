@@ -38,12 +38,12 @@ class Settings(config: Config) {
   val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
-  val hologramMaxScaleByTier = Array(config.getIntList("client.hologramMaxScale"): _*) match {
+  val hologramMaxScaleByTier = Array(config.getDoubleList("client.hologramMaxScale"): _*) match {
     case Array(tier1, tier2) =>
-      Array(tier1: Int, tier2: Int)
+      Array(tier1: Double, tier2: Double)
     case _ =>
-      OpenComputers.log.warning("Bad number of hologramMaxScale, ignoring.")
-      Array(3, 4)
+      OpenComputers.log.warning("Bad number of hologram max scales, ignoring.")
+      Array(3.0, 4.0)
   }
   val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
   val useOldTextureFontRenderer = config.getBoolean("client.useOldTextureFontRenderer")
