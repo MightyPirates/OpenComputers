@@ -1,0 +1,21 @@
+NAME
+  paralel.spawn
+  
+CALLS
+  paralel.spawn(fn)
+  paralel.spawn(fn, arg1, arg2, ...)
+
+RETURNS
+  boolean: true, string: uid - if succeeded to create a new thread. 
+  boolean: false, string: errmsg - if failed
+  
+DESCRIPTION
+  It creates a new paralel thread and puts it at the end of other threads.
+  It DOES NOT give control to the next thread.
+
+EXAMPLES
+  paralel.spawn(function() print("Hello world!") end)
+  paralel.spawn(function(msg) print(msg) end, "Hello world!")
+  
+  
+  
