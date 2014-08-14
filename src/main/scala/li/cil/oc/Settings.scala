@@ -28,6 +28,13 @@ class Settings(config: Config) {
   val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
+  val hologramMaxScaleByTier = Array(config.getDoubleList("client.hologramMaxScale"): _*) match {
+    case Array(tier1, tier2) =>
+      Array(tier1: Double, tier2: Double)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hologram max scales, ignoring.")
+      Array(3.0, 4.0)
+  }
   val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
   val useOldTextureFontRenderer = config.getBoolean("client.useOldTextureFontRenderer")
 
@@ -229,7 +236,6 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
-  val hologramMaxScaleByTier = Array(3, 4)
   val robotComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId = -1
