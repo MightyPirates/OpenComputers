@@ -108,7 +108,7 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak, hint)
+function term.read(history, dobreak, hint, yieldable)
   checkArg(1, history, "table", "nil")
   checkArg(3, hint, "function", "table", "nil")
   history = history or {}
@@ -369,8 +369,13 @@ function term.read(history, dobreak, hint)
   term.setCursorBlink(true)
   while term.isAvailable() do
     local ocx, ocy = getCursor()
-    local ok, name, address, charOrValue, code = pcall(event.pull)
-    if not ok then
+    local ok, name, address, charOrValue, code
+    if yieldable then
+      ok, name, address, charOrValue, code = pcall(event.pull)
+    else
+      ok, name, address, charOrValue, code = pcall(event.pull(0))
+    end
+    if (not ok) and (not yieldable) then
       cleanup()
       error("interrupted", 0)
     end

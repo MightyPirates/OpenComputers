@@ -175,9 +175,11 @@ function parallel.manager( firstThread )
       ["co"] = coroutine.create(
         function ()
           local term = require("term")
+          if not parallel then error("Load library into global table 'parallel' for default console to work") end 
+          if not term then error("Load OpenOS for term.read() to work") end
           while true do
             term.write("\n@ ")
-            str = term.read()
+            str = term.read(nil,nil,nil,true)
             local fn, err = load(str)
             if fn and str ~="" and str ~="\n" then 
               parallel.spawn(fn) 
