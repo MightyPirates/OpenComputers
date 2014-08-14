@@ -370,7 +370,7 @@ function term.read(history, dobreak, hint, yieldable)
   while term.isAvailable() do
     local ocx, ocy = getCursor()
     local ok, name, address, charOrValue, code
-    if yieldable then
+    if not yieldable then
       ok, name, address, charOrValue, code = pcall(event.pull)
     else
       ok, name, address, charOrValue, code = pcall(event.pull(0))
