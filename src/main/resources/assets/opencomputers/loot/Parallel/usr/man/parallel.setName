@@ -1,0 +1,15 @@
+NAME
+  parallel.setName
+  
+CALLS
+  parallel.setName(string: threadUid, string: name)
+  
+RETURNS
+  boolean: success[, string: errMsg]
+  
+DESCRIPTION
+  Sets the name for a thread. Use it for your own needs to tag, filter or improve user-friendlyness.
+  
+EXAMPLES
+  parallel.setName(threadUid, "TestThread")
+  parallel.setName(parallel.getThread().uid, "MyThread")

@@ -1,0 +1,16 @@
+NAME
+  parallel.exit
+  
+CALLS
+  parallel.exit([msg])
+  
+RETURNS
+  never returns
+  
+DESCRIPTION
+  Kills all threads and returns optional msg where parallel.manager() was called.
+  If there would be no threads left, the parallel.manager() would return false, "Out of threads".
+  
+EXAMPLES
+  parallel.exit()
+  parallel.exit(true)

@@ -1,0 +1,17 @@
+NAME
+  parallel.manager
+  
+CALLS
+  parallel.manager([function: fn])
+
+RETURNS
+  boolean: success, (undefined: msg OR string: errMsg)
+  
+DESCRIPTION
+  It initiates parallel environment with one function fn. If fn is absent, then a default minimalistic console is initiated that requires parallel library to be loaded into a global variable "parallel" and a optional edit in term.write to make console yieldable. There are also few other functions for what you can provide alternatives as upvalues, see the code inline.
+  os.sleep and event.pull works as a global pause that does not yield, use parallel.yield or coroutine.yield with arguments instead to pause only the given thread.
+
+EXAMPLES
+  parallel.manager()
+  parallel.manager(myFirstFunction)
+  

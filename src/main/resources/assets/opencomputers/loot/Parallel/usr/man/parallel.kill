@@ -1,0 +1,16 @@
+NAME
+  parallel.kill
+  
+CALLS
+  parallel.kill(string: threadUid)
+
+RETURNS
+  boolean: success[, string: errMsg]
+  
+DESCRIPTION
+  It brutally and instantly kills the thread.
+  Tip: use parallel.whisper to ask thread to die peacefully so it is able to return values beforehand.
+
+EXAMPLES
+  parallel.kill(threadUid)
+  

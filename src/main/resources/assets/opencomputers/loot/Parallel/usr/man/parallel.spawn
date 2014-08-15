@@ -2,12 +2,13 @@ NAME
   parallel.spawn
   
 CALLS
-  parallel.spawn(fn)
-  parallel.spawn(fn, arg1, arg2, ...)
+  parallel.spawn(function: fn)
+  parallel.spawn(function: fn, undefined: arg1, arg2, ...)
 
 RETURNS
-  boolean: true, string: uid - if succeeded to create a new thread. 
-  boolean: false, string: errmsg - if failed
+  string: threadUid 
+    OR 
+  boolean: false, string: errMsg
   
 DESCRIPTION
   It creates a new parallel thread and puts it at the end of other threads.
@@ -16,6 +17,4 @@ DESCRIPTION
 EXAMPLES
   parallel.spawn(function() print("Hello world!") end)
   parallel.spawn(function(msg) print(msg) end, "Hello world!")
-  
-  
   

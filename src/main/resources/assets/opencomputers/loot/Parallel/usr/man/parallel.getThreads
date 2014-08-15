@@ -1,0 +1,17 @@
+NAME
+  parallel.getThreads
+  
+CALLS
+  parallel.getThreads()
+  
+RETURNS
+  table: threads
+    OR 
+  boolean: false, string: errMsg
+  
+DESCRIPTION
+  Gets a table with properties of all running threads in random order.
+  Use "man parallel.properties" to see the list of properties.
+  
+EXAMPLES
+  parallel.getThreads()

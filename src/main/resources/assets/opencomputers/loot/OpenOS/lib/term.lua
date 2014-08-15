@@ -373,7 +373,7 @@ function term.read(history, dobreak, hint, yieldable)
     if not yieldable then
       ok, name, address, charOrValue, code = pcall(event.pull)
     else
-      ok, name, address, charOrValue, code = pcall(event.pull,0)
+      name, address, charOrValue, code = coroutine.yield("[kc][el][yi][_p][db][oo][wa][nr]d?")
     end
     if (not ok) and (not yieldable) then
       cleanup()

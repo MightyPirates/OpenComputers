@@ -1,0 +1,16 @@
+NAME
+  parallel.whisper
+  
+CALLS
+  parallel.whisper(string: threadUid, undefined list: signal)
+  
+RETURNS
+  boolean: success[, string: errMsg]
+  
+DESCRIPTION
+  Whispers fake signal to explicitly one thread. Threads processes all stack of signals and then pass control to the next thread. Signals stack in a FIFO manner where system signal is inserted before thread processes (or filters out) its first signal.
+  Whisper bypasses sleep and unlike system signals can remove the filter before thread has woke up, but thread will discard also this whisper.
+  
+EXAMPLES
+  parallel.whisper(threadUid, "key_down","fakeHardware",97,30,"fakePlayer")
+  parallel.whisper(threadUid, "softKill")

@@ -3,9 +3,9 @@ NAME
   
 CALLS
   parallel.yield()
-  parallel.yield(number)
-  parallel.yield(string)
-  parallel.yield(number, string)
+  parallel.yield(number: sleep)
+  parallel.yield(string: filter)
+  parallel.yield(number: sleep, string: filter)
 
 RETURNS
   undefined list: signal
@@ -22,6 +22,4 @@ EXAMPLES
   parallel.yield(3)
   parallel.yield("key_down")
   parallel.yield(3, "key_down")
-  
-  
   

@@ -1,0 +1,15 @@
+NAME
+  parallel.setAlarm
+  
+CALLS
+  parallel.setAlarm(string: threadUid[, number: alarm])
+  
+RETURNS
+  boolean: success[, string: errMsg]
+  
+DESCRIPTION
+  Sets the alarm for a thread. Thread will sleep and skip all signals for that period of time. If no alarm is given, then removes alarm.
+  
+EXAMPLES
+  parallel.setAlarm(threadUid, 1000)
+  parallel.setAlarm(threadUid, nil)

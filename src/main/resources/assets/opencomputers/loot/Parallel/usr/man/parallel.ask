@@ -1,0 +1,18 @@
+NAME
+  parallel.ask
+  
+CALLS
+  parallel.ask(string: threadUid[, undefined: msg])
+  
+RETURNS
+  undefined list: answer
+    OR 
+  boolean: false, string: errMsg
+  
+DESCRIPTION
+  Gets the answer from a thread, optionally passing a message as parameter.
+  The same as parallel.getAnswer
+  
+EXAMPLES
+  parallel.ask(threadUid)
+  parallel.ask(threadUid,3)

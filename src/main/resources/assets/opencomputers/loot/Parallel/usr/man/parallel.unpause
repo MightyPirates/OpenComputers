@@ -1,0 +1,18 @@
+NAME
+  parallel.unpause
+  
+CALLS
+  parallel.unpause(string: uid)
+  parallel.unpause(string: uid, number: amount)
+  
+RETURNS
+  boolean: success[, string: errMsg]
+  
+DESCRIPTION
+  Unpauses thread for a given amount (default = -1) or at most until it unpauses.
+  coroutine.unpause(thread) has the same effect as coroutine.pause(thread, -1). 
+  
+EXAMPLES
+  parallel.unpause(threadUid)
+  parallel.unpause(threadUid, 3)
+  parallel.unpause(threadUid, math.huge)
