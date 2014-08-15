@@ -40,11 +40,12 @@ class Settings(config: Config) {
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
   val hologramMaxScaleByTier = Array(config.getDoubleList("client.hologramMaxScale"): _*) match {
     case Array(tier1, tier2) =>
-      Array(tier1: Double, tier2: Double)
+      Array((tier1: Double) max 1.0, (tier2: Double) max 1.0)
     case _ =>
       OpenComputers.log.warning("Bad number of hologram max scales, ignoring.")
       Array(3.0, 4.0)
   }
+  val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
   val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
   val useOldTextureFontRenderer = config.getBoolean("client.useOldTextureFontRenderer")
 
