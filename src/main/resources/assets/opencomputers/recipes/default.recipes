@@ -177,7 +177,7 @@ navigationUpgrade {
           [ingotGold, potion, ingotGold]]
 }
 signUpgrade {
-  input: [[ingotIron, dyePowder, ingotIron]
+  input: [[ingotIron, dyeBlack, ingotIron]
           ["oc:circuitChip1", stickWood, "oc:circuitChip1"]
           [ingotIron, pistonStickyBase, ingotIron]]
 }
@@ -318,7 +318,7 @@ cu {
 
 rawCircuitBoard {
   type: shapeless
-  input: [nuggetGold, clay, {item=dyePowder, subID=2}]
+  input: [nuggetGold, clay, dyeGreen]
 }
 printedCircuitBoard {
   type: furnace
@@ -447,9 +447,9 @@ screen1 {
           [ingotIron, redstone, ingotIron]]
 }
 screen2 {
-  input: [[ingotGold, {item=dyePowder, subID=1}, ingotGold]
-          [{item=dyePowder, subID=2}, "oc:circuitChip2", glass]
-          [ingotGold, {item=dyePowder, subID=4}, ingotGold]]
+  input: [[ingotGold, dyeRed, ingotGold]
+          [dyeGreen, "oc:circuitChip2", glass]
+          [ingotGold, dyeBlue, ingotGold]]
 }
 screen3 {
   input: [[obsidian, yellowDust, obsidian]

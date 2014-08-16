@@ -114,7 +114,7 @@ navigationUpgrade {
           [screwStainlessSteel, potion, craftingToolScrewdriver]]
 }
 signUpgrade {
-  input: [[screwAluminium, dyePowder, screwAluminium]
+  input: [[screwAluminium, dyeBlack, screwAluminium]
           ["oc:circuitChip1", stickWood, "oc:circuitChip1"]
           [screwAluminium, craftingToolScrewdriver, screwAluminium]]
 }
