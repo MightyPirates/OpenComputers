@@ -52,31 +52,39 @@ class Adapter extends traits.Environment with Analyzable {
             case Some(newDriver) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
-                  // This is... odd. Maybe moved by some other mod?
-                  node.disconnect(oldEnvironment.node)
-                  val environment = newDriver.createEnvironment(world, x, y, z)
-                  blocks(d.ordinal()) = Some((environment, newDriver))
+                  // This is... odd. Maybe moved by some other mod? First, clean up.
+                  blocks(d.ordinal()) = None
                   updatingBlocks -= oldEnvironment
+                  blocksData(d.ordinal()) = None
+                  node.disconnect(oldEnvironment.node)
+
+                  // Then rebuild - if we have something.
+                  val environment = newDriver.createEnvironment(world, x, y, z)
+                  if (environment != null) {
+                    blocks(d.ordinal()) = Some((environment, newDriver))
+                    if (environment.canUpdate) {
+                      updatingBlocks += environment
+                    }
+                    blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
+                    node.connect(environment.node)
+                  }
+                } // else: the more things change, the more they stay the same.
+              case _ =>
+                // A challenger appears. Maybe.
+                val environment = newDriver.createEnvironment(world, x, y, z)
+                if (environment != null) {
+                  blocks(d.ordinal()) = Some((environment, newDriver))
                   if (environment.canUpdate) {
                     updatingBlocks += environment
                   }
+                  blocksData(d.ordinal()) match {
+                    case Some(data) if data.name == environment.getClass.getName =>
+                      environment.load(data.data)
+                    case _ =>
+                  }
                   blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
                   node.connect(environment.node)
-                } // else: the more things change, the more they stay the same.
-              case _ =>
-                // A challenger appears.
-                val environment = newDriver.createEnvironment(world, x, y, z)
-                blocks(d.ordinal()) = Some((environment, newDriver))
-                if (environment.canUpdate) {
-                  updatingBlocks += environment
                 }
-                blocksData(d.ordinal()) match {
-                  case Some(data) if data.name == environment.getClass.getName =>
-                    environment.load(data.data)
-                  case _ =>
-                }
-                blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-                node.connect(environment.node)
             }
             case _ => blocks(d.ordinal()) match {
               case Some((environment, driver)) =>

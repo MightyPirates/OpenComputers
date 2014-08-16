@@ -3,13 +3,15 @@ package li.cil.oc.server.component
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent.{PlayerChangedDimensionEvent, PlayerLoggedOutEvent, PlayerRespawnEvent}
-import li.cil.oc.{Settings, api}
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.component
+import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
 
@@ -57,6 +59,13 @@ class Keyboard(val owner: Container) extends component.ManagedComponent with api
       case _ =>
     }
     pressedKeys.remove(player)
+  }
+
+  @SubscribeEvent
+  def onWorldUnload(e: WorldEvent.Unload) {
+    try MinecraftForge.EVENT_BUS.unregister(this) catch {
+      case ignore: Throwable =>
+    }
   }
 
   // ----------------------------------------------------------------------- //

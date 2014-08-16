@@ -20,6 +20,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -159,6 +160,16 @@ object EventHandler {
             }
           }
         })
+    }
+  }
+
+  @SubscribeEvent
+  def onWorldUnload(e: WorldEvent.Unload) {
+    if (!e.world.isRemote) {
+      import scala.collection.convert.WrapAsScala._
+      e.world.loadedTileEntityList.collect {
+        case te: tileentity.traits.TileEntity => te.onChunkUnload()
+      }
     }
   }
 }
