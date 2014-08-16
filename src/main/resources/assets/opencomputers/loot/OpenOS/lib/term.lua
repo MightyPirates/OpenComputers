@@ -369,7 +369,6 @@ function term.read(history, dobreak, hint)
   term.setCursorBlink(true)
   while term.isAvailable() do
     local ocx, ocy = getCursor()
-    local ok, name, address, charOrValue, code
     local ok, name, address, charOrValue, code = pcall(event.pull)
     if not ok then
       cleanup()
