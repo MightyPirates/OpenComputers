@@ -37,8 +37,8 @@ class Adapter extends traits.Environment with Analyzable {
     }
   }
 
-  def neighborChanged() = if (node != null && node.network != null) {
-    for (d <- ForgeDirection.VALID_DIRECTIONS) {
+  def neighborChanged(d: ForgeDirection) {
+    if (node != null && node.network != null) {
       val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
       world.getTileEntity(x, y, z) match {
         case env: traits.Environment =>
@@ -88,6 +88,14 @@ class Adapter extends traits.Environment with Analyzable {
               case _ => // Nothing before, nothing now.
             }
           }
+      }
+    }
+  }
+
+  def neighborChanged() {
+    if (node != null && node.network != null) {
+      for (d <- ForgeDirection.VALID_DIRECTIONS) {
+        neighborChanged(d)
       }
     }
   }

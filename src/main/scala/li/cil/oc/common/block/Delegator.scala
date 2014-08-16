@@ -305,10 +305,16 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
       case _ => // Invalid but avoid match error.
     }
 
+  override def onNeighborChange(world: IBlockAccess, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.neighborTileChanged(world, x, y, z, tileX, tileY, tileZ)
+      case _ => // Invalid but avoid match error.
+    }
+
   override def onBlockClicked(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.leftClick(world, x, y, z, player)
-      case _ =>
+      case _ => // Invalid but avoid match error.
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
