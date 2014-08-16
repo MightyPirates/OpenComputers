@@ -9,6 +9,7 @@ import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.component
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.event.{Event, ForgeSubscribe}
 
 import scala.collection.mutable
@@ -43,6 +44,13 @@ class Keyboard(val owner: Container) extends component.ManagedComponent with api
       case _ =>
     }
     pressedKeys.remove(e.player)
+  }
+
+  @ForgeSubscribe
+  def onWorldUnload(e: WorldEvent.Unload) {
+    try MinecraftForge.EVENT_BUS.unregister(this) catch {
+      case ignore: Throwable =>
+    }
   }
 
   // ----------------------------------------------------------------------- //
