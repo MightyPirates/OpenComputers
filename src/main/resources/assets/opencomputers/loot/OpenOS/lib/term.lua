@@ -108,7 +108,7 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak, hint, yieldable)
+function term.read(history, dobreak, hint)
   checkArg(1, history, "table", "nil")
   checkArg(3, hint, "function", "table", "nil")
   history = history or {}
@@ -370,12 +370,8 @@ function term.read(history, dobreak, hint, yieldable)
   while term.isAvailable() do
     local ocx, ocy = getCursor()
     local ok, name, address, charOrValue, code
-    if not yieldable then
-      ok, name, address, charOrValue, code = pcall(event.pull)
-    else
-      name, address, charOrValue, code = coroutine.yield("[kc][el][yi][_p][db][oo][wa][nr]d?")
-    end
-    if (not ok) and (not yieldable) then
+    local ok, name, address, charOrValue, code = pcall(event.pull)
+    if not ok then
       cleanup()
       error("interrupted", 0)
     end

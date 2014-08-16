@@ -158,9 +158,13 @@ end
 
 -- Magic happens here
 function parallel.manager( firstThread )
-
+  local computer = require("computer")
   -- You should provide better versions of these functions.
-  local getUid = getUid or function () return tostring(math.random(10000000,99999999)) end
+  local countUid = 0
+  local getUid = getUid or function ()
+      countUid = countUid + 1
+      return tostring(countUid)
+    end
   local utils = utils or false
   if not utils then
     utils = {
@@ -182,13 +186,77 @@ function parallel.manager( firstThread )
       ["uid"] = getUid("coroutine"),
       ["co"] = coroutine.create(
         function ()
-          local term = require("term")
-          if not parallel then error("Load library into global table 'parallel' for default console to work") end 
-          if not term then error("Load OpenOS for term.read() to work") end
+          local _ENV = setmetatable(_ENV,{__index=_G})
+          local function read(history)
+            local component = require("component")
+            local prefix = "P# "
+            local history = history
+            if type(history) ~= "table" then history = {} end
+            history[#history] = ""
+            local command = ""
+            local historyCursor = #history
+            local cursorX, cursorY = 1,1
+            while true do
+              local newline = false
+              local resX, resY = component.gpu.getResolution()
+              for i=1,#prefix do
+                if string.sub(prefix,i,i) ~= component.gpu.get(i,resY) then newline = true end
+              end
+              if newline then
+                component.gpu.copy(1,1,resX,resY,0,-1)
+                component.gpu.fill(1,resY,resX,1," ")
+              end
+              local output = prefix..string.sub(command,-(resX-3))
+              for i=1,resX-#output do output = output.." " end
+              component.gpu.set(1,resY,output)
+              
+              local name, address, charOrValue, code, player = coroutine.yield("[kc][el][yi][_p][db][oo][wa][nr]d?")
+              if name == "clipboard" then player = code; code = nil end
+              
+              if name == "key_down" then
+                if code == 28 then -- enter
+                  component.gpu.fill(1,resY,resX,1," ")
+                  return command
+                elseif code == 14 then -- backspace
+                  command = string.sub(history[historyCursor],1,#history[historyCursor]-1)
+                  history[#history] = command
+                  historyCursor = #history                  
+                elseif code == 211 then -- del
+                  command = ""
+                  history[#history] = command
+                  historyCursor = #history    
+                elseif code == 200 then -- arrow up
+                  historyCursor = math.max(1, historyCursor-1)
+                  command = history[historyCursor]
+                elseif code == 208 then -- arrow down
+                  historyCursor = math.min(#history, historyCursor+1)
+                  command = history[historyCursor]
+                  historyCursor = #history
+                elseif not(type(charOrValue) == "number" and (charOrValue < 0x20 or (charOrValue >= 0x7F and charOrValue <= 0x9F))) then -- is normal char
+                  command = history[historyCursor]..string.char(charOrValue)
+                  history[#history] = command
+                  historyCursor = #history
+                end
+              elseif name == "clipboard" then
+                command = history[historyCursor]..charOrValue
+                history[#history] = command
+                historyCursor = #history
+                if string.find(command,"\n",-1, true) then 
+                  component.gpu.fill(1,resY,resX,1," ")
+                  return command 
+                end
+              end
+            end
+          end
+          local history = {}
           while true do
-            term.write("\n@ ")
-            str = term.read(nil,nil,nil,true) -- yields here!
-            local fn, err = load(str)
+            local str = read(history) -- yields here!
+            history[#history+1] = str
+            --local formattedTime = ""
+            --if os.clock()*60 >= 60 * 60 then formattedTime = formattedTime .. string.format("%dh",os.clock/60) end
+            --if os.clock()*60 >= 60 then formattedTime = formattedTime .. string.format("%dm",os.clock()-math.floor(os.clock()/60)) end
+            --formattedTime = formattedTime .. string.format("%is",os.clock()*60-math.floor(os.clock())*60)            
+            local fn, err = load(str) -- ,"console@"..formattedTime
             if fn and str ~="" and str ~="\n" then 
               print("executed:",pcall(fn))
             else
@@ -397,7 +465,7 @@ function parallel.manager( firstThread )
     end,
     parallel_exit = function ()
       lastThread = -1
-      return true
+      return nil
     end,
   }
   while lastThread > 0 do  -- Run until no threads left (won't happen normally)
@@ -466,8 +534,7 @@ function parallel.manager( firstThread )
       focus = focus + 1
     else
       focus = 1
-      event = require("event")
-      event = table.pack(event.pull(math.max(0,alarm - utils.getTime())))
+      event = table.pack(computer.pullSignal(math.max(0,alarm - utils.getTime())))
       for i=1,lastThread do
         if 
           threads[i]
