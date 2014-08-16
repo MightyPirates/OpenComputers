@@ -22,6 +22,8 @@ import net.minecraft.network.{INetworkManager, NetLoginHandler}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -181,4 +183,14 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
   }
 
   override def onSmelting(player: EntityPlayer, item: ItemStack) {}
+
+  @ForgeSubscribe
+  def onWorldUnload(e: WorldEvent.Unload) {
+    if (!e.world.isRemote) {
+      import scala.collection.convert.WrapAsScala._
+      e.world.loadedTileEntityList.collect {
+        case te: tileentity.traits.TileEntity => te.onChunkUnload()
+      }
+    }
+  }
 }

@@ -265,12 +265,16 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override protected def initialize() {
     super.initialize()
-    ServerRack.list += this -> Unit
+    if (isClient) {
+      ServerRack.list += this -> Unit
+    }
   }
 
   override protected def dispose() {
     super.dispose()
-    ServerRack.list -= this
+    if (isClient) {
+      ServerRack.list -= this
+    }
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
