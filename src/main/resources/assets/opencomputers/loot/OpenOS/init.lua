@@ -24,7 +24,7 @@ do
   end
 
   -- Report boot progress if possible.
-  local gpu = component.list("gpu")()
+  local gpu = component.list("gpu", true)()
   local w, h
   if gpu and screen then
     component.invoke(gpu, "bind", screen)
