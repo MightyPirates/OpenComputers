@@ -101,6 +101,8 @@ trait Delegate {
 
   def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 
+  def neighborTileChanged(world: World, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) {}
+
   def leftClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) {}
 
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = false
