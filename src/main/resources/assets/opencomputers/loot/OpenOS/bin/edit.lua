@@ -177,7 +177,15 @@ local function delete()
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local w, h = getSize()
-  if cbx <= unicode.len(line()) then
+  if keyboard.isControlDown() then
+    term.setCursorBlink(false)
+    local append = table.remove(buffer, cby)
+    if cy < h then
+      component.gpu.copy(1, cy + 1, w, h - cy, 0, -1)
+      component.gpu.set(1, h, text.padRight(buffer[cby + (h - cy)], w))
+    end
+    setStatus(helpStatusText)
+  elseif cbx <= unicode.len(line()) then
     term.setCursorBlink(false)
     buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
                   unicode.sub(line(), cbx + 1)
