@@ -1,0 +1,16 @@
+NAME
+	OpenLoader - A simple bootloader
+
+DESCRIPTION
+	A simple bootloader that gives power to chose wich system to boot.
+	The bootloader searches for init.lua on filesystems.
+	One drive can contain more than one system/init. Another inits
+	may be placed into /boot/kernel directory. Entries are labeled
+	following these rules:
+	for /boot/kernel, the label is file name
+	for /init.lua label is contained in /.osprop file, which is
+	simple lua script returning table with properties.
+
+EXAMPLE .osprop file:
+	return {name = "OpenOS"}
+
