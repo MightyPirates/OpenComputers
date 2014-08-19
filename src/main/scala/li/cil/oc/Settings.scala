@@ -85,6 +85,8 @@ class Settings(config: Config) {
   val allowPersistence = !config.getBoolean("computer.debug.disablePersistence")
   val limitMemory = !config.getBoolean("computer.debug.disableMemoryLimit")
   val forceCaseInsensitive = config.getBoolean("computer.debug.forceCaseInsensitiveFS")
+  val logFullLibLoadErrors = config.getBoolean("computer.debug.logFullNativeLibLoadErrors")
+  val forceNativeLib = config.getString("computer.debug.forceNativeLibWithName")
 
   // ----------------------------------------------------------------------- //
   // robot

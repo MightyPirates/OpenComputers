@@ -4,6 +4,7 @@ import java.io.{File, FileInputStream, FileOutputStream}
 import java.nio.channels.Channels
 import java.util.logging.Level
 
+import com.google.common.base.Strings
 import com.naef.jnlua
 import com.naef.jnlua.LuaState
 import com.naef.jnlua.NativeSupport.Loader
@@ -93,7 +94,7 @@ object LuaStateFactory {
     }
 
     // Try to find a working lib.
-    for (library <- libNames if !haveNativeLibrary) {
+    for (library <- libNames if !haveNativeLibrary && (Strings.isNullOrEmpty(Settings.get.forceNativeLib) || library == Settings.get.forceNativeLib)) {
       OpenComputers.log.fine(s"Trying native library '$library'...")
       val libraryUrl = classOf[Machine].getResource(libPath + library)
       if (libraryUrl != null) {
@@ -179,8 +180,13 @@ object LuaStateFactory {
           haveNativeLibrary = true
         }
         catch {
-          case _: Throwable =>
-            OpenComputers.log.log(Level.FINE, s"Could not load native library '${file.getName}'.")
+          case t: Throwable =>
+            if (Settings.get.logFullLibLoadErrors) {
+              OpenComputers.log.log(Level.FINE, s"Could not load native library '${file.getName}'.", t)
+            }
+            else {
+              OpenComputers.log.log(Level.FINE, s"Could not load native library '${file.getName}'.")
+            }
             file.delete()
         }
       }
