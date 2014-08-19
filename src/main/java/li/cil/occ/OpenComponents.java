@@ -9,6 +9,7 @@ import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
+import li.cil.occ.mods.mystcraft.ModMystcraft;
 import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.thaumcraft.ModThaumcraft;
 import li.cil.occ.mods.thermalexpansion.ModThermalExpansion;
@@ -18,12 +19,18 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = "OpenComponents", useMetadata = true)
+@Mod(modid = OpenComponents.ID, name = OpenComponents.Name, version = OpenComponents.Version, useMetadata = true)
 public class OpenComponents {
+    public static final String ID = "OpenComponents";
+
+    public static final String Name = "OpenComponents";
+
+    public static final String Version = "@VERSION@";
+
     @Mod.Instance
     public static OpenComponents instance;
 
-    public static final Logger Log = LogManager.getLogger("OpenComponents");
+    public static final Logger Log = LogManager.getLogger(ID);
 
     public static String[] modBlacklist = new String[]{
             ModThaumcraft.MOD_ID
@@ -52,18 +59,19 @@ public class OpenComponents {
                 "lead to crashes or deadlocks (and report them, please!)").
                 getStringList();
 
-        allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).getBoolean(false);
+        allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).
+                getBoolean(false);
 
         config.save();
     }
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
-
         Registry.add(new ModAppEng());
         Registry.add(new ModBuildCraft());
         Registry.add(new ModForestry());
         Registry.add(new ModIndustrialCraft2());
+        Registry.add(new ModMystcraft());
         Registry.add(new ModRailcraft());
         Registry.add(new ModThaumcraft());
         Registry.add(new ModThermalExpansion());

@@ -18,7 +18,7 @@ public final class Registry {
         final boolean isBlacklisted = Arrays.asList(OpenComponents.modBlacklist).contains(mod.getModId());
         final boolean alwaysEnabled = mod.getModId() == null || mod.getModId().isEmpty() || "Minecraft".equals(mod.getModId());
         if (!isBlacklisted && (alwaysEnabled || Loader.isModLoaded(mod.getModId())) && handlers.add(mod)) {
-            OpenComponents.Log.info(String.format("Initializing drivers for '%s'.", mod.getModId()));
+            OpenComponents.Log.info(String.format("Initializing converters and drivers for '%s'.", mod.getModId()));
             try {
                 mod.initialize();
             } catch (Throwable e) {
