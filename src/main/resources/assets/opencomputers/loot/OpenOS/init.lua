@@ -143,6 +143,8 @@ do
   computer.pushSignal("init") -- so libs know components are initialized.
 
   status("Starting shell...")
+  require("term").clear()
+  os.sleep(0.1) -- Allow init processing.
 end
 
 local function motd()
@@ -161,7 +163,6 @@ local function motd()
 end
 
 while true do
-  require("term").clear()
   motd()
   local result, reason = os.execute(os.getenv("SHELL"))
   if not result then
@@ -170,4 +171,5 @@ while true do
     os.sleep(0.5)
     require("event").pull("key")
   end
+  require("term").clear()
 end
