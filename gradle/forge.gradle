@@ -11,6 +11,9 @@ dependencies {
 
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
+
+    replaceIn "li/cil/occ/OpenComponents.java"
+    replace "@VERSION@", project.simpleVersion
 }
 
 processResources {

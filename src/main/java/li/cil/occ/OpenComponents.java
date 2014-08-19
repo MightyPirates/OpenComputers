@@ -10,6 +10,7 @@ import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
 import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
+import li.cil.occ.mods.mystcraft.ModMystcraft;
 import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.redstoneinmotion.ModRedstoneInMotion;
 import li.cil.occ.mods.thaumcraft.ModThaumcraft;
@@ -20,12 +21,18 @@ import net.minecraftforge.common.Configuration;
 
 import java.util.logging.Logger;
 
-@Mod(modid = "OpenComponents", useMetadata = true)
+@Mod(modid = OpenComponents.ID, name = OpenComponents.Name, version = OpenComponents.Version, useMetadata = true)
 public class OpenComponents {
+    public static final String ID = "OpenComponents";
+
+    public static final String Name = "OpenComponents";
+
+    public static final String Version = "@VERSION@";
+
     @Mod.Instance
     public static OpenComponents instance;
 
-    public static final Logger Log = Logger.getLogger("OpenComponents");
+    public static final Logger Log = Logger.getLogger(ID);
 
     public static String[] modBlacklist = new String[]{
             ModThaumcraft.MOD_ID
@@ -59,7 +66,8 @@ public class OpenComponents {
                 "lead to crashes or deadlocks (and report them, please!)").
                 getStringList();
 
-        allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).getBoolean(false);
+        allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).
+                getBoolean(false);
 
         config.save();
     }
@@ -71,6 +79,7 @@ public class OpenComponents {
         Registry.add(new ModEnderStorage());
         Registry.add(new ModForestry());
         Registry.add(new ModIndustrialCraft2());
+        Registry.add(new ModMystcraft());
         Registry.add(new ModRailcraft());
         Registry.add(new ModRedstoneInMotion());
         Registry.add(new ModThaumcraft());
