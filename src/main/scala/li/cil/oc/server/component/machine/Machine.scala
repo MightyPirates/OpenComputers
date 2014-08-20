@@ -491,7 +491,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
   }
 
   override def onDisconnect(node: Node) {
-    if (node == this.node) this.synchronized {
+    if (node == this.node) {
       close()
       tmp.foreach(_.node.remove())
     }
