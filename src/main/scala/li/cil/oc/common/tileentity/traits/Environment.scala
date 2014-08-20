@@ -11,13 +11,15 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.math.ScalaNumber
 
 trait Environment extends TileEntity with network.Environment with driver.Container {
+  protected var isChangeScheduled = false
+
   override def xPosition = x + 0.5
 
   override def yPosition = y + 0.5
 
   override def zPosition = z + 0.5
 
-  override def markChanged() = markDirty()
+  override def markChanged() = if (canUpdate) isChangeScheduled = true else markDirty()
 
   protected def isConnected = node.address != null && node.network != null
 
@@ -27,6 +29,13 @@ trait Environment extends TileEntity with network.Environment with driver.Contai
     super.initialize()
     if (isServer) {
       EventHandler.schedule(this)
+    }
+  }
+
+  override def updateEntity() {
+    super.updateEntity()
+    if (isChangeScheduled) {
+      markDirty()
     }
   }
 
