@@ -19,11 +19,12 @@ object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
-    bindTexture(TextureMap.locationBlocksTexture)
+    RenderState.setBlendAlpha(1)
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
+    bindTexture(TextureMap.locationBlocksTexture)
     val t = Tessellator.instance
     t.startDrawingQuads()
 
