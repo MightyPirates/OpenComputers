@@ -36,6 +36,7 @@ trait Environment extends TileEntity with network.Environment with driver.Contai
     super.updateEntity()
     if (isChangeScheduled) {
       onInventoryChanged()
+      isChangeScheduled = false
     }
   }
 
