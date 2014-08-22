@@ -10,7 +10,6 @@ import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.component
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
@@ -63,7 +62,7 @@ class Keyboard(val owner: Container) extends component.ManagedComponent with api
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
-    try MinecraftForge.EVENT_BUS.unregister(this) catch {
+    try FMLCommonHandler.instance.bus.unregister(this) catch {
       case ignore: Throwable =>
     }
   }
@@ -78,7 +77,9 @@ class Keyboard(val owner: Container) extends component.ManagedComponent with api
 
   override def onDisconnect(node: Node) {
     if (node == this.node) {
-      FMLCommonHandler.instance.bus.unregister(this)
+      try FMLCommonHandler.instance.bus.unregister(this) catch {
+        case ignore: Throwable =>
+      }
     }
   }
 

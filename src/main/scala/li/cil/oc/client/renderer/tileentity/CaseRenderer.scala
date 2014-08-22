@@ -19,6 +19,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
+      RenderState.setBlendAlpha(1)
 
       GL11.glPushMatrix()
 

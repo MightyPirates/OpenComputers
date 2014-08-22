@@ -8,8 +8,10 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.World
 
 import scala.collection.mutable
 
@@ -187,6 +189,11 @@ object Items extends ItemAPI {
     // v1.2.3
     registerItem(new item.FloppyDisk(multi) {
       showInItemList = false
+
+      override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+        if (player.isSneaking) get("floppy").createItemStack(1)
+        else super.onItemRightClick(stack, world, player)
+      }
     }, "lootDisk")
 
     // v1.2.6
@@ -221,6 +228,11 @@ object Items extends ItemAPI {
         stack.setTagCompound(nbt)
 
         stack
+      }
+
+      override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+        if (player.isSneaking) get("floppy").createItemStack(1)
+        else super.onItemRightClick(stack, world, player)
       }
     }, "openOS")
 
