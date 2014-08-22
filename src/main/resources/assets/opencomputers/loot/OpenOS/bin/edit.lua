@@ -7,6 +7,8 @@ local term = require("term")
 local text = require("text")
 local unicode = require("unicode")
 
+local helpStatusText = "Save: [Ctrl+S] Close: [Ctrl+W] Find: [Ctrl+F]"
+
 if not term.isAvailable() then
   return
 end
@@ -118,6 +120,35 @@ local function setCursor(nbx, nby)
   component.gpu.set(w - 9, h + 1, text.padLeft(string.format("%d,%d", nby, nbx), 10))
 end
 
+local function highlight(x,y,n,yes)
+  local w, h = getSize()
+
+  local cy = y - scrollY
+  if cy > h or cy < 1 then
+    return
+  end
+
+  local cx = x - scrollX
+  if cx > w or cx < 1 then
+    return
+  end
+
+  local fg = component.gpu.getForeground()
+  local bg = component.gpu.getBackground()
+  if yes then
+    component.gpu.setForeground(bg)
+    component.gpu.setBackground(fg)
+  end
+  for c = cx,cx+n do
+    local ch,_ = component.gpu.get(c,cy)
+    component.gpu.set(c,cy,ch)
+  end
+  if yes then
+    component.gpu.setForeground(fg)
+    component.gpu.setBackground(bg)
+  end
+end
+
 local function home()
   local cbx, cby = getCursor()
   setCursor(1, cby)
@@ -177,7 +208,15 @@ local function delete()
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local w, h = getSize()
-  if cbx <= unicode.len(line()) then
+  if keyboard.isControlDown() then
+    term.setCursorBlink(false)
+    local append = table.remove(buffer, cby)
+    if cy < h then
+      component.gpu.copy(1, cy + 1, w, h - cy, 0, -1)
+      component.gpu.set(1, h, text.padRight(buffer[cby + (h - cy)], w))
+    end
+    setStatus(helpStatusText)
+  elseif cbx <= unicode.len(line()) then
     term.setCursorBlink(false)
     buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
                   unicode.sub(line(), cbx + 1)
@@ -197,7 +236,7 @@ local function delete()
       component.gpu.copy(1, cy + 2, w, h - (cy + 1), 0, -1)
       component.gpu.set(1, h, text.padRight(buffer[cby + (h - cy)], w))
     end
-    setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
+    setStatus(helpStatusText)
   end
 end
 
@@ -219,7 +258,7 @@ local function insert(value)
   end
   component.gpu.set(cx, cy, value)
   right(len)
-  setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
+  setStatus(helpStatusText)
 end
 
 local function enter()
@@ -237,11 +276,70 @@ local function enter()
     component.gpu.set(1, cy + 1, text.padRight(buffer[cby + 1], w))
   end
   setCursor(1, cby + 1)
-  setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
+  setStatus(helpStatusText)
+end
+
+local findText = ""
+local searchHistory = {}
+local function refind()
+  local w, h = getSize()
+  local cx, cy = term.getCursor()
+  local cbx, cby = getCursor()
+  local ibx, iby = cbx, cby
+  local phl = -1
+  repeat
+    term.setCursor(7+unicode.len(findText), h+1)
+    setStatus("Find: "..findText)
+    local _,_,char,code = event.pull("key_up")
+    if code == keyboard.keys.enter then
+      break
+    elseif code == keyboard.keys.back then
+      local nlen = unicode.len(findText)-1
+      if nlen < 0 then
+        break
+      else
+        findText = unicode.sub(findText,1,nlen)
+      end
+    elseif keyboard.isControlDown() then
+      if code == keyboard.keys.f or code == keyboard.keys.g then
+        -- find next
+	ibx = cbx + 1
+        iby = cby
+      end
+    elseif keyboard.isControl(char) then
+      -- ignore
+    else
+      findText = findText..unicode.char(char)
+    end
+    if unicode.len(findText) > 0 then
+      for syo = 1,#buffer do
+        local sy = (iby + syo - 1 + #buffer - 1) % #buffer + 1
+        local line = buffer[sy]
+        local found,e = string.find(line,findText,syo == 1 and ibx or 1)
+        if found and (found >= ibx or syo > 1) then
+          highlight(cbx,cby,phl)
+          cbx = found
+          cby = sy
+          setCursor(cbx,cby)
+          phl = e-found
+          highlight(cbx,cby,phl,1)
+          break
+        end
+      end
+    end
+  until false
+  highlight(cbx,cby,phl)
+  setStatus(helpStatusText)
+  setCursor(cbx,cby)
+end
+local function find()
+  findText = ""
+  refind()
 end
 
 local controlKeyCombos = {[keyboard.keys.s]=true,[keyboard.keys.w]=true,
-                          [keyboard.keys.c]=true,[keyboard.keys.x]=true}
+                          [keyboard.keys.c]=true,[keyboard.keys.x]=true,
+		  	  [keyboard.keys.f]=true,[keyboard.keys.g]=true}
 local function onKeyDown(char, code)
   if code == keyboard.keys.back and not readonly then
     if left() then
@@ -295,6 +393,11 @@ local function onKeyDown(char, code)
       else
         setStatus(reason)
       end
+    elseif code == keyboard.keys.f then
+      event.pull("key_up") -- Ctrl-F up
+      find()
+    elseif code == keyboard.keys.g then
+      refind() -- will immediate CTRL-G
     elseif code == keyboard.keys.w or
            code == keyboard.keys.c or
            code == keyboard.keys.x
