@@ -31,12 +31,85 @@ if not fs.exists(filename) then
   end
 end
 
+local function loadConfig()
+  -- Try to load user settings.
+  local env = {}
+  local config = loadfile("/etc/edit.cfg", nil, env)
+  if config then
+    pcall(config)
+  end
+  -- Fill in defaults.
+  env.keybinds = env.keybinds or {
+    left = {{"left"}},
+    right = {{"right"}},
+    up = {{"up"}},
+    down = {{"down"}},
+    home = {{"home"}},
+    eol = {{"end"}},
+    pageUp = {{"pageUp"}},
+    pageDown = {{"pageDown"}},
+
+    backspace = {{"back"}},
+    delete = {{"delete"}},
+    deleteLine = {{"control", "delete"}, {"shift", "delete"}},
+    newline = {{"enter"}},
+
+    save = {{"control", "s"}},
+    close = {{"control", "w"}},
+    find = {{"control", "f"}},
+    findnext = {{"control", "g"}, {"control", "n"}, {"f3"}}
+  }
+  -- Generate config file if it didn't exist.
+  if not config then
+    local root = fs.get("/")
+    if root and not root.isReadOnly() then
+      fs.makeDirectory("/etc")
+      local f = io.open("/etc/edit.cfg", "w")
+      if f then
+        local serialization = require("serialization")
+        for k, v in pairs(env) do
+          f:write(k.."="..tostring(serialization.serialize(v, math.huge)).."\n")
+        end
+        f:close()
+      end
+    end
+  end
+  return env
+end
+
 term.clear()
 term.setCursorBlink(true)
 
 local running = true
 local buffer = {}
 local scrollX, scrollY = 0, 0
+local config = loadConfig()
+
+local getKeyBindHandler -- forward declaration for refind()
+
+local function helpStatusText()
+  local function prettifyKeybind(label, command)
+    local keybind = type(config.keybinds) == "table" and config.keybinds[command]
+    if type(keybind) ~= "table" or type(keybind[1]) ~= "table" then return "" end
+    local alt, control, shift, key
+    for _, value in ipairs(keybind[1]) do
+      if value == "alt" then alt = true
+      elseif value == "control" then control = true
+      elseif value == "shift" then shift = true
+      else key = value end
+    end
+    if not key then return "" end
+    return label .. ": [" ..
+           (control and "Ctrl+" or "") ..
+           (alt and "Alt+" or "") ..
+           (shift and "Shift+" or "") ..
+           unicode.upper(key) ..
+           "] "
+  end
+  return prettifyKeybind("Save", "save") ..
+         prettifyKeybind("Close", "close") ..
+         prettifyKeybind("Find", "find")
+end
 
 -------------------------------------------------------------------------------
 
@@ -118,6 +191,30 @@ local function setCursor(nbx, nby)
   component.gpu.set(w - 9, h + 1, text.padLeft(string.format("%d,%d", nby, nbx), 10))
 end
 
+local function highlight(bx, by, length, enabled)
+  local w, h = getSize()
+  local cx, cy = bx - scrollX, by - scrollY
+  cx = math.max(1, math.min(w, cx))
+  cy = math.max(1, math.min(h, cy))
+  length = math.max(1, math.min(w - cx, length))
+
+  local fg, fgp = component.gpu.getForeground()
+  local bg, bgp = component.gpu.getBackground()
+  if enabled then
+    component.gpu.setForeground(bg, bgp)
+    component.gpu.setBackground(fg, fgp)
+  end
+  local value = ""
+  for x = cx, cx + length - 1 do
+    value = value .. component.gpu.get(x, cy)
+  end
+  component.gpu.set(cx, cy, value)
+  if enabled then
+    component.gpu.setForeground(fg, fgp)
+    component.gpu.setBackground(bg, bgp)
+  end
+end
+
 local function home()
   local cbx, cby = getCursor()
   setCursor(1, cby)
@@ -173,11 +270,29 @@ local function down(n)
   end
 end
 
-local function delete()
+local function delete(fullRow)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local w, h = getSize()
-  if cbx <= unicode.len(line()) then
+  local function deleteRow(row)
+    local content = table.remove(buffer, row)
+    local rcy = cy + (row - cby)
+    if rcy <= h then
+      component.gpu.copy(1, rcy + 1, w, h - rcy, 0, -1)
+      component.gpu.set(1, h, text.padRight(buffer[row + (h - rcy)], w))
+    end
+    return content
+  end
+  if fullRow then
+    term.setCursorBlink(false)
+    if #buffer > 1 then
+      deleteRow(cby)
+    else
+      buffer[cby] = ""
+      component.gpu.fill(1, cy, w, 1, " ")
+    end
+    setCursor(1, cby)
+  elseif cbx <= unicode.len(line()) then
     term.setCursorBlink(false)
     buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
                   unicode.sub(line(), cbx + 1)
@@ -190,15 +305,13 @@ local function delete()
     component.gpu.set(w, cy, char)
   elseif cby < #buffer then
     term.setCursorBlink(false)
-    local append = table.remove(buffer, cby + 1)
+    local append = deleteRow(cby + 1)
     buffer[cby] = buffer[cby] .. append
     component.gpu.set(cx, cy, append)
-    if cy < h then
-      component.gpu.copy(1, cy + 2, w, h - (cy + 1), 0, -1)
-      component.gpu.set(1, h, text.padRight(buffer[cby + (h - cy)], w))
-    end
-    setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
+  else
+    return
   end
+  setStatus(helpStatusText())
 end
 
 local function insert(value)
@@ -219,7 +332,7 @@ local function insert(value)
   end
   component.gpu.set(cx, cy, value)
   right(len)
-  setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
+  setStatus(helpStatusText())
 end
 
 local function enter()
@@ -237,71 +350,174 @@ local function enter()
     component.gpu.set(1, cy + 1, text.padRight(buffer[cby + 1], w))
   end
   setCursor(1, cby + 1)
-  setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
+  setStatus(helpStatusText())
 end
 
-local controlKeyCombos = {[keyboard.keys.s]=true,[keyboard.keys.w]=true,
-                          [keyboard.keys.c]=true,[keyboard.keys.x]=true}
-local function onKeyDown(char, code)
-  if code == keyboard.keys.back and not readonly then
-    if left() then
-      delete()
+local findText = ""
+
+local function find()
+  local w, h = getSize()
+  local cx, cy = term.getCursor()
+  local cbx, cby = getCursor()
+  local ibx, iby = cbx, cby
+  while running do
+    if unicode.len(findText) > 0 then
+      local sx, sy
+      for syo = 1, #buffer do -- iterate lines with wraparound
+        sy = (iby + syo - 1 + #buffer - 1) % #buffer + 1
+        sx = string.find(buffer[sy], findText, syo == 1 and ibx or 1)
+        if sx and (sx >= ibx or syo > 1) then
+          break
+        end
+      end
+      if not sx then -- special case for single matches
+        sy = iby
+        sx = string.find(buffer[sy], findText)
+      end
+      if sx then
+        cbx, cby = sx, sy
+        setCursor(cbx, cby)
+        highlight(cbx, cby, unicode.len(findText), true)
+      end
     end
-  elseif code == keyboard.keys.delete and not readonly then
-    delete()
-  elseif code == keyboard.keys.left then
-    left()
-  elseif code == keyboard.keys.right then
-    right()
-  elseif code == keyboard.keys.home then
-    home()
-  elseif code == keyboard.keys["end"] then
-    ende()
-  elseif code == keyboard.keys.up then
-    up()
-  elseif code == keyboard.keys.down then
-    down()
-  elseif code == keyboard.keys.pageUp then
+    term.setCursor(7 + unicode.len(findText), h + 1)
+    setStatus("Find: " .. findText)
+
+    local _, _, char, code = event.pull("key_down")
+    local handler, name = getKeyBindHandler(code)
+    highlight(cbx, cby, unicode.len(findText), false)
+    if name == "newline" then
+      break
+    elseif name == "close" then
+      handler()
+    elseif name == "backspace" then
+      findText = unicode.sub(findText, 1, -2)
+    elseif name == "find" or name == "findnext" then
+      ibx = cbx + 1
+      iby = cby
+    elseif not keyboard.isControl(char) then
+      findText = findText .. unicode.char(char)
+    end
+  end
+  setCursor(cbx, cby)
+  setStatus(helpStatusText())
+end
+
+-------------------------------------------------------------------------------
+
+local keyBindHandlers = {
+  left = left,
+  right = right,
+  up = up,
+  down = down,
+  home = home,
+  eol = ende,
+  pageUp = function()
     local w, h = getSize()
     up(h - 1)
-  elseif code == keyboard.keys.pageDown then
+  end,
+  pageDown = function()
     local w, h = getSize()
     down(h - 1)
-  elseif code == keyboard.keys.enter and not readonly then
-    enter()
-  elseif keyboard.isControlDown() and controlKeyCombos[code] then
-    local cbx, cby = getCursor()
-    if code == keyboard.keys.s and not readonly then
-      local new = not fs.exists(filename)
-      local f, reason = io.open(filename, "w")
-      if f then
-        local chars, firstLine = 0, true
-        for _, line in ipairs(buffer) do
-          if not firstLine then
-            line = "\n" .. line
-          end
-          firstLine = false
-          f:write(line)
-          chars = chars + unicode.len(line)
-        end
-        f:close()
-        local format
-        if new then
-          format = [["%s" [New] %dL,%dC written]]
-        else
-          format = [["%s" %dL,%dC written]]
-        end
-        setStatus(string.format(format, fs.name(filename), #buffer, chars))
-      else
-        setStatus(reason)
-      end
-    elseif code == keyboard.keys.w or
-           code == keyboard.keys.c or
-           code == keyboard.keys.x
-    then
-      -- TODO ask to save if changed
-      running = false
+  end,
+
+  backspace = function()
+    if not readonly and left() then
+      delete()
     end
+  end,
+  delete = function()
+    if not readonly then
+      delete()
+    end
+  end,
+  deleteLine = function()
+    if not readonly then
+      delete(true)
+    end
+  end,
+  newline = function()
+    if not readonly then
+      enter()
+    end
+  end,
+
+  save = function()
+    if readonly then return end
+    local new = not fs.exists(filename)
+    local f, reason = io.open(filename, "w")
+    if f then
+      local chars, firstLine = 0, true
+      for _, line in ipairs(buffer) do
+        if not firstLine then
+          line = "\n" .. line
+        end
+        firstLine = false
+        f:write(line)
+        chars = chars + unicode.len(line)
+      end
+      f:close()
+      local format
+      if new then
+        format = [["%s" [New] %dL,%dC written]]
+      else
+        format = [["%s" %dL,%dC written]]
+      end
+      setStatus(string.format(format, fs.name(filename), #buffer, chars))
+    else
+      setStatus(reason)
+    end
+  end,
+  close = function()
+    -- TODO ask to save if changed
+    running = false
+  end,
+  find = function()
+    findText = ""
+    find()
+  end,
+  findnext = find
+}
+
+getKeyBindHandler = function(code)
+  if type(config.keybinds) ~= "table" then return end
+  -- Look for matches, prefer more 'precise' keybinds, e.g. prefer
+  -- ctrl+del over del.
+  local result, resultName, resultWeight = nil, nil, 0
+  for command, keybinds in pairs(config.keybinds) do
+    if type(keybinds) == "table" and keyBindHandlers[command] then
+      for _, keybind in ipairs(keybinds) do
+        if type(keybind) == "table" then
+          local alt, control, shift, key
+          for _, value in ipairs(keybind) do
+            if value == "alt" then alt = true
+            elseif value == "control" then control = true
+            elseif value == "shift" then shift = true
+            else key = value end
+          end
+          if (not alt or keyboard.isAltDown()) and
+             (not control or keyboard.isControlDown()) and
+             (not shift or keyboard.isShiftDown()) and
+             code == keyboard.keys[key] and
+             #keybind > resultWeight
+          then
+            resultWeight = #keybind
+            resultName = command
+            result = keyBindHandlers[command]
+          end
+        end
+      end
+    end
+  end
+  return result, resultName
+end
+
+-------------------------------------------------------------------------------
+
+local function onKeyDown(char, code)
+  local handler = getKeyBindHandler(code)
+  if handler then
+    handler()
   elseif readonly and code == keyboard.keys.q then
     running = false
   elseif not readonly then
