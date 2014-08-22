@@ -90,6 +90,7 @@ class Adapter extends traits.Environment with Analyzable {
                 // We had something there, but it's gone now...
                 node.disconnect(environment.node)
                 environment.save(blocksData(d.ordinal()).get.data)
+                Option(environment.node).foreach(_.remove())
                 blocks(d.ordinal()) = None
                 updatingBlocks -= environment
               case _ => // Nothing before, nothing now.

@@ -63,7 +63,9 @@ class Keyboard(val owner: Container) extends component.ManagedComponent with api
 
   override def onDisconnect(node: Node) {
     if (node == this.node) {
-      MinecraftForge.EVENT_BUS.unregister(this)
+      try MinecraftForge.EVENT_BUS.unregister(this) catch {
+        case ignore: Throwable =>
+      }
     }
   }
 

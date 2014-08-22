@@ -2,6 +2,7 @@ package li.cil.oc.server.driver
 
 import java.util.logging.Level
 
+import com.google.common.hash.Hashing
 import li.cil.oc.api.driver
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
@@ -16,6 +17,8 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
     withComponent(name).
     create()
 
+  val updatingEnvironments = environments.map(_._2).filter(_.canUpdate)
+
   // Force all wrapped components to be neighbor visible, since we as their
   // only neighbor will take care of all component-related interaction.
   for ((_, environment) <- environments) environment.node match {
@@ -26,7 +29,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
   override def canUpdate = environments.exists(_._2.canUpdate)
 
   override def update() {
-    for ((_, environment) <- environments if environment.canUpdate) {
+    for (environment <- updatingEnvironments) {
       environment.update()
     }
   }
@@ -50,6 +53,8 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
   }
 
   override def load(nbt: NBTTagCompound) {
+    // Ignore existing data if the underlying type is different.
+    if (nbt.hasKey("typeHash") && nbt.getLong("typeHash") != typeHash) return
     node.load(nbt)
     for ((driver, environment) <- environments) {
       val name = driver.getClass.getName
@@ -64,6 +69,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
   }
 
   override def save(nbt: NBTTagCompound) {
+    nbt.setLong("typeHash", typeHash)
     node.save(nbt)
     for ((driver, environment) <- environments) {
       val name = driver.getClass.getName
@@ -73,5 +79,11 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
         case e: Throwable => OpenComputers.log.log(Level.WARNING, "A block component of type '%s' (provided by driver '%s') threw an error while saving.".format(environment.getClass.getName, name), e)
       }
     }
+  }
+
+  private def typeHash = {
+    val hash = Hashing.sha256().newHasher()
+    environments.map(_._2.getClass.getName).sorted.foreach(hash.putString)
+    hash.hash().asLong()
   }
 }
