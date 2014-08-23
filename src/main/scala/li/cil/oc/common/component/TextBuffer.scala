@@ -8,7 +8,7 @@ import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker, PacketSender => ClientPacketSender}
-import li.cil.oc.common.{SaveHandler, tileentity}
+import li.cil.oc.common._
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker, PacketSender => ServerPacketSender}
 import li.cil.oc.util.{PackedColor, SideTracker}
@@ -42,6 +42,15 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   private var hasPower = true
 
   private var relativeLitArea = -1.0
+
+  private var _pendingCommands: Option[PacketBuilder] = None
+
+  private def pendingCommands = _pendingCommands.getOrElse {
+    val pb = new CompressedPacketBuilder(PacketType.TextBufferMulti)
+    pb.writeUTF(node.address)
+    _pendingCommands = Some(pb)
+    pb
+  }
 
   var fullyLitCost = computeFullyLitCost()
 
@@ -95,6 +104,11 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
           ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, owner)
         }
       }
+    }
+
+    this.synchronized {
+      _pendingCommands.foreach(_.sendToNearbyPlayers(owner))
+      _pendingCommands = None
     }
   }
 
@@ -550,41 +564,41 @@ object TextBuffer {
   class ServerProxy(val owner: TextBuffer) extends Proxy {
     override def onScreenColorChange() {
       owner.owner.markChanged()
-      ServerPacketSender.sendTextBufferColorChange(owner.node.address, owner.data.foreground, owner.data.background, owner.owner)
+      owner.synchronized(ServerPacketSender.appendTextBufferColorChange(owner.pendingCommands, owner.data.foreground, owner.data.background))
     }
 
     override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       super.onScreenCopy(col, row, w, h, tx, ty)
       owner.owner.markChanged()
-      ServerPacketSender.sendTextBufferCopy(owner.node.address, col, row, w, h, tx, ty, owner.owner)
+      owner.synchronized(ServerPacketSender.appendTextBufferCopy(owner.pendingCommands, col, row, w, h, tx, ty))
     }
 
     override def onScreenDepthChange(depth: ColorDepth) {
       owner.owner.markChanged()
-      ServerPacketSender.sendTextBufferDepthChange(owner.node.address, depth, owner.owner)
+      owner.synchronized(ServerPacketSender.appendTextBufferDepthChange(owner.pendingCommands, depth))
     }
 
     override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       super.onScreenFill(col, row, w, h, c)
       owner.owner.markChanged()
-      ServerPacketSender.sendTextBufferFill(owner.node.address, col, row, w, h, c, owner.owner)
+      owner.synchronized(ServerPacketSender.appendTextBufferFill(owner.pendingCommands, col, row, w, h, c))
     }
 
     override def onScreenPaletteChange(index: Int) {
       owner.owner.markChanged()
-      ServerPacketSender.sendTextBufferPaletteChange(owner.node.address, index, owner.getPaletteColor(index), owner.owner)
+      owner.synchronized(ServerPacketSender.appendTextBufferPaletteChange(owner.pendingCommands, index, owner.getPaletteColor(index)))
     }
 
     override def onScreenResolutionChange(w: Int, h: Int) {
       super.onScreenResolutionChange(w, h)
       owner.owner.markChanged()
-      ServerPacketSender.sendTextBufferResolutionChange(owner.node.address, w, h, owner.owner)
+      owner.synchronized(ServerPacketSender.appendTextBufferResolutionChange(owner.pendingCommands, w, h))
     }
 
     override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onScreenSet(col, row, s, vertical)
       owner.owner.markChanged()
-      ServerPacketSender.sendTextBufferSet(owner.node.address, col, row, s, vertical, owner.owner)
+      owner.synchronized(ServerPacketSender.appendTextBufferSet(owner.pendingCommands, col, row, s, vertical))
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {

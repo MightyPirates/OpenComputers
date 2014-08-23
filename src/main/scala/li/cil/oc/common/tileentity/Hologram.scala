@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
+import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
@@ -308,16 +309,25 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 1
     super.readFromNBT(nbt)
-    nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
-    nbt.getIntArray(Settings.namespace + "colors").map(convertColor).copyToArray(colors)
+    if (nbt.hasKey(Settings.namespace + "volume") && nbt.hasKey(Settings.namespace + "colors")) {
+      nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
+      nbt.getIntArray(Settings.namespace + "colors").map(convertColor).copyToArray(colors)
+    }
+    else {
+      val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
+      tag.getIntArray("volume").copyToArray(volume)
+      tag.getIntArray("colors").map(convertColor).copyToArray(colors)
+    }
     scale = nbt.getDouble(Settings.namespace + "scale")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-    nbt.setIntArray(Settings.namespace + "volume", volume)
-    nbt.setIntArray(Settings.namespace + "colors", colors.map(convertColor))
+    SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
+      tag.setIntArray("volume", volume)
+      tag.setIntArray("colors", colors.map(convertColor))
+    })
     nbt.setDouble(Settings.namespace + "scale", scale)
   }
 

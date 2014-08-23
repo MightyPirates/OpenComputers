@@ -82,6 +82,8 @@ abstract class PacketHandler {
     }
 
     def readNBT() = CompressedStreamTools.readCompressed(this)
+
+    def readPacketType() = PacketType(readByte())
   }
 
 }

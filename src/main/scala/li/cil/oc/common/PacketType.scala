@@ -32,6 +32,7 @@ object PacketType extends Enumeration {
   TextBufferDepthChange,
   TextBufferFill,
   TextBufferInit, // Goes both ways.
+  TextBufferMulti,
   TextBufferPaletteChange,
   TextBufferPowerChange,
   TextBufferResolutionChange,

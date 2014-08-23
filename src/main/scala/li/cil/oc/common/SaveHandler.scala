@@ -30,13 +30,12 @@ object SaveHandler {
     scheduleSave(owner.world, owner.x, owner.z, nbt, name, data)
   }
 
+  def scheduleSave(owner: Owner, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(owner, nbt, name, writeNBT(save))
+  }
+
   def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    val tmpNbt = new NBTTagCompound()
-    save(tmpNbt)
-    val baos = new ByteArrayOutputStream()
-    val dos = new DataOutputStream(baos)
-    CompressedStreamTools.write(tmpNbt, dos)
-    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, baos.toByteArray)
+    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, writeNBT(save))
   }
 
   def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
@@ -50,6 +49,19 @@ object SaveHandler {
     nbt.setInteger("chunkZ", chunk.chunkZPos)
 
     scheduleSave(dimension, chunk, name, data)
+  }
+
+  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(world, x, z, nbt, name, writeNBT(save))
+  }
+
+  private def writeNBT(save: NBTTagCompound => Unit) = {
+    val tmpNbt = new NBTTagCompound()
+    save(tmpNbt)
+    val baos = new ByteArrayOutputStream()
+    val dos = new DataOutputStream(baos)
+    CompressedStreamTools.write(tmpNbt, dos)
+    baos.toByteArray
   }
 
   def loadNBT(nbt: NBTTagCompound, name: String): NBTTagCompound = {

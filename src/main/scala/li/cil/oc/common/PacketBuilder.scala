@@ -17,8 +17,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 
-// Necessary to keep track of the GZIP stream.
-abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends DataOutputStream(stream) {
+abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stream) {
   def writeTileEntity(t: TileEntity) = {
     writeInt(t.getWorldObj.provider.dimensionId)
     writeInt(t.xCoord)
@@ -37,6 +36,8 @@ abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) ext
   }
 
   def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.writeCompressed(nbt, this)
+
+  def writePacketType(pt: PacketType.Value) = writeByte(pt.id)
 
   def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
 
@@ -64,7 +65,10 @@ abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) ext
   protected def packet: FMLProxyPacket
 }
 
-class PacketBuilder(packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
+// Necessary to keep track of the GZIP stream.
+abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(stream)
+
+class SimplePacketBuilder(packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
   writeByte(packetType.id)
 
   override protected def packet = {
