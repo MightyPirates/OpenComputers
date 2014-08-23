@@ -9,7 +9,7 @@ import li.cil.oc.api.machine._
 import li.cil.oc.api.network._
 import li.cil.oc.api.{FileSystem, Network, machine}
 import li.cil.oc.common.component.ManagedComponent
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{SaveHandler, tileentity}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
@@ -574,7 +574,10 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     _components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
       c.getString("address") -> c.getString("name"))
 
-    tmp.foreach(fs => fs.load(nbt.getCompoundTag("tmp")))
+    tmp.foreach(fs => {
+      if (nbt.hasKey("tmp")) fs.load(nbt.getCompoundTag("tmp"))
+      else fs.load(SaveHandler.loadNBT(nbt, node.address + "_tmp"))
+    })
 
     if (state.size > 0 && state.top != Machine.State.Stopped && init()) try {
       architecture.load(nbt)
@@ -645,7 +648,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     nbt.setTag("components", componentsNbt)
 
-    tmp.foreach(fs => nbt.setNewCompoundTag("tmp", fs.save))
+    tmp.foreach(fs => SaveHandler.scheduleSave(owner, nbt, node.address + "_tmp", fs.save _))
 
     if (state.top != Machine.State.Stopped) try {
       architecture.save(nbt)
