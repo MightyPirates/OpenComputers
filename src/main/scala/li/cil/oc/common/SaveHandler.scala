@@ -52,6 +52,10 @@ object SaveHandler {
     scheduleSave(dimension, chunk, name, data)
   }
 
+  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(world, x, z, nbt, name, writeNBT(save))
+  }
+
   private def writeNBT(save: NBTTagCompound => Unit) = {
     val tmpNbt = new NBTTagCompound()
     save(tmpNbt)
