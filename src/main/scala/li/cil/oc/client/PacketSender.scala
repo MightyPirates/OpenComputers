@@ -3,7 +3,7 @@ package li.cil.oc.client
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
-import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
+import li.cil.oc.common.{CompressedPacketBuilder, SimplePacketBuilder, PacketType}
 import net.minecraft.client.Minecraft
 import net.minecraftforge.common.ForgeDirection
 
@@ -13,7 +13,7 @@ object PacketSender {
   protected var clipboardCooldown = 0L
 
   def sendComputerPower(t: Computer, power: Boolean) {
-    val pb = new PacketBuilder(PacketType.ComputerPower)
+    val pb = new SimplePacketBuilder(PacketType.ComputerPower)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(power)
@@ -22,7 +22,7 @@ object PacketSender {
   }
 
   def sendKeyDown(address: String, char: Char, code: Int) {
-    val pb = new PacketBuilder(PacketType.KeyDown)
+    val pb = new SimplePacketBuilder(PacketType.KeyDown)
 
     pb.writeUTF(address)
     pb.writeChar(char)
@@ -32,7 +32,7 @@ object PacketSender {
   }
 
   def sendKeyUp(address: String, char: Char, code: Int) {
-    val pb = new PacketBuilder(PacketType.KeyUp)
+    val pb = new SimplePacketBuilder(PacketType.KeyUp)
 
     pb.writeUTF(address)
     pb.writeChar(char)
@@ -61,7 +61,7 @@ object PacketSender {
   }
 
   def sendMouseClick(address: String, x: Int, y: Int, drag: Boolean, button: Int) {
-    val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
+    val pb = new SimplePacketBuilder(PacketType.MouseClickOrDrag)
 
     pb.writeUTF(address)
     pb.writeShort(x)
@@ -73,7 +73,7 @@ object PacketSender {
   }
 
   def sendMouseScroll(address: String, x: Int, y: Int, scroll: Int) {
-    val pb = new PacketBuilder(PacketType.MouseScroll)
+    val pb = new SimplePacketBuilder(PacketType.MouseScroll)
 
     pb.writeUTF(address)
     pb.writeShort(x)
@@ -84,7 +84,7 @@ object PacketSender {
   }
 
   def sendMouseUp(address: String, x: Int, y: Int, button: Int) {
-    val pb = new PacketBuilder(PacketType.MouseUp)
+    val pb = new SimplePacketBuilder(PacketType.MouseUp)
 
     pb.writeUTF(address)
     pb.writeShort(x)
@@ -95,12 +95,12 @@ object PacketSender {
   }
 
   def sendMultiPlace() {
-    val pb = new PacketBuilder(PacketType.MultiPartPlace)
+    val pb = new SimplePacketBuilder(PacketType.MultiPartPlace)
     pb.sendToServer()
   }
 
   def sendPetVisibility() {
-    val pb = new PacketBuilder(PacketType.PetVisibility)
+    val pb = new SimplePacketBuilder(PacketType.PetVisibility)
 
     pb.writeBoolean(!Settings.get.hideOwnPet)
 
@@ -108,7 +108,7 @@ object PacketSender {
   }
 
   def sendRobotAssemblerStart(t: RobotAssembler) {
-    val pb = new PacketBuilder(PacketType.RobotAssemblerStart)
+    val pb = new SimplePacketBuilder(PacketType.RobotAssemblerStart)
 
     pb.writeTileEntity(t)
 
@@ -116,7 +116,7 @@ object PacketSender {
   }
 
   def sendRobotStateRequest(dimension: Int, x: Int, y: Int, z: Int) {
-    val pb = new PacketBuilder(PacketType.RobotStateRequest)
+    val pb = new SimplePacketBuilder(PacketType.RobotStateRequest)
 
     pb.writeInt(dimension)
     pb.writeInt(x)
@@ -127,7 +127,7 @@ object PacketSender {
   }
 
   def sendServerPower(t: ServerRack, number: Int, power: Boolean) {
-    val pb = new PacketBuilder(PacketType.ComputerPower)
+    val pb = new SimplePacketBuilder(PacketType.ComputerPower)
 
     pb.writeTileEntity(t)
     pb.writeInt(number)
@@ -137,7 +137,7 @@ object PacketSender {
   }
 
   def sendServerRange(t: ServerRack, range: Int) {
-    val pb = new PacketBuilder(PacketType.ServerRange)
+    val pb = new SimplePacketBuilder(PacketType.ServerRange)
 
     pb.writeTileEntity(t)
     pb.writeInt(range)
@@ -146,7 +146,7 @@ object PacketSender {
   }
 
   def sendServerSide(t: ServerRack, number: Int, side: ForgeDirection) {
-    val pb = new PacketBuilder(PacketType.ServerSide)
+    val pb = new SimplePacketBuilder(PacketType.ServerSide)
 
     pb.writeTileEntity(t)
     pb.writeInt(number)
@@ -156,7 +156,7 @@ object PacketSender {
   }
 
   def sendServerSwitchMode(t: ServerRack, internal: Boolean) {
-    val pb = new PacketBuilder(PacketType.ServerSwitchMode)
+    val pb = new SimplePacketBuilder(PacketType.ServerSwitchMode)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(internal)
@@ -165,7 +165,7 @@ object PacketSender {
   }
 
   def sendTextBufferInit(address: String) {
-    val pb = new PacketBuilder(PacketType.TextBufferInit)
+    val pb = new SimplePacketBuilder(PacketType.TextBufferInit)
 
     pb.writeUTF(address)
 
