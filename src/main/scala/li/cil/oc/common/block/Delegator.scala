@@ -108,6 +108,8 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
   // Block
   // ----------------------------------------------------------------------- //
 
+  override def canHarvestBlock(player: EntityPlayer, meta: Int) = true
+
   override def canBeReplacedByLeaves(world: IBlockAccess, x: Int, y: Int, z: Int) = false
 
   override def canCreatureSpawn(creature: EnumCreatureType, world: IBlockAccess, x: Int, y: Int, z: Int) = false

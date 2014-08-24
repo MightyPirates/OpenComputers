@@ -66,9 +66,12 @@ object SaveHandler {
 
   def loadNBT(nbt: NBTTagCompound, name: String): NBTTagCompound = {
     val data = load(nbt, name)
-    val bais = new ByteArrayInputStream(data)
-    val dis = new DataInputStream(bais)
-    CompressedStreamTools.read(dis)
+    if (data.length > 0) {
+      val bais = new ByteArrayInputStream(data)
+      val dis = new DataInputStream(bais)
+      CompressedStreamTools.read(dis)
+    }
+    else new NBTTagCompound()
   }
 
   def load(nbt: NBTTagCompound, name: String): Array[Byte] = {
@@ -113,6 +116,7 @@ object SaveHandler {
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
     val file = new io.File(chunkPath, name)
+    if (!file.exists()) return Array.empty[Byte]
     try {
       // val bis = new io.BufferedInputStream(new GZIPInputStream(new io.FileInputStream(file)))
       val bis = new io.BufferedInputStream(new io.FileInputStream(file))

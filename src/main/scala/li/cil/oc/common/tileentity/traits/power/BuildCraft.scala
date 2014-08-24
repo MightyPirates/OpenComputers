@@ -2,8 +2,8 @@ package li.cil.oc.common.tileentity.traits.power
 
 import buildcraft.api.power.{IPowerReceptor, PowerHandler}
 import cpw.mods.fml.common.Optional
-import li.cil.oc.Settings
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraftforge.common.util.ForgeDirection
 
 trait BuildCraft extends Common {
@@ -31,11 +31,16 @@ trait BuildCraft extends Common {
   @Optional.Method(modid = Mods.IDs.BuildCraftPower)
   def getPowerProvider = {
     if (Mods.BuildCraftPower.isAvailable && powerHandler.isEmpty) {
-      val handler = new PowerHandler(this.asInstanceOf[IPowerReceptor], PowerHandler.Type.MACHINE)
-      if (handler != null) {
-        handler.configure(1, 320, Float.MaxValue, 640)
-        handler.configurePowerPerdition(0, 0)
-        powerHandler = Some(handler)
+      this match {
+        case receptor: IPowerReceptor =>
+          val handler = new PowerHandler(receptor, PowerHandler.Type.MACHINE)
+          if (handler != null) {
+            handler.configure(1, 320, Float.MaxValue, 640)
+            handler.configurePowerPerdition(0, 0)
+            powerHandler = Some(handler)
+          }
+        case _ =>
+          OpenComputers.log.warn("Failed setting up BuildCraft power, which most likely means the class transformer did not run. You're probably running in an incorrectly configured development environment. Try adding `-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader` to the VM options of your run configuration.")
       }
     }
     if (powerHandler.isDefined)
