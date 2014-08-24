@@ -11,7 +11,7 @@ repositories {
 dependencies {
     compile "codechicken:CodeChickenLib:${config.cc.mc.version}-${config.ccl.version}:dev"
     compile "codechicken:ForgeMultipart:${config.cc.mc.version}-${config.fmp.version}:dev"
-    compile "net.industrial-craft:industrialcraft-2:2.2.509-experimental:api"
+    compile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
     compile "dev.calclavia.universalelectricity:universal-electricity:+:dev"
 }
 

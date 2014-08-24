@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.font
 
+import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.{FontUtil, RenderState}
 import net.minecraft.client.Minecraft
@@ -14,7 +15,9 @@ import scala.collection.mutable
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
 class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloadListener {
-  private val glyphProvider: IGlyphProvider = new FontParserUnifont()
+  private val glyphProvider: IGlyphProvider = Settings.get.fontRenderer match {
+    case _ => new FontParserUnifont()
+  }
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]
 
