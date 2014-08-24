@@ -46,8 +46,7 @@ class Settings(config: Config) {
       Array(3.0, 4.0)
   }
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
-  val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
-  val useOldTextureFontRenderer = config.getBoolean("client.useOldTextureFontRenderer")
+  val fontRenderer = config.getString("client.fontRenderer")
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -75,18 +74,6 @@ class Settings(config: Config) {
   val allowBytecode = config.getBoolean("computer.allowBytecode")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
   val executionDelay = config.getInt("computer.executionDelay") max 0
-
-  // ----------------------------------------------------------------------- //
-  // computer.debug
-
-  val logLuaCallbackErrors = config.getBoolean("computer.debug.logCallbackErrors")
-  val forceLuaJ = config.getBoolean("computer.debug.forceLuaJ")
-  val allowUserdata = !config.getBoolean("computer.debug.disableUserdata")
-  val allowPersistence = !config.getBoolean("computer.debug.disablePersistence")
-  val limitMemory = !config.getBoolean("computer.debug.disableMemoryLimit")
-  val forceCaseInsensitive = config.getBoolean("computer.debug.forceCaseInsensitiveFS")
-  val logFullLibLoadErrors = config.getBoolean("computer.debug.logFullNativeLibLoadErrors")
-  val forceNativeLib = config.getString("computer.debug.forceNativeLibWithName")
 
   // ----------------------------------------------------------------------- //
   // robot
@@ -232,14 +219,27 @@ class Settings(config: Config) {
       Array(2, 4, 8)
   }
   val updateCheck = config.getBoolean("misc.updateCheck")
-  val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
   val lootProbability = config.getInt("misc.lootProbability")
-  val debugPersistence = config.getBoolean("misc.verbosePersistenceErrors")
   val geolyzerRange = config.getInt("misc.geolyzerRange")
   val geolyzerNoise = config.getDouble("misc.geolyzerNoise").toFloat max 0
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
+
+  // ----------------------------------------------------------------------- //
+  // debug
+  val logLuaCallbackErrors = config.getBoolean("debug.logCallbackErrors")
+  val forceLuaJ = config.getBoolean("debug.forceLuaJ")
+  val allowUserdata = !config.getBoolean("debug.disableUserdata")
+  val allowPersistence = !config.getBoolean("debug.disablePersistence")
+  val limitMemory = !config.getBoolean("debug.disableMemoryLimit")
+  val forceCaseInsensitive = config.getBoolean("debug.forceCaseInsensitiveFS")
+  val logFullLibLoadErrors = config.getBoolean("debug.logFullNativeLibLoadErrors")
+  val forceNativeLib = config.getString("debug.forceNativeLibWithName")
+  val logOpenGLErrors = config.getBoolean("debug.logOpenGLErrors")
+  val logUnifontErrors = config.getBoolean("debug.logUnifontErrors")
+  val alwaysTryNative = config.getBoolean("debug.alwaysTryNative")
+  val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
 }
 
 object Settings {
@@ -337,6 +337,14 @@ object Settings {
     // reduced as discussed in #447.
     VersionRange.createFromVersionSpec("[1.3.0,1.3.3)") -> Array(
       "power.cost.chunkloaderCost"
+    ),
+    // Upgrading to version 1.3.4+, computer.debug category was moved to top
+    // level debug category for more flexibility and some other settings merged
+    // into that new category.
+    VersionRange.createFromVersionSpec("1.3.3") -> Array(
+      "computer.debug",
+      "misc.alwaysTryNative",
+      "misc.verbosePersistenceErrors"
     )
   )
 
@@ -355,7 +363,12 @@ object Settings {
         for (path <- paths) {
           val fullPath = prefix + path
           OpenComputers.log.info(s"Updating setting '$fullPath'. ")
-          patched = patched.withValue(fullPath, defaults.getValue(fullPath))
+          if (defaults.hasPath(fullPath)) {
+            patched = patched.withValue(fullPath, defaults.getValue(fullPath))
+          }
+          else {
+            patched = patched.withoutPath(fullPath)
+          }
         }
       }
     }
