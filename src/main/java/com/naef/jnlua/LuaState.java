@@ -92,7 +92,7 @@ public class LuaState {
 	/**
 	 * Registry pseudo-index.
 	 */
-	public static int REGISTRYINDEX;
+	public static final int REGISTRYINDEX;
 
 	/**
 	 * OK status.
@@ -128,9 +128,9 @@ public class LuaState {
 	/**
 	 * The Lua version. The format is &lt;major&gt;.&lt;minor&gt;.
 	 */
-	public static String LUA_VERSION;
+	public static final String LUA_VERSION;
 
-	public static void initializeNative() {
+	static {
 		NativeSupport.getInstance().getLoader().load();
 		REGISTRYINDEX = lua_registryindex();
 		LUA_VERSION = lua_version();
