@@ -469,7 +469,7 @@ end
 local libcomponent
 
 local proxyCache = setmetatable({}, {__mode="v"})
-local proxyDirectCache = setmetatable({}, {__mode="v"})
+local proxyDirectCache = setmetatable({}, {__mode="k"})
 
 local componentCallback = {
   __call = function(self, ...)
