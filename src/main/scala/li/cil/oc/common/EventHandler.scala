@@ -52,32 +52,12 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2Experimental) {
-    if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (tileEntity.addedToIC2PowerGrid) {
-        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileUnloadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
-        tileEntity.addedToIC2PowerGrid = false
-      })
-    }
-  }
-
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2Classic) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
         MinecraftForge.EVENT_BUS.post(new ic2classic.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2classic.api.energy.tile.IEnergyTile]))
         tileEntity.addedToIC2PowerGrid = true
-      })
-    }
-  }
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
-  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2Classic) {
-    if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (tileEntity.addedToIC2PowerGrid) {
-        MinecraftForge.EVENT_BUS.post(new ic2classic.api.energy.event.EnergyTileUnloadEvent(tileEntity.asInstanceOf[ic2classic.api.energy.tile.IEnergyTile]))
-        tileEntity.addedToIC2PowerGrid = false
       })
     }
   }

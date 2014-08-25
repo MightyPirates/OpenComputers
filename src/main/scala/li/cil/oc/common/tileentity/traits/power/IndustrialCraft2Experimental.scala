@@ -1,9 +1,11 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.Settings
+import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.{OpenComputers, Settings}
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
 trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
@@ -20,12 +22,19 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
 
   override def invalidate() {
     super.invalidate()
-    if (useIndustrialCraft2Power && addedToIC2PowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) removeFromIC2Grid()
   }
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (useIndustrialCraft2Power && addedToIC2PowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) removeFromIC2Grid()
+  }
+
+  private def removeFromIC2Grid() {
+    try MinecraftForge.EVENT_BUS.post(Class.forName("ic2.api.energy.event.EnergyTileUnloadEvent").getConstructor(Class.forName("ic2.api.energy.tile.IEnergyTile")).newInstance(this).asInstanceOf[Event]) catch {
+      case t: Throwable => OpenComputers.log.warn("Error removing node from IC2 grid.", t)
+    }
+    addedToIC2PowerGrid = false
   }
 
   // ----------------------------------------------------------------------- //
