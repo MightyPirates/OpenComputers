@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits.power
 
+import java.util.logging.Level
+
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
@@ -31,7 +33,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
 
   private def removeFromIC2Grid() {
     try MinecraftForge.EVENT_BUS.post(Class.forName("ic2.api.energy.event.EnergyTileUnloadEvent").getConstructor(Class.forName("ic2.api.energy.tile.IEnergyTile")).newInstance(this).asInstanceOf[Event]) catch {
-      case t: Throwable => OpenComputers.log.warning("Error removing node from IC2 grid.", t)
+      case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error removing node from IC2 grid.", t)
     }
     addedToIC2PowerGrid = false
   }
