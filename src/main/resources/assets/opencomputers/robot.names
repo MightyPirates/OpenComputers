@@ -2,121 +2,72 @@
 # explicitly named using an anvil.
 # If your name is on this list and you'd rather it not be, or you'd like a
 # different alias, sorry! Please make a pull request with the changed list.
-crafteverywhere
-LordFokas
-Michiyo
-mymagadsl
-PixelToast
-Pyrolusite
-SpiritedDusty
-Vexatos
-Wobbo
-YuRaNnNzZZ
-Kodos
-Kilobyte
+# Names of more or less famous robots and AIs, are welcome. Feel free to add
+# more via pull requests. Let's hope this won't get us sued...
 
-# Names of more or less famous robots, as a bit of filler material. Feel free
-# to add more via pull requests. Let's hope this won't get us sued...
-Adventure Core
-# video game "Portal 2"
-Atlas
-# animated series "Futurama"
-Bender
-# member of Robot Mafia in "Futurama"
-Clamps
-# Bender's twin brother from "Futurama"
-Flexo
-# soap opera actor in "Futurama"
-Calculon
-# film "Star Wars"
-C-3PO
-Callister Raynes
-# video game "Ratchet & Clank"
-Clank
-# video game "Borderlands"
-Claptrap
-# video game "Fallout: New Vegas"
-Deputy ANDY
-# video game "Half-Life 2"
-Dog
-Fact Core
-# video game "Portal"
-GLaDOS
-# film "2001: A Space Odyssey"
-HAL 9000
-Heron
-# graphic novel "Iron Man"
-J.A.R.V.I.S
-KARR
-KITT
-# "Hitchhiker's Guide to the Galaxy"
-Marvin
-# video game "Portal 2"
-P-Body
-# film "Star Wars"
-R2-D2
-# film "Terminator"
-Skynet
-Space Core
-Terminator T-1000
-Terminator T-800
-# video game "Portal 2"
-Wheatley
-# animated series "The Jetsons"
-Rosie
-Uniblab
-# Robin William's character's robotic pet/friend in the movie "Flubber"
-Weebo
-# first self-aware robot from book "I, Robot"
-QT-1
-# nanny robot from a short story in "I, Robot"
-Robbie
-# film "Forbidden Planet"
-Robby
-# Jake and Finn's robotic roomate from "Adventure Time" (pronounced "Beemo")
-BMO
-# android from a "Fallout 3" sidequest
-Harkness
-# tv series "Buck Rodgers"
-Twiki
-# animated series "Ghost in the Shell"
-Tachikoma
-# lunar base AI in film "Moon"
-Gerty
-# animated series "South Park"
-Awesom-O
-# film "Short Circuit"
-Johnny 5
-# a real-life vacuum robot popular with robotics enthusists
-Roomba
-# real-live robot made by Honda
-ASIMO
-# film "Wall-E"
-Wall-E
-# film "Wall-E"
-Eve
+# When adding names, please keep the list sorted alphabetially, make sure it's
+# not already in the list, and, where appropriate, provide a concise source.
 
-# Perry Rhodan Robots, definitly not all...
-Anson Argyris
-Augustus
-Cairol
-Donald Duck
-Homunk
-Laire
-TARA UH
-Vertigo
-
-# Real robots used in science at one point or the other
-# mostly the latter half of the 20th century.
-# Two of the first robots developed by William Gray Walter.
-Elmer
-Elsie
-# Simple intelligent agents.
-BraitenBurg
-# First programmable robot.
-Unimate
-# The first general-purpose mobile robot that could reason about its actions.
-Shakey
-
-# Miscellaneous Names
-Crypto
+Adventure Core     # Portal
+Anson Argyris      # Perry Rhodan
+ASIMO              # Honda
+Atlas              # Portal
+Augustus           # Perry Rhodan
+Bender             # Futurama
+BMO                # Adventure Time
+BraitenBurg        # Simple intelligent agents.
+C-3PO              # Star Wars
+Cairol             # Perry Rhodan
+Calculon           # Futurama
+Callister Raynes   # Eureka
+Clamps             # Futurama
+Clank              # Ratchet & Clank
+Claptrap           # Borderlands
+Crypto             # Kodos
+Deputy ANDY        # Eureka
+Dog                # Half-Life
+Donald Duck        # Perry Rhodan
+Elmer              # One of the first two robots developed by William Gray Walter.
+Elsie              # One of the first two robots developed by William Gray Walter.
+Eve                # Wall-E
+Fact Core          # Portal
+Flexo              # Futurama
+Gerty              # Moon (film)
+GLaDOS             # Portal
+HAL 9000           # Space Odyssey
+Harkness           # Fallout 3
+Heron              # Vexatos
+Homunk             # Perry Rhodan
+J.A.R.V.I.S        # Iron Man
+Johnny 5           # Short Circuit
+KARR               # Knight Rider
+Kilobyte           # Contributor
+KITT               # Knight Rider
+Kodos              # Contributor
+Laire              # Perry Rhodan
+LordFokas          # Contributor
+Marvin             # Hitchhiker's Guide to the Galaxy
+Michiyo            # Contributor
+P-Body             # Portal
+PixelToast         # Contributor
+QT-1               # I, Robot
+R2-D2              # Star Wars
+Robby              # Forbidden Planet
+Roomba             # Under your couch... wait.
+Rosie              # The Jetsons
+Shakey             # The first general-purpose mobile robot that could reason about its actions.
+Skynet             # Terminator
+Space Core         # Portal
+SpiritedDusty      # Contributor
+Tachikoma          # Ghost in the Shell
+TARA UH            # Perry Rhodan
+Terminator         # Terminator
+Twiki              # Buck Rodgers
+Uniblab            # The Jetsons
+Unimate            # First programmable robot.
+Vertigo            # Perry Rhodan
+Vexatos            # Contributor
+Wall-E             # Wall-E
+Weebo              # Flubber
+Wheatley           # Portal
+Wobbo              # Contributor
