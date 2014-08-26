@@ -3,7 +3,7 @@ package li.cil.oc.client
 import java.io.EOFException
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.{OpenComputers, Localization}
+import li.cil.oc.Localization
 import li.cil.oc.api.component
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.client.renderer.PetRenderer
