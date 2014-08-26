@@ -6,7 +6,7 @@ import li.cil.oc.server.PacketSender
 import net.minecraft.nbt.NBTTagCompound
 
 trait Colored extends TileEntity {
-  var _color = 0
+  private var _color = 0
 
   def color = _color
 

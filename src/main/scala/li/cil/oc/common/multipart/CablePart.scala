@@ -1,5 +1,6 @@
 package li.cil.oc.common.multipart
 
+import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.vec.{Cuboid6, Vector3}
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
@@ -7,18 +8,43 @@ import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.api.{Items, network}
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.block.{Cable, Delegator}
+import li.cil.oc.common.tileentity
+import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api, common}
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderBlocks
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition}
 
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._
 
-class CablePart(val original: Option[Node] = None) extends DelegatePart with TCuboidPart with TNormalOcclusion with network.Environment {
+class CablePart(val original: Option[tileentity.Cable] = None) extends DelegatePart with TCuboidPart with TNormalOcclusion with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
+
+  private var _color = 0
+
+  original.foreach(cable => _color = cable.color)
+
+  // ----------------------------------------------------------------------- //
+
+  def color = _color
+
+  def color_=(value: Int) = if (value != _color) {
+    _color = value
+    onColorChanged()
+  }
+
+  protected def onColorChanged() {
+    if (world != null && !world.isRemote) {
+      sendDescUpdate()
+      api.Network.joinOrCreateNetwork(tile)
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def delegate = Delegator.subBlock(Items.get("cable").createItemStack(1)).get
 
@@ -32,9 +58,22 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def getRenderBounds = new Cuboid6(Cable.bounds(world, x, y, z).offset(x, y, z))
 
+  // ----------------------------------------------------------------------- //
+
+  override def activate(player: EntityPlayer, hit: MovingObjectPosition, item: ItemStack) = {
+    if (Color.isDye(player.getHeldItem)) {
+      color = Color.dyeColor(player.getHeldItem)
+      tile.markDirty()
+      true
+    }
+    else super.activate(player, hit, item)
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def invalidateConvertedTile() {
     super.invalidateConvertedTile()
-    original.foreach(_.neighbors.foreach(_.connect(this.node)))
+    original.foreach(_.node.neighbors.foreach(_.connect(this.node)))
   }
 
   override def onPartChanged(part: TMultiPart) {
@@ -52,9 +91,14 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
     Option(node).foreach(_.remove)
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     node.load(nbt.getCompoundTag(Settings.namespace + "node"))
+    if (nbt.hasKey(Settings.namespace + "renderColor")) {
+      _color = nbt.getInteger(Settings.namespace + "renderColor")
+    }
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -63,7 +107,20 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
     if (node != null) {
       nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
     }
+    nbt.setInteger(Settings.namespace + "renderColor", _color)
   }
+
+  override def readDesc(packet: MCDataInput) {
+    super.readDesc(packet)
+    _color = packet.readInt()
+  }
+
+  override def writeDesc(packet: MCDataOutput) {
+    super.writeDesc(packet)
+    packet.writeInt(_color)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   override def renderStatic(pos: Vector3, pass: Int) = {
@@ -72,9 +129,18 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
     val metadata = world.getBlockMetadata(x, y, z)
     val renderer = RenderBlocks.getInstance
     renderer.blockAccess = world
-    BlockRenderer.renderCable(Cable.neighbors(world, x, y, z), block, metadata, x, y, z, renderer)
+    block match {
+      case delegator: Delegator[_] =>
+        delegator.colorMultiplierOverride = Some(_color)
+        BlockRenderer.renderCable(Cable.neighbors(world, x, y, z), block, metadata, x, y, z, renderer)
+        delegator.colorMultiplierOverride = None
+      case _ =>
+        BlockRenderer.renderCable(Cable.neighbors(world, x, y, z), block, metadata, x, y, z, renderer)
+    }
     true
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def onMessage(message: Message) {}
 
