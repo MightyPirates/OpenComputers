@@ -9,7 +9,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.{RenderBlocks, Tessellator}
-import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -28,7 +27,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         GL11.glScalef(1.6f, 1.6f, 1.6f)
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
-        renderCable(block, metadata, renderer)
+        Cable.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable")
@@ -41,14 +40,14 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
       case Some(assembler: RobotAssembler) =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
-        renderAssembler(block, metadata, renderer)
+        Assembler.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
       case Some(hologram: Hologram) =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
-        renderHologram(block, metadata, renderer)
+        Hologram.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram")
@@ -82,7 +81,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
     world.getBlockTileEntity(x, y, z) match {
       case cable: tileentity.Cable =>
-        renderCable(Cable.neighbors(world, x, y, z), block, cable.getBlockMetadata, x, y, z, renderer)
+        Cable.render(world, x, y, z, block, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: cable")
 
@@ -172,13 +171,13 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
         true
       case assembler: tileentity.RobotAssembler =>
-        renderAssembler(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
+        Assembler.render(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler")
 
         true
       case hologram: tileentity.Hologram =>
-        renderHologram(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
+        Hologram.render(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: hologram")
 
@@ -192,258 +191,32 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     }
   }
 
-  def renderAssembler(block: Block, metadata: Int, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
-    val previousRenderAllFaces = renderer.renderAllFaces
-    renderer.renderAllFaces = true
-
-    // Bottom.
-    renderer.setRenderBounds(0, 0, 0, 1, 7 / 16f, 1)
-    renderer.renderStandardBlock(block, x, y, z)
-    // Middle.
-    renderer.setRenderBounds(2 / 16f, 7 / 16f, 2 / 16f, 14 / 16f, 9 / 16f, 14 / 16f)
-    renderer.renderStandardBlock(block, x, y, z)
-    // Top.
-    renderer.setRenderBounds(0, 9 / 16f, 0, 1, 1, 1)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.renderAllFaces = previousRenderAllFaces
-  }
-
-  def renderAssembler(block: Block, metadata: Int, renderer: RenderBlocks) {
-    // Bottom.
-    renderer.setRenderBounds(0, 0, 0, 1, 7 / 16f, 1)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceYNeg(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-
-    // Middle.
-    val previousRenderAllFaces = renderer.renderAllFaces
-    renderer.renderAllFaces = true
-    renderer.setRenderBounds(2 / 16f, 7 / 16f, 2 / 16f, 14 / 16f, 9 / 16f, 14 / 16f)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-    renderer.renderAllFaces = previousRenderAllFaces
-
-    // Top.
-    renderer.setRenderBounds(0, 9 / 16f, 0, 1, 1, 1)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceYNeg(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-    RenderState.makeItBlend()
-    RenderState.disableLighting()
-
-    renderer.setOverrideBlockTexture(Textures.RobotAssembler.iconTopOn)
-    renderer.setRenderBounds(0, 0, 0, 1, 1.05, 1)
-    renderFaceYPos(block, metadata, renderer)
-
-    renderer.setOverrideBlockTexture(Textures.RobotAssembler.iconSideOn)
-    renderer.setRenderBounds(-0.005, 0, 0, 1.005, 1, 1)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-    renderer.setRenderBounds(0, 0, -0.005, 1, 1, 1.005)
-    renderFaceZPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-
-    renderer.clearOverrideBlockTexture()
-    RenderState.enableLighting()
-    GL11.glPopAttrib()
-  }
-
-  def renderCable(mask: Int, block: Block, metadata: Int, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
-    // Center part.
-    val bounds = AxisAlignedBB.getBoundingBox(-0.125, -0.125, -0.125, 0.125, 0.125, 0.125)
-    bounds.offset(0.5, 0.5, 0.5)
-    renderer.setRenderBounds(bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    // Connections.
-    def renderPart(side: ForgeDirection, boundSetter: () => Unit) {
-      bounds.setBounds(-0.125, -0.125, -0.125, 0.125, 0.125, 0.125)
-      bounds.offset(side.offsetX * 0.25, side.offsetY * 0.25, side.offsetZ * 0.25)
-      boundSetter()
-      bounds.offset(0.5, 0.5, 0.5)
-      renderer.setRenderBounds(bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ)
-      renderer.renderStandardBlock(block, x, y, z)
-    }
-    for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      if ((side.flag & mask) != 0) {
-        renderPart(side, () => {
-          bounds.minX = math.min(bounds.minX, side.offsetX * 0.5)
-          bounds.maxX = math.max(bounds.maxX, side.offsetX * 0.5)
-          bounds.minY = math.min(bounds.minY, side.offsetY * 0.5)
-          bounds.maxY = math.max(bounds.maxY, side.offsetY * 0.5)
-          bounds.minZ = math.min(bounds.minZ, side.offsetZ * 0.5)
-          bounds.maxZ = math.max(bounds.maxZ, side.offsetZ * 0.5)
-        })
-      }
-      if ((side.getOpposite.flag & mask) == mask || mask == 0) {
-        renderer.overrideBlockTexture = Textures.Cable.iconCap
-        renderPart(side, () => {
-          bounds.minX = math.max(bounds.minX, -(0.125 + 1 / 16f))
-          bounds.maxX = math.min(bounds.maxX, 0.125 + 1 / 16f)
-          bounds.minY = math.max(bounds.minY, -(0.125 + 1 / 16f))
-          bounds.maxY = math.min(bounds.maxY, 0.125 + 1 / 16f)
-          bounds.minZ = math.max(bounds.minZ, -(0.125 + 1 / 16f))
-          bounds.maxZ = math.min(bounds.maxZ, 0.125 + 1 / 16f)
-        })
-        renderer.clearOverrideBlockTexture()
-      }
-    }
-  }
-
-  def renderCable(block: Block, metadata: Int, renderer: RenderBlocks) {
-    val previousRenderAllFaces = renderer.renderAllFaces
-    renderer.renderAllFaces = true
-
-    renderer.setRenderBounds(0.375, 3 / 16f, 0.375, 0.625, 13 / 16f, 0.625)
-    renderFaceXNeg(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-
-    renderer.overrideBlockTexture = Textures.Cable.iconCap
-    renderer.setRenderBounds(0.375, 2 / 16f, 0.375, 0.625, 3 / 16f, 0.625)
-    renderFaceYNeg(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-    renderer.setRenderBounds(0.375, 13 / 16f, 0.375, 0.625, 14 / 16f, 0.625)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-    renderer.clearOverrideBlockTexture()
-
-    renderer.renderAllFaces = previousRenderAllFaces
-  }
-
-  def renderHologram(block: Block, metadata: Int, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
-    // Center.
-    renderer.setRenderBounds(4 / 16f, 0, 4 / 16f, 12 / 16f, 3 / 16f, 12 / 16f)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    val previousRenderAllFaces = renderer.renderAllFaces
-    renderer.renderAllFaces = true
-
-    // Walls.
-    renderer.setRenderBounds(0, 0, 0, 2 / 16f, 7 / 16f, 1)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.setRenderBounds(14 / 16f, 0, 0, 1, 7 / 16f, 1)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.setRenderBounds(2 / 16f, 0, 0, 14 / 16f, 7 / 16f, 2 / 16f)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.setRenderBounds(2 / 16f, 0, 14 / 16f, 14 / 16f, 7 / 16f, 1)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    // Inner.
-    renderer.setRenderBounds(2 / 16f, 3 / 16f, 2 / 16f, 4 / 16f, 5 / 16f, 14 / 16f)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.setRenderBounds(12 / 16f, 3 / 16f, 2 / 16f, 14 / 16f, 5 / 16f, 14 / 16f)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.setRenderBounds(4 / 16f, 3 / 16f, 2 / 16f, 12 / 16f, 5 / 16f, 4 / 16f)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.setRenderBounds(4 / 16f, 3 / 16f, 12 / 16f, 12 / 16f, 5 / 16f, 14 / 16f)
-    renderer.renderStandardBlock(block, x, y, z)
-
-    renderer.renderAllFaces = previousRenderAllFaces
-  }
-
-  def renderHologram(block: Block, metadata: Int, renderer: RenderBlocks) {
-    val previousRenderAllFaces = renderer.renderAllFaces
-    renderer.renderAllFaces = true
-
-    // Base and walls.
-    renderer.setRenderBounds(4 / 16f, 0, 4 / 16f, 12 / 16f, 3 / 16f, 12 / 16f)
-    renderFaceYPos(block, metadata, renderer)
-
-    renderer.setRenderBounds(0, 0, 0, 1, 7 / 16f, 1)
-    renderFaceYNeg(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-
-    // Layer 1.
-    renderer.setRenderBounds(2 / 16f, 3 / 16f, 2 / 16f, 4 / 16f, 5 / 16f, 14 / 16f)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-
-    renderer.setRenderBounds(12 / 16f, 3 / 16f, 2 / 16f, 14 / 16f, 5 / 16f, 14 / 16f)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-
-    renderer.setRenderBounds(4 / 16f, 3 / 16f, 2 / 16f, 12 / 16f, 5 / 16f, 4 / 16f)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-
-    renderer.setRenderBounds(4 / 16f, 3 / 16f, 12 / 16f, 12 / 16f, 5 / 16f, 14 / 16f)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-
-    // Layer 2.
-    renderer.setRenderBounds(0, 3 / 16f, 0, 2 / 16f, 7 / 16f, 1)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceXPos(block, metadata, renderer)
-
-    renderer.setRenderBounds(14 / 16f, 3 / 16f, 0, 1, 7 / 16f, 1)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceXNeg(block, metadata, renderer)
-
-    renderer.setRenderBounds(2 / 16f, 3 / 16f, 0, 14 / 16f, 7 / 16f, 2 / 16f)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceZPos(block, metadata, renderer)
-
-    renderer.setRenderBounds(2 / 16f, 3 / 16f, 14 / 16f, 14 / 16f, 7 / 16f, 1)
-    renderFaceYPos(block, metadata, renderer)
-    renderFaceZNeg(block, metadata, renderer)
-
-    renderer.renderAllFaces = previousRenderAllFaces
-  }
-
-  protected def renderFaceXPos(block: Block, metadata: Int, renderer: RenderBlocks) {
+  def renderFaceXPos(block: Block, metadata: Int, renderer: RenderBlocks) {
     Tessellator.instance.setNormal(1, 0, 0)
     renderer.renderFaceXPos(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.EAST.ordinal, metadata))
   }
 
-  protected def renderFaceXNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
+  def renderFaceXNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
     Tessellator.instance.setNormal(-1, 0, 0)
     renderer.renderFaceXNeg(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.WEST.ordinal, metadata))
   }
 
-  protected def renderFaceYPos(block: Block, metadata: Int, renderer: RenderBlocks) {
+  def renderFaceYPos(block: Block, metadata: Int, renderer: RenderBlocks) {
     Tessellator.instance.setNormal(0, 1, 0)
     renderer.renderFaceYPos(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.UP.ordinal, metadata))
   }
 
-  protected def renderFaceYNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
+  def renderFaceYNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
     Tessellator.instance.setNormal(0, -1, 0)
     renderer.renderFaceYNeg(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.DOWN.ordinal, metadata))
   }
 
-  protected def renderFaceZPos(block: Block, metadata: Int, renderer: RenderBlocks) {
+  def renderFaceZPos(block: Block, metadata: Int, renderer: RenderBlocks) {
     Tessellator.instance.setNormal(0, 0, 1)
     renderer.renderFaceZPos(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.SOUTH.ordinal, metadata))
   }
 
-  protected def renderFaceZNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
+  def renderFaceZNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
     Tessellator.instance.setNormal(0, 0, -1)
     renderer.renderFaceZNeg(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.NORTH.ordinal, metadata))
   }

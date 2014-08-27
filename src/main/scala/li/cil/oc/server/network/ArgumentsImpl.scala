@@ -1,5 +1,6 @@
 package li.cil.oc.server.network
 
+import com.google.common.base.Charsets
 import li.cil.oc.api.network
 
 import scala.collection.convert.WrapAsJava._
@@ -66,7 +67,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
     checkIndex(index, "string")
     args(index) match {
       case value: java.lang.String => value
-      case value: Array[Byte] => new String(value, "UTF-8")
+      case value: Array[Byte] => new String(value, Charsets.UTF_8)
       case value => throw typeError(index, value, "string")
     }
   }
@@ -79,7 +80,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
   def checkByteArray(index: Int) = {
     checkIndex(index, "string")
     args(index) match {
-      case value: java.lang.String => value.getBytes("UTF-8")
+      case value: java.lang.String => value.getBytes(Charsets.UTF_8)
       case value: Array[Byte] => value
       case value => throw typeError(index, value, "string")
     }
@@ -145,6 +146,11 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
       case value: mutable.Map[_, _] => true
       case _ => false
     })
+
+  def toArray = args.map {
+    case value: Array[Byte] => new String(value, Charsets.UTF_8)
+    case value => value
+  }.toArray
 
   private def isDefined(index: Int) = index >= 0 && index < args.length
 

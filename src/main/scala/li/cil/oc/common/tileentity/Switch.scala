@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import com.google.common.base.Charsets
 import cpw.mods.fml.common.Optional
 import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
 import li.cil.oc.api.Driver
@@ -114,7 +115,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
       val address = s"cc${wrapper.id}_${wrapper.attachmentName}"
       if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
         wrapper.queueEvent("modem_message", Array(Seq(wrapper.attachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-          case x: Array[Byte] => new String(x, "UTF-8")
+          case x: Array[Byte] => new String(x, Charsets.UTF_8)
           case x => x
         }: _*))
     }
