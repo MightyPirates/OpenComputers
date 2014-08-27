@@ -81,7 +81,7 @@ object Cable {
   }
 
   private def isCable(world: IBlockAccess, x: Int, y: Int, z: Int) = {
-    val tileEntity = world.getBlockTileEntity(x, y, z)
+    val tileEntity = world.getTileEntity(x, y, z)
     tileEntity.isInstanceOf[common.tileentity.Cable] || (Mods.ForgeMultipart.isAvailable && isCableFMP(tileEntity))
   }
 
