@@ -231,24 +231,23 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
 
   private var currentHolder: Entity = _
 
-  def get(stack: ItemStack, holder: Entity) = (if (holder.worldObj.isRemote) clientCache else serverCache).synchronized {
-    currentStack = stack
-    currentHolder = holder
-    if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound("tag"))
+  def get(stack: ItemStack, holder: Entity) = {
+    val cache = if (holder.worldObj.isRemote) clientCache else serverCache
+    cache.synchronized {
+      currentStack = stack
+      currentHolder = holder
+      if (!stack.hasTagCompound) {
+        stack.setTagCompound(new NBTTagCompound("tag"))
+      }
+      if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
+        stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
+      }
+      val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+      val wrapper = cache.get(id, this)
+      wrapper.stack = stack
+      wrapper.holder = holder
+      wrapper
     }
-    if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-      stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
-    }
-    val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
-    val wrapper =
-      if (holder.worldObj.isRemote)
-        clientCache.get(id, this)
-      else
-        serverCache.get(id, this)
-    wrapper.stack = stack
-    wrapper.holder = holder
-    wrapper
   }
 
   def call = {
@@ -267,10 +266,14 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
 
   @ForgeSubscribe
   def onWorldUnload(e: WorldEvent.Unload) {
-    clientCache.invalidateAll()
-    clientCache.cleanUp()
-    serverCache.invalidateAll()
-    serverCache.cleanUp()
+    clientCache.synchronized {
+      clientCache.invalidateAll()
+      clientCache.cleanUp()
+    }
+    serverCache.synchronized {
+      serverCache.invalidateAll()
+      serverCache.cleanUp()
+    }
   }
 
   override def getLabel = "OpenComputers Tablet Cleanup Ticker"
@@ -278,8 +281,8 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
   override def ticks = util.EnumSet.of(TickType.CLIENT, TickType.SERVER)
 
   override def tickStart(tickType: util.EnumSet[TickType], tickData: AnyRef*) {
-    clientCache.cleanUp()
-    serverCache.cleanUp()
+    clientCache.synchronized(clientCache.cleanUp())
+    serverCache.synchronized(serverCache.cleanUp())
   }
 
   override def tickEnd(tickType: util.EnumSet[TickType], tickData: AnyRef*) {}
