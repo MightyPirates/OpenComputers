@@ -240,6 +240,7 @@ class Settings(config: Config) {
   val logUnifontErrors = config.getBoolean("debug.logUnifontErrors")
   val alwaysTryNative = config.getBoolean("debug.alwaysTryNative")
   val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
+  val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
 }
 
 object Settings {

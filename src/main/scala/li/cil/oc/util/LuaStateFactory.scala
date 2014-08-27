@@ -96,11 +96,15 @@ object LuaStateFactory {
       return
     }
 
-    val tmpLibFile = new File({
+    val tmpLibName = "OpenComputersMod-" + OpenComputers.Version + "-" + libraryName
+    val tmpBasePath = if (Settings.get.nativeInTmpDir) {
       val path = System.getProperty("java.io.tmpdir")
-      if (path.endsWith("/") || path.endsWith("\\")) path
+      if (path == null) ""
+      else if (path.endsWith("/") || path.endsWith("\\")) path
       else path + "/"
-    } + "OpenComputersMod-" + OpenComputers.Version + "-" + libraryName)
+    }
+    else ""
+    val tmpLibFile = new File(tmpBasePath + tmpLibName)
 
     // If the file, already exists, make sure it's the same we need, if it's
     // not disable use of the natives.

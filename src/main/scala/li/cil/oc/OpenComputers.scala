@@ -28,7 +28,7 @@ object OpenComputers {
 
   final val Fingerprint = "@FINGERPRINT@"
 
-  val log = Logger.getLogger("OpenComputers")
+  var log = Logger.getLogger("OpenComputers")
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null
@@ -39,7 +39,10 @@ object OpenComputers {
   //  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
 
   @EventHandler
-  def preInit(e: FMLPreInitializationEvent) = proxy.preInit(e)
+  def preInit(e: FMLPreInitializationEvent) {
+    proxy.preInit(e)
+    log = e.getModLog
+  }
 
   @EventHandler
   def init(e: FMLInitializationEvent) = proxy.init(e)
