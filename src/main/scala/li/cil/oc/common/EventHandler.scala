@@ -169,7 +169,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
     if (!e.world.isRemote) {
       import scala.collection.convert.WrapAsScala._
       e.world.loadedTileEntityList.collect {
-        case te: tileentity.traits.TileEntity => te.onChunkUnload()
+        case te: tileentity.traits.TileEntity => te.dispose()
       }
     }
   }

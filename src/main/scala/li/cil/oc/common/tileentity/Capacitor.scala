@@ -15,7 +15,7 @@ class Capacitor extends traits.Environment {
 
   override def canUpdate = false
 
-  override protected def dispose() {
+  override def dispose() {
     super.dispose()
     if (isServer) {
       indirectNeighbors.map(coordinate => {

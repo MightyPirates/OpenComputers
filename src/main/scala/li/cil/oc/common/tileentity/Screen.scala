@@ -232,7 +232,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
   }
 
-  override protected def dispose() {
+  override def dispose() {
     super.dispose()
     screens.clone().foreach(_.checkMultiBlock())
   }

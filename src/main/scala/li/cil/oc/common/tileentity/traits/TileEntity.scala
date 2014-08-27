@@ -51,7 +51,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   protected def initialize() {}
 
-  protected def dispose() {
+  def dispose() {
     if (isClient) {
       // Note: chunk unload is handled by sound via event handler.
       Sound.stopLoop(this)

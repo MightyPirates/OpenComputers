@@ -302,7 +302,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     }
   }
 
-  override protected def dispose() {
+  override def dispose() {
     super.dispose()
     if (isClient) {
       Minecraft.getMinecraft.currentScreen match {
