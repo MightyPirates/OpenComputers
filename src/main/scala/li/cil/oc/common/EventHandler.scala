@@ -148,7 +148,7 @@ object EventHandler {
     if (!e.world.isRemote) {
       import scala.collection.convert.WrapAsScala._
       e.world.loadedTileEntityList.collect {
-        case te: tileentity.traits.TileEntity => te.onChunkUnload()
+        case te: tileentity.traits.TileEntity => te.dispose()
       }
     }
   }

@@ -147,7 +147,7 @@ object ItemUtils {
     val names = try {
       Source.fromInputStream(getClass.getResourceAsStream(
         "/assets/" + Settings.resourceDomain + "/robot.names"))("UTF-8").
-        getLines().map(_.trim).filter(!_.startsWith("#")).filter(_ != "").toArray
+        getLines().map(_.takeWhile(_ != '#').trim()).filter(_ != "").toArray
     }
     catch {
       case t: Throwable =>

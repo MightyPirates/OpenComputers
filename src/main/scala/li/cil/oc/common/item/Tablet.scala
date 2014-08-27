@@ -230,24 +230,23 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
 
   private var currentHolder: Entity = _
 
-  def get(stack: ItemStack, holder: Entity) = (if (holder.worldObj.isRemote) clientCache else serverCache).synchronized {
-    currentStack = stack
-    currentHolder = holder
-    if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound())
+  def get(stack: ItemStack, holder: Entity) = {
+    val cache = if (holder.worldObj.isRemote) clientCache else serverCache
+    cache.synchronized {
+      currentStack = stack
+      currentHolder = holder
+      if (!stack.hasTagCompound) {
+        stack.setTagCompound(new NBTTagCompound())
+      }
+      if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
+        stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
+      }
+      val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+      val wrapper = cache.get(id, this)
+      wrapper.stack = stack
+      wrapper.holder = holder
+      wrapper
     }
-    if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-      stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
-    }
-    val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
-    val wrapper =
-      if (holder.worldObj.isRemote)
-        clientCache.get(id, this)
-      else
-        serverCache.get(id, this)
-    wrapper.stack = stack
-    wrapper.holder = holder
-    wrapper
   }
 
   def call = {
@@ -266,18 +265,22 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
-    clientCache.invalidateAll()
-    clientCache.cleanUp()
-    serverCache.invalidateAll()
-    serverCache.cleanUp()
+    clientCache.synchronized {
+      clientCache.invalidateAll()
+      clientCache.cleanUp()
+    }
+    serverCache.synchronized {
+      serverCache.invalidateAll()
+      serverCache.cleanUp()
+    }
   }
 
   @SubscribeEvent
   def onClientTick(e: ClientTickEvent) {
-    clientCache.cleanUp()
+    clientCache.synchronized(clientCache.cleanUp())
   }
 
   def onServerTick(e: ServerTickEvent) {
-    serverCache.cleanUp()
+    serverCache.synchronized(serverCache.cleanUp())
   }
 }

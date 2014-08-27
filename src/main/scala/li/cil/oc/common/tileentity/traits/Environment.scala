@@ -40,7 +40,7 @@ trait Environment extends TileEntity with network.Environment with driver.Contai
     }
   }
 
-  override protected def dispose() {
+  override def dispose() {
     super.dispose()
     if (isServer) {
       Option(node).foreach(_.remove)

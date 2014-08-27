@@ -97,10 +97,10 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     }
   }
 
-  override protected def dispose() {
+  override def dispose() {
     super.dispose()
     if (robot.proxy == this) {
-      robot.onChunkUnload()
+      robot.dispose()
     }
   }
 

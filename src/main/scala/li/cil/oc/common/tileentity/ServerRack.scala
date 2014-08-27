@@ -270,7 +270,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }
   }
 
-  override protected def dispose() {
+  override def dispose() {
     super.dispose()
     if (isClient) {
       ServerRack.list -= this
