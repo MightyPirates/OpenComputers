@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import com.google.common.base.Strings
+import com.google.common.base.{Charsets, Strings}
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
@@ -146,7 +146,7 @@ object ItemUtils {
   object RobotData {
     val names = try {
       Source.fromInputStream(getClass.getResourceAsStream(
-        "/assets/" + Settings.resourceDomain + "/robot.names"))("UTF-8").
+        "/assets/" + Settings.resourceDomain + "/robot.names"))(Charsets.UTF_8).
         getLines().map(_.takeWhile(_ != '#').trim()).filter(_ != "").toArray
     }
     catch {

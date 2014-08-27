@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.font
 
+import com.google.common.base.Charsets
 import li.cil.oc.client.Textures
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
@@ -14,7 +15,7 @@ import scala.io.Source
  */
 class StaticFontRenderer extends TextureFontRenderer {
   protected val (chars, charWidth, charHeight) = try {
-    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "textures/font/chars.txt")).getInputStream)("UTF-8").getLines()
+    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "textures/font/chars.txt")).getInputStream)(Charsets.UTF_8).getLines()
     val chars = lines.next()
     val (w, h) = if (lines.hasNext) {
       val size = lines.next().split(" ", 2)

@@ -6,12 +6,11 @@ import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.api.{Items, network}
-import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.block.{Cable, Delegator}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api, common}
+import li.cil.oc.{Settings, api, client, common}
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -126,16 +125,15 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends DelegateP
   override def renderStatic(pos: Vector3, pass: Int) = {
     val (x, y, z) = (pos.x.toInt, pos.y.toInt, pos.z.toInt)
     val block = api.Items.get("cable").block()
-    val metadata = world.getBlockMetadata(x, y, z)
     val renderer = RenderBlocks.getInstance
     renderer.blockAccess = world
     block match {
       case delegator: Delegator[_] =>
         delegator.colorMultiplierOverride = Some(_color)
-        BlockRenderer.renderCable(Cable.neighbors(world, x, y, z), block, metadata, x, y, z, renderer)
+        client.renderer.block.Cable.render(world, x, y, z, block, renderer)
         delegator.colorMultiplierOverride = None
       case _ =>
-        BlockRenderer.renderCable(Cable.neighbors(world, x, y, z), block, metadata, x, y, z, renderer)
+        client.renderer.block.Cable.render(world, x, y, z, block, renderer)
     }
     true
   }

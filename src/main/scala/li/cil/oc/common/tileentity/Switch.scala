@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import com.google.common.base.Charsets
 import cpw.mods.fml.common.Optional
 import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
@@ -92,7 +93,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
       val address = s"cc${computer.getID}_${computer.getAttachmentName}"
       if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
         computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-          case x: Array[Byte] => new String(x, "UTF-8")
+          case x: Array[Byte] => new String(x, Charsets.UTF_8)
           case x => x
         }: _*))
     }
