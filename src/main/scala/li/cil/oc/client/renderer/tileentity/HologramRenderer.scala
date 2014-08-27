@@ -12,6 +12,7 @@ import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
+import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.{GL11, GL15}
 
@@ -70,6 +71,19 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+
+    hologram.yaw match {
+      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case _ => // No yaw.
+    }
+    hologram.pitch match {
+      case ForgeDirection.DOWN => GL11.glRotatef(90, 1, 0, 0)
+      case ForgeDirection.UP => GL11.glRotatef(-90, 1, 0, 0)
+      case _ => // No pitch.
+    }
+
     GL11.glScaled(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
     GL11.glTranslated(-1.5 * hologram.scale, 0, -1.5 * hologram.scale)
 
