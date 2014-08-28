@@ -4,9 +4,11 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.Tier
 import li.cil.oc.common.container.{ComponentSlot, Player}
 import li.cil.oc.util.RenderState
+import li.cil.oc.util.mods.NEI
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.inventory.{Container, Slot}
+import net.minecraft.item.ItemStack
 import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
@@ -14,6 +16,8 @@ import scala.collection.convert.WrapAsScala._
 
 abstract class DynamicGuiContainer(container: Container) extends CustomGuiContainer(container) {
   protected var hoveredSlot: Option[Slot] = None
+
+  protected var hoveredStackNEI: Option[ItemStack] = None
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(
@@ -30,6 +34,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     hoveredSlot = (inventorySlots.inventorySlots collect {
       case slot: Slot if isPointInRegion(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, mouseX, mouseY) => slot
     }).headOption
+    hoveredStackNEI = NEI.hoveredStack(this, mouseX, mouseY)
     super.drawScreen(mouseX, mouseY, dt)
   }
 
@@ -59,20 +64,27 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
           case _ =>
         }
 
-        if (mc.thePlayer.inventory.getItemStack == null) hoveredSlot.foreach(hovered => {
+        if (mc.thePlayer.inventory.getItemStack == null) {
           val currentIsInPlayerInventory = isInPlayerInventory(slot)
-          val hoveredIsInPlayerInventory = isInPlayerInventory(hovered)
-          if (currentIsInPlayerInventory != hoveredIsInPlayerInventory) {
-            if ((currentIsInPlayerInventory && slot.getHasStack && hovered.isItemValid(slot.getStack)) ||
-              (hoveredIsInPlayerInventory && hovered.getHasStack && slot.isItemValid(hovered.getStack))) {
-              GL11.glDisable(GL11.GL_DEPTH_TEST)
-              GL11.glDisable(GL11.GL_LIGHTING)
-              drawGradientRect(slot.xDisplayPosition, slot.yDisplayPosition, slot.xDisplayPosition + 16, slot.yDisplayPosition + 16, 0x80FFFFFF, 0x80FFFFFF)
-              GL11.glEnable(GL11.GL_LIGHTING)
-              GL11.glEnable(GL11.GL_DEPTH_TEST)
+          val drawHighlight = hoveredSlot match {
+            case Some(hovered) =>
+              val hoveredIsInPlayerInventory = isInPlayerInventory(hovered)
+              (currentIsInPlayerInventory != hoveredIsInPlayerInventory) &&
+                ((currentIsInPlayerInventory && slot.getHasStack && hovered.isItemValid(slot.getStack)) ||
+                  (hoveredIsInPlayerInventory && hovered.getHasStack && slot.isItemValid(hovered.getStack)))
+            case _ => hoveredStackNEI match {
+              case Some(stack) => !currentIsInPlayerInventory && slot.isItemValid(stack)
+              case _ => false
             }
           }
-        })
+          if (drawHighlight) {
+            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            GL11.glDisable(GL11.GL_LIGHTING)
+            drawGradientRect(slot.xDisplayPosition, slot.yDisplayPosition, slot.xDisplayPosition + 16, slot.yDisplayPosition + 16, 0x80FFFFFF, 0x80FFFFFF)
+            GL11.glEnable(GL11.GL_LIGHTING)
+            GL11.glEnable(GL11.GL_DEPTH_TEST)
+          }
+        }
     }
   }
 
