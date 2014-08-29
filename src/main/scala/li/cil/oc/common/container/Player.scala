@@ -2,6 +2,7 @@ package li.cil.oc.common.container
 
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
+import li.cil.oc.common.Tier
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.{Container, ICrafting, IInventory, Slot}
@@ -90,9 +91,14 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier))
   }
 
-  def addSlotToContainer(x: Int, y: Int, info: Array[Array[InventorySlot]], tierGetter: () => Int) {
+  def addSlotToContainer(x: Int, y: Int, info: Array[Array[InventorySlot]], containerTierGetter: () => Int) {
     val index = inventorySlots.size
-    addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, info, tierGetter))
+    addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, slot => info(slot.containerTierGetter())(slot.getSlotIndex), containerTierGetter))
+  }
+
+  def addSlotToContainer(x: Int, y: Int, info: DynamicComponentSlot => InventorySlot) {
+    val index = inventorySlots.size
+    addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, info, () => Tier.One))
   }
 
   /** Render player inventory at the specified coordinates. */

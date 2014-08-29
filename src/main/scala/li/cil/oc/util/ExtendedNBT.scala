@@ -33,6 +33,24 @@ object ExtendedNBT {
     nbt
   }
 
+  implicit def toNbt(value: Map[String, _]): NBTTagCompound = {
+    val nbt = new NBTTagCompound()
+    for ((key, value) <- value) value match {
+      case value: Byte => nbt.setTag(key, value)
+      case value: Short => nbt.setTag(key, value)
+      case value: Int => nbt.setTag(key, value)
+      case value: Array[Int] => nbt.setTag(key, value)
+      case value: Long => nbt.setTag(key, value)
+      case value: Float => nbt.setTag(key, value)
+      case value: Double => nbt.setTag(key, value)
+      case value: Array[Byte] => nbt.setTag(key, value)
+      case value: String => nbt.setTag(key, value)
+      case value: ItemStack => nbt.setTag(key, value)
+      case _ =>
+    }
+    nbt
+  }
+
   implicit def byteIterableToNbt(value: Iterable[Byte]) = value.map(toNbt)
 
   implicit def shortIterableToNbt(value: Iterable[Short]) = value.map(toNbt)

@@ -1,13 +1,10 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.UpgradeContainer
 import li.cil.oc.api.network._
-import li.cil.oc.common.{InventorySlots, Slot, Tier}
+import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.{Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -19,7 +16,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
     withConnector(Settings.get.bufferConverter).
     create()
 
-  var robot: Option[ItemStack] = None
+  var output: Option[ItemStack] = None
 
   var totalRequiredEnergy = 0.0
 
@@ -45,61 +42,41 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   // ----------------------------------------------------------------------- //
 
-  def complexity = items.drop(1).foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack.orNull)) match {
-    case Some(driver: UpgradeContainer) => (1 + driver.tier(stack.get)) * 2
-    case Some(driver) => 1 + driver.tier(stack.get)
-    case _ => 0
-  }))
-
-  def maxComplexity = {
-    val caseTier = ItemUtils.caseTier(items(0).orNull)
-    if (caseTier >= 0) Settings.robotComplexityByTier(caseTier) else 0
-  }
-
   def start(finishImmediately: Boolean = false): Boolean = this.synchronized {
-    if (!isAssembling && robot.isEmpty && complexity <= maxComplexity) {
-      for (slot <- 0 until getSizeInventory) {
-        val stack = getStackInSlot(slot)
-        if (stack != null && !isItemValidForSlot(slot, stack)) return false
-      }
-      val data = new ItemUtils.RobotData()
-      data.tier = ItemUtils.caseTier(items(0).get)
-      data.name = ItemUtils.RobotData.randomName
-      data.robotEnergy = 50000
-      data.totalEnergy = data.robotEnergy
-      data.containers = items.take(4).drop(1).collect {
-        case Some(item) => item
-      }
-      data.components = items.drop(4).collect {
-        case Some(item) => item
-      }
-      val stack = api.Items.get("robot").createItemStack(1)
-      data.save(stack)
-      robot = Some(stack)
-      if (finishImmediately || data.tier == Tier.Four) {
-        // Creative tier, finish instantly.
-        totalRequiredEnergy = 0
-      }
-      else {
-        totalRequiredEnergy = math.max(1, Settings.get.robotBaseCost + complexity * Settings.get.robotComplexityCost)
-      }
-      requiredEnergy = totalRequiredEnergy
-      ServerPacketSender.sendRobotAssembling(this, assembling = true)
+    AssemblerTemplates.select(getStackInSlot(0)) match {
+      case Some(template) if !isAssembling && output.isEmpty && template.validate(this)._1 =>
+        for (slot <- 0 until getSizeInventory) {
+          val stack = getStackInSlot(slot)
+          if (stack != null && !isItemValidForSlot(slot, stack)) return false
+        }
+        val (stack, energy) = template.assemble(this)
+        output = Some(stack)
+        if (finishImmediately) {
+          totalRequiredEnergy = 0
+        }
+        else {
+          totalRequiredEnergy = math.max(1, energy)
+        }
+        requiredEnergy = totalRequiredEnergy
+        ServerPacketSender.sendRobotAssembling(this, assembling = true)
 
-      for (slot <- 0 until getSizeInventory) items(slot) = None
-      markDirty()
+        for (slot <- 0 until getSizeInventory) items(slot) = None
+        markDirty()
 
-      true
+        true
+      case _ => false
     }
-    else false
   }
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(doc = """function(): string, number[, number] -- The current state of the assember, `busy' or `idle', followed by the progress or complexity and maximum complexity, respectively.""")
+  @Callback(doc = """function(): string, number or boolean -- The current state of the assembler, `busy' or `idle', followed by the progress or template validity, respectively.""")
   def status(context: Context, args: Arguments): Array[Object] = {
     if (isAssembling) result("busy", progress)
-    else result("idle", complexity, maxComplexity)
+    else AssemblerTemplates.select(getStackInSlot(0)) match {
+      case Some(template) if template.validate(this)._1 => result("idle", true)
+      case _ => result("idle", false)
+    }
   }
 
   @Callback(doc = """function():boolean -- Start assembling, if possible. Returns whether assembly was started or not.""")
@@ -111,25 +88,29 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   override def updateEntity() {
     super.updateEntity()
-    if (robot.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (output.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
       val success = Settings.get.ignorePower || node.tryChangeBuffer(-want)
       if (success) {
         requiredEnergy -= want
       }
       if (requiredEnergy <= 0) {
-        setInventorySlotContents(0, robot.get)
-        robot = None
+        setInventorySlotContents(0, output.get)
+        output = None
         requiredEnergy = 0
       }
-      ServerPacketSender.sendRobotAssembling(this, success && robot.isDefined)
+      ServerPacketSender.sendRobotAssembling(this, success && output.isDefined)
     }
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (nbt.hasKey(Settings.namespace + "robot")) {
-      robot = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "robot")))
+    if (nbt.hasKey(Settings.namespace + "output")) {
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
+    }
+    else if (nbt.hasKey(Settings.namespace + "robot")) {
+      // Backwards compatibility.
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "robot")))
     }
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
@@ -137,7 +118,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    robot.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "robot", stack.writeToNBT))
+    output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
     nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
     nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
   }
@@ -155,22 +136,22 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   // ----------------------------------------------------------------------- //
 
-  override def getSizeInventory = InventorySlots.assembler(0).length
+  override def getSizeInventory = 22
 
   override def getInventoryStackLimit = 1
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot == 0) {
-      !isAssembling && ItemUtils.caseTier(stack) != Tier.None
+      !isAssembling && AssemblerTemplates.select(stack).isDefined
     }
-    else {
-      val caseTier = ItemUtils.caseTier(items(0).orNull)
-      caseTier != Tier.None && {
-        val info = InventorySlots.assembler(caseTier)(slot)
-        Option(Driver.driverFor(stack)) match {
-          case Some(driver) if info.slot != Slot.None && info.tier != Tier.None => Slot.fromApi(driver.slot(stack)) == info.slot && driver.tier(stack) <= info.tier
-          case _ => false
-        }
-      }
+    else AssemblerTemplates.select(getStackInSlot(0)) match {
+      case Some(template) =>
+        val tplSlot =
+          if ((1 until 4) contains slot) template.containerSlots(slot - 1)
+          else if ((4 until 13) contains slot) template.upgradeSlots(slot - 4)
+          else if ((13 until 21) contains slot) template.componentSlots(slot - 13)
+          else AssemblerTemplates.NoSlot
+        tplSlot.validate(this, slot, stack)
+      case _ => false
     }
 }
