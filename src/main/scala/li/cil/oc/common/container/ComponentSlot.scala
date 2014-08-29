@@ -1,7 +1,7 @@
 package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.common.Tier
+import li.cil.oc.common
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
@@ -21,7 +21,7 @@ trait ComponentSlot extends Slot {
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def func_111238_b() = tier != Tier.None && super.func_111238_b()
+  override def func_111238_b() = slot != common.Slot.None && tier != common.Tier.None && super.func_111238_b()
 
   override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(getSlotIndex, stack)
 
