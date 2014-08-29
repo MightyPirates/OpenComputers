@@ -10,6 +10,7 @@ import li.cil.oc.common.event._
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.server._
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.component.{Keyboard, machine}
@@ -115,6 +116,9 @@ class Proxy {
     OpenComputers.log.info("Initializing vanilla converters.")
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
+
+    OpenComputers.log.info("Initializing assembler templates.")
+    RobotTemplate.register()
 
     OpenComputers.log.info("Initializing loot disks.")
     Loot.init()

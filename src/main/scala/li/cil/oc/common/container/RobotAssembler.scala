@@ -2,11 +2,12 @@ package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.gui.Icons
+import li.cil.oc.common.InventorySlots.InventorySlot
+import li.cil.oc.common.template.AssemblerTemplates
+import li.cil.oc.common.tileentity
+import li.cil.oc.util.SideTracker
 import li.cil.oc.{Settings, common}
-import li.cil.oc.common.{InventorySlots, tileentity}
-import li.cil.oc.util.{ItemUtils, SideTracker}
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Slot
 
 class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity.RobotAssembler) extends Player(playerInventory, assembler) {
   // Computer case.
@@ -20,34 +21,46 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     })
   }
 
-  def caseTier = ItemUtils.caseTier(inventorySlots.get(0).asInstanceOf[Slot].getStack)
+  private def slotInfo(slot: DynamicComponentSlot) = {
+    AssemblerTemplates.select(getSlot(0).getStack) match {
+      case Some(template) =>
+        val index = slot.getSlotIndex
+        val tplSlot =
+          if ((1 until 4) contains index) template.containerSlots(index - 1)
+          else if ((4 until 13) contains index) template.upgradeSlots(index - 4)
+          else if ((13 until 21) contains index) template.componentSlots(index - 13)
+          else AssemblerTemplates.NoSlot
+        new InventorySlot(tplSlot.kind, tplSlot.tier)
+      case _ => new InventorySlot(common.Slot.None, common.Tier.None)
+    }
+  }
 
   // Component containers.
   for (i <- 0 until 3) {
-    addSlotToContainer(34 + i * slotSize, 70, InventorySlots.assembler, () => caseTier)
+    addSlotToContainer(34 + i * slotSize, 70, slotInfo _)
   }
 
   // Components.
   for (i <- 0 until 9) {
-    addSlotToContainer(34 + (i % 3) * slotSize, 12 + (i / 3) * slotSize, InventorySlots.assembler, () => caseTier)
+    addSlotToContainer(34 + (i % 3) * slotSize, 12 + (i / 3) * slotSize, slotInfo _)
   }
 
   // Cards.
   for (i <- 0 until 3) {
-    addSlotToContainer(104, 12 + i * slotSize, InventorySlots.assembler, () => caseTier)
+    addSlotToContainer(104, 12 + i * slotSize, slotInfo _)
   }
 
   // CPU.
-  addSlotToContainer(126, 12, InventorySlots.assembler, () => caseTier)
+  addSlotToContainer(126, 12, slotInfo _)
 
   // RAM.
   for (i <- 0 until 2) {
-    addSlotToContainer(126, 30 + i * slotSize, InventorySlots.assembler, () => caseTier)
+    addSlotToContainer(126, 30 + i * slotSize, slotInfo _)
   }
 
   // Floppy + HDDs.
   for (i <- 0 until 3) {
-    addSlotToContainer(148, 12 + i * slotSize, InventorySlots.assembler, () => caseTier)
+    addSlotToContainer(148, 12 + i * slotSize, slotInfo _)
   }
 
   // Show the player's inventory.
