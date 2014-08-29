@@ -79,7 +79,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
   protected def drawSlotHighlight(slot: Slot) {
     slot match {
-      case component: ComponentSlot if component.tier == Tier.None => // Ignore.
+      case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None => // Ignore.
       case _ =>
         if (mc.thePlayer.inventory.getItemStack == null) {
           val currentIsInPlayerInventory = isInPlayerInventory(slot)
