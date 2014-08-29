@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack
 object Slot {
   val None = "none"
 
+  val Any = "any"
   val Card = "card"
   val ComponentBus = "component_bus"
   val Container = "container"

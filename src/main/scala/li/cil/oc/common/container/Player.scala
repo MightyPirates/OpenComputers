@@ -86,7 +86,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     }
   }
 
-  def addSlotToContainer(x: Int, y: Int, slot: String = common.Slot.None, tier: Int = common.Tier.Any) {
+  def addSlotToContainer(x: Int, y: Int, slot: String = common.Slot.Any, tier: Int = common.Tier.Any) {
     val index = inventorySlots.size
     addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier))
   }

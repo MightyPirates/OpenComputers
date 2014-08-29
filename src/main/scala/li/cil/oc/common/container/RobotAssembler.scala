@@ -13,7 +13,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   // Computer case.
   {
     val index = inventorySlots.size
-    addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, common.Slot.None, common.Tier.Any) {
+    addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, 12, 12, common.Slot.Any, common.Tier.Any) {
       @SideOnly(Side.CLIENT) override
       def func_111238_b() = !isAssembling && super.func_111238_b()
 
