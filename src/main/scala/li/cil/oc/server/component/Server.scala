@@ -58,7 +58,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
 
   def hasCPU = inventory.items.exists {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => Slot.fromApi(driver.slot(stack)) == Slot.CPU
+      case Some(driver) => Slot(driver, stack) == Slot.CPU
       case _ => false
     }
     case _ => false

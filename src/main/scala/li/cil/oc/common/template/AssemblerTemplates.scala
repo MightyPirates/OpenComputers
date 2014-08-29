@@ -60,17 +60,15 @@ object AssemblerTemplates {
     def validate(inventory: IInventory, slot: Int, stack: ItemStack) = validator match {
       case Some(method) => tryInvokeStatic(method, inventory, slot.underlying(), stack)(false)
       case _ => Option(api.Driver.driverFor(stack)) match {
-        case Some(driver) => validateInternal(stack, driver) && Slot.fromApi(driver.slot(stack)) == kind
+        case Some(driver) => Slot(driver, stack) == kind && driver.tier(stack) <= tier
         case _ => false
       }
     }
-
-    protected def validateInternal(stack: ItemStack, driver: api.driver.Item) = driver.tier(stack) <= tier
   }
 
   private def parseSlot(kindOverride: Option[String] = None)(nbt: NBTTagCompound) = {
     val kind = kindOverride.getOrElse(if (nbt.hasKey("type")) nbt.getString("type") else Slot.None)
-    val tier = if (nbt.hasKey("tier")) nbt.getInteger("tier") else Tier.None
+    val tier = if (nbt.hasKey("tier")) nbt.getInteger("tier") else Tier.Any
     val validator = if (nbt.hasKey("validator")) Option(getStaticMethod(nbt.getString("validator"), classOf[ItemStack], classOf[Int], classOf[ItemStack])) else None
     new Slot(kind, tier, validator)
   }

@@ -157,14 +157,14 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
 
   private def updateLimits(slot: Int, stack: ItemStack) {
     Driver.driverFor(stack) match {
-      case driver if Slot.fromApi(driver.slot(stack)) == Slot.CPU =>
+      case driver if Slot(driver, stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
-      case driver if Slot.fromApi(driver.slot(stack)) == Slot.Memory =>
+      case driver if Slot(driver, stack) == Slot.Memory =>
         relayAmount = math.max(1, relayBaseAmount + (Items.multi.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         }))
-      case driver if Slot.fromApi(driver.slot(stack)) == Slot.HDD =>
+      case driver if Slot(driver, stack) == Slot.HDD =>
         maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
     }
   }
@@ -172,9 +172,9 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
     Driver.driverFor(stack) match {
-      case driver if Slot.fromApi(driver.slot(stack)) == Slot.CPU => relayDelay = relayBaseDelay
-      case driver if Slot.fromApi(driver.slot(stack)) == Slot.Memory => relayAmount = relayBaseAmount
-      case driver if Slot.fromApi(driver.slot(stack)) == Slot.HDD => maxQueueSize = queueBaseSize
+      case driver if Slot(driver, stack) == Slot.CPU => relayDelay = relayBaseDelay
+      case driver if Slot(driver, stack) == Slot.Memory => relayAmount = relayBaseAmount
+      case driver if Slot(driver, stack) == Slot.HDD => maxQueueSize = queueBaseSize
     }
   }
 
@@ -183,7 +183,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack)).fold(false)(driver => {
       val provided = InventorySlots.switch(slot)
-      Slot.fromApi(driver.slot(stack)) == provided.slot && driver.tier(stack) <= provided.tier
+      Slot(driver, stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
 
   // ----------------------------------------------------------------------- //

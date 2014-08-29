@@ -1,7 +1,7 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.Tier
+import li.cil.oc.common
 import li.cil.oc.common.container.{ComponentSlot, Player}
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.NEI
@@ -40,7 +40,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
   override def drawSlotInventory(slot: Slot) {
     slot match {
-      case component: ComponentSlot if component.tier == Tier.None => // Ignore.
+      case component: ComponentSlot if component.tier == common.Tier.None || component.slot == common.Slot.None => // Ignore.
       case _ =>
         if (!isInPlayerInventory(slot)) {
           GL11.glDisable(GL11.GL_DEPTH_TEST)

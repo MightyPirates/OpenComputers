@@ -1,5 +1,8 @@
 package li.cil.oc.common
 
+import li.cil.oc.api
+import net.minecraft.item.ItemStack
+
 object Slot {
   val None = "none"
 
@@ -15,7 +18,7 @@ object Slot {
 
   val All = Array(Card, ComponentBus, Container, CPU, Floppy, HDD, Memory, Tool, Upgrade)
 
-  def fromApi(slotType: li.cil.oc.api.driver.Slot) = slotType match {
+  def apply(driver: api.driver.Item, stack: ItemStack, f: Option[ItemStack => api.driver.Slot] = scala.None) = f.getOrElse(driver.slot _)(stack) match {
     case li.cil.oc.api.driver.Slot.Card => Card
     case li.cil.oc.api.driver.Slot.Disk => Floppy
     case li.cil.oc.api.driver.Slot.HardDiskDrive => HDD
@@ -24,6 +27,9 @@ object Slot {
     case li.cil.oc.api.driver.Slot.Tool => Tool
     case li.cil.oc.api.driver.Slot.Upgrade => Upgrade
     case li.cil.oc.api.driver.Slot.UpgradeContainer => Container
-    case _ => None
+    case _ =>
+      val descriptor = api.Items.get(stack)
+      if (descriptor == api.Items.get("componentBus1") || descriptor == api.Items.get("componentBus2") || descriptor == api.Items.get("componentBus3")) ComponentBus
+      else None
   }
 }
