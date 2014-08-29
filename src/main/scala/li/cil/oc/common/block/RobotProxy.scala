@@ -175,7 +175,6 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
         robot.info.load(stack)
         robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
         robot.updateInventorySize()
-        robot.updateMaxComponentCount()
       case _ =>
     }
   }

@@ -89,7 +89,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
 
   var globalBuffer, globalBufferSize = 0.0
 
-  var maxComponents = 0
+  val maxComponents = 32
 
   var owner = "OpenComputers"
 
@@ -320,7 +320,6 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     info.load(nbt)
 
     updateInventorySize()
-    updateMaxComponentCount()
     computer.architecture.recomputeMemory()
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
@@ -465,7 +464,6 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   override def markDirty() {
     super.markDirty()
     updateInventorySize()
-    updateMaxComponentCount()
     renderingErrored = false
   }
 
@@ -546,14 +544,6 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     case _ => 0
   })))
 
-  private def computeMaxComponents() = (containerSlots ++ componentSlots).foldLeft(0)((sum, slot) => sum + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.Processor) => driver.supportedComponents(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
   private var updatingInventorySize = false
 
   def updateInventorySize() = this.synchronized(if (!updatingInventorySize) try {
@@ -586,10 +576,6 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   finally {
     updatingInventorySize = false
   })
-
-  def updateMaxComponentCount() {
-    maxComponents = computeMaxComponents()
-  }
 
   // ----------------------------------------------------------------------- //
 
