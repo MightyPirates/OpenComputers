@@ -260,6 +260,7 @@ object RobotTemplate {
     for (slot <- 1 until inventory.getSizeInventory) {
       val stack = inventory.getStackInSlot(slot)
       acc += (Option(api.Driver.driverFor(stack)) match {
+        case Some(driver: Processor) => 0 // CPUs are exempt, since they control the limit.
         case Some(driver: UpgradeContainer) => (1 + driver.tier(stack)) * 2
         case Some(driver) => 1 + driver.tier(stack)
         case _ => 0
@@ -270,6 +271,16 @@ object RobotTemplate {
 
   private def maxComplexity(inventory: IInventory) = {
     val caseTier = ItemUtils.caseTier(inventory.getStackInSlot(0))
-    if (caseTier >= 0) Settings.robotComplexityByTier(caseTier) else 0
+    val cpuTier = (0 until inventory.getSizeInventory).foldRight(0)((slot, acc) => {
+      val stack = inventory.getStackInSlot(slot)
+      acc + (api.Driver.driverFor(stack) match {
+        case processor: Processor => processor.tier(stack)
+        case _ => 0
+      })
+    })
+    if (caseTier >= Tier.One && cpuTier >= Tier.One) {
+      Settings.robotComplexityByTier(caseTier) - (caseTier - cpuTier) * 6
+    }
+    else 0
   }
 }
