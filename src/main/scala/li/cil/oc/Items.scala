@@ -246,7 +246,7 @@ object Items extends ItemAPI {
     // 1.3.2
     Recipes.addItem(new item.UpgradeTractorBeam(multi), "tractorBeamUpgrade", "oc:tractorBeamUpgrade")
 
-    // Experimental
+    // 1.3.?
     registerItem(new item.Tablet(multi), "tablet")
 
     // 1.3.2 (cont.)
@@ -257,5 +257,8 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.ComponentBus(multi, Tier.Two), "componentBus2", "oc:componentBus2")
     Recipes.addItem(new item.ComponentBus(multi, Tier.Three), "componentBus3", "oc:componentBus3")
     registerItem(new item.DebugCard(multi), "debugCard")
+
+    // 1.3.?
+    registerItem(new item.TabletCase(multi), "tabletCase")
   }
 }

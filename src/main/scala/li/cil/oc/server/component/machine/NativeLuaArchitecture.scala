@@ -258,7 +258,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     }
     catch {
       case e: LuaRuntimeException =>
-       OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+        OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
       case e: LuaGcMetamethodException =>
         if (e.getMessage != null) new ExecutionResult.Error("kernel panic:\n" + e.getMessage)
@@ -317,6 +317,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   override def load(nbt: NBTTagCompound) {
     bootAddress = nbt.getString("bootAddress")
 
+    if (!machine.isRunning) return
+
     // Unlimit memory use while unpersisting.
     if (Settings.get.limitMemory) {
       lua.setTotalMemory(Integer.MAX_VALUE)
@@ -354,10 +356,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           machine.crash("error in garbage collector, most likely __gc method timed out")
       }
     } catch {
-      case e: LuaRuntimeException =>
-        OpenComputers.log.warning(s"Could not unpersist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
-        machine.stop()
-        machine.start()
+      case e: LuaRuntimeException => throw new Exception(e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")), e)
     }
 
     // Limit memory again.

@@ -250,7 +250,7 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
-  val robotComplexityByTier = Array(12, 24, 32, 9001)
+  val deviceComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId = -1
 

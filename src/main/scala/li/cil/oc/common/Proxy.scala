@@ -10,7 +10,7 @@ import li.cil.oc.common.event._
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.template.RobotTemplate
+import li.cil.oc.common.template.{RobotTemplate, TabletTemplate}
 import li.cil.oc.server._
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.component.{Keyboard, machine}
@@ -119,6 +119,7 @@ class Proxy {
 
     OpenComputers.log.info("Initializing assembler templates.")
     RobotTemplate.register()
+    TabletTemplate.register()
 
     OpenComputers.log.info("Initializing loot disks.")
     Loot.init()
