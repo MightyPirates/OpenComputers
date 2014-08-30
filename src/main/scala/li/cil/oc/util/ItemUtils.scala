@@ -40,7 +40,7 @@ object ItemUtils {
   }
 
   class RobotData extends ItemData {
-    def this(stack: ItemStack) = {
+    def this(stack: ItemStack) {
       this()
       load(stack)
     }
@@ -159,7 +159,7 @@ object ItemUtils {
   }
 
   class NavigationUpgradeData extends ItemData {
-    def this(stack: ItemStack) = {
+    def this(stack: ItemStack) {
       this()
       load(stack)
     }
@@ -193,6 +193,37 @@ object ItemUtils {
       if (map != null) {
         nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
       }
+    }
+  }
+
+  class TabletData extends ItemData {
+    def this(stack: ItemStack) {
+      this()
+      load(stack)
+    }
+
+    var items = Array.fill[Option[ItemStack]](32)(None)
+
+    override def load(nbt: NBTTagCompound) {
+      nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((list, index) => {
+        val slotNbt = list.getCompoundTagAt(index)
+        val slot = slotNbt.getByte("slot")
+        if (slot >= 0 && slot < items.length) {
+          items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
+        }
+      })
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      nbt.setNewTagList(Settings.namespace + "items",
+        items.zipWithIndex collect {
+          case (Some(stack), slot) => (stack, slot)
+        } map {
+          case (stack, slot) =>
+            val slotNbt = new NBTTagCompound()
+            slotNbt.setByte("slot", slot.toByte)
+            slotNbt.setNewCompoundTag("item", stack.writeToNBT)
+        })
     }
   }
 

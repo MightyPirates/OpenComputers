@@ -626,10 +626,18 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error(s"""Unexpected error loading a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+        OpenComputers.log.error( s"""Unexpected error loading a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
+        close()
     }
-    else close() // Clean up in case we got a weird state stack.
+    else {
+      // Clean up in case we got a weird state stack.
+      close()
+
+      // Architectures must check for "isRunning" themselves, to get a chance
+      // to load data their APIs stored that should persist across runs.
+      architecture.load(nbt)
+    }
   }
 
   override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized {
@@ -693,7 +701,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error(s"""Unexpected error saving a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+        OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   }
