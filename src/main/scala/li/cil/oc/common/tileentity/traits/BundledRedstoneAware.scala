@@ -62,7 +62,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
       val ny = y + side.offsetY
       val nz = z + side.offsetZ
       world.getBlock(nx, ny, nz) match {
-        case block: IRedNetNetworkContainer => block.updateNetwork(world, nx, ny, nz)
+        case block: IRedNetNetworkContainer => block.updateNetwork(world, nx, ny, nz, side.getOpposite)
         case _ =>
       }
     }
@@ -165,7 +165,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
         val ny = y + side.offsetY
         val nz = z + side.offsetZ
         world.getBlock(nx, ny, nz) match {
-          case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
+          case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z, side.getOpposite)
           case _ =>
         }
       }

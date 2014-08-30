@@ -22,7 +22,8 @@ import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, StatCollector, V
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input
-import powercrystals.minefactoryreloaded.api.rednet.{IConnectableRedNet, IRedNetNetworkContainer, RedNetConnectionType}
+import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectionType
+import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, IRedNetOmniNode}
 
 import scala.collection.mutable
 
@@ -503,7 +504,7 @@ class SpecialDelegator extends Delegator[SpecialDelegate] {
 }
 
 @Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = Mods.IDs.MineFactoryReloaded)
-trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnectableRedNet {
+trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IRedNetOmniNode {
   override def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
 
   override def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
