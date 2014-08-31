@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity.traits
 import java.util.logging.Level
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.OpenComputers
+import li.cil.oc.{Settings, OpenComputers}
 import li.cil.oc.client.Sound
 import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
@@ -29,7 +29,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   override def updateEntity() {
     super.updateEntity()
-    if (world.getTotalWorldTime % 40 == 0 && block.getLightValue(world, x, y, z) > 0) {
+    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && block.getLightValue(world, x, y, z) > 0) {
       world.markBlockForUpdate(x, y, z)
     }
   }

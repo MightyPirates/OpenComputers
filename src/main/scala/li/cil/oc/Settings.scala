@@ -241,6 +241,7 @@ class Settings(config: Config) {
   val alwaysTryNative = config.getBoolean("debug.alwaysTryNative")
   val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
+  val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
 }
 
 object Settings {
