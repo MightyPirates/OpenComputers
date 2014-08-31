@@ -1,14 +1,18 @@
-compileScala {
-    repositories {
-        ivy {
-            name "forge-ext"
-            artifactPattern "http://files.minecraftforge.net/[module]/[module]-dev-[revision].[ext]"
-        }
+repositories {
+    ivy {
+        name "forge-ext"
+        artifactPattern "http://files.minecraftforge.net/[module]/[module]-dev-[revision].[ext]"
     }
-    dependencies {
-        compile name: 'CodeChickenLib', version: "${config.minecraft.version}-${config.ccl.version}", ext: 'jar'
-        compile name: 'ForgeMultipart', version: "${config.minecraft.version}-${config.fmp.version}", ext: 'jar'
+    maven {
+        name = "chickenbones"
+        url = "http://chickenbones.net/maven/"
     }
+}
+dependencies {
+    compile "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    compile "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
+    compile "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    compile "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
 }
 
 minecraft {
