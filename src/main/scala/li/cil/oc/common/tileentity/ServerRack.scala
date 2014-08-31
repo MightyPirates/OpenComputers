@@ -256,7 +256,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       isAbstractBusAvailable = hasAbstractBusCard
 
       servers collect {
-        case Some(server) => server.inventory.updateComponents()
+        case Some(server) =>
+          server.inventory.updateComponents()
+          terminals(server.number).buffer.update()
       }
     }
   }

@@ -33,7 +33,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   private var iconOff: Option[Icon] = None
 
   @SideOnly(Side.CLIENT)
-  override def icon(stack: ItemStack, pass: Int) = Tablet.get(stack) match {
+  override def icon(stack: ItemStack, pass: Int) = Tablet.Client.get(stack) match {
     case Some(wrapper) => if (wrapper.isRunning) iconOn else iconOff
     case _ => super.icon(stack, pass)
   }
@@ -57,11 +57,9 @@ class Tablet(val parent: Delegator) extends Delegate {
         Tablet.get(stack, player).start()
       }
     }
-    else if (!world.isRemote) {
-      Tablet.serverCache.synchronized {
-        Tablet.serverCache.invalidate(stack)
-        Tablet.serverCache.cleanUp()
-      }
+    else {
+      if (world.isRemote) Tablet.Client.remove(stack)
+      else Tablet.Server.remove(stack)
     }
     player.swingItem()
     stack
@@ -246,93 +244,114 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
   }
 }
 
-object Tablet extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
-  val clientCache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(10, TimeUnit.SECONDS).
-    removalListener(this).
-    asInstanceOf[CacheBuilder[String, TabletWrapper]].
-    build[String, TabletWrapper]()
-
-  val serverCache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(10, TimeUnit.SECONDS).
-    removalListener(this).
-    asInstanceOf[CacheBuilder[String, TabletWrapper]].
-    build[String, TabletWrapper]()
-
-  // To allow access in cache entry init.
-  private var currentStack: ItemStack = _
-
-  private var currentHolder: Entity = _
-
+object Tablet {
   def get(stack: ItemStack, holder: Entity) = {
-    currentStack = stack
-    currentHolder = holder
-    if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound())
-    }
-    if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-      stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
-    }
-    val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
-    val cache = if (holder.worldObj.isRemote) clientCache else serverCache
-    cache.synchronized {
-      val wrapper = cache.get(id, this)
-      wrapper.stack = stack
-      wrapper.holder = holder
-      wrapper
-    }
-  }
-
-  def get(stack: ItemStack) = {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-      val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
-      clientCache.synchronized(Option(clientCache.getIfPresent(id)))
-    }
-    else None
-  }
-
-  def call = {
-    new TabletWrapper(currentStack, currentHolder)
-  }
-
-  def onRemoval(e: RemovalNotification[String, TabletWrapper]) {
-    val tablet = e.getValue
-    if (tablet.node != null) {
-      // Server.
-      tablet.writeToNBT()
-      tablet.stop()
-      tablet.node.remove()
-    }
+    if (holder.worldObj.isRemote) Client.get(stack, holder)
+    else Server.get(stack, holder)
   }
 
   @SubscribeEvent
   def onWorldSave(e: WorldEvent.Save) {
-    serverCache.synchronized {
-      import scala.collection.convert.WrapAsScala._
-      for (tablet <- serverCache.asMap.values if tablet.world == e.world) {
-        tablet.writeToNBT()
-      }
-    }
+    Server.saveAll(e.world)
   }
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
-    clientCache.synchronized {
-      clientCache.invalidateAll()
-      clientCache.cleanUp()
-    }
-    serverCache.synchronized {
-      serverCache.invalidateAll()
-      serverCache.cleanUp()
-    }
+    Client.clear()
+    Server.clear()
   }
 
   @SubscribeEvent
   def onClientTick(e: ClientTickEvent) {
-    clientCache.synchronized(clientCache.cleanUp())
+    Client.cleanUp()
   }
 
+  @SubscribeEvent
   def onServerTick(e: ServerTickEvent) {
-    serverCache.synchronized(serverCache.cleanUp())
+    Server.cleanUp()
+  }
+
+  abstract class Cache extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
+    val cache = com.google.common.cache.CacheBuilder.newBuilder().
+      expireAfterAccess(10, TimeUnit.SECONDS).
+      removalListener(this).
+      asInstanceOf[CacheBuilder[String, TabletWrapper]].
+      build[String, TabletWrapper]()
+
+    // To allow access in cache entry init.
+    private var currentStack: ItemStack = _
+
+    private var currentHolder: Entity = _
+
+    def get(stack: ItemStack, holder: Entity) = {
+      if (!stack.hasTagCompound) {
+        stack.setTagCompound(new NBTTagCompound())
+      }
+      if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
+        stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
+      }
+      val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+      cache.synchronized {
+        currentStack = stack
+        currentHolder = holder
+        val wrapper = cache.get(id, this)
+        wrapper.stack = stack
+        wrapper.holder = holder
+        wrapper
+      }
+    }
+
+    def call = {
+      new TabletWrapper(currentStack, currentHolder)
+    }
+
+    def onRemoval(e: RemovalNotification[String, TabletWrapper]) {
+      val tablet = e.getValue
+      if (tablet.node != null) {
+        // Server.
+        tablet.writeToNBT()
+        tablet.stop()
+        tablet.node.remove()
+      }
+    }
+
+    def remove(stack: ItemStack) {
+      cache.synchronized {
+        cache.invalidate(stack)
+        cache.cleanUp()
+      }
+    }
+
+    def clear() {
+      cache.synchronized {
+        cache.invalidateAll()
+        cache.cleanUp()
+      }
+    }
+
+    def cleanUp() {
+      cache.synchronized(cache.cleanUp())
+    }
+  }
+
+  object Client extends Cache {
+    def get(stack: ItemStack) = {
+      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
+        val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+        cache.synchronized(Option(cache.getIfPresent(id)))
+      }
+      else None
+    }
+  }
+
+  object Server extends Cache {
+    def saveAll(world: World) {
+      cache.synchronized {
+        import scala.collection.convert.WrapAsScala._
+        for (tablet <- cache.asMap.values if tablet.world == world) {
+          tablet.writeToNBT()
+        }
+      }
+    }
   }
 }
