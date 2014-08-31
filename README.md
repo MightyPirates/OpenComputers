@@ -45,12 +45,12 @@ repositories {
     maven { url = "http://maven.cil.li/" }
 }
 dependencies {
-    compile group: 'li.cil.oc', name: 'OpenComputers', version: 'MC1.7.2-1.2.3.88', classifier: 'api'
+    compile group: 'li.cil.oc', name: 'OpenComputers', version: 'MC1.7.10-1.3.3.61', classifier: 'api'
 }
 ```
 Adjust the version number accordingly to the version you'd like to build against.
 
-To run the mod in your development environment, download the [`deobf` JAR from the build server][deobf-jar] and drop it into your dev env's `eclipse/mods` folder. **Important**: mark the `api/java/codechicken/lib/vec` folder as *excluded* in your IDE, to avoid issues when running/building the project in it.
+To run the mod in your development environment, download the [`deobf` JAR from the build server][deobf-jar] and drop it into your dev env's `eclipse/mods` folder.
 
 Alternatively, leave out the `api` classifier and you can build against the deobf JAR directly. This way you don't have to add it to your mods folder, but you will have to add `-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader` to the VM options in your run configuration.
 
@@ -69,7 +69,7 @@ to setup the workspace, including assets and such, then
 `gradlew idea`  
 to create an IntellJ IDEA project.
 
-Open the project and you will be asked to import the Gradle project (check your Event Log if you missed the pop-up). Do so.
+Open the project and you will be asked to import the Gradle project (check your Event Log if you missed the pop-up). Do so. This will configure additionally referenced libraries - at this point CodeChickenLib and ForgeMultipart. Since CCL adn such will download stuff again and you'll get conflicts otherwise, go into the project settings and mark CCL, FMP and NEI if you have it in your mods folder as "provided" (instead of the default, "compile").
 
 
 

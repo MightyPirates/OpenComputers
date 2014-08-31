@@ -358,7 +358,7 @@ rack {
           ["oc:switch", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]
 }
 redstone {
-  input: [[ingotIron, "oc:circuitChip2", ingotIron]
+  input: [[ingotIron, "oc:circuitChip3", ingotIron]
           [blockRedstone, "oc:redstoneCard1", blockRedstone]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }

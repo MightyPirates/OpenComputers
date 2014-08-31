@@ -31,8 +31,7 @@ object TabletTemplate extends Template {
   def assemble(inventory: IInventory): Array[AnyRef] = {
     val items = mutable.ArrayBuffer(
       Option(api.Items.get("screen1").createItemStack(1)),
-      Option(api.Items.get("keyboard").createItemStack(1)),
-      Option(api.Items.get("wlanCard").createItemStack(1))
+      Option(api.Items.get("keyboard").createItemStack(1))
     ) ++ (1 until inventory.getSizeInventory).map(slot => Option(inventory.getStackInSlot(slot)))
     val data = new ItemUtils.TabletData()
     data.items = items.filter(_.isDefined).toArray
@@ -56,7 +55,7 @@ object TabletTemplate extends Template {
 
     val componentSlots = new NBTTagList()
     componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
-    componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.One))
+    componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
     componentSlots.appendTag(new NBTTagCompound())
     componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Two))
     componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))

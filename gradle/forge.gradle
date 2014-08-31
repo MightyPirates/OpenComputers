@@ -7,10 +7,16 @@ repositories {
         name = "ue"
         url = "http://calclavia.com/maven/"
     }
+    maven {
+        name = "chickenbones"
+        url = "http://chickenbones.net/maven/"
+    }
 }
 dependencies {
-    compile "codechicken:CodeChickenLib:${config.cc.mc.version}-${config.ccl.version}:dev"
-    compile "codechicken:ForgeMultipart:${config.cc.mc.version}-${config.fmp.version}:dev"
+    compile "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    compile "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
+    compile "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    compile "codechicken:WR-CBE:1.6.4-${config.wrcbe.version}:dev"
     compile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
     compile "dev.calclavia.universalelectricity:universal-electricity:+:dev"
 }

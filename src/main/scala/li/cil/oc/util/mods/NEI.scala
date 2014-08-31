@@ -1,32 +1,21 @@
 package li.cil.oc.util.mods
 
+import codechicken.nei.LayoutManager
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.item.ItemStack
 
 object NEI {
-  private lazy val (layoutManagerClass, getInstance, getStackUnderMouse) = try {
-    val layoutManager = Class.forName("codechicken.nei.LayoutManager")
-    val getInstance = layoutManager.getMethod("instance")
-    val getStackUnderMouse = layoutManager.getMethod("getStackUnderMouse", classOf[GuiContainer], classOf[Int], classOf[Int])
-    (layoutManager, getInstance, getStackUnderMouse)
-  }
-  catch {
-    case _: Throwable => (null, null, null)
-  }
+  def isInputFocused = Mods.NotEnoughItems.isAvailable && (try isInputFocused0 catch {
+    case _: Throwable => false
+  })
 
-  def isInputFocused =
-    Mods.NotEnoughItems.isAvailable && layoutManagerClass != null && (try {
-      layoutManagerClass.getDeclaredMethods.find(m => m.getName == "getInputFocused").fold(false)(m => m.invoke(null) != null)
+  private def isInputFocused0 = LayoutManager.getInputFocused != null
+
+  def hoveredStack(container: GuiContainer, mouseX: Int, mouseY: Int): Option[ItemStack] =
+    if (Mods.NotEnoughItems.isAvailable) try Option(hoveredStack0(container, mouseX, mouseY)) catch {
+      case t: Throwable => None
     }
-    catch {
-      case _: Throwable => false
-    })
+    else None
 
-  def hoveredStack(container: GuiContainer, mouseX: Int, mouseY: Int): Option[ItemStack] = {
-    if (Mods.NotEnoughItems.isAvailable && layoutManagerClass != null && getInstance != null && getStackUnderMouse != null)
-      try return Option(getStackUnderMouse.invoke(getInstance.invoke(null), container, mouseX.underlying(), mouseY.underlying()).asInstanceOf[ItemStack]) catch {
-        case t: Throwable => println(t)
-      }
-    None
-  }
+  private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
 }
