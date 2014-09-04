@@ -68,7 +68,7 @@ class InternetCard extends component.ManagedComponent {
     if (connections.size >= Settings.get.maxConnections) {
       throw new IOException("too many open connections")
     }
-    val uri = checkUri(address)
+    val uri = checkUri(address, port)
     val handle = newHandle()
     connections += handle -> new InternetCard.Socket(uri, port)
     result(handle)
@@ -173,10 +173,10 @@ class InternetCard extends component.ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  private def checkUri(address: String): URI = {
+  private def checkUri(address: String, port: Int): URI = {
     try {
       val parsed = new URI(address)
-      if (parsed.getHost != null && parsed.getPort != -1) {
+      if (parsed.getHost != null && (parsed.getPort > 0 || port > 0)) {
         return parsed
       }
     }
@@ -185,11 +185,14 @@ class InternetCard extends component.ManagedComponent {
     }
 
     val simple = new URI("oc://" + address)
-    if (simple.getHost != null && simple.getPort != -1) {
-      return simple
+    if (simple.getHost != null) {
+      if (simple.getPort > 0)
+        return simple
+      else if (port > 0)
+        return new URI(simple.toString + ":" + port)
     }
 
-    throw new IllegalArgumentException("address could not be parsed")
+    throw new IllegalArgumentException("address could not be parsed or no valid port given")
   }
 
   private def checkAddress(address: String) = {

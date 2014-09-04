@@ -21,6 +21,7 @@ buildscript {
 
 apply plugin: 'scala'
 apply plugin: 'forge'
+apply plugin: 'maven-publish'
 
 file "build.properties" withReader {
     def prop = new Properties()
@@ -41,7 +42,107 @@ if (config.oc.subversion != null && config.oc.subversion != "")
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
-apply from: 'gradle/forge.gradle'
-apply from: 'gradle/artifact.gradle'
-apply from: 'gradle/sign.gradle'
-apply from: 'gradle/release.gradle'
+repositories {
+    maven {
+        name = "ic2"
+        url = "http://maven.ic2.player.to/"
+    }
+    maven {
+        name = "ue"
+        url = "http://calclavia.com/maven/"
+    }
+    maven {
+        name = "chickenbones"
+        url = "http://chickenbones.net/maven/"
+    }
+}
+dependencies {
+    compile "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    compile "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
+    compile "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    compile "codechicken:WR-CBE:1.6.4-${config.wrcbe.version}:dev"
+    compile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
+    compile "dev.calclavia.universalelectricity:universal-electricity:+:dev"
+}
+
+minecraft {
+    version = "${config.minecraft.version}-${config.forge.version}"
+
+    replaceIn "li/cil/oc/OpenComputers.scala"
+    replace "@VERSION@", project.simpleVersion
+    if (project.hasProperty("keystore_fingerprint"))
+        replace "@FINGERPRINT@", keystore_fingerprint
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        include 'application.conf'
+        filter { line ->
+            line.replaceAll("@VERSION@", project.simpleVersion)
+        }
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+        exclude 'application.conf'
+    }
+}
+
+jar {
+    classifier = 'universal'
+    manifest {
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
+    }
+}
+
+javadoc {
+    include 'li/cil/oc/api/**'
+}
+
+// because the normal default jar task has been modified to be obfuscated
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'deobf'
+    manifest {
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
+    }
+}
+
+task apiJar(type: Jar) {
+    from sourceSets.main.output
+    from sourceSets.main.java
+    classifier = 'api'
+    include 'li/cil/oc/api/**'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from 'build/docs/javadoc'
+    classifier 'javadoc'
+}
+
+artifacts {
+    archives deobfJar
+    archives apiJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+            artifact apiJar
+            artifact javadocJar
+            artifact deobfJar { classifier '' }
+        }
+    }
+    repositories {
+        maven {
+            url "${config.maven.url}"
+        }
+    }
+}
