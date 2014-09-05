@@ -147,8 +147,11 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (computer != null && (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip)) {
-      nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
+    if (computer != null) {
+      if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip)
+        nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
+      else if (computer.node.address != null)
+        nbt.setString(Settings.namespace + "address", computer.node.address)
     }
   }
 

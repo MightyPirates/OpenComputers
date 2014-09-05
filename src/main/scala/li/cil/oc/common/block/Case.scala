@@ -45,10 +45,9 @@ class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware wit
 
   @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val nbt = accessor.getNBTData
-    val node = nbt.getCompoundTag(Settings.namespace + "computer").getCompoundTag("node")
-    if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedTextForChat)
+    val node = accessor.getNBTData
+    if (node.hasKey(Settings.namespace + "address")) {
+      tooltip.add(Localization.Analyzer.Address(node.getString(Settings.namespace + "address")).getUnformattedText)
     }
   }
 

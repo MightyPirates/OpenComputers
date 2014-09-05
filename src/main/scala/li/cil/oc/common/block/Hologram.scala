@@ -31,7 +31,7 @@ class Hologram(val parent: SpecialDelegator, val tier: Int) extends SpecialDeleg
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
     if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedTextForChat)
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
     }
   }
 

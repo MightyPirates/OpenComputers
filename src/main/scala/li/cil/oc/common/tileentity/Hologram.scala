@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.mods.{Mods, Waila}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -324,10 +325,12 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-    SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
-      tag.setIntArray("volume", volume)
-      tag.setIntArray("colors", colors.map(convertColor))
-    })
+    if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip) {
+      SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
+        tag.setIntArray("volume", volume)
+        tag.setIntArray("colors", colors.map(convertColor))
+      })
+    }
     nbt.setDouble(Settings.namespace + "scale", scale)
   }
 

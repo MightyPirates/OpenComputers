@@ -55,6 +55,10 @@ repositories {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
     }
+    maven {
+        name = "mobius"
+        url = "http://mobiusstrip.eu/maven"
+    }
 }
 dependencies {
     compile "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
@@ -63,6 +67,7 @@ dependencies {
     compile "codechicken:WR-CBE:1.6.4-${config.wrcbe.version}:dev"
     compile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
     compile "dev.calclavia.universalelectricity:universal-electricity:+:dev"
+    compile "mcp.mobius.waila:Waila:1.5.+:dev"
 }
 
 minecraft {

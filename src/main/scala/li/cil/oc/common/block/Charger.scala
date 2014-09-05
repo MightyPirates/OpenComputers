@@ -29,7 +29,7 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     accessor.getTileEntity match {
       case charger: tileentity.Charger =>
-        tooltip.add(Localization.Analyzer.ChargerSpeed(charger.chargeSpeed).getUnformattedTextForChat)
+        tooltip.add(Localization.Analyzer.ChargerSpeed(charger.chargeSpeed).getUnformattedText)
       case _ =>
     }
   }

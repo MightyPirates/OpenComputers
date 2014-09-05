@@ -26,10 +26,10 @@ class AccessPoint(parent: SimpleDelegator) extends Switch(parent) {
     val nbt = accessor.getNBTData
     val node = nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).getCompoundTagAt(accessor.getSide.ordinal)
     if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
     }
     if (nbt.hasKey(Settings.namespace + "strength")) {
-      tooltip.add(Localization.Analyzer.WirelessStrength(nbt.getDouble(Settings.namespace + "strength")).getUnformattedTextForChat)
+      tooltip.add(Localization.Analyzer.WirelessStrength(nbt.getDouble(Settings.namespace + "strength")).getUnformattedText)
     }
   }
 

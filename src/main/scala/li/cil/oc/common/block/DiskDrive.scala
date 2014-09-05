@@ -41,7 +41,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
         getCompoundTag(Settings.namespace + "data").
         getCompoundTag("node")
       if (node.hasKey("address")) {
-        tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedTextForChat)
+        tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
       }
     }
   }

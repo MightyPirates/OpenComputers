@@ -25,7 +25,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
     if (node.hasKey("buffer")) {
-      tooltip.add(Localization.Analyzer.StoredEnergy(node.getDouble("buffer").toInt.toString).getUnformattedTextForChat)
+      tooltip.add(Localization.Analyzer.StoredEnergy(node.getDouble("buffer").toInt.toString).getUnformattedText)
     }
   }
 

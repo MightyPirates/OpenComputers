@@ -1,12 +1,17 @@
 package li.cil.oc.common.block
 
+import java.util
 import java.util.Random
 
+import cpw.mods.fml.common.Optional
 import li.cil.oc.common.tileentity
-import li.cil.oc.{CreativeTab, Settings, api}
+import li.cil.oc.util.mods.Mods
+import li.cil.oc.{CreativeTab, Localization, Settings, api}
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -126,4 +131,12 @@ class Keyboard extends SimpleBlock(Material.rock) {
     }
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) = null
+
+  @Optional.Method(modid = Mods.IDs.Waila)
+  def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "keyboard").getCompoundTag("node")
+    if (node.hasKey("address")) {
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
+    }
+  }
 }

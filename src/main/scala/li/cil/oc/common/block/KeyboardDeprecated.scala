@@ -6,12 +6,12 @@ import cpw.mods.fml.common.Optional
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Localization, Settings, api}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, StatCollector}
+import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -34,8 +34,7 @@ class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "keyboard").getCompoundTag("node")
     if (node.hasKey("address")) {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
     }
   }
 
