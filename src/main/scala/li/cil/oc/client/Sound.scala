@@ -95,9 +95,9 @@ object Sound {
   @SubscribeEvent
   def onWorldUnload(event: WorldEvent.Unload) {
     commandQueue.synchronized(commandQueue.clear())
-    sources.synchronized {
-      sources.foreach(_._2.stop())
-    }
+    sources.synchronized(try sources.foreach(_._2.stop()) catch {
+      case _: Throwable => // Ignore.
+    })
   }
 
   private abstract class Command(val when: Long, val tileEntity: TileEntity) extends Ordered[Command] {

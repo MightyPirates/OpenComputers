@@ -131,7 +131,7 @@ object Recipes {
           case "shaped" => addShapedRecipe(output, recipe)
           case "shapeless" => addShapelessRecipe(output, recipe)
           case "furnace" => addFurnaceRecipe(output, recipe)
-          case "assembly" => addAssemblyRecipe(output, recipe)
+          case "gt_assembler" => addGTAssemblingMachineRecipe(output, recipe)
           case other =>
             OpenComputers.log.warn("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: Invalid recipe type '" + other + "'.")
             hide(output)
@@ -196,35 +196,41 @@ object Recipes {
     else hide(output)
   }
 
-  private def addAssemblyRecipe(output: ItemStack, recipe: Config) {
-    val input = (recipe.getValue("input").unwrapped() match {
+  private def addGTAssemblingMachineRecipe(output: ItemStack, recipe: Config) {
+    val inputs = (recipe.getValue("input").unwrapped() match {
       case list: java.util.List[AnyRef]@unchecked => list.map(parseIngredient)
       case other => Seq(parseIngredient(other))
     }) map {
-      case stack: ItemStack => stack
-      case null => null
-      case name: String => throw new RecipeException("Invalid ingredient '" + name + "', OreDictionary not supported for assembly recipes.")
+      case null => Array.empty[ItemStack]
+      case stack: ItemStack => Array(stack)
+      case name: String => Array(OreDictionary.getOres(name): _*)
       case other => throw new RecipeException("Invalid ingredient type: " + other + ".")
     }
     output.stackSize = tryGetCount(recipe)
 
-    if (input.size < 1 || input.size > 2) {
-      throw new RecipeException("Invalid recipe length: " + input.size + ", should be 1 or 2.")
+    if (inputs.size < 1 || inputs.size > 2) {
+      throw new RecipeException("Invalid recipe length: " + inputs.size + ", should be 1 or 2.")
     }
 
     val inputCount = recipe.getIntList("count")
-    if (inputCount.size() != input.size) {
-      throw new RecipeException("Ingredient and input count mismatch: " + input.size + " != " + inputCount.size + ".")
+    if (inputCount.size() != inputs.size) {
+      throw new RecipeException("Ingredient and input count mismatch: " + inputs.size + " != " + inputCount.size + ".")
     }
 
     val eu = recipe.getInt("eu")
     val duration = recipe.getInt("time")
 
-    (input, inputCount).zipped.foreach((stack, count) => if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count)
-    input.padTo(2, null)
+    (inputs, inputCount).zipped.foreach((stacks, count) => stacks.foreach(stack => if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count))
+    inputs.padTo(2, null)
 
-    if (input(0) != null) {
-      GregTech.addAssemblerRecipe(input(0), input(1), output, duration, eu)
+    if (inputs(0) != null) {
+      for (input1 <- inputs(0)) {
+        if (inputs(1) != null) {
+          for (input2 <- inputs(1))
+            GregTech.addAssemblerRecipe(input1, input2, output, duration, eu)
+        }
+        else GregTech.addAssemblerRecipe(input1, null, output, duration, eu)
+      }
     }
   }
 
@@ -254,10 +260,7 @@ object Recipes {
       else if (map.contains("item")) {
         map.get("item") match {
           case name: String =>
-            // TODO Item.itemRegistry.getObject?
-            Item.itemRegistry.find {
-              case item: Item => itemNameEquals(item, name)
-            } match {
+            findItem(name) match {
               case Some(item: Item) => new ItemStack(item, 1, tryGetId(map))
               case _ => throw new RecipeException("No item found with name '" + name + "'.")
             }
@@ -268,10 +271,7 @@ object Recipes {
       else if (map.contains("block")) {
         map.get("block") match {
           case name: String =>
-            // TODO Block.blockRegistry.getObject?
-            Block.blockRegistry.find {
-              case block: Block => blockNameEquals(block, name)
-            } match {
+            findBlock(name) match {
               case Some(block: Block) => new ItemStack(block, 1, tryGetId(map))
               case _ => throw new RecipeException("No block found with name '" + name + "'.")
             }
@@ -284,16 +284,10 @@ object Recipes {
       if (name == null || name.trim.isEmpty) null
       else if (OreDictionary.getOres(name) != null && !OreDictionary.getOres(name).isEmpty) name
       else {
-        // TODO Item.itemRegistry.getObject?
-        Item.itemRegistry.find {
-          case item: Item => itemNameEquals(item, name)
-        } match {
+        findItem(name) match {
           case Some(item: Item) => new ItemStack(item, 1, 0)
           case _ =>
-            // TODO Block.blockRegistry.getObject?
-            Block.blockRegistry.find {
-              case block: Block => blockNameEquals(block, name)
-            } match {
+            findBlock(name) match {
               case Some(block: Block) => new ItemStack(block, 1, 0)
               case _ => throw new RecipeException("No ore dictionary entry, item or block found for ingredient with name '" + name + "'.")
             }
@@ -302,11 +296,15 @@ object Recipes {
     case other => throw new RecipeException("Invalid ingredient type (not a map or string): " + other)
   }
 
-  private def itemNameEquals(item: Item, name: String) =
-    item != null && (item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name)
+  private def findItem(name: String) = Item.itemRegistry.find {
+    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name
+    case _ => false
+  }
 
-  private def blockNameEquals(block: Block, name: String) =
-    block != null && (block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name)
+  private def findBlock(name: String) = Block.blockRegistry.find {
+    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name
+    case _ => false
+  }
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
 
