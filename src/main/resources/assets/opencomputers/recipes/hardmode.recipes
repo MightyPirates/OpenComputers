@@ -121,17 +121,17 @@ linkedCard {
 
 batteryUpgrade1 {
   input: [[ingotIron, nuggetGold, ingotIron]
-          ["oc:transistor", "oc:capacitor", "oc:transistor"]
+          ["oc:materialTransistor", "oc:capacitor", "oc:materialTransistor"]
           [ingotIron, nuggetGold, ingotIron]]
 }
 batteryUpgrade2 {
   input: [[ingotGold, "oc:capacitor", ingotGold]
-          ["oc:transistor", nuggetGold, "oc:transistor"]
+          ["oc:materialTransistor", nuggetGold, "oc:materialTransistor"]
           [ingotGold, "oc:capacitor", ingotGold]]
 }
 batteryUpgrade3 {
   input: [[diamond, "oc:capacitor", diamond]
-          ["oc:transistor", "oc:capacitor", "oc:transistor"]
+          ["oc:materialTransistor", "oc:capacitor", "oc:materialTransistor"]
           [diamond, "oc:capacitor", diamond]]
 }
 craftingUpgrade {
