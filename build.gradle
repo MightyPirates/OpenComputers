@@ -142,7 +142,7 @@ publishing {
             artifact jar
             artifact apiJar
             artifact javadocJar
-            artifact deobfJar { classifier '' }
+            artifact deobfJar { classifier 'dev' }
         }
     }
     repositories {
