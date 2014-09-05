@@ -165,13 +165,14 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     super.addedByEntity(world, x, y, z, entity, stack)
     if (!world.isRemote) ((entity, world.getTileEntity(x, y, z)) match {
       case (player: robot.Player, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.robot.owner))
+        Some((proxy.robot, player.robot.owner, player.robot.ownerUuid))
       case (player: EntityPlayer, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.getCommandSenderName))
+        Some((proxy.robot, player.getCommandSenderName, Option(player.getGameProfile.getId)))
       case _ => None
     }) match {
-      case Some((robot, owner)) =>
+      case Some((robot, owner, uuid)) =>
         robot.owner = owner
+        robot.ownerUuid = uuid
         robot.info.load(stack)
         robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
         robot.updateInventorySize()
@@ -189,7 +190,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
           robot.saveComponents()
           parent.internalDropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }
-        if (Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).exists(_ == Blocks.robotAfterimage)) {
+        if (Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).contains(Blocks.robotAfterimage)) {
           world.setBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ, net.minecraft.init.Blocks.air, 0, 1)
         }
       case _ =>

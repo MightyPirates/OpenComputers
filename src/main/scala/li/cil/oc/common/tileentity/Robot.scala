@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util.UUID
+
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc._
 import li.cil.oc.api.Driver
@@ -92,6 +94,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   val maxComponents = 32
 
   var owner = "OpenComputers"
+
+  var ownerUuid: Option[UUID] = None
 
   var animationTicksLeft = 0
 
@@ -326,6 +330,9 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }
+    if (nbt.hasKey(Settings.namespace + "ownerUuid")) {
+      ownerUuid = Option(UUID.fromString(nbt.getString(Settings.namespace + "ownerUuid")))
+    }
     if (inventorySize > 0) {
       selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
     }
@@ -348,6 +355,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     // which is a bit ugly, and may be refactored some day, but it works.
     nbt.setNewCompoundTag(Settings.namespace + "robot", bot.save)
     nbt.setString(Settings.namespace + "owner", owner)
+    ownerUuid.foreach(uuid => nbt.setString(Settings.namespace + "ownerUuid", uuid.toString))
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
