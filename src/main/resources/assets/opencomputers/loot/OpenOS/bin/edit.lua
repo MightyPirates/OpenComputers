@@ -445,6 +445,17 @@ local keyBindHandlers = {
   save = function()
     if readonly then return end
     local new = not fs.exists(filename)
+    local backup
+    if not new then
+      backup = filename .. "~"
+      for i = 1, math.huge do
+        if not fs.exists(backup) then
+          break
+        end
+        backup = filename .. "~" .. i
+      end
+      fs.copy(filename, backup)
+    end
     local f, reason = io.open(filename, "w")
     if f then
       local chars, firstLine = 0, true
@@ -466,6 +477,9 @@ local keyBindHandlers = {
       setStatus(string.format(format, fs.name(filename), #buffer, chars))
     else
       setStatus(reason)
+    end
+    if not new then
+      fs.remove(backup)
     end
   end,
   close = function()
