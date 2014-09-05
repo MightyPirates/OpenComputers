@@ -33,11 +33,15 @@ import scala.reflect._
 
 object Player {
   def profileFor(robot: tileentity.Robot) = {
+    val uuid = Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(robot.owner)) match {
+      case Some(player) => player.getGameProfile.getId
+      case _ => UUID.randomUUID()
+    }
     val randomId = (robot.world.rand.nextInt(0xFFFFFF) + 1).toString
     val name = Settings.get.nameFormat.
       replace("$player$", robot.owner).
       replace("$random$", randomId)
-    new GameProfile(UUID.randomUUID(), name)
+    new GameProfile(uuid, name)
   }
 }
 
