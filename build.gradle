@@ -45,12 +45,21 @@ repositories {
     }
 }
 
-dependencies {
-    compile "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
-    compile "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
-    compile "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
-    compile "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
+// From http://stackoverflow.com/questions/10405970/how-do-i-define-a-compile-time-only-classpath-in-gradle
+configurations {
+  provided
 }
+
+dependencies {
+    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
+    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
+}
+
+sourceSets.main.compileClasspath += configurations.provided
+idea.module.scopes.PROVIDED.plus += configurations.provided
+eclipse.classpath.plusConfigurations += configurations.provided
 
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
