@@ -33,5 +33,72 @@ if (System.getenv("BUILD_NUMBER") != null)
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
-apply from: 'gradle/forge.gradle'
-apply from: 'gradle/artifact.gradle'
+repositories {
+    maven {
+        name = "bc"
+        url = "http://mod-buildcraft.com/"
+    }
+    maven {
+        name = "chickenbones"
+        url = "http://chickenbones.net/maven/"
+    }
+    maven {
+        name = "ic2"
+        url = "http://maven.ic2.player.to/"
+    }
+    maven {
+        name = "mobius"
+        url = "http://mobiusstrip.eu/maven"
+    }
+    maven {
+        name = "oc"
+        url = "http://maven.cil.li/"
+    }
+}
+
+// From http://stackoverflow.com/questions/10405970/how-do-i-define-a-compile-time-only-classpath-in-gradle
+configurations {
+  provided
+}
+
+dependencies {
+    provided "appeng:appliedenergistics2:${config.ae2.version}:dev"
+    provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
+    provided "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
+    provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
+}
+
+sourceSets.main.compileClasspath += configurations.provided
+idea.module.scopes.PROVIDED.plus += configurations.provided
+eclipse.classpath.plusConfigurations += configurations.provided
+
+minecraft {
+    version = "${config.minecraft.version}-${config.forge.version}"
+
+    replaceIn "li/cil/occ/OpenComponents.java"
+    replace "@VERSION@", project.simpleVersion
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+jar {
+    classifier = 'universal'
+}
+
+// because the normal default jar task has been modified to be obfuscated
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'deobf'
+}
+
+artifacts {
+    archives deobfJar
+}
