@@ -1,4 +1,4 @@
-package li.cil.occ.mods.thermalexpansion;
+package li.cil.occ.mods.cofh.energy;
 
 import cofh.api.energy.IEnergyContainerItem;
 import li.cil.oc.api.driver.Converter;
@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public class ConverterEnergyContainerItem implements Converter {
+public final class ConverterEnergyContainerItem implements Converter {
     @Override
     public void convert(final Object value, final Map<Object, Object> output) {
         if (value instanceof ItemStack) {

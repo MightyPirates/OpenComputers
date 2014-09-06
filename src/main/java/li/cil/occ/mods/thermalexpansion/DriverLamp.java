@@ -1,6 +1,5 @@
 package li.cil.occ.mods.thermalexpansion;
 
-
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;

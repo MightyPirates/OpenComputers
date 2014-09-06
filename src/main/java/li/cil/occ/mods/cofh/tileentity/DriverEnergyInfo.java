@@ -1,4 +1,4 @@
-package li.cil.occ.mods.thermalexpansion;
+package li.cil.occ.mods.cofh.tileentity;
 
 import cofh.api.tileentity.IEnergyInfo;
 import li.cil.oc.api.network.Arguments;

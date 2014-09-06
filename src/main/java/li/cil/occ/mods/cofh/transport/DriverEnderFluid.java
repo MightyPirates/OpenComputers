@@ -1,4 +1,4 @@
-package li.cil.occ.mods.thermalexpansion;
+package li.cil.occ.mods.cofh.transport;
 
 import cofh.api.transport.IEnderFluidHandler;
 import li.cil.oc.api.network.Arguments;
