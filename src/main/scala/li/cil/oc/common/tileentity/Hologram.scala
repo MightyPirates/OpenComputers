@@ -30,6 +30,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // Render scale.
   var scale = 1.0
 
+  // Projection Y position offset - consider adding X,Z later perhaps
+  var projectionOffsetY = 1.5
+
   // Relative number of lit columns (for energy cost).
   var litRatio = -1.0
 
@@ -209,6 +212,19 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   def setScale(computer: Context, args: Arguments): Array[AnyRef] = {
     scale = math.max(0.333333, math.min(Settings.get.hologramMaxScaleByTier(tier), args.checkDouble(0)))
     ServerPacketSender.sendHologramScale(this)
+    null
+  }
+
+  @Callback(doc = """function():number -- Returns the render projection offset of the hologram.""")
+  def getOffset(computer: Context, args: Arguments): Array[AnyRef] = {
+    result(projectionOffsetY) // consider adding a future axis parameter for X,Y or Z - but for now, just using Y
+  }
+
+  @Callback(doc = """function(value:number) -- Sets the render projection offset of the hologram..""")
+  def setOffset(computer: Context, args: Arguments): Array[AnyRef] = {
+    val maxOffset = 3 // this wants to be a config setting / by tier - perhaps
+    projectionOffsetY = math.max(0, math.min(maxOffset, args.checkDouble(0)))
+    ServerPacketSender.sendHologramOffset(this)
     null
   }
 
