@@ -16,6 +16,7 @@ import net.minecraft.entity.player.EntityPlayer.EnumStatus
 import net.minecraft.entity.{Entity, EntityLivingBase, IMerchant}
 import net.minecraft.init.{Blocks, Items}
 import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
@@ -43,6 +44,8 @@ object Player {
 }
 
 class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInstanceOf[WorldServer], Player.profileFor(robot)) {
+  playerNetServerHandler = new NetHandlerPlayServer(mcServer, FakeNetworkManager, this)
+
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
