@@ -9,10 +9,6 @@ buildscript {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
-        maven {
-            name = "ic2"
-            url = "http://maven.ic2.player.to/"
-        }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
@@ -44,31 +40,46 @@ version = "MC${config.minecraft.version}-${project.version}"
 
 repositories {
     maven {
-        name = "ic2"
-        url = "http://maven.ic2.player.to/"
-    }
-    maven {
-        name = "ue"
-        url = "http://calclavia.com/maven/"
+        name = "bc"
+        url = "http://mod-buildcraft.com/"
     }
     maven {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
     }
     maven {
+        name = "ic2"
+        url = "http://maven.ic2.player.to/"
+    }
+    maven {
         name = "mobius"
         url = "http://mobiusstrip.eu/maven"
     }
+    maven {
+        name = "ue"
+        url = "http://calclavia.com/maven/"
+    }
 }
+
+// From http://stackoverflow.com/questions/10405970/how-do-i-define-a-compile-time-only-classpath-in-gradle
+configurations {
+  provided
+}
+
 dependencies {
-    compile "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
-    compile "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
-    compile "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
-    compile "codechicken:WR-CBE:1.6.4-${config.wrcbe.version}:dev"
-    compile "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
-    compile "dev.calclavia.universalelectricity:universal-electricity:+:dev"
-    compile "mcp.mobius.waila:Waila:1.5.+:dev"
+    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
+    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    provided "codechicken:WR-CBE:1.6.4-${config.wrcbe.version}:dev"
+    provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
+    provided "dev.calclavia.universalelectricity:universal-electricity:+:dev"
+    provided "mcp.mobius.waila:Waila:1.5.+:dev"
+    provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
 }
+
+sourceSets.main.compileClasspath += configurations.provided
+idea.module.scopes.PROVIDED.plus += configurations.provided
+eclipse.classpath.plusConfigurations += configurations.provided
 
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
