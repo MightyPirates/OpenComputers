@@ -103,6 +103,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       RenderState.disableLighting()
       GL11.glPushMatrix()
       GL11.glTranslatef(-3, -3, 0)
+      GL11.glColor4f(1, 1, 1, 1)
       BufferRenderer.drawBackground()
       GL11.glPopMatrix()
       RenderState.makeItBlend()
