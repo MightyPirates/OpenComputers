@@ -26,6 +26,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
+    GL11.glColor4f(1, 1, 1, 1)
     mc.renderEngine.bindTexture(Textures.guiBackground)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }

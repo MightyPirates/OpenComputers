@@ -85,7 +85,10 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     }
 
     GL11.glScaled(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
-    GL11.glTranslated(-1.5 * hologram.scale, hologram.projectionOffsetY, -1.5 * hologram.scale)
+    GL11.glTranslated(
+      (hologram.translation.xCoord * hologram.width / 16 - 1.5) * hologram.scale,
+      hologram.translation.yCoord * hologram.height / 16 * hologram.scale,
+      (hologram.translation.zCoord * hologram.width / 16 - 1.5) * hologram.scale)
 
     // Do a bit of flickering, because that's what holograms do!
     if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {

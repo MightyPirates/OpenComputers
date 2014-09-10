@@ -140,10 +140,12 @@ object PacketSender {
   }
 
   def sendHologramOffset(t: tileentity.Hologram) {
-    val pb = new SimplePacketBuilder(PacketType.HologramPositionOffsetY)
+    val pb = new SimplePacketBuilder(PacketType.HologramTranslation)
 
     pb.writeTileEntity(t)
-    pb.writeDouble(t.projectionOffsetY)
+    pb.writeDouble(t.translation.xCoord)
+    pb.writeDouble(t.translation.yCoord)
+    pb.writeDouble(t.translation.zCoord)
 
     pb.sendToNearbyPlayers(t)
   }
