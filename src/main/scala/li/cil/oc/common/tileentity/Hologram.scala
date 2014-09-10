@@ -29,6 +29,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // Render scale.
   var scale = 1.0
 
+  // Projection Y position offset - consider adding X,Z later perhaps
+  var projectionOffsetY: Double = 0.0
+
   // Relative number of lit columns (for energy cost).
   var litRatio = -1.0
 
@@ -211,6 +214,19 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     null
   }
 
+  @Callback(doc = """function():number -- Returns the render projection offset of the hologram.""")
+  def getOffset(computer: Context, args: Arguments): Array[AnyRef] = {
+    result(projectionOffsetY) // consider adding a future axis parameter for X,Y or Z - but for now, just using Y
+  }
+
+  @Callback(doc = """function(value:number) -- Sets the render projection offset of the hologram..""")
+  def setOffset(computer: Context, args: Arguments): Array[AnyRef] = {
+    val maxOffset = 3 // this wants to be a config setting / by tier - perhaps
+    projectionOffsetY = math.max(0, math.min(maxOffset, args.checkDouble(0)))
+    ServerPacketSender.sendHologramOffset(this)
+    null
+  }
+
   @Callback(direct = true, doc = """function():number -- The color depth supported by the hologram.""")
   def maxDepth(context: Context, args: Arguments): Array[AnyRef] = {
     result(tier + 1)
@@ -302,7 +318,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   def getFadeStartDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
 
-  override def getRenderBoundingBox = AxisAlignedBB.getAABBPool.getAABB(xCoord + 0.5 - 1.5 * scale, yCoord, zCoord - scale, xCoord + 0.5 + 1.5 * scale, yCoord + 0.25 + 2 * scale, zCoord + 0.5 + 1.5 * scale)
+  override def getRenderBoundingBox = AxisAlignedBB.getAABBPool.getAABB(xCoord + 0.5 - 1.5 * scale, yCoord  + projectionOffsetY, zCoord - scale, xCoord + 0.5 + 1.5 * scale, yCoord + 0.25 + projectionOffsetY + 2 * scale, zCoord + 0.5 + 1.5 * scale)
 
   // ----------------------------------------------------------------------- //
 
@@ -319,6 +335,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
       tag.getIntArray("colors").map(convertColor).copyToArray(colors)
     }
     scale = nbt.getDouble(Settings.namespace + "scale")
+    projectionOffsetY = nbt.getDouble(Settings.namespace + "offsetY")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
@@ -329,6 +346,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
       tag.setIntArray("colors", colors.map(convertColor))
     })
     nbt.setDouble(Settings.namespace + "scale", scale)
+    nbt.setDouble(Settings.namespace + "offsetY", projectionOffsetY)
   }
 
   @SideOnly(Side.CLIENT)
@@ -338,6 +356,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.getIntArray("colors").copyToArray(colors)
     scale = nbt.getDouble("scale")
     hasPower = nbt.getBoolean("hasPower")
+    projectionOffsetY = nbt.getDouble("offsetY")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
@@ -346,5 +365,6 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.setIntArray("colors", colors)
     nbt.setDouble("scale", scale)
     nbt.setBoolean("hasPower", hasPower)
+    nbt.setDouble("offsetY", projectionOffsetY)
   }
 }
