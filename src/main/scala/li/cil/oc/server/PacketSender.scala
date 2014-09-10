@@ -139,6 +139,18 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendHologramOffset(t: tileentity.Hologram) {
+    val pb = new SimplePacketBuilder(PacketType.HologramTranslation)
+
+    pb.writeTileEntity(t)
+    pb.writeDouble(t.translation.xCoord)
+    pb.writeDouble(t.translation.yCoord)
+    pb.writeDouble(t.translation.zCoord)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
+
   def sendPetVisibility(name: Option[String] = None, player: Option[EntityPlayerMP] = None) {
     val pb = new SimplePacketBuilder(PacketType.PetVisibility)
 

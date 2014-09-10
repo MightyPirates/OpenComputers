@@ -35,6 +35,13 @@ class Settings(config: Config) {
       OpenComputers.log.warn("Bad number of hologram max scales, ignoring.")
       Array(3.0, 4.0)
   }
+  val hologramMaxTranslationByTier = Array(config.getDoubleList("client.hologramMaxTranslation"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hologram max translations, ignoring.")
+      Array(0.25, 0.5)
+  }
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
   val fontRenderer = config.getString("client.fontRenderer")
 

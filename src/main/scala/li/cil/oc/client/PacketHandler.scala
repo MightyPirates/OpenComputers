@@ -44,6 +44,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramSet => onHologramSet(p)
+      case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.RedstoneState => onRedstoneState(p)
@@ -189,6 +190,15 @@ object PacketHandler extends CommonPacketHandler {
           }
         }
         t.dirty = true
+      case _ => // Invalid packet.
+    }
+
+  def onHologramPositionOffsetY(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.translation.xCoord = p.readDouble()
+        t.translation.yCoord = p.readDouble()
+        t.translation.zCoord = p.readDouble()
       case _ => // Invalid packet.
     }
 
