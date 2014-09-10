@@ -66,6 +66,7 @@ dependencies {
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
+	provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
 }
 
 sourceSets.main.compileClasspath += configurations.provided

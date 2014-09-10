@@ -1,6 +1,6 @@
 package li.cil.occ.mods.ic2;
 
-import ic2.api.reactor.IC2Reactor;
+
 import ic2.api.reactor.IReactor;
 import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
@@ -47,10 +47,6 @@ public final class DriverReactor extends DriverTileEntity implements NamedBlock 
             return new Object[]{tileEntity.getReactorEnergyOutput()};
         }
 
-        @Callback(doc = "Get the reactor's base EU/t value.")
-        public Object[] getReactorEUOutput(final Context context, final Arguments args) {
-            return new Object[]{IC2Reactor.getEUOutput()};
-        }
 
         @Callback(doc = "Get whether the reactor is active and supposed to produce energy.")
         public Object[] producesEnergy(final Context context, final Arguments args) {

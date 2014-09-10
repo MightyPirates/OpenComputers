@@ -26,8 +26,8 @@ public final class DriverEnergySink extends DriverTileEntity {
         }
 
         @Callback
-        public Object[] getMaxSafeInput(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getMaxSafeInput()};
+        public Object[] getSinkTier(final Context context, final Arguments args) {
+            return new Object[]{tileEntity.getSinkTier()};
         }
     }
 }
