@@ -76,8 +76,8 @@ public class OpenComponents {
         Registry.add(new ModCoFHEnergy());
         Registry.add(new ModCoFHTileEntity());
         Registry.add(new ModCoFHTransport());
-        Registry.add(new ModGregtech());
         Registry.add(new ModForestry());
+        Registry.add(new ModGregtech());
         Registry.add(new ModIndustrialCraft2());
         Registry.add(new ModMystcraft());
         Registry.add(new ModRailcraft());

@@ -47,6 +47,10 @@ public final class DriverReactor extends DriverTileEntity implements NamedBlock 
             return new Object[]{tileEntity.getReactorEnergyOutput()};
         }
 
+        @Callback(doc = "Get the reactor's base EU/t value.")
+        public Object[] getReactorEUOutput(final Context context, final Arguments args) {
+            return new Object[]{tileEntity.getReactorEUEnergyOutput()};
+        }
 
         @Callback(doc = "Get whether the reactor is active and supposed to produce energy.")
         public Object[] producesEnergy(final Context context, final Arguments args) {

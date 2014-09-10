@@ -41,12 +41,10 @@ public final class DriverEnergyContainer extends DriverTileEntity {
             return new Object[]{tileEntity.getSteamCapacity()};
         }
 
-
         @Callback(doc = "function():number --  Returns the amount of Steam contained in this Block, in EU units!")
         public Object[] getStoredSteam(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getStoredSteam()};
         }
-
 
         @Callback(doc = "function():number --  Gets the Output in EU/p.")
         public Object[] getOutputVoltage(final Context context, final Arguments args) {
@@ -58,7 +56,6 @@ public final class DriverEnergyContainer extends DriverTileEntity {
             return new Object[]{tileEntity.getOutputAmperage()};
         }
 
-
         @Callback(doc = "function():number -- Gets the maximum Input in EU/p.")
         public Object[] getInputVoltage(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getInputVoltage()};
@@ -69,11 +66,9 @@ public final class DriverEnergyContainer extends DriverTileEntity {
             return new Object[]{tileEntity.getAverageElectricInput()};
         }
 
-
         @Callback(doc = "function():number -- Returns the amount of Electricity, outputted by this Block the last 5 ticks as Average.")
         public Object[] getAverageElectricOutput(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getAverageElectricOutput()};
         }
-
     }
 }
