@@ -100,7 +100,7 @@ abstract class Template {
       })
     })
     if (caseTier >= Tier.One && cpuTier >= Tier.One) {
-      Settings.deviceComplexityByTier(caseTier) - (caseTier - cpuTier) * 6
+      Settings.deviceComplexityByTier(caseTier) - (math.min(2, caseTier) - cpuTier) * 6
     }
     else 0
   }
