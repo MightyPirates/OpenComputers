@@ -23,7 +23,7 @@ class UpgradeCrafting(val owner: Container with Robot) extends component.Managed
   @Callback(doc = """function([count:number]):number -- Tries to craft the specified number of items in the top left area of the inventory.""")
   def craft(context: Context, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
-    result(CraftingInventory.craft(count))
+    result(CraftingInventory.craft(count): _*)
   }
 
   private object CraftingInventory extends inventory.InventoryCrafting(new inventory.Container {
@@ -31,14 +31,14 @@ class UpgradeCrafting(val owner: Container with Robot) extends component.Managed
   }, 3, 3) {
     var amountPossible = 0
 
-    def craft(wantedCount: Int): Boolean = {
+    def craft(wantedCount: Int): Seq[_] = {
       load()
       val manager = CraftingManager.getInstance
       val result = manager.findMatchingRecipe(CraftingInventory, owner.world)
-      if (result == null) return false
+      if (result == null) return Seq(false, 0)
       val targetStackSize = if (result.isStackable) math.min(wantedCount, result.getMaxStackSize) else result.stackSize
       val timesCrafted = math.min(targetStackSize / result.stackSize, amountPossible)
-      if (timesCrafted <= 0) return true
+      if (timesCrafted <= 0) return Seq(true, 0)
       GameRegistry.onItemCrafted(owner.player, result, this)
       val surplus = mutable.ArrayBuffer.empty[ItemStack]
       for (slot <- 0 until getSizeInventory) {
@@ -63,12 +63,13 @@ class UpgradeCrafting(val owner: Container with Robot) extends component.Managed
       }
       save()
       result.stackSize *= timesCrafted
+      val countCrafted = result.stackSize
       val inventory = owner.player.inventory
       inventory.addItemStackToInventory(result)
       for (stack <- surplus) {
         inventory.addItemStackToInventory(stack)
       }
-      true
+      Seq(true, countCrafted)
     }
 
     def load() {
