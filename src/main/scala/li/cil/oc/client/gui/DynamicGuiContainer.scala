@@ -19,13 +19,13 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
   protected var hoveredStackNEI: Option[ItemStack] = None
 
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+  override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(
       StatCollector.translateToLocal("container.inventory"),
       8, ySize - 96 + 2, 0x404040)
   }
 
-  override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
+  override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor4f(1, 1, 1, 1)
     mc.renderEngine.bindTexture(Textures.guiBackground)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
@@ -39,9 +39,12 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     super.drawScreen(mouseX, mouseY, dt)
   }
 
-  override def drawSlotInventory(slot: Slot) {
+  override protected def drawSlotInventory(slot: Slot) {
     slot match {
-      case component: ComponentSlot if component.tier == common.Tier.None || component.slot == common.Slot.None => // Ignore.
+      case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None =>
+        if (!slot.getHasStack && slot.xDisplayPosition >= 0 && slot.yDisplayPosition >= 0 && component.tierIcon != null) {
+          drawDisabledSlot(component)
+        }
       case _ =>
         if (!isInPlayerInventory(slot)) {
           GL11.glDisable(GL11.GL_DEPTH_TEST)
@@ -71,10 +74,10 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
             case Some(hovered) =>
               val hoveredIsInPlayerInventory = isInPlayerInventory(hovered)
               (currentIsInPlayerInventory != hoveredIsInPlayerInventory) &&
-                ((currentIsInPlayerInventory && slot.getHasStack && hovered.isItemValid(slot.getStack)) ||
-                  (hoveredIsInPlayerInventory && hovered.getHasStack && slot.isItemValid(hovered.getStack)))
+                ((currentIsInPlayerInventory && slot.getHasStack && isSelectiveSlot(hovered) && hovered.isItemValid(slot.getStack)) ||
+                  (hoveredIsInPlayerInventory && hovered.getHasStack && isSelectiveSlot(slot) && slot.isItemValid(hovered.getStack)))
             case _ => hoveredStackNEI match {
-              case Some(stack) => !currentIsInPlayerInventory && slot.isItemValid(stack)
+              case Some(stack) => !currentIsInPlayerInventory && isSelectiveSlot(slot) && slot.isItemValid(stack)
               case _ => false
             }
           }
@@ -89,7 +92,22 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     }
   }
 
-  private def drawSlotBackground(x: Int, y: Int) {
+  private def isSelectiveSlot(slot: Slot) = slot match {
+    case component: ComponentSlot => component.slot != common.Slot.Any && component.slot != common.Slot.Tool
+    case _ => false
+  }
+
+  protected def drawDisabledSlot(slot: ComponentSlot) {
+    GL11.glColor4f(1, 1, 1, 1)
+    mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
+    GL11.glDisable(GL11.GL_DEPTH_TEST)
+    GL11.glDisable(GL11.GL_LIGHTING)
+    drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, slot.tierIcon, 16, 16)
+    GL11.glEnable(GL11.GL_LIGHTING)
+    GL11.glEnable(GL11.GL_DEPTH_TEST)
+  }
+
+  protected def drawSlotBackground(x: Int, y: Int) {
     GL11.glColor4f(1, 1, 1, 1)
     mc.renderEngine.bindTexture(Textures.guiSlot)
     val t = Tessellator.instance

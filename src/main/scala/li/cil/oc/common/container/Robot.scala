@@ -76,7 +76,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   override def canInteractWith(player: EntityPlayer) =
     super.canInteractWith(player) && robot.canInteract(player.getCommandSenderName)
 
-  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.None, common.Tier.Any) {
+  class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
     def isValid = robot.isInventorySlot(getSlotIndex)
 
     @SideOnly(Side.CLIENT)

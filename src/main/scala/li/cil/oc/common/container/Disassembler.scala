@@ -6,7 +6,7 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
 
 class Disassembler(playerInventory: InventoryPlayer, disassembler: tileentity.Disassembler) extends Player(playerInventory, disassembler) {
-  addSlotToContainer(80, 35)
+  addSlotToContainer(80, 35, "ocitem")
   addPlayerInventorySlots(8, 84)
 
   var disassemblyProgress = 0.0
