@@ -6,21 +6,19 @@ import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
-import li.cil.oc.common.container.StaticComponentSlot
 import li.cil.oc.common.{container, tileentity}
 import li.cil.oc.server.driver
 import li.cil.oc.util.RenderState
-import li.cil.oc.{Settings, Localization, api}
+import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import org.lwjgl.input.{Keyboard, Mouse}
 import org.lwjgl.opengl.GL11
 
-class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends CustomGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
+class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
   override protected val buffer = robot.components.collect {
     case Some(buffer: api.component.TextBuffer) => buffer
   }.headOption.orNull
@@ -122,7 +120,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+  override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (func_146978_c(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
@@ -142,7 +140,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     GL11.glPopAttrib()
   }
 
-  override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
+  override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     if (buffer != null) mc.renderEngine.bindTexture(Textures.guiRobot)
     else mc.renderEngine.bindTexture(Textures.guiRobotNoScreen)
@@ -163,26 +161,15 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     RenderState.makeItBlend()
   }
 
-  def drawSlotInventory(slot: Slot) {
-    GL11.glColor3f(1, 1, 1)
-    if (!slot.getHasStack) slot match {
-      case component: StaticComponentSlot if component.tierIcon != null =>
-        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
-        GL11.glDisable(GL11.GL_DEPTH_TEST)
-        GL11.glDisable(GL11.GL_LIGHTING)
-        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
-        GL11.glEnable(GL11.GL_LIGHTING)
-        GL11.glEnable(GL11.GL_DEPTH_TEST)
-      case _ =>
-    }
-  }
-
   protected override def drawGradientRect(par1: Int, par2: Int, par3: Int, par4: Int, par5: Int, par6: Int) {
     super.drawGradientRect(par1, par2, par3, par4, par5, par6)
     RenderState.makeItBlend()
   }
 
-  protected override def keyTyped(char: Char, code: Int) {
+  // No custom slots, we just extend DynamicGuiContainer for the highlighting.
+  override protected def drawSlotBackground(x: Int, y: Int) {}
+
+  override protected def keyTyped(char: Char, code: Int) {
     if (code == Keyboard.KEY_ESCAPE) {
       super.keyTyped(char, code)
     }
@@ -196,14 +183,14 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  override def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
+  override protected def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
     super.mouseMovedOrUp(mouseX, mouseY, button)
     if (button == 0) {
       isDragging = false
     }
   }
 
-  override def mouseClickMove(mouseX: Int, mouseY: Int, lastButtonClicked: Int, timeSinceMouseClick: Long) {
+  override protected def mouseClickMove(mouseX: Int, mouseY: Int, lastButtonClicked: Int, timeSinceMouseClick: Long) {
     super.mouseClickMove(mouseX, mouseY, lastButtonClicked, timeSinceMouseClick)
     if (isDragging) {
       scrollMouse(mouseY)

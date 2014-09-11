@@ -5,6 +5,7 @@ import java.util
 import li.cil.oc.Localization
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
+import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.{container, tileentity}
 import net.minecraft.client.gui.GuiButton
@@ -96,6 +97,8 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     else progress.level = 0
     drawWidgets()
   }
+
+  override protected def drawDisabledSlot(slot: ComponentSlot) {}
 
   override def doesGuiPauseGame = false
 }

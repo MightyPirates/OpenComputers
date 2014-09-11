@@ -26,7 +26,8 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
 
   override def getSlotStackLimit =
     slot match {
-      case common.Slot.Tool | common.Slot.None => super.getSlotStackLimit
+      case common.Slot.Tool | common.Slot.Any => super.getSlotStackLimit
+      case common.Slot.None => 0
       case _ => 1
     }
 
