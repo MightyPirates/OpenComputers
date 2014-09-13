@@ -2,6 +2,8 @@ package li.cil.oc.common
 
 import java.io
 import java.io._
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file._
 import java.util.logging.Level
 
 import li.cil.oc.api.driver.Container
@@ -21,6 +23,8 @@ import scala.collection.mutable
 object SaveHandler {
   private val uuidRegex = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
 
+  private val TimeToHoldOntoOldSaves = 60 * 1000
+
   val saveData = mutable.Map.empty[Int, mutable.Map[ChunkCoordIntPair, mutable.Map[String, Array[Byte]]]]
 
   def savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath)
@@ -31,13 +35,12 @@ object SaveHandler {
     scheduleSave(owner.world, owner.x, owner.z, nbt, name, data)
   }
 
+  def scheduleSave(owner: Owner, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(owner, nbt, name, writeNBT(save))
+  }
+
   def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    val tmpNbt = new NBTTagCompound()
-    save(tmpNbt)
-    val baos = new ByteArrayOutputStream()
-    val dos = new DataOutputStream(baos)
-    CompressedStreamTools.write(tmpNbt, dos)
-    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, baos.toByteArray)
+    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, writeNBT(save))
   }
 
   def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
@@ -53,11 +56,27 @@ object SaveHandler {
     scheduleSave(dimension, chunk, name, data)
   }
 
+  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(world, x, z, nbt, name, writeNBT(save))
+  }
+
+  private def writeNBT(save: NBTTagCompound => Unit) = {
+    val tmpNbt = new NBTTagCompound()
+    save(tmpNbt)
+    val baos = new ByteArrayOutputStream()
+    val dos = new DataOutputStream(baos)
+    CompressedStreamTools.write(tmpNbt, dos)
+    baos.toByteArray
+  }
+
   def loadNBT(nbt: NBTTagCompound, name: String): NBTTagCompound = {
     val data = load(nbt, name)
-    val bais = new ByteArrayInputStream(data)
-    val dis = new DataInputStream(bais)
-    CompressedStreamTools.read(dis)
+    if (data.length > 0) {
+      val bais = new ByteArrayInputStream(data)
+      val dis = new DataInputStream(bais)
+      CompressedStreamTools.read(dis)
+    }
+    else new NBTTagCompound()
   }
 
   def load(nbt: NBTTagCompound, name: String): Array[Byte] = {
@@ -102,6 +121,7 @@ object SaveHandler {
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
     val file = new io.File(chunkPath, name)
+    if (!file.exists()) return Array.empty[Byte]
     try {
       // val bis = new io.BufferedInputStream(new GZIPInputStream(new io.FileInputStream(file)))
       val bis = new io.BufferedInputStream(new io.FileInputStream(file))
@@ -132,7 +152,7 @@ object SaveHandler {
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
     if (chunkPath.exists && chunkPath.isDirectory) {
-      for (file <- chunkPath.listFiles()) file.delete()
+      for (file <- chunkPath.listFiles() if System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves) file.delete()
     }
     saveData.get(dimension) match {
       case Some(chunks) => chunks.get(chunk) match {
@@ -157,6 +177,38 @@ object SaveHandler {
   }
 
   @ForgeSubscribe
+  def onWorldLoad(e: WorldEvent.Load) {
+    // Touch all externally saved data when loading, to avoid it getting
+    // deleted in the next save (because the now - save time will usually
+    // be larger than the time out after loading a world again).
+    try {
+      Files.walkFileTree(statePath.toPath, new FileVisitor[Path] {
+        override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+          file.toFile.setLastModified(System.currentTimeMillis())
+          FileVisitResult.CONTINUE
+        }
+
+        override def visitFileFailed(file: Path, exc: IOException) = FileVisitResult.CONTINUE
+
+        override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = FileVisitResult.CONTINUE
+
+        override def postVisitDirectory(dir: Path, exc: IOException) = FileVisitResult.CONTINUE
+      })
+    }
+    catch {
+      case _: Throwable =>
+        // Most likely we're on Java 1.6, so we can't use the walker...
+        // Which means we may run into infinite loops if there are
+        // evil symlinks. But that's really not something I'm bothered by.
+        def recurse(file: File) {
+          file.setLastModified(System.currentTimeMillis())
+          if (file.isDirectory) file.listFiles().foreach(recurse)
+        }
+        recurse(statePath)
+    }
+  }
+
+  @ForgeSubscribe
   def onWorldSave(e: WorldEvent.Save) {
     saveData.synchronized {
       saveData.get(e.world.provider.dimensionId) match {
@@ -172,7 +224,7 @@ object SaveHandler {
         file.getName.matches(uuidRegex) &&
         // We set the modified time in the save() method of unbuffered file
         // systems, to avoid deleting in-use folders here.
-        System.currentTimeMillis() - file.lastModified() > 60 * 1000 && {
+        System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves && {
         val list = file.list()
         list == null || list.length == 0
       }

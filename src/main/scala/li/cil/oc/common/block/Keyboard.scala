@@ -91,7 +91,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     adjacencyInfo(world, x, y, z) match {
-      case Some((keyboard, screen, sx, sy, sz, facing)) => screen.rightClick(world, sx, sy, sz, player, facing, 0, 0, 0)
+      case Some((keyboard, screen, sx, sy, sz, facing)) => screen.rightClick(world, sx, sy, sz, player, facing, 0, 0, 0, force = true)
       case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
     }
 

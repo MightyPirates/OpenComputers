@@ -1,32 +1,33 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.api
 import li.cil.oc.client.gui.Icons
+import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{IInventory, Slot}
 
-class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: Array[Array[InventorySlot]], val tierGetter: () => Int) extends Slot(inventory, index, x, y) with ComponentSlot {
+class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: DynamicComponentSlot => InventorySlot, val containerTierGetter: () => Int) extends Slot(inventory, index, x, y) with ComponentSlot {
   override def tier = {
-    val mainTier = tierGetter()
-    if (mainTier >= 0) info(mainTier)(getSlotIndex).tier
+    val mainTier = containerTierGetter()
+    if (mainTier >= 0) info(this).tier
     else mainTier
   }
 
   def tierIcon = Icons.get(tier)
 
   def slot = {
-    val mainTier = tierGetter()
-    if (mainTier >= 0) info(tierGetter())(getSlotIndex).slot
-    else api.driver.Slot.None
+    val mainTier = containerTierGetter()
+    if (mainTier >= 0) info(this).slot
+    else common.Slot.None
   }
 
   override def getBackgroundIconIndex = Icons.get(slot)
 
   override def getSlotStackLimit =
     slot match {
-      case api.driver.Slot.Tool | api.driver.Slot.None => super.getSlotStackLimit
+      case common.Slot.Tool | common.Slot.Any => super.getSlotStackLimit
+      case common.Slot.None => 0
       case _ => 1
     }
 

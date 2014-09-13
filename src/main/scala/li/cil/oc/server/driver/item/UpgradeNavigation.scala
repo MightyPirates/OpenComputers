@@ -3,7 +3,7 @@ package li.cil.oc.server.driver.item
 import li.cil.oc.api
 import li.cil.oc.api.Rotatable
 import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -18,5 +18,5 @@ object UpgradeNavigation extends Item {
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 
-  override def tier(stack: ItemStack) = Tier.Three
+  override def tier(stack: ItemStack) = Tier.Two
 }

@@ -13,6 +13,7 @@ buildscript {
 
 apply plugin: 'forge'
 apply plugin: 'scala'
+apply plugin: 'maven-publish'
 
 file "build.properties" withReader {
     def prop = new Properties()
@@ -33,7 +34,111 @@ if (config.oc.subversion != null && config.oc.subversion != "")
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
-apply from: 'gradle/forge.gradle'
-apply from: 'gradle/artifact.gradle'
-apply from: 'gradle/sign.gradle'
-apply from: 'gradle/release.gradle'
+repositories {
+    ivy {
+        name "minecraftforge"
+        artifactPattern "http://files.minecraftforge.net/[module]/[module]-dev-[revision].[ext]"
+    }
+    maven {
+        name = "chickenbones"
+        url = "http://chickenbones.net/maven/"
+    }
+}
+
+// From http://stackoverflow.com/questions/10405970/how-do-i-define-a-compile-time-only-classpath-in-gradle
+configurations {
+  provided
+}
+
+dependencies {
+    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
+    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
+}
+
+sourceSets.main.compileClasspath += configurations.provided
+idea.module.scopes.PROVIDED.plus += configurations.provided
+eclipse.classpath.plusConfigurations += configurations.provided
+
+minecraft {
+    version = "${config.minecraft.version}-${config.forge.version}"
+
+    replaceIn "li/cil/oc/OpenComputers.scala"
+    replace "@VERSION@", project.simpleVersion
+    if (project.hasProperty("keystore_fingerprint"))
+        replace "@FINGERPRINT@", keystore_fingerprint
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        include 'application.conf'
+        filter { line ->
+            line.replaceAll("@VERSION@", project.simpleVersion)
+        }
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+        exclude 'application.conf'
+    }
+}
+
+jar {
+    classifier = 'universal'
+    manifest {
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
+    }
+}
+
+javadoc {
+    include 'li/cil/oc/api/**'
+}
+
+// because the normal default jar task has been modified to be obfuscated
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'deobf'
+    manifest {
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
+    }
+}
+
+task apiJar(type: Jar) {
+    from sourceSets.main.output
+    from sourceSets.main.java
+    classifier = 'api'
+    include 'li/cil/oc/api/**'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from 'build/docs/javadoc'
+    classifier 'javadoc'
+}
+
+artifacts {
+    archives deobfJar
+    archives apiJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+            artifact apiJar
+            artifact javadocJar
+            artifact deobfJar { classifier 'dev' }
+        }
+    }
+    repositories {
+        maven {
+            url "${config.maven.url}"
+        }
+    }
+}

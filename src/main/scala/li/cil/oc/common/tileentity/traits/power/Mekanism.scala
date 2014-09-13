@@ -3,23 +3,23 @@ package li.cil.oc.common.tileentity.traits.power
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.util.mods.Mods
-import mekanism.api.energy.IStrictEnergyAcceptor
 import net.minecraftforge.common.ForgeDirection
 
-@Optional.Interface(iface = "mekanism.api.energy.IStrictEnergyAcceptor", modid = Mods.IDs.Mekanism)
-trait Mekanism extends Common with IStrictEnergyAcceptor {
+trait Mekanism extends Common {
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def canReceiveEnergy(side: ForgeDirection) = canConnectPower(side)
+  def canReceiveEnergy(side: ForgeDirection) = Mods.Mekanism.isAvailable && canConnectPower(side)
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) = tryChangeBuffer(side, amount * Settings.ratioMekanism) / Settings.ratioMekanism
+  def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) =
+    if (!Mods.Mekanism.isAvailable) 0
+    else tryChangeBuffer(side, amount * Settings.ratioMekanism) / Settings.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.ratioMekanism
+  def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def getEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBuffer).max / Settings.ratioMekanism
+  def getEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBuffer).max / Settings.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  override def setEnergy(energy: Double) {}
+  def setEnergy(energy: Double) {}
 }

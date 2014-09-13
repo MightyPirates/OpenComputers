@@ -81,6 +81,13 @@ function term.setCursorBlink(enabled)
 end
 
 function term.isWide(x, y)
+  if not term.isAvailable() then
+    return false
+  end
+  local w, h = component.gpu.getResolution()
+  if x < 1 or x > w or y < 1 or y > h then
+    return false
+  end
   local char = component.gpu.get(x, y)
   if unicode.isWide(char) then
     -- The char at the specified position is a wide char.
@@ -101,13 +108,22 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak)
+function term.read(history, dobreak, hint)
   checkArg(1, history, "table", "nil")
+  checkArg(3, hint, "function", "table", "nil")
   history = history or {}
   table.insert(history, "")
   local offset = term.getCursor() - 1
   local scrollX, scrollY = 0, #history - 1
   local cursorX = 1
+
+  if type(hint) == "table" then
+    local hintTable = hint
+    hint = function()
+      return hintTable
+    end
+  end
+  local hintCache, hintIndex
 
   local function getCursor()
     return cursorX, 1 + scrollY
@@ -116,6 +132,10 @@ function term.read(history, dobreak)
   local function line()
     local _, cby = getCursor()
     return history[cby]
+  end
+
+  local function clearHint()
+    hintCache = nil
   end
 
   local function setCursor(nbx, nby)
@@ -146,6 +166,7 @@ function term.read(history, dobreak)
 
     cursorX = nbx
     term.setCursor(nbx - scrollX + offset, cy)
+    clearHint()
   end
 
   local function copyIfNecessary()
@@ -213,6 +234,7 @@ function term.read(history, dobreak)
 
   local function delete()
     copyIfNecessary()
+    clearHint()
     local cbx, cby = getCursor()
     if cbx <= unicode.len(line()) then
       local cw = unicode.charWidth(unicode.sub(line(), cbx))
@@ -232,6 +254,7 @@ function term.read(history, dobreak)
 
   local function insert(value)
     copyIfNecessary()
+    clearHint()
     local cx, cy = term.getCursor()
     local cbx, cby = getCursor()
     local w, h = component.gpu.getResolution()
@@ -245,6 +268,33 @@ function term.read(history, dobreak)
     end
     component.gpu.set(cx, cy, value)
     right(unicode.len(value))
+  end
+
+  local function tab(direction)
+    local cbx, cby = getCursor()
+    if not hintCache then -- hint is never nil, see onKeyDown
+      hintCache = hint(line(), cbx)
+      hintIndex = 0
+      if type(hintCache) == "string" then
+        hintCache = {hintCache}
+      end
+      if type(hintCache) ~= "table" or #hintCache < 1 then
+        hintCache = nil -- invalid hint
+      end
+    end
+    if hintCache then
+      hintIndex = (hintIndex + direction + #hintCache - 1) % #hintCache + 1
+      history[cby] = tostring(hintCache[hintIndex])
+      -- because all other cases of the cursor being moved will result
+      -- in the hint cache getting invalidated we do that in setCursor,
+      -- so we have to back it up here to restore it after moving.
+      local savedCache = hintCache
+      redraw()
+      ende()
+      if #savedCache > 1 then -- stop if only one hint exists.
+        hintCache = savedCache
+      end
+    end
   end
 
   local function onKeyDown(char, code)
@@ -265,6 +315,8 @@ function term.read(history, dobreak)
       up()
     elseif code == keyboard.keys.down then
       down()
+    elseif code == keyboard.keys.tab and hint then
+      tab(keyboard.isShiftDown() and -1 or 1)
     elseif code == keyboard.keys.enter then
       local cbx, cby = getCursor()
       if cby ~= #history then -- bring entry to front

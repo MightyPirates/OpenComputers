@@ -50,6 +50,8 @@ trait Delegate {
 
   def explosionResistance(entity: Entity): Float = parent.getExplosionResistance(entity)
 
+  def isAir(world: World, x: Int, y: Int, z: Int) = false
+
   def isNormalCube(world: World, x: Int, y: Int, z: Int) = true
 
   def validRotations(world: World, x: Int, y: Int, z: Int) = validRotations_
@@ -98,6 +100,8 @@ trait Delegate {
   def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = true
 
   def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
+
+  def neighborTileChanged(world: World, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) {}
 
   def leftClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) {}
 

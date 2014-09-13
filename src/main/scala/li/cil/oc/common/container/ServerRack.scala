@@ -6,10 +6,10 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
 
 class ServerRack(playerInventory: InventoryPlayer, rack: tileentity.ServerRack) extends Player(playerInventory, rack) {
-  addSlotToContainer(106, 8)
-  addSlotToContainer(106, 26)
-  addSlotToContainer(106, 44)
-  addSlotToContainer(106, 62)
+  addSlotToContainer(106, 8, "server")
+  addSlotToContainer(106, 26, "server")
+  addSlotToContainer(106, 44, "server")
+  addSlotToContainer(106, 62, "server")
   addPlayerInventorySlots(8, 84)
 
   var lastSentSwitchMode = !rack.internalSwitch

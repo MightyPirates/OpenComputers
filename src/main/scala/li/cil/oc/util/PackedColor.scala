@@ -1,5 +1,6 @@
 package li.cil.oc.util
 
+import li.cil.oc.Settings
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import net.minecraft.nbt.NBTTagCompound
@@ -54,7 +55,7 @@ object PackedColor {
   object SingleBitFormat extends ColorFormat {
     override def depth = ColorDepth.OneBit
 
-    override def inflate(value: Int) = if (value == 0) 0x000000 else 0xFFFFFF
+    override def inflate(value: Int) = if (value == 0) 0x000000 else Settings.get.monochromeColor
 
     override def deflate(value: Color) = {
       (if (value.value == 0) 0 else 1).toByte

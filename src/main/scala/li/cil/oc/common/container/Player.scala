@@ -1,7 +1,8 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.api
-import li.cil.oc.common.InventorySlots.{InventorySlot, Tier}
+import li.cil.oc.common
+import li.cil.oc.common.InventorySlots.InventorySlot
+import li.cil.oc.common.Tier
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.{Container, ICrafting, IInventory, Slot}
@@ -11,10 +12,10 @@ import scala.collection.convert.WrapAsScala._
 
 abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
   /** Number of player inventory slots to display horizontally. */
-  protected val playerInventorySizeX = InventoryPlayer.getHotbarSize
+  protected val playerInventorySizeX = math.min(9, InventoryPlayer.getHotbarSize)
 
   /** Subtract four for armor slots. */
-  protected val playerInventorySizeY = (playerInventory.getSizeInventory - 4) / playerInventorySizeX
+  protected val playerInventorySizeY = math.min(4, (playerInventory.getSizeInventory - 4) / playerInventorySizeX)
 
   /** Render size of slots (width and height). */
   protected val slotSize = 18
@@ -85,14 +86,19 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     }
   }
 
-  def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None, tier: Int = Tier.Any) {
+  def addSlotToContainer(x: Int, y: Int, slot: String = common.Slot.Any, tier: Int = common.Tier.Any) {
     val index = inventorySlots.size
     addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier))
   }
 
-  def addSlotToContainer(x: Int, y: Int, info: Array[Array[InventorySlot]], tierGetter: () => Int) {
+  def addSlotToContainer(x: Int, y: Int, info: Array[Array[InventorySlot]], containerTierGetter: () => Int) {
     val index = inventorySlots.size
-    addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, info, tierGetter))
+    addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, slot => info(slot.containerTierGetter())(slot.getSlotIndex), containerTierGetter))
+  }
+
+  def addSlotToContainer(x: Int, y: Int, info: DynamicComponentSlot => InventorySlot) {
+    val index = inventorySlots.size
+    addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, info, () => Tier.One))
   }
 
   /** Render player inventory at the specified coordinates. */
@@ -110,7 +116,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
 
     // Show the quick slot bar below the internal inventory.
     val quickBarSpacing = 4
-    for (index <- 0 until InventoryPlayer.getHotbarSize) {
+    for (index <- 0 until playerInventorySizeX) {
       val x = left + index * slotSize
       val y = top + slotSize * (playerInventorySizeY - 1) + quickBarSpacing
       addSlotToContainer(new Slot(playerInventory, index, x, y))

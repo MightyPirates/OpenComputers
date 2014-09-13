@@ -26,7 +26,7 @@ trait Capacity extends OutputStreamFileSystem {
   override def delete(path: String) = {
     val freed = Settings.get.fileCost + size(path)
     if (super.delete(path)) {
-      used -= freed
+      used = math.max(0, used - freed)
       true
     }
     else false
@@ -45,6 +45,13 @@ trait Capacity extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
+  override def close() {
+    super.close()
+    used = computeSize("/")
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def load(nbt: NBTTagCompound) {
     try {
       ignoreCapacity = true
@@ -52,6 +59,8 @@ trait Capacity extends OutputStreamFileSystem {
     } finally {
       ignoreCapacity = false
     }
+
+    used = computeSize("/")
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -78,7 +87,7 @@ trait Capacity extends OutputStreamFileSystem {
     super.openOutputHandle(id, path, mode) match {
       case None => None
       case Some(stream) =>
-        used += delta
+        used = math.max(0, used + delta)
         if (mode == Mode.Append) {
           stream.seek(stream.length())
         }

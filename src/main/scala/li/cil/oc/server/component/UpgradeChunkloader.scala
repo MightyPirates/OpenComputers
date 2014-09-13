@@ -1,7 +1,6 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.driver.Container
-import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler

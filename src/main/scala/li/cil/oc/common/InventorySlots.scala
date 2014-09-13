@@ -1,15 +1,13 @@
 package li.cil.oc.common
 
-import li.cil.oc.api.driver.Slot
-
 object InventorySlots {
   val computer = Array(
     Array(
       InventorySlot(Slot.Card, Tier.One),
       InventorySlot(Slot.Card, Tier.One),
       InventorySlot(Slot.Memory, Tier.One),
-      InventorySlot(Slot.HardDiskDrive, Tier.One),
-      InventorySlot(Slot.Processor, Tier.One),
+      InventorySlot(Slot.HDD, Tier.One),
+      InventorySlot(Slot.CPU, Tier.One),
       InventorySlot(Slot.Memory, Tier.One)
     ),
 
@@ -18,9 +16,9 @@ object InventorySlots {
       InventorySlot(Slot.Card, Tier.One),
       InventorySlot(Slot.Memory, Tier.Two),
       InventorySlot(Slot.Memory, Tier.Two),
-      InventorySlot(Slot.HardDiskDrive, Tier.Two),
-      InventorySlot(Slot.HardDiskDrive, Tier.One),
-      InventorySlot(Slot.Processor, Tier.Two)
+      InventorySlot(Slot.HDD, Tier.Two),
+      InventorySlot(Slot.HDD, Tier.One),
+      InventorySlot(Slot.CPU, Tier.Two)
     ),
 
     Array(
@@ -29,10 +27,10 @@ object InventorySlots {
       InventorySlot(Slot.Card, Tier.Two),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Two),
-      InventorySlot(Slot.Disk, Tier.One),
-      InventorySlot(Slot.Processor, Tier.Three)
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Two),
+      InventorySlot(Slot.Floppy, Tier.One),
+      InventorySlot(Slot.CPU, Tier.Three)
     ),
 
     Array(
@@ -41,112 +39,10 @@ object InventorySlots {
       InventorySlot(Slot.Card, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.Disk, Tier.One),
-      InventorySlot(Slot.Processor, Tier.Three)
-    )
-  )
-
-  val assembler = Array(
-    Array(
-      InventorySlot(Slot.None, Tier.None), // Reserved for computer case.
-      InventorySlot(Slot.UpgradeContainer, Tier.Two),
-      InventorySlot(Slot.UpgradeContainer, Tier.One),
-      InventorySlot(Slot.UpgradeContainer, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.Card, Tier.One),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.Processor, Tier.One),
-      InventorySlot(Slot.Memory, Tier.One),
-      InventorySlot(Slot.Memory, Tier.One),
-      InventorySlot(Slot.Disk, Tier.Any),
-      InventorySlot(Slot.HardDiskDrive, Tier.One),
-      InventorySlot(Slot.None, Tier.None)
-    ),
-
-    Array(
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.UpgradeContainer, Tier.Three),
-      InventorySlot(Slot.UpgradeContainer, Tier.Two),
-      InventorySlot(Slot.UpgradeContainer, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.Card, Tier.Two),
-      InventorySlot(Slot.Card, Tier.One),
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.Processor, Tier.Two),
-      InventorySlot(Slot.Memory, Tier.Two),
-      InventorySlot(Slot.Memory, Tier.Two),
-      InventorySlot(Slot.Disk, Tier.Any),
-      InventorySlot(Slot.HardDiskDrive, Tier.Two),
-      InventorySlot(Slot.None, Tier.None)
-    ),
-
-    Array(
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.UpgradeContainer, Tier.Three),
-      InventorySlot(Slot.UpgradeContainer, Tier.Three),
-      InventorySlot(Slot.UpgradeContainer, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.Upgrade, Tier.One),
-      InventorySlot(Slot.Card, Tier.Three),
-      InventorySlot(Slot.Card, Tier.Two),
-      InventorySlot(Slot.Card, Tier.Two),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.Disk, Tier.Any),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Two)
-    ),
-
-    Array(
-      InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.UpgradeContainer, Tier.Three),
-      InventorySlot(Slot.UpgradeContainer, Tier.Three),
-      InventorySlot(Slot.UpgradeContainer, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Card, Tier.Three),
-      InventorySlot(Slot.Card, Tier.Three),
-      InventorySlot(Slot.Card, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.Disk, Tier.Any),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three)
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.Floppy, Tier.One),
+      InventorySlot(Slot.CPU, Tier.Three)
     )
   )
 
@@ -154,44 +50,44 @@ object InventorySlots {
     Array(
       InventorySlot(Slot.Card, Tier.Two),
       InventorySlot(Slot.Card, Tier.Two),
-      InventorySlot(Slot.Processor, Tier.Two),
-      InventorySlot(Slot.Processor, Tier.Two),
+      InventorySlot(Slot.CPU, Tier.Two),
+      InventorySlot(Slot.ComponentBus, Tier.Two),
       InventorySlot(Slot.Memory, Tier.Two),
       InventorySlot(Slot.Memory, Tier.Two),
-      InventorySlot(Slot.HardDiskDrive, Tier.Two),
-      InventorySlot(Slot.HardDiskDrive, Tier.Two)
+      InventorySlot(Slot.HDD, Tier.Two),
+      InventorySlot(Slot.HDD, Tier.Two)
     ),
 
     Array(
       InventorySlot(Slot.Card, Tier.Three),
       InventorySlot(Slot.Card, Tier.Two),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.CPU, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.Card, Tier.Two)
     ),
 
     Array(
       InventorySlot(Slot.Card, Tier.Three),
       InventorySlot(Slot.Card, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.CPU, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.Card, Tier.Two),
       InventorySlot(Slot.Card, Tier.Two)
     ),
@@ -199,40 +95,29 @@ object InventorySlots {
     Array(
       InventorySlot(Slot.Card, Tier.Three),
       InventorySlot(Slot.Card, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
-      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.CPU, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
+      InventorySlot(Slot.ComponentBus, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
-      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
+      InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.Card, Tier.Three),
       InventorySlot(Slot.Card, Tier.Three)
     )
   )
 
   val switch = Array(
-    InventorySlot(Slot.Processor, Tier.Three),
+    InventorySlot(Slot.CPU, Tier.Three),
     InventorySlot(Slot.Memory, Tier.Three),
-    InventorySlot(Slot.HardDiskDrive, Tier.Three)
+    InventorySlot(Slot.HDD, Tier.Three)
   )
 
-  object Tier {
-    val None = -1
-    val One = 0
-    val Two = 1
-    val Three = 2
-    val Four = 3
-    val Five = 4
-    val Six = 5
-    val Any = Int.MaxValue
-  }
-
-  case class InventorySlot(slot: Slot, tier: Int)
+  case class InventorySlot(slot: String, tier: Int)
 
 }

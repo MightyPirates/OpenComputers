@@ -8,6 +8,7 @@ import li.cil.oc.api.network.{Environment, SidedEnvironment}
 import li.cil.oc.client.Textures
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
@@ -87,10 +88,11 @@ object Cable {
       if (!world.isAirBlock(tx, ty, tz)) {
         val neighborTileEntity = world.getBlockTileEntity(tx, ty, tz)
         val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
-        val canConnect = !Mods.ForgeMultipart.isAvailable ||
-          (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
+        val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
+        val canConnectFMP = !Mods.ForgeMultipart.isAvailable ||
+          (canConnectFromSideFMP(tileEntity, side) && canConnectFromSideFMP(neighborTileEntity, side.getOpposite))
         val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
-        if (neighborHasNode && canConnect && canConnectIM) {
+        if (neighborHasNode && canConnectColor && canConnectFMP && canConnectIM) {
           result |= side.flag
         }
       }
@@ -117,7 +119,28 @@ object Cable {
       case _ => false
     }
 
-  private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
+  private def cableColor(tileEntity: TileEntity) =
+    tileEntity match {
+      case cable: tileentity.Cable => cable.color
+      case _ =>
+        if (Mods.ForgeMultipart.isAvailable) cableColorFMP(tileEntity)
+        else Color.LightGray
+    }
+
+  private def cableColorFMP(tileEntity: TileEntity) =
+    tileEntity match {
+      case host: TileMultipart => (host.partList collect {
+        case cable: CablePart => cable.color
+      }).headOption.getOrElse(Color.LightGray)
+      case _ => Color.LightGray
+    }
+
+  private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity) = {
+    val (c1, c2) = (cableColor(te1), cableColor(te2))
+    c1 == c2 || c1 == Color.LightGray || c2 == Color.LightGray
+  }
+
+  private def canConnectFromSideFMP(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
       case host: TileMultipart =>
         host.partList.forall {

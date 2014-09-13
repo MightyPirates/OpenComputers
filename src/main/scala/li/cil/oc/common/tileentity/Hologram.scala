@@ -2,14 +2,15 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
+import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.{Vec3, AxisAlignedBB}
 import net.minecraftforge.common.ForgeDirection
 
-class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable {
+class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable {
   def this() = this(0)
 
   val node = api.Network.newNode(this, Visibility.Network).
@@ -17,9 +18,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     withConnector().
     create()
 
-  val width = 3 * 16
+  final val width = 3 * 16
 
-  val height = 2 * 16 // 32 bit in an int
+  final val height = 2 * 16 // 32 bit in an int
 
   // Layout is: first half is lower bit, second half is higher bit for the
   // voxels in the cube. This is to retain compatibility with pre 1.3 saves.
@@ -27,6 +28,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   // Render scale.
   var scale = 1.0
+
+  // Projection Y position offset - consider adding X,Z later perhaps
+  var translation = Vec3.createVectorHelper(0, 0, 0)
 
   // Relative number of lit columns (for energy cost).
   var litRatio = -1.0
@@ -49,7 +53,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   var hasPower = true
 
-  val colorsByTier = Array(Array(0x00FF00), Array(0x0000FF, 0x00FF00, 0xFF0000)) // 0xBBGGRR for rendering convenience
+  final val colorsByTier = Array(Array(0x00FF00), Array(0x0000FF, 0x00FF00, 0xFF0000)) // 0xBBGGRR for rendering convenience
 
   // This is a def and not a val for loading (where the tier comes from the nbt and is always 0 here).
   def colors = colorsByTier(tier)
@@ -91,9 +95,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side == ForgeDirection.DOWN
+  override def canConnect(side: ForgeDirection) = toLocal(side) == ForgeDirection.DOWN
 
-  override def sidedNode(side: ForgeDirection) = if (side == ForgeDirection.DOWN) node else null
+  override def sidedNode(side: ForgeDirection) = if (toLocal(side) == ForgeDirection.DOWN) node else null
 
   // Override automatic analyzer implementation for sided environments.
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
@@ -123,18 +127,23 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     null
   }
 
-  @Callback(direct = true, limit = 128, doc = """function(x:number, z:number, height:number, value:number or boolean) -- Fills a column to the specified height.""")
+  @Callback(direct = true, limit = 128, doc = """function(x:number, z:number[, minY:number], maxY:number, value:number or boolean) -- Fills an interval of a column with the specified value.""")
   def fill(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val (x, _, z) = checkCoordinates(args, 0, -1, 1)
-    val height = math.min(32, math.max(0, args.checkInteger(2)))
-    val value = checkColor(args, 3)
+    val (minY, maxY, value) =
+      if (args.count > 4)
+        (math.min(32, math.max(1, args.checkInteger(2))), math.min(32, math.max(1, args.checkInteger(3))), checkColor(args, 4))
+      else
+        (1, math.min(32, math.max(1, args.checkInteger(2))), checkColor(args, 3))
+    if (minY > maxY) throw new IllegalArgumentException("interval is empty")
 
+    val mask = (0xFFFFFFFF >>> (31 - (maxY - minY))) << (minY - 1)
     val lbit = value & 1
     val hbit = (value >>> 1) & 1
-    if (lbit == 0 || height == 0) volume(x + z * width) = 0
-    else volume(x + z * width) = 0xFFFFFFFF >>> (32 - height)
-    if (hbit == 0 || height == 0) volume(x + z * width + width * width) = 0
-    else volume(x + z * width + width * width) = 0xFFFFFFFF >>> (32 - height)
+    if (lbit == 0 || height == 0) volume(x + z * width) &= ~mask
+    else volume(x + z * width) |= mask
+    if (hbit == 0 || height == 0) volume(x + z * width + width * width) &= ~mask
+    else volume(x + z * width + width * width) |= mask
 
     setDirty(x, z)
     null
@@ -193,15 +202,36 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     null
   }
 
-  @Callback(doc = """function():number -- Returns the render scale of the hologram.""")
+  @Callback(direct = true, doc = """function():number -- Returns the render scale of the hologram.""")
   def getScale(computer: Context, args: Arguments): Array[AnyRef] = {
     result(scale)
   }
 
   @Callback(doc = """function(value:number) -- Set the render scale. A larger scale consumes more energy.""")
   def setScale(computer: Context, args: Arguments): Array[AnyRef] = {
-    scale = math.max(0.333333, math.min(Settings.hologramMaxScaleByTier(tier), args.checkDouble(0)))
+    scale = math.max(0.333333, math.min(Settings.get.hologramMaxScaleByTier(tier), args.checkDouble(0)))
     ServerPacketSender.sendHologramScale(this)
+    null
+  }
+
+  @Callback(direct = true, doc = """function():number, number, number -- Returns the relative render projection offsets of the hologram.""")
+  def getTranslation(computer: Context, args: Arguments): Array[AnyRef] = {
+    result(translation.xCoord, translation.yCoord, translation.zCoord)
+  }
+
+  @Callback(doc = """function(tx:number, ty:number, tz:number) -- Sets the relative render projection offsets of the hologram.""")
+  def setTranslation(computer: Context, args: Arguments): Array[AnyRef] = {
+    // Validate all axes before setting the values.
+    val maxTranslation = Settings.get.hologramMaxTranslationByTier(tier)
+    val tx = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(0)))
+    val ty = math.max(0, math.min(maxTranslation, args.checkDouble(1)))
+    val tz = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(2)))
+
+    translation.xCoord = tx
+    translation.yCoord = ty
+    translation.zCoord = tz
+
+    ServerPacketSender.sendHologramOffset(this)
     null
   }
 
@@ -292,28 +322,56 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   override def shouldRenderInPass(pass: Int) = pass == 1
 
-  override def getMaxRenderDistanceSquared = scale / Settings.hologramMaxScaleByTier.max * Settings.get.hologramRenderDistance * Settings.get.hologramRenderDistance
+  override def getMaxRenderDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramRenderDistance * Settings.get.hologramRenderDistance
 
-  def getFadeStartDistanceSquared = scale / Settings.hologramMaxScaleByTier.max * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
+  def getFadeStartDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
 
-  override def getRenderBoundingBox = AxisAlignedBB.getAABBPool.getAABB(xCoord + 0.5 - 1.5 * scale, yCoord, zCoord - scale, xCoord + 0.5 + 1.5 * scale, yCoord + 0.25 + 2 * scale, zCoord + 0.5 + 1.5 * scale)
+  override def getRenderBoundingBox = {
+    val cx = x + 0.5
+    val cy = y + 0.5
+    val cz = z + 0.5
+    val sh = width / 16 * scale
+    val sv = height / 16 * scale
+    AxisAlignedBB.getAABBPool.getAABB(
+      cx + (-0.5 + translation.xCoord) * sh,
+      cy + translation.yCoord * sv,
+      cz + (-0.5 + translation.zCoord) * sh,
+      cx + (0.5 + translation.xCoord) * sh,
+      cy + (1 + translation.yCoord) * sv,
+      cz + (0.5 + translation.xCoord) * sh)
+  }
 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 1
     super.readFromNBT(nbt)
-    nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
-    nbt.getIntArray(Settings.namespace + "colors").map(convertColor).copyToArray(colors)
+    if (nbt.hasKey(Settings.namespace + "volume") && nbt.hasKey(Settings.namespace + "colors")) {
+      nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
+      nbt.getIntArray(Settings.namespace + "colors").map(convertColor).copyToArray(colors)
+    }
+    else {
+      val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
+      tag.getIntArray("volume").copyToArray(volume)
+      tag.getIntArray("colors").map(convertColor).copyToArray(colors)
+    }
     scale = nbt.getDouble(Settings.namespace + "scale")
+    translation.xCoord = nbt.getDouble(Settings.namespace + "offsetX")
+    translation.yCoord = nbt.getDouble(Settings.namespace + "offsetY")
+    translation.zCoord = nbt.getDouble(Settings.namespace + "offsetZ")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-    nbt.setIntArray(Settings.namespace + "volume", volume)
-    nbt.setIntArray(Settings.namespace + "colors", colors.map(convertColor))
+    SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
+      tag.setIntArray("volume", volume)
+      tag.setIntArray("colors", colors.map(convertColor))
+    })
     nbt.setDouble(Settings.namespace + "scale", scale)
+    nbt.setDouble(Settings.namespace + "offsetX", translation.xCoord)
+    nbt.setDouble(Settings.namespace + "offsetY", translation.yCoord)
+    nbt.setDouble(Settings.namespace + "offsetZ", translation.zCoord)
   }
 
   @SideOnly(Side.CLIENT)
@@ -323,6 +381,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.getIntArray("colors").copyToArray(colors)
     scale = nbt.getDouble("scale")
     hasPower = nbt.getBoolean("hasPower")
+    translation.xCoord = nbt.getDouble("offsetX")
+    translation.yCoord = nbt.getDouble("offsetY")
+    translation.zCoord = nbt.getDouble("offsetZ")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
@@ -331,5 +392,8 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.setIntArray("colors", colors)
     nbt.setDouble("scale", scale)
     nbt.setBoolean("hasPower", hasPower)
+    nbt.setDouble("offsetX", translation.xCoord)
+    nbt.setDouble("offsetY", translation.yCoord)
+    nbt.setDouble("offsetZ", translation.zCoord)
   }
 }

@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity
 
+import com.google.common.base.Charsets
 import cpw.mods.fml.common.Optional
 import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Message, Packet}
-import li.cil.oc.common.{InventorySlots, item}
+import li.cil.oc.common.{InventorySlots, Slot, item}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Items, Settings, api}
@@ -115,7 +115,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
       val address = s"cc${wrapper.id}_${wrapper.attachmentName}"
       if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
         wrapper.queueEvent("modem_message", Array(Seq(wrapper.attachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-          case x: Array[Byte] => new String(x, "UTF-8")
+          case x: Array[Byte] => new String(x, Charsets.UTF_8)
           case x => x
         }: _*))
     }
@@ -157,14 +157,14 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
 
   private def updateLimits(slot: Int, stack: ItemStack) {
     Driver.driverFor(stack) match {
-      case driver if driver.slot(stack) == Slot.Processor =>
+      case driver if Slot(driver, stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
-      case driver if driver.slot(stack) == Slot.Memory =>
+      case driver if Slot(driver, stack) == Slot.Memory =>
         relayAmount = math.max(1, relayBaseAmount + (Items.multi.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         }))
-      case driver if driver.slot(stack) == Slot.HardDiskDrive =>
+      case driver if Slot(driver, stack) == Slot.HDD =>
         maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
     }
   }
@@ -172,9 +172,9 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
     Driver.driverFor(stack) match {
-      case driver if driver.slot(stack) == Slot.Processor => relayDelay = relayBaseDelay
-      case driver if driver.slot(stack) == Slot.Memory => relayAmount = relayBaseAmount
-      case driver if driver.slot(stack) == Slot.HardDiskDrive => maxQueueSize = queueBaseSize
+      case driver if Slot(driver, stack) == Slot.CPU => relayDelay = relayBaseDelay
+      case driver if Slot(driver, stack) == Slot.Memory => relayAmount = relayBaseAmount
+      case driver if Slot(driver, stack) == Slot.HDD => maxQueueSize = queueBaseSize
     }
   }
 
@@ -183,7 +183,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack)).fold(false)(driver => {
       val provided = InventorySlots.switch(slot)
-      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
+      Slot(driver, stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
 
   // ----------------------------------------------------------------------- //

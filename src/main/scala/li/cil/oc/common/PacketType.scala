@@ -16,6 +16,7 @@ object PacketType extends Enumeration {
   HologramPowerChange,
   HologramScale,
   HologramSet,
+  HologramTranslation,
   PetVisibility, // Goes both ways.
   PowerState,
   RedstoneState,
@@ -32,10 +33,12 @@ object PacketType extends Enumeration {
   TextBufferDepthChange,
   TextBufferFill,
   TextBufferInit, // Goes both ways.
+  TextBufferMulti,
   TextBufferPaletteChange,
   TextBufferPowerChange,
   TextBufferResolutionChange,
   TextBufferSet,
+  ScreenTouchMode,
   ServerPresence,
   Sound,
 

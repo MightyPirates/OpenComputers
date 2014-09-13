@@ -1,8 +1,11 @@
 package li.cil.oc.client
 
+import java.io.EOFException
+
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Localization
 import li.cil.oc.api.component
+import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
@@ -35,6 +38,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramSet => onHologramSet(p)
+      case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.RedstoneState => onRedstoneState(p)
@@ -53,8 +57,10 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferInit => onTextBufferInit(p)
       case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p)
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
+      case PacketType.TextBufferMulti => onTextBufferMulti(p)
       case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
       case PacketType.TextBufferSet => onTextBufferSet(p)
+      case PacketType.ScreenTouchMode => onScreenTouchMode(p)
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case _ => // Invalid packet.
@@ -181,6 +187,15 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onHologramPositionOffsetY(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.translation.xCoord = p.readDouble()
+        t.translation.yCoord = p.readDouble()
+        t.translation.zCoord = p.readDouble()
+      case _ => // Invalid packet.
+    }
+
   def onPetVisibility(p: PacketParser) {
     val count = p.readInt()
     for (i <- 0 until count) {
@@ -279,8 +294,8 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onTextBufferColorChange(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+  def onTextBufferColorChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.readUTF())) match {
       case Some(buffer: component.TextBuffer) =>
         val foreground = p.readInt()
         val foregroundIsPalette = p.readBoolean()
@@ -292,8 +307,8 @@ class PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onTextBufferCopy(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+  def onTextBufferCopy(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.readUTF())) match {
       case Some(buffer: component.TextBuffer) =>
         val col = p.readInt()
         val row = p.readInt()
@@ -306,16 +321,16 @@ class PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onTextBufferDepthChange(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+  def onTextBufferDepthChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.readUTF())) match {
       case Some(buffer: component.TextBuffer) =>
         buffer.setColorDepth(component.TextBuffer.ColorDepth.values.apply(p.readInt()))
       case _ => // Invalid packet.
     }
   }
 
-  def onTextBufferFill(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+  def onTextBufferFill(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.readUTF())) match {
       case Some(buffer: component.TextBuffer) =>
         val col = p.readInt()
         val row = p.readInt()
@@ -334,8 +349,8 @@ class PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onTextBufferPaletteChange(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+  def onTextBufferPaletteChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.readUTF())) match {
       case Some(buffer: component.TextBuffer) =>
         val index = p.readInt()
         val color = p.readInt()
@@ -351,8 +366,29 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onTextBufferResolutionChange(p: PacketParser) {
+  def onTextBufferMulti(p: PacketParser) =
     ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
+        try while (true) {
+          p.readPacketType() match {
+            case PacketType.TextBufferColorChange => onTextBufferColorChange(p, Some(buffer))
+            case PacketType.TextBufferCopy => onTextBufferCopy(p, Some(buffer))
+            case PacketType.TextBufferDepthChange => onTextBufferDepthChange(p, Some(buffer))
+            case PacketType.TextBufferFill => onTextBufferFill(p, Some(buffer))
+            case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p, Some(buffer))
+            case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p, Some(buffer))
+            case PacketType.TextBufferSet => onTextBufferSet(p, Some(buffer))
+            case _ => // Invalid packet.
+          }
+        }
+        catch {
+          case ignored: EOFException => // No more commands.
+        }
+      case _ => // Invalid packet.
+    }
+
+  def onTextBufferResolutionChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.readUTF())) match {
       case Some(buffer: component.TextBuffer) =>
         val w = p.readInt()
         val h = p.readInt()
@@ -361,8 +397,8 @@ class PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onTextBufferSet(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+  def onTextBufferSet(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.readUTF())) match {
       case Some(buffer: component.TextBuffer) =>
         val col = p.readInt()
         val row = p.readInt()
@@ -372,6 +408,12 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
   }
+
+  def onScreenTouchMode(p: PacketParser) =
+    p.readTileEntity[Screen]() match {
+      case Some(t) => t.invertTouchMode = p.readBoolean()
+      case _ => // Invalid packet.
+    }
 
   def onServerPresence(p: PacketParser) =
     p.readTileEntity[ServerRack]() match {

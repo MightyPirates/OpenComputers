@@ -12,6 +12,7 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EntityPlayer, EnumStatus}
 import net.minecraft.entity.{Entity, EntityLivingBase, IMerchant}
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
+import net.minecraft.network.NetServerHandler
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
@@ -27,6 +28,8 @@ import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
 class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInstanceOf[WorldServer], Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
+  playerNetServerHandler = new NetServerHandler(mcServer, FakeNetworkManager, this)
+
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true

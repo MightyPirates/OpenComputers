@@ -299,10 +299,13 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
   // ----------------------------------------------------------------------- //
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
+                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, x, y, z, player, side, hitX, hitY, hitZ, force = false)
+
+  def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) =
     if (BuildCraft.holdsApplicableWrench(player, x, y, z)) false
     else world.getBlockTileEntity(x, y, z) match {
-      case screen: tileentity.Screen if screen.hasKeyboard && !player.isSneaking =>
+      case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
         // if, but it is clearer this way (to trigger it from the server we
         // would have to give screens a "container", which we do not want).

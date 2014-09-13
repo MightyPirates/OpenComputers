@@ -36,8 +36,8 @@ class Adapter extends traits.Environment with Analyzable {
     }
   }
 
-  def neighborChanged() = if (node != null && node.network != null) {
-    for (d <- ForgeDirection.VALID_DIRECTIONS) {
+  def neighborChanged(d: ForgeDirection) {
+    if (node != null && node.network != null) {
       val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
       world.getBlockTileEntity(x, y, z) match {
         case env: traits.Environment =>
@@ -51,42 +51,59 @@ class Adapter extends traits.Environment with Analyzable {
             case Some(newDriver) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
-                  // This is... odd. Maybe moved by some other mod?
-                  node.disconnect(oldEnvironment.node)
-                  val environment = newDriver.createEnvironment(world, x, y, z)
-                  blocks(d.ordinal()) = Some((environment, newDriver))
+                  // This is... odd. Maybe moved by some other mod? First, clean up.
+                  blocks(d.ordinal()) = None
                   updatingBlocks -= oldEnvironment
+                  blocksData(d.ordinal()) = None
+                  node.disconnect(oldEnvironment.node)
+
+                  // Then rebuild - if we have something.
+                  val environment = newDriver.createEnvironment(world, x, y, z)
+                  if (environment != null) {
+                    blocks(d.ordinal()) = Some((environment, newDriver))
+                    if (environment.canUpdate) {
+                      updatingBlocks += environment
+                    }
+                    blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
+                    node.connect(environment.node)
+                  }
+                } // else: the more things change, the more they stay the same.
+              case _ =>
+                // A challenger appears. Maybe.
+                val environment = newDriver.createEnvironment(world, x, y, z)
+                if (environment != null) {
+                  blocks(d.ordinal()) = Some((environment, newDriver))
                   if (environment.canUpdate) {
                     updatingBlocks += environment
                   }
+                  blocksData(d.ordinal()) match {
+                    case Some(data) if data.name == environment.getClass.getName =>
+                      environment.load(data.data)
+                    case _ =>
+                  }
                   blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
                   node.connect(environment.node)
-                } // else: the more things change, the more they stay the same.
-              case _ =>
-                // A challenger appears.
-                val environment = newDriver.createEnvironment(world, x, y, z)
-                blocks(d.ordinal()) = Some((environment, newDriver))
-                if (environment.canUpdate) {
-                  updatingBlocks += environment
                 }
-                blocksData(d.ordinal()) match {
-                  case Some(data) if data.name == environment.getClass.getName =>
-                    environment.load(data.data)
-                  case _ =>
-                }
-                blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-                node.connect(environment.node)
             }
             case _ => blocks(d.ordinal()) match {
               case Some((environment, driver)) =>
                 // We had something there, but it's gone now...
                 node.disconnect(environment.node)
                 environment.save(blocksData(d.ordinal()).get.data)
+                Option(environment.node).foreach(_.remove())
                 blocks(d.ordinal()) = None
                 updatingBlocks -= environment
               case _ => // Nothing before, nothing now.
             }
           }
+      }
+    }
+  }
+
+  def neighborChanged() {
+    if (node != null && node.network != null) {
+      for (d <- ForgeDirection.VALID_DIRECTIONS) {
+        neighborChanged(d)
       }
     }
   }

@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL11
 
 object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
   val renderer =
-    if (Settings.get.useOldTextureFontRenderer) new font.StaticFontRenderer()
+    if (Settings.get.fontRenderer == "texture") new font.StaticFontRenderer()
     else new font.DynamicFontRenderer()
 
   private val cache = com.google.common.cache.CacheBuilder.newBuilder().

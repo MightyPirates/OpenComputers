@@ -5,6 +5,7 @@ import java.util.logging.{Level, Logger}
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.util.mods.Mods.Mod
 import net.minecraft.launchwrapper.{IClassTransformer, LaunchClassLoader}
 import org.objectweb.asm.tree._
 import org.objectweb.asm.{ClassReader, ClassWriter, Opcodes}
@@ -13,9 +14,19 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 class ClassTransformer extends IClassTransformer {
-  val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
+  private val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
 
-  val log = Logger.getLogger("OpenComputers")
+  private val log = Logger.getLogger("OpenComputers")
+
+  private lazy val powerTypes = Map[Mod, Array[String]](
+    Mods.BuildCraftPower -> Array("buildcraft/api/power/IPowerReceptor"),
+    Mods.Factorization -> Array("factorization/api/IChargeConductor"),
+    Mods.IndustrialCraft2 -> Array("ic2/api/energy/tile/IEnergySink"),
+    Mods.IndustrialCraft2Classic -> Array("ic2classic/api/energy/tile/IEnergySink"),
+    Mods.Mekanism -> Array("mekanism/api/energy/IStrictEnergyAcceptor"),
+    Mods.ThermalExpansion -> Array("cofh/api/energy/IEnergyHandler"),
+    Mods.UniversalElectricity -> Array("universalelectricity/api/energy/IEnergyInterface", "universalelectricity/api/energy/IEnergyContainer")
+  )
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
     var transformedClass = basicClass
@@ -50,6 +61,26 @@ class ClassTransformer extends IClassTransformer {
             log.fine(s"Stripping method ${method.name} from class $name because the following types in its signature are missing: $missing")
           }
           classNode.methods.removeAll(incompleteMethods)
+
+          // Inject available power interfaces into power acceptors.
+          if (classNode.interfaces.contains("li/cil/oc/common/tileentity/traits/PowerAcceptor")) {
+            def missingImplementations(interfaceName: String) = {
+              val node = classNodeFor(interfaceName)
+              if (node == null) Seq(s"Interface ${interfaceName.replaceAll("/", ".")} not found.")
+              else node.methods.filterNot(im => classNode.methods.exists(cm => im.name == cm.name && im.desc == cm.desc)).map(method => s"Missing implementation of ${method.name + method.desc}")
+            }
+            for ((mod, interfaces) <- powerTypes if mod.isAvailable) {
+              val missing = interfaces.flatMap(missingImplementations)
+              if (missing.isEmpty) {
+                interfaces.foreach(classNode.interfaces.add)
+              }
+              else {
+                log.warning(s"Skipping power support for mod ${mod.id}.")
+                missing.foreach(log.warning)
+              }
+            }
+          }
+
           transformedClass = writeClass(classNode)
         }
         {

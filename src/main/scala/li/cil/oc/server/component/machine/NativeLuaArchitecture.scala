@@ -317,6 +317,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   override def load(nbt: NBTTagCompound) {
     bootAddress = nbt.getString("bootAddress")
 
+    if (!machine.isRunning) return
+
     // Unlimit memory use while unpersisting.
     if (Settings.get.limitMemory) {
       lua.setTotalMemory(Integer.MAX_VALUE)
@@ -347,11 +349,14 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       for (api <- apis) {
         api.load(nbt)
       }
+
+      try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
+        case t: Throwable =>
+          OpenComputers.log.warning(s"Error cleaning up loaded computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          machine.crash("error in garbage collector, most likely __gc method timed out")
+      }
     } catch {
-      case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
-        machine.stop()
-        machine.start()
+      case e: LuaRuntimeException => throw new Exception(e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")), e)
     }
 
     // Limit memory again.
@@ -386,12 +391,18 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       for (api <- apis) {
         api.save(nbt)
       }
+
+      try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
+        case t: Throwable =>
+          OpenComputers.log.warning(s"Error cleaning up loaded computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          machine.crash("error in garbage collector, most likely __gc method timed out")
+      }
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
+        OpenComputers.log.warning(s"Could not persist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
       case e: LuaGcMetamethodException =>
-        OpenComputers.log.warning("Could not persist computer.\n" + e.toString)
+        OpenComputers.log.warning(s"Could not persist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}")
         nbt.removeTag("state")
     }
 

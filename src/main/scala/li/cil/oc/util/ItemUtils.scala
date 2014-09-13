@@ -2,9 +2,9 @@ package li.cil.oc.util
 
 import java.util.logging.Level
 
-import com.google.common.base.Strings
+import com.google.common.base.{Charsets, Strings}
 import li.cil.oc.api.Persistable
-import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, OpenComputers, Settings, api, server}
 import net.minecraft.item.{Item, ItemMap, ItemStack}
@@ -41,7 +41,7 @@ object ItemUtils {
   }
 
   class RobotData extends ItemData {
-    def this(stack: ItemStack) = {
+    def this(stack: ItemStack) {
       this()
       load(stack)
     }
@@ -144,8 +144,8 @@ object ItemUtils {
   object RobotData {
     val names = try {
       Source.fromInputStream(getClass.getResourceAsStream(
-        "/assets/" + Settings.resourceDomain + "/robot.names"))("UTF-8").
-        getLines().map(_.trim).filter(!_.startsWith("#")).filter(_ != "").toArray
+        "/assets/" + Settings.resourceDomain + "/robot.names"))(Charsets.UTF_8).
+        getLines().map(_.takeWhile(_ != '#').trim()).filter(_ != "").toArray
     }
     catch {
       case t: Throwable =>
@@ -157,7 +157,7 @@ object ItemUtils {
   }
 
   class NavigationUpgradeData extends ItemData {
-    def this(stack: ItemStack) = {
+    def this(stack: ItemStack) {
       this()
       load(stack)
     }
@@ -191,6 +191,36 @@ object ItemUtils {
       if (map != null) {
         nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
       }
+    }
+  }
+
+  class TabletData extends ItemData {
+    def this(stack: ItemStack) {
+      this()
+      load(stack)
+    }
+
+    var items = Array.fill[Option[ItemStack]](32)(None)
+
+    override def load(nbt: NBTTagCompound) {
+      nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
+        val slot = slotNbt.getByte("slot")
+        if (slot >= 0 && slot < items.length) {
+          items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
+        }
+      })
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      nbt.setNewTagList(Settings.namespace + "items",
+        items.zipWithIndex collect {
+          case (Some(stack), slot) => (stack, slot)
+        } map {
+          case (stack, slot) =>
+            val slotNbt = new NBTTagCompound()
+            slotNbt.setByte("slot", slot.toByte)
+            slotNbt.setNewCompoundTag("item", stack.writeToNBT)
+        })
     }
   }
 

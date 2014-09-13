@@ -98,12 +98,6 @@ internetCard {
   input: [["oc:materialInterweb", "oc:circuitChip2", torchRedstoneActive]
           ["", "oc:materialCard", obsidian]]
 }
-linkedCard {
-  input: [[eyeOfEnder, "", eyeOfEnder]
-          ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
-          ["oc:circuitChip3", "", "oc:circuitChip3"]]
-  output: 2 # Note: all resulting cards are linked to each other.
-}
 redstoneCard1 {
   input: [[torchRedstoneActive, "oc:circuitChip1", ""]
           ["", "oc:materialCard", ""]]
@@ -119,6 +113,12 @@ lanCard {
 wlanCard {
   input: [[enderPearl, "oc:circuitChip2", ""]
           ["", "oc:materialCard", ""]]
+}
+linkedCard {
+  input: [[eyeOfEnder, "", eyeOfEnder]
+          ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
+          ["oc:circuitChip3", "", "oc:circuitChip3"]]
+  output: 2 # Note: all resulting cards are linked to each other.
 }
 
 angelUpgrade {
@@ -173,11 +173,11 @@ inventoryControllerUpgrade {
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]
-          ["oc:circuitChip3", {item=map, subID=any}, "oc:circuitChip3"]
+          ["oc:circuitChip2", {item=map, subID=any}, "oc:circuitChip2"]
           [ingotGold, potion, ingotGold]]
 }
 signUpgrade {
-  input: [[ingotIron, dyePowder, ingotIron]
+  input: [[ingotIron, dyeBlack, ingotIron]
           ["oc:circuitChip1", stickWood, "oc:circuitChip1"]
           [ingotIron, pistonStickyBase, ingotIron]]
 }
@@ -193,7 +193,7 @@ tractorBeamUpgrade {
 }
 
 cardContainer1 {
-  input: [[ingotIron, "oc:materialTransistor", ingotIron]
+  input: [[ingotIron, "oc:circuitChip1", ingotIron]
           [craftingPiston, chest, ""]
           [ingotIron, "oc:materialCard", ingotIron]]
 }
@@ -280,6 +280,21 @@ alu {
           ["oc:materialTransistor", "oc:circuitChip1", "oc:materialTransistor"]
           [nuggetIron, "oc:materialTransistor", nuggetIron]]
 }
+componentBus1 {
+  input: [[nuggetIron, redstone, nuggetIron]
+          ["oc:circuitChip1", "oc:materialCU", ""]
+          [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
+componentBus2 {
+  input: [[nuggetGold, redstone, nuggetGold]
+          ["oc:circuitChip2", "oc:materialCU", ""]
+          [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
+}
+componentBus3 {
+  input: [[emerald, redstone, emerald]
+          ["oc:circuitChip3", "oc:materialCU", ""]
+          [emerald, "oc:materialCircuitBoardPrinted", emerald]]
+}
 cpu1 {
   input: [[nuggetIron, redstone, nuggetIron]
           ["oc:circuitChip1", "oc:materialCU", "oc:circuitChip1"]
@@ -303,7 +318,7 @@ cu {
 
 rawCircuitBoard {
   type: shapeless
-  input: [nuggetGold, clay, {item=dyePowder, subID=2}]
+  input: [nuggetGold, clay, dyeGreen]
 }
 printedCircuitBoard {
   type: furnace
@@ -412,7 +427,7 @@ rack {
           ["oc:switch", "oc:materialCircuitBoardPrinted", "oc:powerDistributor"]]
 }
 redstone {
-  input: [[ingotIron, "oc:circuitChip2", ingotIron]
+  input: [[ingotIron, "oc:circuitChip3", ingotIron]
           [blockRedstone, "oc:redstoneCard1", blockRedstone]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
@@ -432,9 +447,9 @@ screen1 {
           [ingotIron, redstone, ingotIron]]
 }
 screen2 {
-  input: [[ingotGold, {item=dyePowder, subID=1}, ingotGold]
-          [{item=dyePowder, subID=2}, "oc:circuitChip2", glass]
-          [ingotGold, {item=dyePowder, subID=4}, ingotGold]]
+  input: [[ingotGold, dyeRed, ingotGold]
+          [dyeGreen, "oc:circuitChip2", glass]
+          [ingotGold, dyeBlue, ingotGold]]
 }
 screen3 {
   input: [[obsidian, yellowDust, obsidian]

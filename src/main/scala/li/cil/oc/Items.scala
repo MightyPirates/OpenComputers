@@ -2,15 +2,16 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
-import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.{Loot, item}
+import li.cil.oc.common.{Loot, Tier, item}
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.World
 
 import scala.collection.mutable
 
@@ -188,6 +189,11 @@ object Items extends ItemAPI {
     // v1.2.3
     registerItem(new item.FloppyDisk(multi) {
       showInItemList = false
+
+      override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+        if (player.isSneaking) get("floppy").createItemStack(1)
+        else super.onItemRightClick(stack, world, player)
+      }
     }, "lootDisk")
 
     // v1.2.6
@@ -223,6 +229,11 @@ object Items extends ItemAPI {
 
         stack
       }
+
+      override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+        if (player.isSneaking) get("floppy").createItemStack(1)
+        else super.onItemRightClick(stack, world, player)
+      }
     }, "openOS")
 
     Recipes.addItem(new item.UpgradeInventoryController(multi), "inventoryControllerUpgrade", "oc:inventoryControllerUpgrade")
@@ -235,10 +246,19 @@ object Items extends ItemAPI {
     // 1.3.2
     Recipes.addItem(new item.UpgradeTractorBeam(multi), "tractorBeamUpgrade", "oc:tractorBeamUpgrade")
 
-    // Experimental
+    // 1.3.?
     registerItem(new item.Tablet(multi), "tablet")
 
     // 1.3.2 (cont.)
     registerItem(new item.Server(multi, Tier.Four), "serverCreative")
+
+    // 1.3.3
+    Recipes.addItem(new item.ComponentBus(multi, Tier.One), "componentBus1", "oc:componentBus1")
+    Recipes.addItem(new item.ComponentBus(multi, Tier.Two), "componentBus2", "oc:componentBus2")
+    Recipes.addItem(new item.ComponentBus(multi, Tier.Three), "componentBus3", "oc:componentBus3")
+    registerItem(new item.DebugCard(multi), "debugCard")
+
+    // 1.3.?
+    registerItem(new item.TabletCase(multi), "tabletCase")
   }
 }

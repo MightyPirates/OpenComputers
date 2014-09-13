@@ -5,7 +5,6 @@ import java.util.logging.Level
 
 import cpw.mods.fml.common._
 import cpw.mods.fml.common.network.{IConnectionHandler, Player}
-import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.client.renderer.PetRenderer
@@ -23,8 +22,12 @@ import net.minecraft.network.{INetworkManager, NetLoginHandler}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object EventHandler extends ITickHandler with IConnectionHandler with ICraftingHandler {
   val pending = mutable.Buffer.empty[() => Unit]
@@ -43,21 +46,21 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2) {
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
-        MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
-        tileEntity.addedToPowerGrid = true
+      pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = true
       })
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) {
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Classic) {
     if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (tileEntity.addedToPowerGrid) {
-        MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
-        tileEntity.addedToPowerGrid = false
+      pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new ic2classic.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2classic.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = true
       })
     }
   }
@@ -108,7 +111,11 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
         ServerPacketSender.sendPetVisibility(None, Some(p))
         // Do update check in local games and for OPs.
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {
-          UpdateCheck.checkForPlayer(p)
+          Future {
+            UpdateCheck.info onSuccess {
+              case Some(release) => p.sendChatToPlayer(Localization.Chat.InfoNewVersion(release.tag_name))
+            }
+          }
         }
       case _ =>
     }
@@ -156,4 +163,14 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
   }
 
   override def onSmelting(player: EntityPlayer, item: ItemStack) {}
+
+  @ForgeSubscribe
+  def onWorldUnload(e: WorldEvent.Unload) {
+    if (!e.world.isRemote) {
+      import scala.collection.convert.WrapAsScala._
+      e.world.loadedTileEntityList.collect {
+        case te: tileentity.traits.TileEntity => te.dispose()
+      }
+    }
+  }
 }

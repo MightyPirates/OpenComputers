@@ -2,6 +2,6 @@ package li.cil.oc.common.item
 
 import li.cil.oc.Settings
 
-class UpgradeSolarGenerator(val parent: Delegator) extends Delegate {
+class UpgradeSolarGenerator(val parent: Delegator) extends Delegate with ItemTier {
   override protected def tooltipData = Seq((Settings.get.solarGeneratorEfficiency * 100).toInt)
 }

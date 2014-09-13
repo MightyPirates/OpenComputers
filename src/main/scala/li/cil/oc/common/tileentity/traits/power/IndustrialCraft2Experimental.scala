@@ -1,41 +1,47 @@
 package li.cil.oc.common.tileentity.traits.power
 
+import java.util.logging.Level
+
 import cpw.mods.fml.common.Optional
-import ic2.api.energy.tile.IEnergySink
-import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
-import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.{OpenComputers, Settings}
+import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
+import net.minecraftforge.event.Event
 
-@Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
-trait IndustrialCraft2 extends Common with IEnergySink {
-  var addedToPowerGrid = false
-
+trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   private var lastInjectedAmount = 0.0
 
-  private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Mods.IndustrialCraft2.isAvailable
+  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2.isAvailable
 
   // ----------------------------------------------------------------------- //
 
   override def validate() {
     super.validate()
-    if (useIndustrialCraft2Power && !addedToPowerGrid) EventHandler.scheduleIC2Add(this)
+    if (useIndustrialCraft2Power && !addedToIC2PowerGrid) EventHandler.scheduleIC2Add(this)
   }
 
   override def invalidate() {
     super.invalidate()
-    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) removeFromIC2Grid()
   }
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToIC2PowerGrid) removeFromIC2Grid()
+  }
+
+  private def removeFromIC2Grid() {
+    try MinecraftForge.EVENT_BUS.post(Class.forName("ic2.api.energy.event.EnergyTileUnloadEvent").getConstructor(Class.forName("ic2.api.energy.tile.IEnergyTile")).newInstance(this).asInstanceOf[Event]) catch {
+      case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error removing node from IC2 grid.", t)
+    }
+    addedToIC2PowerGrid = false
   }
 
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = Mods.IndustrialCraft2.isAvailable && canConnectPower(direction)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
@@ -52,11 +58,8 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def getMaxSafeInput = Integer.MAX_VALUE
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def demandedEnergyUnits = {
-    if (Settings.get.ignorePower || isClient) 0
+    if (!useIndustrialCraft2Power) 0
     else {
       var force = false
       val demand = ForgeDirection.VALID_DIRECTIONS.map(side => {

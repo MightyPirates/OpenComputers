@@ -141,7 +141,10 @@ class PacketHandler extends CommonPacketHandler {
 
   def onRobotAssemblerStart(p: PacketParser) =
     p.readTileEntity[RobotAssembler]() match {
-      case Some(assembler) => assembler.start()
+      case Some(assembler) => assembler.start(p.player match {
+        case player: EntityPlayerMP => player.capabilities.isCreativeMode
+        case _ => false
+      })
       case _ => // Invalid packet.
     }
 

@@ -1,5 +1,6 @@
 package li.cil.oc.server.component.machine.luac
 
+import com.naef.jnlua.LuaState
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.server.component.machine.NativeLuaArchitecture

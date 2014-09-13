@@ -33,6 +33,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 
+  // For FMP part coloring.
+  var colorMultiplierOverride: Option[Int] = None
+
   // ----------------------------------------------------------------------- //
   // SubBlock
   // ----------------------------------------------------------------------- //
@@ -108,6 +111,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   // Block
   // ----------------------------------------------------------------------- //
 
+  override def canHarvestBlock(player: EntityPlayer, meta: Int) = true
+
   override def canBeReplacedByLeaves(world: World, x: Int, y: Int, z: Int) = false
 
   override def canCreatureSpawn(creature: EnumCreatureType, world: World, x: Int, y: Int, z: Int) = false
@@ -144,6 +149,12 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.explosionResistance(entity)
       case _ => super.getExplosionResistance(entity, world, x, y, z, explosionX, explosionY, explosionZ)
+    }
+
+  override def isAirBlock(world: World, x: Int, y: Int, z: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.isAir(world, x, y, z)
+      case _ => super.isAirBlock(world, x, y, z)
     }
 
   override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
@@ -204,6 +215,15 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
         world.markBlockForRenderUpdate(x, y, z)
         true
       case _ => false
+    }
+
+  override def recolourBlock(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, colour: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case colored: Colored if colored.color != colour =>
+        colored.color = colour
+        world.markBlockForUpdate(x, y, z)
+        false // Don't consume items.
+      case _ => super.recolourBlock(world, x, y, z, side, colour)
     }
 
   // ----------------------------------------------------------------------- //
@@ -296,10 +316,16 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => // Invalid but avoid match error.
     }
 
+  override def onNeighborTileChange(world: World, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.neighborTileChanged(world, x, y, z, tileX, tileY, tileZ)
+      case _ => // Invalid but avoid match error.
+    }
+
   override def onBlockClicked(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.leftClick(world, x, y, z, player)
-      case _ =>
+      case _ => // Invalid but avoid match error.
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
@@ -379,10 +405,10 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   @SideOnly(Side.CLIENT)
   override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    subBlock(world, x, y, z) match {
+    colorMultiplierOverride.getOrElse(subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.color(world, x, y, z)
       case _ => super.colorMultiplier(world, x, y, z)
-    }
+    })
 
   @SideOnly(Side.CLIENT)
   override def getIcon(side: Int, metadata: Int) =

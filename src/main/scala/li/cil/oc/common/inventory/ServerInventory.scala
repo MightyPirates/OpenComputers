@@ -1,7 +1,7 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.api.Driver
-import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.{InventorySlots, Slot}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -19,6 +19,6 @@ trait ServerInventory extends ItemStackInventory {
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack)).fold(false)(driver => {
       val provided = InventorySlots.server(tier)(slot)
-      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
+      Slot(driver, stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
 }

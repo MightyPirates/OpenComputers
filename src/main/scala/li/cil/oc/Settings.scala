@@ -38,8 +38,22 @@ class Settings(config: Config) {
   val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
-  val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
-  val useOldTextureFontRenderer = config.getBoolean("client.useOldTextureFontRenderer")
+  val hologramMaxScaleByTier = Array(config.getDoubleList("client.hologramMaxScale"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 1.0, (tier2: Double) max 1.0)
+    case _ =>
+      OpenComputers.log.warning("Bad number of hologram max scales, ignoring.")
+      Array(3.0, 4.0)
+  }
+  val hologramMaxTranslationByTier = Array(config.getDoubleList("client.hologramMaxTranslation"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
+    case _ =>
+      OpenComputers.log.warning("Bad number of hologram max translations, ignoring.")
+      Array(0.25, 0.5)
+  }
+  val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
+  val fontRenderer = config.getString("client.fontRenderer")
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -67,16 +81,6 @@ class Settings(config: Config) {
   val allowBytecode = config.getBoolean("computer.allowBytecode")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
   val executionDelay = config.getInt("computer.executionDelay") max 0
-
-  // ----------------------------------------------------------------------- //
-  // computer.debug
-
-  val logLuaCallbackErrors = config.getBoolean("computer.debug.logCallbackErrors")
-  val forceLuaJ = config.getBoolean("computer.debug.forceLuaJ")
-  val allowUserdata = !config.getBoolean("computer.debug.disableUserdata")
-  val allowPersistence = !config.getBoolean("computer.debug.disablePersistence")
-  val limitMemory = !config.getBoolean("computer.debug.disableMemoryLimit")
-  val forceCaseInsensitive = config.getBoolean("computer.debug.forceCaseInsensitiveFS")
 
   // ----------------------------------------------------------------------- //
   // robot
@@ -121,18 +125,14 @@ class Settings(config: Config) {
   // power
 
   val pureIgnorePower = config.getBoolean("power.ignorePower")
-  val ignorePower = pureIgnorePower ||
-    (!Mods.BuildCraftPower.isAvailable &&
-      !Mods.IndustrialCraft2.isAvailable &&
-      !Mods.Mekanism.isAvailable &&
-      !Mods.ThermalExpansion.isAvailable &&
-      !Mods.UniversalElectricity.isAvailable)
+  lazy val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
   val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
+  val powerModBlacklist = config.getStringList("power.modBlacklist")
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
@@ -226,14 +226,29 @@ class Settings(config: Config) {
       Array(2, 4, 8)
   }
   val updateCheck = config.getBoolean("misc.updateCheck")
-  val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
   val lootProbability = config.getInt("misc.lootProbability")
-  val debugPersistence = config.getBoolean("misc.verbosePersistenceErrors")
   val geolyzerRange = config.getInt("misc.geolyzerRange")
   val geolyzerNoise = config.getDouble("misc.geolyzerNoise").toFloat max 0
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
+
+  // ----------------------------------------------------------------------- //
+  // debug
+  val logLuaCallbackErrors = config.getBoolean("debug.logCallbackErrors")
+  val forceLuaJ = config.getBoolean("debug.forceLuaJ")
+  val allowUserdata = !config.getBoolean("debug.disableUserdata")
+  val allowPersistence = !config.getBoolean("debug.disablePersistence")
+  val limitMemory = !config.getBoolean("debug.disableMemoryLimit")
+  val forceCaseInsensitive = config.getBoolean("debug.forceCaseInsensitiveFS")
+  val logFullLibLoadErrors = config.getBoolean("debug.logFullNativeLibLoadErrors")
+  val forceNativeLib = config.getString("debug.forceNativeLibWithName")
+  val logOpenGLErrors = config.getBoolean("debug.logOpenGLErrors")
+  val logUnifontErrors = config.getBoolean("debug.logUnifontErrors")
+  val alwaysTryNative = config.getBoolean("debug.alwaysTryNative")
+  val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
+  val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
+  val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
 }
 
 object Settings {
@@ -243,14 +258,14 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
-  val hologramMaxScaleByTier = Array(3, 4)
-  val robotComplexityByTier = Array(12, 24, 32, 9001)
+  val deviceComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId = -1
 
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.
   val valueBuildCraft = 500.0
+  val valueFactorization = 6.5
   val valueIndustrialCraft2 = 200.0
   val valueMekanism = 250.0 / 9.0
   val valueThermalExpansion = 50.0
@@ -259,6 +274,7 @@ object Settings {
   val valueInternal = valueBuildCraft
 
   val ratioBuildCraft = valueBuildCraft / valueInternal
+  val ratioFactorization = valueFactorization / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioThermalExpansion = valueThermalExpansion / valueInternal
@@ -330,6 +346,14 @@ object Settings {
     // reduced as discussed in #447.
     VersionRange.createFromVersionSpec("[1.3.0,1.3.3)") -> Array(
       "power.cost.chunkloaderCost"
+    ),
+    // Upgrading to version 1.3.4+, computer.debug category was moved to top
+    // level debug category for more flexibility and some other settings merged
+    // into that new category.
+    VersionRange.createFromVersionSpec("1.3.3") -> Array(
+      "computer.debug",
+      "misc.alwaysTryNative",
+      "misc.verbosePersistenceErrors"
     )
   )
 
@@ -348,7 +372,12 @@ object Settings {
         for (path <- paths) {
           val fullPath = prefix + path
           OpenComputers.log.info(s"Updating setting '$fullPath'. ")
-          patched = patched.withValue(fullPath, defaults.getValue(fullPath))
+          if (defaults.hasPath(fullPath)) {
+            patched = patched.withValue(fullPath, defaults.getValue(fullPath))
+          }
+          else {
+            patched = patched.withoutPath(fullPath)
+          }
         }
       }
     }

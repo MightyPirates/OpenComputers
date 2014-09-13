@@ -1,12 +1,11 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Items
-import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.api.{Driver, Machine, driver}
 import li.cil.oc.common.inventory.{ComponentInventory, ServerInventory}
-import li.cil.oc.common.{item, tileentity}
+import li.cil.oc.common.{Slot, item, tileentity}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -49,7 +48,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
     case _ => 0
   }))
 
-  lazy val maxComponents = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
+  lazy val maxComponents = if (!hasCPU) 0 else inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Processor) => driver.supportedComponents(item)
       case _ => 0
@@ -59,7 +58,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
 
   def hasCPU = inventory.items.exists {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => driver.slot(stack) == Slot.Processor
+      case Some(driver) => Slot(driver, stack) == Slot.CPU
       case _ => false
     }
     case _ => false

@@ -6,6 +6,7 @@ local process = require("process")
 local shell = require("shell")
 local term = require("term")
 local text = require("text")
+local unicode = require("unicode")
 
 local function expand(value)
   local result = value:gsub("%$(%w+)", os.getenv):gsub("%$%b{}",
@@ -125,21 +126,21 @@ local function execute(env, command, ...)
   while args[1] and coroutine.status(thread) ~= "dead" do
     result = table.pack(coroutine.resume(thread, table.unpack(args, 2, args.n)))
     if coroutine.status(thread) ~= "dead" then
-      if type(result[2]) == "string" then
-        args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-      else
-        args = {true, n=1}
-      end
+      args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
     end
   end
   if not args[1] then
-    return false, args[2]
+    return false, debug.traceback(thread, args[2])
   end
-  if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
-    if result[2].code then
-      return true
-    else
-      return false, "terminated"
+  if not result[1] then
+    if type(result[2]) == "table" and result[2].reason == "terminated" then
+      if result[2].code then
+        return true
+      else
+        return false, "terminated"
+      end
+    elseif type(result[2]) == "string" then
+      result[2] = debug.traceback(thread, result[2])
     end
   end
   return table.unpack(result, 1, result.n)
@@ -147,6 +148,75 @@ end
 
 local args, options = shell.parse(...)
 local history = {}
+
+local function getMatchingPrograms(baseName)
+  local result = {}
+  -- TODO only matching files with .lua extension for now, might want to
+  --      extend this to other extensions at some point? env var? file attrs?
+  if not baseName or #baseName == 0 then
+    baseName = "^(.*)%.lua$"
+  else
+    baseName = "^(" .. baseName .. ".*)%.lua$"
+  end
+  for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
+    for file in fs.list(basePath) do
+      local match = file:match(baseName)
+      if match then
+        table.insert(result, match)
+      end
+    end
+  end
+  return result
+end
+
+local function getMatchingFiles(baseName)
+  local result, basePath = {}
+  -- note: we strip the trailing / to make it easier to navigate through
+  -- directories using tab completion (since entering the / will then serve
+  -- as the intention to go into the currently hinted one).
+  -- if we have a directory but no trailing slash there may be alternatives
+  -- on the same level, so don't look inside that directory... (cont.)
+  if fs.isDirectory(baseName) and baseName:sub(-1) == "/" then
+    basePath = baseName
+    baseName = "^(.-)/?$"
+  else
+    basePath = fs.path(baseName) or "/"
+    baseName = "^(" .. fs.name(baseName) .. ".-)/?$"
+  end
+  for file in fs.list(basePath) do
+    local match = file:match(baseName)
+    if match then
+      table.insert(result, fs.concat(basePath, match))
+    end
+  end
+  -- (cont.) but if there's only one match and it's a directory, *then* we
+  -- do want to add the trailing slash here.
+  if #result == 1 and fs.isDirectory(result[1]) then
+    result[1] = result[1] .. "/"
+  end
+  return result
+end
+
+local function hintHandler(line, cursor)
+  local line = unicode.sub(line, 1, cursor - 1)
+  if not line or #line < 1 then
+    return nil
+  end
+  local result
+  local prefix, partial = string.match(line, "^(.+%s)(.+)$")
+  local searchInPath = not prefix and not line:find("/")
+  if searchInPath then
+    -- first part and no path, look for programs in the $PATH
+    result = getMatchingPrograms(line)
+  else -- just look normal files
+    result = getMatchingFiles(shell.resolve(partial or line))
+  end
+  for i = 1, #result do
+    result[i] = (prefix or "") .. result[i] .. (searchInPath and " " or "")
+  end
+  table.sort(result)
+  return result
+end
 
 if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
   -- interactive shell.
@@ -161,7 +231,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       local foreground = component.gpu.setForeground(0xFF0000)
       term.write(expand(os.getenv("PS1") or "$ "))
       component.gpu.setForeground(foreground)
-      local command = term.read(history)
+      local command = term.read(history, nil, hintHandler)
       if not command then
         term.write("exit\n")
         return -- eof

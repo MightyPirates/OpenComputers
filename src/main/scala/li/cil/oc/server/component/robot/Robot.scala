@@ -166,7 +166,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     if (stack != null && stack.stackSize > 0) {
       val player = robot.player(facing)
       InventoryUtils.inventoryAt(world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-        case Some(inventory) =>
+        case Some(inventory) if inventory.isUseableByPlayer(player) =>
           if (!InventoryUtils.insertIntoInventory(stack, inventory, facing.getOpposite, count)) {
             // Cannot drop into that inventory.
             return result(false, "inventory full")
@@ -236,7 +236,9 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(1)
 
-    if (InventoryUtils.extractFromInventoryAt(player.inventory.addItemStackToInventory, world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ, facing.getOpposite, count)) {
+    if (InventoryUtils.inventoryAt(world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ).exists(inventory => {
+      inventory.isUseableByPlayer(player) && InventoryUtils.extractFromInventory(player.inventory.addItemStackToInventory, inventory, facing.getOpposite, count)
+    })) {
       context.pause(Settings.get.suckDelay)
       result(true)
     }
@@ -429,7 +431,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     Option(robot.getStackInSlot(0)) match {
       case Some(item) =>
         if (item.isItemStackDamageable) {
-          result(item.getMaxDamage - item.getItemDamage)
+          result(item.getMaxDamage - item.getItemDamage, item.getMaxDamage - item.getItemDamageForDisplay, item.getMaxDamage)
         }
         else result(Unit, "tool cannot be damaged")
       case _ => result(Unit, "no tool equipped")

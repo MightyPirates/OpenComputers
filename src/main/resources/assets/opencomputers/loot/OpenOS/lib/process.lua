@@ -7,7 +7,10 @@ local coroutine_create = coroutine.create
 
 local function findProcess(co)
   co = co or coroutine.running()
-  for _, process in pairs(running) do
+  for main, process in pairs(running) do
+    if main == co then
+      return process
+    end
     for _, instance in pairs(process.instances) do
       if instance == co then
         return process
@@ -62,7 +65,7 @@ function process.load(path, env, init, name)
     command = name,
     env = env,
     parent = process,
-    instances = setmetatable({thread}, {__mode="v"})
+    instances = setmetatable({}, {__mode="v"})
   }
   return thread
 end
@@ -95,7 +98,7 @@ function process.install(path, name)
     path = path,
     command = name,
     env = _ENV,
-    instances = setmetatable({thread}, {__mode="v"})
+    instances = setmetatable({}, {__mode="v"})
   }
 end
 
