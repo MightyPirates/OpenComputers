@@ -86,8 +86,6 @@ minecraft {
 
     replaceIn "li/cil/oc/OpenComputers.scala"
     replace "@VERSION@", project.simpleVersion
-    if (project.hasProperty("keystore_fingerprint"))
-        replace "@FINGERPRINT@", keystore_fingerprint
 }
 
 processResources {

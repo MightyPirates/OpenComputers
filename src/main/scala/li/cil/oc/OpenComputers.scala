@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager
 import scala.collection.convert.WrapAsScala._
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
-  version = OpenComputers.Version, /* certificateFingerprint = OpenComputers.Fingerprint, */
+  version = OpenComputers.Version,
   modLanguage = "scala", useMetadata = true)
 object OpenComputers {
   final val ID = "OpenComputers"
@@ -22,19 +22,12 @@ object OpenComputers {
 
   final val Version = "@VERSION@"
 
-  final val Fingerprint = "@FINGERPRINT@"
-
   var log = LogManager.getLogger("OpenComputers")
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null
 
   var channel: FMLEventChannel = _
-
-  var tampered: Option[FMLFingerprintViolationEvent] = None
-
-//  @EventHandler
-//  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) {

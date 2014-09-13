@@ -97,10 +97,6 @@ object EventHandler {
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
           player.addChatMessage(Localization.Chat.WarningPower)
         }
-        OpenComputers.tampered match {
-          case Some(event) => player.addChatMessage(Localization.Chat.WarningFingerprint(event))
-          case _ =>
-        }
         ServerPacketSender.sendPetVisibility(None, Some(player))
         // Do update check in local games and for OPs.
         if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.func_152596_g(player.getGameProfile))) {
