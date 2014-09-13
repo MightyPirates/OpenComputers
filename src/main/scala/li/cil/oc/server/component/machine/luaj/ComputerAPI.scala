@@ -35,7 +35,7 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
 
     computer.set("setBootAddress", (args: Varargs) => {
       if (args.isnoneornil(1)) owner.bootAddress = ""
-      else owner.bootAddress = args.checkjstring(1)
+      else owner.bootAddress = args.checkjstring(1).take(36)
       LuaValue.NIL
     })
 
