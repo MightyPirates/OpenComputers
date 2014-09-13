@@ -7,19 +7,21 @@ import java.util.concurrent.{Callable, TimeUnit}
 import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
 import cpw.mods.fml.common.{ITickHandler, TickType}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Connector, Message, Node}
+import li.cil.oc.api.{Machine, Rotatable}
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.util.ItemUtils.TabletData
+import li.cil.oc.util.RotationHelper
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagInt}
 import net.minecraft.world.World
+import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 
@@ -67,12 +69,18 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with Container with Owner {
+class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with Container with Owner with Rotatable {
   lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
 
   def items = data.items
+
+  override def facing = RotationHelper.fromYaw(holder.rotationYaw)
+
+  override def toLocal(value: ForgeDirection) = value // TODO do we care?
+
+  override def toGlobal(value: ForgeDirection) = value // TODO do we care?
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
@@ -355,4 +363,5 @@ object Tablet extends ITickHandler {
       }
     }
   }
+
 }
