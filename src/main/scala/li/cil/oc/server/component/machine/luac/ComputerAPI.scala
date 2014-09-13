@@ -51,7 +51,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       if (lua.isNoneOrNil(1)) owner.bootAddress = ""
-      else owner.bootAddress = lua.checkString(1)
+      else owner.bootAddress = lua.checkString(1).take(36)
       0
     })
     lua.setField(-2, "setBootAddress")
