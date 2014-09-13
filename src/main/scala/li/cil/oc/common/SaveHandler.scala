@@ -14,6 +14,7 @@ import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
+import org.apache.commons.lang3.{JavaVersion, SystemUtils}
 
 import scala.collection.mutable
 
@@ -181,31 +182,33 @@ object SaveHandler {
     // Touch all externally saved data when loading, to avoid it getting
     // deleted in the next save (because the now - save time will usually
     // be larger than the time out after loading a world again).
-    try {
-      Files.walkFileTree(statePath.toPath, new FileVisitor[Path] {
-        override def visitFile(file: Path, attrs: BasicFileAttributes) = {
-          file.toFile.setLastModified(System.currentTimeMillis())
-          FileVisitResult.CONTINUE
-        }
+    if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) visitJava17()
+    else visitJava16()
+  }
 
-        override def visitFileFailed(file: Path, exc: IOException) = FileVisitResult.CONTINUE
-
-        override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = FileVisitResult.CONTINUE
-
-        override def postVisitDirectory(dir: Path, exc: IOException) = FileVisitResult.CONTINUE
-      })
+  private def visitJava16() {
+    // This may run into infinite loops if there are evil symlinks.
+    // But that's really not something I'm bothered by, it's a fallback.
+    def recurse(file: File) {
+      file.setLastModified(System.currentTimeMillis())
+      if (file.isDirectory) file.listFiles().foreach(recurse)
     }
-    catch {
-      case _: Throwable =>
-        // Most likely we're on Java 1.6, so we can't use the walker...
-        // Which means we may run into infinite loops if there are
-        // evil symlinks. But that's really not something I'm bothered by.
-        def recurse(file: File) {
-          file.setLastModified(System.currentTimeMillis())
-          if (file.isDirectory) file.listFiles().foreach(recurse)
-        }
-        recurse(statePath)
-    }
+    recurse(statePath)
+  }
+
+  private def visitJava17() {
+    Files.walkFileTree(statePath.toPath, new FileVisitor[Path] {
+      override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+        file.toFile.setLastModified(System.currentTimeMillis())
+        FileVisitResult.CONTINUE
+      }
+
+      override def visitFileFailed(file: Path, exc: IOException) = FileVisitResult.CONTINUE
+
+      override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = FileVisitResult.CONTINUE
+
+      override def postVisitDirectory(dir: Path, exc: IOException) = FileVisitResult.CONTINUE
+    })
   }
 
   @ForgeSubscribe
