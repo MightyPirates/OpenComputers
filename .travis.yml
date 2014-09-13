@@ -1,13 +1,11 @@
 language: scala
 scala: 2.11.1
-jdk:
-  - oraclejdk7
-  - openjdk7
+jdk: openjdk7
 
-branches:
-  only: master
-
+notifications:
+  email: false
 env:
   global: TERM=dumb
+
 install: ./gradlew setupCIWorkspace
 script: ./gradlew build
