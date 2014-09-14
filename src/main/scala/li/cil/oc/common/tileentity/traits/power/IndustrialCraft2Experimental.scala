@@ -61,7 +61,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def getDemandedEnergy = {
-    if (!useIndustrialCraft2Power) 0
+    if (!useIndustrialCraft2Power) 0.0
     else {
       var force = false
       val demand = ForgeDirection.VALID_DIRECTIONS.map(side => {
@@ -72,7 +72,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
         space
       }).max / Settings.ratioIndustrialCraft2
       if (force || lastInjectedAmount <= 0 || demand >= lastInjectedAmount) demand
-      else 0
+      else 0.0
     }
   }
 }

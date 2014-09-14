@@ -48,7 +48,10 @@ object Mods {
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new SimpleMod(IDs.GregTech)
-  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
+  val IndustrialCraft2 = new ClassBasedMod(IDs.IndustrialCraft2,
+    "ic2.api.energy.tile.IEnergyTile",
+    "ic2.api.energy.event.EnergyTileLoadEvent",
+    "ic2.api.energy.event.EnergyTileUnloadEvent")(providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
@@ -60,7 +63,7 @@ object Mods {
   val StargateTech2 = new Mod {
     def id = IDs.StargateTech2
 
-    val isAvailable = Loader.isModLoaded(IDs.StargateTech2) && {
+    protected override lazy val isModAvailable = Loader.isModLoaded(IDs.StargateTech2) && {
       val mod = Loader.instance.getIndexedModList.get(IDs.StargateTech2)
       mod.getVersion.startsWith("0.7.")
     }
@@ -76,24 +79,30 @@ object Mods {
   trait Mod {
     knownMods += this
 
+    protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
+
+    protected def isModAvailable: Boolean
+
     def id: String
 
-    def isAvailable: Boolean
+    def isAvailable = isModAvailable && isPowerModEnabled
 
     def providesPower: Boolean = false
   }
 
   class SimpleMod(val id: String, override val providesPower: Boolean = false) extends Mod {
-    protected val isModLoaded = {
+    override protected lazy val isModAvailable = {
       val version = VersionParser.parseVersionReference(id)
       if (Loader.isModLoaded(version.getLabel))
         version.containsVersion(Loader.instance.getIndexedModList.get(version.getLabel).getProcessedVersion)
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)
     }
+  }
 
-    protected val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
-
-    override def isAvailable = isModLoaded && isPowerModEnabled
+  class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean) extends Mod {
+    override protected lazy val isModAvailable = classNames.forall(className => try Class.forName(className) != null catch {
+      case _: Throwable => false
+    })
   }
 
 }
