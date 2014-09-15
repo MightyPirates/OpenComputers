@@ -44,6 +44,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   def selectedSlot = robot.selectedSlot
 
+  def selectedFluidSlot = robot.selectedFluidSlot
+
   def player = robot.player()
 
   def canPlaceInAir = {
@@ -482,6 +484,17 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     else {
       result(Unit, "not enough energy")
     }
+  }
+
+  // ----------------------------------------------------------------------- //
+  @Callback
+  def selectTank(context: Context, args: Arguments): Array[AnyRef] = {
+    if (args.count > 0 && args.checkInteger(0) > -1) {
+      robot.selectedFluidSlot = args.checkInteger(0)
+      //TODO maybe check if number is valid...
+      result(true)
+    }
+    result(Unit, "not a number")
   }
 
   // ----------------------------------------------------------------------- //

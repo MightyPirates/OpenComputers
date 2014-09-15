@@ -96,6 +96,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
+    api.Driver.add(driver.item.UpgradeTank)
     api.Driver.add(driver.item.UpgradeTractorBeam)
     api.Driver.add(driver.item.WirelessNetworkCard)
 

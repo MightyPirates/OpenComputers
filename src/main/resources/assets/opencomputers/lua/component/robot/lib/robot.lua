@@ -196,5 +196,8 @@ function robot.turnAround()
 end
 
 -------------------------------------------------------------------------------
-
+function robot.selectTank(tank)
+    return component.robot.selectTank(tank)
+end
+-------------------------------------------------------------------------------
 return robot

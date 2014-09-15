@@ -260,5 +260,7 @@ object Items extends ItemAPI {
 
     // 1.3.?
     registerItem(new item.TabletCase(multi), "tabletCase")
+
+    registerItem(new item.UpgradeTank(multi), "tankUpgrade")
   }
 }

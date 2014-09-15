@@ -12,6 +12,7 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.fluids.{Fluid, FluidTankInfo, FluidStack}
 
 class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
   def this() = this(new Robot())
@@ -250,4 +251,24 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   override def globalBufferSize = robot.globalBufferSize
 
   override def globalBufferSize_=(value: Double) = robot.globalBufferSize = value
+
+  // ----------------------------------------------------------------------- //
+
+
+
+
+  override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) = robot.fill(from, resource, doFill)
+
+
+  def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) = robot.drain(from, resource, doDrain)
+
+
+  def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = robot.drain(from, maxDrain, doDrain)
+
+  def canFill(from: ForgeDirection, fluid: Fluid) = robot.canFill(from, fluid)
+
+
+  def canDrain(from: ForgeDirection, fluid: Fluid) = robot.canDrain(from, fluid)
+
+  def getTankInfo(from: ForgeDirection) = robot.getTankInfo(from)
 }
