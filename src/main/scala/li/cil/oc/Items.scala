@@ -260,5 +260,8 @@ object Items extends ItemAPI {
 
     // 1.3.?
     registerItem(new item.TabletCase(multi), "tabletCase")
+
+    // 1.3.5
+    Recipes.addItem(new item.UpgradePiston(multi), "pistonUpgrade", "oc:pistonUpgrade")
   }
 }

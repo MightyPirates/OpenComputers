@@ -171,6 +171,7 @@ class Settings(config: Config) {
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
+  val pistonCost = config.getDouble("power.cost.pistonPush") max 0
 
   // power.value
   private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
