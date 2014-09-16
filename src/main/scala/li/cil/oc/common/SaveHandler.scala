@@ -182,7 +182,7 @@ object SaveHandler {
     // Touch all externally saved data when loading, to avoid it getting
     // deleted in the next save (because the now - save time will usually
     // be larger than the time out after loading a world again).
-    if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) visitJava17()
+    if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
     else visitJava16()
   }
 
@@ -194,21 +194,6 @@ object SaveHandler {
       if (file.isDirectory) file.listFiles().foreach(recurse)
     }
     recurse(statePath)
-  }
-
-  private def visitJava17() {
-    Files.walkFileTree(statePath.toPath, new FileVisitor[Path] {
-      override def visitFile(file: Path, attrs: BasicFileAttributes) = {
-        file.toFile.setLastModified(System.currentTimeMillis())
-        FileVisitResult.CONTINUE
-      }
-
-      override def visitFileFailed(file: Path, exc: IOException) = FileVisitResult.CONTINUE
-
-      override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = FileVisitResult.CONTINUE
-
-      override def postVisitDirectory(dir: Path, exc: IOException) = FileVisitResult.CONTINUE
-    })
   }
 
   @ForgeSubscribe
@@ -235,5 +220,22 @@ object SaveHandler {
     if (emptyDirs != null) {
       emptyDirs.filter(_ != null).foreach(_.delete())
     }
+  }
+}
+
+object SaveHandlerJava17Functionality {
+  def visitJava17(statePath: File) {
+    Files.walkFileTree(statePath.toPath, new FileVisitor[Path] {
+      override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+        file.toFile.setLastModified(System.currentTimeMillis())
+        FileVisitResult.CONTINUE
+      }
+
+      override def visitFileFailed(file: Path, exc: IOException) = FileVisitResult.CONTINUE
+
+      override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = FileVisitResult.CONTINUE
+
+      override def postVisitDirectory(dir: Path, exc: IOException) = FileVisitResult.CONTINUE
+    })
   }
 }
