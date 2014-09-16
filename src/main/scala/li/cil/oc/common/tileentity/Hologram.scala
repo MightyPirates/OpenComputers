@@ -224,7 +224,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     // Validate all axes before setting the values.
     val maxTranslation = Settings.get.hologramMaxTranslationByTier(tier)
     val tx = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(0)))
-    val ty = math.max(0, math.min(maxTranslation, args.checkDouble(1)))
+    val ty = math.max(0, math.min(maxTranslation * 2, args.checkDouble(1)))
     val tz = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(2)))
 
     translation.xCoord = tx
