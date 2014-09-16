@@ -83,6 +83,7 @@ class Proxy {
     api.Driver.add(driver.item.Keyboard)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.Screen)
+    api.Driver.add(driver.item.Tablet)
     api.Driver.add(driver.item.UpgradeAngel)
     api.Driver.add(driver.item.UpgradeBattery)
     api.Driver.add(driver.item.UpgradeChunkloader)
