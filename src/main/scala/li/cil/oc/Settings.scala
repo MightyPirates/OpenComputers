@@ -172,6 +172,23 @@ class Settings(config: Config) {
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
 
+  // power.value
+  private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
+  private val valueFactorization = config.getDouble("power.value.Factorization")
+  private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
+  private val valueMekanism = config.getDouble("power.value.Mekanism")
+  private val valueThermalExpansion = config.getDouble("power.value.ThermalExpansion")
+  private val valueUniversalElectricity = config.getDouble("power.value.UniversalElectricity")
+
+  private val valueInternal = valueBuildCraft
+
+  val ratioBuildCraft = valueBuildCraft / valueInternal
+  val ratioFactorization = valueFactorization / valueInternal
+  val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
+  val ratioMekanism = valueMekanism / valueInternal
+  val ratioThermalExpansion = valueThermalExpansion / valueInternal
+  val ratioUniversalElectricity = valueUniversalElectricity / valueInternal
+
   // ----------------------------------------------------------------------- //
   // filesystem
   val fileCost = config.getInt("filesystem.fileCost") max 0
@@ -261,24 +278,6 @@ object Settings {
   val deviceComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId = -1
-
-  // Power conversion values. These are the same values used by Universal
-  // Electricity to provide global power support.
-  val valueBuildCraft = 500.0
-  val valueFactorization = 6.5
-  val valueIndustrialCraft2 = 200.0
-  val valueMekanism = 250.0 / 9.0
-  val valueThermalExpansion = 50.0
-  val valueUniversalElectricity = 1.0
-
-  val valueInternal = valueBuildCraft
-
-  val ratioBuildCraft = valueBuildCraft / valueInternal
-  val ratioFactorization = valueFactorization / valueInternal
-  val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
-  val ratioMekanism = valueMekanism / valueInternal
-  val ratioThermalExpansion = valueThermalExpansion / valueInternal
-  val ratioUniversalElectricity = valueUniversalElectricity / valueInternal
 
   def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 

@@ -23,10 +23,10 @@ trait Factorization extends Common {
     if (useFactorizationPower) {
       getCharge.update()
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.ratioFactorization
+        val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioFactorization
         if (demand > 1) {
           val power = getCharge.deplete(demand.toInt)
-          tryChangeBuffer(side, power * Settings.ratioFactorization)
+          tryChangeBuffer(side, power * Settings.get.ratioFactorization)
         }
       }
     }

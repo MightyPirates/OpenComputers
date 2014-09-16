@@ -11,17 +11,17 @@ trait UniversalElectricity extends Common {
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
   def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) =
-    if (!Mods.UniversalElectricity.isAvailable) 0
-    else (tryChangeBuffer(from, receive * Settings.ratioUniversalElectricity, doReceive) / Settings.ratioUniversalElectricity).toLong
+    if (!Mods.UniversalElectricity.isAvailable) 0L
+    else (tryChangeBuffer(from, receive * Settings.get.ratioUniversalElectricity, doReceive) / Settings.get.ratioUniversalElectricity).toLong
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  def getEnergy(from: ForgeDirection) = (globalBuffer(from) / Settings.ratioUniversalElectricity).toLong
+  def getEnergy(from: ForgeDirection) = (globalBuffer(from) / Settings.get.ratioUniversalElectricity).toLong
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  def getEnergyCapacity(from: ForgeDirection) = (globalBufferSize(from) / Settings.ratioUniversalElectricity).toLong
+  def getEnergyCapacity(from: ForgeDirection) = (globalBufferSize(from) / Settings.get.ratioUniversalElectricity).toLong
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0
+  def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0L
 
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
   def setEnergy(from: ForgeDirection, energy: Long) {}
