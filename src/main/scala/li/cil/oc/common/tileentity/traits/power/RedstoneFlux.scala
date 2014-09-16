@@ -12,13 +12,13 @@ trait RedstoneFlux extends Common {
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
   def receiveEnergy(from: ForgeDirection, maxReceive: Int, simulate: Boolean) =
     if (!Mods.RedstoneFlux.isAvailable) 0
-    else (tryChangeBuffer(from, maxReceive * Settings.ratioRedstoneFlux, !simulate) / Settings.ratioRedstoneFlux).toInt
+    else (tryChangeBuffer(from, maxReceive * Settings.get.ratioRedstoneFlux, !simulate) / Settings.get.ratioRedstoneFlux).toInt
 
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
-  def getEnergyStored(from: ForgeDirection) = (globalBuffer(from) / Settings.ratioRedstoneFlux).toInt
+  def getEnergyStored(from: ForgeDirection) = (globalBuffer(from) / Settings.get.ratioRedstoneFlux).toInt
 
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
-  def getMaxEnergyStored(from: ForgeDirection) = (globalBufferSize(from) / Settings.ratioRedstoneFlux).toInt
+  def getMaxEnergyStored(from: ForgeDirection) = (globalBufferSize(from) / Settings.get.ratioRedstoneFlux).toInt
 
   @Optional.Method(modid = Mods.IDs.RedstoneFlux)
   def extractEnergy(from: ForgeDirection, maxExtract: Int, simulate: Boolean) = 0

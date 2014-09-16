@@ -161,6 +161,26 @@ class Settings(config: Config) {
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
+  val pistonCost = config.getDouble("power.cost.pistonPush") max 0
+
+  // power.value
+  private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
+  private val valueFactorization = config.getDouble("power.value.Factorization")
+  private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
+  private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
+  private val valueMekanism = config.getDouble("power.value.Mekanism")
+  private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
+  private val valueUniversalElectricity = config.getDouble("power.value.UniversalElectricity")
+
+  private val valueInternal = valueBuildCraft
+
+  val ratioBuildCraft = valueBuildCraft / valueInternal
+  val ratioFactorization = valueFactorization / valueInternal
+  val ratioGalacticraft = valueGalacticraft / valueInternal
+  val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
+  val ratioMekanism = valueMekanism / valueInternal
+  val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
+  val ratioUniversalElectricity = valueUniversalElectricity / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem
@@ -251,26 +271,6 @@ object Settings {
   val deviceComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId = -1
-
-  // Power conversion values. These are the same values used by Universal
-  // Electricity to provide global power support.
-  val valueBuildCraft = 500.0
-  val valueFactorization = 6.5
-  val valueGalacticraft = 24.0
-  val valueIndustrialCraft2 = 200.0
-  val valueMekanism = 5000.0 / 9.0
-  val valueRedstoneFlux = 35.0
-  val valueUniversalElectricity = 1.0
-
-  val valueInternal = valueBuildCraft
-
-  val ratioBuildCraft = valueBuildCraft / valueInternal
-  val ratioFactorization = valueFactorization / valueInternal
-  val ratioGalacticraft = valueGalacticraft / valueInternal
-  val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
-  val ratioMekanism = valueMekanism / valueInternal
-  val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
-  val ratioUniversalElectricity = valueUniversalElectricity / valueInternal
 
   def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 

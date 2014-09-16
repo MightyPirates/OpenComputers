@@ -61,9 +61,10 @@ repositories {
     }
 }
 
-// From http://stackoverflow.com/questions/10405970/how-do-i-define-a-compile-time-only-classpath-in-gradle
 configurations {
   provided
+    shade
+    compile.extendsFrom provided, shade
 }
 
 dependencies {
@@ -75,9 +76,10 @@ dependencies {
     provided "dev.calclavia.universalelectricity:universal-electricity:+:dev"
     provided "mcp.mobius.waila:Waila:1.5.+:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
+    compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
+    shade files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 }
 
-sourceSets.main.compileClasspath += configurations.provided
 idea.module.scopes.PROVIDED.plus += configurations.provided
 eclipse.classpath.plusConfigurations += configurations.provided
 
@@ -106,6 +108,11 @@ processResources {
 }
 
 jar {
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
     classifier = 'universal'
     manifest {
         attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
@@ -120,7 +127,12 @@ javadoc {
 // because the normal default jar task has been modified to be obfuscated
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    classifier = 'deobf'
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+    classifier = 'dev'
     manifest {
         attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
         attributes FMLCorePluginContainsFMLMod: "true"

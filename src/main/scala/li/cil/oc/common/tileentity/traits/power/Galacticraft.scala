@@ -18,13 +18,13 @@ trait Galacticraft extends Common {
   @Optional.Method(modid = Mods.IDs.Galacticraft)
   def receiveEnergyGC(from: EnergySource, amount: Float, simulate: Boolean) =
     if (!Mods.Galacticraft.isAvailable) 0
-    else (tryChangeBuffer(from, amount * Settings.ratioGalacticraft, !simulate) / Settings.ratioGalacticraft).toFloat
+    else (tryChangeBuffer(from, amount * Settings.get.ratioGalacticraft, !simulate) / Settings.get.ratioGalacticraft).toFloat
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)
-  def getEnergyStoredGC(from: EnergySource) = (globalBuffer(from) / Settings.ratioGalacticraft).toFloat
+  def getEnergyStoredGC(from: EnergySource) = (globalBuffer(from) / Settings.get.ratioGalacticraft).toFloat
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)
-  def getMaxEnergyStoredGC(from: EnergySource) = (globalBufferSize(from) / Settings.ratioGalacticraft).toFloat
+  def getMaxEnergyStoredGC(from: EnergySource) = (globalBufferSize(from) / Settings.get.ratioGalacticraft).toFloat
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)
   def extractEnergyGC(from: EnergySource, amount: Float, simulate: Boolean) = 0f
