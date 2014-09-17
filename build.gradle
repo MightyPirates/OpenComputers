@@ -38,6 +38,13 @@ if (config.oc.subversion != null && config.oc.subversion != "")
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"
 
+runClient {
+    jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
+}
+runServer {
+    jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
+}
+
 repositories {
     maven {
         name = "bc"
