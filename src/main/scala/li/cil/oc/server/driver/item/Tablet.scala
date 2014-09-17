@@ -5,6 +5,7 @@ import li.cil.oc.util.ItemUtils
 import li.cil.oc.{Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.Constants.NBT
 
 object Tablet extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("tablet"))
@@ -25,7 +26,7 @@ object Tablet extends Item {
       case _ => false
     }
     if (index >= 0 && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "items")) {
-      stack.getTagCompound.getTagList(Settings.namespace + "items").tagAt(index).asInstanceOf[NBTTagCompound].getCompoundTag("tag")
+      stack.getTagCompound.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).getCompoundTagAt(index).getCompoundTag("tag")
     }
     else new NBTTagCompound()
   }

@@ -301,7 +301,7 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
 
   override def addedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) {
     super.addedByEntity(world, x, y, z, player, stack)
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen => screen.delayUntilCheckForMultiBlock = 0
       case _ =>
     }
