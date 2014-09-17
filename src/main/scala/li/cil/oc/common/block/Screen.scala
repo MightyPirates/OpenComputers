@@ -9,7 +9,7 @@ import li.cil.oc.util.mods.{BuildCraft, Mods}
 import li.cil.oc.util.{Color, PackedColor, Tooltip}
 import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.entity.Entity
+import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
@@ -298,6 +298,14 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
   override def createTileEntity(world: World) = Some(new tileentity.Screen(tier))
 
   // ----------------------------------------------------------------------- //
+
+  override def addedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) {
+    super.addedByEntity(world, x, y, z, player, stack)
+    world.getBlockTileEntity(x, y, z) match {
+      case screen: tileentity.Screen => screen.delayUntilCheckForMultiBlock = 0
+      case _ =>
+    }
+  }
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, x, y, z, player, side, hitX, hitY, hitZ, force = false)

@@ -31,6 +31,13 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
    */
   var shouldCheckForMultiBlock = true
 
+  /**
+   * On the client we delay connecting screens a little, to avoid glitches
+   * when not all tile entity data for a chunk has been received within a
+   * single tick (meaning some screens are still "missing").
+   */
+  var delayUntilCheckForMultiBlock = 40
+
   var width, height = 1
 
   var origin = this
@@ -149,7 +156,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def updateEntity() {
     super.updateEntity()
-    if (shouldCheckForMultiBlock && (isClient || isConnected)) {
+    if (shouldCheckForMultiBlock && ((isClient && isClientReadyForMultiBlockCheck) || (isServer && isConnected))) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
       // differing between the two. This also saves us from having to save
@@ -231,6 +238,11 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       arrows.clear()
     }
   }
+
+  private def isClientReadyForMultiBlockCheck = if (delayUntilCheckForMultiBlock > 0) {
+    delayUntilCheckForMultiBlock -= 1
+    false
+  } else true
 
   override def dispose() {
     super.dispose()
