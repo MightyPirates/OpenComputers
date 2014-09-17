@@ -21,11 +21,22 @@ trait RedstoneBundled extends Redstone[BundledRedstoneAware] {
   @Callback(doc = """function(side:number, color:number, value:number):number -- Set the bundled redstone output on the specified side and with the specified color.""")
   def setBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
-    val color = checkColor(args, 1)
-    val value = args.checkInteger(2)
-    owner.bundledOutput(side, color, value)
-    context.pause(0.1)
-    result(owner.bundledOutput(side, color))
+    if (args.isTable(1)) {
+      val table = args.checkTable(1)
+      (0 to 15).map(color => (color, table.get(color))).foreach {
+        case (color, number: Number) => owner.bundledOutput(side, color, number.intValue())
+        case _ =>
+      }
+      context.pause(0.1)
+      result(true)
+    }
+    else {
+      val color = checkColor(args, 1)
+      val value = args.checkInteger(2)
+      owner.bundledOutput(side, color, value)
+      context.pause(0.1)
+      result(owner.bundledOutput(side, color))
+    }
   }
 
   // ----------------------------------------------------------------------- //

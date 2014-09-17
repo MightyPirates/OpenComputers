@@ -25,9 +25,8 @@ import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
 
 class Tablet(val parent: Delegator) extends Delegate {
+  // Must be assembled to be usable so we hide it in the item list.
   showInItemList = false
-
-  // Must be assembled to be usable.
 
   override def maxStackSize = 1
 
