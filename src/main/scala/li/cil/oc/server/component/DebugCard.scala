@@ -84,15 +84,15 @@ object DebugCard {
         null
       })
 
-    @Callback(doc = """function():number, number, number -- Get the player's position.""")
+    @Callback(doc = """function():number -- Get the player's health.""")
     def getHealth(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => Array(float2Float(player.getHealth)))
 
-    @Callback(doc = """function():number, number, number -- Get the player's position.""")
+    @Callback(doc = """function():number -- Get the player's max health.""")
     def getMaxHealth(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => Array(float2Float(player.getMaxHealth)))
 
-    @Callback(doc = """function():number, number, number -- Get the player's position.""")
+    @Callback(doc = """function(health:number) -- Set the player's health.""")
     def setHealth(context: Context, args: Arguments): Array[AnyRef] =
       withPlayer(player => {
         player.setHealth(args.checkDouble(0).toFloat)
