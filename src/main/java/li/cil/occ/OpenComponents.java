@@ -22,6 +22,7 @@ import net.minecraftforge.common.Configuration;
 import java.util.logging.Logger;
 
 @Mod(modid = OpenComponents.ID, name = OpenComponents.Name, version = OpenComponents.Version, useMetadata = true)
+@NetworkMod(clientSideRequired = false, serverSideRequired = false)
 public class OpenComponents {
     public static final String ID = "OpenComponents";
 
