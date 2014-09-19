@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.machine.Robot;
+import li.cil.oc.api.tileentity.Robot;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**

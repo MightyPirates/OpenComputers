@@ -2,12 +2,11 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.server.network.QuantumNetwork
 import net.minecraft.nbt.NBTTagCompound
-
-import scala.collection.convert.WrapAsScala._
 
 class LinkedCard extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).

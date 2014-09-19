@@ -48,13 +48,16 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
     case _ => 0
   }))
 
-  lazy val maxComponents = if (!hasCPU) 0 else inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
+  lazy val maxComponents = if (!hasCPU) 0
+  else inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Processor) => driver.supportedComponents(item)
       case _ => 0
     }
     case _ => 0
   }))
+
+  override def componentSlot(address: String) = inventory.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   def hasCPU = inventory.items.exists {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
@@ -114,7 +117,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
 
     override def onMessage(message: Message) {}
 
-    override def componentContainer = rack
+    override def host = rack
 
     // Resolves conflict between ComponentInventory and ServerInventory.
     override def getInventoryStackLimit = 1

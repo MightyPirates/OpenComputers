@@ -2,8 +2,9 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.machine.Robot
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.common.component
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.util.AxisAlignedBB

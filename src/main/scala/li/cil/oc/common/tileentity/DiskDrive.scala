@@ -3,7 +3,8 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.{Analyzable, Component, Visibility}
+import li.cil.oc.api.network.{Component, Visibility}
+import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.common.{Slot, Sound}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._

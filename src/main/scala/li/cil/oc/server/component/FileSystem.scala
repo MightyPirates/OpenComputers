@@ -3,8 +3,9 @@ package li.cil.oc.server.component
 import java.io.{FileNotFoundException, IOException}
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.Host
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.{Sound, component}
 import li.cil.oc.server.driver.item.ComputerCraftMedia
@@ -18,7 +19,7 @@ import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[Container] = None) extends component.ManagedComponent {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[Host] = None) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
@@ -310,7 +311,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
   private def isHardDisk(stack: ItemStack) = hdds contains api.Items.get(stack)
 
   private def makeSomeNoise() {
-    container.foreach(c =>
+    host.foreach(c =>
       // Well, this is hacky as shit, but who cares.
       label match {
         case item: ItemLabel =>

@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 
 trait RedstoneBundled extends Redstone[BundledRedstoneAware] {

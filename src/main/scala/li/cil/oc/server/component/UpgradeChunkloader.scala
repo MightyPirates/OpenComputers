@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.Host
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
@@ -8,7 +9,7 @@ import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.Ticket
 
-class UpgradeChunkloader(val owner: Container) extends component.ManagedComponent {
+class UpgradeChunkloader(val host: Host) extends component.ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("chunkloader").
     withConnector().
@@ -20,7 +21,7 @@ class UpgradeChunkloader(val owner: Container) extends component.ManagedComponen
 
   override def update() {
     super.update()
-    if (owner.world.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
+    if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
       if (!node.tryChangeBuffer(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
         ticket.foreach(ForgeChunkManager.releaseTicket)
         ticket = None
@@ -38,8 +39,8 @@ class UpgradeChunkloader(val owner: Container) extends component.ManagedComponen
     super.onConnect(node)
     if (node == this.node) {
       ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).
-        orElse(owner match {
-        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, owner.world, ForgeChunkManager.Type.NORMAL))
+        orElse(host match {
+        case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
         case _ => None
       })
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
@@ -66,7 +67,7 @@ class UpgradeChunkloader(val owner: Container) extends component.ManagedComponen
 
   private def setActive(enabled: Boolean) = {
     if (enabled && ticket.isEmpty) {
-      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, owner.world, ForgeChunkManager.Type.NORMAL))
+      ticket = Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
     }
     else if (!enabled && ticket.isDefined) {

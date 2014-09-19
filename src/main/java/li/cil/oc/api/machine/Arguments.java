@@ -1,4 +1,4 @@
-package li.cil.oc.api.network;
+package li.cil.oc.api.machine;
 
 import java.util.Map;
 

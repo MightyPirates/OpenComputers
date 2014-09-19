@@ -2,7 +2,7 @@ package li.cil.oc.common.event
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event._
-import li.cil.oc.api.machine.Robot
+import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.server.component
 import li.cil.oc.{Localization, Settings}
 import org.lwjgl.opengl.GL11

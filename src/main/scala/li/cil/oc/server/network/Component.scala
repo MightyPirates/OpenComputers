@@ -1,5 +1,6 @@
 package li.cil.oc.server.network
 
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine

@@ -1,7 +1,8 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Analyzable, Node, Visibility}
+import li.cil.oc.api.network.{Node, Visibility}
+import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.EntityPlayer

@@ -1,7 +1,9 @@
-package li.cil.oc.api.network;
+package li.cil.oc.api.machine;
+
+import li.cil.oc.api.network.Node;
 
 /**
- * This is used to provide some context to {@link Callback}s, i.e. the
+ * This is used to provide some context to {@link li.cil.oc.api.machine.Callback}s, i.e. the
  * computer from which the callback was called.
  */
 public interface Context {

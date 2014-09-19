@@ -1,7 +1,9 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
+import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._

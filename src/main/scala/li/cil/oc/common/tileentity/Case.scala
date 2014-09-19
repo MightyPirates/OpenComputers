@@ -58,6 +58,8 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     case _ => 0
   }))
 
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+
   def hasCPU = items.exists {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver) => driver.slot(stack) == Slot.CPU

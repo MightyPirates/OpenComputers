@@ -4,9 +4,9 @@ import java.util.UUID
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc._
-import li.cil.oc.api.Driver
 import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
 import li.cil.oc.api.network._
+import li.cil.oc.api.{Driver, tileentity}
 import li.cil.oc.client.gui
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component.robot
@@ -31,7 +31,7 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with api.machine.Robot {
+class Robot extends traits.Computer with traits.PowerInformation with tileentity.Robot {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
@@ -500,7 +500,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.UpgradeContainer) => driver.providedSlot(stack)
+      case Some(driver: api.driver.Container) => driver.providedSlot(stack)
       case _ => Slot.None
     }
   }
@@ -509,7 +509,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   def containerSlotTier(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.UpgradeContainer) => driver.providedTier(stack)
+      case Some(driver: api.driver.Container) => driver.providedTier(stack)
       case _ => Tier.None
     }
   }
@@ -540,6 +540,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     }
     case _ => 0
   }))
+
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(driver.item.RedstoneCard.worksWith))
 

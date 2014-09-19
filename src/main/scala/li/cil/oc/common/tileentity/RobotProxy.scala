@@ -3,7 +3,9 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
+import li.cil.oc.api.tileentity
 import li.cil.oc.util.mods.Mods
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
@@ -13,7 +15,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with tileentity.Robot with ISidedInventory {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //
@@ -220,6 +222,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   override def getInventoryStackLimit = robot.getInventoryStackLimit
 
   override def installedMemory = robot.installedMemory
+
+  override def componentSlot(address: String) = robot.componentSlot(address)
 
   override def getInventoryName = robot.getInventoryName
 

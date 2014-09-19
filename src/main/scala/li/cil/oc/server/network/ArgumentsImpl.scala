@@ -3,12 +3,12 @@ package li.cil.oc.server.network
 import java.util
 
 import com.google.common.base.Charsets
-import li.cil.oc.api.network
+import li.cil.oc.api.machine.Arguments
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
+class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   def iterator() = args.iterator
 
   def count() = args.length

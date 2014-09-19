@@ -1,7 +1,7 @@
 package li.cil.oc.common.asm.template;
 
 import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.SimpleComponent;
+import li.cil.oc.api.tileentity.SimpleComponent;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**

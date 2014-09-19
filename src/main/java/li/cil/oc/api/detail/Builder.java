@@ -27,7 +27,7 @@ public interface Builder<T extends Node> {
          * Makes the node a component.
          * <p/>
          * Nodes that are components can be accessed from computers, methods
-         * declared in them marked using the {@link Callback} annotation can
+         * declared in them marked using the {@link li.cil.oc.api.machine.Callback} annotation can
          * be invoked from computers that can see the component.
          *
          * @param name       the name of the component.
@@ -115,7 +115,7 @@ public interface Builder<T extends Node> {
          * Makes the node a component.
          * <p/>
          * Nodes that are components can be accessed from computers, methods
-         * declared in them marked using the {@link Callback} annotation can
+         * declared in them marked using the {@link li.cil.oc.api.machine.Callback} annotation can
          * be invoked from computers that can see the component.
          *
          * @param name       the name of the component.

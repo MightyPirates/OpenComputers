@@ -1,8 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.machine.Robot
+import li.cil.oc.api.driver.Host
+import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
@@ -10,8 +10,8 @@ import net.minecraft.item.ItemStack
 object UpgradeInventoryController extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("inventoryControllerUpgrade"))
 
-  override def createEnvironment(stack: ItemStack, container: Container) = container match {
-    case robot: Container with Robot => new component.UpgradeInventoryController(robot)
+  override def createEnvironment(stack: ItemStack, host: Host) = host match {
+    case robot: Host with Robot => new component.UpgradeInventoryController(robot)
     case _ => null
   }
 

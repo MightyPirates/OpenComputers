@@ -1,6 +1,5 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
 import net.minecraft.world.World;
@@ -56,6 +55,18 @@ public interface Owner extends Context {
      * @return the number of supported components.
      */
     int maxComponents();
+
+    /**
+     * Get the slot a component with the specified address is in.
+     * <p/>
+     * This is intended to allow determining the slot of <em>item</em>
+     * components sitting in computers. For other components this returns
+     * negative values.
+     *
+     * @param address the address of the component to get the slot for.
+     * @return the index of the slot the component is in.
+     */
+    int componentSlot(String address);
 
     /**
      * This is called by the machine when its state changed (which can be

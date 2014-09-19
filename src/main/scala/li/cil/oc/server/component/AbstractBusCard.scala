@@ -2,6 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound

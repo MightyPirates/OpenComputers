@@ -1,14 +1,16 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
+import li.cil.oc.api.tileentity.{Analyzable, SidedEnvironment}
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.mods.{Mods, Waila}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{Vec3, AxisAlignedBB}
+import net.minecraft.util.{AxisAlignedBB, Vec3}
 import net.minecraftforge.common.util.ForgeDirection
 
 class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable {

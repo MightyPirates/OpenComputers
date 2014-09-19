@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
 import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}

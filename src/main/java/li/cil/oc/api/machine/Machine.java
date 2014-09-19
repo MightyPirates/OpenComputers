@@ -1,7 +1,5 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.network.Callback;
-import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 
 import java.util.Map;

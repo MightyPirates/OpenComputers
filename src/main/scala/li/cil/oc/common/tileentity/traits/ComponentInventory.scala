@@ -6,7 +6,7 @@ import li.cil.oc.common.inventory
 import net.minecraft.nbt.NBTTagCompound
 
 trait ComponentInventory extends Environment with Inventory with inventory.ComponentInventory {
-  override def componentContainer = this
+  override def host = this
 
   override def isComponentSlot(slot: Int) = isServer
 

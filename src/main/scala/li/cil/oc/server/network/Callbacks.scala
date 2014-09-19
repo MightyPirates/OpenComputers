@@ -4,9 +4,10 @@ import java.lang.reflect.{InvocationTargetException, Method, Modifier}
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.MethodWhitelist
-import li.cil.oc.api.machine.Robot
-import li.cil.oc.api.network
-import li.cil.oc.api.network.{Context, ManagedPeripheral}
+import li.cil.oc.api.machine
+import li.cil.oc.api.machine.{Arguments, Context}
+import li.cil.oc.api.network.ManagedPeripheral
+import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 
 import scala.collection.{immutable, mutable}
@@ -41,10 +42,10 @@ object Callbacks {
       while (c != classOf[Object]) {
         val ms = c.getDeclaredMethods
 
-        ms.filter(_.isAnnotationPresent(classOf[network.Callback])).foreach(m =>
+        ms.filter(_.isAnnotationPresent(classOf[machine.Callback])).foreach(m =>
           if (m.getParameterTypes.size != 2 ||
             (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[Robot]) ||
-            m.getParameterTypes()(1) != classOf[network.Arguments]) {
+            m.getParameterTypes()(1) != classOf[Arguments]) {
             OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
           }
           else if (m.getReturnType != classOf[Array[AnyRef]]) {
@@ -54,7 +55,7 @@ object Callbacks {
             OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
           }
           else {
-            val a = m.getAnnotation[network.Callback](classOf[network.Callback])
+            val a = m.getAnnotation[machine.Callback](classOf[machine.Callback])
             val name = if (a.value != null && a.value.trim != "") a.value else m.getName
             if (shouldAdd(name)) {
               callbacks += name -> new ComponentCallback(m, a.direct, a.limit, a.doc)
@@ -87,11 +88,11 @@ object Callbacks {
   // ----------------------------------------------------------------------- //
 
   abstract class Callback(val direct: Boolean, val limit: Int, val doc: String = "") {
-    def apply(instance: AnyRef, context: Context, args: network.Arguments): Array[AnyRef]
+    def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef]
   }
 
   class ComponentCallback(val method: Method, direct: Boolean, limit: Int, doc: String) extends Callback(direct, limit, doc) {
-    override def apply(instance: AnyRef, context: Context, args: network.Arguments) = try {
+    override def apply(instance: AnyRef, context: Context, args: Arguments) = try {
       method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
     } catch {
       case e: InvocationTargetException => throw e.getCause
@@ -99,7 +100,7 @@ object Callbacks {
   }
 
   class PeripheralCallback(val name: String) extends Callback(true, 100) {
-    override def apply(instance: AnyRef, context: Context, args: network.Arguments) =
+    override def apply(instance: AnyRef, context: Context, args: Arguments) =
       instance match {
         case peripheral: ManagedPeripheral => peripheral.invoke(name, context, args)
         case _ => throw new NoSuchMethodException()

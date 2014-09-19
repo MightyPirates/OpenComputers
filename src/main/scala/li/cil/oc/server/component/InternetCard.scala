@@ -7,6 +7,7 @@ import java.nio.channels.SocketChannel
 import java.util.concurrent.{Callable, ExecutionException}
 
 import li.cil.oc.api.Network
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.util.ExtendedNBT._

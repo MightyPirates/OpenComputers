@@ -4,7 +4,7 @@ import java.io
 import java.net.URL
 import java.util.UUID
 
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.Host
 import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.server.component
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
@@ -101,11 +101,11 @@ object FileSystem extends api.detail.FileSystemAPI {
     else null
   }
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: Container) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: Host) =
+    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host)))).orNull
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, container: Container) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), container)
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: Host) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull

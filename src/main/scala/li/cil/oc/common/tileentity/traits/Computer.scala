@@ -4,7 +4,8 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Machine
 import li.cil.oc.api.machine.Owner
-import li.cil.oc.api.network.{Analyzable, Node}
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}

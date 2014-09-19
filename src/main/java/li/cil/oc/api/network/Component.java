@@ -1,5 +1,7 @@
 package li.cil.oc.api.network;
 
+import li.cil.oc.api.machine.Context;
+
 /**
  * Components are nodes that can be addressed computers via drivers.
  * <p/>

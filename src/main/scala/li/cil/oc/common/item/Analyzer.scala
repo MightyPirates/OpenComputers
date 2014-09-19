@@ -2,6 +2,7 @@ package li.cil.oc.common.item
 
 import li.cil.oc.Localization
 import li.cil.oc.api.network._
+import li.cil.oc.api.tileentity.{Analyzable, SidedEnvironment}
 import li.cil.oc.server.PacketSender
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.item.ItemStack

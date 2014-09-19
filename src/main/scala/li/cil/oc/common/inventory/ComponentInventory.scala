@@ -1,7 +1,7 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.driver.{Container, Item => ItemDriver}
+import li.cil.oc.api.driver.{Host, Item => ItemDriver}
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.api.{Driver, network}
 import li.cil.oc.server.driver.item.Item
@@ -17,7 +17,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def componentContainer: Container
+  def host: Host
 
   // ----------------------------------------------------------------------- //
 
@@ -37,7 +37,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       if (stack != null && components(slot).isEmpty && isComponentSlot(slot)) {
         components(slot) = Option(Driver.driverFor(stack)) match {
           case Some(driver) =>
-            Option(driver.createEnvironment(stack, componentContainer)) match {
+            Option(driver.createEnvironment(stack, host)) match {
               case Some(component) =>
                 try {
                   component.load(dataTag(driver, stack))
@@ -94,7 +94,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot)) {
     Option(Driver.driverFor(stack)).foreach(driver =>
-      Option(driver.createEnvironment(stack, componentContainer)) match {
+      Option(driver.createEnvironment(stack, host)) match {
         case Some(component) => this.synchronized {
           components(slot) = Some(component)
           try {

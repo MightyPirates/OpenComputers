@@ -1,52 +1,37 @@
 package li.cil.oc.api.driver;
 
-import net.minecraft.world.World;
+import net.minecraft.item.ItemStack;
 
 /**
- * To be implemented by 'hosts' of components.
+ * May be implemented by drivers for robot upgrades that act as hotswap bays,
+ * i.e. which can be installed into the 'dynamic' slots, and provide on-the-fly
+ * changeable upgrade slots (i.e. which can be changed in the robot GUI,
+ * without disassembling and re-assembling the robot).
  * <p/>
- * This is what's passed to drivers as the host when creating an environment.
- * It is generally used to represent the components' location in the world.
- * <p/>
- * You will only need to implement this if you intend to host components, e.g.
- * by providing a custom computer case or such. In OpenComputers this interface
- * is usually implemented directly by the tile entities acting as the host, so
- * in most cases you should be able to cast this to <tt>TileEntity</tt> for
- * more options, if necessary.
+ * These drivers will not be queried for environments. The reported tier is the
+ * maximum tier supported in the dynamic slot they provide.
  */
-public interface Container {
+public interface Container extends Item {
     /**
-     * The world the container lives in.
-     */
-    World world();
-
-    /**
-     * The container's X position in the world.
+     * The type of slot provided as the dynamic slot. This will usually be
+     * for other upgrades, but may be for any type of item component.
      * <p/>
-     * For tile entities this is the <em>centered</em> position. For example,
-     * if the tile entity is located at (0, 2, 3) this will be 0.5.
+     * While the driver's own type implicitly has to be 'Upgrade' and could
+     * therefore be used instead, this makes the intention more clear.
+     *
+     * @param stack the item stack to get the provided slot type for.
+     * @return the slot type provided by that dynamic slot upgrade.
      */
-    double xPosition();
+    String providedSlot(ItemStack stack);
 
     /**
-     * The container's Y position in the world.
+     * The maximum item tier of the items that can be placed into the slot
+     * provided by the specified container.
      * <p/>
-     * For tile entities this is the <em>centered</em> position. For example,
-     * if the tile entity is located at (0, 2, 3) this will be 2.5.
+     * This will usually be equal to the container's tier.
+     *
+     * @param stack the item stack to the the supported tier for.
+     * @return the maximum tier supported by that dynamic slot upgrade.
      */
-    double yPosition();
-
-    /**
-     * The container's Z position in the world.
-     * <p/>
-     * For tile entities this is the <em>centered</em> position. For example,
-     * if the tile entity is located at (0, 2, 3) this will be 3.5.
-     */
-    double zPosition();
-
-    /**
-     * Marks the container as "changed" so that it knows it has to be saved
-     * again in the next world save.
-     */
-    void markChanged();
+    int providedTier(ItemStack stack);
 }

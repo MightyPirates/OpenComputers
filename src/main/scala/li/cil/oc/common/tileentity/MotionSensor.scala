@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.nbt.NBTTagCompound

@@ -2,7 +2,7 @@ package li.cil.oc.server.driver.item
 
 import java.io
 
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.Host
 import li.cil.oc.common.Slot
 import li.cil.oc.server.fs.FileSystem.ItemLabel
 import li.cil.oc.{OpenComputers, Settings, api}
@@ -13,7 +13,7 @@ import net.minecraftforge.common.DimensionManager
 object Loot extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("lootDisk"), api.Items.get("openOS"))
 
-  override def createEnvironment(stack: ItemStack, container: Container) =
+  override def createEnvironment(stack: ItemStack, host: Host) =
     if (stack.hasTagCompound) {
       val lootPath = "loot/" + stack.getTagCompound.getString(Settings.namespace + "lootPath")
       val savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + lootPath)
@@ -29,7 +29,7 @@ object Loot extends Item {
           dataTag(stack).getString(Settings.namespace + "fs.label")
         }
         else null
-      api.FileSystem.asManagedEnvironment(fs, new ReadOnlyItemLabel(stack, label), container)
+      api.FileSystem.asManagedEnvironment(fs, new ReadOnlyItemLabel(stack, label), host)
     }
     else null
 

@@ -1,6 +1,6 @@
 package li.cil.oc.common.template
 
-import li.cil.oc.api.driver.{Inventory, Memory, Processor, UpgradeContainer}
+import li.cil.oc.api.driver.{Container, Inventory, Memory, Processor}
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.inventory.IInventory
@@ -82,7 +82,7 @@ abstract class Template {
       val stack = inventory.getStackInSlot(slot)
       acc += (Option(api.Driver.driverFor(stack)) match {
         case Some(driver: Processor) => 0 // CPUs are exempt, since they control the limit.
-        case Some(driver: UpgradeContainer) => (1 + driver.tier(stack)) * 2
+        case Some(driver: Container) => (1 + driver.tier(stack)) * 2
         case Some(driver) => 1 + driver.tier(stack)
         case _ => 0
       })

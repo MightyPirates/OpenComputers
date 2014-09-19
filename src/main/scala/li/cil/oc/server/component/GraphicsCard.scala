@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.util.PackedColor

@@ -1,9 +1,10 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.machine.Robot
+import li.cil.oc.api.driver.Host
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
+import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.common.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{OpenComputers, Settings, api}
@@ -12,7 +13,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityFurnace
 
-class UpgradeGenerator(val owner: Container with Robot) extends component.ManagedComponent {
+class UpgradeGenerator(val host: Host with Robot) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().
@@ -25,15 +26,15 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
 
   var remainingTicks = 0
 
-  def slot = (0 until owner.getSizeInventory).indexWhere(owner.getComponentInSlot(_) == this)
+  def slot = (0 until host.getSizeInventory).indexWhere(host.getComponentInSlot(_) == this)
 
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function([count:number]):boolean -- Tries to insert fuel from the selected slot into the generator's queue.""")
   def insert(context: Context, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else 64
-    val player = owner.player
-    val stack = player.inventory.getStackInSlot(owner.selectedSlot)
+    val player = host.player
+    val stack = player.inventory.getStackInSlot(host.selectedSlot)
     if (stack == null) return result(Unit, "selected slot is empty")
     if (!TileEntityFurnace.isItemFuel(stack)) {
       return result(Unit, "selected slot does not contain fuel")
@@ -54,8 +55,8 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
       case _ =>
         inventory = Some(stack.splitStack(math.min(stack.stackSize, count)))
     }
-    if (stack.stackSize > 0) player.inventory.setInventorySlotContents(owner.selectedSlot, stack)
-    else player.inventory.setInventorySlotContents(owner.selectedSlot, null)
+    if (stack.stackSize > 0) player.inventory.setInventorySlotContents(host.selectedSlot, stack)
+    else player.inventory.setInventorySlotContents(host.selectedSlot, null)
     result(true)
   }
 
@@ -73,7 +74,7 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
     inventory match {
       case Some(stack) =>
         val removedStack = stack.splitStack(math.min(count, stack.stackSize))
-        val success = owner.player.inventory.addItemStackToInventory(removedStack)
+        val success = host.player.inventory.addItemStackToInventory(removedStack)
         stack.stackSize += removedStack.stackSize
         if (success && stack.stackSize <= 0) {
           inventory = None
@@ -107,7 +108,7 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
     }
   }
 
-  private def updateClient() = owner.synchronizeSlot(slot)
+  private def updateClient() = host.synchronizeSlot(slot)
 
   // ----------------------------------------------------------------------- //
 
@@ -123,8 +124,8 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
     if (node == this.node) {
       inventory match {
         case Some(stack) =>
-          val world = owner.world
-          val entity = new EntityItem(world, owner.xPosition, owner.yPosition, owner.zPosition, stack.copy())
+          val world = host.world
+          val entity = new EntityItem(world, host.xPosition, host.yPosition, host.zPosition, stack.copy())
           entity.motionY = 0.04
           entity.delayBeforeCanPickup = 5
           world.spawnEntityInWorld(entity)

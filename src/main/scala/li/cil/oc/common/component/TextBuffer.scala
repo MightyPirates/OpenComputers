@@ -4,7 +4,8 @@ import com.google.common.base.Strings
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.Host
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker, PacketSender => ClientPacketSender}
@@ -20,7 +21,7 @@ import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val owner: Container) extends ManagedComponent with api.component.TextBuffer {
+class TextBuffer(val host: Host) extends ManagedComponent with api.component.TextBuffer {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -77,7 +78,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   override def update() {
     super.update()
-    if (isDisplaying && owner.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isDisplaying && host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank
         // versus the number of pixels in the *current* resolution. This is
@@ -101,13 +102,13 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
         val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
         hasPower = node.tryChangeBuffer(-neededPower)
         if (hasPower != hadPower) {
-          ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, owner)
+          ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, host)
         }
       }
     }
 
     this.synchronized {
-      _pendingCommands.foreach(_.sendToNearbyPlayers(owner))
+      _pendingCommands.foreach(_.sendToNearbyPlayers(host))
       _pendingCommands = None
     }
   }
@@ -139,7 +140,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   @Callback(doc = """function():table -- The list of keyboards attached to the screen.""")
   def getKeyboards(context: Context, args: Arguments): Array[AnyRef] = {
     context.pause(0.25)
-    owner match {
+    host match {
       case screen: tileentity.Screen =>
         Array(screen.screens.map(_.node).flatMap(_.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address)).toArray)
       case _ =>
@@ -163,7 +164,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
         val neededPower = fullyLitCost * Settings.get.tickFrequency
         hasPower = node.changeBuffer(-neededPower) == 0
       }
-      ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, owner)
+      ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, host)
     }
   }
 
@@ -410,7 +411,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
       }
     }
 
-    SaveHandler.scheduleSave(owner, nbt, node.address + "_buffer", data.save _)
+    SaveHandler.scheduleSave(host, nbt, node.address + "_buffer", data.save _)
     nbt.setBoolean(Settings.namespace + "isOn", isDisplaying)
     nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
   }
@@ -423,7 +424,7 @@ object TextBuffer {
   def onChunkUnload(e: ChunkEvent.Unload) {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.owner.world != e.world || !chunk.isAtLocation(math.round(t.owner.xPosition - 0.5).toInt << 4, math.round(t.owner.zPosition - 0.5).toInt << 4)
+      val keep = t.host.world != e.world || !chunk.isAtLocation(math.round(t.host.xPosition - 0.5).toInt << 4, math.round(t.host.zPosition - 0.5).toInt << 4)
       if (!keep) {
         ClientComponentTracker.remove(t.proxy.nodeAddress)
       }
@@ -434,7 +435,7 @@ object TextBuffer {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.owner.world != e.world
+      val keep = t.host.world != e.world
       if (!keep) {
         ClientComponentTracker.remove(t.proxy.nodeAddress)
       }
@@ -459,7 +460,7 @@ object TextBuffer {
 
     def markDirty() {
       dirty = true
-      lastChange = owner.owner.world.getTotalWorldTime
+      lastChange = owner.host.world.getTotalWorldTime
     }
 
     def render() = false
@@ -504,7 +505,7 @@ object TextBuffer {
   class ClientProxy(val owner: TextBuffer) extends Proxy {
     override def render() = {
       TextBufferRenderCache.render(owner)
-      lastChange == owner.owner.world.getTotalWorldTime
+      lastChange == owner.host.world.getTotalWorldTime
     }
 
     override def onScreenColorChange() {
@@ -563,41 +564,41 @@ object TextBuffer {
 
   class ServerProxy(val owner: TextBuffer) extends Proxy {
     override def onScreenColorChange() {
-      owner.owner.markChanged()
+      owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferColorChange(owner.pendingCommands, owner.data.foreground, owner.data.background))
     }
 
     override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       super.onScreenCopy(col, row, w, h, tx, ty)
-      owner.owner.markChanged()
+      owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferCopy(owner.pendingCommands, col, row, w, h, tx, ty))
     }
 
     override def onScreenDepthChange(depth: ColorDepth) {
-      owner.owner.markChanged()
+      owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferDepthChange(owner.pendingCommands, depth))
     }
 
     override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       super.onScreenFill(col, row, w, h, c)
-      owner.owner.markChanged()
+      owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferFill(owner.pendingCommands, col, row, w, h, c))
     }
 
     override def onScreenPaletteChange(index: Int) {
-      owner.owner.markChanged()
+      owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferPaletteChange(owner.pendingCommands, index, owner.getPaletteColor(index)))
     }
 
     override def onScreenResolutionChange(w: Int, h: Int) {
       super.onScreenResolutionChange(w, h)
-      owner.owner.markChanged()
+      owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferResolutionChange(owner.pendingCommands, w, h))
     }
 
     override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onScreenSet(col, row, s, vertical)
-      owner.owner.markChanged()
+      owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferSet(owner.pendingCommands, col, row, s, vertical))
     }
 
@@ -635,7 +636,7 @@ object TextBuffer {
     }
 
     private def sendToKeyboards(name: String, values: AnyRef*) {
-      owner.owner match {
+      owner.host match {
         case screen: tileentity.Screen =>
           screen.screens.foreach(_.node.sendToNeighbors(name, values: _*))
         case _ =>

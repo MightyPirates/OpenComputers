@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods

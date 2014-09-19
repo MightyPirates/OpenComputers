@@ -1,5 +1,6 @@
-package li.cil.oc.api.network;
+package li.cil.oc.api.tileentity;
 
+import li.cil.oc.api.network.Node;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**

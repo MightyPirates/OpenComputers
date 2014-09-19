@@ -1,6 +1,6 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api.network.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 

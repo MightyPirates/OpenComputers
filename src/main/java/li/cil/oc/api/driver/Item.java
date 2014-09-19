@@ -55,11 +55,11 @@ public interface Item {
      * called. The created instance's life cycle is managed by the container
      * that caused its creation.
      *
-     * @param stack     the item stack for which to get the environment.
-     * @param container the container the environment will be managed by.
+     * @param stack the item stack for which to get the environment.
+     * @param host  the container the environment will be managed by.
      * @return the environment for that item.
      */
-    ManagedEnvironment createEnvironment(ItemStack stack, Container container);
+    ManagedEnvironment createEnvironment(ItemStack stack, Host host);
 
     /**
      * The slot type of the specified item this driver supports.

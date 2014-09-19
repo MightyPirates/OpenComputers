@@ -1,7 +1,8 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
-import li.cil.oc.api.network.{Connector, SidedEnvironment}
+import li.cil.oc.api.network.Connector
+import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.api.{driver, network}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.ExtendedNBT._
@@ -10,7 +11,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.math.ScalaNumber
 
-trait Environment extends TileEntity with network.Environment with driver.Container {
+trait Environment extends TileEntity with network.Environment with driver.Host {
   protected var isChangeScheduled = false
 
   override def xPosition = x + 0.5

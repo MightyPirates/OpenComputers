@@ -1,8 +1,9 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
+import li.cil.oc.api.driver.Host
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.component
 import net.minecraft.block.Block
@@ -15,7 +16,7 @@ import net.minecraftforge.common.DimensionManager
 
 import scala.math.ScalaNumber
 
-class DebugCard(owner: Container) extends component.ManagedComponent {
+class DebugCard(host: Host) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
     withConnector().
@@ -27,16 +28,16 @@ class DebugCard(owner: Container) extends component.ManagedComponent {
   def changeBuffer(context: Context, args: Arguments): Array[AnyRef] = result(node.changeBuffer(args.checkDouble(0)))
 
   @Callback(doc = """function():number -- Get the container's X position in the world.""")
-  def getX(context: Context, args: Arguments): Array[AnyRef] = result(owner.xPosition)
+  def getX(context: Context, args: Arguments): Array[AnyRef] = result(host.xPosition)
 
   @Callback(doc = """function():number -- Get the container's Y position in the world.""")
-  def getY(context: Context, args: Arguments): Array[AnyRef] = result(owner.yPosition)
+  def getY(context: Context, args: Arguments): Array[AnyRef] = result(host.yPosition)
 
   @Callback(doc = """function():number -- Get the container's Z position in the world.""")
-  def getZ(context: Context, args: Arguments): Array[AnyRef] = result(owner.zPosition)
+  def getZ(context: Context, args: Arguments): Array[AnyRef] = result(host.zPosition)
 
   @Callback(doc = """function():userdata -- Get the container's world object.""")
-  def getWorld(context: Context, args: Arguments): Array[AnyRef] = result(new DebugCard.WorldValue(owner.world))
+  def getWorld(context: Context, args: Arguments): Array[AnyRef] = result(new DebugCard.WorldValue(host.world))
 
   @Callback(doc = """function(name:string):userdata -- Get the entity of a player.""")
   def getPlayer(context: Context, args: Arguments): Array[AnyRef] = result(new DebugCard.PlayerValue(args.checkString(0)))

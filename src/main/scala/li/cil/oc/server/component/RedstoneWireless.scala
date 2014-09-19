@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import codechicken.lib.vec.Vector3
 import codechicken.wirelessredstone.core.{WirelessReceivingDevice, WirelessTransmittingDevice}
 import cpw.mods.fml.common.Optional
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity.traits.RedstoneAware

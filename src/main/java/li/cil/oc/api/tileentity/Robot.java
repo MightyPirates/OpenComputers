@@ -1,6 +1,5 @@
-package li.cil.oc.api.machine;
+package li.cil.oc.api.tileentity;
 
-import li.cil.oc.api.Rotatable;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
@@ -25,6 +24,8 @@ import net.minecraft.item.ItemStack;
  * Note that there may be no hot-swappable (or even built-in) components or
  * no inventory, depending on the configuration of the robot. The hard-wired
  * components cannot be changed (removed/replaced).
+ * <p/>
+ * <em>This interface is not meant to be implemented, just used</em>
  */
 public interface Robot extends ISidedInventory, Rotatable {
     /**

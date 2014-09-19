@@ -1,7 +1,8 @@
-package li.cil.oc.api.network;
+package li.cil.oc.api.tileentity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import li.cil.oc.api.network.Node;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -20,7 +21,7 @@ public interface SidedEnvironment {
     /**
      * The node this environment uses for the specified side.
      * <p/>
-     * This is the side aware version of the normal {@link Environment#node}
+     * This is the side aware version of the normal {@link li.cil.oc.api.network.Environment#node}
      * method.
      * <p/>
      * The provided side is relative to the environment, i.e. when the tile
@@ -30,7 +31,7 @@ public interface SidedEnvironment {
      *
      * @param side the side to get the node for.
      * @return the node for the specified side.
-     * @see Environment#node
+     * @see li.cil.oc.api.network.Environment#node
      */
     Node sidedNode(ForgeDirection side);
 

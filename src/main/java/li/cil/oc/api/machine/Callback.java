@@ -1,4 +1,4 @@
-package li.cil.oc.api.network;
+package li.cil.oc.api.machine;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation can be used for methods in an {@link Environment} to mark
+ * This annotation can be used for methods in an {@link li.cil.oc.api.network.Environment} to mark
  * them for exposure to computers.
  * <p/>
  * Any method exposed like this can be enumerated and called from a computer
@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * of said information failing should not.
  *
  * @see Context
- * @see Arguments
+ * @see li.cil.oc.api.machine.Arguments
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -49,7 +49,7 @@ public @interface Callback {
      * This is mainly intended to allow functions to perform faster than when
      * called 'synchronously' (where the call takes at least one server tick).
      * <p/>
-     * Keep in mind that the node {@link Network} is <em>not</em> thread safe!
+     * Keep in mind that the node {@link li.cil.oc.api.network.Network} is <em>not</em> thread safe!
      * Be sure you know what you're doing if you're working with a node's
      * network in a direct callback.
      */
@@ -70,11 +70,11 @@ public @interface Callback {
      * manner.
      * <p/>
      * Note that the limit does <em>not</em> apply when the method is invoked
-     * via a direct call to {@link Component#invoke(String, Context, Object...)}
+     * via a direct call to {@link li.cil.oc.api.network.Component#invoke(String, Context, Object...)}
      * from the host side. Also, this limit is per-computer, so the method may
      * be invoked more often than this per tick, if different computers call it.
      * <p/>
-     * An exception to that rule is {@link Connector#changeBuffer(double)},
+     * An exception to that rule is {@link li.cil.oc.api.network.Connector#changeBuffer(double)},
      * which is synchronized, so you can consume/produce power in direct calls.
      */
     int limit() default Integer.MAX_VALUE;

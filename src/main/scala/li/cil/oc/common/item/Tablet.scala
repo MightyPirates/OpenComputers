@@ -7,10 +7,11 @@ import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotificati
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, ServerTickEvent}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.Machine
+import li.cil.oc.api.driver.Host
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Connector, Message, Node}
-import li.cil.oc.api.{Machine, Rotatable}
+import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.util.ItemUtils.TabletData
@@ -67,7 +68,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with Container with Owner with Rotatable {
+class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with Host with Owner with Rotatable {
   lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
@@ -153,7 +154,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 
   override def onMessage(message: Message) {}
 
-  override def componentContainer = this
+  override def host = this
 
   override def getSizeInventory = items.length
 
@@ -198,6 +199,8 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
     }
     case _ => 0
   }))
+
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   override def markAsChanged() {}
 
