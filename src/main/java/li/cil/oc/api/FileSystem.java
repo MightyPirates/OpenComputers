@@ -145,14 +145,14 @@ public final class FileSystem {
      *
      * @param fileSystem  the file system to wrap.
      * @param label       the label of the file system.
+     * @param host        the tile entity containing the file system.
      * @param accessSound the name of the sound effect to play when the file
      *                    system is accessed.
-     * @param host        the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final String accessSound, final EnvironmentHost host) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final EnvironmentHost host, final String accessSound) {
         if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label, accessSound, host);
+            return instance.asManagedEnvironment(fileSystem, label, host, accessSound);
         return null;
     }
 
@@ -162,14 +162,14 @@ public final class FileSystem {
      *
      * @param fileSystem  the file system to wrap.
      * @param label       the read-only label of the file system.
+     * @param host        the tile entity containing the file system.
      * @param accessSound the name of the sound effect to play when the file
      *                    system is accessed.
-     * @param host        the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final String accessSound, final EnvironmentHost host) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final EnvironmentHost host, final String accessSound) {
         if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label, accessSound, host);
+            return instance.asManagedEnvironment(fileSystem, label, host, accessSound);
         return null;
     }
 

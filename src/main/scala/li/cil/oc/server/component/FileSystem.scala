@@ -2,24 +2,20 @@ package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
 
+import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.{Sound, component}
-import li.cil.oc.server.driver.item.ComputerCraftMedia
-import li.cil.oc.server.fs.FileSystem.ItemLabel
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagIntArray, NBTTagList}
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val sound: Option[String] = None, val host: Option[EnvironmentHost] = None) extends component.ManagedComponent {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost] = None, val sound: Option[String] = None) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
@@ -301,14 +297,6 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val sound: Optio
   private def checkOwner(owner: String, handle: Int) =
     if (!owners.contains(owner) || !owners(owner).contains(handle))
       throw new IOException("bad file descriptor")
-
-  private lazy val floppies = Set(api.Items.get("floppy"), api.Items.get("lootDisk"), api.Items.get("openOS"))
-
-  private lazy val hdds = Set(api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"))
-
-  private def isFloppy(stack: ItemStack) = floppies contains api.Items.get(stack)
-
-  private def isHardDisk(stack: ItemStack) = hdds contains api.Items.get(stack)
 
   private def makeSomeNoise() {
     (sound, host) match {

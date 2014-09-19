@@ -101,11 +101,11 @@ object FileSystem extends api.detail.FileSystemAPI {
     else null
   }
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, sound: String, host: EnvironmentHost) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(sound), Option(host)))).orNull
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, sound: String) =
+    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(sound)))).orNull
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, sound: String, host: EnvironmentHost) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), sound, host)
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, sound: String) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull

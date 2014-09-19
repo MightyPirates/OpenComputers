@@ -16,7 +16,7 @@ object ComputerCraftMedia extends Item {
     if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && host != null) {
       val address = addressFromTag(dataTag(stack))
       val mount = ComputerCraft.createDiskMount(stack, host.world)
-      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), "floppy_access", host)) match {
+      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), host, "floppy_access")) match {
         case Some(environment) =>
           environment.node.asInstanceOf[oc.server.network.Node].address = address
           environment

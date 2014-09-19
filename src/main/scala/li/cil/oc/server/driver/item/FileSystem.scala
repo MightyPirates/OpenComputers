@@ -40,7 +40,7 @@ object FileSystem extends Item {
     val address = addressFromTag(dataTag(stack))
     val isFloppy = api.Items.get(stack) == api.Items.get("floppy")
     val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
-    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ReadWriteItemLabel(stack), if (isFloppy) "floppy_access" else "hdd_access", host)
+    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ReadWriteItemLabel(stack), host, if (isFloppy) "floppy_access" else "hdd_access")
     if (environment != null && environment.node != null) {
       environment.node.asInstanceOf[oc.server.network.Node].address = address
     }

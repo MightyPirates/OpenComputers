@@ -100,12 +100,12 @@ public interface FileSystemAPI {
      *
      * @param fileSystem  the file system to wrap.
      * @param label       the label of the file system.
+     * @param host        the tile entity containing the file system.
      * @param accessSound the name of the sound effect to play when the file
      *                    system is accessed.
-     * @param host        the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, String accessSound, EnvironmentHost host);
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, EnvironmentHost host, String accessSound);
 
     /**
      * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, String, li.cil.oc.api.driver.EnvironmentHost)},
@@ -113,12 +113,12 @@ public interface FileSystemAPI {
      *
      * @param fileSystem  the file system to wrap.
      * @param label       the read-only label of the file system.
+     * @param host        the tile entity containing the file system.
      * @param accessSound the name of the sound effect to play when the file
      *                    system is accessed.
-     * @param host        the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, String accessSound, EnvironmentHost host);
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, EnvironmentHost host, String accessSound);
 
     /**
      * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, String, li.cil.oc.api.driver.EnvironmentHost)},
