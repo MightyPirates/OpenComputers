@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.component
@@ -8,7 +8,7 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.block.Block
 import net.minecraftforge.fluids.FluidRegistry
 
-class Geolyzer(val host: Host) extends component.ManagedComponent {
+class Geolyzer(val host: EnvironmentHost) extends component.ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("geolyzer").
     withConnector().

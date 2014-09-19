@@ -6,7 +6,7 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
@@ -39,7 +39,7 @@ object SaveHandler {
     scheduleSave(owner, nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(host: Host, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+  def scheduleSave(host: EnvironmentHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
     scheduleSave(host.world, math.round(host.xPosition - 0.5).toInt, math.round(host.zPosition - 0.5).toInt, nbt, name, writeNBT(save))
   }
 

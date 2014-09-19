@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
 import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.PackedColor
@@ -341,7 +341,7 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
-  def sendTextBufferPowerChange(address: String, hasPower: Boolean, host: Host) {
+  def sendTextBufferPowerChange(address: String, hasPower: Boolean, host: EnvironmentHost) {
     val pb = new SimplePacketBuilder(PacketType.TextBufferPowerChange)
 
     pb.writeUTF(address)

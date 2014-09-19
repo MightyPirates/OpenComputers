@@ -4,7 +4,7 @@ import com.google.common.base.Strings
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.client.renderer.TextBufferRenderCache
@@ -21,7 +21,7 @@ import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: Host) extends ManagedComponent with api.component.TextBuffer {
+class TextBuffer(val host: EnvironmentHost) extends ManagedComponent with api.component.TextBuffer {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().

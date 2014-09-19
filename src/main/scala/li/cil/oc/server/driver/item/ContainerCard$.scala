@@ -1,6 +1,6 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.{Container, Host}
+import li.cil.oc.api.driver.{Container, EnvironmentHost}
 import li.cil.oc.common.{Slot, item}
 import li.cil.oc.{Items, api}
 import net.minecraft.item.ItemStack
@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack
 object ContainerCard$ extends Item with Container {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("cardContainer1"), api.Items.get("cardContainer2"), api.Items.get("cardContainer3"))
 
-  override def createEnvironment(stack: ItemStack, host: Host) = null
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 
   override def slot(stack: ItemStack) = Slot.Container
 

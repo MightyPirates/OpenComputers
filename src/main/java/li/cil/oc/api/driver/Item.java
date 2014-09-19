@@ -59,7 +59,7 @@ public interface Item {
      * @param host  the container the environment will be managed by.
      * @return the environment for that item.
      */
-    ManagedEnvironment createEnvironment(ItemStack stack, Host host);
+    ManagedEnvironment createEnvironment(ItemStack stack, EnvironmentHost host);
 
     /**
      * The slot type of the specified item this driver supports.

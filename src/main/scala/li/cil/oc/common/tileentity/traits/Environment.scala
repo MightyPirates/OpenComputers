@@ -11,7 +11,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.math.ScalaNumber
 
-trait Environment extends TileEntity with network.Environment with driver.Host {
+trait Environment extends TileEntity with network.Environment with driver.EnvironmentHost {
   protected var isChangeScheduled = false
 
   override def xPosition = x + 0.5

@@ -5,7 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent.{PlayerChangedDimensionEvent, PlayerLoggedOutEvent, PlayerRespawnEvent}
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.component
 import li.cil.oc.{Settings, api}
@@ -17,7 +17,7 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(val host: Host) extends component.ManagedComponent with api.component.Keyboard {
+class Keyboard(val host: EnvironmentHost) extends component.ManagedComponent with api.component.Keyboard {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()

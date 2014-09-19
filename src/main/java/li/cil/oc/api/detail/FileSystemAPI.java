@@ -1,6 +1,6 @@
 package li.cil.oc.api.detail;
 
-import li.cil.oc.api.driver.Host;
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
@@ -98,26 +98,31 @@ public interface FileSystemAPI {
      * <p/>
      * The container may be <tt>null</tt>, if no such context can be provided.
      *
-     * @param fileSystem the file system to wrap.
-     * @param label      the label of the file system.
-     * @param host       the tile entity containing the file system.
+     * @param fileSystem  the file system to wrap.
+     * @param label       the label of the file system.
+     * @param accessSound the name of the sound effect to play when the file
+     *                    system is accessed.
+     * @param host        the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, Host host);
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, String accessSound, EnvironmentHost host);
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, li.cil.oc.api.driver.Host)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, String, li.cil.oc.api.driver.EnvironmentHost)},
      * but creates a read-only label initialized to the specified value.
      *
-     * @param fileSystem the file system to wrap.
-     * @param label      the read-only label of the file system.
+     * @param fileSystem  the file system to wrap.
+     * @param label       the read-only label of the file system.
+     * @param accessSound the name of the sound effect to play when the file
+     *                    system is accessed.
+     * @param host        the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, Host host);
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, String accessSound, EnvironmentHost host);
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, li.cil.oc.api.driver.Host)},
-     * but does not provide a container.
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, String, li.cil.oc.api.driver.EnvironmentHost)},
+     * but does not provide a container and access sound.
      *
      * @param fileSystem the file system to wrap.
      * @param label      the label of the file system.

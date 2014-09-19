@@ -14,7 +14,7 @@ import net.minecraft.world.World;
  * in most cases you should be able to cast this to <tt>TileEntity</tt> for
  * more options, if necessary.
  */
-public interface Host {
+public interface EnvironmentHost {
     /**
      * The world the container lives in.
      */

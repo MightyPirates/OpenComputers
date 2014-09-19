@@ -2,7 +2,7 @@ package li.cil.oc.server.driver.item
 
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.Slot
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
@@ -12,11 +12,11 @@ import net.minecraft.nbt.NBTTagCompound
 object ComputerCraftMedia extends Item {
   override def slot(stack: ItemStack) = Slot.Floppy
 
-  override def createEnvironment(stack: ItemStack, host: Host) =
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && host != null) {
       val address = addressFromTag(dataTag(stack))
       val mount = ComputerCraft.createDiskMount(stack, host.world)
-      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), host)) match {
+      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), "floppy_access", host)) match {
         case Some(environment) =>
           environment.node.asInstanceOf[oc.server.network.Node].address = address
           environment

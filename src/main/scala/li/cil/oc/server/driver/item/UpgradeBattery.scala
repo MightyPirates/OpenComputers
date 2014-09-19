@@ -1,6 +1,6 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.{Slot, item}
 import li.cil.oc.server.component
 import li.cil.oc.{Items, api}
@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 object UpgradeBattery extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("batteryUpgrade1"), api.Items.get("batteryUpgrade2"), api.Items.get("batteryUpgrade3"))
 
-  override def createEnvironment(stack: ItemStack, host: Host) = new component.UpgradeBattery(tier(stack))
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.UpgradeBattery(tier(stack))
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 

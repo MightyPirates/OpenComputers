@@ -2,13 +2,13 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.component
 import net.minecraft.world.World
 import net.minecraft.world.biome.BiomeGenDesert
 
-class UpgradeSolarGenerator(val host: Host) extends component.ManagedComponent {
+class UpgradeSolarGenerator(val host: EnvironmentHost) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withConnector().
     create()

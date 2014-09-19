@@ -1,6 +1,6 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, RedstoneAware}
 import li.cil.oc.common.{Slot, Tier, item}
 import li.cil.oc.server.component
@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack
 object RedstoneCard extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("redstoneCard1"), api.Items.get("redstoneCard2"))
 
-  override def createEnvironment(stack: ItemStack, host: Host) =
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
       case redstone: BundledRedstoneAware if BundledRedstone.isAvailable && tier(stack) == Tier.Two =>
         if (WirelessRedstone.isAvailable) new component.Redstone[BundledRedstoneAware](redstone) with component.RedstoneBundled with component.RedstoneWireless

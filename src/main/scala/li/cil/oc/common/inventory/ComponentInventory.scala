@@ -1,7 +1,7 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.driver.{Host, Item => ItemDriver}
+import li.cil.oc.api.driver.{EnvironmentHost, Item => ItemDriver}
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.api.{Driver, network}
 import li.cil.oc.server.driver.item.Item
@@ -17,7 +17,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def host: Host
+  def host: EnvironmentHost
 
   // ----------------------------------------------------------------------- //
 

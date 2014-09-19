@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab.AbstractValue
@@ -16,7 +16,7 @@ import net.minecraftforge.common.DimensionManager
 
 import scala.math.ScalaNumber
 
-class DebugCard(host: Host) extends component.ManagedComponent {
+class DebugCard(host: EnvironmentHost) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
     withConnector().

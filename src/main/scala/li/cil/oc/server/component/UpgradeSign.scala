@@ -1,14 +1,14 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.component
 import net.minecraft.tileentity.TileEntitySign
 
-class UpgradeSign(val host: Host with Rotatable) extends component.ManagedComponent {
+class UpgradeSign(val host: EnvironmentHost with Rotatable) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("sign", Visibility.Neighbors).
     withConnector().

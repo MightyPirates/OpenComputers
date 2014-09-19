@@ -1,6 +1,6 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.{Settings, api}
@@ -11,7 +11,7 @@ import net.minecraftforge.common.util.Constants.NBT
 object Tablet extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("tablet"))
 
-  override def createEnvironment(stack: ItemStack, host: Host) = {
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
     val data = new ItemUtils.TabletData(stack)
     data.items.collect {
       case Some(fs) if FileSystem.worksWith(fs) => fs

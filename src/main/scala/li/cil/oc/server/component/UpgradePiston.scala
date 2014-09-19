@@ -3,7 +3,7 @@ package li.cil.oc.server.component
 import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.tileentity.Rotatable
@@ -12,7 +12,7 @@ import net.minecraft.block.BlockPistonBase
 import net.minecraft.init.Blocks
 import net.minecraft.world.World
 
-class UpgradePiston(val host: Rotatable with Host) extends component.ManagedComponent {
+class UpgradePiston(val host: Rotatable with EnvironmentHost) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("piston").
     withConnector().

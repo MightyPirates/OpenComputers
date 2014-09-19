@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.driver.Host
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
@@ -9,7 +9,7 @@ import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.Ticket
 
-class UpgradeChunkloader(val host: Host) extends component.ManagedComponent {
+class UpgradeChunkloader(val host: EnvironmentHost) extends component.ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("chunkloader").
     withConnector().
