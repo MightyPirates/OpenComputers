@@ -2,41 +2,62 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.{ItemUtils, Tooltip}
 import li.cil.oc.{Blocks, OpenComputers, Settings}
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, Vec3}
+import net.minecraft.util.{AxisAlignedBB, IIcon, MovingObjectPosition, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
-  override val unlocalizedName = "Robot"
+class RobotProxy extends RedstoneAware with SpecialBlock {
+  setLightOpacity(0)
 
-  private var icon: Icon = _
+  showInItemList = false
+
+  override val getUnlocalizedName = "Robot"
+
+  private var icon: IIcon = _
 
   var moving = new ThreadLocal[Option[tileentity.Robot]] {
     override protected def initialValue = None
   }
 
-  showInItemList = false
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override def registerBlockIcons(iconRegister: IIconRegister) {
+    super.registerBlockIcons(iconRegister)
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":GenericTop")
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def getIcon(side: ForgeDirection, metadata: Int) = icon
+
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
+  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
+  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+    world.getTileEntity(x, y, z) match {
+      case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
+      case _ => null
+    }
 
   // ----------------------------------------------------------------------- //
 
   override def rarity = EnumRarity.epic
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     addLines(stack, tooltip)
-    super.tooltipLines(stack, player, tooltip, advanced)
+    super.addInformation(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.RobotData(stack)
       for (component <- info.containers ++ info.components) {
@@ -45,10 +66,10 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.Waila)
-  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    addLines(stack, tooltip)
-  }
+  //  @Optional.Method(modid = Mods.IDs.Waila)
+  //  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+  //    addLines(stack, tooltip)
+  //  }
 
   private def addLines(stack: ItemStack, tooltip: util.List[String]) {
     if (stack.hasTagCompound) {
@@ -56,67 +77,42 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
         val xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
         val level = math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
         if (level > 0) {
-          tooltip.addAll(Tooltip.get(unlocalizedName + "_Level", level))
+          tooltip.addAll(Tooltip.get(getUnlocalizedName + "_Level", level))
         }
       }
       if (stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
         val energy = stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")
         if (energy > 0) {
-          tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
+          tooltip.addAll(Tooltip.get(getUnlocalizedName + "_StoredEnergy", energy))
         }
       }
     }
   }
 
-  @SideOnly(Side.CLIENT)
-  override def icon(side: ForgeDirection) = Some(icon)
-
-  @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":GenericTop")
-  }
-
-  override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
-      case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
-      case _ => null
-    }
-
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = {
+  override def createTileEntity(world: World, metadata: Int) = {
     moving.get match {
-      case Some(robot) => Some(new tileentity.RobotProxy(robot))
-      case _ => Some(new tileentity.RobotProxy())
+      case Some(robot) => new tileentity.RobotProxy(robot)
+      case _ => new tileentity.RobotProxy()
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def explosionResistance(entity: Entity) = 10f
+  override def getExplosionResistance(entity: Entity) = 10f
 
-  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = false
-
-  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
-
-  override def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
-
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
-
-  // ----------------------------------------------------------------------- //
-
-  override def drops(world: World, x: Int, y: Int, z: Int, fortune: Int) = Some(new java.util.ArrayList[ItemStack]())
+  override def getDrops(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) = new java.util.ArrayList[ItemStack]()
 
   override def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
-    val bounds = parent.getCollisionBoundingBoxFromPool(world, x, y, z)
+    val bounds = getCollisionBoundingBoxFromPool(world, x, y, z)
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(origin) => null
-      case _ => super.intersect(world, x, y, z, origin, direction)
+      case _ => super.collisionRayTrace(world, x, y, z, origin, direction)
     }
   }
 
-  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {
+  override def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
@@ -128,13 +124,15 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
           val dz = robot.moveFromZ - robot.z
           bounds.offset(dx * remaining, dy * remaining, dz * remaining)
         }
-        parent.setBlockBounds(bounds)
-      case _ => super.updateBounds(world, x, y, z)
+        setBlockBounds(bounds)
+      case _ => super.doSetBlockBoundsBasedOnState(world, x, y, z)
     }
   }
 
-  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  // ----------------------------------------------------------------------- //
+
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         // We only send slot changes to nearby players, so if there was no slot
@@ -161,8 +159,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     else false
   }
 
-  override def addedByEntity(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, stack: ItemStack) {
-    super.addedByEntity(world, x, y, z, entity, stack)
+  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, stack: ItemStack) {
+    super.onBlockPlacedBy(world, x, y, z, entity, stack)
     if (!world.isRemote) ((entity, world.getTileEntity(x, y, z)) match {
       case (player: robot.Player, proxy: tileentity.RobotProxy) =>
         Some((proxy.robot, player.robot.owner, player.robot.ownerUuid))
@@ -180,7 +178,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     }
   }
 
-  override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer): Boolean = {
+  override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int, willHarvest: Boolean): Boolean = {
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
@@ -188,19 +186,19 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
           if (robot.player == player) return false
           robot.node.remove()
           robot.saveComponents()
-          parent.internalDropBlockAsItem(world, x, y, z, robot.info.createItemStack())
+          dropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }
-        if (Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).contains(Blocks.robotAfterimage)) {
+        if (world.getBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ) == Blocks.robotAfterimage) {
           world.setBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ, net.minecraft.init.Blocks.air, 0, 1)
         }
       case _ =>
     }
-    super.removedByEntity(world, x, y, z, player)
+    super.removedByPlayer(world, player, x, y, z, willHarvest)
   }
 
-  override def aboutToBeRemoved(world: World, x: Int, y: Int, z: Int) {
+  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) {
     if (moving.get.isEmpty) {
-      super.aboutToBeRemoved(world, x, y, z)
+      super.onBlockPreDestroy(world, x, y, z, metadata)
     }
   }
 }

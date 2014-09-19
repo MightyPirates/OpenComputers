@@ -116,7 +116,7 @@ object ItemUtils {
     }
 
     def createItemStack() = {
-      val stack = Blocks.robotProxy.createItemStack()
+      val stack = new ItemStack(Blocks.robotProxy)
       save(stack)
       stack
     }

@@ -11,12 +11,17 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
+class Cable extends SimpleBlock with SpecialBlock {
+  setLightOpacity(0)
+
+  var colorMultiplierOverride: Option[Int] = None
+
   override protected def customTextures = Array(
     Some("CablePart"),
     Some("CablePart"),
@@ -26,37 +31,32 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
     Some("CablePart")
   )
 
-  // ----------------------------------------------------------------------- //
-
   @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
+  override def registerBlockIcons(iconRegister: IIconRegister) {
+    super.registerBlockIcons(iconRegister)
     Textures.Cable.iconCap = iconRegister.registerIcon(Settings.resourceDomain + ":CableCap")
   }
 
-  override def hasTileEntity = true
-
-  override def createTileEntity(world: World) = Some(new tileentity.Cable())
-
-  // ----------------------------------------------------------------------- //
-
-  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = false
-
-  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
-
-  override def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
+  override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    colorMultiplierOverride.getOrElse(super.colorMultiplier(world, x, y, z))
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   // ----------------------------------------------------------------------- //
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) {
+  override def hasTileEntity(metadata: Int) = true
+
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Cable()
+
+  // ----------------------------------------------------------------------- //
+
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
     world.markBlockForUpdate(x, y, z)
-    super.neighborBlockChanged(world, x, y, z, block)
+    super.onNeighborBlockChange(world, x, y, z, block)
   }
 
-  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {
-    parent.setBlockBounds(Cable.bounds(world, x, y, z))
+  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int): Unit = {
+    setBlockBounds(Cable.bounds(world, x, y, z))
   }
 }
 

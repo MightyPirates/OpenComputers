@@ -7,8 +7,9 @@ import codechicken.multipart.TileMultipart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.Items
 import li.cil.oc.client.PacketSender
-import li.cil.oc.common.block.Delegator
+import li.cil.oc.common.block.SimpleBlock
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemBlock
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.MovingObjectPosition
 import net.minecraftforge.common.MinecraftForge
@@ -40,14 +41,18 @@ object EventHandler {
   def place(player: EntityPlayer) = {
     val world = player.getEntityWorld
     val hit = RayTracer.reTrace(world, player)
-    if (hit != null) Delegator.subBlock(player.getHeldItem) match {
-      case Some(subBlock) if subBlock == Delegator.subBlock(Items.get("cable").createItemStack(1)).get => placeDelegatePart(player, hit, new CablePart())
+    if (hit != null && player.getHeldItem != null) player.getHeldItem.getItem match {
+      case itemBlock: ItemBlock =>
+        itemBlock.field_150939_a match {
+          case simpleBlock: SimpleBlock if simpleBlock == Items.get("cable").block() => placeDelegatePart(player, hit, new CablePart())
+          case _ => false
+        }
       case _ => false
     }
     else false
   }
 
-  protected def placeDelegatePart(player: EntityPlayer, hit: MovingObjectPosition, part: DelegatePart): Boolean = {
+  protected def placeDelegatePart(player: EntityPlayer, hit: MovingObjectPosition, part: SimpleBlockPart): Boolean = {
     val world = player.getEntityWorld
     if (world.isRemote && !player.isSneaking) {
       // Attempt to use block activated like normal and tell the server the right stuff
@@ -76,7 +81,7 @@ object EventHandler {
     }
   }
 
-  protected def placeMultiPart(player: EntityPlayer, part: DelegatePart, pos: BlockCoord) = {
+  protected def placeMultiPart(player: EntityPlayer, part: SimpleBlockPart, pos: BlockCoord) = {
     val world = player.getEntityWorld
     if (world.isRemote) {
       player.swingItem()
@@ -85,9 +90,9 @@ object EventHandler {
     else {
       TileMultipart.addPart(world, pos, part)
       world.playSoundEffect(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5,
-        part.delegate.parent.stepSound.func_150496_b,
-        (part.delegate.parent.stepSound.getVolume + 1.0F) / 2.0F,
-        part.delegate.parent.stepSound.getPitch * 0.8F)
+        part.simpleBlock.stepSound.func_150496_b,
+        (part.simpleBlock.stepSound.getVolume + 1.0F) / 2.0F,
+        part.simpleBlock.stepSound.getPitch * 0.8F)
       if (!player.capabilities.isCreativeMode) {
         val held = player.getHeldItem
         held.stackSize -= 1

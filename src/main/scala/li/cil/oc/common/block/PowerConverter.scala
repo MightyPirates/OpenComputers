@@ -11,8 +11,12 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
+class PowerConverter extends SimpleBlock {
   showInItemList = !Settings.get.ignorePower
+
+  private val formatter = new DecimalFormat("#.#")
+
+  // ----------------------------------------------------------------------- //
 
   override protected def customTextures = Array(
     None,
@@ -23,12 +27,10 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
     Some("PowerConverterSide")
   )
 
-  private val formatter = new DecimalFormat("#.#")
-
   // ----------------------------------------------------------------------- //
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipLines(stack, player, tooltip, advanced)
+  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    super.addInformation(metadata, stack, player, tooltip, advanced)
     def addExtension(x: Double) =
       if (x >= 1e9) formatter.format(x / 1e9) + "G"
       else if (x >= 1e6) formatter.format(x / 1e6) + "M"
@@ -38,7 +40,7 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
       val (a, b) =
         if (ratio > 1) (1.0, ratio)
         else (1.0 / ratio, 1.0)
-      tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, addExtension(a), addExtension(b)))
+      tooltip.addAll(Tooltip.get(getUnlocalizedName + "." + name, addExtension(a), addExtension(b)))
     }
     if (Mods.BuildCraftPower.isAvailable) {
       addRatio("BuildCraft", Settings.get.ratioBuildCraft)
@@ -62,7 +64,7 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity = true
+  override def hasTileEntity(metadata: Int) = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.PowerConverter())
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
 }

@@ -27,21 +27,9 @@ object Items extends ItemAPI {
     case _ => null
   }
 
-  def registerBlock[T <: common.block.Delegate](delegate: T, id: String) = {
-    descriptors += id -> new ItemInfo {
-      override def name = id
-
-      override def block = delegate.parent
-
-      override def item = null
-
-      override def createItemStack(size: Int) = delegate.createItemStack(size)
-    }
-    names += delegate -> id
-    delegate
-  }
-
-  def registerBlock(instance: Block, id: String) = {
+  def registerBlock[T <: Block](instance: T, id: String) = {
+    instance.setBlockName("oc." + id)
+    GameRegistry.registerBlock(instance, classOf[common.block.Item], id)
     descriptors += id -> new ItemInfo {
       override def name = id
 
@@ -85,18 +73,10 @@ object Items extends ItemAPI {
 
   private def getBlockOrItem(stack: ItemStack): Any = if (stack == null) null
   else {
-    multi.subItem(stack).getOrElse(
-      Blocks.blockSimple.subBlock(stack).getOrElse(
-        Blocks.blockSimpleWithRedstone.subBlock(stack).getOrElse(
-          Blocks.blockSpecial.subBlock(stack).getOrElse(
-            Blocks.blockSpecialWithRedstone.subBlock(stack).getOrElse(stack.getItem match {
-              case block: ItemBlock => block.field_150939_a
-              case item => item
-            })
-          )
-        )
-      )
-    )
+    multi.subItem(stack).getOrElse(stack.getItem match {
+      case block: ItemBlock => block.field_150939_a
+      case item => item
+    })
   }
 
   // ----------------------------------------------------------------------- //

@@ -2,20 +2,22 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.{BuildCraft, Mods}
+import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, Tooltip}
-import li.cil.oc.{Localization, OpenComputers, Settings}
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
+import li.cil.oc.{OpenComputers, Settings}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware with SimpleDelegate {
-  override val unlocalizedName = super.unlocalizedName + tier
+class Case(val tier: Int) extends RedstoneAware {
+  private val iconsOn = new Array[IIcon](6)
+
+  // ----------------------------------------------------------------------- //
 
   override protected def customTextures = Array(
     Some("CaseTop"),
@@ -26,14 +28,30 @@ class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware wit
     Some("CaseSide")
   )
 
-  private val iconsOn = new Array[Icon](6)
+  override def registerBlockIcons(iconRegister: IIconRegister) = {
+    super.registerBlockIcons(iconRegister)
+    System.arraycopy(icons, 0, iconsOn, 0, icons.length)
+    iconsOn(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseBackOn")
+    iconsOn(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseSideOn")
+    iconsOn(ForgeDirection.EAST.ordinal) = iconsOn(ForgeDirection.WEST.ordinal)
+  }
+
+  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
+    if (world.getTileEntity(x, y, z) match {
+      case computer: tileentity.Case => computer.isRunning
+      case _ => false
+    }) iconsOn(localSide.ordinal)
+    else getIcon(localSide.ordinal(), 0)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def getRenderColor(metadata: Int) = Color.byTier(tier)
+
+  // ----------------------------------------------------------------------- //
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.epic).apply(tier)
 
-  @SideOnly(Side.CLIENT)
-  override def color = Color.byTier(tier)
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val slots = tier match {
       case 0 => "2/1/1"
       case 1 => "2/2/2"
@@ -43,42 +61,14 @@ class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware wit
     tooltip.addAll(Tooltip.get("Case", slots))
   }
 
-  @Optional.Method(modid = Mods.IDs.Waila)
-  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val node = accessor.getNBTData
-    if (node.hasKey(Settings.namespace + "address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString(Settings.namespace + "address")).getUnformattedText)
-    }
-  }
+  // ----------------------------------------------------------------------- //
 
-  override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
-    getIcon(localSide, world.getTileEntity(x, y, z) match {
-      case computer: tileentity.Case => computer.isRunning
-      case _ => false
-    })
-  }
-
-  override def icon(side: ForgeDirection) = getIcon(side, isOn = false)
-
-  private def getIcon(side: ForgeDirection, isOn: Boolean) =
-    if (isOn) Some(iconsOn(side.ordinal)) else super.icon(side)
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
-    System.arraycopy(icons, 0, iconsOn, 0, icons.length)
-    iconsOn(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseBackOn")
-    iconsOn(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseSideOn")
-    iconsOn(ForgeDirection.EAST.ordinal) = iconsOn(ForgeDirection.WEST.ordinal)
-  }
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = Some(new tileentity.Case(tier))
-
-  // ----------------------------------------------------------------------- //
-
-  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking && !BuildCraft.holdsApplicableWrench(player, x, y, z)) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
@@ -97,9 +87,9 @@ class Case(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware wit
     else false
   }
 
-  override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
+  override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int, willHarvest: Boolean) =
     world.getTileEntity(x, y, z) match {
-      case c: tileentity.Case => c.canInteract(player.getCommandSenderName)
-      case _ => super.removedByEntity(world, x, y, z, player)
+      case c: tileentity.Case => c.canInteract(player.getCommandSenderName) && super.removedByPlayer(world, player, x, y, z, willHarvest)
+      case _ => super.removedByPlayer(world, player, x, y, z, willHarvest)
     }
 }

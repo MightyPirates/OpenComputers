@@ -4,11 +4,12 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class ServerRack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
+class ServerRack extends RedstoneAware with SpecialBlock {
   override protected def customTextures = Array(
     None,
     None,
@@ -18,34 +19,36 @@ class ServerRack(val parent: SpecialDelegator) extends RedstoneAware with Specia
     Some("ServerRackSide")
   )
 
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
+  override def registerBlockIcons(iconRegister: IIconRegister) = {
+    super.registerBlockIcons(iconRegister)
     System.arraycopy(icons, 0, Textures.ServerRack.icons, 0, icons.length)
   }
 
   @SideOnly(Side.CLIENT)
-  override def mixedBrightness(world: IBlockAccess, x: Int, y: Int, z: Int) = {
+  override def getMixedBrightnessForBlock(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     world.getTileEntity(x, y, z) match {
       case rack: tileentity.ServerRack =>
-        def brightness(x: Int, y: Int, z: Int) = world.getLightBrightnessForSkyBlocks(x, y, z, parent.getLightValue(world, x, y, z))
+        def brightness(x: Int, y: Int, z: Int) = world.getLightBrightnessForSkyBlocks(x, y, z, getLightValue(world, x, y, z))
         val value = brightness(x + rack.facing.offsetX, y + rack.facing.offsetY, z + rack.facing.offsetZ)
         val skyBrightness = (value >> 20) & 15
         val blockBrightness = (value >> 4) & 15
         ((skyBrightness * 3 / 4) << 20) | ((blockBrightness * 3 / 4) << 4)
-      case _ => -1
+      case _ => super.getMixedBrightnessForBlock(world, x, y, z)
     }
   }
 
-  // ----------------------------------------------------------------------- //
-
-  override def hasTileEntity = true
-
-  override def createTileEntity(world: World) = Some(new tileentity.ServerRack())
+  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.SOUTH
 
   // ----------------------------------------------------------------------- //
 
-  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def hasTileEntity(metadata: Int) = true
+
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.ServerRack()
+
+  // ----------------------------------------------------------------------- //
+
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Rack.id, world, x, y, z)

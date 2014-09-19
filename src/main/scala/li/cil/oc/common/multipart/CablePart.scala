@@ -6,7 +6,7 @@ import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.api.{Items, network}
-import li.cil.oc.common.block.{Cable, Delegator}
+import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
@@ -20,7 +20,7 @@ import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition}
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._
 
-class CablePart(val original: Option[tileentity.Cable] = None) extends DelegatePart with TCuboidPart with TNormalOcclusion with network.Environment {
+class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlockPart with TCuboidPart with TNormalOcclusion with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   private var _color = 0
@@ -45,7 +45,7 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends DelegateP
 
   // ----------------------------------------------------------------------- //
 
-  override def delegate = Delegator.subBlock(Items.get("cable").createItemStack(1)).get
+  override def simpleBlock = Items.get("cable").block().asInstanceOf[Cable]
 
   def getType = Settings.namespace + "cable"
 
@@ -124,17 +124,11 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends DelegateP
   @SideOnly(Side.CLIENT)
   override def renderStatic(pos: Vector3, pass: Int) = {
     val (x, y, z) = (pos.x.toInt, pos.y.toInt, pos.z.toInt)
-    val block = api.Items.get("cable").block()
     val renderer = RenderBlocks.getInstance
     renderer.blockAccess = world
-    block match {
-      case delegator: Delegator[_] =>
-        delegator.colorMultiplierOverride = Some(_color)
-        client.renderer.block.Cable.render(world, x, y, z, block, renderer)
-        delegator.colorMultiplierOverride = None
-      case _ =>
-        client.renderer.block.Cable.render(world, x, y, z, block, renderer)
-    }
+    simpleBlock.colorMultiplierOverride = Some(_color)
+    client.renderer.block.Cable.render(world, x, y, z, simpleBlock, renderer)
+    simpleBlock.colorMultiplierOverride = None
     true
   }
 
