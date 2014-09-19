@@ -1,5 +1,7 @@
 package li.cil.oc.server.network
 
+import java.util
+
 import com.google.common.base.Charsets
 import li.cil.oc.api.network
 
@@ -101,7 +103,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
     }
   }
 
-  def optTable(index: Int, default: Map[_, _]) = {
+  def optTable(index: Int, default: util.Map[_, _]) = {
     if (!isDefined(index)) default
     else checkTable(index)
   }

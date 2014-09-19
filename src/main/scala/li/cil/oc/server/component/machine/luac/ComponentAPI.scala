@@ -1,6 +1,6 @@
 package li.cil.oc.server.component.machine.luac
 
-import li.cil.oc.server
+import li.cil.oc.api.network.Component
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
@@ -41,7 +41,7 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       Option(node.network.node(lua.checkString(1))) match {
-        case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
+        case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
           lua.newTable()
           for (method <- component.methods()) {
             lua.pushString(method)

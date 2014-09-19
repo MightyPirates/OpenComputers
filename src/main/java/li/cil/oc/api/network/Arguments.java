@@ -118,6 +118,108 @@ public interface Arguments extends Iterable<Object> {
     Map checkTable(int index);
 
     /**
+     * Get whatever is at the specified index.
+     * <p/>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkAny(int)} otherwise.
+     * <p/>
+     * The returned object will be one of the following, based on the conversion
+     * performed internally:
+     * <ul>
+     * <li><tt>null</tt> if the Lua value was <tt>nil</tt>.</li>
+     * <li><tt>java.lang.Boolean</tt> if the Lua value was a boolean.</li>
+     * <li><tt>java.lang.Double</tt> if the Lua value was a number.</li>
+     * <li><tt>byte[]</tt> if the Lua value was a string.</li>
+     * </ul>
+     *
+     * @param index the index from which to get the argument.
+     * @return the raw value at that index.
+     * @throws IllegalArgumentException if there is no argument at that index.
+     */
+    Object optAny(int index, Object def);
+
+    /**
+     * Try to get a boolean value at the specified index.
+     * <p/>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkBoolean(int)} otherwise.
+     *
+     * @param index the index from which to get the argument.
+     * @return the boolean value at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a boolean.
+     */
+    boolean optBoolean(int index, boolean def);
+
+    /**
+     * Try to get an integer value at the specified index.
+     * <p/>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkInteger(int)} otherwise.
+     *
+     * @param index the index from which to get the argument.
+     * @return the integer value at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a number.
+     */
+    int optInteger(int index, int def);
+
+    /**
+     * Try to get a double value at the specified index.
+     * <p/>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkDouble(int)} otherwise.
+     *
+     * @param index the index from which to get the argument.
+     * @return the double value at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a number.
+     */
+    double optDouble(int index, double def);
+
+    /**
+     * Try to get a string value at the specified index.
+     * <p/>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkString(int)} otherwise.
+     * <p/>
+     * This will actually check for a byte array and convert it to a string
+     * using UTF-8 encoding.
+     *
+     * @param index the index from which to get the argument.
+     * @return the boolean value at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a string.
+     */
+    String optString(int index, String def);
+
+    /**
+     * Try to get a byte array at the specified index.
+     * <p/>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkByteArray(int)} otherwise.
+     *
+     * @param index the index from which to get the argument.
+     * @return the byte array at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a byte array.
+     */
+    byte[] optByteArray(int index, byte[] def);
+
+    /**
+     * Try to get a table at the specified index.
+     * <p/>
+     * Return the specified default value if there is no such element, behaves
+     * like {@link #checkTable(int)} otherwise.
+     *
+     * @param index the index from which to get the argument.
+     * @return the table at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a table.
+     */
+    Map optTable(int index, Map def);
+
+    /**
      * Tests whether the argument at the specified index is a boolean value.
      * <p/>
      * This will return false if there is <em>no</em> argument at the specified
@@ -182,4 +284,13 @@ public interface Arguments extends Iterable<Object> {
      * @return true if the argument is a string; false otherwise.
      */
     boolean isTable(int index);
+
+    /**
+     * Converts the argument list to a standard Java array, converting byte
+     * arrays to strings automatically, since this is usually what others
+     * want - if you need the actual raw byte arrays, don't use this method!
+     *
+     * @return an array containing all arguments.
+     */
+    Object[] toArray();
 }

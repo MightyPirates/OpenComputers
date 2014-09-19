@@ -13,4 +13,8 @@
  * that can be added as component nodes to the network, so they can be used
  * from computers).
  */
+@cpw.mods.fml.common.API(
+        owner = "OpenComputers|Core",
+        provides = "OpenComputersAPI|FileSystem",
+        apiVersion = "3.0.0")
 package li.cil.oc.api.fs;
