@@ -91,7 +91,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   override def isInitialized = doneWithInitRun
 
-  override def recomputeMemory() = memory = machine.owner.installedMemory
+  override def recomputeMemory() = memory = machine.host.installedMemory
 
   // ----------------------------------------------------------------------- //
 

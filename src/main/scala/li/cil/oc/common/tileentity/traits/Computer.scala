@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity.traits
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Machine
-import li.cil.oc.api.machine.Owner
+import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.client.Sound
@@ -22,7 +22,7 @@ import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
-trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Owner {
+trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with MachineHost {
   private lazy val _computer = if (isServer) Machine.create(this) else null
 
   def computer = _computer

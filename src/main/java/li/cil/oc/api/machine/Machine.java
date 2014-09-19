@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * This interface allows interacting with a Machine obtained via the factory
- * method {@link li.cil.oc.api.Machine#create(Owner, Class)}. It is primarily
+ * method {@link li.cil.oc.api.Machine#create(MachineHost, Class)}. It is primarily
  * intended to be used by custom {@link Architecture}
  * implementations.
  */
@@ -17,7 +17,7 @@ public interface Machine extends ManagedEnvironment, Context {
      *
      * @return the owner of the machine.
      */
-    Owner owner();
+    MachineHost host();
 
     /**
      * The underlying architecture of the machine.

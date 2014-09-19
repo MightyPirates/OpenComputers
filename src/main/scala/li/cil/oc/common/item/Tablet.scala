@@ -9,7 +9,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, ServerTickEvent
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.Owner
+import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.{Connector, Message, Node}
 import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.GuiType
@@ -68,7 +68,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with EnvironmentHost with Owner with Rotatable {
+class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with EnvironmentHost with MachineHost with Rotatable {
   lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()

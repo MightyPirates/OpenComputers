@@ -5,12 +5,12 @@ import li.cil.oc.api.network.Node;
 import net.minecraft.world.World;
 
 /**
- * This interface has to be implemented by 'owners' of machine instances.
+ * This interface has to be implemented by 'hosts' of machine instances.
  * <p/>
  * It provides some context for the machine, in particular which world it is
  * running in, to allow querying the time of day, for example.
  */
-public interface Owner extends Context {
+public interface MachineHost extends Context {
     /**
      * The X coordinate of this machine owner in the world, in block coordinates.
      */

@@ -7,7 +7,7 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.Owner
+import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import net.minecraft.world.{ChunkCoordIntPair, World}
@@ -31,12 +31,12 @@ object SaveHandler {
 
   def statePath = new io.File(savePath, "state")
 
-  def scheduleSave(owner: Owner, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
-    scheduleSave(owner.world, owner.x, owner.z, nbt, name, data)
+  def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+    scheduleSave(host.world, host.x, host.z, nbt, name, data)
   }
 
-  def scheduleSave(owner: Owner, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(owner, nbt, name, writeNBT(save))
+  def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(host, nbt, name, writeNBT(save))
   }
 
   def scheduleSave(host: EnvironmentHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {

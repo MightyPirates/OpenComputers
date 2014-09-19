@@ -2,7 +2,7 @@ package li.cil.oc.api;
 
 import li.cil.oc.api.detail.MachineAPI;
 import li.cil.oc.api.machine.Architecture;
-import li.cil.oc.api.machine.Owner;
+import li.cil.oc.api.machine.MachineHost;
 
 import java.util.Collections;
 
@@ -51,14 +51,14 @@ public final class Machine {
      * You are responsible for calling update and save / load functions on the
      * machine for it to work correctly.
      *
-     * @param owner        the owner object of the machine, providing context.
+     * @param host         the owner object of the machine, providing context.
      * @param architecture the architecture to use for running code on the machine.
      * @return the newly created machine.
      * @throws IllegalArgumentException if the specified architecture is invalid.
      */
-    public static li.cil.oc.api.machine.Machine create(Owner owner, Class<? extends Architecture> architecture) {
+    public static li.cil.oc.api.machine.Machine create(MachineHost host, Class<? extends Architecture> architecture) {
         if (instance != null)
-            return instance.create(owner, architecture);
+            return instance.create(host, architecture);
         return null;
     }
 
@@ -68,12 +68,12 @@ public final class Machine {
      * You are responsible for calling update and save / load functions on the
      * machine for it to work correctly.
      *
-     * @param owner the owner object of the machine, providing context.
+     * @param host the owner object of the machine, providing context.
      * @return the newly created machine.
      */
-    public static li.cil.oc.api.machine.Machine create(Owner owner) {
+    public static li.cil.oc.api.machine.Machine create(MachineHost host) {
         if (instance != null)
-            return instance.create(owner, LuaArchitecture);
+            return instance.create(host, LuaArchitecture);
         return null;
     }
 

@@ -132,7 +132,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     case Some(l) if Settings.get.limitMemory =>
       l.setTotalMemory(Int.MaxValue)
       if (kernelMemory > 0) {
-        l.setTotalMemory(kernelMemory + math.ceil(machine.owner.installedMemory * ramScale).toInt)
+        l.setTotalMemory(kernelMemory + math.ceil(machine.host.installedMemory * ramScale).toInt)
       }
     case _ =>
   }
@@ -351,7 +351,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
       try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
         case t: Throwable =>
-          OpenComputers.log.warn(s"Error cleaning up loaded computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          OpenComputers.log.warn(s"Error cleaning up loaded computer @ (${machine.host.x}, ${machine.host.y}, ${machine.host.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
           machine.crash("error in garbage collector, most likely __gc method timed out")
       }
     } catch {
@@ -377,12 +377,12 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // Save the kernel state (which is always at stack index one).
       assert(lua.isThread(1))
 
-      SaveHandler.scheduleSave(machine.owner, nbt, machine.node.address + "_kernel", persistence.persist(1))
+      SaveHandler.scheduleSave(machine.host, nbt, machine.node.address + "_kernel", persistence.persist(1))
       // While in a driver call we have one object on the global stack: either
       // the function to call the driver with, or the result of the call.
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         assert(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
-        SaveHandler.scheduleSave(machine.owner, nbt, machine.node.address + "_stack", persistence.persist(2))
+        SaveHandler.scheduleSave(machine.host, nbt, machine.node.address + "_stack", persistence.persist(2))
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
@@ -393,15 +393,15 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
       try lua.gc(LuaState.GcAction.COLLECT, 0) catch {
         case t: Throwable =>
-          OpenComputers.log.warn(s"Error cleaning up loaded computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
+          OpenComputers.log.warn(s"Error cleaning up loaded computer @ (${machine.host.x}, ${machine.host.y}, ${machine.host.z}). This either means the server is badly overloaded or a user created an evil __gc method, accidentally or not.")
           machine.crash("error in garbage collector, most likely __gc method timed out")
       }
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warn(s"Could not persist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
+        OpenComputers.log.warn(s"Could not persist computer @ (${machine.host.x}, ${machine.host.y}, ${machine.host.z}).\n${e.toString}" + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
       case e: LuaGcMetamethodException =>
-        OpenComputers.log.warn(s"Could not persist computer @ (${machine.owner.x}, ${machine.owner.y}, ${machine.owner.z}).\n${e.toString}")
+        OpenComputers.log.warn(s"Could not persist computer @ (${machine.host.x}, ${machine.host.y}, ${machine.host.z}).\n${e.toString}")
         nbt.removeTag("state")
     }
 

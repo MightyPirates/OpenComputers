@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Items
-import li.cil.oc.api.machine.Owner
+import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.api.{Driver, Machine, driver}
 import li.cil.oc.common.inventory.{ComponentInventory, ServerInventory}
@@ -10,7 +10,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class Server(val rack: tileentity.ServerRack, val number: Int) extends Owner {
+class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHost {
   val machine = Machine.create(this)
 
   val inventory = new NetworkedInventory()

@@ -25,7 +25,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import scala.Array.canBuildFrom
 import scala.collection.mutable
 
-class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
+class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
@@ -116,19 +116,19 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     case Machine.State.Stopped =>
       processAddedComponents()
       verifyComponents()
-      if (componentCount > owner.maxComponents) {
-        crash(owner match {
+      if (componentCount > host.maxComponents) {
+        crash(host match {
           case t: tileentity.Case if !t.hasCPU => "gui.Error.NoCPU"
           case s: server.component.Server if !s.hasCPU => "gui.Error.NoCPU"
           case _ => "gui.Error.ComponentOverflow"
         })
         false
       }
-      else if (owner.maxComponents == 0) {
+      else if (host.maxComponents == 0) {
         crash("gui.Error.NoCPU")
         false
       }
-      else if (owner.installedMemory > 0) {
+      else if (host.installedMemory > 0) {
         if (Settings.get.ignorePower || node.globalBuffer > cost) {
           init() && {
             switchTo(Machine.State.Starting)
@@ -148,7 +148,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       }
     case Machine.State.Paused if remainingPause > 0 =>
       remainingPause = 0
-      owner.markAsChanged()
+      host.markAsChanged()
       true
     case Machine.State.Stopping =>
       switchTo(Machine.State.Restarting)
@@ -172,7 +172,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
           state.push(Machine.State.Paused)
         }
         remainingPause = ticksToPause
-        owner.markAsChanged()
+        host.markAsChanged()
         return true
       }))
     }
@@ -316,7 +316,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     val duration = if (args.count() > 1) args.checkDouble(1) else 0.1
     val durationInMilliseconds = math.max(50, math.min(5000, (duration * 1000).toInt))
     context.pause(durationInMilliseconds / 1000.0)
-    PacketSender.sendSound(owner.world, owner.x, owner.y, owner.z, frequency, durationInMilliseconds)
+    PacketSender.sendSound(host.world, host.x, host.y, host.z, frequency, durationInMilliseconds)
     null
   }
 
@@ -337,12 +337,12 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
-    if (componentCount > owner.maxComponents) {
+    if (componentCount > host.maxComponents) {
       crash("gui.Error.ComponentOverflow")
     }
 
     // Update world time for time() and uptime().
-    worldTime = owner.world.getWorldTime
+    worldTime = host.world.getWorldTime
     uptime += 1
 
     if (remainIdle > 0) {
@@ -353,7 +353,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     callCounts.synchronized(if (callCounts.size > 0) callCounts.clear())
 
     // Make sure we have enough power.
-    if (owner.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       state.synchronized(state.top match {
         case Machine.State.Paused |
              Machine.State.Restarting |
@@ -371,12 +371,12 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
 
     // Avoid spamming user list across the network.
-    if (owner.world.getTotalWorldTime % 20 == 0 && usersChanged) {
+    if (host.world.getTotalWorldTime % 20 == 0 && usersChanged) {
       val list = _users.synchronized {
         usersChanged = false
         users
       }
-      owner match {
+      host match {
         case computer: tileentity.traits.Computer => PacketSender.sendComputerUserList(computer, list)
         case _ =>
       }
@@ -491,7 +491,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       }
     }
     // For computers, to generate the components in their inventory.
-    owner.onMachineConnect(node)
+    host.onMachineConnect(node)
   }
 
   override def onDisconnect(node: Node) {
@@ -506,7 +506,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       }
     }
     // For computers, to save the components in their inventory.
-    owner.onMachineDisconnect(node)
+    host.onMachineDisconnect(node)
   }
 
   // ----------------------------------------------------------------------- //
@@ -620,7 +620,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error loading a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+        OpenComputers.log.error( s"""Unexpected error loading a state of computer at (${host.x}, ${host.y}, ${host.z}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
         close()
     }
@@ -658,7 +658,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     nbt.setTag("components", componentsNbt)
 
-    tmp.foreach(fs => SaveHandler.scheduleSave(owner, nbt, node.address + "_tmp", fs.save _))
+    tmp.foreach(fs => SaveHandler.scheduleSave(host, nbt, node.address + "_tmp", fs.save _))
 
     if (state.top != Machine.State.Stopped) try {
       architecture.save(nbt)
@@ -695,7 +695,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+        OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${host.x}, ${host.y}, ${host.z}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   }
@@ -738,7 +738,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       remainIdle = 0
 
       // Mark state change in owner, to send it to clients.
-      owner.markAsChanged()
+      host.markAsChanged()
     })
 
   // ----------------------------------------------------------------------- //
@@ -755,7 +755,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
 
     // Mark state change in owner, to send it to clients.
-    owner.markAsChanged()
+    host.markAsChanged()
 
     result
   }
@@ -867,9 +867,9 @@ object Machine extends MachineAPI {
 
   override def architectures() = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
 
-  override def create(owner: Owner, architecture: Class[_ <: Architecture]) = {
+  override def create(host: MachineHost, architecture: Class[_ <: Architecture]) = {
     add(architecture)
-    new Machine(owner, architecture.getConstructor(classOf[machine.Machine]))
+    new Machine(host, architecture.getConstructor(classOf[machine.Machine]))
   }
 
   /** Possible states of the computer, and in particular its executor. */
