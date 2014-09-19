@@ -1,8 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api.driver
-import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.common.item
+import li.cil.oc.api.driver.Container
+import li.cil.oc.common.{Slot, item}
 import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
 
@@ -11,7 +11,7 @@ object CPU extends Item with driver.Processor {
 
   override def createEnvironment(stack: ItemStack, container: Container) = null
 
-  override def slot(stack: ItemStack) = Slot.Processor
+  override def slot(stack: ItemStack) = Slot.CPU
 
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {

@@ -60,7 +60,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   def hasCPU = items.exists {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => Slot(driver, stack) == Slot.CPU
+      case Some(driver) => driver.slot(stack) == Slot.CPU
       case _ => false
     }
     case _ => false
@@ -125,6 +125,6 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack)).fold(false)(driver => {
       val provided = InventorySlots.computer(tier)(slot)
-      Slot(driver, stack) == provided.slot && driver.tier(stack) <= provided.tier
+      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
 }

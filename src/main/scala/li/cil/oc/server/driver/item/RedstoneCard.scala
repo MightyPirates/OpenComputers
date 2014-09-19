@@ -1,8 +1,8 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.common.{Tier, item}
+import li.cil.oc.api.driver.Container
 import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, RedstoneAware}
+import li.cil.oc.common.{Slot, Tier, item}
 import li.cil.oc.server.component
 import li.cil.oc.util.mods.{BundledRedstone, WirelessRedstone}
 import li.cil.oc.{Items, api}

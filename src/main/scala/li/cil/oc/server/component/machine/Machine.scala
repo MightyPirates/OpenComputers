@@ -569,11 +569,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
     super.load(nbt)
 
-    // For upgrading from 1.6 - was tag list of int before.
-    if (nbt.hasKey("state", NBT.TAG_INT_ARRAY)) {
-      state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
-    }
-    else state.push(Machine.State.Stopped)
+    state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
     nbt.getTagList("users", NBT.TAG_STRING).foreach((list, index) => _users += list.getStringTagAt(index))
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
@@ -613,9 +609,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
           }.toArray[AnyRef])
       })
 
-      // Convert from old format (time started -> uptime).
-      if (nbt.hasKey("timeStarted")) uptime = -nbt.getLong("timeStarted")
-      else uptime = nbt.getLong("uptime")
+      uptime = nbt.getLong("uptime")
       cpuTotal = nbt.getLong("cpuTime")
       remainingPause = nbt.getInteger("remainingPause")
 

@@ -2,14 +2,15 @@ package li.cil.oc.server.driver.item
 
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
-import li.cil.oc.api.driver.{Container, Slot}
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.Label
+import li.cil.oc.common.Slot
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object ComputerCraftMedia extends Item {
-  override def slot(stack: ItemStack) = Slot.Disk
+  override def slot(stack: ItemStack) = Slot.Floppy
 
   override def createEnvironment(stack: ItemStack, container: Container) =
     if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && container != null) {

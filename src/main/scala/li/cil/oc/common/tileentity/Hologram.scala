@@ -347,15 +347,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 1
     super.readFromNBT(nbt)
-    if (nbt.hasKey(Settings.namespace + "volume") && nbt.hasKey(Settings.namespace + "colors")) {
-      nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
-      nbt.getIntArray(Settings.namespace + "colors").map(convertColor).copyToArray(colors)
-    }
-    else {
-      val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
-      tag.getIntArray("volume").copyToArray(volume)
-      tag.getIntArray("colors").map(convertColor).copyToArray(colors)
-    }
+    val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
+    tag.getIntArray("volume").copyToArray(volume)
+    tag.getIntArray("colors").map(convertColor).copyToArray(colors)
     scale = nbt.getDouble(Settings.namespace + "scale")
     translation.xCoord = nbt.getDouble(Settings.namespace + "offsetX")
     translation.yCoord = nbt.getDouble(Settings.namespace + "offsetY")

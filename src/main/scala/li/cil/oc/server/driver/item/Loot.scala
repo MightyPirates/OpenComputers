@@ -2,7 +2,8 @@ package li.cil.oc.server.driver.item
 
 import java.io
 
-import li.cil.oc.api.driver.{Container, Slot}
+import li.cil.oc.api.driver.Container
+import li.cil.oc.common.Slot
 import li.cil.oc.server.fs.FileSystem.ItemLabel
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.item.ItemStack
@@ -32,7 +33,7 @@ object Loot extends Item {
     }
     else null
 
-  override def slot(stack: ItemStack) = Slot.Disk
+  override def slot(stack: ItemStack) = Slot.Floppy
 
   private class ReadOnlyItemLabel(stack: ItemStack, val label: String) extends ItemLabel(stack) {
     def setLabel(value: String) = throw new IllegalArgumentException("label is read only")

@@ -313,7 +313,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node || screenAddress.exists(_ == node.address)) {
+    if (node == this.node || screenAddress.contains(node.address)) {
       screenAddress = None
       screenInstance = None
     }

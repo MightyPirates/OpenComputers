@@ -1,6 +1,7 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.{Container, Slot}
+import li.cil.oc.api.driver.Container
+import li.cil.oc.common.Slot
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.{Settings, api}
 import net.minecraft.item.ItemStack
@@ -17,7 +18,7 @@ object Tablet extends Item {
     }.headOption.map(FileSystem.createEnvironment(_, container)).orNull
   }
 
-  override def slot(stack: ItemStack) = Slot.Disk
+  override def slot(stack: ItemStack) = Slot.Floppy
 
   override def dataTag(stack: ItemStack) = {
     val data = new ItemUtils.TabletData(stack)

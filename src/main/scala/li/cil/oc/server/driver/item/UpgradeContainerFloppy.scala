@@ -1,7 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
-import li.cil.oc.api.driver.{Container, Slot, UpgradeContainer}
+import li.cil.oc.api.driver.{Container, UpgradeContainer}
+import li.cil.oc.common.{Slot, Tier}
 import net.minecraft.item.ItemStack
 
 object UpgradeContainerFloppy extends Item with UpgradeContainer {
@@ -9,9 +10,9 @@ object UpgradeContainerFloppy extends Item with UpgradeContainer {
 
   override def createEnvironment(stack: ItemStack, container: Container) = null
 
-  override def slot(stack: ItemStack) = Slot.UpgradeContainer
+  override def slot(stack: ItemStack) = Slot.Container
 
-  override def providedSlot(stack: ItemStack) = Slot.Disk
+  override def providedSlot(stack: ItemStack) = Slot.Floppy
 
-  override def providedTier(stack: ItemStack) = Int.MaxValue // Any
+  override def providedTier(stack: ItemStack) = Tier.Any
 }

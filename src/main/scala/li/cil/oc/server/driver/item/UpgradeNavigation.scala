@@ -2,8 +2,8 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
 import li.cil.oc.api.Rotatable
-import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.common.Tier
+import li.cil.oc.api.driver.Container
+import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 

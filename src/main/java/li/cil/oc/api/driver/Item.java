@@ -70,12 +70,8 @@ public interface Item {
      *
      * @param stack the item stack to get the slot type for.
      * @return the slot type of the specified item.
-     * @deprecated This will be replaced in 1.4, where slot types will then be
-     * referred to by name (using Strings) instead, to make this system more
-     * flexible (not requiring an API change for each new slot type, e.g.).
      */
-    @Deprecated
-    Slot slot(ItemStack stack);
+    String slot(ItemStack stack);
 
     /**
      * The tier of the specified item this driver supports.

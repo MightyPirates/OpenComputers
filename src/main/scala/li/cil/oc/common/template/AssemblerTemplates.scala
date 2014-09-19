@@ -60,7 +60,7 @@ object AssemblerTemplates {
     def validate(inventory: IInventory, slot: Int, stack: ItemStack) = validator match {
       case Some(method) => tryInvokeStatic(method, inventory, slot.underlying(), tier.underlying(), stack)(false)
       case _ => Option(api.Driver.driverFor(stack)) match {
-        case Some(driver) => Slot(driver, stack) == kind && driver.tier(stack) <= tier
+        case Some(driver) => driver.slot(stack) == kind && driver.tier(stack) <= tier
         case _ => false
       }
     }

@@ -253,10 +253,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
       val ownerNbt = list.getCompoundTagAt(index)
       val address = ownerNbt.getString("address")
       if (address != "") {
-        // Was tag list in 1.6, so wee need to check this when upgrading.
-        if (ownerNbt.hasKey("handles", NBT.TAG_INT_ARRAY)) {
-          owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]
-        }
+        owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]
       }
     })
 

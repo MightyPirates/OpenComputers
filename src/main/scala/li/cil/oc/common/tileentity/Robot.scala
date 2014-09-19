@@ -500,7 +500,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.UpgradeContainer) => Slot(driver, stack, Some(driver.providedSlot))
+      case Some(driver: api.driver.UpgradeContainer) => driver.providedSlot(stack)
       case _ => Slot.None
     }
   }
@@ -523,7 +523,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
 
   def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => Slot(driver, stack) == Slot.Floppy
+      case Some(driver) => driver.slot(stack) == Slot.Floppy
       case _ => false
     }
     case _ => false
@@ -630,7 +630,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       // logic making the differentiation of assembler and containers generic.
       driver != server.driver.item.Screen &&
         driver != server.driver.item.Keyboard &&
-        Slot(driver, stack) == containerSlotType(i) &&
+        driver.slot(stack) == containerSlotType(i) &&
         driver.tier(stack) <= containerSlotTier(i)
     case (i, _) if isInventorySlot(i) => true // Normal inventory.
     case _ => false // Invalid slot.

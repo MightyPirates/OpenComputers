@@ -72,7 +72,7 @@ abstract class Template {
   })
 
   protected def hasFileSystem(inventory: IInventory) = exists(inventory, stack => Option(api.Driver.driverFor(stack)) match {
-    case Some(driver) => Slot(driver, stack) == Slot.Floppy || Slot(driver, stack) == Slot.HDD
+    case Some(driver) => driver.slot(stack) == Slot.Floppy || driver.slot(stack) == Slot.HDD
     case _ => false
   })
 

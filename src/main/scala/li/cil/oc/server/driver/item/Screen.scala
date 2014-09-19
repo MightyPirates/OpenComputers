@@ -1,8 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
-import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.common.{component, tileentity}
+import li.cil.oc.api.driver.Container
+import li.cil.oc.common.{Slot, component, tileentity}
 import net.minecraft.item.ItemStack
 
 object Screen extends Item {

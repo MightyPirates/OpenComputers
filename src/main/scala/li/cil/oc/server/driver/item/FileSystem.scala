@@ -1,7 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc
-import li.cil.oc.api.driver.{Container, Slot}
+import li.cil.oc.api.driver.Container
+import li.cil.oc.common.Slot
 import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
 import li.cil.oc.server.fs.FileSystem.ItemLabel
 import li.cil.oc.{Items, Settings, api}
@@ -21,8 +22,8 @@ object FileSystem extends Item {
 
   override def slot(stack: ItemStack) =
     Items.multi.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => Slot.HardDiskDrive
-      case Some(disk: FloppyDisk) => Slot.Disk
+      case Some(hdd: HardDiskDrive) => Slot.HDD
+      case Some(disk: FloppyDisk) => Slot.Floppy
       case _ => throw new IllegalArgumentException()
     }
 

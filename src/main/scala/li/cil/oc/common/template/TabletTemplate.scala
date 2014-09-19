@@ -22,9 +22,9 @@ object TabletTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def validateUpgrade(inventory: IInventory, slot: Int, tier: Int, stack: ItemStack): Boolean = Option(api.Driver.driverFor(stack)) match {
-    case Some(driver) if Slot(driver, stack) == Slot.Upgrade =>
+    case Some(driver) if driver.slot(stack) == Slot.Upgrade =>
       driver != item.Keyboard && driver != item.Screen &&
-        Slot(driver, stack) == Slot.Upgrade && driver.tier(stack) <= tier
+        driver.slot(stack) == Slot.Upgrade && driver.tier(stack) <= tier
     case _ => false
   }
 

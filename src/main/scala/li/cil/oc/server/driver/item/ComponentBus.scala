@@ -1,8 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api.driver
-import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.common.item
+import li.cil.oc.api.driver.Container
+import li.cil.oc.common.{Slot, item}
 import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
 

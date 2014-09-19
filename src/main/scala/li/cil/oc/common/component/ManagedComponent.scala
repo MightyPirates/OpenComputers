@@ -1,8 +1,8 @@
 package li.cil.oc.common.component
 
+import li.cil.oc.api
 import li.cil.oc.api.network.{ManagedEnvironment, Message, Node}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.math.ScalaNumber
@@ -20,10 +20,7 @@ abstract class ManagedComponent extends ManagedEnvironment {
 
   override def load(nbt: NBTTagCompound) = {
     if (node != null) {
-      if (nbt.hasKey(Settings.namespace + "node"))
-        node.load(nbt.getCompoundTag(Settings.namespace + "node"))
-      else
-        node.load(nbt.getCompoundTag("node"))
+      node.load(nbt.getCompoundTag("node"))
     }
   }
 
