@@ -3,6 +3,7 @@ package li.cil.oc.util
 import java.util
 
 import li.cil.oc.Localization
+import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.init.{Blocks, Items}
 import net.minecraft.item.crafting._
@@ -48,7 +49,7 @@ object ItemCosts {
   terminate(Items.slime_ball)
   terminate(Items.stick)
 
-  def hasCosts(stack: ItemStack) = {
+  def hasCosts(stack: ItemStack) = !Mods.CraftingCosts.isAvailable && {
     val ingredients = computeIngredients(stack)
     ingredients.size > 0 && (ingredients.size > 1 || !ingredients.head._1.isItemEqual(stack))
   }
