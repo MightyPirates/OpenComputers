@@ -1,6 +1,5 @@
-package li.cil.oc.server.component.machine.luaj
+package li.cil.oc.server.machine.luaj
 
-import li.cil.oc.server.component.machine.LuaJLuaArchitecture
 import li.cil.oc.util.GameTimeFormatter
 import li.cil.oc.util.ScalaClosure._
 import org.luaj.vm3.{LuaValue, Varargs}

@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.machine
+package li.cil.oc.server.machine.luac
 
 import java.io.{FileNotFoundException, IOException}
 
@@ -6,7 +6,7 @@ import com.google.common.base.Strings
 import com.naef.jnlua._
 import li.cil.oc.api.machine.{Architecture, ExecutionResult, LimitReachedException}
 import li.cil.oc.common.SaveHandler
-import li.cil.oc.server.component.machine.luac._
+import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{OpenComputers, Settings, api}

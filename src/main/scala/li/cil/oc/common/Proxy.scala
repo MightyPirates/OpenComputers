@@ -11,9 +11,9 @@ import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template.{RobotTemplate, TabletTemplate}
-import li.cil.oc.server._
-import li.cil.oc.server.component.machine
-import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
+import li.cil.oc.server.{machine, _}
+import li.cil.oc.server.machine.luac.NativeLuaArchitecture
+import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
@@ -90,9 +90,9 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeAngel)
     api.Driver.add(driver.item.UpgradeBattery)
     api.Driver.add(driver.item.UpgradeChunkloader)
-    api.Driver.add(driver.item.ContainerCard$)
-    api.Driver.add(driver.item.ContainerFloppy$)
-    api.Driver.add(driver.item.UpgradeContainer$)
+    api.Driver.add(driver.item.ContainerCard)
+    api.Driver.add(driver.item.ContainerFloppy)
+    api.Driver.add(driver.item.UpgradeContainer)
     api.Driver.add(driver.item.UpgradeCrafting)
     api.Driver.add(driver.item.UpgradeExperience)
     api.Driver.add(driver.item.UpgradeGenerator)

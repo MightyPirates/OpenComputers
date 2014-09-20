@@ -3,9 +3,9 @@ package li.cil.oc.server.network
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
-import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.{CompoundBlockEnvironment, Registry}
-import li.cil.oc.server.network.Callbacks.{ComponentCallback, PeripheralCallback}
+import li.cil.oc.server.machine.Callbacks.{ComponentCallback, PeripheralCallback}
+import li.cil.oc.server.machine.{ArgumentsImpl, Callbacks, Machine}
 import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 

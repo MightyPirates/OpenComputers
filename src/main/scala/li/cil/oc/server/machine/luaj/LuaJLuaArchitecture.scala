@@ -1,10 +1,10 @@
-package li.cil.oc.server.component.machine
+package li.cil.oc.server.machine.luaj
 
 import java.io.{FileNotFoundException, IOException}
 
 import com.google.common.base.Strings
 import li.cil.oc.api.machine.{Architecture, ExecutionResult, LimitReachedException}
-import li.cil.oc.server.component.machine.luaj._
+import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ScalaClosure
 import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.{OpenComputers, Settings, api}
@@ -181,8 +181,8 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
               if (results.isuserdata(3)) results.touserdata(3).toString
               else results.tojstring(3)
             else
-              if (results.isuserdata(2)) results.touserdata(2).toString
-              else results.tojstring(2)
+            if (results.isuserdata(2)) results.touserdata(2).toString
+            else results.tojstring(2)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
         }

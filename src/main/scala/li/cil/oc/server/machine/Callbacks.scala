@@ -1,4 +1,4 @@
-package li.cil.oc.server.network
+package li.cil.oc.server.machine
 
 import java.lang.reflect.{InvocationTargetException, Method, Modifier}
 

@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.machine
+package li.cil.oc.server.machine
 
 import java.lang.reflect.Constructor
 import java.util.concurrent.TimeUnit
@@ -11,7 +11,6 @@ import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.{SaveHandler, tileentity}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings, server}
@@ -38,7 +37,7 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
 
   val architecture = constructor.newInstance(this)
 
-  private[component] val state = mutable.Stack(Machine.State.Stopped)
+  private[machine] val state = mutable.Stack(Machine.State.Stopped)
 
   private val _components = mutable.Map.empty[String, String]
 
@@ -873,7 +872,7 @@ object Machine extends MachineAPI {
   }
 
   /** Possible states of the computer, and in particular its executor. */
-  private[component] object State extends Enumeration {
+  private[machine] object State extends Enumeration {
     /** The computer is not running right now and there is no Lua state. */
     val Stopped = Value("Stopped")
 
@@ -906,7 +905,7 @@ object Machine extends MachineAPI {
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
-  private[component] class Signal(val name: String, val args: Array[AnyRef]) extends machine.Signal
+  private[machine] class Signal(val name: String, val args: Array[AnyRef]) extends machine.Signal
 
   private val threadPool = ThreadPoolFactory.create("Computer", Settings.get.threads)
 }

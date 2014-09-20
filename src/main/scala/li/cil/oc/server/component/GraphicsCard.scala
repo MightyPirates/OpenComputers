@@ -281,7 +281,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
         val w = s.getWidth
         val h = s.getHeight
         message.source.host match {
-          case machine: machine.Machine if machine.lastError != null =>
+          case machine: li.cil.oc.server.machine.Machine if machine.lastError != null =>
             if (s.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
             else s.setBackgroundColor(0x000000)
             s.fill(0, 0, w, h, ' ')

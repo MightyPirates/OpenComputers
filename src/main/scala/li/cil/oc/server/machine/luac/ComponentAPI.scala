@@ -1,7 +1,6 @@
-package li.cil.oc.server.component.machine.luac
+package li.cil.oc.server.machine.luac
 
 import li.cil.oc.api.network.Component
-import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
 import scala.collection.convert.WrapAsScala._

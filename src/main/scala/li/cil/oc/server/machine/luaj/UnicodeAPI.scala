@@ -1,6 +1,5 @@
-package li.cil.oc.server.component.machine.luaj
+package li.cil.oc.server.machine.luaj
 
-import li.cil.oc.server.component.machine.LuaJLuaArchitecture
 import li.cil.oc.util.FontUtil
 import li.cil.oc.util.ScalaClosure._
 import org.luaj.vm3.{LuaValue, Varargs}
@@ -42,7 +41,7 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     unicode.set("charWidth", (args: Varargs) =>
       LuaValue.valueOf(FontUtil.wcwidth(args.checkjstring(1).codePointAt(0))))
 
-    unicode.set( "wlen",  (args: Varargs) => {
+    unicode.set("wlen", (args: Varargs) => {
       val value = args.checkjstring(1)
       LuaValue.valueOf(value.toCharArray.map(ch => math.max(1, FontUtil.wcwidth(ch))).sum)
     })

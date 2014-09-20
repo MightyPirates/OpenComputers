@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.machine
+package li.cil.oc.server.machine
 
 import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound

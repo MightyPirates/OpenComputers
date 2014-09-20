@@ -1,12 +1,11 @@
-package li.cil.oc.server.component.machine.luac
+package li.cil.oc.server.machine.luac
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.Value
-import li.cil.oc.server.component.machine.NativeLuaArchitecture
-import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
+import li.cil.oc.server.machine.{ArgumentsImpl, Callbacks}
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 

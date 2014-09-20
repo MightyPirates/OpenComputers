@@ -1,10 +1,9 @@
-package li.cil.oc.server.component.machine.luac
+package li.cil.oc.server.machine.luac
 
 import java.util.UUID
 
 import com.naef.jnlua.LuaState
 import li.cil.oc.Settings
-import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState._
 import net.minecraft.nbt.NBTTagCompound
 

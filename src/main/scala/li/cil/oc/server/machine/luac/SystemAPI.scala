@@ -1,8 +1,7 @@
-package li.cil.oc.server.component.machine.luac
+package li.cil.oc.server.machine.luac
 
 import com.naef.jnlua.LuaType
 import li.cil.oc.Settings
-import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
 class SystemAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
