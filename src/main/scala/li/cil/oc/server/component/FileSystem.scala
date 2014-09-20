@@ -300,7 +300,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   private def makeSomeNoise() {
     (sound, host) match {
-      case (Some(s), Some(h)) => Sound.playDiskActivity(h, s)
+      case (Some(s), Some(h)) => Sound.play(h, s)
       case _ =>
     }
   }

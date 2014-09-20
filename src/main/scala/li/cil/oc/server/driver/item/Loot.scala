@@ -27,7 +27,7 @@ object Loot extends Item {
           dataTag(stack).getString(Settings.namespace + "fs.label")
         }
         else null
-      api.FileSystem.asManagedEnvironment(fs, label, host, "floppy_disk")
+      api.FileSystem.asManagedEnvironment(fs, label, host, "floppy_access")
     }
     else null
 

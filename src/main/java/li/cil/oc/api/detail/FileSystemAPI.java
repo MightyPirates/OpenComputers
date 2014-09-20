@@ -108,7 +108,7 @@ public interface FileSystemAPI {
     ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, EnvironmentHost host, String accessSound);
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, String, li.cil.oc.api.driver.EnvironmentHost)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, li.cil.oc.api.driver.EnvironmentHost, String)},
      * but creates a read-only label initialized to the specified value.
      *
      * @param fileSystem  the file system to wrap.
@@ -121,7 +121,7 @@ public interface FileSystemAPI {
     ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, EnvironmentHost host, String accessSound);
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, String, li.cil.oc.api.driver.EnvironmentHost)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, li.cil.oc.api.driver.EnvironmentHost, String)},
      * but does not provide a container and access sound.
      *
      * @param fileSystem the file system to wrap.

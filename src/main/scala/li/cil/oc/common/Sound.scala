@@ -6,10 +6,15 @@ import li.cil.oc.api.driver.EnvironmentHost
 import scala.collection.mutable
 
 object Sound {
-  val lastPlayed = mutable.WeakHashMap.empty[EnvironmentHost, Long]
+  val globalTimeouts = mutable.WeakHashMap.empty[EnvironmentHost, mutable.Map[String, Long]]
 
-  def play(host: EnvironmentHost, name: String) {
-    host.world.playSoundEffect(host.xPosition, host.yPosition, host.zPosition, Settings.resourceDomain + ":" + name, Settings.get.soundVolume, 1)
+  def play(host: EnvironmentHost, name: String) = this.synchronized {
+    globalTimeouts.get(host) match {
+      case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
+      case _ =>
+        host.world.playSoundEffect(host.xPosition, host.yPosition, host.zPosition, Settings.resourceDomain + ":" + name, Settings.get.soundVolume, 1)
+        globalTimeouts.getOrElseUpdate(host, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
+    }
   }
 
   def playDiskInsert(host: EnvironmentHost) {
@@ -18,14 +23,5 @@ object Sound {
 
   def playDiskEject(host: EnvironmentHost) {
     play(host, "floppy_eject")
-  }
-
-  def playDiskActivity(host: EnvironmentHost, sound: String) = this.synchronized {
-    lastPlayed.get(host) match {
-      case Some(time) if time > System.currentTimeMillis() => // Cooldown.
-      case _ =>
-        play(host, sound)
-        lastPlayed += host -> (System.currentTimeMillis() + 500)
-    }
   }
 }
