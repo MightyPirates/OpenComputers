@@ -2,11 +2,13 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.Machine
-import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.driver.Processor
+import li.cil.oc.api.machine.{Architecture, MachineHost}
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.tileentity.Analyzable
+import li.cil.oc.api.{Driver, Machine}
 import li.cil.oc.client.Sound
+import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -67,6 +69,17 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def signal(name: String, args: AnyRef*) = computer.signal(name, args: _*)
 
   // ----------------------------------------------------------------------- //
+
+  override def cpuArchitecture: Class[_ <: Architecture] = {
+    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
+      case Some(s) => Option(Driver.driverFor(s)) match {
+        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
+        case _ =>
+      }
+      case _ =>
+    }
+    null
+  }
 
   override def markAsChanged() = hasChanged = true
 
@@ -176,7 +189,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def markDirty() {
     super.markDirty()
     if (isServer) {
-      computer.architecture.recomputeMemory()
+      Option(computer.architecture).foreach(_.recomputeMemory())
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
     }

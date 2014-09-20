@@ -24,10 +24,27 @@ public interface Machine extends ManagedEnvironment, Context {
      * <p/>
      * This is what actually evaluates code running on the machine, where the
      * machine class itself serves as a scheduler.
+     * <p/>
+     * This may be <tt>null</tt>, for example when the hosting computer has
+     * no CPU installed.
      *
      * @return the architecture of this machine.
      */
     Architecture architecture();
+
+    /**
+     * Get the address of the file system component from which to try to boot.
+     * <p/>
+     * The underlying architecture may choose to ignore this setting.
+     */
+    String getBootAddress();
+
+    /**
+     * Set the address of the file system component from which to try to boot.
+     *
+     * @param value the new address to try to boot from.
+     */
+    void setBootAddress(String value);
 
     /**
      * The list of components attached to this machine.

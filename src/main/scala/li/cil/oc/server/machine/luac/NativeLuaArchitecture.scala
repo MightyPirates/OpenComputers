@@ -19,8 +19,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
   private[machine] val ramScale = if (LuaStateFactory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
 
-  private[machine] var bootAddress = ""
-
   private val persistence = new PersistenceAPI(this)
 
   private val apis = Array(
@@ -314,8 +312,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   private def state = machine.asInstanceOf[Machine].state
 
   override def load(nbt: NBTTagCompound) {
-    bootAddress = nbt.getString("bootAddress")
-
     if (!machine.isRunning) return
 
     // Unlimit memory use while unpersisting.
@@ -363,10 +359,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   }
 
   override def save(nbt: NBTTagCompound) {
-    if (bootAddress != null) {
-      nbt.setString("bootAddress", bootAddress)
-    }
-
     // Unlimit memory while persisting.
     if (Settings.get.limitMemory) {
       lua.setTotalMemory(Integer.MAX_VALUE)

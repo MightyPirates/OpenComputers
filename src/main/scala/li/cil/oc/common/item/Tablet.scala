@@ -7,12 +7,12 @@ import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotificati
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, ServerTickEvent}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.{Driver, Machine}
+import li.cil.oc.api.driver.{Processor, EnvironmentHost}
+import li.cil.oc.api.machine.{Architecture, MachineHost}
 import li.cil.oc.api.network.{Connector, Message, Node}
 import li.cil.oc.api.tileentity.Rotatable
-import li.cil.oc.common.GuiType
+import li.cil.oc.common.{Slot, GuiType}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.RotationHelper
@@ -183,6 +183,17 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
   override def z = holder.posZ.toInt
 
   override def world = holder.worldObj
+
+  override def cpuArchitecture: Class[_ <: Architecture] = {
+    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
+      case Some(s) => Option(Driver.driverFor(s)) match {
+        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
+        case _ =>
+      }
+      case _ =>
+    }
+    null
+  }
 
   override def installedMemory = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
     case Some(item) => Option(api.Driver.driverFor(item)) match {

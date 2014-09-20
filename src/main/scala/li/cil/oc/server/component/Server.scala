@@ -1,7 +1,8 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Items
-import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.driver.Processor
+import li.cil.oc.api.machine.{Architecture, MachineHost}
 import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.api.{Driver, Machine, driver}
 import li.cil.oc.common.inventory.{ComponentInventory, ServerInventory}
@@ -39,6 +40,17 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
   override def canInteract(player: String) = machine.canInteract(player)
 
   // ----------------------------------------------------------------------- //
+
+  override def cpuArchitecture: Class[_ <: Architecture] = {
+    for (i <- 0 until inventory.getSizeInventory if inventory.isComponentSlot(i)) Option(inventory.getStackInSlot(i)) match {
+      case Some(s) => Option(Driver.driverFor(s)) match {
+        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
+        case _ =>
+      }
+      case _ =>
+    }
+    null
+  }
 
   override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Option(Driver.driverFor(item)) match {

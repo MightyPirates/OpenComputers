@@ -46,24 +46,7 @@ public final class Machine {
     }
 
     /**
-     * Creates a new machine using the specified architecture.
-     * <p/>
-     * You are responsible for calling update and save / load functions on the
-     * machine for it to work correctly.
-     *
-     * @param host         the owner object of the machine, providing context.
-     * @param architecture the architecture to use for running code on the machine.
-     * @return the newly created machine.
-     * @throws IllegalArgumentException if the specified architecture is invalid.
-     */
-    public static li.cil.oc.api.machine.Machine create(MachineHost host, Class<? extends Architecture> architecture) {
-        if (instance != null)
-            return instance.create(host, architecture);
-        return null;
-    }
-
-    /**
-     * Creates a new machine using the default architecture (Lua).
+     * Creates a new machine for the specified host.
      * <p/>
      * You are responsible for calling update and save / load functions on the
      * machine for it to work correctly.
@@ -73,7 +56,7 @@ public final class Machine {
      */
     public static li.cil.oc.api.machine.Machine create(MachineHost host) {
         if (instance != null)
-            return instance.create(host, LuaArchitecture);
+            return instance.create(host);
         return null;
     }
 

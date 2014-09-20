@@ -39,7 +39,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     // Get/set address of boot device.
     lua.pushScalaFunction(lua => {
-      owner.bootAddress match {
+      owner.machine.getBootAddress match {
         case "" => lua.pushNil()
         case address => lua.pushString(address)
       }
@@ -48,8 +48,8 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "getBootAddress")
 
     lua.pushScalaFunction(lua => {
-      if (lua.isNoneOrNil(1)) owner.bootAddress = ""
-      else owner.bootAddress = lua.checkString(1).take(36)
+      if (lua.isNoneOrNil(1)) owner.machine.setBootAddress("")
+      else owner.machine.setBootAddress(lua.checkString(1).take(36))
       0
     })
     lua.setField(-2, "setBootAddress")

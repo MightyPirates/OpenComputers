@@ -25,5 +25,5 @@ object CPU extends Item with driver.Processor {
       case _ => 0
     }
 
-  override def architecture = Machine.LuaArchitecture
+  override def architecture(stack: ItemStack) = Machine.LuaArchitecture
 }

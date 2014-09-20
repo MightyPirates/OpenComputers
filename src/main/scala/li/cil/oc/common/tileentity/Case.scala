@@ -60,13 +60,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  def hasCPU = items.exists {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => driver.slot(stack) == Slot.CPU
-      case _ => false
-    }
-    case _ => false
-  }
+  def hasCPU = cpuArchitecture != null
 
   // ----------------------------------------------------------------------- //
 
@@ -98,15 +92,23 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
-    if (InventorySlots.computer(tier)(slot).slot == Slot.Floppy) {
-      common.Sound.playDiskInsert(this)
+    if (isServer) {
+      if (InventorySlots.computer(tier)(slot).slot == Slot.Floppy) {
+        common.Sound.playDiskInsert(this)
+      }
     }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    if (InventorySlots.computer(tier)(slot).slot == Slot.Floppy) {
-      common.Sound.playDiskEject(this)
+    if (isServer) {
+      val slotType = InventorySlots.computer(tier)(slot).slot
+      if (slotType == Slot.Floppy) {
+        common.Sound.playDiskEject(this)
+      }
+      if (slotType == Slot.CPU) {
+        stop()
+      }
     }
   }
 

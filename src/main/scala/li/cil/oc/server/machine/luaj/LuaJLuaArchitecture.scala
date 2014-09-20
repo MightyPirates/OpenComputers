@@ -25,8 +25,6 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   private[machine] var memory = 0
 
-  private[machine] var bootAddress = ""
-
   private val apis = Array(
     new ComponentAPI(this),
     new ComputerAPI(this),
@@ -236,17 +234,11 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
-    bootAddress = nbt.getString("bootAddress")
-
     if (machine.isRunning) {
       machine.stop()
       machine.start()
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    if (bootAddress != null) {
-      nbt.setString("bootAddress", bootAddress)
-    }
-  }
+  override def save(nbt: NBTTagCompound) {}
 }

@@ -29,7 +29,8 @@ public interface Processor extends Item {
      * as computer cases, server racks and robots, it my not be true for third-
      * party computers).
      *
+     * @param stack the stack representing the CPU to get the architecture for.
      * @return the type of this CPU's architecture.
      */
-    Class<? extends Architecture> architecture();
+    Class<? extends Architecture> architecture(ItemStack stack);
 }

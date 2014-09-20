@@ -1,6 +1,5 @@
 package li.cil.oc.server.machine
 
-import java.lang.reflect.Constructor
 import java.util.concurrent.TimeUnit
 
 import li.cil.oc.api.detail.MachineAPI
@@ -24,7 +23,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import scala.Array.canBuildFrom
 import scala.collection.mutable
 
-class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
+class Machine(val host: MachineHost) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
@@ -35,7 +34,9 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
   } else None
 
-  val architecture = constructor.newInstance(this)
+  var architecture: Architecture = _
+
+  private var bootAddress = ""
 
   private[machine] val state = mutable.Stack(Machine.State.Stopped)
 
@@ -70,6 +71,10 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
   private var cost = Settings.get.computerCost * Settings.get.tickFrequency
 
   // ----------------------------------------------------------------------- //
+
+  override def getBootAddress = bootAddress
+
+  override def setBootAddress(value: String) = bootAddress = Option(value).map(_.take(36)).getOrElse("")
 
   override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
@@ -115,12 +120,12 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
     case Machine.State.Stopped =>
       processAddedComponents()
       verifyComponents()
-      if (componentCount > host.maxComponents) {
-        crash(host match {
-          case t: tileentity.Case if !t.hasCPU => "gui.Error.NoCPU"
-          case s: server.component.Server if !s.hasCPU => "gui.Error.NoCPU"
-          case _ => "gui.Error.ComponentOverflow"
-        })
+      if (host.cpuArchitecture() == null) {
+        crash("gui.Error.NoCPU")
+        false
+      }
+      else if (componentCount > host.maxComponents) {
+        crash("gui.Error.ComponentOverflow")
         false
       }
       else if (host.maxComponents == 0) {
@@ -481,7 +486,7 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
     if (node == this.node) {
       _components += this.node.address -> this.node.name
       tmp.foreach(fs => node.connect(fs.node))
-      architecture.onConnect()
+      Option(architecture).foreach(_.onConnect())
     }
     else {
       node match {
@@ -531,7 +536,7 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
           _components.synchronized(_components += component.address -> component.name)
           // Skip the signal if we're not initialized yet, since we'd generate a
           // duplicate in the startup script otherwise.
-          if (architecture.isInitialized) {
+          if (architecture != null && architecture.isInitialized) {
             signal("component_added", component.address, component.name)
           }
         }
@@ -567,6 +572,8 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
     state.clear()
 
     super.load(nbt)
+
+    bootAddress = nbt.getString("bootAddress")
 
     state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
     nbt.getTagList("users", NBT.TAG_STRING).foreach((list, index) => _users += list.getStringTagAt(index))
@@ -626,10 +633,6 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
     else {
       // Clean up in case we got a weird state stack.
       close()
-
-      // Architectures must check for "isRunning" themselves, to get a chance
-      // to load data their APIs stored that should persist across runs.
-      architecture.load(nbt)
     }
   }
 
@@ -640,6 +643,10 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
     pause(0.05)
 
     super.save(nbt)
+
+    if (bootAddress != null) {
+      nbt.setString("bootAddress", bootAddress)
+    }
 
     // Make sure the component list is up-to-date.
     processAddedComponents()
@@ -702,6 +709,14 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
   // ----------------------------------------------------------------------- //
 
   private def init(): Boolean = {
+    // Recreate architecture if necessary.
+    val hostArchitecture = host.cpuArchitecture
+    if (architecture == null || architecture.getClass != hostArchitecture) {
+      if (hostArchitecture == null) return false
+      architecture = hostArchitecture.getConstructor(classOf[machine.Machine]).newInstance(this)
+      if (node.network != null) architecture.onConnect()
+    }
+
     // Reset error state.
     message = None
 
@@ -729,7 +744,7 @@ class Machine(val host: MachineHost, constructor: Constructor[_ <: Architecture]
     if (state.size == 0 || state.top != Machine.State.Stopped) {
       state.clear()
       state.push(Machine.State.Stopped)
-      architecture.close()
+      Option(architecture).foreach(_.close())
       signals.clear()
       uptime = 0
       cpuTotal = 0
@@ -866,10 +881,7 @@ object Machine extends MachineAPI {
 
   override def architectures() = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
 
-  override def create(host: MachineHost, architecture: Class[_ <: Architecture]) = {
-    add(architecture)
-    new Machine(host, architecture.getConstructor(classOf[machine.Machine]))
-  }
+  override def create(host: MachineHost) = new Machine(host)
 
   /** Possible states of the computer, and in particular its executor. */
   private[machine] object State extends Enumeration {

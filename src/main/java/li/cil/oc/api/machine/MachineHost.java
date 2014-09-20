@@ -35,6 +35,17 @@ public interface MachineHost extends Context {
     World world();
 
     /**
+     * Get the architecture to use in the hosted machine.
+     * <p/>
+     * This can be a static architecture type, but will usually be based on the
+     * CPU installed in the host (for example, this is true for computer cases,
+     * servers, robots and tablets).
+     *
+     * @return the architecture of the installed CPU, or <tt>null</tt>.
+     */
+    Class<? extends Architecture> cpuArchitecture();
+
+    /**
      * The amount of memory (RAM) made available to the machine, in bytes.
      * <p/>
      * This is usually determined by the components installed in the owner, for

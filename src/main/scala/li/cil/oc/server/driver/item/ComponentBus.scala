@@ -25,5 +25,5 @@ object ComponentBus extends Item with driver.Processor {
       case _ => 0
     }
 
-  override def architecture = null
+  override def architecture(stack: ItemStack) = null
 }

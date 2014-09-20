@@ -323,7 +323,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
     info.load(nbt)
 
     updateInventorySize()
-    computer.architecture.recomputeMemory()
+    Option(computer.architecture).foreach(_.recomputeMemory())
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {

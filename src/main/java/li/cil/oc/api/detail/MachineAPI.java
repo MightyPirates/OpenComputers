@@ -20,7 +20,7 @@ public interface MachineAPI {
      * A list of all <em>registered</em> architectures.
      * <p/>
      * Note that registration is optional, although automatic when calling
-     * {@link #create(li.cil.oc.api.machine.MachineHost, Class)} with a not yet
+     * {@link #create(li.cil.oc.api.machine.MachineHost)} with a not yet
      * registered architecture. What this means is that unless a mod providing
      * a custom architecture also registers it, you may not see it in this list
      * until it also created a new machine using that architecture.
@@ -28,15 +28,14 @@ public interface MachineAPI {
     Iterable<Class<? extends Architecture>> architectures();
 
     /**
-     * Creates a new machine using the specified architecture.
+     * Creates a new machine for the specified host.
      * <p/>
      * You are responsible for calling update and save / load functions on the
      * machine for it to work correctly.
      *
-     * @param host         the owner object of the machine, providing context.
-     * @param architecture the architecture to use for running code on the machine.
+     * @param host the owner object of the machine, providing context.
      * @return the newly created machine.
      * @throws IllegalArgumentException if the specified architecture is invalid.
      */
-    Machine create(MachineHost host, Class<? extends Architecture> architecture);
+    Machine create(MachineHost host);
 }

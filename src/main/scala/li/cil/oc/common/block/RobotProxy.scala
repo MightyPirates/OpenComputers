@@ -108,7 +108,7 @@ class RobotProxy extends RedstoneAware with SpecialBlock {
     val bounds = getCollisionBoundingBoxFromPool(world, x, y, z)
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(origin) => null
-      case _ => super.collisionRayTrace(world, x, y, z, origin, direction)
+      case _ => super.intersect(world, x, y, z, origin, direction)
     }
   }
 
