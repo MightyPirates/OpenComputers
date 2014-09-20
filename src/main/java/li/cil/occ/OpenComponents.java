@@ -3,6 +3,7 @@ package li.cil.occ;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.network.NetworkMod;
 import li.cil.occ.mods.Registry;
 import li.cil.occ.mods.appeng.ModAppEng;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
@@ -22,7 +23,7 @@ import net.minecraftforge.common.Configuration;
 import java.util.logging.Logger;
 
 @Mod(modid = OpenComponents.ID, name = OpenComponents.Name, version = OpenComponents.Version, useMetadata = true)
-@NetworkMod(clientSideRequired = false, serverSideRequired = false)
+@NetworkMod
 public class OpenComponents {
     public static final String ID = "OpenComponents";
 
