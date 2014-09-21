@@ -46,8 +46,11 @@ class Tablet(val parent: Delegator) extends Delegate {
     iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TabletOff"))
   }
 
-  override def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
-    Tablet.get(stack, player).update(world, player, slot, selected)
+  override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
+    entity match {
+      case player: EntityPlayer => Tablet.get(stack, player).update(world, player, slot, selected)
+      case _ =>
+    }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
     if (!player.isSneaking) {
@@ -67,7 +70,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with Container with Owner with Rotatable {
+class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends ComponentInventory with Container with Owner with Rotatable {
   lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
@@ -230,7 +233,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 
   // ----------------------------------------------------------------------- //
 
-  def update(world: World, player: Entity, slot: Int, selected: Boolean) {
+  def update(world: World, player: EntityPlayer, slot: Int, selected: Boolean) {
     holder = player
     if (!world.isRemote) {
       computer.node.asInstanceOf[Connector].changeBuffer(500)
@@ -252,7 +255,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 }
 
 object Tablet {
-  def get(stack: ItemStack, holder: Entity) = {
+  def get(stack: ItemStack, holder: EntityPlayer) = {
     if (holder.worldObj.isRemote) Client.get(stack, holder)
     else Server.get(stack, holder)
   }
@@ -288,9 +291,9 @@ object Tablet {
     // To allow access in cache entry init.
     private var currentStack: ItemStack = _
 
-    private var currentHolder: Entity = _
+    private var currentHolder: EntityPlayer = _
 
-    def get(stack: ItemStack, holder: Entity) = {
+    def get(stack: ItemStack, holder: EntityPlayer) = {
       if (!stack.hasTagCompound) {
         stack.setTagCompound(new NBTTagCompound())
       }

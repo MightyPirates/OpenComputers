@@ -13,8 +13,8 @@ import net.minecraft.entity.item.{EntityItem, EntityMinecart}
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{Vec3, MovingObjectPosition}
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
+import net.minecraft.util.{MovingObjectPosition, Vec3}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
@@ -313,6 +313,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
       (broke, "block")
     }
 
+    var reason: Option[String] = None
     for (side <- sides) {
       val player = robot.player(facing, side)
       player.setSneaking(sneaky)
@@ -346,9 +347,10 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
       if (success) {
         return result(true, what)
       }
+      reason = reason.orElse(Option(what))
     }
 
-    result(false)
+    result(false, reason.orNull)
   }
 
   @Callback
