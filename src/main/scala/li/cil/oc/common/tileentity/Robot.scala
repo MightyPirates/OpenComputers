@@ -521,7 +521,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     case _ => false
   })
 
-  def isUpgradeSlot(slot: Int) = false // slot == 3 TODO upgrade synching for rendering
+  def isUpgradeSlot(slot: Int) = containerSlotType(slot) == Slot.Upgrade
 
   // ----------------------------------------------------------------------- //
 
