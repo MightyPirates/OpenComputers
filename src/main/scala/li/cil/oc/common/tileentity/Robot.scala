@@ -780,4 +780,5 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     }
     ar
   }
+
 }

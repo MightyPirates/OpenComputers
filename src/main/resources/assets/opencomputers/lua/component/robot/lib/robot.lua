@@ -199,5 +199,15 @@ end
 function robot.selectTank(tank)
     return component.robot.selectTank(tank)
 end
+function robot.suckFluid(amount)
+    return component.robot.suckFluid(sides.front,amount)
+end
+function robot.ejectFluid(amount)
+    return component.robot.ejectFluid(sides.front,amount)
+end
+end
+function robot.getFluidInfo()
+    return component.robot.getFluidInfo()
+end
 -------------------------------------------------------------------------------
 return robot

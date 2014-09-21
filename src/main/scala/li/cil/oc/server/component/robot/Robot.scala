@@ -4,11 +4,13 @@ import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.{OpenComputers, Settings, api}
+import net.minecraft
 import net.minecraft.block.{Block, BlockFluid}
 import net.minecraft.entity.item.{EntityItem, EntityMinecart}
 import net.minecraft.entity.{Entity, EntityLivingBase}
@@ -17,7 +19,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.{EnumMovingObjectType, MovingObjectPosition}
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import net.minecraftforge.event.world.BlockEvent
-import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fluids.{FluidTankInfo, IFluidHandler, FluidStack, FluidRegistry}
 
 import scala.collection.convert.WrapAsScala._
 
@@ -492,9 +494,143 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     if (args.count > 0 && args.checkInteger(0) > -1) {
       robot.selectedFluidSlot = args.checkInteger(0)
       //TODO maybe check if number is valid...
-      result(true)
+      return result(true)
     }
     result(Unit, "not a number")
+  }
+
+  @Callback
+  def suckFluid(context: Context, args: Arguments): Array[AnyRef] = {
+    //todo check if liquid?controller ist installed
+    val facing = checkSideForAction(args, 0)
+
+    world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+      case (handler: IFluidHandler) => {
+
+        robot.getSelectedTank match {
+          case Some(component) => {
+            var amount = component.getCapacity - component.getFluidAmount
+            if (args.count() > 1) {
+              amount = Math.min(args.checkInteger(1), amount)
+            }
+            var drain: FluidStack = null
+            component.getFluid match {
+              case (existingFluid: FluidStack) => {
+                val fluid = new FluidStack(existingFluid, amount)
+                drain = handler.drain(ForgeDirection.UNKNOWN, fluid, true)
+
+              }
+              case _ => {
+                drain = handler.drain(ForgeDirection.UNKNOWN, amount, true)
+              }
+            }
+
+            component.fill(drain, true)
+
+            result(true, drain.amount)
+          }
+          case None => result(Unit, "no Container Selected")
+        }
+      }
+      case _ => {
+        val blockId = world.getBlockId(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+
+        if (!Block.blocksList(blockId).isInstanceOf[BlockFluid]) {
+          return result(Unit, "not a fluid")
+        }
+        val fluid = FluidRegistry.lookupFluidForBlock(Block.blocksList(blockId))
+        robot.getSelectedTank match {
+          case Some(component) => {
+            val fillAmount = component.fill(new FluidStack(fluid, 1000), false)
+            if (fillAmount == 1000) {
+              component.fill(new FluidStack(fluid, 1000), true)
+              world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+              return result(true)
+            }
+            result(Unit, "could not fill")
+
+          }
+          case None => result(Unit, "no Container Selected")
+        }
+      }
+
+
+    }
+  }
+
+  @Callback
+  def ejectFluid(context: Context, args: Arguments): Array[AnyRef] = {
+    //todo check if liquid?controller ist installed
+    val facing = checkSideForAction(args, 0)
+    world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+      case (handler: IFluidHandler) => {
+
+        robot.getSelectedTank match {
+          case Some(component) => {
+            var amount = component.getFluidAmount
+            if (args.count() > 1) {
+              amount = Math.min(args.checkInteger(1), amount)
+            }
+
+            component.getFluid match {
+              case (existingFluid: FluidStack) => {
+                val fluid = new FluidStack(existingFluid, amount)
+                val drain = handler.fill(ForgeDirection.UNKNOWN, fluid, true)
+                component.drain(drain, true)
+
+                result(true, drain)
+
+              }
+              case _ => {
+                result(0)
+              }
+            }
+
+          }
+          case None => result(Unit, "no Container Selected")
+        }
+      }
+      case _ => {
+        val isAir = world.isAirBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+        if (!isAir) {
+          return result(Unit, "no space")
+        }
+
+        robot.getSelectedTank match {
+          case Some(component) => {
+
+            val fluidStack = component.drain(1000, false)
+            if (fluidStack.amount == 1000) {
+
+              world.setBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ, component.getFluid.getFluid.getBlockID)
+              component.drain(1000, true)
+              return result(true)
+            }
+            result(Unit, "could not fill")
+
+          }
+          case None => result(Unit, "no Container Selected")
+        }
+      }
+    }
+  }
+
+  @Callback
+  def getFluidInfo(context: Context, args: Arguments): Array[AnyRef] = {
+    robot.getSelectedTank match {
+      case Some(component) => {
+        component.getInfo match {
+          case (info: FluidTankInfo) => info.fluid match {
+            case (fluid: FluidStack) => result(fluid.getFluid.getName, fluid.getFluid.getLocalizedName, fluid.amount, info.capacity)
+            case _ => result(Unit, "no fluid")
+
+          }
+          case _ => result(Unit, "no fluid")
+        }
+
+      }
+      case None => result(Unit, "no Container Selected")
+    }
   }
 
   // ----------------------------------------------------------------------- //
