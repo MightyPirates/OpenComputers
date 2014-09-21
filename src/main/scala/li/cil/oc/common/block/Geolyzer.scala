@@ -30,7 +30,7 @@ class Geolyzer(val parent: SimpleDelegator) extends SimpleDelegate {
 
   @Optional.Method(modid = Mods.IDs.Waila)
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
+    val node = accessor.getNBTData.getCompoundTag("node")
     if (node.hasKey("address")) {
       tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
     }
