@@ -39,7 +39,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
 
-  private var hasChanged = false
+  private var markChunkDirty = false
 
   var internalSwitch = false
 
@@ -82,7 +82,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // ----------------------------------------------------------------------- //
 
-  def markAsChanged() = hasChanged = true
+  def markForSaving() = markChunkDirty = true
 
   override def installedComponents = servers.flatMap {
     case Some(server) => server.inventory.components collect {
@@ -119,7 +119,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // ----------------------------------------------------------------------- //
 
   override protected def distribute() = {
-    def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.node.asInstanceOf[Connector]) else null
+    def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector]) else null
     val nodes = (0 to 3).map(node)
     def network(connector: Connector) = if (connector != null && connector.network != null) connector.network else this
     val (sumBuffer, sumSize) = super.distribute()
@@ -153,7 +153,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         val side = toGlobal(sides(slot))
         if (side != sourceSide) {
           servers(slot) match {
-            case Some(server) => server.node.sendToNeighbors("network.message", packet)
+            case Some(server) => server.machine.node.sendToNeighbors("network.message", packet)
             case _ =>
           }
         }
@@ -168,7 +168,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     // network messages originate from the actual server nodes themselves.
     // The otherwise come from the network card.
     if (message.name != "network.message" || !(servers collect {
-      case Some(server) => server.node
+      case Some(server) => server.machine.node
     }).contains(message.source)) super.onPlugMessage(plug, message)
   }
 
@@ -236,13 +236,13 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       servers collect {
         case Some(server) =>
           if (server.tier == Tier.Four && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-            server.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+            server.machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
           }
           server.machine.update()
       }
 
-      if (hasChanged) {
-        hasChanged = false
+      if (markChunkDirty) {
+        markChunkDirty = false
         world.markTileEntityChunkModified(x, y, z, this)
       }
 

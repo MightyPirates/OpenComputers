@@ -5,7 +5,7 @@ import li.cil.oc.client.gui.Icons
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.SideTracker
 import li.cil.oc.{api, common}
-import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
+import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.IInventory
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
@@ -72,9 +72,6 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
       }
     }
   }
-
-  override def canInteractWith(player: EntityPlayer) =
-    super.canInteractWith(player) && robot.canInteract(player.getCommandSenderName)
 
   class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
     def isValid = robot.isInventorySlot(getSlotIndex)

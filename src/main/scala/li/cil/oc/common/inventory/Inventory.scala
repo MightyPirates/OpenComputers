@@ -29,7 +29,7 @@ trait Inventory extends IInventory {
     if (stack == null && items(slot).isEmpty) {
       return
     }
-    if (items(slot).exists(_ == stack)) {
+    if (items(slot).contains(stack)) {
       return
     }
 

@@ -218,7 +218,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       posX -= offset.offsetX * 0.6
       posY -= offset.offsetY * 0.6
       posZ -= offset.offsetZ * 0.6
-      robot.computer.pause(heldTicks / 20.0)
+      robot.machine.pause(heldTicks / 20.0)
       // These are functions to avoid null pointers if newStack is null.
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||

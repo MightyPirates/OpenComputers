@@ -405,8 +405,8 @@ class TextBuffer(val host: EnvironmentHost) extends ManagedComponent with api.co
     // when their update() runs).
     if (node.network != null) {
       for (node <- node.network.nodes) node.host match {
-        case host: tileentity.traits.Computer if !host.isPaused =>
-          host.pause(0.1)
+        case computer: tileentity.traits.Computer if !computer.machine.isPaused =>
+          computer.machine.pause(0.1)
         case _ =>
       }
     }

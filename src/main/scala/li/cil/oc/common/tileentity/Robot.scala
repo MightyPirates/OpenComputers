@@ -41,7 +41,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   val inventory = new Inventory(this)
 
   if (isServer) {
-    computer.setCostPerTick(Settings.get.robotCost)
+    machine.setCostPerTick(Settings.get.robotCost)
   }
 
   // ----------------------------------------------------------------------- //
@@ -86,7 +86,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
 
   // ----------------------------------------------------------------------- //
 
-  override def node = if (isServer) computer.node else null
+  override def node = if (isServer) machine.node else null
 
   var globalBuffer, globalBufferSize = 0.0
 
@@ -320,10 +320,8 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    info.load(nbt)
-
     updateInventorySize()
-    Option(computer.architecture).foreach(_.recomputeMemory())
+    Option(machine.architecture).foreach(_.recomputeMemory())
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {
@@ -444,7 +442,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
         super.onItemAdded(slot, stack)
       }
       if (isInventorySlot(slot)) {
-        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
       }
     }
   }
@@ -463,7 +461,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
         common.Sound.playDiskEject(this)
       }
       if (isInventorySlot(slot)) {
-        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
       }
     }
   }
@@ -612,13 +610,6 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
       else super.setInventorySlotContents(slot, stack)
     }
   }
-
-  override def isUseableByPlayer(player: EntityPlayer) =
-    world.getTileEntity(x, y, z) match {
-      case t: RobotProxy if t == proxy && computer.canInteract(player.getCommandSenderName) =>
-        player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
-      case _ => false
-    }
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
     case (0, _) => true // Allow anything in the tool slot.

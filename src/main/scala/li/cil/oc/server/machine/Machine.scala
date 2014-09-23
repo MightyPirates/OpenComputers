@@ -152,7 +152,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
       }
     case Machine.State.Paused if remainingPause > 0 =>
       remainingPause = 0
-      host.markAsChanged()
+      host.markForSaving()
       true
     case Machine.State.Stopping =>
       switchTo(Machine.State.Restarting)
@@ -176,7 +176,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
           state.push(Machine.State.Paused)
         }
         remainingPause = ticksToPause
-        host.markAsChanged()
+        host.markForSaving()
         return true
       }))
     }
@@ -320,7 +320,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
     val duration = if (args.count() > 1) args.checkDouble(1) else 0.1
     val durationInMilliseconds = math.max(50, math.min(5000, (duration * 1000).toInt))
     context.pause(durationInMilliseconds / 1000.0)
-    PacketSender.sendSound(host.world, host.x, host.y, host.z, frequency, durationInMilliseconds)
+    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, durationInMilliseconds)
     null
   }
 
@@ -626,7 +626,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error loading a state of computer at (${host.x}, ${host.y}, ${host.z}). """ +
+        OpenComputers.log.error( s"""Unexpected error loading a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
         close()
     }
@@ -701,7 +701,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${host.x}, ${host.y}, ${host.z}). """ +
+        OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   }
@@ -752,7 +752,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
       remainIdle = 0
 
       // Mark state change in owner, to send it to clients.
-      host.markAsChanged()
+      host.markForSaving()
     })
 
   // ----------------------------------------------------------------------- //
@@ -769,7 +769,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
     }
 
     // Mark state change in owner, to send it to clients.
-    host.markAsChanged()
+    host.markForSaving()
 
     result
   }

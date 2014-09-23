@@ -66,6 +66,7 @@ class RobotProxy extends RedstoneAware with SpecialBlock {
     }
   }
 
+  // TODO
   //  @Optional.Method(modid = Mods.IDs.Waila)
   //  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
   //    addLines(stack, tooltip)
@@ -150,7 +151,7 @@ class RobotProxy extends RedstoneAware with SpecialBlock {
     else if (player.getCurrentEquippedItem == null) {
       if (!world.isRemote) {
         world.getTileEntity(x, y, z) match {
-          case proxy: tileentity.RobotProxy if !proxy.isRunning => proxy.start()
+          case proxy: tileentity.RobotProxy if !proxy.machine.isRunning => proxy.machine.start()
           case _ =>
         }
       }

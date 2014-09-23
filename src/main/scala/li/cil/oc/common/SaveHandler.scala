@@ -32,7 +32,7 @@ object SaveHandler {
   def statePath = new io.File(savePath, "state")
 
   def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
-    scheduleSave(host.world, host.x, host.z, nbt, name, data)
+    scheduleSave(host.world, host.xPosition, host.zPosition, nbt, name, data)
   }
 
   def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
@@ -40,12 +40,12 @@ object SaveHandler {
   }
 
   def scheduleSave(host: EnvironmentHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(host.world, math.round(host.xPosition - 0.5).toInt, math.round(host.zPosition - 0.5).toInt, nbt, name, writeNBT(save))
+    scheduleSave(host.world, host.xPosition.toInt, host.zPosition, nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val dimension = world.provider.dimensionId
-    val chunk = new ChunkCoordIntPair(x >> 4, z >> 4)
+    val chunk = new ChunkCoordIntPair(math.floor(x).toInt >> 4, math.floor(z).toInt >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
@@ -56,7 +56,7 @@ object SaveHandler {
     scheduleSave(dimension, chunk, name, data)
   }
 
-  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
     scheduleSave(world, x, z, nbt, name, writeNBT(save))
   }
 

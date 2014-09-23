@@ -78,7 +78,7 @@ class Case(val tier: Int) extends RedstoneAware {
     else if (player.getCurrentEquippedItem == null) {
       if (!world.isRemote) {
         world.getTileEntity(x, y, z) match {
-          case computer: tileentity.Case if !computer.isRunning => computer.start()
+          case computer: tileentity.Case if !computer.machine.isRunning => computer.machine.start()
           case _ =>
         }
       }

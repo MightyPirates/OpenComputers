@@ -47,7 +47,7 @@ object PacketHandler extends CommonPacketHandler {
   def onComputerPower(p: PacketParser) =
     p.readTileEntity[TileEntity]() match {
       case Some(t: Computer) => p.player match {
-        case player: EntityPlayerMP => trySetComputerPower(t.computer, p.readBoolean(), player)
+        case player: EntityPlayerMP => trySetComputerPower(t.machine, p.readBoolean(), player)
         case _ =>
       }
       case Some(r: ServerRack) => r.servers(p.readInt()) match {

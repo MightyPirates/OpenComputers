@@ -1,8 +1,8 @@
 package li.cil.oc.api.machine;
 
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
-import net.minecraft.world.World;
 
 /**
  * This interface has to be implemented by 'hosts' of machine instances.
@@ -10,30 +10,7 @@ import net.minecraft.world.World;
  * It provides some context for the machine, in particular which world it is
  * running in, to allow querying the time of day, for example.
  */
-public interface MachineHost extends Context {
-    /**
-     * The X coordinate of this machine owner in the world, in block coordinates.
-     */
-    int x();
-
-    /**
-     * The Y coordinate of this machine owner in the world, in block coordinates.
-     */
-    int y();
-
-    /**
-     * The Z coordinate of this machine owner in the world, in block coordinates.
-     */
-    int z();
-
-    /**
-     * The world the machine is running in, e.g. if the owner is a tile entity
-     * this is the world the tile entity lives in.
-     *
-     * @return the world the machine runs in.
-     */
-    World world();
-
+public interface MachineHost extends EnvironmentHost {
     /**
      * Get the architecture to use in the hosted machine.
      * <p/>
@@ -86,7 +63,7 @@ public interface MachineHost extends Context {
      * <p/>
      * This method is called from executor threads, so it must be thread-safe.
      */
-    void markAsChanged();
+    void markForSaving();
 
     /**
      * This is called on the owner when the machine's {@link Environment#onConnect(Node)}

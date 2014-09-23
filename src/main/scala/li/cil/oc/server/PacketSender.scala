@@ -403,13 +403,13 @@ object PacketSender {
     }
   }
 
-  def sendSound(world: World, x: Int, y: Int, z: Int, frequency: Int, duration: Int) {
+  def sendSound(world: World, x: Double, y: Double, z: Double, frequency: Int, duration: Int) {
     val pb = new SimplePacketBuilder(PacketType.Sound)
 
     pb.writeInt(world.provider.dimensionId)
-    pb.writeInt(x)
-    pb.writeInt(y)
-    pb.writeInt(z)
+    pb.writeInt(math.floor(x).toInt)
+    pb.writeInt(math.floor(y).toInt)
+    pb.writeInt(math.floor(z).toInt)
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
 

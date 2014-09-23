@@ -25,48 +25,40 @@ import scala.collection.mutable
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
 trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with MachineHost {
-  private lazy val _computer = if (isServer) Machine.create(this) else null
+  private lazy val _machine = if (isServer) Machine.create(this) else null
 
-  def computer = _computer
+  def machine = _machine
 
-  override def node = if (isServer) computer.node else null
+  override def node = if (isServer) machine.node else null
 
   private var _isRunning = false
 
-  private var hasChanged = false
+  private var markChunkDirty = false
 
   private val _users = mutable.Set.empty[String]
 
   // ----------------------------------------------------------------------- //
 
-  // Note: we implement IContext in the TE to allow external components to cast
-  // their owner to it (to allow interacting with their owning computer).
-
-  override def canInteract(player: String) =
-    if (isServer) computer.canInteract(player)
-    else !Settings.get.canComputersBeOwned ||
-      _users.isEmpty || _users.contains(player)
-
-  override def isRunning = _isRunning
+  def canInteract(player: String) =
+    if (isServer) machine.canInteract(player)
+    else !Settings.get.canComputersBeOwned || _users.isEmpty || _users.contains(player)
 
   @SideOnly(Side.CLIENT)
-  def setRunning(value: Boolean) = {
+  def isRunning = _isRunning
+
+  @SideOnly(Side.CLIENT)
+  def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
     world.markBlockForUpdate(x, y, z)
     if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 50 + world.rand.nextInt(50))
     else Sound.stopLoop(this)
-    this
   }
 
-  override def isPaused = computer.isPaused
-
-  override def start() = computer.start()
-
-  override def pause(seconds: Double) = computer.pause(seconds)
-
-  override def stop() = computer.stop()
-
-  override def signal(name: String, args: AnyRef*) = computer.signal(name, args: _*)
+  @SideOnly(Side.CLIENT)
+  def setUsers(list: Iterable[String]) {
+    _users.clear()
+    _users ++= list
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -81,7 +73,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     null
   }
 
-  override def markAsChanged() = hasChanged = true
+  override def markForSaving() = markChunkDirty = true
 
   override def installedComponents = components collect {
     case Some(component) => component
@@ -92,23 +84,13 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def onMachineDisconnect(node: Node) = this.onDisconnect(node)
 
   def hasAbstractBusCard = items.exists {
-    case Some(item) => computer.isRunning && driver.item.AbstractBusCard.worksWith(item)
+    case Some(item) => machine.isRunning && driver.item.AbstractBusCard.worksWith(item)
     case _ => false
   }
 
   def hasRedstoneCard = items.exists {
-    case Some(item) => computer.isRunning && driver.item.RedstoneCard.worksWith(item)
+    case Some(item) => machine.isRunning && driver.item.RedstoneCard.worksWith(item)
     case _ => false
-  }
-
-  def users: Iterable[String] =
-    if (isServer) computer.users
-    else _users
-
-  @SideOnly(Side.CLIENT)
-  def users_=(list: Iterable[String]) {
-    _users.clear()
-    _users ++= list
   }
 
   // ----------------------------------------------------------------------- //
@@ -120,15 +102,15 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       // the network. We skip the update this round to allow other tile entities
       // to join the network, too, avoiding issues of missing nodes (e.g. in the
       // GPU which would otherwise loose track of its screen).
-      computer.update()
+      machine.update()
 
-      if (hasChanged) {
-        hasChanged = false
+      if (markChunkDirty) {
+        markChunkDirty = false
         world.markTileEntityChunkModified(x, y, z, this)
       }
 
-      if (_isRunning != computer.isRunning) {
-        _isRunning = computer.isRunning
+      if (_isRunning != machine.isRunning) {
+        _isRunning = machine.isRunning
         isOutputEnabled = hasRedstoneCard
         isAbstractBusAvailable = hasAbstractBusCard
         ServerPacketSender.sendComputerState(this)
@@ -154,18 +136,16 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
         proxy.robot.zCoord = zCoord
       case _ =>
     }
-    if (isServer) {
-      computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
-    }
+    machine.load(nbt.getCompoundTag(Settings.namespace + "computer"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (computer != null) {
+    if (machine != null) {
       if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip)
-        nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
-      else if (computer.node.address != null)
-        nbt.setString(Settings.namespace + "address", computer.node.address)
+        nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)
+      else if (machine.node.address != null)
+        nbt.setString(Settings.namespace + "address", machine.node.address)
     }
   }
 
@@ -181,7 +161,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setBoolean("isRunning", isRunning)
-    nbt.setNewTagList("users", computer.users.map(user => new NBTTagString(user)))
+    nbt.setNewTagList("users", machine.users.map(user => new NBTTagString(user)))
   }
 
   // ----------------------------------------------------------------------- //
@@ -189,11 +169,14 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def markDirty() {
     super.markDirty()
     if (isServer) {
-      Option(computer.architecture).foreach(_.recomputeMemory())
+      Option(machine.architecture).foreach(_.recomputeMemory())
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
     }
   }
+
+  override def isUseableByPlayer(player: EntityPlayer) =
+    super.isUseableByPlayer(player) && canInteract(player.getCommandSenderName)
 
   override protected def onRotationChanged() {
     super.onRotationChanged()
@@ -202,22 +185,22 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    computer.signal("redstone_changed", computer.node.address, Int.box(toLocal(side).ordinal()))
+    machine.signal("redstone_changed", machine.node.address, Int.box(toLocal(side).ordinal()))
   }
 
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    computer.lastError match {
+    machine.lastError match {
       case value if value != null =>
         player.addChatMessage(Localization.Analyzer.LastError(value))
       case _ =>
     }
-    player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, maxComponents))
-    val list = users
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    val list = machine.users
     if (list.size > 0) {
       player.addChatMessage(Localization.Analyzer.Users(list))
     }
-    Array(computer.node)
+    Array(machine.node)
   }
 }

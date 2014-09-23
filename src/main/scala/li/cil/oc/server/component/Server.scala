@@ -23,24 +23,6 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
 
   // ----------------------------------------------------------------------- //
 
-  override def node = machine.node
-
-  override def start() = machine.start()
-
-  override def stop() = machine.stop()
-
-  override def pause(seconds: Double) = machine.pause(seconds)
-
-  override def isPaused = machine.isPaused
-
-  override def isRunning = machine.isRunning
-
-  override def signal(name: String, args: AnyRef*) = machine.signal(name, args: _*)
-
-  override def canInteract(player: String) = machine.canInteract(player)
-
-  // ----------------------------------------------------------------------- //
-
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until inventory.getSizeInventory if inventory.isComponentSlot(i)) Option(inventory.getStackInSlot(i)) match {
       case Some(s) => Option(Driver.driverFor(s)) match {
@@ -79,15 +61,17 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
     case _ => false
   }
 
-  override def x = rack.x
+  override def xPosition = rack.x + 0.5
 
-  override def y = rack.y
+  override def yPosition = rack.y + 0.5
 
-  override def z = rack.z
+  override def zPosition = rack.z + 0.5
 
   override def world = rack.world
 
-  override def markAsChanged() = rack.markAsChanged()
+  override def markForSaving() = rack.markForSaving()
+
+  override def markChanged() = rack.markChanged()
 
   // ----------------------------------------------------------------------- //
 

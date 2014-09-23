@@ -35,9 +35,12 @@ class Tablet(val parent: Delegator) extends Delegate {
   private var iconOff: Option[Icon] = None
 
   @SideOnly(Side.CLIENT)
-  override def icon(stack: ItemStack, pass: Int) = Tablet.Client.get(stack) match {
-    case Some(wrapper) => if (wrapper.isRunning) iconOn else iconOff
-    case _ => super.icon(stack, pass)
+  override def icon(stack: ItemStack, pass: Int) = {
+    val computerData = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
+    computerData.getIntArray("state").headOption match {
+      case Some(state) => if (state != 0) iconOn else iconOff
+      case _ => super.icon(stack, pass)
+    }
   }
 
   override def registerIcons(iconRegister: IconRegister) = {
@@ -56,7 +59,7 @@ class Tablet(val parent: Delegator) extends Delegate {
         player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
       }
       else {
-        Tablet.get(stack, player).start()
+        Tablet.get(stack, player).machine.start()
       }
     }
     else {
@@ -69,7 +72,7 @@ class Tablet(val parent: Delegator) extends Delegate {
 }
 
 class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with EnvironmentHost with MachineHost with Rotatable {
-  lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
+  lazy val machine = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
 
@@ -84,10 +87,10 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
   def readFromNBT() {
     if (stack.hasTagCompound) {
       val data = stack.getTagCompound
-      if (!world.isRemote) {
-        computer.load(data.getCompoundTag(Settings.namespace + "data"))
-      }
       load(data)
+      if (!world.isRemote) {
+        machine.load(data.getCompoundTag(Settings.namespace + "data"))
+      }
     }
   }
 
@@ -100,7 +103,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
       if (!data.hasKey(Settings.namespace + "data")) {
         data.setTag(Settings.namespace + "data", new NBTTagCompound())
       }
-      computer.save(data.getCompoundTag(Settings.namespace + "data"))
+      machine.save(data.getCompoundTag(Settings.namespace + "data"))
     }
     save(data)
   }
@@ -115,7 +118,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
     }
   }
   else {
-    api.Network.joinNewNetwork(computer.node)
+    api.Network.joinNewNetwork(machine.node)
     writeToNBT()
   }
 
@@ -160,7 +163,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 
-  override def isUseableByPlayer(player: EntityPlayer) = canInteract(player.getCommandSenderName)
+  override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getCommandSenderName)
 
   override def markDirty() {}
 
@@ -168,21 +171,17 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 
   override def xPosition = holder.posX
 
-  override def yPosition = holder.posY + 1
+  override def yPosition = holder.posY + holder.getEyeHeight
 
   override def zPosition = holder.posZ
 
-  override def markChanged() {}
+  override def world = holder.worldObj
+
+  override def markChanged(): Unit = {
+
+  }
 
   // ----------------------------------------------------------------------- //
-
-  override def x = holder.posX.toInt
-
-  override def y = holder.posY.toInt + 1
-
-  override def z = holder.posZ.toInt
-
-  override def world = holder.worldObj
 
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
@@ -213,7 +212,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def markAsChanged() {}
+  override def markForSaving() {}
 
   override def onMachineConnect(node: Node) = onConnect(node)
 
@@ -221,34 +220,15 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 
   // ----------------------------------------------------------------------- //
 
-  override def node = Option(computer).fold(null: Node)(_.node)
-
-  override def canInteract(player: String) = computer.canInteract(player)
-
-  override def isRunning = if (world.isRemote) {
-    val computerData = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
-    val state = computerData.getIntArray("state").headOption.getOrElse(0)
-    state != 0
-  }
-  else computer.isRunning
-
-  override def isPaused = computer.isPaused
-
-  override def start() = computer.start()
-
-  override def pause(seconds: Double) = computer.pause(seconds)
-
-  override def stop() = computer.stop()
-
-  override def signal(name: String, args: AnyRef*) = computer.signal(name, args)
+  override def node = Option(machine).fold(null: Node)(_.node)
 
   // ----------------------------------------------------------------------- //
 
   def update(world: World, player: Entity, slot: Int, selected: Boolean) {
     holder = player
     if (!world.isRemote) {
-      computer.node.asInstanceOf[Connector].changeBuffer(500)
-      computer.update()
+      machine.node.asInstanceOf[Connector].changeBuffer(500)
+      machine.update()
       updateComponents()
     }
   }
@@ -331,7 +311,7 @@ object Tablet {
       if (tablet.node != null) {
         // Server.
         tablet.writeToNBT()
-        tablet.stop()
+        tablet.machine.stop()
         tablet.node.remove()
       }
     }

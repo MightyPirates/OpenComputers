@@ -24,7 +24,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     withComponent("robot", Visibility.Neighbors).
     create()
 
-  override def computer = robot.computer
+  override def machine = robot.machine
 
   override def maxComponents = robot.maxComponents
 
@@ -34,8 +34,10 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def disconnectComponents() {}
 
+  @SideOnly(Side.CLIENT)
   override def isRunning = robot.isRunning
 
+  @SideOnly(Side.CLIENT)
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
   override def player() = robot.player()
@@ -56,15 +58,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   @Callback(doc = """function():boolean -- Starts the robot. Returns true if the state changed.""")
   def start(context: Context, args: Arguments): Array[AnyRef] =
-    result(!computer.isPaused && computer.start())
+    result(!machine.isPaused && machine.start())
 
   @Callback(doc = """function():boolean -- Stops the robot. Returns true if the state changed.""")
   def stop(context: Context, args: Arguments): Array[AnyRef] =
-    result(computer.stop())
+    result(machine.stop())
 
   @Callback(direct = true, doc = """function():boolean -- Returns whether the robot is running.""")
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
-    result(computer.isRunning)
+    result(machine.isRunning)
 
   override def onMessage(message: Message) {
     super.onMessage(message)
@@ -107,6 +109,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
+    robot.info.load(nbt)
     super.readFromNBT(nbt)
     robot.readFromNBT(nbt)
   }
@@ -241,7 +244,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  override def markAsChanged() = robot.markAsChanged()
+  override def markForSaving() = robot.markForSaving()
 
   override def hasRedstoneCard = robot.hasRedstoneCard
 

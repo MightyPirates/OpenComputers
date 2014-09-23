@@ -21,7 +21,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing && computer != null) computer.node.asInstanceOf[Connector] else null)
+  override protected def connector(side: ForgeDirection) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
 
   override def getWorld = world
 
@@ -30,15 +30,6 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   private def isCreativeCase = tier == Tier.Four
 
   // ----------------------------------------------------------------------- //
-
-  private def serverPlayer(player: String): EntityPlayer = MinecraftServer.getServer.getConfigurationManager.func_152612_a(player)
-
-  @SideOnly(Side.CLIENT)
-  private def clientPlayer: EntityPlayer = Minecraft.getMinecraft.thePlayer // Avoid client class getting loaded on server.
-
-  override def canInteract(player: String) =
-    super.canInteract(player) &&
-      (!isCreativeCase || Option(if (isServer) serverPlayer(player) else clientPlayer).exists(_.capabilities.isCreativeMode))
 
   def recomputeMaxComponents() {
     maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
@@ -107,7 +98,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
         common.Sound.playDiskEject(this)
       }
       if (slotType == Slot.CPU) {
-        stop()
+        machine.stop()
       }
     }
   }
@@ -120,11 +111,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    world.getTileEntity(x, y, z) match {
-      case t: traits.TileEntity if t == this && canInteract(player.getCommandSenderName) =>
-        player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
-      case _ => false
-    }
+    super.isUseableByPlayer(player) && (!isCreativeCase || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack)).fold(false)(driver => {

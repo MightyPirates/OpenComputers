@@ -129,7 +129,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Computer]() match {
       case Some(t) =>
         val count = p.readInt()
-        t.users = (0 until count).map(_ => p.readUTF())
+        t.setUsers((0 until count).map(_ => p.readUTF()))
       case _ => // Invalid packet.
     }
 
