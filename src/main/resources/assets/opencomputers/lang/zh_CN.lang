@@ -166,6 +166,7 @@ oc:gui.Terminal.OutOfRange=无信号.
 # Containers
 oc:container.AccessPoint=桥接器
 oc:container.Case=计算机
+oc:container.Charger=充电器
 oc:container.Disassembler=分解器
 oc:container.DiskDrive=磁盘驱动器
 oc:container.Server=服务器

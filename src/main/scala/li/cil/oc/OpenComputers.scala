@@ -31,8 +31,8 @@ object OpenComputers {
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) {
-    proxy.preInit(e)
     log = e.getModLog
+    proxy.preInit(e)
   }
 
   @EventHandler

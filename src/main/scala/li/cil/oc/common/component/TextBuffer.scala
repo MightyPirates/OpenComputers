@@ -189,11 +189,12 @@ class TextBuffer(val host: EnvironmentHost) extends ManagedComponent with api.co
     val (mw, mh) = maxResolution
     if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
       throw new IllegalArgumentException("unsupported resolution")
+    // Always send to clients, their state might be dirty.
+    proxy.onScreenResolutionChange(w, h)
     if (data.size = (w, h)) {
       if (node != null) {
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
-      proxy.onScreenResolutionChange(w, h)
       true
     }
     else false
@@ -210,11 +211,9 @@ class TextBuffer(val host: EnvironmentHost) extends ManagedComponent with api.co
   override def setColorDepth(depth: ColorDepth) = {
     if (depth.ordinal > maxDepth.ordinal)
       throw new IllegalArgumentException("unsupported depth")
-    if (data.format = PackedColor.Depth.format(depth)) {
-      proxy.onScreenDepthChange(depth)
-      true
-    }
-    else false
+    // Always send to clients, their state might be dirty.
+    proxy.onScreenDepthChange(depth)
+    data.format = PackedColor.Depth.format(depth)
   }
 
   override def getColorDepth = data.format.depth

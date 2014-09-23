@@ -3,9 +3,9 @@ package li.cil.oc.util.mods
 import java.util
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.{Localization, Settings}
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
+import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor, IWailaDataProvider, IWailaRegistrar}
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.Constants.NBT
@@ -28,7 +28,7 @@ object Waila {
     registerKeys(classOf[tileentity.Capacitor], Settings.namespace + "node")
     registerKeys(classOf[tileentity.Case], Settings.namespace + "address")
     registerKeys(classOf[tileentity.DiskDrive], Settings.namespace + "items")
-    registerKeys(classOf[tileentity.Geolyzer], Settings.namespace + "node")
+    registerKeys(classOf[tileentity.Geolyzer], "node")
     registerKeys(classOf[tileentity.Hologram], Settings.namespace + "node")
     registerKeys(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     registerKeys(classOf[tileentity.MotionSensor], Settings.namespace + "node")

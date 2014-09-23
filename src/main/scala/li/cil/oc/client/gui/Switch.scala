@@ -5,7 +5,6 @@ import java.text.DecimalFormat
 import li.cil.oc.Localization
 import li.cil.oc.common.{container, tileentity}
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.StatCollector
 
 class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) extends DynamicGuiContainer(new container.Switch(playerInventory, switch)) {
   private val switchContainer = inventorySlots.asInstanceOf[container.Switch]
@@ -14,7 +13,7 @@ class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) ex
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      StatCollector.translateToLocal(switch.getInventoryName),
+      Localization.localizeImmediately(switch.getInventoryName),
       8, 6, 0x404040)
 
     fontRendererObj.drawString(

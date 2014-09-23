@@ -117,7 +117,8 @@ class Settings(config: Config) {
   val pureIgnorePower = config.getBoolean("power.ignorePower")
   lazy val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
-  val chargeRate = config.getDouble("power.chargerChargeRate")
+  val chargeRateRobot = config.getDouble("power.chargerChargeRate")
+  val chargeRateTablet = config.getDouble("power.chargerChargeRateTablet")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
@@ -138,6 +139,7 @@ class Settings(config: Config) {
       OpenComputers.log.warn("Bad number of battery upgrade buffer sizes, ignoring.")
       Array(10000.0, 15000.0, 20000.0)
   }
+  val bufferTablet = config.getDouble("power.buffer.tablet") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0

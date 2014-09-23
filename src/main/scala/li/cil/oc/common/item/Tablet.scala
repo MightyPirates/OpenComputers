@@ -7,15 +7,16 @@ import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotificati
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, ServerTickEvent}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.{Driver, Machine}
-import li.cil.oc.api.driver.{Processor, EnvironmentHost}
+import li.cil.oc.api.driver.{EnvironmentHost, Processor}
 import li.cil.oc.api.machine.{Architecture, MachineHost}
-import li.cil.oc.api.network.{Connector, Message, Node}
+import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.api.tileentity.Rotatable
-import li.cil.oc.common.{Slot, GuiType}
+import li.cil.oc.api.{Driver, Machine}
 import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.{GuiType, Slot}
+import li.cil.oc.server.component
 import li.cil.oc.util.ItemUtils.TabletData
-import li.cil.oc.util.RotationHelper
+import li.cil.oc.util.{ItemUtils, RotationHelper}
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -24,6 +25,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
+
+import scala.collection.convert.WrapAsScala._
 
 class Tablet(val parent: Delegator) extends Delegate {
   // Must be assembled to be usable so we hide it in the item list.
@@ -50,8 +53,37 @@ class Tablet(val parent: Delegator) extends Delegate {
     iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TabletOff"))
   }
 
-  override def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
-    Tablet.get(stack, player).update(world, player, slot, selected)
+  // ----------------------------------------------------------------------- //
+
+  override def isDamageable = true
+
+  override def damage(stack: ItemStack) = {
+    val nbt = stack.getTagCompound
+    if (nbt != null) {
+      val data = new ItemUtils.TabletData()
+      data.load(nbt)
+      (data.maxEnergy - data.energy).toInt
+    }
+    else 100
+  }
+
+  override def maxDamage(stack: ItemStack) = {
+    val nbt = stack.getTagCompound
+    if (nbt != null) {
+      val data = new ItemUtils.TabletData()
+      data.load(nbt)
+      data.maxEnergy.toInt max 1
+    }
+    else 100
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
+    entity match {
+      case player: EntityPlayer => Tablet.get(stack, player).update(world, player, slot, selected)
+      case _ =>
+    }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
     if (!player.isSneaking) {
@@ -62,19 +94,20 @@ class Tablet(val parent: Delegator) extends Delegate {
         Tablet.get(stack, player).machine.start()
       }
     }
-    else {
-      if (world.isRemote) Tablet.Client.remove(stack)
-      else Tablet.Server.remove(stack)
-    }
+    else if (!world.isRemote) Tablet.Server.get(stack, player).machine.stop()
     player.swingItem()
     stack
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentInventory with EnvironmentHost with MachineHost with Rotatable {
+class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends ComponentInventory with EnvironmentHost with MachineHost with Rotatable {
   lazy val machine = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
+
+  val tablet = if (holder.worldObj.isRemote) null else new component.Tablet(this)
+
+  private var isInitialized = !world.isRemote
 
   def items = data.items
 
@@ -90,6 +123,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
       load(data)
       if (!world.isRemote) {
         machine.load(data.getCompoundTag(Settings.namespace + "data"))
+        tablet.load(data.getCompoundTag(Settings.namespace + "component"))
       }
     }
   }
@@ -104,21 +138,21 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
         data.setTag(Settings.namespace + "data", new NBTTagCompound())
       }
       machine.save(data.getCompoundTag(Settings.namespace + "data"))
+      tablet.save(data.getCompoundTag(Settings.namespace + "component"))
+
+      // Force tablets into stopped state to avoid errors when trying to
+      // load deleted machine states.
+      data.getCompoundTag(Settings.namespace + "data").removeTag("state")
     }
     save(data)
   }
 
   readFromNBT()
-  if (world.isRemote) {
-    connectComponents()
-    components collect {
-      case Some(buffer: api.component.TextBuffer) =>
-        buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
-        buffer.setMaximumResolution(80, 25)
-    }
-  }
-  else {
+  if (!world.isRemote) {
     api.Network.joinNewNetwork(machine.node)
+    machine.stop()
+    val charge = math.max(0, this.data.energy - tablet.node.globalBuffer)
+    tablet.node.changeBuffer(charge)
     writeToNBT()
   }
 
@@ -127,6 +161,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
   override def onConnect(node: Node) {
     if (node == this.node) {
       connectComponents()
+      node.connect(tablet.node)
     }
     else node.host match {
       case buffer: api.component.TextBuffer =>
@@ -152,6 +187,7 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
   override def onDisconnect(node: Node) {
     if (node == this.node) {
       disconnectComponents()
+      tablet.node.remove()
     }
   }
 
@@ -224,12 +260,27 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 
   // ----------------------------------------------------------------------- //
 
-  def update(world: World, player: Entity, slot: Int, selected: Boolean) {
+  def update(world: World, player: EntityPlayer, slot: Int, selected: Boolean) {
     holder = player
+    if (!isInitialized) {
+      isInitialized = true
+      // This delayed initialization on the client side is required to allow
+      // the server to set up the tablet wrapper first (since packets generated
+      // in the component setup would otherwise be queued before the events that
+      // caused this wrapper's initialization).
+      connectComponents()
+      components collect {
+        case Some(buffer: api.component.TextBuffer) =>
+          buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
+          buffer.setMaximumResolution(80, 25)
+      }
+    }
     if (!world.isRemote) {
-      machine.node.asInstanceOf[Connector].changeBuffer(500)
       machine.update()
       updateComponents()
+      data.isRunning = machine.isRunning
+      data.energy = tablet.node.globalBuffer()
+      data.maxEnergy = tablet.node.globalBufferSize()
     }
   }
 
@@ -246,7 +297,18 @@ class TabletWrapper(var stack: ItemStack, var holder: Entity) extends ComponentI
 }
 
 object Tablet {
-  def get(stack: ItemStack, holder: Entity) = {
+  def getId(stack: ItemStack) = {
+
+    if (!stack.hasTagCompound) {
+      stack.setTagCompound(new NBTTagCompound())
+    }
+    if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
+      stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
+    }
+    stack.getTagCompound.getString(Settings.namespace + "tablet")
+  }
+
+  def get(stack: ItemStack, holder: EntityPlayer) = {
     if (holder.worldObj.isRemote) Client.get(stack, holder)
     else Server.get(stack, holder)
   }
@@ -274,24 +336,20 @@ object Tablet {
 
   abstract class Cache extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
     val cache = com.google.common.cache.CacheBuilder.newBuilder().
-      expireAfterAccess(10, TimeUnit.SECONDS).
+      expireAfterAccess(timeout, TimeUnit.SECONDS).
       removalListener(this).
       asInstanceOf[CacheBuilder[String, TabletWrapper]].
       build[String, TabletWrapper]()
 
+    protected def timeout = 10
+
     // To allow access in cache entry init.
     private var currentStack: ItemStack = _
 
-    private var currentHolder: Entity = _
+    private var currentHolder: EntityPlayer = _
 
-    def get(stack: ItemStack, holder: Entity) = {
-      if (!stack.hasTagCompound) {
-        stack.setTagCompound(new NBTTagCompound())
-      }
-      if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
-        stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
-      }
-      val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+    def get(stack: ItemStack, holder: EntityPlayer) = {
+      val id = getId(stack)
       cache.synchronized {
         currentStack = stack
         currentHolder = holder
@@ -316,13 +374,6 @@ object Tablet {
       }
     }
 
-    def remove(stack: ItemStack) {
-      cache.synchronized {
-        cache.invalidate(stack)
-        cache.cleanUp()
-      }
-    }
-
     def clear() {
       cache.synchronized {
         cache.invalidateAll()
@@ -336,6 +387,8 @@ object Tablet {
   }
 
   object Client extends Cache {
+    override protected def timeout = 5
+
     def get(stack: ItemStack) = {
       if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
         val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
@@ -348,7 +401,6 @@ object Tablet {
   object Server extends Cache {
     def saveAll(world: World) {
       cache.synchronized {
-        import scala.collection.convert.WrapAsScala._
         for (tablet <- cache.asMap.values if tablet.world == world) {
           tablet.writeToNBT()
         }

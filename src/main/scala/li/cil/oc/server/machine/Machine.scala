@@ -591,7 +591,7 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
       else fs.load(SaveHandler.loadNBT(nbt, node.address + "_tmp"))
     })
 
-    if (state.size > 0 && state.top != Machine.State.Stopped && init()) try {
+    if (state.size > 0 && isRunning && init()) try {
       architecture.load(nbt)
 
       signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((list, index) => {

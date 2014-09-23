@@ -5,11 +5,10 @@ import java.util
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.util.{ItemCosts, Rarity, Tooltip}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import org.lwjgl.input
 
@@ -87,7 +86,7 @@ trait Delegate {
         ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
       }
       else {
-        tooltip.add(StatCollector.translateToLocalFormatted(
+        tooltip.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
           input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
       }

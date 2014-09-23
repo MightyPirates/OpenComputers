@@ -1,10 +1,10 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.Settings
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -39,14 +39,23 @@ class Charger extends RedstoneAware {
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     world.getTileEntity(x, y, z) match {
-      case charger: tileentity.Charger if BuildCraft.holdsApplicableWrench(player, x, y, z) =>
-        if (!world.isRemote) {
-          charger.invertSignal = !charger.invertSignal
-          charger.chargeSpeed = 1.0 - charger.chargeSpeed
-          PacketSender.sendChargerState(charger)
-          BuildCraft.wrenchUsed(player, x, y, z)
+      case charger: tileentity.Charger =>
+        if (BuildCraft.holdsApplicableWrench(player, x, y, z)) {
+          if (!world.isRemote) {
+            charger.invertSignal = !charger.invertSignal
+            charger.chargeSpeed = 1.0 - charger.chargeSpeed
+            PacketSender.sendChargerState(charger)
+            BuildCraft.wrenchUsed(player, x, y, z)
+          }
+          true
         }
-        true
+        else if (!player.isSneaking) {
+          if (!world.isRemote) {
+            player.openGui(OpenComputers, GuiType.Charger.id, world, x, y, z)
+          }
+          true
+        }
+        else false
       case _ => super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
     }
 
