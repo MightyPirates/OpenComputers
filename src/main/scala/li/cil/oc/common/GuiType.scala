@@ -4,6 +4,7 @@ object GuiType extends Enumeration {
   val
 
   Case,
+  Charger,
   Disassembler,
   DiskDrive,
   Rack,

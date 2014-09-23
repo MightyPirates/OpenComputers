@@ -5,7 +5,7 @@ import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.eventhandler.{EventPriority, SubscribeEvent}
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.{OpenComputers, Settings}
@@ -176,7 +176,7 @@ object SaveHandler {
     }
   }
 
-  @SubscribeEvent
+  @SubscribeEvent(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
     // Touch all externally saved data when loading, to avoid it getting
     // deleted in the next save (because the now - save time will usually
@@ -195,7 +195,7 @@ object SaveHandler {
     recurse(statePath)
   }
 
-  @SubscribeEvent
+  @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldSave(e: WorldEvent.Save) {
     saveData.synchronized {
       saveData.get(e.world.provider.dimensionId) match {

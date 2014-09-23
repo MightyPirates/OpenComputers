@@ -81,6 +81,7 @@ oc:gui.Robot.TurnOn=Ligar
 
 # Containers
 oc:container.Case=Computador
+oc:container.Charger=Carregador
 oc:container.DiskDrive=Drive de Disquetes
 oc:container.Switch=Roteador
 

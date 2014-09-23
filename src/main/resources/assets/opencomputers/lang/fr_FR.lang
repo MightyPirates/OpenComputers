@@ -78,6 +78,7 @@ oc:gui.Robot.TurnOn=Allumer
 
 # Containers
 oc:container.Case=Ordinateur
+oc:container.Charger=Chargeur
 oc:container.DiskDrive=Disque dur
 oc:container.Switch=Routeur
 

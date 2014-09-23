@@ -9,7 +9,7 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, Colored, Rotatable}
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.{Color, ItemCosts, SideTracker}
-import li.cil.oc.{CreativeTab, Settings}
+import li.cil.oc.{CreativeTab, Localization, Settings}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -18,7 +18,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase, EnumCreatureType}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, StatCollector, Vec3}
+import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input
@@ -370,7 +370,7 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
         ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
       }
       else {
-        tooltip.add(StatCollector.translateToLocalFormatted(
+        tooltip.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
           input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
       }

@@ -4,11 +4,11 @@ import li.cil.oc.Localization
 import li.cil.oc.common.{container, tileentity}
 import net.minecraft.entity.player.InventoryPlayer
 
-class DiskDrive(playerInventory: InventoryPlayer, val drive: tileentity.DiskDrive) extends DynamicGuiContainer(new container.DiskDrive(playerInventory, drive)) {
+class Charger(playerInventory: InventoryPlayer, val charger: tileentity.Charger) extends DynamicGuiContainer(new container.Charger(playerInventory, charger)) {
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(drive.getInventoryName),
+      Localization.localizeImmediately(charger.getInventoryName),
       8, 6, 0x404040)
   }
 }

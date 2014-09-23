@@ -50,10 +50,10 @@ trait Connector extends network.Connector with Node {
     }
     else 0
     if (localBuffer != oldBuffer) {
-      this.synchronized(distributor match {
+      distributor match {
         case Some(d) => d.globalBuffer = math.max(0, math.min(d.globalBufferSize, d.globalBuffer - oldBuffer + localBuffer))
         case _ =>
-      })
+      }
     }
     remaining
   }
@@ -69,11 +69,11 @@ trait Connector extends network.Connector with Node {
             localBuffer = localBufferSize
           }
           val newGlobalBuffer = globalBuffer + delta
-          newGlobalBuffer >= 0 && newGlobalBuffer <= globalBufferSize && d.changeBuffer(delta) == 0
+          (delta > 0 || newGlobalBuffer >= 0) && (delta < 0 || newGlobalBuffer <= globalBufferSize) && d.changeBuffer(delta) == 0
         }
         case _ =>
           val newLocalBuffer = localBuffer + delta
-          if (newLocalBuffer < 0 || newLocalBuffer > localBufferSize) {
+          if ((delta < 0 && newLocalBuffer < 0) || (delta > 0 && newLocalBuffer > localBufferSize)) {
             false
           }
           else {

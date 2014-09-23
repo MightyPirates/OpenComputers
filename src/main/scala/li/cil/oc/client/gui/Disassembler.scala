@@ -1,10 +1,10 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.common.{container, tileentity}
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentity.Disassembler) extends DynamicGuiContainer(new container.Disassembler(playerInventory, disassembler)) {
@@ -14,7 +14,7 @@ class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentit
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     fontRendererObj.drawString(
-      StatCollector.translateToLocal(disassembler.getInventoryName),
+      Localization.localizeImmediately(disassembler.getInventoryName),
       8, 6, 0x404040)
   }
 

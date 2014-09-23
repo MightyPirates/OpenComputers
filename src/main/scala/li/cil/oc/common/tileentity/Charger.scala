@@ -2,13 +2,16 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Analyzable, Node, Visibility}
+import li.cil.oc.common.item.Tablet
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ItemUtils
 import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with Analyzable {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.Inventory with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -39,8 +42,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer) {
-      val charge = Settings.get.chargeRate * chargeSpeed
+    if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
+      val charge = Settings.get.chargeRateRobot * chargeSpeed * Settings.get.tickFrequency
       val canCharge = charge > 0 && node.globalBuffer >= charge
       if (hasPower && !canCharge) {
         hasPower = false
@@ -53,8 +56,35 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       if (canCharge) robots.collect {
         case Some(proxy) => node.changeBuffer(proxy.robot.bot.node.changeBuffer(charge + node.changeBuffer(-charge)))
       }
+
+      // Charge tablet if present.
+      if (getStackInSlot(0) != null && chargeSpeed > 0) {
+        def tryCharge(energy: Double, maxEnergy: Double, handler: (Double) => Unit) {
+          if (energy < maxEnergy) {
+            val itemCharge = math.min(maxEnergy - energy, Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency)
+            node.tryChangeBuffer(-itemCharge)
+            handler(itemCharge)
+          }
+        }
+        val stack = getStackInSlot(0)
+        Option(Tablet.Server.cache.getIfPresent(Tablet.getId(stack))) match {
+          case Some(tablet) =>
+            tryCharge(tablet.tablet.node.globalBuffer, tablet.tablet.node.globalBufferSize, (amount) => {
+              tablet.tablet.node.changeBuffer(amount)
+              tablet.data.energy = tablet.tablet.node.globalBuffer
+              tablet.data.maxEnergy = tablet.tablet.node.globalBufferSize
+              tablet.writeToNBT()
+            })
+          case _ =>
+            val data = new ItemUtils.TabletData(getStackInSlot(0))
+            tryCharge(data.energy, data.maxEnergy, (amount) => {
+              data.energy = math.min(data.maxEnergy, data.energy + amount)
+              data.save(getStackInSlot(0))
+            })
+        }
+      }
     }
-    else if (chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
+    else if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
       ForgeDirection.VALID_DIRECTIONS.map(side => world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).collect {
         case proxy: RobotProxy if proxy.globalBuffer / proxy.globalBufferSize < 0.95 =>
           val theta = world.rand.nextDouble * Math.PI
@@ -102,6 +132,15 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     nbt.setDouble("chargeSpeed", chargeSpeed)
     nbt.setBoolean("hasPower", hasPower)
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getSizeInventory = 1
+
+  override def getInventoryStackLimit = 1
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+    slot == 0 && api.Items.get(stack) == api.Items.get("tablet")
 
   // ----------------------------------------------------------------------- //
 
