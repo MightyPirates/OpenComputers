@@ -201,6 +201,9 @@ object ItemUtils {
     }
 
     var items = Array.fill[Option[ItemStack]](32)(None)
+    var isRunning = false
+    var energy = 0.0
+    var maxEnergy = 0.0
 
     override def load(nbt: NBTTagCompound) {
       nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
@@ -209,6 +212,9 @@ object ItemUtils {
           items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
         }
       })
+      isRunning = nbt.getBoolean(Settings.namespace + "isRunning")
+      energy = nbt.getDouble(Settings.namespace + "energy")
+      maxEnergy = nbt.getDouble(Settings.namespace + "maxEnergy")
     }
 
     override def save(nbt: NBTTagCompound) {
@@ -221,6 +227,9 @@ object ItemUtils {
             slotNbt.setByte("slot", slot.toByte)
             slotNbt.setNewCompoundTag("item", stack.writeToNBT)
         })
+      nbt.setBoolean(Settings.namespace + "isRunning", isRunning)
+      nbt.setDouble(Settings.namespace + "energy", energy)
+      nbt.setDouble(Settings.namespace + "maxEnergy", maxEnergy)
     }
   }
 

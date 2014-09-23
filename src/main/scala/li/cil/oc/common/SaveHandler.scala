@@ -12,7 +12,7 @@ import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.{EventPriority, ForgeSubscribe}
 import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
 import org.apache.commons.lang3.{JavaVersion, SystemUtils}
 
@@ -177,7 +177,7 @@ object SaveHandler {
     }
   }
 
-  @ForgeSubscribe
+  @ForgeSubscribe(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
     // Touch all externally saved data when loading, to avoid it getting
     // deleted in the next save (because the now - save time will usually
@@ -196,7 +196,7 @@ object SaveHandler {
     recurse(statePath)
   }
 
-  @ForgeSubscribe
+  @ForgeSubscribe(priority = EventPriority.LOWEST)
   def onWorldSave(e: WorldEvent.Save) {
     saveData.synchronized {
       saveData.get(e.world.provider.dimensionId) match {

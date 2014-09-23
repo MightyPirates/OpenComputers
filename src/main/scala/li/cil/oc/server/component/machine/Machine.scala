@@ -579,7 +579,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       else fs.load(SaveHandler.loadNBT(nbt, node.address + "_tmp"))
     })
 
-    if (state.size > 0 && state.top != Machine.State.Stopped && init()) try {
+    if (state.size > 0 && isRunning && init()) try {
       architecture.load(nbt)
 
       signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
