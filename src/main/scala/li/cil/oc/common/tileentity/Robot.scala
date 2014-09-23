@@ -299,10 +299,6 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
       // Ensure we have a node address, because the proxy needs this to initialize
       // its own node to the same address ours has.
       api.Network.joinNewNetwork(node)
-
-      // Flush excess energy to other components (mostly relevant for upgrading
-      // robots from 1.2 to 1.3, to move energy to the experience upgrade).
-      bot.node.setLocalBufferSize(bot.node.localBufferSize)
     }
   }
 
