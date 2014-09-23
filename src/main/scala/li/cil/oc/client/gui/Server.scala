@@ -1,11 +1,11 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.inventory.ServerInventory
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends DynamicGuiContainer(new container.Server(playerInventory, serverInventory)) {
@@ -13,7 +13,7 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRenderer.drawString(
-      StatCollector.translateToLocal(serverInventory.getInvName),
+      Localization.localizeImmediately(serverInventory.getInvName),
       8, 6, 0x404040)
   }
 

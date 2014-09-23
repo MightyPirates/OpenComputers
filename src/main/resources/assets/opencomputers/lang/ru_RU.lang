@@ -160,6 +160,7 @@ oc:gui.Terminal.OutOfRange=Нет сигнала.
 # Containers
 oc:container.AccessPoint=Точка доступа
 oc:container.Case=Компьютер
+oc:container.Charger=Зарядник
 oc:container.Disassembler=Разборщик
 oc:container.DiskDrive=Дисковод
 oc:container.Server=Сервер

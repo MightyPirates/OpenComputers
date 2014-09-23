@@ -1,15 +1,14 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common
 import li.cil.oc.common.container.{ComponentSlot, Player}
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.NEI
+import li.cil.oc.{Localization, common}
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.inventory.{Container, Slot}
 import net.minecraft.item.ItemStack
-import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
@@ -21,7 +20,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
   override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(
-      StatCollector.translateToLocal("container.inventory"),
+      Localization.localizeImmediately("container.inventory"),
       8, ySize - 96 + 2, 0x404040)
   }
 

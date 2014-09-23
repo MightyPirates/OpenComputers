@@ -8,7 +8,6 @@ import li.cil.oc.{Localization, Settings}
 import net.minecraft.client.gui.{GuiButton, GuiScreen}
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.StatCollector
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
@@ -96,7 +95,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Prevents NEI render glitch.
 
     fontRenderer.drawString(
-      StatCollector.translateToLocal(rack.getInvName),
+      Localization.localizeImmediately(rack.getInvName),
       8, 6, 0x404040)
 
     val rangeY = 39

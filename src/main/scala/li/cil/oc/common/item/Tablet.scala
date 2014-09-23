@@ -122,11 +122,11 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
   def readFromNBT() {
     if (stack.hasTagCompound) {
       val data = stack.getTagCompound
+      load(data)
       if (!world.isRemote) {
         computer.load(data.getCompoundTag(Settings.namespace + "data"))
         tablet.load(data.getCompoundTag(Settings.namespace + "component"))
       }
-      load(data)
     }
   }
 
@@ -153,6 +153,8 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
   if (!world.isRemote) {
     api.Network.joinNewNetwork(computer.node)
     computer.stop()
+    val charge = math.max(0, this.data.energy - tablet.node.globalBuffer)
+    tablet.node.changeBuffer(charge)
     writeToNBT()
   }
 

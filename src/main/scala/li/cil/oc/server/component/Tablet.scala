@@ -9,7 +9,7 @@ import li.cil.oc.common.item.TabletWrapper
 class Tablet(val tablet: TabletWrapper) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("tablet").
-    withConnector(Settings.get.bufferRobot).
+    withConnector(Settings.get.bufferTablet).
     create()
 
   // ----------------------------------------------------------------------- //
