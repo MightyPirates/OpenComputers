@@ -1,14 +1,13 @@
 package li.cil.oc.util.mods
 
 import net.minecraft.item.ItemStack
-
-// TODO Upgrade to UE 1.7 once it's available.
-//import universalelectricity.api.CompatibilityModule
+import net.minecraftforge.common.util.ForgeDirection
+import universalelectricity.compatibility.Compatibility
 
 object UniversalElectricity {
-  def isEnergyItem(stack: ItemStack) = false // CompatibilityModule.isHandler(stack.getItem)
+  def isEnergyItem(stack: ItemStack) = Compatibility.isHandler(stack.getItem, ForgeDirection.UNKNOWN)
 
-  def getEnergyInItem(stack: ItemStack) = 0 // CompatibilityModule.getEnergyItem(stack)
+  def getEnergyInItem(stack: ItemStack) = Compatibility.getEnergyItem(stack)
 
-  def chargeItem(stack: ItemStack, value: Long): Unit = {} // CompatibilityModule.chargeItem(stack, value, true)
+  def chargeItem(stack: ItemStack, value: Double) = Compatibility.chargeItem(stack, value, true)
 }

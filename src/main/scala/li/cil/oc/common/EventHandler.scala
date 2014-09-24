@@ -20,7 +20,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
+import universalelectricity.api.core.grid.electric.IEnergyNode
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -58,6 +60,15 @@ object EventHandler {
       pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
         MinecraftForge.EVENT_BUS.post(new ic2classic.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2classic.api.energy.tile.IEnergyTile]))
         tileEntity.addedToIC2PowerGrid = true
+      })
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  def scheduleUEAdd(tileEntity: power.UniversalElectricity) {
+    if (SideTracker.isServer) pending.synchronized {
+      pending += (() => if (!tileEntity.isInvalid) {
+        tileEntity.getNode(classOf[IEnergyNode], ForgeDirection.UNKNOWN).reconstruct()
       })
     }
   }

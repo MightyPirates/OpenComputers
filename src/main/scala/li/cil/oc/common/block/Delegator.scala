@@ -6,6 +6,7 @@ import java.util.Random
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.common.tileentity.traits.power.UniversalElectricity
 import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, Colored, Rotatable}
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.{Color, ItemCosts, SideTracker}
@@ -24,6 +25,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input
 import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectionType
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, IRedNetOmniNode}
+import universalelectricity.api.core.grid.electric.IEnergyNode
 
 import scala.collection.mutable
 
@@ -314,11 +316,23 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
       case _ => true
     }) && super.removedByPlayer(world, player, x, y, z)
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) = {
+    if (Mods.UniversalElectricity.isAvailable) {
+      updateUENode(world.getTileEntity(x, y, z))
+    }
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.neighborBlockChanged(world, x, y, z, block)
       case _ => // Invalid but avoid match error.
     }
+  }
+
+  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  private def updateUENode(tileEntity: TileEntity) {
+    tileEntity match {
+      case ue: UniversalElectricity => ue.getNode(classOf[IEnergyNode], ForgeDirection.UNKNOWN).reconstruct()
+      case _ =>
+    }
+  }
 
   override def onNeighborChange(world: IBlockAccess, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) =
     subBlock(world, x, y, z) match {

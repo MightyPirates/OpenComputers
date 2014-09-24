@@ -72,7 +72,7 @@ object Mods {
   }
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
-  val UniversalElectricity = new SimpleMod(IDs.UniversalElectricity + "@[3.1,)", providesPower = true)
+  val UniversalElectricity = new SimpleMod(IDs.UniversalElectricity, providesPower = true)
   val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)

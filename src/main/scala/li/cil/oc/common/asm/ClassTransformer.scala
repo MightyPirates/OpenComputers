@@ -24,8 +24,8 @@ class ClassTransformer extends IClassTransformer {
     Mods.IndustrialCraft2 -> Array("ic2/api/energy/tile/IEnergySink"),
     Mods.IndustrialCraft2Classic -> Array("ic2classic/api/energy/tile/IEnergySink"),
     Mods.Mekanism -> Array("mekanism/api/energy/IStrictEnergyAcceptor"),
-    Mods.RedstoneFlux -> Array("cofh/api/energy/IEnergyHandler")
-//    Mods.UniversalElectricity -> Array("universalelectricity/api/core/grid/INodeProvider", "universalelectricity/api/core/grid/electric/IEnergyContainer")
+    Mods.RedstoneFlux -> Array("cofh/api/energy/IEnergyHandler"),
+    Mods.UniversalElectricity -> Array("universalelectricity/api/core/grid/INodeProvider")
   )
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
