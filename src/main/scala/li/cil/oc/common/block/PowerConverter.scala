@@ -40,7 +40,7 @@ class PowerConverter extends SimpleBlock {
       val (a, b) =
         if (ratio > 1) (1.0, ratio)
         else (1.0 / ratio, 1.0)
-      tooltip.addAll(Tooltip.get(getUnlocalizedName + "." + name, addExtension(a), addExtension(b)))
+      tooltip.addAll(Tooltip.get(getClass.getSimpleName + "." + name, addExtension(a), addExtension(b)))
     }
     if (Mods.BuildCraftPower.isAvailable) {
       addRatio("BuildCraft", Settings.get.ratioBuildCraft)

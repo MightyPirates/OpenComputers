@@ -84,7 +84,7 @@ object BlockDataProvider extends IWailaDataProvider {
           }
         }
       case block: Geolyzer =>
-        val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
+        val node = accessor.getNBTData.getCompoundTag("node")
         if (node.hasKey("address")) {
           tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
         }

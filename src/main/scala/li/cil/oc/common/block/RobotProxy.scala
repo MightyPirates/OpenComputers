@@ -57,7 +57,7 @@ class RobotProxy extends RedstoneAware with SpecialBlock {
 
   override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     addLines(stack, tooltip)
-    super.addInformation(metadata, stack, player, tooltip, advanced)
+    tooltip.addAll(Tooltip.get("Robot"))
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.RobotData(stack)
       for (component <- info.containers ++ info.components) {
@@ -65,12 +65,6 @@ class RobotProxy extends RedstoneAware with SpecialBlock {
       }
     }
   }
-
-  // TODO
-  //  @Optional.Method(modid = Mods.IDs.Waila)
-  //  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-  //    addLines(stack, tooltip)
-  //  }
 
   private def addLines(stack: ItemStack, tooltip: util.List[String]) {
     if (stack.hasTagCompound) {

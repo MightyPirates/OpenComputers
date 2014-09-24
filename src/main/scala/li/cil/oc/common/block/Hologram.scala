@@ -1,8 +1,12 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
-import net.minecraft.item.EnumRarity
+import li.cil.oc.util.Tooltip
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -31,6 +35,10 @@ class Hologram(val tier: Int) extends SimpleBlock with SpecialBlock {
   // ----------------------------------------------------------------------- //
 
   override def rarity = Array(EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+
+  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName + tier))
+  }
 
   // ----------------------------------------------------------------------- //
 

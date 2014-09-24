@@ -39,11 +39,10 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   @SideOnly(Side.CLIENT)
   override def icon(stack: ItemStack, pass: Int) = {
-    val computerData = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
-    computerData.getIntArray("state").headOption match {
-      case Some(state) => if (state != 0) iconOn else iconOff
-      case _ => super.icon(stack, pass)
-    }
+    if (stack.hasTagCompound) {
+      val data = new ItemUtils.TabletData(stack)
+      if (data.isRunning) iconOn else iconOff
+    } else super.icon(stack, pass)
   }
 
   override def registerIcons(iconRegister: IconRegister) = {

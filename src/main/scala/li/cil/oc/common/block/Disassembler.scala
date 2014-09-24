@@ -29,7 +29,7 @@ class Disassembler extends SimpleBlock {
   // ----------------------------------------------------------------------- //
 
   override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(getUnlocalizedName, (Settings.get.disassemblerBreakChance * 100).toInt.toString))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName, (Settings.get.disassemblerBreakChance * 100).toInt.toString))
   }
 
   // ----------------------------------------------------------------------- //

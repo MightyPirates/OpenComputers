@@ -24,7 +24,7 @@ class DiskDrive extends SimpleBlock {
   override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     super.addInformation(metadata, stack, player, tooltip, advanced)
     if (Mods.ComputerCraft.isAvailable) {
-      tooltip.addAll(Tooltip.get(getUnlocalizedName + ".CC"))
+      tooltip.addAll(Tooltip.get(getClass.getSimpleName + ".CC"))
     }
   }
 

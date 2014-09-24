@@ -21,6 +21,10 @@ import net.minecraftforge.common.util.ForgeDirection
 class Cable extends SimpleBlock with SpecialBlock {
   setLightOpacity(0)
 
+  // For Immibis Microblock support.
+  val ImmibisMicroblocks_TransformableBlockMarker = null
+
+  // For FMP part coloring.
   var colorMultiplierOverride: Option[Int] = None
 
   override protected def customTextures = Array(

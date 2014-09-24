@@ -5,7 +5,7 @@ import java.util.Random
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
-import li.cil.oc.{CreativeTab, OpenComputers, Settings}
+import li.cil.oc.{CreativeTab, OpenComputers}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
@@ -20,6 +20,7 @@ import scala.collection.mutable
 class Delegator extends Item {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
+  setUnlocalizedName("oc.multi")
 
   // ----------------------------------------------------------------------- //
   // SubItem
@@ -65,11 +66,9 @@ class Delegator extends Item {
   // Item
   // ----------------------------------------------------------------------- //
 
-  override def getUnlocalizedName: String = Settings.namespace + "item"
-
   override def getUnlocalizedName(stack: ItemStack): String =
     subItem(stack) match {
-      case Some(subItem) => Settings.namespace + "item." + subItem.unlocalizedName
+      case Some(subItem) => "item.oc." + subItem.unlocalizedName
       case _ => getUnlocalizedName
     }
 

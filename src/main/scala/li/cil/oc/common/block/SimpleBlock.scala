@@ -92,7 +92,7 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   @SideOnly(Side.CLIENT)
   def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(super.getUnlocalizedName.stripPrefix("tile.")))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName))
   }
 
   // ----------------------------------------------------------------------- //

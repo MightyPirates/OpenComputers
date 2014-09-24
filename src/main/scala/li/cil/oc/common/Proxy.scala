@@ -201,7 +201,8 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard"
+    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
+    OpenComputers.ID + ":rack" -> "serverRack"
   )
 
   private val itemRenames = Map(
@@ -210,7 +211,8 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard"
+    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
+    OpenComputers.ID + ":rack" -> "serverRack"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

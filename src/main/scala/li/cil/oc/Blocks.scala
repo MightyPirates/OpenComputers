@@ -56,7 +56,7 @@ object Blocks {
     Recipes.addBlock(new Screen(Tier.Three), "screen3", "oc:screen3")
 
     // v1.2.0
-    Recipes.addBlock(new ServerRack(), "rack", "oc:rack")
+    Recipes.addBlock(new ServerRack(), "serverRack", "oc:serverRack")
 
     // MC 1.7
     Recipes.addBlock(new Keyboard(), "keyboard", "oc:keyboard")

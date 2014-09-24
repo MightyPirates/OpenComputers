@@ -81,7 +81,7 @@ dependencies {
     provided "codechicken:WR-CBE:1.6.4-${config.wrcbe.version}:dev"
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "dev.calclavia.universalelectricity:universal-electricity:+:dev"
-    provided "mcp.mobius.waila:Waila:1.5.+:dev"
+    provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
     shade files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')

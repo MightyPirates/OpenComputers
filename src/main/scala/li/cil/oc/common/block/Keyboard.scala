@@ -2,8 +2,8 @@ package li.cil.oc.common.block
 
 import java.util.Random
 
+import li.cil.oc.api
 import li.cil.oc.common.tileentity
-import li.cil.oc.{Settings, api}
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.{IBlockAccess, World}
@@ -12,6 +12,9 @@ import org.lwjgl.opengl.GL11
 
 class Keyboard extends SimpleBlock with SpecialBlock {
   setLightOpacity(0)
+
+  // For Immibis Microblock support.
+  val ImmibisMicroblocks_TransformableBlockMarker = null
 
   override protected def customTextures = Array(
     Some("Keyboard"),
