@@ -258,10 +258,8 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.ComponentBus(multi, Tier.Three), "componentBus3", "oc:componentBus3")
     registerItem(new item.DebugCard(multi), "debugCard")
 
-    // 1.3.?
-    registerItem(new item.TabletCase(multi), "tabletCase")
-
     // 1.3.5
+    Recipes.addItem(new item.TabletCase(multi), "tabletCase", "oc:tabletCase")
     Recipes.addItem(new item.UpgradePiston(multi), "pistonUpgrade", "oc:pistonUpgrade")
   }
 }

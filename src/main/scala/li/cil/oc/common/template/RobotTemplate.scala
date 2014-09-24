@@ -25,7 +25,7 @@ object RobotTemplate extends Template {
     val data = new ItemUtils.RobotData()
     data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
     data.name = ItemUtils.RobotData.randomName
-    data.robotEnergy = 50000
+    data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy
     data.containers = items.slice(1, 4).filter(_ != null).toArray
     data.components = items.drop(4).filter(_ != null).toArray
@@ -33,7 +33,7 @@ object RobotTemplate extends Template {
     data.save(stack)
     val energy = Settings.get.robotBaseCost + complexity(inventory) * Settings.get.robotComplexityCost
 
-    Array(stack, energy: java.lang.Double)
+    Array(stack, double2Double(energy))
   }
 
   def register() {
