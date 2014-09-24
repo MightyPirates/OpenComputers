@@ -168,6 +168,7 @@ class Settings(config: Config) {
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
 
   // power.value
+  private val valueAppliedEnergistics2 = config.getDouble("power.value.AppliedEnergistics2")
   private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
   private val valueFactorization = config.getDouble("power.value.Factorization")
   private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
@@ -178,6 +179,7 @@ class Settings(config: Config) {
 
   private val valueInternal = valueBuildCraft
 
+  val ratioAppliedEnergistics2 = valueAppliedEnergistics2 / valueInternal
   val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioFactorization = valueFactorization / valueInternal
   val ratioGalacticraft = valueGalacticraft / valueInternal

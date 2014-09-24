@@ -18,6 +18,7 @@ class ClassTransformer extends IClassTransformer {
   private val log = LogManager.getLogger("OpenComputers")
 
   private lazy val powerTypes = Map[Mod, Array[String]](
+    Mods.AppliedEnergistics2 -> Array("appeng/api/networking/IGridHost"),
     Mods.BuildCraftPower -> Array("buildcraft/api/power/IPowerReceptor"),
     Mods.Factorization -> Array("factorization/api/IChargeConductor"),
     Mods.Galacticraft -> Array("micdoodle8/mods/galacticraft/api/power/IEnergyHandlerGC"),

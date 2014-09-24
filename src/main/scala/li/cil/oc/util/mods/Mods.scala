@@ -9,6 +9,7 @@ import scala.collection.mutable
 object Mods {
 
   object IDs {
+    final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
     final val BuildCraftPower = "BuildCraftAPI|power"
     final val ComputerCraft = "ComputerCraft"
@@ -41,6 +42,7 @@ object Mods {
 
   lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
 
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower, providesPower = true)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)

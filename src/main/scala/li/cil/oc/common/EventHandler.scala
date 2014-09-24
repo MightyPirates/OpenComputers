@@ -44,6 +44,15 @@ object EventHandler {
     }
   }
 
+  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  def scheduleAE2Add(tileEntity: power.AppliedEnergistics2) {
+    if (SideTracker.isServer) pending.synchronized {
+      pending += (() => if (!tileEntity.isInvalid) {
+        tileEntity.getGridNode(ForgeDirection.UNKNOWN).updateState()
+      })
+    }
+  }
+
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pending.synchronized {
