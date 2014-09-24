@@ -14,6 +14,7 @@ import li.cil.oc.api.{Machine, Rotatable}
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.server.component
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.{ItemUtils, RotationHelper}
 import li.cil.oc.{OpenComputers, Settings, api}
@@ -124,8 +125,8 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
       val data = stack.getTagCompound
       load(data)
       if (!world.isRemote) {
-        computer.load(data.getCompoundTag(Settings.namespace + "data"))
         tablet.load(data.getCompoundTag(Settings.namespace + "component"))
+        computer.load(data.getCompoundTag(Settings.namespace + "data"))
       }
     }
   }
@@ -139,8 +140,8 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
       if (!data.hasKey(Settings.namespace + "data")) {
         data.setTag(Settings.namespace + "data", new NBTTagCompound())
       }
-      computer.save(data.getCompoundTag(Settings.namespace + "data"))
-      tablet.save(data.getCompoundTag(Settings.namespace + "component"))
+      data.setNewCompoundTag(Settings.namespace + "component", tablet.save)
+      data.setNewCompoundTag(Settings.namespace + "data", computer.save)
 
       // Force tablets into stopped state to avoid errors when trying to
       // load deleted machine states.
@@ -233,13 +234,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
     case _ => 0
   }))
 
-  override def maxComponents = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
-    case Some(item) => Option(api.Driver.driverFor(item)) match {
-      case Some(driver: api.driver.Processor) => driver.supportedComponents(item)
-      case _ => 0
-    }
-    case _ => 0
-  }))
+  override def maxComponents = 32
 
   override def markAsChanged() {}
 

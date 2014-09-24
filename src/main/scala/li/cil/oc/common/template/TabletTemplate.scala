@@ -1,7 +1,7 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
@@ -23,22 +23,24 @@ object TabletTemplate extends Template {
 
   def validateUpgrade(inventory: IInventory, slot: Int, tier: Int, stack: ItemStack): Boolean = Option(api.Driver.driverFor(stack)) match {
     case Some(driver) if Slot(driver, stack) == Slot.Upgrade =>
-      driver != item.Keyboard && driver != item.Screen &&
+      driver != item.Screen &&
       Slot(driver, stack) == Slot.Upgrade && driver.tier(stack) <= tier
     case _ => false
   }
 
   def assemble(inventory: IInventory): Array[AnyRef] = {
     val items = mutable.ArrayBuffer(
-      Option(api.Items.get("screen1").createItemStack(1)),
-      Option(api.Items.get("keyboard").createItemStack(1))
+      Option(api.Items.get("screen1").createItemStack(1))
     ) ++ (1 until inventory.getSizeInventory).map(slot => Option(inventory.getStackInSlot(slot)))
     val data = new ItemUtils.TabletData()
     data.items = items.filter(_.isDefined).toArray
+    data.energy = Settings.get.bufferTablet
+    data.maxEnergy = data.energy
     val stack = api.Items.get("tablet").createItemStack(1)
     data.save(stack)
+    val energy = Settings.get.tabletBaseCost + complexity(inventory) * Settings.get.tabletComplexityCost
 
-    Array(stack)
+    Array(stack, double2Double(energy))
   }
 
   def register() {

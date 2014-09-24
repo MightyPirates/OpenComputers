@@ -171,6 +171,8 @@ class Settings(config: Config) {
   val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
   val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
+  val tabletBaseCost = config.getDouble("power.cost.tabletAssemblyBase") max 0
+  val tabletComplexityCost = config.getDouble("power.cost.tabletAssemblyComplexity") max 0
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
