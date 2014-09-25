@@ -17,7 +17,7 @@ import net.minecraft.util.{AxisAlignedBB, IIcon, MovingObjectPosition, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotProxy extends RedstoneAware with SpecialBlock {
+class RobotProxy extends RedstoneAware with traits.SpecialBlock {
   setLightOpacity(0)
 
   showInItemList = false

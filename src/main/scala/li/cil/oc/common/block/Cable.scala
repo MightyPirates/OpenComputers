@@ -18,7 +18,7 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class Cable extends SimpleBlock with SpecialBlock {
+class Cable extends SimpleBlock with traits.SpecialBlock {
   setLightOpacity(0)
 
   // For Immibis Microblock support.

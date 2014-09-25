@@ -11,6 +11,11 @@ terminal {
           ["oc:circuitChip3", "oc:screen2", "oc:wlanCard"]
           [nuggetIron, "oc:keyboard", nuggetIron]]
 }
+tabletCase {
+  input: [[ingotGold, button, ingotGold]
+          ["oc:componentBus1", "oc:screen2", "oc:circuitChip3"]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
+}
 
 server1 {
   input: [[obsidian, "oc:ram4", obsidian]

@@ -23,7 +23,7 @@ class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends c
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForInventory(args, 0)
     if (facing == host.facing.getOpposite) result(host.inventorySize)
-    else InventoryUtils.inventoryAt(host.world, math.round(host.xPosition - 0.5).toInt + facing.offsetX, math.round(host.yPosition - 0.5).toInt + facing.offsetY, math.round(host.zPosition - 0.5).toInt + facing.offsetZ) match {
+    else InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
       case Some(inventory) => result(inventory.getSizeInventory)
       case _ => result(Unit, "no inventory")
     }
@@ -37,7 +37,7 @@ class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends c
       if (slot < 0 || slot >= host.inventorySize) result(Unit)
       else result(host.getStackInSlot(slot + 1 + host.containerCount))
     }
-    else InventoryUtils.inventoryAt(host.world, math.round(host.xPosition - 0.5).toInt + facing.offsetX, math.round(host.yPosition - 0.5).toInt + facing.offsetY, math.round(host.zPosition - 0.5).toInt + facing.offsetZ) match {
+    else InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
       case Some(inventory) =>
         if (slot < 0 || slot > inventory.getSizeInventory) result(Unit)
         else result(inventory.getStackInSlot(slot))
@@ -52,7 +52,7 @@ class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends c
     val selectedSlot = host.selectedSlot
     val stack = host.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
-      InventoryUtils.inventoryAt(host.world, math.round(host.xPosition - 0.5).toInt + facing.offsetX, math.round(host.yPosition - 0.5).toInt + facing.offsetY, math.round(host.zPosition - 0.5).toInt + facing.offsetZ) match {
+      InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
         case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
           val slot = args.checkSlot(inventory, 1)
           if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, facing.getOpposite, slot, count)) {
@@ -82,7 +82,7 @@ class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends c
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(2)
 
-    InventoryUtils.inventoryAt(host.world, math.round(host.xPosition - 0.5).toInt + facing.offsetX, math.round(host.yPosition - 0.5).toInt + facing.offsetY, math.round(host.zPosition - 0.5).toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
       case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
         val slot = args.checkSlot(inventory, 1)
         if (InventoryUtils.extractFromInventorySlot(host.player.inventory.addItemStackToInventory, inventory, facing.getOpposite, slot, count)) {

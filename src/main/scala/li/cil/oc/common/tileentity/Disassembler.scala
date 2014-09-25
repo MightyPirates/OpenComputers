@@ -83,6 +83,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
       else if (api.Items.get(stack) == api.Items.get("server1")) enqueueServer(stack, 0)
       else if (api.Items.get(stack) == api.Items.get("server2")) enqueueServer(stack, 1)
       else if (api.Items.get(stack) == api.Items.get("server3")) enqueueServer(stack, 2)
+      else if (api.Items.get(stack) == api.Items.get("tablet")) enqueueTablet(stack)
       else if (api.Items.get(stack) == api.Items.get("navigationUpgrade")) {
         enqueueNavigationUpgrade(stack)
       }
@@ -113,6 +114,15 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
       drop(stack)
     }
     queue ++= getIngredients(server)
+  }
+
+  private def enqueueTablet(tablet: ItemStack) {
+    val info = new ItemUtils.TabletData(tablet)
+    queue += api.Items.get("tabletCase").createItemStack(1)
+    queue ++= info.items.collect {
+      case Some(stack) => stack
+    }.drop(1) // Screen.
+    node.changeBuffer(info.energy)
   }
 
   private def enqueueNavigationUpgrade(stack: ItemStack) {
@@ -224,5 +234,6 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     api.Items.get(stack) == api.Items.get("robot") ||
-      ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && !getIngredients(stack).isEmpty)
+      api.Items.get(stack) == api.Items.get("tablet") ||
+      ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && getIngredients(stack).nonEmpty)
 }

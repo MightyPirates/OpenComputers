@@ -12,7 +12,7 @@ import net.minecraft.util.{IIcon, MovingObjectPosition}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotAfterimage extends SimpleBlock with SpecialBlock {
+class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
   setLightOpacity(0)
 
   showInItemList = false

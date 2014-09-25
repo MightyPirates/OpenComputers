@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity.traits
 
 trait PowerAcceptor
   extends power.Common
+  with power.AppliedEnergistics2
   with power.BuildCraft
   with power.Factorization
   with power.Galacticraft
@@ -9,4 +10,4 @@ trait PowerAcceptor
   with power.IndustrialCraft2Classic
   with power.Mekanism
   with power.RedstoneFlux
-//  with power.UniversalElectricity
+  with power.UniversalElectricity

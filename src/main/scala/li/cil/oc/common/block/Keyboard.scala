@@ -10,7 +10,7 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-class Keyboard extends SimpleBlock with SpecialBlock {
+class Keyboard extends SimpleBlock with traits.SpecialBlock {
   setLightOpacity(0)
 
   // For Immibis Microblock support.

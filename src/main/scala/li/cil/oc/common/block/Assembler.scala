@@ -8,7 +8,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class Assembler extends SimpleBlock with SpecialBlock {
+class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor {
   setLightLevel(0.34f)
 
   override protected def customTextures = Array(

@@ -10,7 +10,7 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class Hologram(val tier: Int) extends SimpleBlock with SpecialBlock {
+class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {
   setLightLevel(1)
   setBlockBounds(0, 0, 0, 1, 0.5f, 1)
 

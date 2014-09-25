@@ -18,14 +18,15 @@ class ClassTransformer extends IClassTransformer {
   private val log = LogManager.getLogger("OpenComputers")
 
   private lazy val powerTypes = Map[Mod, Array[String]](
+    Mods.AppliedEnergistics2 -> Array("appeng/api/networking/IGridHost"),
     Mods.BuildCraftPower -> Array("buildcraft/api/power/IPowerReceptor"),
     Mods.Factorization -> Array("factorization/api/IChargeConductor"),
     Mods.Galacticraft -> Array("micdoodle8/mods/galacticraft/api/power/IEnergyHandlerGC"),
     Mods.IndustrialCraft2 -> Array("ic2/api/energy/tile/IEnergySink"),
     Mods.IndustrialCraft2Classic -> Array("ic2classic/api/energy/tile/IEnergySink"),
     Mods.Mekanism -> Array("mekanism/api/energy/IStrictEnergyAcceptor"),
-    Mods.RedstoneFlux -> Array("cofh/api/energy/IEnergyHandler")
-//    Mods.UniversalElectricity -> Array("universalelectricity/api/core/grid/INodeProvider", "universalelectricity/api/core/grid/electric/IEnergyContainer")
+    Mods.RedstoneFlux -> Array("cofh/api/energy/IEnergyHandler"),
+    Mods.UniversalElectricity -> Array("universalelectricity/api/core/grid/INodeProvider")
   )
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {

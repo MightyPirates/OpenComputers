@@ -11,7 +11,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-class PowerConverter extends SimpleBlock {
+class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   showInItemList = !Settings.get.ignorePower
 
   private val formatter = new DecimalFormat("#.#")

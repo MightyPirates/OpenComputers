@@ -2,8 +2,10 @@ package li.cil.oc.common.tileentity.traits.power
 
 import buildcraft.api.power.{IPowerReceptor, PowerHandler}
 import cpw.mods.fml.common.Optional
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{OpenComputers, Settings}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 trait BuildCraft extends Common {
@@ -16,14 +18,41 @@ trait BuildCraft extends Common {
   override def updateEntity() {
     super.updateEntity()
     if (useBuildCraftPower && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioBuildCraft
-        if (demand > 1) {
-          val power = getPowerProvider.useEnergy(1, demand.toFloat, true)
-          tryChangeBuffer(side, power * Settings.get.ratioBuildCraft)
-        }
+      updateEnergy()
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
+  private def updateEnergy() {
+    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+      val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioBuildCraft
+      if (demand > 1) {
+        val power = getPowerProvider.useEnergy(1, demand.toFloat, true)
+        tryChangeBuffer(side, power * Settings.get.ratioBuildCraft)
       }
     }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    if (useBuildCraftPower) loadHandler(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
+  private def loadHandler(nbt: NBTTagCompound): Unit = {
+    Option(getPowerProvider).foreach(_.readFromNBT(nbt.getCompoundTag(Settings.namespace + "bcpower")))
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    if (useBuildCraftPower) saveHandler(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
+  private def saveHandler(nbt: NBTTagCompound): Unit = {
+    Option(getPowerProvider).foreach(h => nbt.setNewCompoundTag(Settings.namespace + "bcpower", h.writeToNBT))
   }
 
   // ----------------------------------------------------------------------- //

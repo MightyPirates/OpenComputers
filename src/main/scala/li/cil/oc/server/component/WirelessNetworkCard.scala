@@ -21,11 +21,11 @@ class WirelessNetworkCard(val host: EnvironmentHost) extends NetworkCard with Wi
 
   // ----------------------------------------------------------------------- //
 
-  override def x = math.round(host.xPosition - 0.5).toInt
+  override def x = math.floor(host.xPosition).toInt
 
-  override def y = math.round(host.yPosition - 0.5).toInt
+  override def y = math.floor(host.yPosition).toInt
 
-  override def z = math.round(host.zPosition - 0.5).toInt
+  override def z = math.floor(host.zPosition).toInt
 
   override def world = host.world
 

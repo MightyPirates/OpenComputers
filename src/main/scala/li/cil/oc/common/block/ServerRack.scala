@@ -9,7 +9,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
-class ServerRack extends RedstoneAware with SpecialBlock {
+class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor {
   override protected def customTextures = Array(
     None,
     None,

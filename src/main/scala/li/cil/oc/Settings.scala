@@ -161,11 +161,14 @@ class Settings(config: Config) {
   val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
   val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
+  val tabletBaseCost = config.getDouble("power.cost.tabletAssemblyBase") max 0
+  val tabletComplexityCost = config.getDouble("power.cost.tabletAssemblyComplexity") max 0
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
 
   // power.value
+  private val valueAppliedEnergistics2 = config.getDouble("power.value.AppliedEnergistics2")
   private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
   private val valueFactorization = config.getDouble("power.value.Factorization")
   private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
@@ -176,6 +179,7 @@ class Settings(config: Config) {
 
   private val valueInternal = valueBuildCraft
 
+  val ratioAppliedEnergistics2 = valueAppliedEnergistics2 / valueInternal
   val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioFactorization = valueFactorization / valueInternal
   val ratioGalacticraft = valueGalacticraft / valueInternal
