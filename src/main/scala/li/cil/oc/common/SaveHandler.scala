@@ -41,7 +41,7 @@ object SaveHandler {
   }
 
   def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, writeNBT(save))
+    scheduleSave(container.world, math.floor(container.xPosition).toInt, math.floor(container.zPosition).toInt, nbt, name, writeNBT(save))
   }
 
   def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
