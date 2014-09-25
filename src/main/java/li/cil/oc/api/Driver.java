@@ -100,10 +100,10 @@ public final class Driver {
      * will be used.
      *
      * @param stack the item stack to get a driver for.
-     * @param host  the object that will host the environment created by returned driver.
+     * @param host  the type that will host the environment created by returned driver.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    public static Item driverFor(ItemStack stack, EnvironmentHost host) {
+    public static Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
         if (instance != null)
             return instance.driverFor(stack, host);
         return null;

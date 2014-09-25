@@ -64,7 +64,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, host)) match {
+      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
         case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
         case _ =>
       }
@@ -84,12 +84,12 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def onMachineDisconnect(node: Node) = this.onDisconnect(node)
 
   def hasAbstractBusCard = items.exists {
-    case Some(item) => machine.isRunning && driver.item.AbstractBusCard.worksWith(item, host)
+    case Some(item) => machine.isRunning && driver.item.AbstractBusCard.worksWith(item, getClass)
     case _ => false
   }
 
   def hasRedstoneCard = items.exists {
-    case Some(item) => machine.isRunning && driver.item.RedstoneCard.worksWith(item, host)
+    case Some(item) => machine.isRunning && driver.item.RedstoneCard.worksWith(item, getClass)
     case _ => false
   }
 

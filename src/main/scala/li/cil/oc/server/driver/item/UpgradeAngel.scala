@@ -10,7 +10,7 @@ object UpgradeAngel extends Item {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("angelUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
+  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
     super.worksWith(stack, host) && isRobot(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.UpgradeAngel()

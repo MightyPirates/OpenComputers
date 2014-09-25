@@ -13,7 +13,7 @@ class Keyboard extends traits.Environment with traits.Rotatable with traits.Immi
 
   val keyboard = {
     val keyboardItem = api.Items.get("keyboard").createItemStack(1)
-    api.Driver.driverFor(keyboardItem, this).createEnvironment(keyboardItem, this)
+    api.Driver.driverFor(keyboardItem, getClass).createEnvironment(keyboardItem, this)
   }
 
   override def node = keyboard.node

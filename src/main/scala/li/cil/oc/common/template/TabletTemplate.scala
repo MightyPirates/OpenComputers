@@ -1,6 +1,7 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
+import li.cil.oc.common.item.TabletWrapper
 import li.cil.oc.{Settings, api}
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.driver.item
@@ -17,11 +18,13 @@ object TabletTemplate extends Template {
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
+  override protected def hostClass = classOf[TabletWrapper]
+
   def select(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tabletCase")
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
-  def validateUpgrade(inventory: IInventory, slot: Int, tier: Int, stack: ItemStack): Boolean = Option(api.Driver.driverFor(stack)) match {
+  def validateUpgrade(inventory: IInventory, slot: Int, tier: Int, stack: ItemStack): Boolean = Option(api.Driver.driverFor(stack, hostClass)) match {
     case Some(driver) if driver.slot(stack) == Slot.Upgrade =>
       driver != item.Screen &&
         driver.slot(stack) == Slot.Upgrade && driver.tier(stack) <= tier

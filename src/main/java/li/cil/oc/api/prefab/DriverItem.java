@@ -27,7 +27,12 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
     }
 
     @Override
-    public boolean worksWith(final ItemStack stack, final EnvironmentHost host) {
+    public boolean worksWith(final ItemStack stack, final Class<? extends EnvironmentHost> host) {
+        return worksWith(stack);
+    }
+
+    @Override
+    public boolean worksWith(final ItemStack stack) {
         if (stack != null) {
             for (ItemStack item : items) {
                 if (item != null && item.isItemEqual(stack)) {

@@ -1,7 +1,7 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
-import li.cil.oc.common.{Slot, Tier}
+import li.cil.oc.common.{Slot, Tier, tileentity}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.{Settings, api}
@@ -10,6 +10,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 
 object RobotTemplate extends Template {
+  override protected def hostClass = classOf[tileentity.Robot]
+
   def selectTier1(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.One
 
   def selectTier2(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Two

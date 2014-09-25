@@ -140,7 +140,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def getSizeInventory = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, host))) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, Some(driver)) => driver.slot(stack) == Slot.Tablet
     case _ => false
   }

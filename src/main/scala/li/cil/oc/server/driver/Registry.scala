@@ -57,7 +57,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case _ => null
     }
 
-  def driverFor(stack: ItemStack, host: EnvironmentHost) =
+  def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
     if (stack != null) items.find(_.worksWith(stack, host)).orNull
     else null
 

@@ -25,7 +25,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
 
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until inventory.getSizeInventory if inventory.isComponentSlot(i)) Option(inventory.getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, inventory.host)) match {
+      case Some(s) => Option(Driver.driverFor(s, rack.getClass)) match {
         case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
         case _ =>
       }
@@ -35,7 +35,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
   }
 
   override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Option(Driver.driverFor(item, inventory.host)) match {
+    case Some(item) => Option(Driver.driverFor(item, rack.getClass)) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
     }
@@ -44,7 +44,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
 
   lazy val maxComponents = if (!hasCPU) 0
   else inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Option(Driver.driverFor(item, inventory.host)) match {
+    case Some(item) => Option(Driver.driverFor(item, rack.getClass)) match {
       case Some(driver: driver.Processor) => driver.supportedComponents(item)
       case _ => 0
     }
@@ -54,7 +54,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
   override def componentSlot(address: String) = inventory.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   def hasCPU = inventory.items.exists {
-    case Some(stack) => Option(Driver.driverFor(stack, inventory.host)) match {
+    case Some(stack) => Option(Driver.driverFor(stack, rack.getClass)) match {
       case Some(driver) => driver.slot(stack) == Slot.CPU
       case _ => false
     }

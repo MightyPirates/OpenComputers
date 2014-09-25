@@ -134,7 +134,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   }
 
   private def updateLimits(slot: Int, stack: ItemStack) {
-    Driver.driverFor(stack, host) match {
+    Driver.driverFor(stack, getClass) match {
       case driver if driver.slot(stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
       case driver if driver.slot(stack) == Slot.Memory =>
@@ -149,7 +149,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    Driver.driverFor(stack, host) match {
+    Driver.driverFor(stack, getClass) match {
       case driver if driver.slot(stack) == Slot.CPU => relayDelay = relayBaseDelay
       case driver if driver.slot(stack) == Slot.Memory => relayAmount = relayBaseAmount
       case driver if driver.slot(stack) == Slot.HDD => maxQueueSize = queueBaseSize
@@ -159,7 +159,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override def getSizeInventory = InventorySlots.switch.length
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    Option(Driver.driverFor(stack, host)).fold(false)(driver => {
+    Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.switch(slot)
       driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })

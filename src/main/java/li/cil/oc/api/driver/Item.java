@@ -32,10 +32,10 @@ public interface Item {
      * be ejected, since this value is only checked when adding components.
      *
      * @param stack the item to check.
-     * @param host  the host the environment would live in.
+     * @param host  the type of host the environment would live in.
      * @return <tt>true</tt> if the item is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(ItemStack stack, EnvironmentHost host);
+    boolean worksWith(ItemStack stack, Class<? extends EnvironmentHost> host);
 
     /**
      * Used to determine the item types this driver handles.

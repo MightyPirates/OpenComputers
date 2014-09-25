@@ -1,6 +1,6 @@
 package li.cil.oc.common.template
 
-import li.cil.oc.api.driver.{Container, Inventory, Memory, Processor}
+import li.cil.oc.api.driver._
 import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.inventory.IInventory
@@ -16,6 +16,8 @@ abstract class Template {
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
     "Inventory" -> hasInventory _,
     "OS" -> hasFileSystem _)
+
+  protected def hostClass: Class[_ <: EnvironmentHost]
 
   protected def validateComputer(inventory: IInventory): Array[AnyRef] = {
     val hasCase = caseTier(inventory) != Tier.None
@@ -51,12 +53,12 @@ abstract class Template {
     })
   }
 
-  protected def hasCPU(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_) match {
+  protected def hasCPU(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
     case _: Processor => true
     case _ => false
   })
 
-  protected def hasRAM(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_) match {
+  protected def hasRAM(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
     case _: Memory => true
     case _ => false
   })
@@ -66,12 +68,12 @@ abstract class Template {
     case _ => false
   })
 
-  protected def hasInventory(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_) match {
+  protected def hasInventory(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
     case _: Inventory => true
     case _ => false
   })
 
-  protected def hasFileSystem(inventory: IInventory) = exists(inventory, stack => Option(api.Driver.driverFor(stack)) match {
+  protected def hasFileSystem(inventory: IInventory) = exists(inventory, stack => Option(api.Driver.driverFor(stack, hostClass)) match {
     case Some(driver) => driver.slot(stack) == Slot.Floppy || driver.slot(stack) == Slot.HDD
     case _ => false
   })
@@ -80,7 +82,7 @@ abstract class Template {
     var acc = 0
     for (slot <- 1 until inventory.getSizeInventory) {
       val stack = inventory.getStackInSlot(slot)
-      acc += (Option(api.Driver.driverFor(stack)) match {
+      acc += (Option(api.Driver.driverFor(stack, hostClass)) match {
         case Some(driver: Processor) => 0 // CPUs are exempt, since they control the limit.
         case Some(driver: Container) => (1 + driver.tier(stack)) * 2
         case Some(driver) => 1 + driver.tier(stack)
@@ -94,7 +96,7 @@ abstract class Template {
     val caseTier = this.caseTier(inventory)
     val cpuTier = (0 until inventory.getSizeInventory).foldRight(0)((slot, acc) => {
       val stack = inventory.getStackInSlot(slot)
-      acc + (api.Driver.driverFor(stack) match {
+      acc + (api.Driver.driverFor(stack, hostClass) match {
         case processor: Processor => processor.tier(stack)
         case _ => 0
       })

@@ -12,13 +12,13 @@ object Tablet extends Item {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("tablet"))
 
-  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
+  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
     super.worksWith(stack, host) && isTablet(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
     val data = new ItemUtils.TabletData(stack)
     data.items.collect {
-      case Some(fs) if FileSystem.worksWith(fs, host) => fs
+      case Some(fs) if FileSystem.worksWith(fs, host.getClass) => fs
     }.headOption.map(FileSystem.createEnvironment(_, host)).orNull
   }
 

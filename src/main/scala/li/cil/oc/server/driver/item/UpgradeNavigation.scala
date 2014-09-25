@@ -11,8 +11,8 @@ object UpgradeNavigation extends Item {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("navigationUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
-    super.worksWith(stack, host) && host.isInstanceOf[Rotatable]
+  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
+    super.worksWith(stack, host) && isRotatable(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {

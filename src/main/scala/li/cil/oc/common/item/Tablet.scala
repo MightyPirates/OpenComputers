@@ -221,7 +221,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, host)) match {
+      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
         case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
         case _ =>
       }
@@ -231,7 +231,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
   }
 
   override def installedMemory = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
-    case Some(item) => Option(api.Driver.driverFor(item, host)) match {
+    case Some(item) => Option(api.Driver.driverFor(item, getClass)) match {
       case Some(driver: api.driver.Memory) => driver.amount(item)
       case _ => 0
     }

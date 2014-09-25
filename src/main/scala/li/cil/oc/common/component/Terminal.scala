@@ -15,7 +15,7 @@ import scala.collection.mutable
 class Terminal(val rack: tileentity.ServerRack, val number: Int) {
   val buffer = {
     val screenItem = api.Items.get("screen1").createItemStack(1)
-    val buffer = api.Driver.driverFor(screenItem, rack).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
+    val buffer = api.Driver.driverFor(screenItem, rack.getClass).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
     val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(1)
     buffer.setMaximumResolution(maxWidth, maxHeight)
     buffer.setMaximumColorDepth(Settings.screenDepthsByTier(1))
@@ -24,7 +24,7 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
 
   val keyboard = {
     val keyboardItem = api.Items.get("keyboard").createItemStack(1)
-    val keyboard = api.Driver.driverFor(keyboardItem, rack).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
+    val keyboard = api.Driver.driverFor(keyboardItem, rack.getClass).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
     keyboard.setUsableOverride(new UsabilityChecker {
       override def isUsableByPlayer(keyboard: api.component.Keyboard, player: EntityPlayer) = {
         val stack = player.getCurrentEquippedItem
