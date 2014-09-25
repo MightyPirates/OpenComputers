@@ -72,7 +72,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
     components(slot) match {
       case Some(component) =>
         // We're guaranteed to have a driver for entries.
-        save(component, Driver.driverFor(stack), stack)
+        save(component, Driver.driverFor(stack, host), stack)
       case _ =>
     }
     ServerPacketSender.sendRobotInventory(this, slot, stack)
@@ -493,7 +493,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
 
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
-    Option(Driver.driverFor(stack)) match {
+    Option(Driver.driverFor(stack, host)) match {
       case Some(driver: api.driver.Container) => driver.providedSlot(stack)
       case _ => Slot.None
     }
@@ -502,7 +502,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
 
   def containerSlotTier(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
-    Option(Driver.driverFor(stack)) match {
+    Option(Driver.driverFor(stack, host)) match {
       case Some(driver: api.driver.Container) => driver.providedTier(stack)
       case _ => Tier.None
     }
@@ -516,7 +516,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   def isInventorySlot(slot: Int) = inventorySlots contains slot
 
   def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
+    case Some(stack) => Option(Driver.driverFor(stack, host)) match {
       case Some(driver) => driver.slot(stack) == Slot.Floppy
       case _ => false
     }
@@ -528,7 +528,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   // ----------------------------------------------------------------------- //
 
   override def installedMemory = (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
+    case Some(stack) => Option(Driver.driverFor(stack, host)) match {
       case Some(driver: api.driver.Memory) => driver.amount(stack)
       case _ => 0
     }
@@ -540,7 +540,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(driver.item.RedstoneCard.worksWith(_, host)))
 
   private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
+    case Some(stack) => Option(Driver.driverFor(stack, host)) match {
       case Some(driver: api.driver.Inventory) => driver.inventoryCapacity(stack)
       case _ => 0
     }
@@ -607,7 +607,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
     }
   }
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, host))) match {
     case (0, _) => true // Allow anything in the tool slot.
     case (i, Some(driver)) if isContainerSlot(i) =>
       // Yay special cases! Dynamic screens kind of work, but are pretty derpy

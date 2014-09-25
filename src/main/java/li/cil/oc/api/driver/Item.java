@@ -38,6 +38,22 @@ public interface Item {
     boolean worksWith(ItemStack stack, EnvironmentHost host);
 
     /**
+     * Used to determine the item types this driver handles.
+     * <p/>
+     * This is used to determine which driver to use for an item when it should
+     * be installed in a computer. Note that the return value should not change
+     * over time; if it does, though, an already installed component will not
+     * be ejected, since this value is only checked when adding components.
+     * <p/>
+     * This is a context-agnostic variant used mostly for "house-keeping"
+     * stuff, such as querying slot types and tier.
+     *
+     * @param stack the item to check.
+     * @return <tt>true</tt> if the item is supported; <tt>false</tt> otherwise.
+     */
+    boolean worksWith(ItemStack stack);
+
+    /**
      * Create a new managed environment interfacing the specified item.
      * <p/>
      * This is used to connect the component to the component network when it is

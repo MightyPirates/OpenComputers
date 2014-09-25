@@ -8,8 +8,11 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object UpgradeCrafting extends Item {
+  override def worksWith(stack: ItemStack) =
+    isOneOf(stack, api.Items.get("craftingUpgrade"))
+
   override def worksWith(stack: ItemStack, host: EnvironmentHost) =
-    isOneOf(stack, api.Items.get("craftingUpgrade")) && isRobot(host)
+    super.worksWith(stack, host) && isRobot(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {

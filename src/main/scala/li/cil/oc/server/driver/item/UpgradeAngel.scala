@@ -7,8 +7,11 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object UpgradeAngel extends Item {
+  override def worksWith(stack: ItemStack) =
+    isOneOf(stack, api.Items.get("angelUpgrade"))
+
   override def worksWith(stack: ItemStack, host: EnvironmentHost) =
-    isOneOf(stack, api.Items.get("angelUpgrade")) && isRobot(host)
+    super.worksWith(stack, host) && isRobot(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.UpgradeAngel()
 

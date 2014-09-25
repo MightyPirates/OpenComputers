@@ -33,7 +33,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   def recomputeMaxComponents() {
     maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
-      case Some(item) => Option(Driver.driverFor(item)) match {
+      case Some(item) => Option(Driver.driverFor(item, host)) match {
         case Some(driver: driver.Processor) => driver.supportedComponents(item)
         case _ => 0
       }
@@ -42,7 +42,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   }
 
   override def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Option(Driver.driverFor(item)) match {
+    case Some(item) => Option(Driver.driverFor(item, host)) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
     }
@@ -114,7 +114,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     super.isUseableByPlayer(player) && (!isCreativeCase || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    Option(Driver.driverFor(stack)).fold(false)(driver => {
+    Option(Driver.driverFor(stack, host)).fold(false)(driver => {
       val provided = InventorySlots.computer(tier)(slot)
       driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })

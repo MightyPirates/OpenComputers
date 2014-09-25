@@ -9,8 +9,11 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object UpgradeTractorBeam extends Item {
+  override def worksWith(stack: ItemStack) =
+    isOneOf(stack, api.Items.get("tractorBeamUpgrade"))
+
   override def worksWith(stack: ItemStack, host: EnvironmentHost) =
-    isOneOf(stack, api.Items.get("tractorBeamUpgrade")) && (isRobot(host) || isTablet(host))
+    super.worksWith(stack, host) && (isRobot(host) || isTablet(host))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
     case robot: Robot => new component.UpgradeTractorBeam(host, robot.player)

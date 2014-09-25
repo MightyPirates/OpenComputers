@@ -12,7 +12,8 @@ object Memory extends Item with driver.Memory {
     case _ => 0
   }
 
-  override def worksWith(stack: ItemStack, host: EnvironmentHost) = isOneOf(stack, api.Items.get("ram1"), api.Items.get("ram2"), api.Items.get("ram3"), api.Items.get("ram4"), api.Items.get("ram5"), api.Items.get("ram6"))
+  override def worksWith(stack: ItemStack) =
+    isOneOf(stack, api.Items.get("ram1"), api.Items.get("ram2"), api.Items.get("ram3"), api.Items.get("ram4"), api.Items.get("ram5"), api.Items.get("ram6"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 

@@ -3,6 +3,7 @@ package li.cil.oc.api;
 import li.cil.oc.api.detail.DriverAPI;
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.driver.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -97,6 +98,26 @@ public final class Driver {
      * Note that unlike for blocks, there can always only be one item driver
      * per item. If there are multiple ones, the first one that was registered
      * will be used.
+     *
+     * @param stack the item stack to get a driver for.
+     * @param host  the object that will host the environment created by returned driver.
+     * @return a driver for the item, or <tt>null</tt> if there is none.
+     */
+    public static Item driverFor(ItemStack stack, EnvironmentHost host) {
+        if (instance != null)
+            return instance.driverFor(stack, host);
+        return null;
+    }
+
+    /**
+     * Looks up a driver for the specified item stack.
+     * <p/>
+     * Note that unlike for blocks, there can always only be one item driver
+     * per item. If there are multiple ones, the first one that was registered
+     * will be used.
+     * <p/>
+     * This is a context-agnostic variant used mostly for "house-keeping"
+     * stuff, such as querying slot types and tier.
      *
      * @param stack the item stack to get a driver for.
      * @return a driver for the item, or <tt>null</tt> if there is none.

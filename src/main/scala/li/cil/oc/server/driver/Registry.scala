@@ -61,6 +61,10 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (stack != null) items.find(_.worksWith(stack, host)).orNull
     else null
 
+  def driverFor(stack: ItemStack) =
+    if (stack != null) items.find(_.worksWith(stack)).orNull
+    else null
+
   def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 
   def convertRecursively(value: Any, memo: util.IdentityHashMap[AnyRef, AnyRef], force: Boolean = false): AnyRef = {

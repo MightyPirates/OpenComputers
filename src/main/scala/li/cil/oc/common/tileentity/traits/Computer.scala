@@ -64,7 +64,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s)) match {
+      case Some(s) => Option(Driver.driverFor(s, host)) match {
         case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
         case _ =>
       }

@@ -8,8 +8,11 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object UpgradeSign extends Item {
+  override def worksWith(stack: ItemStack) =
+    isOneOf(stack, api.Items.get("signUpgrade"))
+
   override def worksWith(stack: ItemStack, host: EnvironmentHost) =
-    isOneOf(stack, api.Items.get("signUpgrade")) && host.isInstanceOf[Rotatable]
+    super.worksWith(stack, host) && host.isInstanceOf[Rotatable]
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {

@@ -77,4 +77,19 @@ public interface DriverAPI {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     Item driverFor(ItemStack stack, EnvironmentHost host);
+
+    /**
+     * Looks up a driver for the specified item stack.
+     * <p/>
+     * Note that unlike for blocks, there can always only be one item driver
+     * per item. If there are multiple ones, the first one that was registered
+     * will be used.
+     * <p/>
+     * This is a context-agnostic variant used mostly for "house-keeping"
+     * stuff, such as querying slot types and tier.
+     *
+     * @param stack the item stack to get a driver for.
+     * @return a driver for the item, or <tt>null</tt> if there is none.
+     */
+    Item driverFor(ItemStack stack);
 }

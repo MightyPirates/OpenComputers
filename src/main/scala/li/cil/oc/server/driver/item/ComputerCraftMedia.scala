@@ -10,7 +10,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object ComputerCraftMedia extends Item {
-  override def slot(stack: ItemStack) = Slot.Floppy
+  override def worksWith(stack: ItemStack) =
+    Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && host != null) {
@@ -25,7 +26,7 @@ object ComputerCraftMedia extends Item {
     }
     else null
 
-  override def worksWith(stack: ItemStack, host: EnvironmentHost) = Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack)
+  override def slot(stack: ItemStack) = Slot.Floppy
 
   private def addressFromTag(tag: NBTTagCompound) =
     if (tag.hasKey("node") && tag.getCompoundTag("node").hasKey("address")) {
