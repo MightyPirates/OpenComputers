@@ -422,7 +422,7 @@ object TextBuffer {
   def onChunkUnload(e: ChunkEvent.Unload) {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.owner.world != e.world || !chunk.isAtLocation(math.round(t.owner.xPosition - 0.5).toInt << 4, math.round(t.owner.zPosition - 0.5).toInt << 4)
+      val keep = t.owner.world != e.world || !chunk.isAtLocation(math.floor(t.owner.xPosition).toInt << 4, math.floor(t.owner.zPosition).toInt << 4)
       if (!keep) {
         ClientComponentTracker.remove(t.proxy.nodeAddress)
       }

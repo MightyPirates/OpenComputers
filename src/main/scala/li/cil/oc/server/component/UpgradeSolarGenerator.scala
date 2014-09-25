@@ -27,7 +27,7 @@ class UpgradeSolarGenerator(val owner: Container) extends component.ManagedCompo
     ticksUntilCheck -= 1
     if (ticksUntilCheck <= 0) {
       ticksUntilCheck = 100
-      isSunShining = isSunVisible(owner.world, math.round(owner.xPosition - 0.5).toInt, math.round(owner.yPosition - 0.5).toInt + 1, math.round(owner.zPosition - 0.5).toInt)
+      isSunShining = isSunVisible(owner.world, math.floor(owner.xPosition).toInt, math.floor(owner.yPosition).toInt + 1, math.floor(owner.zPosition).toInt)
     }
     if (isSunShining) {
       node.changeBuffer(Settings.get.solarGeneratorEfficiency)

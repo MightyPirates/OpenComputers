@@ -21,7 +21,7 @@ class Geolyzer(val owner: Container) extends component.ManagedComponent {
     if (math.abs(rx) > Settings.get.geolyzerRange || math.abs(rz) > Settings.get.geolyzerRange) {
       throw new IllegalArgumentException("location out of bounds")
     }
-    val (x, y, z) = ((owner.xPosition - 0.5).toInt, (owner.yPosition - 0.5).toInt, (owner.zPosition - 0.5).toInt)
+    val (x, y, z) = (math.floor(owner.xPosition).toInt, math.floor(owner.yPosition).toInt, math.floor(owner.zPosition).toInt)
     val bx = x + rx
     val bz = z + rz
 

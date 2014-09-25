@@ -16,9 +16,8 @@ class UpgradeSign(val owner: Container with Rotatable) extends component.Managed
 
   @Callback(doc = """function():string -- Get the text on the sign in front of the robot.""")
   def getValue(context: Context, args: Arguments): Array[AnyRef] = {
-    val facing = owner.facing
-    owner.world.getTileEntity(math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
-      case sign: TileEntitySign => result(sign.signText.mkString("\n"))
+    findSign match {
+      case Some(sign) => result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
     }
   }
@@ -26,14 +25,23 @@ class UpgradeSign(val owner: Container with Rotatable) extends component.Managed
   @Callback(doc = """function(value:string):string -- Set the text on the sign in front of the robot.""")
   def setValue(context: Context, args: Arguments): Array[AnyRef] = {
     val text = args.checkString(0).lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line)
-    val facing = owner.facing
-    val (sx, sy, sz) = (math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ)
-    owner.world.getTileEntity(sx, sy, sz) match {
-      case sign: TileEntitySign =>
+    findSign match {
+      case Some(sign) =>
         text.copyToArray(sign.signText)
-        owner.world.markBlockForUpdate(sx, sy, sz)
+        owner.world.markBlockForUpdate(sign.xCoord, sign.yCoord, sign.zCoord)
         result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
+    }
+  }
+
+  private def findSign = {
+    val (x, y, z) = (math.floor(owner.xPosition).toInt, math.floor(owner.yPosition).toInt, math.floor(owner.zPosition).toInt)
+    owner.world.getTileEntity(x, y, z) match {
+      case sign: TileEntitySign => Option(sign)
+      case _ => owner.world.getTileEntity(x + owner.facing.offsetX, y + owner.facing.offsetY, z + owner.facing.offsetZ) match {
+        case sign: TileEntitySign => Option(sign)
+        case _ => None
+      }
     }
   }
 }

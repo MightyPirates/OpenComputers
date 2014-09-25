@@ -22,7 +22,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForInventory(args, 0)
     if (facing == owner.facing.getOpposite) result(owner.inventorySize)
-    else InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
+    else InventoryUtils.inventoryAt(owner.world, math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
       case Some(inventory) => result(inventory.getSizeInventory)
       case _ => result(Unit, "no inventory")
     }
@@ -36,7 +36,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
       if (slot < 0 || slot >= owner.inventorySize) result(Unit)
       else result(owner.getStackInSlot(slot + 1 + owner.containerCount))
     }
-    else InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
+    else InventoryUtils.inventoryAt(owner.world, math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
       case Some(inventory) =>
         if (slot < 0 || slot > inventory.getSizeInventory) result(Unit)
         else result(inventory.getStackInSlot(slot))
@@ -51,7 +51,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
     val selectedSlot = owner.selectedSlot
     val stack = owner.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
-      InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
+      InventoryUtils.inventoryAt(owner.world, math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
         case Some(inventory) if inventory.isUseableByPlayer(owner.player) =>
           val slot = args.checkSlot(inventory, 1)
           if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, facing.getOpposite, slot, count)) {
@@ -81,7 +81,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(2)
 
-    InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(owner.world, math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
       case Some(inventory) if inventory.isUseableByPlayer(owner.player) =>
         val slot = args.checkSlot(inventory, 1)
         if (InventoryUtils.extractFromInventorySlot(owner.player.inventory.addItemStackToInventory, inventory, facing.getOpposite, slot, count)) {
