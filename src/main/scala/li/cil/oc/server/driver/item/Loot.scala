@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.common.DimensionManager
 
 object Loot extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("lootDisk"), api.Items.get("openOS"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) = isOneOf(stack, api.Items.get("lootDisk"), api.Items.get("openOS"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (stack.hasTagCompound) {

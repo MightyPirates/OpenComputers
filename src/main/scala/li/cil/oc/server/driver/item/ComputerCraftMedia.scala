@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object ComputerCraftMedia extends Item {
-  override def slot(stack: ItemStack) = Slot.Floppy
+  override def slot(stack: ItemStack, host: EnvironmentHost) = Slot.Floppy
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && host != null) {

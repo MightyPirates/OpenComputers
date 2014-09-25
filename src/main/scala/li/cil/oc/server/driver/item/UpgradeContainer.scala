@@ -6,7 +6,8 @@ import li.cil.oc.{Items, api}
 import net.minecraft.item.ItemStack
 
 object UpgradeContainer extends Item with Container {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("upgradeContainer1"), api.Items.get("upgradeContainer2"), api.Items.get("upgradeContainer3"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
+    isOneOf(stack, api.Items.get("upgradeContainer1"), api.Items.get("upgradeContainer2"), api.Items.get("upgradeContainer3"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 

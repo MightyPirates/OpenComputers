@@ -7,7 +7,7 @@ import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
 
 object ComponentBus extends Item with driver.Processor {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("componentBus1"), api.Items.get("componentBus2"), api.Items.get("componentBus3"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) = isOneOf(stack, api.Items.get("componentBus1"), api.Items.get("componentBus2"), api.Items.get("componentBus3"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 

@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
 object Tablet extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("tablet"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) = isOneOf(stack, api.Items.get("tablet")) && isTablet(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
     val data = new ItemUtils.TabletData(stack)
@@ -18,7 +18,7 @@ object Tablet extends Item {
     }.headOption.map(FileSystem.createEnvironment(_, host)).orNull
   }
 
-  override def slot(stack: ItemStack) = Slot.Floppy
+  override def slot(stack: ItemStack) = Slot.Tablet
 
   override def dataTag(stack: ItemStack) = {
     val data = new ItemUtils.TabletData(stack)

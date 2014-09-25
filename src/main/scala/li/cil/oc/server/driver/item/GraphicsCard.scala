@@ -7,7 +7,7 @@ import li.cil.oc.{Items, api, common}
 import net.minecraft.item.ItemStack
 
 object GraphicsCard extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("graphicsCard1"), api.Items.get("graphicsCard2"), api.Items.get("graphicsCard3"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) = isOneOf(stack, api.Items.get("graphicsCard1"), api.Items.get("graphicsCard2"), api.Items.get("graphicsCard3"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     tier(stack) match {

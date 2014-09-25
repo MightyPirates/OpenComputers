@@ -8,7 +8,8 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object UpgradeInventoryController extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("inventoryControllerUpgrade"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
+    isOneOf(stack, api.Items.get("inventoryControllerUpgrade")) && isRobot(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
     case robot: EnvironmentHost with Robot => new component.UpgradeInventoryController(robot)

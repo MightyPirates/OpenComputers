@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object FileSystem extends Item {
-  override def worksWith(stack: ItemStack) =
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
     isOneOf(stack, api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"), api.Items.get("floppy"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =

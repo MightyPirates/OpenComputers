@@ -1,5 +1,6 @@
 package li.cil.oc.api.prefab;
 
+import li.cil.oc.api.driver.EnvironmentHost;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -26,7 +27,7 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
     }
 
     @Override
-    public boolean worksWith(final ItemStack stack) {
+    public boolean worksWith(final ItemStack stack, final EnvironmentHost host) {
         if (stack != null) {
             for (ItemStack item : items) {
                 if (item != null && item.isItemEqual(stack)) {

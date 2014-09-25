@@ -8,7 +8,8 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object UpgradeGenerator extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("generatorUpgrade"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
+    isOneOf(stack, api.Items.get("generatorUpgrade")) && isRobot(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {

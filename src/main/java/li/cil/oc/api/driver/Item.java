@@ -32,9 +32,10 @@ public interface Item {
      * be ejected, since this value is only checked when adding components.
      *
      * @param stack the item to check.
+     * @param host  the host the environment would live in.
      * @return <tt>true</tt> if the item is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(ItemStack stack);
+    boolean worksWith(ItemStack stack, EnvironmentHost host);
 
     /**
      * Create a new managed environment interfacing the specified item.
@@ -45,18 +46,18 @@ public interface Item {
      * there's a built-in driver for that. You may still opt to not implement
      * this - i.e. it is safe to return <tt>null</tt> here.
      * <p/>
-     * Keep in mind that the container's location may change if the owner is
+     * Keep in mind that the host's location may change if the owner is
      * a robot. This is important if you cache the location somewhere. For
      * example, the wireless network card checks in a robot movement event
      * handler for position changes to update the index structure used for
      * receiver look-up.
      * <p/>
      * This is expected to return a <em>new instance</em> each time it is
-     * called. The created instance's life cycle is managed by the container
+     * called. The created instance's life cycle is managed by the host
      * that caused its creation.
      *
      * @param stack the item stack for which to get the environment.
-     * @param host  the container the environment will be managed by.
+     * @param host  the host the environment will be managed by.
      * @return the environment for that item.
      */
     ManagedEnvironment createEnvironment(ItemStack stack, EnvironmentHost host);

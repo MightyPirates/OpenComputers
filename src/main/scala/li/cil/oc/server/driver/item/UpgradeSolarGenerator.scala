@@ -7,7 +7,7 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object UpgradeSolarGenerator extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("solarGeneratorUpgrade"))
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) = isOneOf(stack, api.Items.get("solarGeneratorUpgrade"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.UpgradeSolarGenerator(host)
 
