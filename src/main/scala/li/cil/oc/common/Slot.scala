@@ -11,8 +11,9 @@ object Slot {
   val Floppy = "floppy"
   val HDD = "hdd"
   val Memory = "memory"
+  val Tablet = "tablet"
   val Tool = "tool"
   val Upgrade = "upgrade"
 
-  val All = Array(Card, ComponentBus, Container, CPU, Floppy, HDD, Memory, Tool, Upgrade)
+  val All = Array(Card, ComponentBus, Container, CPU, Floppy, HDD, Memory, Tablet, Tool, Upgrade)
 }

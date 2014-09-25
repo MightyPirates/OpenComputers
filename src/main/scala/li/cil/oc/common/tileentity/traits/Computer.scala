@@ -84,12 +84,12 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def onMachineDisconnect(node: Node) = this.onDisconnect(node)
 
   def hasAbstractBusCard = items.exists {
-    case Some(item) => machine.isRunning && driver.item.AbstractBusCard.worksWith(item)
+    case Some(item) => machine.isRunning && driver.item.AbstractBusCard.worksWith(item, host)
     case _ => false
   }
 
   def hasRedstoneCard = items.exists {
-    case Some(item) => machine.isRunning && driver.item.RedstoneCard.worksWith(item)
+    case Some(item) => machine.isRunning && driver.item.RedstoneCard.worksWith(item, host)
     case _ => false
   }
 

@@ -14,7 +14,7 @@ object Tablet extends Item {
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
     val data = new ItemUtils.TabletData(stack)
     data.items.collect {
-      case Some(fs) if FileSystem.worksWith(fs) => fs
+      case Some(fs) if FileSystem.worksWith(fs, host) => fs
     }.headOption.map(FileSystem.createEnvironment(_, host)).orNull
   }
 
@@ -23,7 +23,7 @@ object Tablet extends Item {
   override def dataTag(stack: ItemStack) = {
     val data = new ItemUtils.TabletData(stack)
     val index = data.items.indexWhere {
-      case Some(fs) => FileSystem.worksWith(fs)
+      case Some(fs) => FileSystem.worksWith(fs, null) // This is only safe because we know fs doesn't touch the host parameter.
       case _ => false
     }
     if (index >= 0 && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "items")) {

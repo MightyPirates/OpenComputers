@@ -93,7 +93,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   def hasAbstractBusCard = servers exists {
     case Some(server) => server.machine.isRunning && server.inventory.items.exists {
-      case Some(stack) => driver.item.AbstractBusCard.worksWith(stack)
+      case Some(stack) => driver.item.AbstractBusCard.worksWith(stack, server.inventory.host)
       case _ => false
     }
     case _ => false
@@ -101,7 +101,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   def hasRedstoneCard = servers exists {
     case Some(server) => server.machine.isRunning && server.inventory.items.exists {
-      case Some(stack) => driver.item.RedstoneCard.worksWith(stack)
+      case Some(stack) => driver.item.RedstoneCard.worksWith(stack, server.inventory.host)
       case _ => false
     }
     case _ => false

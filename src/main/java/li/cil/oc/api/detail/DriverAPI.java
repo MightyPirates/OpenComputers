@@ -2,6 +2,7 @@ package li.cil.oc.api.detail;
 
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.driver.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -72,7 +73,8 @@ public interface DriverAPI {
      * will be used.
      *
      * @param stack the item stack to get a driver for.
+     * @param host  the object that will host the environment created by returned driver.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
-    Item driverFor(ItemStack stack);
+    Item driverFor(ItemStack stack, EnvironmentHost host);
 }

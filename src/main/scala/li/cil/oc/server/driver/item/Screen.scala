@@ -6,7 +6,7 @@ import li.cil.oc.common.{Slot, component, tileentity}
 import net.minecraft.item.ItemStack
 
 object Screen extends Item {
-  override def worksWith(stack: ItemStack) =
+  override def worksWith(stack: ItemStack, host: EnvironmentHost) =
     isOneOf(stack, api.Items.get("screen1")) && !isTablet(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {

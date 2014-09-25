@@ -2,7 +2,7 @@ package li.cil.oc.server.driver
 
 import java.util
 
-import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.driver.{EnvironmentHost, Converter}
 import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
@@ -57,8 +57,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case _ => null
     }
 
-  def driverFor(stack: ItemStack) =
-    if (stack != null) items.find(_.worksWith(stack)).orNull
+  def driverFor(stack: ItemStack, host: EnvironmentHost) =
+    if (stack != null) items.find(_.worksWith(stack, host)).orNull
     else null
 
   def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
