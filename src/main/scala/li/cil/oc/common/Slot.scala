@@ -14,10 +14,11 @@ object Slot {
   val Floppy = "floppy"
   val HDD = "hdd"
   val Memory = "memory"
+  val Tablet = "tablet"
   val Tool = "tool"
   val Upgrade = "upgrade"
 
-  val All = Array(Card, ComponentBus, Container, CPU, Floppy, HDD, Memory, Tool, Upgrade)
+  val All = Array(Card, ComponentBus, Container, CPU, Floppy, HDD, Memory, Tablet, Tool, Upgrade)
 
   def apply(driver: api.driver.Item, stack: ItemStack, f: Option[ItemStack => api.driver.Slot] = scala.None) = f.getOrElse(driver.slot _)(stack) match {
     case li.cil.oc.api.driver.Slot.Card => Card
@@ -31,6 +32,7 @@ object Slot {
     case _ =>
       val descriptor = api.Items.get(stack)
       if (descriptor == api.Items.get("componentBus1") || descriptor == api.Items.get("componentBus2") || descriptor == api.Items.get("componentBus3")) ComponentBus
+      else if (descriptor == api.Items.get("tablet")) Tablet
       else None
   }
 }

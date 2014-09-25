@@ -17,7 +17,7 @@ object Tablet extends Item {
     }.headOption.map(FileSystem.createEnvironment(_, container)).orNull
   }
 
-  override def slot(stack: ItemStack) = Slot.Disk
+  override def slot(stack: ItemStack) = Slot.None
 
   override def dataTag(stack: ItemStack) = {
     val data = new ItemUtils.TabletData(stack)
