@@ -108,7 +108,7 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
 
   override def getFlags = util.EnumSet.noneOf(classOf[GridFlags])
 
-  override def isWorldAccessable = true
+  override def isWorldAccessible = true
 
   override def getLocation = new DimensionalCoord(tileEntity)
 
