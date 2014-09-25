@@ -1,7 +1,9 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Analyzable, Node, Visibility}
+import li.cil.oc.api.Driver
+import li.cil.oc.api.network.{Component, Analyzable, Node, Visibility}
+import li.cil.oc.common.Slot
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ItemUtils
@@ -11,7 +13,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.Inventory with Analyzable {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -137,10 +139,20 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def getSizeInventory = 1
 
-  override def getInventoryStackLimit = 1
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
+    case (0, Some(driver)) => Slot(driver, stack) == Slot.Tablet
+    case _ => false
+  }
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    slot == 0 && api.Items.get(stack) == api.Items.get("tablet")
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    components(slot) match {
+      case Some(environment) => environment.node match {
+        case component: Component => component.setVisibility(Visibility.Network)
+      }
+      case _ =>
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
