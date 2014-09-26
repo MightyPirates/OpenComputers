@@ -6,6 +6,8 @@ import li.cil.oc.util.mods.Mods
 import micdoodle8.mods.galacticraft.api.power.EnergySource
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.language.implicitConversions
+
 trait Galacticraft extends Common {
   private implicit def toDirection(source: EnergySource) = source match {
     case adjacent: EnergySource.EnergySourceAdjacent => adjacent.direction

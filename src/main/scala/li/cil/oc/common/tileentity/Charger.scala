@@ -60,7 +60,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       }
 
       // Charge tablet if present.
-      if (getStackInSlot(0) != null && chargeSpeed > 0) {
+      val stack = getStackInSlot(0)
+      if (stack != null && chargeSpeed > 0) {
         def tryCharge(energy: Double, maxEnergy: Double, handler: (Double) => Unit) {
           if (energy < maxEnergy) {
             val itemCharge = math.min(maxEnergy - energy, Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency)
@@ -68,22 +69,11 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
             handler(itemCharge)
           }
         }
-        val stack = getStackInSlot(0)
-        Option(Tablet.Server.cache.getIfPresent(Tablet.getId(stack))) match {
-          case Some(tablet) =>
-            tryCharge(tablet.tablet.node.globalBuffer, tablet.tablet.node.globalBufferSize, (amount) => {
-              tablet.tablet.node.changeBuffer(amount)
-              tablet.data.energy = tablet.tablet.node.globalBuffer
-              tablet.data.maxEnergy = tablet.tablet.node.globalBufferSize
-              tablet.writeToNBT()
-            })
-          case _ =>
-            val data = new ItemUtils.TabletData(getStackInSlot(0))
-            tryCharge(data.energy, data.maxEnergy, (amount) => {
-              data.energy = math.min(data.maxEnergy, data.energy + amount)
-              data.save(getStackInSlot(0))
-            })
-        }
+        val data = new ItemUtils.TabletData(stack)
+        tryCharge(data.energy, data.maxEnergy, (amount) => {
+          data.energy = math.min(data.maxEnergy, data.energy + amount)
+          data.save(stack)
+        })
       }
     }
     else if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
@@ -146,6 +136,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
+    Tablet.Server.cache.invalidate(Tablet.getId(stack))
     components(slot) match {
       case Some(environment) => environment.node match {
         case component: Component => component.setVisibility(Visibility.Network)
