@@ -25,7 +25,19 @@ object Tablet extends Item {
       case _ => false
     }
     if (index >= 0 && stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "items")) {
-      stack.getTagCompound.getTagList(Settings.namespace + "items").tagAt(index).asInstanceOf[NBTTagCompound].getCompoundTag("tag")
+      val baseTag = stack.getTagCompound.getTagList(Settings.namespace + "items").tagAt(index).asInstanceOf[NBTTagCompound]
+      if (!baseTag.hasKey("item")) {
+        baseTag.setTag("item", new NBTTagCompound("item"))
+      }
+      val itemTag = baseTag.getCompoundTag("item")
+      if (!itemTag.hasKey("tag")) {
+        itemTag.setTag("tag", new NBTTagCompound("tag"))
+      }
+      val stackTag = itemTag.getCompoundTag("tag")
+      if (!stackTag.hasKey(Settings.namespace + "data")) {
+        stackTag.setTag(Settings.namespace + "data", new NBTTagCompound(Settings.namespace + "data"))
+      }
+      stackTag.getCompoundTag(Settings.namespace + "data")
     }
     else new NBTTagCompound()
   }

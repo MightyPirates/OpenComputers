@@ -371,7 +371,10 @@ object Tablet extends ITickHandler {
         // Server.
         tablet.writeToNBT()
         tablet.computer.stop()
-        tablet.node.remove()
+        for (node <- tablet.computer.node.network.nodes) {
+          node.remove()
+        }
+        tablet.writeToNBT()
       }
     }
 
