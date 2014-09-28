@@ -60,7 +60,7 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
 
   def updateLoadedChunk(loader: UpgradeChunkloader) {
     val centerChunk = new ChunkCoordIntPair(math.floor(loader.owner.xPosition).toInt >> 4, math.floor(loader.owner.zPosition).toInt >> 4)
-    val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkCoordIntPair(centerChunk.chunkXPos+x, centerChunk.chunkZPos+z))
+    val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkCoordIntPair(centerChunk.chunkXPos + x, centerChunk.chunkZPos + z)).toSet
 
     loader.ticket.foreach(ticket => {
       ticket.getChunkList.collect {
