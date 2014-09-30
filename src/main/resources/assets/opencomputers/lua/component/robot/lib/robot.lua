@@ -202,10 +202,10 @@ end
 function robot.suckFluid(amount)
     return component.robot.suckFluid(sides.front,amount)
 end
-function robot.ejectFluid(amount)
-    return component.robot.ejectFluid(sides.front,amount)
+function robot.dropFluid(amount)
+    return component.robot.dropFluid(sides.front,amount)
 end
-end
+
 function robot.getFluidInfo()
     return component.robot.getFluidInfo()
 end

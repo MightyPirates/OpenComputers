@@ -14,12 +14,12 @@ import net.minecraft
 import net.minecraft.block.{Block, BlockFluid}
 import net.minecraft.entity.item.{EntityItem, EntityMinecart}
 import net.minecraft.entity.{Entity, EntityLivingBase}
-import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.item.{ItemBucket, ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.{EnumMovingObjectType, MovingObjectPosition}
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import net.minecraftforge.event.world.BlockEvent
-import net.minecraftforge.fluids.{FluidTankInfo, IFluidHandler, FluidStack, FluidRegistry}
+import net.minecraftforge.fluids._
 
 import scala.collection.convert.WrapAsScala._
 
@@ -559,7 +559,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   }
 
   @Callback
-  def ejectFluid(context: Context, args: Arguments): Array[AnyRef] = {
+  def dropFluid(context: Context, args: Arguments): Array[AnyRef] = {
     //todo check if liquid?controller ist installed
     val facing = checkSideForAction(args, 0)
     world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
@@ -630,6 +630,30 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
       }
       case None => result(Unit, "no Container Selected")
+    }
+  }
+
+  @Callback
+  def storeFluid(context: Context, args: Arguments): Array[AnyRef] = {
+    val stack = stackInSlot(selectedSlot)
+
+    stack match {
+      case Some(item) => return result(FluidContainerRegistry.isBucket(item),FluidContainerRegistry.isContainer(item))
+
+
+      case None =>
+
+    }
+    result(Unit, "Not a valid inventory")
+  }
+
+  @Callback
+  def ejectFluid(context: Context, args: Arguments): Array[AnyRef] = {
+    val stack = stackInSlot(selectedSlot)
+    stack match {
+      case Some(item) => result(true)
+      case None => result(Unit, "Not a valid inventory")
+
     }
   }
 
