@@ -17,7 +17,7 @@ import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.{ItemUtils, RotationHelper}
-import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -252,7 +252,14 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   override def isPaused = computer.isPaused
 
-  override def start() = computer.start()
+  override def start() = {
+    val result = computer.start()
+    computer.lastError match {
+      case message if message != null => holder.sendChatToPlayer(Localization.localizeLater(message))
+      case _ =>
+    }
+    result
+  }
 
   override def pause(seconds: Double) = computer.pause(seconds)
 

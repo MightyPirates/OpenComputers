@@ -7,10 +7,9 @@ import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
 import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{DimensionManager, ForgeDirection}
 
 class PacketHandler extends CommonPacketHandler {
@@ -59,7 +58,7 @@ class PacketHandler extends CommonPacketHandler {
         if (!computer.isPaused) {
           computer.start()
           computer.lastError match {
-            case message if message != null => player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(Settings.namespace + message))
+            case message if message != null => player.sendChatToPlayer(Localization.localizeLater(message))
             case _ =>
           }
         }
