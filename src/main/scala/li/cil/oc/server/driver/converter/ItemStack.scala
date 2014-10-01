@@ -2,7 +2,7 @@ package li.cil.oc.server.driver.converter
 
 import java.util
 
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import net.minecraft.item
 import net.minecraft.item.Item
 
@@ -12,7 +12,9 @@ object ItemStack extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =
     value match {
       case stack: item.ItemStack =>
-        output += "id" -> Int.box(Item.getIdFromItem(stack.getItem))
+        if (Settings.get.insertIdsInConverters) {
+          output += "id" -> Int.box(Item.getIdFromItem(stack.getItem))
+        }
         output += "damage" -> Int.box(stack.getItemDamage)
         output += "maxDamage" -> Int.box(stack.getMaxDamage)
         output += "size" -> Int.box(stack.stackSize)

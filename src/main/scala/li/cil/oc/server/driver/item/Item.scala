@@ -20,7 +20,7 @@ trait Item extends driver.Item {
 
   protected def isComputer(host: Class[_ <: EnvironmentHost]) = host.isInstanceOf[tileentity.traits.Computer] || host.isInstanceOf[tileentity.ServerRack]
 
-  protected def isRobot(host: Class[_ <: EnvironmentHost]) = host.isInstanceOf[api.tileentity.Robot]
+  protected def isRobot(host: Class[_ <: EnvironmentHost]) = classOf[api.tileentity.Robot].isAssignableFrom(host)
 
   protected def isTablet(host: Class[_ <: EnvironmentHost]) = host.isInstanceOf[item.TabletWrapper]
 }

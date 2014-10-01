@@ -144,13 +144,11 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         false
     }
     !cancel && callUsingItemInSlot(0, stack => {
-      val current = getCurrentEquippedItem
-
       val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
-        case living: EntityLivingBase if current != null => current.interactWithEntity(this, living)
+        case living: EntityLivingBase if getCurrentEquippedItem != null => getCurrentEquippedItem.interactWithEntity(this, living)
         case _ => false
       }))
-      if (current != null && current.stackSize <= 0) {
+      if (getCurrentEquippedItem != null && getCurrentEquippedItem.stackSize <= 0) {
         destroyCurrentEquippedItem()
       }
       result

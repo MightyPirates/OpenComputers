@@ -79,7 +79,7 @@ dependencies {
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
     provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
-    provided "codechicken:WR-CBE:1.6.4-${config.wrcbe.version}:dev"
+    provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "dev.calclavia.universalelectricity:universal-electricity:+:dev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"

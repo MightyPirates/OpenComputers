@@ -13,13 +13,7 @@ object FluidTankInfo extends api.driver.Converter {
       case tankInfo: fluids.FluidTankInfo =>
         output += "capacity" -> Int.box(tankInfo.capacity)
         if (tankInfo.fluid != null) {
-          output += "amount" -> Int.box(tankInfo.fluid.amount)
-          output += "id" -> Int.box(tankInfo.fluid.fluidID)
-          val fluid = tankInfo.fluid.getFluid
-          if (fluid != null) {
-            output += "name" -> fluid.getName
-            output += "label" -> fluid.getLocalizedName(tankInfo.fluid)
-          }
+          FluidStack.convert(tankInfo.fluid, output)
         }
         else output += "amount" -> Int.box(0)
       case _ =>

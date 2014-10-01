@@ -19,7 +19,7 @@ import net.minecraft.util.{MovingObjectPosition, Vec3}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
-import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fluids._
 
 import scala.collection.convert.WrapAsScala._
 
@@ -45,6 +45,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
 
   def selectedSlot = robot.selectedSlot
+
+  def selectedTank = robot.selectedTank
 
   def player = robot.player()
 
@@ -494,6 +496,185 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  @Callback
+  def tankCount(context: Context, args: Arguments): Array[AnyRef] = result(robot.tankCount)
+
+  @Callback
+  def selectTank(context: Context, args: Arguments): Array[AnyRef] = {
+    if (args.count > 0 && args.checkAny(0) != null) {
+      robot.selectedTank = checkTank(args, 0)
+    }
+    result(selectedTank + 1)
+  }
+
+  @Callback(direct = true)
+  def tankLevel(context: Context, args: Arguments): Array[AnyRef] = {
+    val index =
+      if (args.count > 0 && args.checkAny(0) != null) checkTank(args, 0)
+      else selectedTank
+    result(fluidInTank(index) match {
+      case Some(fluid) => fluid.amount
+      case _ => 0
+    })
+  }
+
+  @Callback(direct = true)
+  def tankSpace(context: Context, args: Arguments): Array[AnyRef] = {
+    val index =
+      if (args.count > 0 && args.checkAny(0) != null) checkTank(args, 0)
+      else selectedTank
+    result(getTank(index) match {
+      case Some(tank) => tank.getCapacity - tank.getFluidAmount
+      case _ => 0
+    })
+  }
+
+  @Callback
+  def compareFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = checkTank(args, 0)
+    result((fluidInTank(selectedTank), fluidInTank(index)) match {
+      case (Some(stackA), Some(stackB)) => haveSameFluidType(stackA, stackB)
+      case (None, None) => true
+      case _ => false
+    })
+  }
+
+  @Callback
+  def transferFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = checkTank(args, 0)
+    val count = args.optionalFluidCount(1)
+    if (index == selectedTank || count == 0) {
+      result(true)
+    }
+    else (getTank(selectedTank), getTank(index)) match {
+      case (Some(from), Some(to)) =>
+        val drained = from.drain(count, false)
+        val transferred = to.fill(drained, true)
+        if (transferred > 0) {
+          from.drain(transferred, true)
+          robot.markDirty()
+          result(true)
+        }
+        else if (count >= from.getFluidAmount && to.getCapacity >= from.getFluidAmount && from.getCapacity >= to.getFluidAmount) {
+          // Swap.
+          val tmp = to.drain(to.getFluidAmount, true)
+          to.fill(from.drain(from.getFluidAmount, true), true)
+          from.fill(tmp, true)
+          robot.markDirty()
+          result(true)
+        }
+        else result(Unit, "incompatible or no fluid")
+      case _ => result(Unit, "invalid index")
+    }
+  }
+
+  @Callback
+  def compareFluid(context: Context, args: Arguments): Array[AnyRef] = {
+    val side = checkSideForAction(args, 0)
+    fluidInTank(selectedTank) match {
+      case Some(stack) =>
+        world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+          case handler: IFluidHandler =>
+            result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
+          case _ =>
+            val block = world.getBlock(x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+            val fluid = FluidRegistry.lookupFluidForBlock(block)
+            result(stack.getFluid == fluid)
+        }
+      case _ => result(false)
+    }
+  }
+
+  @Callback
+  def drain(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    val count = args.optionalFluidCount(1)
+    getTank(selectedTank) match {
+      case Some(tank) =>
+        val space = tank.getCapacity - tank.getFluidAmount
+        val amount = math.min(count, space)
+        if (count > 0 && amount == 0) {
+          result(Unit, "tank is full")
+        }
+        else world.getTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+          case handler: IFluidHandler =>
+            tank.getFluid match {
+              case stack: FluidStack =>
+                val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
+                if ((drained != null && drained.amount > 0) || amount == 0) {
+                  tank.fill(drained, true)
+                  result(true)
+                }
+                else result(Unit, "incompatible or no fluid")
+              case _ =>
+                tank.fill(handler.drain(facing.getOpposite, amount, true), true)
+                result(true)
+            }
+          case _ =>
+            val block = world.getBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+            val fluid = FluidRegistry.lookupFluidForBlock(block)
+            if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
+              tank.fill(new FluidStack(fluid, 1000), true)
+              world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+              result(true)
+            }
+            else result(Unit, "tank is full")
+        }
+      case _ => result(Unit, "no tank selected")
+    }
+  }
+
+  @Callback
+  def fill(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    val count = args.optionalFluidCount(1)
+    getTank(selectedTank) match {
+      case Some(tank) =>
+        val amount = math.min(count, tank.getFluidAmount)
+        if (count > 0 && amount == 0) {
+          result(Unit, "tank is empty")
+        }
+        val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+        world.getTileEntity(bx, by, bz) match {
+          case handler: IFluidHandler =>
+            tank.getFluid match {
+              case stack: FluidStack =>
+                val filled = handler.fill(facing.getOpposite, new FluidStack(stack, amount), true)
+                if (filled > 0 || amount == 0) {
+                  tank.drain(filled, true)
+                  result(true)
+                }
+                else result(Unit, "incompatible or no fluid")
+              case _ =>
+                result(Unit, "tank is empty")
+            }
+          case _ =>
+            val block = world.getBlock(bx, by, bz)
+            if (block != null && !block.isAir(world, x, y, z) && !block.isReplaceable(world, x, y, z)) {
+              result(Unit, "no space")
+            }
+            else if (tank.getFluidAmount < 1000) {
+              result(Unit, "tank is empty")
+            }
+            else if (!tank.getFluid.getFluid.canBePlacedInWorld) {
+              result(Unit, "incompatible fluid")
+            }
+            else {
+              val fluidBlock = tank.getFluid.getFluid.getBlock
+              tank.drain(1000, true)
+              world.func_147480_a(bx, by, bz, true)
+              world.setBlock(bx, by, bz, fluidBlock)
+              // This fake neighbor update is required to get stills to start flowing.
+              world.notifyBlockOfNeighborChange(bx, by, bz, robot.block)
+              result(true)
+            }
+        }
+      case _ => result(Unit, "no tank selected")
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
@@ -620,11 +801,22 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     stackA.getItem == stackB.getItem &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
+  private def haveSameFluidType(stackA: FluidStack, stackB: FluidStack) = stackA.isFluidEqual(stackB)
+
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))
+
+  private def getTank(index: Int) = robot.getFluidTank(index)
+
+  private def fluidInTank(index: Int) = getTank(index) match {
+    case Some(tank) => Option(tank.getFluid)
+    case _ => None
+  }
 
   // ----------------------------------------------------------------------- //
 
   private def checkSlot(args: Arguments, n: Int) = args.checkSlot(robot, n)
+
+  private def checkTank(args: Arguments, n: Int) = args.checkTank(robot, n)
 
   private def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
 

@@ -548,7 +548,9 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
   private def verifyComponents() {
     val invalid = mutable.Set.empty[String]
     for ((address, name) <- _components) {
-      if (node.network.node(address) == null) {
+      node.network.node(address) match {
+        case component: Component if component.name == name => // All is well.
+        case _ =>
         if (name == "filesystem") {
           OpenComputers.log.trace(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
           OpenComputers.log.trace("If this was a file system provided by a ComputerCraft peripheral, this is normal.")

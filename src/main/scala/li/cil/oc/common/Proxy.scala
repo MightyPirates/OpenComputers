@@ -11,10 +11,10 @@ import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template.{RobotTemplate, TabletTemplate}
-import li.cil.oc.server.{machine, _}
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.server.network.WirelessNetwork
+import li.cil.oc.server.{machine, _}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import net.minecraft.item.ItemStack
@@ -102,6 +102,8 @@ class Proxy {
     api.Driver.add(driver.item.UpgradePiston)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
+    api.Driver.add(driver.item.UpgradeTank)
+    api.Driver.add(driver.item.UpgradeTankController)
     api.Driver.add(driver.item.UpgradeTractorBeam)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
@@ -116,6 +118,7 @@ class Proxy {
     }
 
     OpenComputers.log.info("Initializing vanilla converters.")
+    api.Driver.add(driver.converter.FluidStack)
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 

@@ -104,6 +104,8 @@ item.oc.UpgradeNavigation.name=Navigation Upgrade
 item.oc.UpgradePiston.name=Piston Upgrade
 item.oc.UpgradeSign.name=Sign I/O Upgrade
 item.oc.UpgradeSolarGenerator.name=Solar Generator Upgrade
+item.oc.UpgradeTank.name=Tank Upgrade
+item.oc.UpgradeTankController.name=Tank Controller Upgrade
 item.oc.UpgradeTractorBeam.name=Tractor Beam Upgrade
 item.oc.WirelessNetworkCard.name=Wireless Network Card
 
@@ -262,5 +264,7 @@ oc:tooltip.UpgradeNavigation=Can be used to determine the position and orientati
 oc:tooltip.UpgradePiston=This upgrade is very pushy. It allows moving blocks, similar to when using a piston. It does §lnot§7 move entities, however.
 oc:tooltip.UpgradeSign=Allows reading text on and writing text to signs.
 oc:tooltip.UpgradeSolarGenerator=Can be used to generate energy from sunlight on the go. Requires a clear line of sight to the sky above the robot. Generates energy at %s%% of the speed of a Stirling Engine.
+oc:tooltip.UpgradeTank=This upgrade provides a tank for fluid storage to the robot. Without one of these, robots will not be able to store fluids internally.
+oc:tooltip.UpgradeTankController=This upgrade allows the robot more control in how it interacts with external tanks, and allows it to transfer fluids into and out of fluid tank items in its inventory.
 oc:tooltip.UpgradeTractorBeam=Equips the robot with extremely advanced technology, nicknamed the "Item Magnet". Allows it to pick up items anywhere within 3 blocks of its location.
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.

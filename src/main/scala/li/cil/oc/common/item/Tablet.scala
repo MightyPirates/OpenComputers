@@ -18,7 +18,7 @@ import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.{ItemUtils, RotationHelper}
-import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.{Localization, OpenComputers, Settings, api}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -91,7 +91,12 @@ class Tablet(val parent: Delegator) extends Delegate {
         player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
       }
       else {
-        Tablet.get(stack, player).machine.start()
+        val computer = Tablet.get(stack, player).machine
+        computer.start()
+        computer.lastError match {
+          case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+          case _ =>
+        }
       }
     }
     else if (!world.isRemote) Tablet.Server.get(stack, player).machine.stop()
@@ -364,7 +369,10 @@ object Tablet {
         // Server.
         tablet.writeToNBT()
         tablet.machine.stop()
-        tablet.node.remove()
+        for (node <- tablet.machine.node.network.nodes) {
+          node.remove()
+        }
+        tablet.writeToNBT()
       }
     }
 

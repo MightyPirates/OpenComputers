@@ -248,6 +248,7 @@ class Settings(config: Config) {
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
+  val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
 
   // ----------------------------------------------------------------------- //
   // debug
@@ -265,6 +266,7 @@ class Settings(config: Config) {
   val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
   val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
+  val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
 }
 
 object Settings {
@@ -352,6 +354,11 @@ object Settings {
       "computer.debug",
       "misc.alwaysTryNative",
       "misc.verbosePersistenceErrors"
+    ),
+    // Upgrading to version 1.3.5, added forgotten check for item stack,
+    // inspection, patch to true to avoid stuff suddenly breaking.
+    VersionRange.createFromVersionSpec("1.3.4") -> Array(
+      "misc.allowItemStackInspection"
     )
   )
 

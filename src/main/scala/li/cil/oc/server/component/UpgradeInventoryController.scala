@@ -30,7 +30,7 @@ class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends c
   }
 
   @Callback(doc = """function():table -- Get a description of the stack in the the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
-  def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = {
+  def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForInventory(args, 0)
     val slot = args.checkInteger(1) - 1
     if (facing == host.facing.getOpposite) {
@@ -44,6 +44,7 @@ class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends c
       case _ => result(Unit, "no inventory")
     }
   }
+  else result(Unit, "not enabled in config")
 
   @Callback(doc = """function(facing:number, slot:number[, count:number]):boolean -- Drops the selected item stack into the specified slot of an inventory.""")
   def dropIntoSlot(context: Context, args: Arguments): Array[AnyRef] = {
