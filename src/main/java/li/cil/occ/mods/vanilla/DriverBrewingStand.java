@@ -31,7 +31,7 @@ public final class DriverBrewingStand extends DriverTileEntity implements NamedB
             super(tileEntity, "brewing_stand");
         }
 
-        @Callback
+        @Callback(doc = "function():number -- Get the number of ticks remaining of the current brewing operation.")
         public Object[] getBrewTime(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getBrewTime()};
         }

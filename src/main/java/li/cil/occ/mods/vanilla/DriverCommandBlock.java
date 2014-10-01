@@ -31,19 +31,19 @@ public final class DriverCommandBlock extends DriverTileEntity implements NamedB
             super(tileEntity, "command_block");
         }
 
-        @Callback(direct = true)
+        @Callback(direct = true, doc = "function():string -- Get the command currently set in this command block.")
         public Object[] getCommand(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getCommand()};
         }
 
-        @Callback
+        @Callback(doc = "function(value:string) -- Set the specified command for the command block.")
         public Object[] setCommand(final Context context, final Arguments args) {
             tileEntity.setCommand(args.checkString(0));
             tileEntity.getWorldObj().markBlockForUpdate(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
             return new Object[]{true};
         }
 
-        @Callback
+        @Callback(doc = "function():number -- Execute the currently set command. This has a slight delay to allow the command block to properly update.")
         public Object[] executeCommand(final Context context, final Arguments args) {
             context.pause(0.1); // Make sure the command block has time to do its thing.
             return new Object[]{tileEntity.executeCommandOnPowered(tileEntity.getWorldObj())};

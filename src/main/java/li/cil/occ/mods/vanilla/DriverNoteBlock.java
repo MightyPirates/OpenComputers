@@ -32,18 +32,18 @@ public final class DriverNoteBlock extends DriverTileEntity implements NamedBloc
             super(tileEntity, "note_block");
         }
 
-        @Callback(direct = true)
+        @Callback(direct = true, doc = "function():number -- Get the currently set pitch on this note block.")
         public Object[] getPitch(final Context context, final Arguments args) {
             return new Object[]{tileEntity.note + 1};
         }
 
-        @Callback
+        @Callback(doc = "function(value:number) -- Set the pitch for this note block. Must be in the interval [1, 25].")
         public Object[] setPitch(final Context context, final Arguments args) {
             setPitch(args.checkInteger(0));
             return new Object[]{true};
         }
 
-        @Callback
+        @Callback(doc = "function([pitch:number]):boolean -- Triggers the note block if possible. Allows setting the pitch for to save a tick.")
         public Object[] trigger(final Context context, final Arguments args) {
             if (args.count() > 0 && args.checkAny(0) != null) {
                 setPitch(args.checkInteger(0));

@@ -33,7 +33,7 @@ public final class DriverRecordPlayer extends DriverTileEntity implements NamedB
             super(tileEntity, "jukebox");
         }
 
-        @Callback
+        @Callback(doc = "function():string -- Get the title of the record currently in the juke box.")
         public Object[] getRecord(final Context context, final Arguments args) {
             final ItemStack record = tileEntity.func_96097_a();
             if (record == null || !(record.getItem() instanceof ItemRecord)) {

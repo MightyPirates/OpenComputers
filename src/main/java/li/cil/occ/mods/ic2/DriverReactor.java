@@ -32,27 +32,27 @@ public final class DriverReactor extends DriverTileEntity implements NamedBlock 
             super(tileEntity, "reactor");
         }
 
-        @Callback(doc = "Get the reactor's heat.")
+        @Callback(doc = "function():number -- Get the reactor's heat.")
         public Object[] getHeat(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getHeat()};
         }
 
-        @Callback(doc = "Get the reactor's maximum heat before exploding.")
+        @Callback(doc = "function():number -- Get the reactor's maximum heat before exploding.")
         public Object[] getMaxHeat(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getMaxHeat()};
         }
 
-        @Callback(doc = "Get the reactor's energy output. Not multiplied with the base EU/t value.")
+        @Callback(doc = "function():number -- Get the reactor's energy output. Not multiplied with the base EU/t value.")
         public Object[] getReactorEnergyOutput(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getReactorEnergyOutput()};
         }
 
-        @Callback(doc = "Get the reactor's base EU/t value.")
+        @Callback(doc = "function():number -- Get the reactor's base EU/t value.")
         public Object[] getReactorEUOutput(final Context context, final Arguments args) {
             return new Object[]{IC2Reactor.getEUOutput()};
         }
 
-        @Callback(doc = "Get whether the reactor is active and supposed to produce energy.")
+        @Callback(doc = "function():boolean -- Get whether the reactor is active and supposed to produce energy.")
         public Object[] producesEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.produceEnergy()};
         }

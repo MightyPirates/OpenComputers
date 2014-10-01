@@ -31,7 +31,7 @@ public final class DriverMobSpawner extends DriverTileEntity implements NamedBlo
             super(tileEntity, "mob_spawner");
         }
 
-        @Callback
+        @Callback(doc = "function():string -- Get the name of the entity that is being spawned by this spawner.")
         public Object[] getSpawningMobName(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getSpawnerLogic().getEntityNameToSpawn()};
         }

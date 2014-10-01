@@ -25,7 +25,7 @@ public class DriverDrawBridge extends DriverTileEntity {
             super(tileEntity, "drawbridge");
         }
 
-        @Callback
+        @Callback(doc = "function():boolean -- Whether the draw bridge is currently in its extended state or not.")
         public Object[] hasExtended(final Context context, final Arguments args) {
             return new Object[]{tileEntity.hasExtended()};
         }

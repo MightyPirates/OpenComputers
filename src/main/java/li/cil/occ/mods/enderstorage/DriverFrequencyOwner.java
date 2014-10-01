@@ -29,12 +29,12 @@ public final class DriverFrequencyOwner extends DriverTileEntity {
             super(tileEntity, "ender_storage");
         }
 
-        @Callback
+        @Callback(doc = "function():number -- Get the currently set frequency.")
         public Object[] getFrequency(final Context context, final Arguments args) {
             return new Object[]{Reflection.get(tileEntity, "freq")};
         }
 
-        @Callback
+        @Callback(doc = "function(value:number) -- Set the frequency. Who would have thought?!")
         public Object[] setFrequency(final Context context, final Arguments args) {
             final int frequency = args.checkInteger(0);
             if ((frequency & 0xFFF) != frequency) {
@@ -49,7 +49,7 @@ public final class DriverFrequencyOwner extends DriverTileEntity {
             return null;
         }
 
-        @Callback
+        @Callback(doc = "function():string -- Get the name of the owner, which is usually a player's name or 'global'.")
         public Object[] getOwner(final Context context, final Arguments args) {
             return new Object[]{Reflection.get(tileEntity, "owner")};
         }
