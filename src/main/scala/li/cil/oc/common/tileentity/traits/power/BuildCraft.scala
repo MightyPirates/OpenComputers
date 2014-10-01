@@ -17,10 +17,10 @@ trait BuildCraft extends Common {
     super.updateEntity()
     if (useBuildCraftPower && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.ratioBuildCraft
+        val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioBuildCraft
         if (demand > 1) {
           val power = getPowerProvider.useEnergy(1, demand.toFloat, true)
-          tryChangeBuffer(side, power * Settings.ratioBuildCraft)
+          tryChangeBuffer(side, power * Settings.get.ratioBuildCraft)
         }
       }
     }

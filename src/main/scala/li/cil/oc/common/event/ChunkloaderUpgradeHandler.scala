@@ -59,15 +59,21 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
   }
 
   def updateLoadedChunk(loader: UpgradeChunkloader) {
-    val robotChunk = new ChunkCoordIntPair(math.round(loader.owner.xPosition - 0.5).toInt >> 4, math.round(loader.owner.zPosition - 0.5).toInt >> 4)
+    val centerChunk = new ChunkCoordIntPair(math.floor(loader.owner.xPosition).toInt >> 4, math.floor(loader.owner.zPosition).toInt >> 4)
+    val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkCoordIntPair(centerChunk.chunkXPos + x, centerChunk.chunkZPos + z)).toSet
+
     loader.ticket.foreach(ticket => {
       ticket.getChunkList.collect {
-        case chunk: ChunkCoordIntPair if chunk != robotChunk => ForgeChunkManager.unforceChunk(ticket, chunk)
+        case chunk: ChunkCoordIntPair if !robotChunks.contains(chunk) => ForgeChunkManager.unforceChunk(ticket, chunk)
       }
-      ForgeChunkManager.forceChunk(ticket, robotChunk)
+
+      for (chunk <- robotChunks) {
+        ForgeChunkManager.forceChunk(ticket, chunk)
+      }
+
       ticket.getModData.setString("address", loader.node.address)
-      ticket.getModData.setInteger("x", robotChunk.chunkXPos)
-      ticket.getModData.setInteger("z", robotChunk.chunkZPos)
+      ticket.getModData.setInteger("x", centerChunk.chunkXPos)
+      ticket.getModData.setInteger("z", centerChunk.chunkZPos)
     })
   }
 }

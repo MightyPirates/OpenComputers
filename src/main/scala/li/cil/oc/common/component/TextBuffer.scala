@@ -188,11 +188,12 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     val (mw, mh) = maxResolution
     if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
       throw new IllegalArgumentException("unsupported resolution")
+    // Always send to clients, their state might be dirty.
+    proxy.onScreenResolutionChange(w, h)
     if (data.size = (w, h)) {
       if (node != null) {
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
-      proxy.onScreenResolutionChange(w, h)
       true
     }
     else false
@@ -209,11 +210,9 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   override def setColorDepth(depth: ColorDepth) = {
     if (depth.ordinal > maxDepth.ordinal)
       throw new IllegalArgumentException("unsupported depth")
-    if (data.format = PackedColor.Depth.format(depth)) {
-      proxy.onScreenDepthChange(depth)
-      true
-    }
-    else false
+    // Always send to clients, their state might be dirty.
+    proxy.onScreenDepthChange(depth)
+    data.format = PackedColor.Depth.format(depth)
   }
 
   override def getColorDepth = data.format.depth
@@ -423,7 +422,7 @@ object TextBuffer {
   def onChunkUnload(e: ChunkEvent.Unload) {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.owner.world != e.world || !chunk.isAtLocation(math.round(t.owner.xPosition - 0.5).toInt << 4, math.round(t.owner.zPosition - 0.5).toInt << 4)
+      val keep = t.owner.world != e.world || !chunk.isAtLocation(math.floor(t.owner.xPosition).toInt << 4, math.floor(t.owner.zPosition).toInt << 4)
       if (!keep) {
         ClientComponentTracker.remove(t.proxy.nodeAddress)
       }

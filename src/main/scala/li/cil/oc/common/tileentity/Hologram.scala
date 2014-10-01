@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.mods.Waila
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -224,7 +225,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     // Validate all axes before setting the values.
     val maxTranslation = Settings.get.hologramMaxTranslationByTier(tier)
     val tx = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(0)))
-    val ty = math.max(0, math.min(maxTranslation, args.checkDouble(1)))
+    val ty = math.max(0, math.min(maxTranslation * 2, args.checkDouble(1)))
     val tz = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(2)))
 
     translation.xCoord = tx
@@ -364,10 +365,12 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-    SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
-      tag.setIntArray("volume", volume)
-      tag.setIntArray("colors", colors.map(convertColor))
-    })
+    if (!Waila.isSavingForTooltip) {
+      SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
+        tag.setIntArray("volume", volume)
+        tag.setIntArray("colors", colors.map(convertColor))
+      })
+    }
     nbt.setDouble(Settings.namespace + "scale", scale)
     nbt.setDouble(Settings.namespace + "offsetX", translation.xCoord)
     nbt.setDouble(Settings.namespace + "offsetY", translation.yCoord)

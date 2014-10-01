@@ -540,14 +540,16 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
   private def verifyComponents() {
     val invalid = mutable.Set.empty[String]
     for ((address, name) <- _components) {
-      if (node.network.node(address) == null) {
-        if (name == "filesystem") {
-          OpenComputers.log.fine(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
-          OpenComputers.log.fine("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
-        }
-        else OpenComputers.log.warning(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
-        signal("component_removed", address, name)
-        invalid += address
+      node.network.node(address) match {
+        case component: Component if component.name == name => // All is well.
+        case _ =>
+          if (name == "filesystem") {
+            OpenComputers.log.fine(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
+            OpenComputers.log.fine("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
+          }
+          else OpenComputers.log.warning(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
+          signal("component_removed", address, name)
+          invalid += address
       }
     }
     for (address <- invalid) {
@@ -579,7 +581,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       else fs.load(SaveHandler.loadNBT(nbt, node.address + "_tmp"))
     })
 
-    if (state.size > 0 && state.top != Machine.State.Stopped && init()) try {
+    if (state.size > 0 && isRunning && init()) try {
       architecture.load(nbt)
 
       signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {

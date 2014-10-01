@@ -1,6 +1,5 @@
 package li.cil.oc.server.component.machine.luac
 
-import com.naef.jnlua.LuaState
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
@@ -51,7 +50,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       if (lua.isNoneOrNil(1)) owner.bootAddress = ""
-      else owner.bootAddress = lua.checkString(1)
+      else owner.bootAddress = lua.checkString(1).take(36)
       0
     })
     lua.setField(-2, "setBootAddress")

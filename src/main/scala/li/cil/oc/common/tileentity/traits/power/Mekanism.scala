@@ -12,13 +12,13 @@ trait Mekanism extends Common {
   @Optional.Method(modid = Mods.IDs.Mekanism)
   def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) =
     if (!Mods.Mekanism.isAvailable) 0
-    else tryChangeBuffer(side, amount * Settings.ratioMekanism) / Settings.ratioMekanism
+    else tryChangeBuffer(side, amount * Settings.get.ratioMekanism) / Settings.get.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.ratioMekanism
+  def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.get.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
-  def getEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBuffer).max / Settings.ratioMekanism
+  def getEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBuffer).max / Settings.get.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
   def setEnergy(energy: Double) {}

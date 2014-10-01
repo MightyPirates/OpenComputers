@@ -104,10 +104,6 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
           p.sendChatToPlayer(Localization.Chat.WarningPower)
         }
-        OpenComputers.tampered match {
-          case Some(event) => p.sendChatToPlayer(Localization.Chat.WarningFingerprint(event))
-          case _ =>
-        }
         ServerPacketSender.sendPetVisibility(None, Some(p))
         // Do update check in local games and for OPs.
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {

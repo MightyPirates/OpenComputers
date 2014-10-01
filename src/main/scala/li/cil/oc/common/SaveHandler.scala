@@ -12,8 +12,9 @@ import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.{EventPriority, ForgeSubscribe}
 import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
+import org.apache.commons.lang3.{JavaVersion, SystemUtils}
 
 import scala.collection.mutable
 
@@ -40,7 +41,7 @@ object SaveHandler {
   }
 
   def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(container.world, math.round(container.xPosition - 0.5).toInt, math.round(container.zPosition - 0.5).toInt, nbt, name, writeNBT(save))
+    scheduleSave(container.world, math.floor(container.xPosition).toInt, math.floor(container.zPosition).toInt, nbt, name, writeNBT(save))
   }
 
   def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
@@ -176,39 +177,26 @@ object SaveHandler {
     }
   }
 
-  @ForgeSubscribe
+  @ForgeSubscribe(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
     // Touch all externally saved data when loading, to avoid it getting
     // deleted in the next save (because the now - save time will usually
     // be larger than the time out after loading a world again).
-    try {
-      Files.walkFileTree(statePath.toPath, new FileVisitor[Path] {
-        override def visitFile(file: Path, attrs: BasicFileAttributes) = {
-          file.toFile.setLastModified(System.currentTimeMillis())
-          FileVisitResult.CONTINUE
-        }
-
-        override def visitFileFailed(file: Path, exc: IOException) = FileVisitResult.CONTINUE
-
-        override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = FileVisitResult.CONTINUE
-
-        override def postVisitDirectory(dir: Path, exc: IOException) = FileVisitResult.CONTINUE
-      })
-    }
-    catch {
-      case _: Throwable =>
-        // Most likely we're on Java 1.6, so we can't use the walker...
-        // Which means we may run into infinite loops if there are
-        // evil symlinks. But that's really not something I'm bothered by.
-        def recurse(file: File) {
-          file.setLastModified(System.currentTimeMillis())
-          if (file.isDirectory) file.listFiles().foreach(recurse)
-        }
-        recurse(statePath)
-    }
+    if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
+    else visitJava16()
   }
 
-  @ForgeSubscribe
+  private def visitJava16() {
+    // This may run into infinite loops if there are evil symlinks.
+    // But that's really not something I'm bothered by, it's a fallback.
+    def recurse(file: File) {
+      file.setLastModified(System.currentTimeMillis())
+      if (file.isDirectory) file.listFiles().foreach(recurse)
+    }
+    recurse(statePath)
+  }
+
+  @ForgeSubscribe(priority = EventPriority.LOWEST)
   def onWorldSave(e: WorldEvent.Save) {
     saveData.synchronized {
       saveData.get(e.world.provider.dimensionId) match {
@@ -232,5 +220,22 @@ object SaveHandler {
     if (emptyDirs != null) {
       emptyDirs.filter(_ != null).foreach(_.delete())
     }
+  }
+}
+
+object SaveHandlerJava17Functionality {
+  def visitJava17(statePath: File) {
+    Files.walkFileTree(statePath.toPath, new FileVisitor[Path] {
+      override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+        file.toFile.setLastModified(System.currentTimeMillis())
+        FileVisitResult.CONTINUE
+      }
+
+      override def visitFileFailed(file: Path, exc: IOException) = FileVisitResult.CONTINUE
+
+      override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = FileVisitResult.CONTINUE
+
+      override def postVisitDirectory(dir: Path, exc: IOException) = FileVisitResult.CONTINUE
+    })
   }
 }

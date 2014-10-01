@@ -7,7 +7,6 @@ import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
 import li.cil.oc.common.{container, tileentity}
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
@@ -36,7 +35,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     fontRenderer.drawString(
-      StatCollector.translateToLocal(computer.getInvName),
+      Localization.localizeImmediately(computer.getInvName),
       8, 6, 0x404040)
     if (powerButton.func_82252_a) {
       val tooltip = new java.util.ArrayList[String]

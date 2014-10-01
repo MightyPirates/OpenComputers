@@ -5,8 +5,10 @@ import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.component
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.World
+import net.minecraft.server.MinecraftServer
+import net.minecraft.world.{EnumGameType, World}
 import net.minecraftforge.common.DimensionManager
 
 import scala.math.ScalaNumber
@@ -33,9 +35,82 @@ class DebugCard(owner: Container) extends component.ManagedComponent {
 
   @Callback(doc = """function():userdata -- Get the container's world object.""")
   def getWorld(context: Context, args: Arguments): Array[AnyRef] = result(new DebugCard.WorldValue(owner.world))
+
+  @Callback(doc = """function(name:string):userdata -- Get the entity of a player.""")
+  def getPlayer(context: Context, args: Arguments): Array[AnyRef] = result(new DebugCard.PlayerValue(args.checkString(0)))
 }
 
 object DebugCard {
+
+  final private def result(args: Any*): Array[AnyRef] = {
+    def unwrap(arg: Any): AnyRef = arg match {
+      case x: ScalaNumber => x.underlying
+      case x => x.asInstanceOf[AnyRef]
+    }
+    Array(args map unwrap: _*)
+  }
+
+  class PlayerValue(var name: String) extends AbstractValue {
+    def this() = this("") // For loading.
+
+    // ----------------------------------------------------------------------- //
+
+    def withPlayer(f: (EntityPlayerMP) => Array[AnyRef]) = {
+      MinecraftServer.getServer.getConfigurationManager.getPlayerForUsername(name) match {
+        case player: EntityPlayerMP => f(player)
+        case _ => Array(Unit, "player is offline")
+      }
+    }
+
+    @Callback(doc = """function():string -- Get the player's game type.""")
+    def getGameType(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer(player => Array(player.theItemInWorldManager.getGameType.getName))
+
+    @Callback(doc = """function(gametype:string) -- Set the player's game type (survival, creative, adventure).""")
+    def setGameType(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer(player => {
+        player.setGameType(EnumGameType.getByName(args.checkString(0).toLowerCase))
+        null
+      })
+
+    @Callback(doc = """function():number, number, number -- Get the player's position.""")
+    def getPosition(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer(player => Array(double2Double(player.posX), double2Double(player.posY), double2Double(player.posZ)))
+
+    @Callback(doc = """function(x:number, y:number, z:number) -- Set the player's position.""")
+    def setPosition(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer(player => {
+        player.setPositionAndUpdate(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2))
+        null
+      })
+
+    @Callback(doc = """function():number -- Get the player's health.""")
+    def getHealth(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer(player => Array(float2Float(player.getHealth)))
+
+    @Callback(doc = """function():number -- Get the player's max health.""")
+    def getMaxHealth(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer(player => Array(float2Float(player.getMaxHealth)))
+
+    @Callback(doc = """function(health:number) -- Set the player's health.""")
+    def setHealth(context: Context, args: Arguments): Array[AnyRef] =
+      withPlayer(player => {
+        player.setHealth(args.checkDouble(0).toFloat)
+        null
+      })
+
+    // ----------------------------------------------------------------------- //
+
+    override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
+      name = nbt.getString("name")
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
+      nbt.setString("name", name)
+    }
+  }
 
   class WorldValue(var world: World) extends AbstractValue {
     def this() = this(null) // For loading.
@@ -153,16 +228,6 @@ object DebugCard {
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
       nbt.setInteger("dimension", world.provider.dimensionId)
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    final protected def result(args: Any*): Array[AnyRef] = {
-      def unwrap(arg: Any): AnyRef = arg match {
-        case x: ScalaNumber => x.underlying
-        case x => x.asInstanceOf[AnyRef]
-      }
-      Array(args map unwrap: _*)
     }
   }
 

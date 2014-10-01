@@ -51,15 +51,15 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
   def injectEnergy(directionFrom: Direction, amount: Int) = {
     lastInjectedAmount = amount
-    var energy = amount * Settings.ratioIndustrialCraft2
+    var energy = amount * Settings.get.ratioIndustrialCraft2
     // Work around IC2 being uncooperative and always just passing 'unknown' along here.
     if (directionFrom.toForgeDirection == ForgeDirection.UNKNOWN) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if energy > 0) {
         energy -= tryChangeBuffer(side, energy)
       }
-      (energy / Settings.ratioIndustrialCraft2).toInt
+      (energy / Settings.get.ratioIndustrialCraft2).toInt
     }
-    else (amount - tryChangeBuffer(directionFrom.toForgeDirection, energy) / Settings.ratioIndustrialCraft2).toInt
+    else (amount - tryChangeBuffer(directionFrom.toForgeDirection, energy) / Settings.get.ratioIndustrialCraft2).toInt
   }
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
@@ -73,7 +73,7 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
         val space = size - value
         force = force || (space > size / 2)
         space
-      }).max / Settings.ratioIndustrialCraft2
+      }).max / Settings.get.ratioIndustrialCraft2
       if (force || lastInjectedAmount <= 0 || demand >= lastInjectedAmount) demand.toInt
       else 0
     }
