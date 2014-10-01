@@ -535,33 +535,31 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   @Callback
   def transferFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
-    val index = checkSlot(args, 0)
+    val index = checkTank(args, 0)
     val count = args.optionalFluidCount(1)
     if (index == selectedTank || count == 0) {
       result(true)
     }
-    else result((getTank(selectedTank), getTank(index)) match {
+    else (getTank(selectedTank), getTank(index)) match {
       case (Some(from), Some(to)) =>
-        if (haveSameFluidType(from.getFluid, to.getFluid)) {
-          val space = to.getCapacity - to.getFluidAmount
-          val amount = math.min(count, space)
-          if (amount > 0) {
-            to.fill(from.drain(amount, true), true)
-            robot.onInventoryChanged()
-            true
-          }
-          else false
+        val drained = from.drain(count, false)
+        val transferred = to.fill(drained, true)
+        if (transferred > 0) {
+          from.drain(transferred, true)
+          robot.onInventoryChanged()
+          result(true)
         }
-        else if (count >= from.getFluidAmount) {
+        else if (count >= from.getFluidAmount && to.getCapacity >= from.getFluidAmount && from.getCapacity >= to.getFluidAmount) {
+          // Swap.
           val tmp = to.drain(to.getFluidAmount, true)
           to.fill(from.drain(from.getFluidAmount, true), true)
           from.fill(tmp, true)
           robot.onInventoryChanged()
-          true
+          result(true)
         }
-        else false
-      case _ => false
-    })
+        else result(Unit, "incompatible or no fluid")
+      case _ => result(Unit, "invalid index")
+    }
   }
 
   @Callback
@@ -669,40 +667,6 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
       case _ => result(Unit, "no tank selected")
     }
   }
-
-//  @Callback
-//  def getFluidInfo(context: Context, args: Arguments): Array[AnyRef] = {
-//    robot.getSelectedTank match {
-//      case Some(component) =>
-//        component.getInfo match {
-//          case (info: FluidTankInfo) => info.fluid match {
-//            case (fluid: FluidStack) => result(fluid.getFluid.getName, fluid.getFluid.getLocalizedName, fluid.amount, info.capacity)
-//            case _ => result(Unit, "no fluid")
-//          }
-//          case _ => result(Unit, "no fluid")
-//        }
-//      case None => result(Unit, "no Container Selected")
-//    }
-//  }
-//
-//  @Callback
-//  def storeFluid(context: Context, args: Arguments): Array[AnyRef] = {
-//    val stack = stackInSlot(selectedSlot)
-//    stack match {
-//      case Some(item) => return result(FluidContainerRegistry.isBucket(item), FluidContainerRegistry.isContainer(item))
-//      case None =>
-//    }
-//    result(Unit, "Not a valid inventory")
-//  }
-//
-//  @Callback
-//  def ejectFluid(context: Context, args: Arguments): Array[AnyRef] = {
-//    val stack = stackInSlot(selectedSlot)
-//    stack match {
-//      case Some(item) => result(true)
-//      case None => result(Unit, "Not a valid inventory")
-//    }
-//  }
 
   // ----------------------------------------------------------------------- //
 
@@ -837,9 +801,12 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))
 
-  private def getTank(tank: Int) = robot.getFluidTank(tank)
+  private def getTank(index: Int) = robot.getFluidTank(index)
 
-  private def fluidInTank(tank: Int) = getTank(tank).map(_.getFluid)
+  private def fluidInTank(index: Int) = getTank(index) match {
+    case Some(tank) => Option(tank.getFluid)
+    case _ => None
+  }
 
   // ----------------------------------------------------------------------- //
 
