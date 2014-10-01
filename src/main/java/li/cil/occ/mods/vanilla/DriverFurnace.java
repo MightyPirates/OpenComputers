@@ -31,22 +31,22 @@ public final class DriverFurnace extends DriverTileEntity implements NamedBlock 
             super(tileEntity, "furnace");
         }
 
-        @Callback
+        @Callback(doc = "function():number -- The number of ticks that the furnace will keep burning from the last consumed fuel.")
         public Object[] getBurnTime(final Context context, final Arguments args) {
             return new Object[]{tileEntity.furnaceBurnTime};
         }
 
-        @Callback
+        @Callback(doc = "function():number -- The number of ticks that the current item has been cooking for.")
         public Object[] getCookTime(final Context context, final Arguments args) {
             return new Object[]{tileEntity.furnaceCookTime};
         }
 
-        @Callback
+        @Callback(doc = "function():number -- The number of ticks that the currently burning fuel lasts in total.")
         public Object[] getCurrentItemBurnTime(final Context context, final Arguments args) {
             return new Object[]{tileEntity.currentItemBurnTime};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean -- Get whether the furnace is currently active.")
         public Object[] isBurning(final Context context, final Arguments args) {
             return new Object[]{tileEntity.isBurning()};
         }

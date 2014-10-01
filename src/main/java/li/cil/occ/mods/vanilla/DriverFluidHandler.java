@@ -26,7 +26,7 @@ public final class DriverFluidHandler extends DriverTileEntity {
             super(tileEntity, "fluid_handler");
         }
 
-        @Callback
+        @Callback(doc = "function([side:number=6]):table -- Get some information about the tank accessible from the specified side.")
         public Object[] getTankInfo(final Context context, final Arguments args) {
             ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             return tileEntity.getTankInfo(side);

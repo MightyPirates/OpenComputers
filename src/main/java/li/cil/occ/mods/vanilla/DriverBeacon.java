@@ -32,23 +32,23 @@ public final class DriverBeacon extends DriverTileEntity implements NamedBlock {
             super(tileEntity, "beacon");
         }
 
-        @Callback
+        @Callback(doc = "function():number -- Get the number of levels for this beacon.")
         public Object[] getLevels(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getLevels()};
         }
 
-        @Callback
+        @Callback(doc = "function():string -- Get the name of the active primary effect.")
         public Object[] getPrimaryEffect(final Context context, final Arguments args) {
             return new Object[]{getEffectName(tileEntity.getPrimaryEffect())};
         }
 
-        @Callback
+        @Callback(doc = "function():string -- Get the name of the active secondary effect.")
         public Object[] getSecondayEffect(final Context context, final Arguments args) {
             return new Object[]{getEffectName(tileEntity.getSecondaryEffect())};
         }
     }
 
-    protected static String getEffectName(final int id) {
+    private static String getEffectName(final int id) {
         return (id >= 0 && id < Potion.potionTypes.length && Potion.potionTypes[id] != null)
                 ? Potion.potionTypes[id].getName()
                 : null;

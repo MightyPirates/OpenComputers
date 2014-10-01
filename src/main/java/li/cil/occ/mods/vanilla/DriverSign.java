@@ -31,12 +31,12 @@ public final class DriverSign extends DriverTileEntity implements NamedBlock {
             super(tileEntity, "sign");
         }
 
-        @Callback
+        @Callback(doc = "function():string -- Get the text currently being displayed on the sign, as a multi-line string.")
         public Object[] getValue(final Context context, final Arguments args) {
             return new Object[]{getSignText()};
         }
 
-        @Callback
+        @Callback(doc = "function(value:string):string -- Set the multi-line text the sign should display. This is clamped as necessary.")
         public Object[] setValue(final Context context, final Arguments args) {
             final String value = args.checkString(0);
             final String[] lines = value.split("\n");

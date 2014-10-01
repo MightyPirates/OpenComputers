@@ -25,7 +25,7 @@ public final class DriverFluidTank extends DriverTileEntity {
             super(tileEntity, "fluid_tank");
         }
 
-        @Callback
+        @Callback(doc = "function():table -- Get some information about this tank.")
         public Object[] getInfo(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getInfo()};
         }

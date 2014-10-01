@@ -31,7 +31,7 @@ public final class DriverComparator extends DriverTileEntity implements NamedBlo
             super(tileEntity, "comparator");
         }
 
-        @Callback
+        @Callback(doc = "function():number -- Get the strength of the comparators output signal.")
         public Object[] getOutputSignal(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getOutputSignal()};
         }

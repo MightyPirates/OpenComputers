@@ -63,6 +63,7 @@ configurations {
 
 dependencies {
     provided "appeng:appliedenergistics2:${config.ae2.version}:dev"
+    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"

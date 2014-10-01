@@ -27,17 +27,17 @@ public final class DriverInventory extends DriverTileEntity {
             super(tileEntity, "inventory");
         }
 
-        @Callback
+        @Callback(doc = "function():string -- Get the name of this inventory.")
         public Object[] getInventoryName(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getInventoryName()};
         }
 
-        @Callback
+        @Callback(doc = "function():number -- Get the number of slots in this inventory.")
         public Object[] getInventorySize(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getSizeInventory()};
         }
 
-        @Callback
+        @Callback(doc = "function(slot:number):number -- Get the stack size of the item stack in the specified slot.")
         public Object[] getSlotStackSize(final Context context, final Arguments args) {
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
@@ -48,7 +48,7 @@ public final class DriverInventory extends DriverTileEntity {
             }
         }
 
-        @Callback
+        @Callback(doc = "function(slot:number):number -- Get the maximum stack size of the item stack in the specified slot.")
         public Object[] getSlotMaxStackSize(final Context context, final Arguments args) {
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
@@ -59,7 +59,7 @@ public final class DriverInventory extends DriverTileEntity {
             }
         }
 
-        @Callback
+        @Callback(doc = "function(slotA:number, slotB:number):boolean -- Compare the two item stacks in the specified slots for equality.")
         public Object[] compareStacks(final Context context, final Arguments args) {
             final int slotA = checkSlot(args, 0);
             final int slotB = checkSlot(args, 1);
@@ -77,7 +77,7 @@ public final class DriverInventory extends DriverTileEntity {
             }
         }
 
-        @Callback
+        @Callback(doc = "function(slotA:number, slotB:number[, count:number=math.huge]):boolean -- Move up to the specified number of items from the first specified slot to the second.")
         public Object[] transferStack(final Context context, final Arguments args) {
             final int slotA = checkSlot(args, 0);
             final int slotB = checkSlot(args, 1);
@@ -118,7 +118,7 @@ public final class DriverInventory extends DriverTileEntity {
             return new Object[]{false};
         }
 
-        @Callback
+        @Callback(doc = "function(slot:number):table -- Get a description of the item stack in the specified slot.")
         public Object[] getStackInSlot(final Context context, final Arguments args) {
             if (OpenComponents.allowItemStackInspection) {
                 return new Object[]{tileEntity.getStackInSlot(checkSlot(args, 0))};
@@ -127,7 +127,7 @@ public final class DriverInventory extends DriverTileEntity {
             }
         }
 
-        @Callback
+        @Callback(doc = "function():table -- Get a list of descriptions for all item stacks in this inventory.")
         public Object[] getAllStacks(final Context context, final Arguments args) {
             if (OpenComponents.allowItemStackInspection) {
                 ItemStack[] allStacks = new ItemStack[tileEntity.getSizeInventory()];
