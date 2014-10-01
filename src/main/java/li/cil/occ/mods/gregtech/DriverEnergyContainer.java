@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 public final class DriverEnergyContainer extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
-        return IEnergyConnected.class;
+        return IBasicEnergyContainer.class;
     }
 
     @Override
@@ -23,7 +23,7 @@ public final class DriverEnergyContainer extends DriverTileEntity {
 
     public static final class Environment extends ManagedTileEntityEnvironment<IBasicEnergyContainer> {
         public Environment(final IBasicEnergyContainer tileEntity) {
-            super(tileEntity, "me_node");
+            super(tileEntity, "gt_energyContainer");
         }
 
         @Callback(doc = "function():number --  Returns the amount of electricity contained in this Block, in EU units!")

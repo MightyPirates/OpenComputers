@@ -10,6 +10,7 @@ import li.cil.occ.mods.cofh.energy.ModCoFHEnergy;
 import li.cil.occ.mods.cofh.tileentity.ModCoFHTileEntity;
 import li.cil.occ.mods.cofh.transport.ModCoFHTransport;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
+import li.cil.occ.mods.enderio.ModEnderIO;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
 import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.gregtech.ModGregtech;
@@ -77,6 +78,7 @@ public class OpenComponents {
         Registry.add(new ModCoFHEnergy());
         Registry.add(new ModCoFHTileEntity());
         Registry.add(new ModCoFHTransport());
+        Registry.add(new ModEnderIO());
         Registry.add(new ModEnderStorage());
         Registry.add(new ModForestry());
         Registry.add(new ModGregtech());
