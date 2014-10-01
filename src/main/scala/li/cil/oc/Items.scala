@@ -261,5 +261,7 @@ object Items extends ItemAPI {
     // 1.3.5
     Recipes.addItem(new item.TabletCase(multi), "tabletCase", "oc:tabletCase")
     Recipes.addItem(new item.UpgradePiston(multi), "pistonUpgrade", "oc:pistonUpgrade")
+    Recipes.addItem(new item.UpgradeTank(multi), "tankUpgrade", "oc:tankUpgrade")
+    Recipes.addItem(new item.UpgradeTankController(multi), "tankControllerUpgrade", "oc:tankControllerUpgrade")
   }
 }

@@ -102,6 +102,8 @@ class Proxy {
     api.Driver.add(driver.item.UpgradePiston)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
+    api.Driver.add(driver.item.UpgradeTank)
+    api.Driver.add(driver.item.UpgradeTankController)
     api.Driver.add(driver.item.UpgradeTractorBeam)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
@@ -116,6 +118,7 @@ class Proxy {
     }
 
     OpenComputers.log.info("Initializing vanilla converters.")
+    api.Driver.add(driver.converter.FluidStack)
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 

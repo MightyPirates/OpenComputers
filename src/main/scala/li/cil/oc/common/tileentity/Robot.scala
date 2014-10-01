@@ -22,7 +22,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
+import net.minecraftforge.fluids._
 
 import scala.collection.mutable
 
@@ -32,7 +32,7 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with api.machine.Robot {
+class Robot extends traits.Computer with traits.PowerInformation with api.machine.Robot with IFluidHandler {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
@@ -54,6 +54,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   var inventorySize = -1
 
   var selectedSlot = actualSlot(0)
+
+  var selectedTank = 0
 
   // For client.
   var renderingErrored = false
@@ -336,6 +338,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     if (inventorySize > 0) {
       selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
     }
+    selectedTank = nbt.getInteger(Settings.namespace + "selectedTank")
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
@@ -357,6 +360,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     nbt.setString(Settings.namespace + "owner", owner)
     ownerUuid.foreach(uuid => nbt.setString(Settings.namespace + "ownerUuid", uuid.toString))
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
+    nbt.setInteger(Settings.namespace + "selectedTank", selectedTank)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
       nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
@@ -443,6 +447,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       }
       if (isComponentSlot(slot)) {
         super.onItemAdded(slot, stack)
+        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
       if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
@@ -465,6 +470,9 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       }
       if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+      }
+      if (isComponentSlot(slot)) {
+        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
     }
   }
@@ -652,4 +660,62 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       case ForgeDirection.EAST => containerSlots.toArray
       case _ => inventorySlots.toArray
     }
+
+  // ----------------------------------------------------------------------- //
+
+  def getFluidTank(tank: Int) = {
+    val tanks = components.collect {
+      case Some(tank: IFluidTank) => tank
+    }
+    if (tank < 0 || tank >= tanks.length) None
+    else Option(tanks(tank))
+  }
+
+  def tankCount = components.count {
+    case Some(tank: IFluidTank) => true
+    case _ => false
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) =
+    getFluidTank(selectedTank) match {
+      case Some(tank) =>
+        tank.fill(resource, doFill)
+      case _ => 0
+    }
+
+  override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) =
+    getFluidTank(selectedTank) match {
+      case Some(tank) if tank.getFluid != null && tank.getFluid.isFluidEqual(resource) =>
+        tank.drain(resource.amount, doDrain)
+      case _ => null
+    }
+
+  override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = {
+    getFluidTank(selectedTank) match {
+      case Some(tank) =>
+        tank.drain(maxDrain, doDrain)
+      case _ => null
+    }
+  }
+
+  override def canFill(from: ForgeDirection, fluid: Fluid) = {
+    getFluidTank(selectedTank) match {
+      case Some(tank) => tank.getFluid == null || tank.getFluid.getFluid == fluid
+      case _ => false
+    }
+  }
+
+  override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
+    getFluidTank(selectedTank) match {
+      case Some(tank) => tank.getFluid != null && tank.getFluid.getFluid == fluid
+      case _ => false
+    }
+  }
+
+  override def getTankInfo(from: ForgeDirection) =
+    components.collect {
+      case Some(tank: IFluidTank) => tank.getInfo
+    }.toArray
 }
