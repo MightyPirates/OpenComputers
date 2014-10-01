@@ -7,23 +7,22 @@ import li.cil.oc.common.component.ManagedComponent
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.{FluidStack, FluidTank, IFluidTank}
 
-class UpgradeTank(val owner: Container,val capacity:Int) extends ManagedComponent with IFluidTank {
-  val node = Network.newNode(this, Visibility.Network).
-    withConnector().
-    create()
+class UpgradeTank(val owner: Container, val capacity: Int) extends ManagedComponent with IFluidTank {
+  val node = Network.newNode(this, Visibility.None).create()
 
   val tank = new FluidTank(capacity)
 
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    tank.readFromNBT(nbt)
+  }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     tank.writeToNBT(nbt)
   }
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-    tank.readFromNBT(nbt)
-  }
+  // ----------------------------------------------------------------------- //
 
   override def getFluid = tank.getFluid
 

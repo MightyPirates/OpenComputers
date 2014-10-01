@@ -5,10 +5,6 @@ import li.cil.oc.api.network.Environment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.IFluidHandler;
-import net.minecraftforge.fluids.IFluidTank;
-import net.minecraftforge.fluids.TileFluidHandler;
 
 /**
  * This interface allows interaction with robots.
@@ -30,7 +26,7 @@ import net.minecraftforge.fluids.TileFluidHandler;
  * no inventory, depending on the configuration of the robot. The hard-wired
  * components cannot be changed (removed/replaced).
  */
-public interface Robot extends ISidedInventory, Rotatable,IFluidHandler {
+public interface Robot extends ISidedInventory, Rotatable {
     /**
      * Returns the fake player used to represent the robot as an entity for
      * certain actions that require one.

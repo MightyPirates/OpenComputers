@@ -4,17 +4,15 @@ import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.{OpenComputers, Settings, api}
-import net.minecraft
 import net.minecraft.block.{Block, BlockFluid}
 import net.minecraft.entity.item.{EntityItem, EntityMinecart}
 import net.minecraft.entity.{Entity, EntityLivingBase}
-import net.minecraft.item.{ItemBucket, ItemBlock, ItemStack}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.{EnumMovingObjectType, MovingObjectPosition}
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
@@ -46,7 +44,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   def selectedSlot = robot.selectedSlot
 
-  def selectedFluidSlot = robot.selectedFluidSlot
+  def selectedTank = robot.selectedTank
 
   def player = robot.player()
 
@@ -491,173 +489,220 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   }
 
   // ----------------------------------------------------------------------- //
+
+  @Callback
+  def tankCount(context: Context, args: Arguments): Array[AnyRef] = result(robot.tankCount)
+
   @Callback
   def selectTank(context: Context, args: Arguments): Array[AnyRef] = {
-    if (args.count > 0 && args.checkInteger(0) > -1) {
-      robot.selectedFluidSlot = args.checkInteger(0)
-      //TODO maybe check if number is valid...
-      return result(true)
+    if (args.count > 0 && args.checkAny(0) != null) {
+      robot.selectedTank = checkTank(args, 0)
     }
-    result(Unit, "not a number")
+    result(selectedTank + 1)
+  }
+
+  @Callback(direct = true)
+  def tankLevel(context: Context, args: Arguments): Array[AnyRef] = {
+    val index =
+      if (args.count > 0 && args.checkAny(0) != null) checkTank(args, 0)
+      else selectedTank
+    result(fluidInTank(index) match {
+      case Some(fluid) => fluid.amount
+      case _ => 0
+    })
+  }
+
+  @Callback(direct = true)
+  def tankSpace(context: Context, args: Arguments): Array[AnyRef] = {
+    val index =
+      if (args.count > 0 && args.checkAny(0) != null) checkTank(args, 0)
+      else selectedTank
+    result(getTank(index) match {
+      case Some(tank) => tank.getCapacity - tank.getFluidAmount
+      case _ => 0
+    })
   }
 
   @Callback
-  def suckFluid(context: Context, args: Arguments): Array[AnyRef] = {
-    //todo check if liquid?controller ist installed
-    val facing = checkSideForAction(args, 0)
+  def compareFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = checkTank(args, 0)
+    result((fluidInTank(selectedTank), fluidInTank(index)) match {
+      case (Some(stackA), Some(stackB)) => haveSameFluidType(stackA, stackB)
+      case (None, None) => true
+      case _ => false
+    })
+  }
 
-    world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-      case (handler: IFluidHandler) => {
-
-        robot.getSelectedTank match {
-          case Some(component) => {
-            var amount = component.getCapacity - component.getFluidAmount
-            if (args.count() > 1) {
-              amount = Math.min(args.checkInteger(1), amount)
-            }
-            var drain: FluidStack = null
-            component.getFluid match {
-              case (existingFluid: FluidStack) => {
-                val fluid = new FluidStack(existingFluid, amount)
-                drain = handler.drain(ForgeDirection.UNKNOWN, fluid, true)
-
-              }
-              case _ => {
-                drain = handler.drain(ForgeDirection.UNKNOWN, amount, true)
-              }
-            }
-
-            component.fill(drain, true)
-
-            result(true, drain.amount)
+  @Callback
+  def transferFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = checkSlot(args, 0)
+    val count = args.optionalFluidCount(1)
+    if (index == selectedTank || count == 0) {
+      result(true)
+    }
+    else result((getTank(selectedTank), getTank(index)) match {
+      case (Some(from), Some(to)) =>
+        if (haveSameFluidType(from.getFluid, to.getFluid)) {
+          val space = to.getCapacity - to.getFluidAmount
+          val amount = math.min(count, space)
+          if (amount > 0) {
+            to.fill(from.drain(amount, true), true)
+            robot.onInventoryChanged()
+            true
           }
-          case None => result(Unit, "no Container Selected")
+          else false
         }
-      }
-      case _ => {
-        val blockId = world.getBlockId(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+        else if (count >= from.getFluidAmount) {
+          val tmp = to.drain(to.getFluidAmount, true)
+          to.fill(from.drain(from.getFluidAmount, true), true)
+          from.fill(tmp, true)
+          robot.onInventoryChanged()
+          true
+        }
+        else false
+      case _ => false
+    })
+  }
 
-        if (!Block.blocksList(blockId).isInstanceOf[BlockFluid]) {
-          return result(Unit, "not a fluid")
+  @Callback
+  def compareFluid(context: Context, args: Arguments): Array[AnyRef] = {
+    val side = checkSideForAction(args, 0)
+    fluidInTank(selectedTank) match {
+      case Some(stack) =>
+        world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+          case handler: IFluidHandler =>
+            result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
+          case _ =>
+            val blockId = world.getBlockId(x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+            val fluid = FluidRegistry.lookupFluidForBlock(Block.blocksList(blockId))
+            result(stack.getFluid == fluid)
         }
-        val fluid = FluidRegistry.lookupFluidForBlock(Block.blocksList(blockId))
-        robot.getSelectedTank match {
-          case Some(component) => {
-            val fillAmount = component.fill(new FluidStack(fluid, 1000), false)
-            if (fillAmount == 1000) {
-              component.fill(new FluidStack(fluid, 1000), true)
+      case _ => result(false)
+    }
+  }
+
+  @Callback
+  def drain(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    val count = args.optionalFluidCount(1)
+    getTank(selectedTank) match {
+      case Some(tank) =>
+        val space = tank.getCapacity - tank.getFluidAmount
+        val amount = math.min(count, space)
+        if (count > 0 && amount == 0) {
+          result(Unit, "tank is full")
+        }
+        else world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+          case handler: IFluidHandler =>
+            tank.getFluid match {
+              case stack: FluidStack =>
+                val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
+                if ((drained != null && drained.amount > 0) || amount == 0) {
+                  tank.fill(drained, true)
+                  result(true)
+                }
+                else result(Unit, "incompatible or no fluid")
+              case _ =>
+                tank.fill(handler.drain(facing.getOpposite, amount, true), true)
+                result(true)
+            }
+          case _ =>
+            val blockId = world.getBlockId(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+            val fluid = FluidRegistry.lookupFluidForBlock(Block.blocksList(blockId))
+            if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
+              tank.fill(new FluidStack(fluid, 1000), true)
               world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-              return result(true)
+              result(true)
             }
-            result(Unit, "could not fill")
-
-          }
-          case None => result(Unit, "no Container Selected")
+            else result(Unit, "tank is full")
         }
-      }
-
-
+      case _ => result(Unit, "no tank selected")
     }
   }
 
   @Callback
-  def dropFluid(context: Context, args: Arguments): Array[AnyRef] = {
-    //todo check if liquid?controller ist installed
+  def fill(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-      case (handler: IFluidHandler) => {
-
-        robot.getSelectedTank match {
-          case Some(component) => {
-            var amount = component.getFluidAmount
-            if (args.count() > 1) {
-              amount = Math.min(args.checkInteger(1), amount)
+    val count = args.optionalFluidCount(1)
+    getTank(selectedTank) match {
+      case Some(tank) =>
+        val amount = math.min(count, tank.getFluidAmount)
+        if (count > 0 && amount == 0) {
+          result(Unit, "tank is empty")
+        }
+        val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+        world.getBlockTileEntity(bx, by, bz) match {
+          case handler: IFluidHandler =>
+            tank.getFluid match {
+              case stack: FluidStack =>
+                val filled = handler.fill(facing.getOpposite, new FluidStack(stack, amount), true)
+                if (filled > 0 || amount == 0) {
+                  tank.drain(filled, true)
+                  result(true)
+                }
+                else result(Unit, "incompatible or no fluid")
+              case _ =>
+                result(Unit, "tank is empty")
             }
-
-            component.getFluid match {
-              case (existingFluid: FluidStack) => {
-                val fluid = new FluidStack(existingFluid, amount)
-                val drain = handler.fill(ForgeDirection.UNKNOWN, fluid, true)
-                component.drain(drain, true)
-
-                result(true, drain)
-
-              }
-              case _ => {
-                result(0)
-              }
+          case _ =>
+            val blockId = world.getBlockId(bx, by, bz)
+            val block = Block.blocksList(blockId)
+            if (blockId > 0 && block != null && !block.isAirBlock(world, x, y, z) && !block.isBlockReplaceable(world, x, y, z)) {
+              result(Unit, "no space")
             }
-
-          }
-          case None => result(Unit, "no Container Selected")
-        }
-      }
-      case _ => {
-        val isAir = world.isAirBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-        if (!isAir) {
-          return result(Unit, "no space")
-        }
-
-        robot.getSelectedTank match {
-          case Some(component) => {
-
-            val fluidStack = component.drain(1000, false)
-            if (fluidStack.amount == 1000) {
-
-              world.setBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ, component.getFluid.getFluid.getBlockID)
-              component.drain(1000, true)
-              return result(true)
+            else if (tank.getFluidAmount < 1000) {
+              result(Unit, "tank is empty")
             }
-            result(Unit, "could not fill")
-
-          }
-          case None => result(Unit, "no Container Selected")
+            else if (!tank.getFluid.getFluid.canBePlacedInWorld) {
+              result(Unit, "incompatible fluid")
+            }
+            else {
+              val fluidBlockId = tank.getFluid.getFluid.getBlockID
+              tank.drain(1000, true)
+              world.destroyBlock(bx, by, bz, true)
+              world.setBlock(bx, by, bz, fluidBlockId)
+              // This fake neighbor update is required to get stills to start flowing.
+              world.notifyBlockOfNeighborChange(bx, by, bz, 0)
+              result(true)
+            }
         }
-      }
+      case _ => result(Unit, "no tank selected")
     }
   }
 
-  @Callback
-  def getFluidInfo(context: Context, args: Arguments): Array[AnyRef] = {
-    robot.getSelectedTank match {
-      case Some(component) => {
-        component.getInfo match {
-          case (info: FluidTankInfo) => info.fluid match {
-            case (fluid: FluidStack) => result(fluid.getFluid.getName, fluid.getFluid.getLocalizedName, fluid.amount, info.capacity)
-            case _ => result(Unit, "no fluid")
-
-          }
-          case _ => result(Unit, "no fluid")
-        }
-
-      }
-      case None => result(Unit, "no Container Selected")
-    }
-  }
-
-  @Callback
-  def storeFluid(context: Context, args: Arguments): Array[AnyRef] = {
-    val stack = stackInSlot(selectedSlot)
-
-    stack match {
-      case Some(item) => return result(FluidContainerRegistry.isBucket(item),FluidContainerRegistry.isContainer(item))
-
-
-      case None =>
-
-    }
-    result(Unit, "Not a valid inventory")
-  }
-
-  @Callback
-  def ejectFluid(context: Context, args: Arguments): Array[AnyRef] = {
-    val stack = stackInSlot(selectedSlot)
-    stack match {
-      case Some(item) => result(true)
-      case None => result(Unit, "Not a valid inventory")
-
-    }
-  }
+//  @Callback
+//  def getFluidInfo(context: Context, args: Arguments): Array[AnyRef] = {
+//    robot.getSelectedTank match {
+//      case Some(component) =>
+//        component.getInfo match {
+//          case (info: FluidTankInfo) => info.fluid match {
+//            case (fluid: FluidStack) => result(fluid.getFluid.getName, fluid.getFluid.getLocalizedName, fluid.amount, info.capacity)
+//            case _ => result(Unit, "no fluid")
+//          }
+//          case _ => result(Unit, "no fluid")
+//        }
+//      case None => result(Unit, "no Container Selected")
+//    }
+//  }
+//
+//  @Callback
+//  def storeFluid(context: Context, args: Arguments): Array[AnyRef] = {
+//    val stack = stackInSlot(selectedSlot)
+//    stack match {
+//      case Some(item) => return result(FluidContainerRegistry.isBucket(item), FluidContainerRegistry.isContainer(item))
+//      case None =>
+//    }
+//    result(Unit, "Not a valid inventory")
+//  }
+//
+//  @Callback
+//  def ejectFluid(context: Context, args: Arguments): Array[AnyRef] = {
+//    val stack = stackInSlot(selectedSlot)
+//    stack match {
+//      case Some(item) => result(true)
+//      case None => result(Unit, "Not a valid inventory")
+//    }
+//  }
 
   // ----------------------------------------------------------------------- //
 
@@ -788,11 +833,19 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     stackA.itemID == stackB.itemID &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
+  private def haveSameFluidType(stackA: FluidStack, stackB: FluidStack) = stackA.isFluidEqual(stackB)
+
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))
+
+  private def getTank(tank: Int) = robot.getFluidTank(tank)
+
+  private def fluidInTank(tank: Int) = getTank(tank).map(_.getFluid)
 
   // ----------------------------------------------------------------------- //
 
   private def checkSlot(args: Arguments, n: Int) = args.checkSlot(robot, n)
+
+  private def checkTank(args: Arguments, n: Int) = args.checkTank(robot, n)
 
   private def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
 

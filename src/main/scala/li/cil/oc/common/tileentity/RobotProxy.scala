@@ -12,9 +12,9 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.fluids.{Fluid, FluidTankInfo, FluidStack}
+import net.minecraftforge.fluids.{Fluid, FluidStack, IFluidHandler}
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory with IFluidHandler {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //
@@ -254,21 +254,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-
-
-
   override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) = robot.fill(from, resource, doFill)
 
+  override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) = robot.drain(from, resource, doDrain)
 
-  def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) = robot.drain(from, resource, doDrain)
+  override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = robot.drain(from, maxDrain, doDrain)
 
+  override def canFill(from: ForgeDirection, fluid: Fluid) = robot.canFill(from, fluid)
 
-  def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = robot.drain(from, maxDrain, doDrain)
+  override def canDrain(from: ForgeDirection, fluid: Fluid) = robot.canDrain(from, fluid)
 
-  def canFill(from: ForgeDirection, fluid: Fluid) = robot.canFill(from, fluid)
-
-
-  def canDrain(from: ForgeDirection, fluid: Fluid) = robot.canDrain(from, fluid)
-
-  def getTankInfo(from: ForgeDirection) = robot.getTankInfo(from)
+  override def getTankInfo(from: ForgeDirection) = robot.getTankInfo(from)
 }

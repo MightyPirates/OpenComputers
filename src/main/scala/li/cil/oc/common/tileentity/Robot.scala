@@ -29,7 +29,7 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with api.machine.Robot {
+class Robot extends traits.Computer with traits.PowerInformation with api.machine.Robot with IFluidHandler {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
@@ -51,6 +51,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   var inventorySize = -1
 
   var selectedSlot = actualSlot(0)
+
+  var selectedTank = 0
 
   // For client.
   var renderingErrored = false
@@ -328,7 +330,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     if (inventorySize > 0) {
       selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
     }
-    selectedFluidSlot = nbt.getInteger(Settings.namespace + "selectedFluidSlot")
+    selectedTank = nbt.getInteger(Settings.namespace + "selectedTank")
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
@@ -349,7 +351,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     nbt.setNewCompoundTag(Settings.namespace + "robot", bot.save)
     nbt.setString(Settings.namespace + "owner", owner)
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
-    nbt.setInteger(Settings.namespace + "selectedFluidSlot", selectedFluidSlot)
+    nbt.setInteger(Settings.namespace + "selectedTank", selectedTank)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
       nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
@@ -436,6 +438,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       }
       if (isComponentSlot(slot)) {
         super.onItemAdded(slot, stack)
+        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType.blockID)
       }
       if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
@@ -458,6 +461,9 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       }
       if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+      }
+      if (isComponentSlot(slot)) {
+        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType.blockID)
       }
     }
   }
@@ -646,139 +652,61 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       case _ => inventorySlots.toArray
     }
 
+  // ----------------------------------------------------------------------- //
 
-  // --------------------------------------------------//
-  var selectedFluidSlot = -1
-
-  def getSelectedTank: Option[IFluidTank] = {
-    if (selectedFluidSlot < 0)
-      return None
-    var counter = 0
-
-    for (comp <- components) {
-      comp match {
-        case (Some(tank: IFluidTank)) => {
-          if (selectedFluidSlot == counter)
-            return Option(tank)
-          counter += 1
-        }
-        case _ =>
-      }
+  def getFluidTank(tank: Int) = {
+    val tanks = components.collect {
+      case Some(tank: IFluidTank) => tank
     }
-    None
-    //    val filteredList = components.filter(_.isInstanceOf[Some[IFluidTank]])
-    //
-    //    if (filteredList.length <= selectedFluidSlot || selectedFluidSlot < 0)
-    //      return None
-    //    filteredList(selectedFluidSlot) match {
-    //      case Some(tank: IFluidTank) => Option(tank);
-    //      case _ => None
-    //    }
+    if (tank < 0 || tank >= tanks.length) None
+    else Option(tanks(tank))
   }
 
-  /**
-   * Fills fluid into internal tanks, distribution is left entirely to the IFluidHandler.
-   *
-   * @param from
-     * Orientation the Fluid is pumped in from.
-   * @param resource
-     * FluidStack representing the Fluid and maximum amount of fluid to be filled.
-   * @param doFill
-     * If false, fill will only be simulated.
-   * @return Amount of resource that was (or would have been, if simulated) filled.
-   */
-  override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean): Int = {
-    getSelectedTank match {
-      case Some(component) => component.fill(resource, doFill)
-      case None => 0
+  def tankCount = components.count {
+    case Some(tank: IFluidTank) => true
+    case _ => false
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) =
+    getFluidTank(selectedTank) match {
+      case Some(tank) =>
+        tank.fill(resource, doFill)
+      case _ => 0
+    }
+
+  override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) =
+    getFluidTank(selectedTank) match {
+      case Some(tank) if tank.getFluid != null && tank.getFluid.isFluidEqual(resource) =>
+        tank.drain(resource.amount, doDrain)
+      case _ => null
+    }
+
+  override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = {
+    getFluidTank(selectedTank) match {
+      case Some(tank) =>
+        tank.drain(maxDrain, doDrain)
+      case _ => null
     }
   }
 
-  /**
-   * Drains fluid out of internal tanks, distribution is left entirely to the IFluidHandler.
-   *
-   * @param from
-     * Orientation the Fluid is drained to.
-   * @param resource
-     * FluidStack representing the Fluid and maximum amount of fluid to be drained.
-   * @param doDrain
-     * If false, drain will only be simulated.
-   * @return FluidStack representing the Fluid and amount that was (or would have been, if
-   *         simulated) drained.
-   */
-  def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean): FluidStack = {
-    getSelectedTank match {
-      case Some(component) => {
-        if (component.getFluid.isFluidEqual(resource))
-          return component.drain(resource.amount, doDrain)
-
-      }
-      case None =>
-    }
-
-    null
-  }
-
-  /**
-   * Drains fluid out of internal tanks, distribution is left entirely to the IFluidHandler.
-   *
-   * This method is not Fluid-sensitive.
-   *
-   * @param from
-     * Orientation the fluid is drained to.
-   * @param maxDrain
-     * Maximum amount of fluid to drain.
-   * @param doDrain
-     * If false, drain will only be simulated.
-   * @return FluidStack representing the Fluid and amount that was (or would have been, if
-   *         simulated) drained.
-   */
-  def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean): FluidStack = {
-    getSelectedTank match {
-      case Some(component) => component.drain(maxDrain, doDrain)
-      case None => null
+  override def canFill(from: ForgeDirection, fluid: Fluid) = {
+    getFluidTank(selectedTank) match {
+      case Some(tank) => tank.getFluid == null || tank.getFluid.getFluid == fluid
+      case _ => false
     }
   }
 
-  /**
-   * Returns true if the given fluid can be inserted into the given direction.
-   *
-   * More formally, this should return true if fluid is able to enter from the given direction.
-   */
-  def canFill(from: ForgeDirection, fluid: Fluid): Boolean = {
-    getSelectedTank match {
-      case Some(component) => true
-      case None => false
+  override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
+    getFluidTank(selectedTank) match {
+      case Some(tank) => tank.getFluid != null && tank.getFluid.getFluid == fluid
+      case _ => false
     }
   }
 
-  /**
-   * Returns true if the given fluid can be extracted from the given direction.
-   *
-   * More formally, this should return true if fluid is able to leave from the given direction.
-   */
-  def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
-    getSelectedTank match {
-      case Some(component) => true
-      case None => false
-    }
-  }
-
-  /**
-   * Returns an array of objects which represent the internal tanks. These objects cannot be used
-   * to manipulate the internal tanks. See {@link FluidTankInfo}.
-   *
-   * @param from
-     * Orientation determining which tanks should be queried.
-   * @return Info for the relevant internal tanks.
-   */
-  def getTankInfo(from: ForgeDirection): Array[FluidTankInfo] = {
-    val ar = new Array[FluidTankInfo](1)
-    getSelectedTank match {
-      case Some(component) => ar(0) = component.getInfo
-      case None =>
-    }
-    ar
-  }
-
+  override def getTankInfo(from: ForgeDirection) =
+    components.collect {
+      case Some(tank: IFluidTank) => tank.getInfo
+    }.toArray
 }
