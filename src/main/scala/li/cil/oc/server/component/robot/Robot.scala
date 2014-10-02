@@ -612,7 +612,10 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
           case _ =>
             val block = world.getBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
             val fluid = FluidRegistry.lookupFluidForBlock(block)
-            if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
+            if (fluid == null) {
+              result(Unit, "incompatible or no fluid")
+            }
+            else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
               tank.fill(new FluidStack(fluid, 1000), true)
               world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
               result(true)
