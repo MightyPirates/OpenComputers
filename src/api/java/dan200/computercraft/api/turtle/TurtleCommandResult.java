@@ -8,12 +8,24 @@ package dan200.computercraft.api.turtle;
 
 public final class TurtleCommandResult
 {
-    private static final TurtleCommandResult s_success = new TurtleCommandResult( true, null );
-    private static final TurtleCommandResult s_emptyFailure = new TurtleCommandResult( false, null );
+    private static final TurtleCommandResult s_success = new TurtleCommandResult( true, null, null );
+    private static final TurtleCommandResult s_emptyFailure = new TurtleCommandResult( false, null, null );
 
     public static TurtleCommandResult success()
     {
-        return s_success;
+        return success( null );
+    }
+
+    public static TurtleCommandResult success( Object[] results )
+    {
+        if( results == null || results.length == 0 )
+        {
+            return s_success;
+        }
+        else
+        {
+            return new TurtleCommandResult( true, null, results );
+        }
     }
 
     public static TurtleCommandResult failure()
@@ -23,23 +35,25 @@ public final class TurtleCommandResult
 
     public static TurtleCommandResult failure( String errorMessage )
     {
-        if( errorMessage != null )
+        if( errorMessage == null )
         {
-            return new TurtleCommandResult( false, errorMessage );
+            return s_emptyFailure;
         }
         else
         {
-            return s_emptyFailure;
+            return new TurtleCommandResult( false, errorMessage, null );
         }
     }
 
     private final boolean m_success;
     private final String m_errorMessage;
+    private final Object[] m_results;
 
-    private TurtleCommandResult( boolean success, String errorMessage )
+    private TurtleCommandResult( boolean success, String errorMessage, Object[] results )
     {
         m_success = success;
         m_errorMessage = errorMessage;
+        m_results = results;
     }
 
     public boolean isSuccess()
@@ -50,5 +64,10 @@ public final class TurtleCommandResult
     public String getErrorMessage()
     {
         return m_errorMessage;
+    }
+
+    public Object[] getResults()
+    {
+        return m_results;
     }
 }
