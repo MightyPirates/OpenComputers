@@ -5,9 +5,9 @@ import java.nio.channels.Channels
 import java.util.logging.Level
 
 import com.google.common.base.Strings
-import com.naef.jnlua
-import com.naef.jnlua.LuaState
-import com.naef.jnlua.NativeSupport.Loader
+import li.cil.repack.com.naef.jnlua
+import li.cil.repack.com.naef.jnlua.LuaState
+import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}

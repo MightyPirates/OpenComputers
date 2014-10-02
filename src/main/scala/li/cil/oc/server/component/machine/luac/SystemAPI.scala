@@ -1,6 +1,6 @@
 package li.cil.oc.server.component.machine.luac
 
-import com.naef.jnlua.LuaType
+import li.cil.repack.com.naef.jnlua.LuaType
 import li.cil.oc.Settings
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState

@@ -10,8 +10,8 @@ import li.cil.oc.util.ScalaClosure
 import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
-import org.luaj.vm3._
-import org.luaj.vm3.lib.jse.JsePlatform
+import li.cil.repack.org.luaj.vm2._
+import li.cil.repack.org.luaj.vm2.lib.jse.JsePlatform
 
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: Globals = _

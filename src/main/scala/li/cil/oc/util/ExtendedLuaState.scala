@@ -2,7 +2,7 @@ package li.cil.oc.util
 
 import java.util
 
-import com.naef.jnlua.{JavaFunction, LuaState, LuaType}
+import li.cil.repack.com.naef.jnlua.{JavaFunction, LuaState, LuaType}
 import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, Settings}
 

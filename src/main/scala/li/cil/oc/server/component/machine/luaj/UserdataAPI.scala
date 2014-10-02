@@ -7,7 +7,7 @@ import li.cil.oc.api.machine.Value
 import li.cil.oc.server.component.machine.LuaJLuaArchitecture
 import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.util.ScalaClosure._
-import org.luaj.vm3.{LuaValue, Varargs}
+import li.cil.repack.org.luaj.vm2.{LuaValue, Varargs}
 
 class UserdataAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
   override def initialize() {

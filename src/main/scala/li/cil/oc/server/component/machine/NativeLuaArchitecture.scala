@@ -4,7 +4,7 @@ import java.io.{FileNotFoundException, IOException}
 import java.util.logging.Level
 
 import com.google.common.base.Strings
-import com.naef.jnlua._
+import li.cil.repack.com.naef.jnlua._
 import li.cil.oc.api.machine.{Architecture, ExecutionResult, LimitReachedException}
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.component.machine.luac._
