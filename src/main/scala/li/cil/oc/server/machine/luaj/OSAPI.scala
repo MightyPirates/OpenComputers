@@ -2,7 +2,7 @@ package li.cil.oc.server.machine.luaj
 
 import li.cil.oc.util.GameTimeFormatter
 import li.cil.oc.util.ScalaClosure._
-import org.luaj.vm3.{LuaValue, Varargs}
+import li.cil.repack.org.luaj.vm2.{LuaValue, Varargs}
 
 class OSAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
   override def initialize() {

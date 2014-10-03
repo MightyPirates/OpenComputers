@@ -2,7 +2,7 @@ package li.cil.oc.server.machine.luaj
 
 import li.cil.oc.server
 import li.cil.oc.util.ScalaClosure._
-import org.luaj.vm3.{LuaValue, Varargs}
+import li.cil.repack.org.luaj.vm2.{LuaValue, Varargs}
 
 import scala.collection.convert.WrapAsScala._
 

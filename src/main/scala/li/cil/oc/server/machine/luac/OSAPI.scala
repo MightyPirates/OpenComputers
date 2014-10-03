@@ -1,8 +1,8 @@
 package li.cil.oc.server.machine.luac
 
-import com.naef.jnlua.LuaType
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.GameTimeFormatter
+import li.cil.repack.com.naef.jnlua.LuaType
 
 class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {

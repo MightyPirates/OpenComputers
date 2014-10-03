@@ -104,6 +104,8 @@ item.oc.UpgradeNavigation.name=导航升级
 item.oc.UpgradePiston.name=活塞升级
 item.oc.UpgradeSign.name=告示牌升级
 item.oc.UpgradeSolarGenerator.name=太阳能发电机升级
+item.oc.UpgradeTank.name=水箱升级
+item.oc.UpgradeTankController.name=高级水箱升级
 item.oc.UpgradeTractorBeam.name=牵引光束升级
 item.oc.WirelessNetworkCard.name=无线网卡升级
 
@@ -262,5 +264,7 @@ oc:tooltip.UpgradeNavigation=可以让机器人确认所处位置以及定位. �
 oc:tooltip.UpgradePiston=这个升级十分有用. 它能让机器人像活塞那样移动方块, 但 §l不能§7 移动实体.
 oc:tooltip.UpgradeSign=允许机器人读写告示牌.
 oc:tooltip.UpgradeSolarGenerator=可以让机器人在太阳光的照射下四处奔走. 机器人顶部需要无任何方块阻挡. 发电效率是斯特林发电机的 %s%% 倍.
+oc:tooltip.UpgradeTank=为你的机器人装上一个可存储流体的水箱. 如果没有升级此功能, 你的机器人将无法在内部存储流体.
+oc:tooltip.UpgradeTankController=这个升级能让你的机器人与外界水箱交互, 向其传输流体.
 oc:tooltip.UpgradeTractorBeam=十分先进的高科技, 别名 "物品磁铁". 它能让机器人在任何地方捡起3格范围内的掉落物.
 oc:tooltip.WirelessNetworkCard=允许在发送正常信息的情况下发送无线网络信息. 请确保已设置好 §f信号强度§7 否则不会发出信息. 越高的信号强度会导致越高的能量消耗.

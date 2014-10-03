@@ -207,12 +207,12 @@ function robot.selectTank(tank)
   return component.robot.selectTank(tank)
 end
 
-function robot.tankLevel()
-  return component.robot.tankLevel()
+function robot.tankLevel(...)
+  return component.robot.tankLevel(...)
 end
 
-function robot.tankSpace()
-  return component.robot.tankSpace()
+function robot.tankSpace(...)
+  return component.robot.tankSpace(...)
 end
 
 function robot.compareFluidTo(...)

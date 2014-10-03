@@ -2,8 +2,8 @@ package li.cil.oc.util
 
 import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, Settings}
-import org.luaj.vm3.lib.VarArgFunction
-import org.luaj.vm3.{LuaValue, Varargs}
+import li.cil.repack.org.luaj.vm2.lib.VarArgFunction
+import li.cil.repack.org.luaj.vm2.{LuaValue, Varargs}
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable

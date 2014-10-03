@@ -4,12 +4,12 @@ import java.io.{File, FileInputStream, FileOutputStream}
 import java.nio.channels.Channels
 
 import com.google.common.base.Strings
-import com.naef.jnlua
-import com.naef.jnlua.LuaState
-import com.naef.jnlua.NativeSupport.Loader
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
+import li.cil.repack.com.naef.jnlua
+import li.cil.repack.com.naef.jnlua.LuaState
+import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
 import org.apache.commons.lang3.SystemUtils
 
 import scala.util.Random

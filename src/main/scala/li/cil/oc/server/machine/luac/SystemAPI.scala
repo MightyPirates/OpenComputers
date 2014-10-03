@@ -1,8 +1,8 @@
 package li.cil.oc.server.machine.luac
 
-import com.naef.jnlua.LuaType
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
+import li.cil.repack.com.naef.jnlua.LuaType
 
 class SystemAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
