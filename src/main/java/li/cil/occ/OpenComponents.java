@@ -51,6 +51,8 @@ public class OpenComponents {
 
     public static Boolean allowItemStackInspection = false;
 
+    public static String fakePlayerName = "[OpenComponents]";
+
     @Mod.EventHandler
     public void preInit(final FMLPreInitializationEvent e) {
         final Configuration config = new Configuration(e.getSuggestedConfigurationFile());
@@ -70,6 +72,9 @@ public class OpenComponents {
 
         allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).
                 getBoolean(false);
+
+        fakePlayerName = config.get("general", "fakePlayerName", fakePlayerName).
+                getString();
 
         config.save();
     }
