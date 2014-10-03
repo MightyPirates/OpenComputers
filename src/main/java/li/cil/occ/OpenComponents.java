@@ -1,5 +1,6 @@
 package li.cil.occ;
 
+import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -25,6 +26,8 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.UUID;
+
 @Mod(modid = OpenComponents.ID, name = OpenComponents.Name, version = OpenComponents.Version, useMetadata = true)
 public class OpenComponents {
     public static final String ID = "OpenComponents";
@@ -48,6 +51,12 @@ public class OpenComponents {
 
     public static Boolean allowItemStackInspection = false;
 
+    public static String fakePlayerUuid = "7e506b5d-2ccb-4ac4-a249-5624925b0c67";
+
+    public static String fakePlayerName = "[OpenComponents]";
+
+    public static GameProfile fakePlayerProfile;
+
     @Mod.EventHandler
     public void preInit(final FMLPreInitializationEvent e) {
         final Configuration config = new Configuration(e.getSuggestedConfigurationFile());
@@ -67,6 +76,14 @@ public class OpenComponents {
 
         allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).
                 getBoolean(false);
+
+        fakePlayerUuid = config.get("general", "fakePlayerUuid", fakePlayerUuid).
+                getString();
+
+        fakePlayerName = config.get("general", "fakePlayerName", fakePlayerName).
+                getString();
+
+        fakePlayerProfile = new GameProfile(UUID.fromString(fakePlayerUuid), fakePlayerName);
 
         config.save();
     }
