@@ -8,7 +8,7 @@ local unicode = require("unicode")
 if not component.isAvailable("gpu") then
   return
 end
-local lines = {_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)"}
+local lines = {_OSVERSION .. " (" .. math.floor(computer.freeMemory()/1024) .. "/" .. math.floor(computer.totalMemory() / 1024) .. "k free RAM)"}
 local maxWidth = unicode.len(lines[1])
 local f = io.open("/usr/misc/greetings.txt")
 if f then
