@@ -6,8 +6,8 @@ import java.util.zip.GZIPInputStream
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufInputStream
-import li.cil.oc.Blocks
 import li.cil.oc.OpenComputers
+import li.cil.oc.init.Blocks
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools

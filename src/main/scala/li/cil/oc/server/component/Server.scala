@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Items
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver
@@ -14,6 +13,7 @@ import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
+import li.cil.oc.init.Items
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

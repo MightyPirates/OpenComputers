@@ -3,13 +3,14 @@ package li.cil.oc.util
 import java.util
 
 import li.cil.oc.Localization
+import li.cil.oc.init
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
-import net.minecraft.item.crafting._
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.item.crafting._
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.ShapedOreRecipe
 import net.minecraftforge.oredict.ShapelessOreRecipe
@@ -20,7 +21,7 @@ import scala.collection.mutable
 object ItemCosts {
   protected val cache = mutable.Map.empty[ItemStack, Iterable[(ItemStack, Double)]]
 
-  cache += li.cil.oc.Items.ironNugget.createItemStack() -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
+  cache += init.Items.ironNugget.createItemStack() -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
 
   def terminate(item: Item, meta: Int = 0) = cache += new ItemStack(item, 1, meta) -> mutable.Iterable((new ItemStack(item, 1, meta), 1))
 

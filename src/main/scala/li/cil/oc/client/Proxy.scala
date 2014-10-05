@@ -6,21 +6,21 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event.FMLInitializationEvent
 import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.network.NetworkRegistry
-import li.cil.oc.client.renderer.block.BlockRenderer
-import li.cil.oc.client.renderer.item.ItemRenderer
-import li.cil.oc.client.renderer.tileentity._
-import li.cil.oc.client.renderer.PetRenderer
-import li.cil.oc.client.renderer.TextBufferRenderCache
-import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
-import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.common.tileentity.ServerRack
-import li.cil.oc.common.tileentity
-import li.cil.oc.common.{Proxy => CommonProxy}
-import li.cil.oc.util.Audio
-import li.cil.oc.Items
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client
+import li.cil.oc.client.renderer.PetRenderer
+import li.cil.oc.client.renderer.TextBufferRenderCache
+import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
+import li.cil.oc.client.renderer.block.BlockRenderer
+import li.cil.oc.client.renderer.item.ItemRenderer
+import li.cil.oc.client.renderer.tileentity._
+import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.ServerRack
+import li.cil.oc.common.{Proxy => CommonProxy}
+import li.cil.oc.init.Items
+import li.cil.oc.util.Audio
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 

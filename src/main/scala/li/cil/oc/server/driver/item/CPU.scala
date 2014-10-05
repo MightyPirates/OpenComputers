@@ -1,13 +1,13 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.Machine
-import li.cil.oc.api.driver
-import li.cil.oc.common.Slot
-import li.cil.oc.common.item
-import li.cil.oc.Items
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.Machine
+import li.cil.oc.api.driver
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.common.Slot
+import li.cil.oc.common.item
+import li.cil.oc.init.Items
 import net.minecraft.item.ItemStack
 
 object CPU extends Item with driver.Processor {

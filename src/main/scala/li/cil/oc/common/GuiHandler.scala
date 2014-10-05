@@ -1,8 +1,8 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IGuiHandler
-import li.cil.oc.Items
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.init.Items
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 

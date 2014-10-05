@@ -4,9 +4,9 @@ import java.util.Random
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.common.tileentity
-import li.cil.oc.Blocks
 import li.cil.oc.Settings
+import li.cil.oc.common.tileentity
+import li.cil.oc.init.Blocks
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity

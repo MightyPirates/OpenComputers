@@ -8,16 +8,17 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
+import li.cil.oc.init.Items
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
-import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
-import net.minecraftforge.oredict.RecipeSorter.Category
+import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
+import net.minecraftforge.oredict.RecipeSorter.Category
 import org.apache.commons.io.FileUtils
 
 import scala.collection.convert.WrapAsScala._

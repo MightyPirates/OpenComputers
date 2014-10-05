@@ -1,11 +1,11 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.common.Slot
-import li.cil.oc.server.component
-import li.cil.oc.Items
 import li.cil.oc.api
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common
+import li.cil.oc.common.Slot
+import li.cil.oc.init.Items
+import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object GraphicsCard extends Item {

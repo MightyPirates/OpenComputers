@@ -5,14 +5,15 @@ import java.util.UUID
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
+import li.cil.oc.api.Driver
 import li.cil.oc.api.event.RobotAnalyzeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.network._
-import li.cil.oc.api.Driver
 import li.cil.oc.api.tileentity
 import li.cil.oc.client.gui
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.init.Blocks
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
 import li.cil.oc.server.driver

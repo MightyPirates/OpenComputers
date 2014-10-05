@@ -1,9 +1,10 @@
-package li.cil.oc
+package li.cil.oc.init
 
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.Settings
+import li.cil.oc.common.Tier
 import li.cil.oc.common.block._
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 
 object Blocks {

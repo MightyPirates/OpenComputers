@@ -1,11 +1,11 @@
 package li.cil.oc.server.driver.item
 
+import li.cil.oc.api
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item
-import li.cil.oc.Items
-import li.cil.oc.api
+import li.cil.oc.init.Items
 import net.minecraft.item.ItemStack
 
 object ContainerCard extends Item with Container {

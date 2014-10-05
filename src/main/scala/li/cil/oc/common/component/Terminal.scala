@@ -2,16 +2,16 @@ package li.cil.oc.common.component
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
+import li.cil.oc.init.Items
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.Items
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT

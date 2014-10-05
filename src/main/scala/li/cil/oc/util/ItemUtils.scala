@@ -2,14 +2,14 @@ package li.cil.oc.util
 
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
-import li.cil.oc.api.Persistable
-import li.cil.oc.common.Tier
-import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.Blocks
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.Persistable
+import li.cil.oc.common.Tier
+import li.cil.oc.init.Blocks
 import li.cil.oc.server
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemMap
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

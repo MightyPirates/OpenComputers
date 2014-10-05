@@ -1,12 +1,14 @@
-package li.cil.oc
+package li.cil.oc.init
 
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.Settings
 import li.cil.oc.api.detail.ItemAPI
 import li.cil.oc.api.detail.ItemInfo
-import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.common
 import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
+import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block

@@ -12,12 +12,15 @@ import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
+import li.cil.oc.init.Blocks
+import li.cil.oc.init.Items
+import li.cil.oc.server._
+import li.cil.oc.server.machine
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.server.machine
-import li.cil.oc.server._
 import li.cil.oc.util.LuaStateFactory
+import li.cil.oc.util.UpdateCheck
 import li.cil.oc.util.mods.ComputerCraft
 import li.cil.oc.util.mods.Mods
 import net.minecraft.item.ItemStack
