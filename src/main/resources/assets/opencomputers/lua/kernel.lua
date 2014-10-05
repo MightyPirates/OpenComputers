@@ -519,15 +519,18 @@ libcomponent = {
     return spcall(component.methods, address)
   end,
   proxy = function(address)
-    checkArg(1, address, "string")
     local type, reason = spcall(component.type, address)
     if not type then
+      return nil, reason
+    end
+    local slot, reason = spcall(component.slot, address)
+    if not slot then
       return nil, reason
     end
     if proxyCache[address] then
       return proxyCache[address]
     end
-    local proxy = {address = address, type = type}
+    local proxy = {address = address, type = type, slot = slot}
     local methods, reason = spcall(component.methods, address)
     if not methods then
       return nil, reason
@@ -540,8 +543,10 @@ libcomponent = {
     return proxy
   end,
   type = function(address)
-    checkArg(1, address, "string")
-    return component.type(address)
+    return spcall(component.type, address)
+  end,
+  slot = function(address)
+    return spcall(component.slot, address)
   end
 }
 sandbox.component = libcomponent

@@ -34,6 +34,16 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       }
     })
 
+    component.set("slot", (args: Varargs) => components.synchronized {
+      val address = args.checkjstring(1)
+      components.get(address) match {
+        case name: String =>
+          LuaValue.valueOf(owner.machine.host.componentSlot(address))
+        case _ =>
+          LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))
+      }
+    })
+
     component.set("methods", (args: Varargs) => {
       Option(node.network.node(args.checkjstring(1))) match {
         case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>

@@ -38,6 +38,20 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "type")
 
+    lua.pushScalaFunction(lua => components.synchronized {
+      val address = lua.checkString(1)
+      components.get(address) match {
+        case name: String =>
+          lua.pushInteger(owner.machine.host.componentSlot(address))
+          1
+        case _ =>
+          lua.pushNil()
+          lua.pushString("no such component")
+          2
+      }
+    })
+    lua.setField(-2, "slot")
+
     lua.pushScalaFunction(lua => {
       Option(node.network.node(lua.checkString(1))) match {
         case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
