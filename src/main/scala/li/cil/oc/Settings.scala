@@ -267,6 +267,7 @@ class Settings(config: Config) {
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
   val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
   val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
+  val enableDebugCard = config.getBoolean("debug.enableDebugCard")
 }
 
 object Settings {
