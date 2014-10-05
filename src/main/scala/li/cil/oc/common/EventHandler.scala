@@ -13,7 +13,9 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.{LuaStateFactory, SideTracker, mods}
+import li.cil.oc.util.LuaStateFactory
+import li.cil.oc.util.SideTracker
+import li.cil.oc.util.mods
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack

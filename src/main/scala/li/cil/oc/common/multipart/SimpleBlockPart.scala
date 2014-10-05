@@ -1,7 +1,9 @@
 package li.cil.oc.common.multipart
 
-import codechicken.multipart.{TIconHitEffects, TMultiPart}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import codechicken.multipart.TIconHitEffects
+import codechicken.multipart.TMultiPart
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.block.SimpleBlock
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack

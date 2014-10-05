@@ -3,13 +3,19 @@ package li.cil.oc.common.tileentity
 import com.google.common.base.Charsets
 import cpw.mods.fml.common.Optional
 import dan200.computercraft.api.lua.ILuaContext
-import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
+import dan200.computercraft.api.peripheral.IComputerAccess
+import dan200.computercraft.api.peripheral.IPeripheral
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.{Message, Packet}
-import li.cil.oc.common.{InventorySlots, Slot, item}
+import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Packet
+import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.Slot
+import li.cil.oc.common.item
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Items, Settings, api}
+import li.cil.oc.Items
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection

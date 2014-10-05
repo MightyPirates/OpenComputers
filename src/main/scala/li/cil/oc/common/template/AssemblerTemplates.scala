@@ -1,10 +1,13 @@
 package li.cil.oc.common.template
 
-import java.lang.reflect.{Method, Modifier}
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
-import li.cil.oc.common.{Slot, Tier}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{OpenComputers, api}
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

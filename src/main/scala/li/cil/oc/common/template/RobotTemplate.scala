@@ -1,13 +1,17 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
-import li.cil.oc.common.{Slot, Tier, tileentity}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 
 object RobotTemplate extends Template {
   override protected def hostClass = classOf[tileentity.Robot]

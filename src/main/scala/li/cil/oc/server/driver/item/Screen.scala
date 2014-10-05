@@ -2,7 +2,9 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.common.{Slot, component, tileentity}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.component
+import li.cil.oc.common.tileentity
 import net.minecraft.item.ItemStack
 
 object Screen extends Item {

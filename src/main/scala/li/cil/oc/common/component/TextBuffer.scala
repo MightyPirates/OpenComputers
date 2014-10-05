@@ -4,6 +4,8 @@ import com.google.common.base.Strings
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
@@ -18,11 +20,9 @@ import li.cil.oc.common._
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.SideTracker
-import li.cil.oc.Settings
-import li.cil.oc.api
-import li.cil.oc.util
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.event.world.ChunkEvent

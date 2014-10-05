@@ -6,7 +6,8 @@ import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 

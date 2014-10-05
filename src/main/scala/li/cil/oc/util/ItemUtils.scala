@@ -1,11 +1,17 @@
 package li.cil.oc.util
 
-import com.google.common.base.{Charsets, Strings}
+import com.google.common.base.Charsets
+import com.google.common.base.Strings
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Blocks, OpenComputers, Settings, api, server}
-import net.minecraft.item.{ItemMap, ItemStack}
+import li.cil.oc.Blocks
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.server
+import net.minecraft.item.ItemMap
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT

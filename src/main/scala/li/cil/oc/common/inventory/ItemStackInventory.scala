@@ -2,7 +2,8 @@ package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 
 trait ItemStackInventory extends Inventory {

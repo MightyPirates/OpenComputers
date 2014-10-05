@@ -3,10 +3,13 @@ package li.cil.oc.common.tileentity.traits.power
 import java.util
 
 import appeng.api.AEApi
-import appeng.api.config.{Actionable, PowerMultiplier}
+import appeng.api.config.Actionable
+import appeng.api.config.PowerMultiplier
 import appeng.api.networking._
 import appeng.api.networking.energy.IEnergyGrid
-import appeng.api.util.{AECableType, AEColor, DimensionalCoord}
+import appeng.api.util.AECableType
+import appeng.api.util.AEColor
+import appeng.api.util.DimensionalCoord
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler

@@ -4,14 +4,18 @@ import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.Textures
 import li.cil.oc.server.driver.item.Item
 import li.cil.oc.util.RenderState
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.renderer.entity.{RenderItem, RenderManager}
+import net.minecraft.client.renderer.entity.RenderItem
+import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{AxisAlignedBB, EnumChatFormatting}
+import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.EnumChatFormatting
 import net.minecraftforge.client.IItemRenderer
-import net.minecraftforge.client.IItemRenderer.{ItemRenderType, ItemRendererHelper}
+import net.minecraftforge.client.IItemRenderer.ItemRenderType
+import net.minecraftforge.client.IItemRenderer.ItemRendererHelper
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._

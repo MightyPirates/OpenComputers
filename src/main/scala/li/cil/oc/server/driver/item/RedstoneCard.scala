@@ -1,11 +1,16 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, RedstoneAware}
-import li.cil.oc.common.{Slot, Tier, item}
+import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
+import li.cil.oc.common.tileentity.traits.RedstoneAware
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
+import li.cil.oc.common.item
 import li.cil.oc.server.component
-import li.cil.oc.util.mods.{BundledRedstone, WirelessRedstone}
-import li.cil.oc.{Items, api}
+import li.cil.oc.util.mods.BundledRedstone
+import li.cil.oc.util.mods.WirelessRedstone
+import li.cil.oc.Items
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 
 object RedstoneCard extends Item {

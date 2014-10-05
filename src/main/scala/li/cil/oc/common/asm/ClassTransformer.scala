@@ -4,10 +4,13 @@ import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.mods.Mods.Mod
-import net.minecraft.launchwrapper.{IClassTransformer, LaunchClassLoader}
+import net.minecraft.launchwrapper.IClassTransformer
+import net.minecraft.launchwrapper.LaunchClassLoader
 import org.apache.logging.log4j.LogManager
 import org.objectweb.asm.tree._
-import org.objectweb.asm.{ClassReader, ClassWriter, Opcodes}
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._

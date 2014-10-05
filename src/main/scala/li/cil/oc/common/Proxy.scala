@@ -10,16 +10,20 @@ import li.cil.oc.common.event._
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.template.{RobotTemplate, TabletTemplate}
+import li.cil.oc.common.template.RobotTemplate
+import li.cil.oc.common.template.TabletTemplate
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.server.{machine, _}
+import li.cil.oc.server.machine
+import li.cil.oc.server._
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.{ComputerCraft, Mods}
+import li.cil.oc.util.mods.ComputerCraft
+import li.cil.oc.util.mods.Mods
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
+import net.minecraftforge.common.ForgeChunkManager
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._

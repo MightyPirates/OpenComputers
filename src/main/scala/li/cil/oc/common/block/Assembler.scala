@@ -1,11 +1,14 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.tileentity
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor {

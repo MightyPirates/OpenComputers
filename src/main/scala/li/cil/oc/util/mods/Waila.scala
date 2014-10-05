@@ -5,8 +5,12 @@ import java.util
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
-import li.cil.oc.{Localization, Settings}
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor, IWailaDataProvider, IWailaRegistrar}
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import mcp.mobius.waila.api.IWailaConfigHandler
+import mcp.mobius.waila.api.IWailaDataAccessor
+import mcp.mobius.waila.api.IWailaDataProvider
+import mcp.mobius.waila.api.IWailaRegistrar
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.Constants.NBT
 

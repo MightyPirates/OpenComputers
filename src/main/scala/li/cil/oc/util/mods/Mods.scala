@@ -1,7 +1,8 @@
 package li.cil.oc.util.mods
 
 import cpw.mods.fml.common.versioning.VersionParser
-import cpw.mods.fml.common.{Loader, ModAPIManager}
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.ModAPIManager
 import li.cil.oc.Settings
 
 import scala.collection.mutable

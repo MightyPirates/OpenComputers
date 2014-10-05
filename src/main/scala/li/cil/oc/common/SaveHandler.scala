@@ -5,15 +5,21 @@ import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import cpw.mods.fml.common.eventhandler.{EventPriority, SubscribeEvent}
+import cpw.mods.fml.common.eventhandler.EventPriority
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.MachineHost
-import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
-import net.minecraft.world.{ChunkCoordIntPair, World}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
-import org.apache.commons.lang3.{JavaVersion, SystemUtils}
+import net.minecraftforge.event.world.ChunkDataEvent
+import net.minecraftforge.event.world.WorldEvent
+import org.apache.commons.lang3.JavaVersion
+import org.apache.commons.lang3.SystemUtils
 
 import scala.collection.mutable
 

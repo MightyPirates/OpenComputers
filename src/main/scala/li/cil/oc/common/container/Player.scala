@@ -4,8 +4,12 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.Tier
 import li.cil.oc.util.SideTracker
-import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
-import net.minecraft.inventory.{Container, ICrafting, IInventory, Slot}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.inventory.Container
+import net.minecraft.inventory.ICrafting
+import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsScala._

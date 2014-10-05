@@ -3,9 +3,12 @@ package li.cil.oc.server.driver.item
 import li.cil.oc
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
-import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
+import li.cil.oc.common.item.FloppyDisk
+import li.cil.oc.common.item.HardDiskDrive
 import li.cil.oc.server.fs.FileSystem.ItemLabel
-import li.cil.oc.{Items, Settings, api}
+import li.cil.oc.Items
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 

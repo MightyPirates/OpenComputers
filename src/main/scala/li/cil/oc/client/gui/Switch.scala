@@ -3,7 +3,8 @@ package li.cil.oc.client.gui
 import java.text.DecimalFormat
 
 import li.cil.oc.Localization
-import li.cil.oc.common.{container, tileentity}
+import li.cil.oc.common.container
+import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 
 class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) extends DynamicGuiContainer(new container.Switch(playerInventory, switch)) {

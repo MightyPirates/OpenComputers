@@ -1,7 +1,9 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, api}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 
 trait TextBuffer extends Environment {

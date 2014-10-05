@@ -2,8 +2,11 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.common.{Slot, Tier, item}
-import li.cil.oc.{Items, api}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
+import li.cil.oc.common.item
+import li.cil.oc.Items
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 
 object Memory extends Item with driver.Memory {

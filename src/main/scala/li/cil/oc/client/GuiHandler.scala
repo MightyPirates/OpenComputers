@@ -3,8 +3,13 @@ package li.cil.oc.client
 import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item.Tablet
-import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
-import li.cil.oc.{Items, Localization, Settings}
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.item
+import li.cil.oc.common.tileentity
+import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
+import li.cil.oc.Items
+import li.cil.oc.Localization
+import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World

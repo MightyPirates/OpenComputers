@@ -1,6 +1,7 @@
 package li.cil.oc.common.recipe
 
-import java.io.{File, FileReader}
+import java.io.File
+import java.io.FileReader
 
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
@@ -11,9 +12,12 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
-import net.minecraft.item.{ItemBlock, Item, ItemStack}
+import net.minecraft.item.Item
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.RecipeSorter.Category
-import net.minecraftforge.oredict.{OreDictionary, RecipeSorter}
+import net.minecraftforge.oredict.OreDictionary
+import net.minecraftforge.oredict.RecipeSorter
 import org.apache.commons.io.FileUtils
 
 import scala.collection.convert.WrapAsScala._

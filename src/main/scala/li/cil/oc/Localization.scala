@@ -1,7 +1,9 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.event.FMLFingerprintViolationEvent
-import net.minecraft.util.{ChatComponentText, ChatComponentTranslation, StatCollector}
+import net.minecraft.util.ChatComponentText
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraft.util.StatCollector
 
 object Localization {
   private def resolveKey(key: String) = if (StatCollector.canTranslate(Settings.namespace + key)) Settings.namespace + key else key

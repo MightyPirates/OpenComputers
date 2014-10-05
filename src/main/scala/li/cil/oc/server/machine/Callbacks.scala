@@ -1,16 +1,20 @@
 package li.cil.oc.server.machine
 
-import java.lang.reflect.{InvocationTargetException, Method, Modifier}
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.MethodWhitelist
 import li.cil.oc.api.machine
-import li.cil.oc.api.machine.{Arguments, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.ManagedPeripheral
 import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 
-import scala.collection.{immutable, mutable}
+import scala.collection.immutable
+import scala.collection.mutable
 
 object Callbacks {
   private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]

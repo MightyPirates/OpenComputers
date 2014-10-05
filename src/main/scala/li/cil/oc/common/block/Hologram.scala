@@ -2,12 +2,15 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemStack
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {

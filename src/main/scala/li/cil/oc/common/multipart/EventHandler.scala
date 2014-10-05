@@ -2,7 +2,8 @@ package li.cil.oc.common.multipart
 
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.raytracer.RayTracer
-import codechicken.lib.vec.{BlockCoord, Vector3}
+import codechicken.lib.vec.BlockCoord
+import codechicken.lib.vec.Vector3
 import codechicken.multipart.TileMultipart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.Items
@@ -14,7 +15,8 @@ import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.MovingObjectPosition
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
-import net.minecraftforge.event.entity.player.{PlayerDestroyItemEvent, PlayerInteractEvent}
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 
 object EventHandler {
   private var currentlyPlacing = false

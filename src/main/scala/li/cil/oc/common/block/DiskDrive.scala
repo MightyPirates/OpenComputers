@@ -1,7 +1,8 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.Mods
 import net.minecraft.entity.player.EntityPlayer

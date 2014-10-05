@@ -4,7 +4,9 @@ import java.io
 
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
-import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.DimensionManager
 

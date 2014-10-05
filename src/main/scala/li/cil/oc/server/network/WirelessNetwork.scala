@@ -5,7 +5,8 @@ import li.cil.oc.Settings
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.util.RTree
 import net.minecraft.util.Vec3
-import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
+import net.minecraftforge.event.world.ChunkEvent
+import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable

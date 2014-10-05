@@ -10,7 +10,8 @@ import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
-import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
+import li.cil.oc.common.PacketType
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen

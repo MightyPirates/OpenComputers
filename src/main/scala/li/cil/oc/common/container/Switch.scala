@@ -1,7 +1,8 @@
 package li.cil.oc.common.container
 
 import cpw.mods.fml.common.FMLCommonHandler
-import li.cil.oc.common.{Slot, tileentity}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 
 class Switch(playerInventory: InventoryPlayer, switch: tileentity.Switch) extends Player(playerInventory, switch) {

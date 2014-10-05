@@ -1,13 +1,18 @@
 package li.cil.oc.server.machine.luac
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.Value
-import li.cil.oc.server.machine.{ArgumentsImpl, Callbacks}
+import li.cil.oc.server.machine.ArgumentsImpl
+import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
-import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTTagCompound
 
 class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def initialize() {

@@ -4,10 +4,12 @@ import cpw.mods.fml.common.Optional
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectionType
-import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, IRedNetOmniNode}
+import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
+import powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode
 
 @Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = Mods.IDs.MineFactoryReloaded)
 abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {

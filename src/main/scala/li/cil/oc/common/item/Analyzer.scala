@@ -2,9 +2,11 @@ package li.cil.oc.common.item
 
 import li.cil.oc.Localization
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity.{Analyzable, SidedEnvironment}
+import li.cil.oc.api.tileentity.Analyzable
+import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.server.PacketSender
-import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection

@@ -5,9 +5,11 @@ import java.util
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.UpgradeChunkloader
-import net.minecraft.world.{ChunkCoordIntPair, World}
+import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
-import net.minecraftforge.common.ForgeChunkManager.{LoadingCallback, Ticket}
+import net.minecraftforge.common.ForgeChunkManager.LoadingCallback
+import net.minecraftforge.common.ForgeChunkManager.Ticket
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._

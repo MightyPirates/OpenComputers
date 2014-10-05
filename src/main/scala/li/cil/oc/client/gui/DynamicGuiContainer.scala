@@ -1,13 +1,16 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.container.{ComponentSlot, Player}
+import li.cil.oc.common.container.ComponentSlot
+import li.cil.oc.common.container.Player
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.NEI
-import li.cil.oc.{Localization, common}
+import li.cil.oc.Localization
+import li.cil.oc.common
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
-import net.minecraft.inventory.{Container, Slot}
+import net.minecraft.inventory.Container
+import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import org.lwjgl.opengl.GL11

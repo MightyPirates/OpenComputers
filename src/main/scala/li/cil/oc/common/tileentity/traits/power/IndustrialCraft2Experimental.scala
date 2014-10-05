@@ -4,7 +4,8 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 

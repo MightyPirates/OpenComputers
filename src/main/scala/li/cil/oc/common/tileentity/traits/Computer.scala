@@ -1,21 +1,28 @@
 package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.driver.Processor
-import li.cil.oc.api.machine.{Architecture, MachineHost}
+import li.cil.oc.api.machine.Architecture
+import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.tileentity.Analyzable
-import li.cil.oc.api.{Driver, Machine}
+import li.cil.oc.api.Driver
+import li.cil.oc.api.Machine
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
-import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
+import li.cil.oc.server.driver
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.{Mods, Waila}
-import li.cil.oc.{Localization, Settings}
+import li.cil.oc.util.mods.Mods
+import li.cil.oc.util.mods.Waila
+import li.cil.oc.Localization
+import li.cil.oc.Settings
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import stargatetech2.api.bus.IBusDevice

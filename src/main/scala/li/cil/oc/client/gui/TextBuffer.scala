@@ -2,7 +2,8 @@ package li.cil.oc.client.gui
 
 import li.cil.oc.api
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.client.{KeyBindings, Textures}
+import li.cil.oc.client.KeyBindings
+import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.NEI
 import net.minecraft.client.Minecraft

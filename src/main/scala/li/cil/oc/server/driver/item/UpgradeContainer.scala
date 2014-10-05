@@ -1,8 +1,11 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.api.driver.{Container, EnvironmentHost}
-import li.cil.oc.common.{Slot, item}
-import li.cil.oc.{Items, api}
+import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.common.Slot
+import li.cil.oc.common.item
+import li.cil.oc.Items
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 
 object UpgradeContainer extends Item with Container {

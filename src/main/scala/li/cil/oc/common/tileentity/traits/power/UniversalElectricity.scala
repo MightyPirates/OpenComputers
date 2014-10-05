@@ -1,12 +1,14 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraftforge.common.util.ForgeDirection
 import universalelectricity.api.core.grid.electric.IEnergyNode
-import universalelectricity.api.core.grid.{INode, INodeProvider}
+import universalelectricity.api.core.grid.INode
+import universalelectricity.api.core.grid.INodeProvider
 import universalelectricity.core.grid.node.NodeEnergy
 
 trait UniversalElectricity extends Common {

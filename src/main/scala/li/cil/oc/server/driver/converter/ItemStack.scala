@@ -2,7 +2,8 @@ package li.cil.oc.server.driver.converter
 
 import java.util
 
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item
 import net.minecraft.item.Item
 

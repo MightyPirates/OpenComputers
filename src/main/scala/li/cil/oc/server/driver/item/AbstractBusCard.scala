@@ -13,7 +13,7 @@ object AbstractBusCard extends Item {
     isOneOf(stack, api.Items.get("abstractBusCard"))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-     super.worksWith(stack, host) && isComputer(host)
+    super.worksWith(stack, host) && isComputer(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = if (Mods.StargateTech2.isAvailable) host match {
     case device: IBusDevice => new component.AbstractBusCard(device)

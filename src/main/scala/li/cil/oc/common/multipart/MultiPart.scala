@@ -3,8 +3,10 @@ package li.cil.oc.common.multipart
 import java.util
 
 import codechicken.lib.vec.BlockCoord
-import codechicken.multipart.MultiPartRegistry.{IPartConverter, IPartFactory}
-import codechicken.multipart.{MultiPartRegistry, TMultiPart}
+import codechicken.multipart.MultiPartRegistry.IPartConverter
+import codechicken.multipart.MultiPartRegistry.IPartFactory
+import codechicken.multipart.MultiPartRegistry
+import codechicken.multipart.TMultiPart
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
 import li.cil.oc.common.tileentity.Cable

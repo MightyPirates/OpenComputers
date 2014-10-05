@@ -4,11 +4,15 @@ import java.util
 
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.{ItemCosts, ItemUtils}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.util.ItemCosts
+import li.cil.oc.util.ItemUtils
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemBlock, ItemStack}
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection

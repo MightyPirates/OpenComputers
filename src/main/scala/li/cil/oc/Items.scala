@@ -1,15 +1,20 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
-import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
+import li.cil.oc.api.detail.ItemAPI
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.{Loot, Tier, item}
+import li.cil.oc.common.Loot
+import li.cil.oc.common.Tier
+import li.cil.oc.common.item
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{Item, ItemBlock, ItemStack}
+import net.minecraft.item.Item
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 

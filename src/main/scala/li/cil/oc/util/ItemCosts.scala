@@ -5,10 +5,14 @@ import java.util
 import li.cil.oc.Localization
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
-import net.minecraft.init.{Blocks, Items}
+import net.minecraft.init.Blocks
+import net.minecraft.init.Items
 import net.minecraft.item.crafting._
-import net.minecraft.item.{Item, ItemStack}
-import net.minecraftforge.oredict.{OreDictionary, ShapedOreRecipe, ShapelessOreRecipe}
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraftforge.oredict.OreDictionary
+import net.minecraftforge.oredict.ShapedOreRecipe
+import net.minecraftforge.oredict.ShapelessOreRecipe
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable

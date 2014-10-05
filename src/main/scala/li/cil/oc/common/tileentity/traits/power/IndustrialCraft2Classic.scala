@@ -5,7 +5,8 @@ import cpw.mods.fml.common.eventhandler.Event
 import ic2classic.api.Direction
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection

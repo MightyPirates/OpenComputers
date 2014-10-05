@@ -2,7 +2,8 @@ package li.cil.oc.common.block
 
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Adapter extends SimpleBlock {

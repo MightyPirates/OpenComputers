@@ -1,9 +1,12 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity
 import li.cil.oc.util.mods.Mods
@@ -14,7 +17,9 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.fluids.{Fluid, FluidStack, IFluidHandler}
+import net.minecraftforge.fluids.Fluid
+import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.IFluidHandler
 
 class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with tileentity.Robot with ISidedInventory with IFluidHandler {
   def this() = this(new Robot())

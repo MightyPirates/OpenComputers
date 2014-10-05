@@ -2,8 +2,11 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.common.{Tier, item, tileentity}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.common.Tier
+import li.cil.oc.common.item
+import li.cil.oc.common.tileentity
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 

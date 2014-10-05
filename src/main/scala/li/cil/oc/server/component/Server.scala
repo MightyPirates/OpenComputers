@@ -1,12 +1,19 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Items
+import li.cil.oc.api.Driver
+import li.cil.oc.api.Machine
+import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Processor
-import li.cil.oc.api.machine.{Architecture, MachineHost}
-import li.cil.oc.api.network.{Message, Node}
-import li.cil.oc.api.{Driver, Machine, driver}
-import li.cil.oc.common.inventory.{ComponentInventory, ServerInventory}
-import li.cil.oc.common.{Slot, item, tileentity}
+import li.cil.oc.api.machine.Architecture
+import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Node
+import li.cil.oc.common.Slot
+import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.item
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

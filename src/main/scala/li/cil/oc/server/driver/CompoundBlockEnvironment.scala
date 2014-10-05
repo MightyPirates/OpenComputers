@@ -6,7 +6,8 @@ import com.google.common.hash.Hashing
 import li.cil.oc.api.driver
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{OpenComputers, api}
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 
 class CompoundBlockEnvironment(val name: String, val environments: (driver.Block, ManagedEnvironment)*) extends ManagedEnvironment {

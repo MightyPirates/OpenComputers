@@ -6,12 +6,15 @@ import java.util.Random
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.util.Color
-import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
-import net.minecraftforge.common.{ChestGenHooks, DimensionManager}
+import net.minecraftforge.common.ChestGenHooks
+import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._

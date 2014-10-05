@@ -2,18 +2,26 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.common.{GuiType, tileentity}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.BuildCraft
-import li.cil.oc.util.{Color, PackedColor, Tooltip}
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.util.Color
+import li.cil.oc.util.PackedColor
+import li.cil.oc.util.Tooltip
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
-import net.minecraft.entity.{Entity, EntityLivingBase}
-import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Screen(val tier: Int) extends RedstoneAware {
@@ -38,43 +46,69 @@ class Screen(val tier: Int) extends RedstoneAware {
     var b, b2, bbl, bbl2, bbm, bbm2, bbr, bbr2, bhb, bhb2, bhm, bhm2, bht, bht2, bml, bmm, bmr, btl, btm, btr, bvb, bvb2, bvm, bvt, f, f2, fbl, fbl2, fbm, fbm2, fbr, fbr2, fhb, fhb2, fhm, fhm2, fht, fht2, fml, fmm, fmr, ftl, ftm, ftr, fvb, fvb2, fvm, fvt = null: IIcon
 
     def fh = Array(fht, fhm, fhb)
+
     def fv = Array(fvt, fvm, fvb)
+
     def bh = Array(bht, bhm, bhb)
+
     def bv = Array(bvt, bvm, bvb)
 
     def fth = Array(ftl, ftm, ftr)
+
     def fmh = Array(fml, fmm, fmr)
+
     def fbh = Array(fbl, fbm, fbr)
+
     def bth = Array(btl, btm, btr)
+
     def bmh = Array(bml, bmm, bmr)
+
     def bbh = Array(bbl, bbm, bbr)
 
     def ftv = Array(ftl, fml, fbl)
+
     def fmv = Array(ftm, fmm, fbm)
+
     def fbv = Array(ftr, fmr, fbr)
+
     def btv = Array(btl, bml, bbl)
+
     def bmv = Array(btm, bmm, bbm)
+
     def bbv = Array(btr, bmr, bbr)
 
     def fh2 = Array(fht2, fhm2, fhb2)
+
     def fv2 = Array(fvt, fvm, fvb2)
+
     def bh2 = Array(bht2, bhm2, bhb2)
+
     def bv2 = Array(bvt, bvm, bvb2)
+
     def fbh2 = Array(fbl2, fbm2, fbr2)
+
     def bbh2 = Array(bbl2, bbm2, bbr2)
 
     def fud = Icons.fh2 ++ Icons.fv2 ++ Icons.fth ++ Icons.fmh ++ Icons.fbh2
+
     def bud = Icons.bh2.reverse ++ Icons.bv2 ++ Icons.bth.reverse ++ Icons.bmh.reverse ++ Icons.bbh2.reverse
+
     def fsn = Icons.fh ++ Icons.fv ++ Icons.fth ++ Icons.fmh ++ Icons.fbh
+
     def few = Icons.fv ++ Icons.fh ++ Icons.ftv ++ Icons.fmv ++ Icons.fbv
+
     def bsn = Icons.bh ++ Icons.bv ++ Icons.bth ++ Icons.bmh ++ Icons.bbh
+
     def bew = Icons.bv ++ Icons.bh ++ Icons.btv ++ Icons.bmv ++ Icons.bbv
 
     def sud = Array(Icons.bvt, Icons.bvm, Icons.bvb2)
+
     def sse = Array(Icons.bhb2, Icons.bhm2, Icons.bht2)
+
     def snw = Array(Icons.bht2, Icons.bhm2, Icons.bhb2)
 
     def th = Array(Icons.bhb, Icons.bhm, Icons.bht)
+
     def tv = Array(Icons.bvb, Icons.bvm, Icons.bvt)
   }
 

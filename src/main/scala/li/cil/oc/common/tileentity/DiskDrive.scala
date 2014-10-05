@@ -1,11 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.{Component, Visibility}
+import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.tileentity.Analyzable
-import li.cil.oc.common.{Slot, Sound}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Sound
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer

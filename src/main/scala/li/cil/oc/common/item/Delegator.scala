@@ -3,15 +3,20 @@ package li.cil.oc.common.item
 import java.util
 import java.util.Random
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
-import li.cil.oc.{CreativeTab, OpenComputers}
+import li.cil.oc.CreativeTab
+import li.cil.oc.OpenComputers
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, Item, ItemStack}
-import net.minecraft.util.{IIcon, WeightedRandomChestContent}
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.util.IIcon
+import net.minecraft.util.WeightedRandomChestContent
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
 

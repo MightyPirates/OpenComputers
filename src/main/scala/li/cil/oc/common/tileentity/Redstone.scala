@@ -2,7 +2,8 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, Environment}
+import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
+import li.cil.oc.common.tileentity.traits.Environment
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.BundledRedstone

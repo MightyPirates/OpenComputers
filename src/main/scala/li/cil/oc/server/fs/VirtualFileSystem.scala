@@ -4,7 +4,8 @@ import java.io
 import java.io.FileNotFoundException
 
 import li.cil.oc.api.fs.Mode
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable

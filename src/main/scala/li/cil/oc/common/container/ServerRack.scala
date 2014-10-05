@@ -1,6 +1,7 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer

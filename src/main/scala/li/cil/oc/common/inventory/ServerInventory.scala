@@ -1,7 +1,8 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.api.Driver
-import li.cil.oc.common.{InventorySlots, tileentity}
+import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 

@@ -1,24 +1,38 @@
 package li.cil.oc.common.item
 
 import java.util.UUID
-import java.util.concurrent.{Callable, TimeUnit}
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 
-import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.RemovalListener
+import com.google.common.cache.RemovalNotification
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, ServerTickEvent}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.driver.{EnvironmentHost, Processor}
-import li.cil.oc.api.machine.{Architecture, MachineHost}
-import li.cil.oc.api.network.{Message, Node}
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
+import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.Processor
+import li.cil.oc.api.machine.Architecture
+import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Node
 import li.cil.oc.api.tileentity.Rotatable
-import li.cil.oc.api.{Driver, Machine}
+import li.cil.oc.api.Driver
+import li.cil.oc.api.Machine
 import li.cil.oc.common.inventory.ComponentInventory
-import li.cil.oc.common.{GuiType, Slot}
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.Slot
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils.TabletData
-import li.cil.oc.util.{ItemUtils, RotationHelper}
-import li.cil.oc.{Localization, OpenComputers, Settings, api}
+import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.RotationHelper
+import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack

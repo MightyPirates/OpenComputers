@@ -3,7 +3,8 @@ package li.cil.oc.common.tileentity.traits
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.tileentity.SidedEnvironment
-import li.cil.oc.api.{driver, network}
+import li.cil.oc.api.driver
+import li.cil.oc.api.network
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound

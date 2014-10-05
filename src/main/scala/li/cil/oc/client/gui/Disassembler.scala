@@ -3,7 +3,8 @@ package li.cil.oc.client.gui
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
-import li.cil.oc.common.{container, tileentity}
+import li.cil.oc.common.container
+import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
 

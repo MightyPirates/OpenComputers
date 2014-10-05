@@ -1,21 +1,31 @@
 package li.cil.oc.common.multipart
 
-import codechicken.lib.data.{MCDataInput, MCDataOutput}
-import codechicken.lib.vec.{Cuboid6, Vector3}
+import codechicken.lib.data.MCDataInput
+import codechicken.lib.data.MCDataOutput
+import codechicken.lib.vec.Cuboid6
+import codechicken.lib.vec.Vector3
 import codechicken.multipart._
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Message, Node, Visibility}
-import li.cil.oc.api.{Items, network}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.Items
+import li.cil.oc.api.network
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api, client, common}
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.client
+import li.cil.oc.common
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition}
+import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.MovingObjectPosition
 
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._

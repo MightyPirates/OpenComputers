@@ -1,17 +1,26 @@
 package li.cil.oc.server.network
 
 import codechicken.lib.vec.Cuboid6
-import codechicken.multipart.{JNormalOcclusion, NormalOcclusionTest, TFacePart, TileMultipart}
+import codechicken.multipart.JNormalOcclusion
+import codechicken.multipart.NormalOcclusionTest
+import codechicken.multipart.TFacePart
+import codechicken.multipart.TileMultipart
 import li.cil.oc.api.network
-import li.cil.oc.api.network.{Environment, Visibility, WirelessEndpoint, Node => ImmutableNode}
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.WirelessEndpoint
+import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.{Color, SideTracker}
-import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.util.Color
+import li.cil.oc.util.SideTracker
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection

@@ -2,9 +2,11 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity.Analyzable
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 

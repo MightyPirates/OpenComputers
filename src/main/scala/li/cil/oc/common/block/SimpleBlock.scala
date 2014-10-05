@@ -2,20 +2,30 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.tileentity.traits.{Colored, Inventory, Rotatable}
-import li.cil.oc.util.{Color, Tooltip}
-import li.cil.oc.{CreativeTab, Settings}
+import li.cil.oc.common.tileentity.traits.Colored
+import li.cil.oc.common.tileentity.traits.Inventory
+import li.cil.oc.common.tileentity.traits.Rotatable
+import li.cil.oc.util.Color
+import li.cil.oc.util.Tooltip
+import li.cil.oc.CreativeTab
+import li.cil.oc.Settings
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.{Entity, EnumCreatureType}
-import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{AxisAlignedBB, IIcon, Vec3}
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EnumCreatureType
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemStack
+import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.IIcon
+import net.minecraft.util.Vec3
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class SimpleBlock(material: Material = Material.iron) extends Block(material) {

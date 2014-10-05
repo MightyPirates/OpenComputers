@@ -2,10 +2,14 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
-import li.cil.oc.common.{container, tileentity}
-import li.cil.oc.{Localization, Settings}
-import net.minecraft.client.gui.{GuiButton, GuiScreen}
+import li.cil.oc.client.Textures
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.container
+import li.cil.oc.common.tileentity
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraftforge.common.util.ForgeDirection

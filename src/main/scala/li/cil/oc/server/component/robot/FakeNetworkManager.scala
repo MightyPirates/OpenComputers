@@ -1,7 +1,9 @@
 package li.cil.oc.server.component.robot
 
-import io.netty.util.concurrent.{Future, GenericFutureListener}
-import net.minecraft.network.{NetworkManager, Packet}
+import io.netty.util.concurrent.Future
+import io.netty.util.concurrent.GenericFutureListener
+import net.minecraft.network.NetworkManager
+import net.minecraft.network.Packet
 
 object FakeNetworkManager extends NetworkManager(false) {
   override def scheduleOutboundPacket(packet: Packet, listener: GenericFutureListener[_ <: Future[_]]*) {}

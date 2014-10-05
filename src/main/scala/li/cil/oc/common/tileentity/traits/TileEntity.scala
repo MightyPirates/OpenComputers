@@ -1,9 +1,11 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, OpenComputers}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.client.Sound
 import li.cil.oc.util.SideTracker
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity

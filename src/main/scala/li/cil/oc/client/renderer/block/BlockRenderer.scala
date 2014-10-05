@@ -9,7 +9,8 @@ import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.{RenderBlocks, Tessellator}
+import net.minecraft.client.renderer.RenderBlocks
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.util.ForgeDirection

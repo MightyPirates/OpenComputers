@@ -1,6 +1,7 @@
 package li.cil.oc.util.mods
 
-import codechicken.wirelessredstone.core.{WirelessReceivingDevice, WirelessTransmittingDevice}
+import codechicken.wirelessredstone.core.WirelessReceivingDevice
+import codechicken.wirelessredstone.core.WirelessTransmittingDevice
 import li.cil.oc.server.component.RedstoneWireless
 
 import scala.language.reflectiveCalls

@@ -1,12 +1,15 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.Textures
-import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor {

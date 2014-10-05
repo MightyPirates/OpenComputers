@@ -7,7 +7,8 @@ import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.inventory.Container
-import org.lwjgl.opengl.{GL11, GL12}
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
 
 import scala.collection.convert.WrapAsScala._
 

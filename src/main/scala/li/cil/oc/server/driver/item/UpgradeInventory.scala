@@ -1,7 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
-import li.cil.oc.api.driver.{EnvironmentHost, Inventory}
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.Inventory
 import li.cil.oc.common.Slot
 import net.minecraft.item.ItemStack
 

@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.tileentity.traits.TileEntity

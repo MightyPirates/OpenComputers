@@ -3,7 +3,8 @@ package li.cil.oc.server.driver.item
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
 import li.cil.oc.util.ItemUtils
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT

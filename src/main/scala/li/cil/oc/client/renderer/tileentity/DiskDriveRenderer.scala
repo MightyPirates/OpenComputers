@@ -3,7 +3,8 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.OpenGlHelper
-import net.minecraft.client.renderer.entity.{RenderItem, RenderManager}
+import net.minecraft.client.renderer.entity.RenderItem
+import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.tileentity.TileEntity

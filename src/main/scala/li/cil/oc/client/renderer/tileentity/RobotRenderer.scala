@@ -5,12 +5,16 @@ import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.entity.{RenderManager, RendererLivingEntity}
+import net.minecraft.client.renderer.entity.RenderManager
+import net.minecraft.client.renderer.entity.RendererLivingEntity
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{GLAllocation, RenderBlocks, Tessellator}
+import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.RenderBlocks
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity
@@ -21,7 +25,8 @@ import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
-import org.lwjgl.opengl.{GL11, GL12}
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)

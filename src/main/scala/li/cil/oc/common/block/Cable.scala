@@ -1,8 +1,12 @@
 package li.cil.oc.common.block
 
 import codechicken.lib.vec.Cuboid6
-import codechicken.multipart.{JNormalOcclusion, NormalOcclusionTest, TFacePart, TileMultipart}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import codechicken.multipart.JNormalOcclusion
+import codechicken.multipart.NormalOcclusionTest
+import codechicken.multipart.TFacePart
+import codechicken.multipart.TileMultipart
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.tileentity.SidedEnvironment
@@ -15,7 +19,8 @@ import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Cable extends SimpleBlock with traits.SpecialBlock {

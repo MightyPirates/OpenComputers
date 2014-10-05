@@ -2,9 +2,11 @@ package li.cil.oc.server.driver
 
 import java.util
 
-import li.cil.oc.api.driver.{EnvironmentHost, Converter}
+import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Value
-import li.cil.oc.{OpenComputers, api}
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 

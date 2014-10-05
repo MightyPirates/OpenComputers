@@ -1,13 +1,17 @@
 package li.cil.oc.util.mods
 
 import dan200.computercraft.api.ComputerCraftAPI
-import dan200.computercraft.api.filesystem.{IMount, IWritableMount}
+import dan200.computercraft.api.filesystem.IMount
+import dan200.computercraft.api.filesystem.IWritableMount
 import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.media.IMedia
-import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral, IPeripheralProvider}
+import dan200.computercraft.api.peripheral.IComputerAccess
+import dan200.computercraft.api.peripheral.IPeripheral
+import dan200.computercraft.api.peripheral.IPeripheralProvider
 import li.cil.oc
 import li.cil.oc.common.tileentity.Switch
-import li.cil.oc.server.fs.{ComputerCraftFileSystem, ComputerCraftWritableFileSystem}
+import li.cil.oc.server.fs.ComputerCraftFileSystem
+import li.cil.oc.server.fs.ComputerCraftWritableFileSystem
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 

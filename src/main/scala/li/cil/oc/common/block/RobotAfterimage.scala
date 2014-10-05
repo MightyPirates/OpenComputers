@@ -2,14 +2,18 @@ package li.cil.oc.common.block
 
 import java.util.Random
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
-import li.cil.oc.{Blocks, Settings}
+import li.cil.oc.Blocks
+import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
-import net.minecraft.util.{IIcon, MovingObjectPosition}
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.util.IIcon
+import net.minecraft.util.MovingObjectPosition
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {

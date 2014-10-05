@@ -1,10 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Localization, Settings, api}
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT

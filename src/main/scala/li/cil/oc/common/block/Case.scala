@@ -2,16 +2,22 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.common.{GuiType, tileentity}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.BuildCraft
-import li.cil.oc.util.{Color, Tooltip}
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.util.Color
+import li.cil.oc.util.Tooltip
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {

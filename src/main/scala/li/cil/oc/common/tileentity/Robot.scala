@@ -2,19 +2,25 @@ package li.cil.oc.common.tileentity
 
 import java.util.UUID
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
-import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
+import li.cil.oc.api.event.RobotAnalyzeEvent
+import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.network._
-import li.cil.oc.api.{Driver, tileentity}
+import li.cil.oc.api.Driver
+import li.cil.oc.api.tileentity
 import li.cil.oc.client.gui
-import li.cil.oc.common.{Slot, Tier}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
-import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
+import li.cil.oc.server.driver
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
-import net.minecraft.block.{Block, BlockLiquid}
+import net.minecraft.block.Block
+import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack

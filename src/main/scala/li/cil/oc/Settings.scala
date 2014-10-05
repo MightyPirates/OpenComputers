@@ -1,18 +1,21 @@
 package li.cil.oc
 
 import java.io._
-import java.net.{Inet4Address, InetAddress}
+import java.net.Inet4Address
+import java.net.InetAddress
 
 import com.google.common.net.InetAddresses
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
+import cpw.mods.fml.common.versioning.DefaultArtifactVersion
+import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 
 import scala.collection.convert.WrapAsScala._
-import scala.io.{Codec, Source}
+import scala.io.Codec
+import scala.io.Source
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
