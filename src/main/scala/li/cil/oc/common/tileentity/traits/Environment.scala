@@ -10,8 +10,6 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-import scala.math.ScalaNumber
-
 trait Environment extends TileEntity with network.Environment with driver.EnvironmentHost {
   protected var isChangeScheduled = false
 
@@ -86,11 +84,5 @@ trait Environment extends TileEntity with network.Environment with driver.Enviro
 
   // ----------------------------------------------------------------------- //
 
-  final protected def result(args: Any*): Array[AnyRef] = {
-    def unwrap(arg: Any): AnyRef = arg match {
-      case x: ScalaNumber => x.underlying
-      case x => x.asInstanceOf[AnyRef]
-    }
-    Array(args map unwrap: _*)
-  }
+  protected def result(args: Any*) = li.cil.oc.util.ResultWrapper.result(args: _*)
 }

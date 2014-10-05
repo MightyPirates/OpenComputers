@@ -63,7 +63,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
   def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
     if (stack != null) {
       val hostAware = items.collect {
-        case driver: HostAware => driver
+        case driver: HostAware if driver.worksWith(stack) => driver
       }
       if (hostAware.size > 0) {
         hostAware.find(_.worksWith(stack, host)).orNull

@@ -19,11 +19,11 @@ trait Item extends driver.Item {
 
   protected def isRotatable(host: Class[_ <: EnvironmentHost]) = classOf[api.tileentity.Rotatable].isAssignableFrom(host)
 
-  protected def isComputer(host: Class[_ <: EnvironmentHost]) = host.isInstanceOf[tileentity.traits.Computer] || host.isInstanceOf[tileentity.ServerRack]
+  protected def isComputer(host: Class[_ <: EnvironmentHost]) = classOf[tileentity.traits.Computer].isAssignableFrom(host) || classOf[tileentity.ServerRack].isAssignableFrom(host)
 
   protected def isRobot(host: Class[_ <: EnvironmentHost]) = classOf[api.tileentity.Robot].isAssignableFrom(host)
 
-  protected def isTablet(host: Class[_ <: EnvironmentHost]) = host.isInstanceOf[item.TabletWrapper]
+  protected def isTablet(host: Class[_ <: EnvironmentHost]) = classOf[item.TabletWrapper].isAssignableFrom(host)
 }
 
 object Item {

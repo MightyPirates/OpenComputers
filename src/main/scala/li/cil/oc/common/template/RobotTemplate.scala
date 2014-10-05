@@ -1,13 +1,13 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -82,6 +82,7 @@ object RobotTemplate extends Template {
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectTier2")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.tileentity.Robot")
 
       val containerSlots = new NBTTagList()
       containerSlots.appendTag(Map("tier" -> Tier.Three))

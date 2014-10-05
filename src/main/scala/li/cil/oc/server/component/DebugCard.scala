@@ -16,8 +16,6 @@ import net.minecraft.world.World
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
 
-import scala.math.ScalaNumber
-
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
@@ -66,15 +64,10 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
 }
 
 object DebugCard {
-  def checkEnabled() = if (!Settings.get.enableDebugCard) throw new Exception("debug card functionality is disabled")
 
-  final private def result(args: Any*): Array[AnyRef] = {
-    def unwrap(arg: Any): AnyRef = arg match {
-      case x: ScalaNumber => x.underlying
-      case x => x.asInstanceOf[AnyRef]
-    }
-    Array(args map unwrap: _*)
-  }
+  import li.cil.oc.util.ResultWrapper.result
+
+  def checkEnabled() = if (!Settings.get.enableDebugCard) throw new Exception("debug card functionality is disabled")
 
   class PlayerValue(var name: String) extends prefab.AbstractValue {
     def this() = this("") // For loading.
