@@ -30,9 +30,10 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   }
 
   private def tryGetName(world: World, x: Int, y: Int, z: Int, environments: Seq[ManagedEnvironment]): String = {
-    for (environment <- environments) environment match {
-      case named: NamedBlock => return named.preferredName
-      case _ =>
+    environments.collect {
+      case named: NamedBlock => named
+    }.sortBy(_.priority).headOption match {
+      case Some(named) => return named.preferredName
     }
     try world.getTileEntity(x, y, z) match {
       case inventory: IInventory if !Strings.isNullOrEmpty(inventory.getInventoryName) => return inventory.getInventoryName.stripPrefix("container.")
