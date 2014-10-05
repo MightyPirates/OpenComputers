@@ -12,27 +12,26 @@ import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.Driver
+import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.driver.Processor
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.tileentity.Rotatable
-import li.cil.oc.api.Driver
-import li.cil.oc.api.Machine
-import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
+import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.RotationHelper
-import li.cil.oc.Localization
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -241,7 +240,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
       case Some(s) => Option(Driver.driverFor(s, getClass)) match {
-        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
+        case Some(driver: api.driver.item.Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
         case _ =>
       }
       case _ =>
@@ -251,7 +250,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   override def installedMemory = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
     case Some(item) => Option(api.Driver.driverFor(item, getClass)) match {
-      case Some(driver: api.driver.Memory) => driver.amount(item)
+      case Some(driver: api.driver.item.Memory) => driver.amount(item)
       case _ => 0
     }
     case _ => 0

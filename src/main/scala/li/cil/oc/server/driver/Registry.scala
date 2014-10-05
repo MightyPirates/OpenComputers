@@ -2,11 +2,12 @@ package li.cil.oc.server.driver
 
 import java.util
 
-import li.cil.oc.api.driver.Converter
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.Value
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
+import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.HostAware
+import li.cil.oc.api.machine.Value
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
@@ -60,7 +61,15 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
 
   def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    if (stack != null) items.find(_.worksWith(stack, host)).orNull
+    if (stack != null) {
+      val hostAware = items.collect {
+        case driver: HostAware => driver
+      }
+      if (hostAware.size > 0) {
+        hostAware.find(_.worksWith(stack, host)).orNull
+      }
+      else driverFor(stack)
+    }
     else null
 
   def driverFor(stack: ItemStack) =

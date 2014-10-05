@@ -3,14 +3,14 @@ package li.cil.oc.server.driver.item
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item
 import li.cil.oc.init.Items
 import net.minecraft.item.ItemStack
 
-object CPU extends Item with driver.Processor {
+object CPU extends Item with Processor {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("cpu1"), api.Items.get("cpu2"), api.Items.get("cpu3"))
 

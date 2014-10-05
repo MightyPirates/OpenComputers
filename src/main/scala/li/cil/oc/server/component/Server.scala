@@ -2,8 +2,8 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver
-import li.cil.oc.api.driver.Processor
+import li.cil.oc.api.driver.item.Memory
+import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
@@ -43,7 +43,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
 
   override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Option(Driver.driverFor(item, rack.getClass)) match {
-      case Some(driver: driver.Memory) => driver.amount(item)
+      case Some(driver: Memory) => driver.amount(item)
       case _ => 0
     }
     case _ => 0
@@ -52,7 +52,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
   lazy val maxComponents = if (!hasCPU) 0
   else inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Option(Driver.driverFor(item, rack.getClass)) match {
-      case Some(driver: driver.Processor) => driver.supportedComponents(item)
+      case Some(driver: Processor) => driver.supportedComponents(item)
       case _ => 0
     }
     case _ => 0

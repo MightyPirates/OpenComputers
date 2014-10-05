@@ -1,6 +1,5 @@
 package li.cil.oc.api.prefab;
 
-import li.cil.oc.api.driver.EnvironmentHost;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -24,11 +23,6 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
 
     protected DriverItem(final ItemStack... items) {
         this.items = items.clone();
-    }
-
-    @Override
-    public boolean worksWith(final ItemStack stack, final Class<? extends EnvironmentHost> host) {
-        return worksWith(stack);
     }
 
     @Override

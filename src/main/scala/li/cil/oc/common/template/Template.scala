@@ -1,11 +1,15 @@
 package li.cil.oc.common.template
 
-import li.cil.oc.api.driver._
-import li.cil.oc.common.Slot
-import li.cil.oc.common.Tier
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver._
+import li.cil.oc.api.driver.item.Container
+import li.cil.oc.api.driver.item.Inventory
+import li.cil.oc.api.driver.item.Memory
+import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IChatComponent

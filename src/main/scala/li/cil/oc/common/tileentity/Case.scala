@@ -2,15 +2,16 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.api.network.Connector
+import li.cil.oc.Settings
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver
+import li.cil.oc.api.driver.item.Memory
+import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.network.Connector
+import li.cil.oc.common
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.util.Color
-import li.cil.oc.Settings
-import li.cil.oc.common
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -37,7 +38,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   def recomputeMaxComponents() {
     maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
       case Some(item) => Option(Driver.driverFor(item, getClass)) match {
-        case Some(driver: driver.Processor) => driver.supportedComponents(item)
+        case Some(driver: Processor) => driver.supportedComponents(item)
         case _ => 0
       }
       case _ => 0
@@ -46,7 +47,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Option(Driver.driverFor(item, getClass)) match {
-      case Some(driver: driver.Memory) => driver.amount(item)
+      case Some(driver: Memory) => driver.amount(item)
       case _ => 0
     }
     case _ => 0

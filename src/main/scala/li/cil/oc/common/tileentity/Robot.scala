@@ -6,6 +6,9 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.item
+import li.cil.oc.api.driver.item.Container
+import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.event.RobotAnalyzeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.network._
@@ -509,7 +512,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: api.driver.Container) => driver.providedSlot(stack)
+      case Some(driver: Container) => driver.providedSlot(stack)
       case _ => Slot.None
     }
   }
@@ -518,7 +521,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   def containerSlotTier(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: api.driver.Container) => driver.providedTier(stack)
+      case Some(driver: Container) => driver.providedTier(stack)
       case _ => Tier.None
     }
   }
@@ -544,7 +547,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
 
   override def installedMemory = (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: api.driver.Memory) => driver.amount(stack)
+      case Some(driver: Memory) => driver.amount(stack)
       case _ => 0
     }
     case _ => 0
@@ -556,7 +559,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
 
   private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: api.driver.Inventory) => driver.inventoryCapacity(stack)
+      case Some(driver: item.Inventory) => driver.inventoryCapacity(stack)
       case _ => 0
     }
     case _ => 0

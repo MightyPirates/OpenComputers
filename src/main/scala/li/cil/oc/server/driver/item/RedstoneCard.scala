@@ -2,6 +2,7 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -13,11 +14,11 @@ import li.cil.oc.util.mods.BundledRedstone
 import li.cil.oc.util.mods.WirelessRedstone
 import net.minecraft.item.ItemStack
 
-object RedstoneCard extends Item {
+object RedstoneCard extends Item with HostAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("redstoneCard1"), api.Items.get("redstoneCard2"))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    super.worksWith(stack, host) && isComputer(host)
+    worksWith(stack) && isComputer(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {

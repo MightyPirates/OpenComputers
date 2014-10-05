@@ -2,18 +2,19 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
-object UpgradeNavigation extends Item {
+object UpgradeNavigation extends Item with HostAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("navigationUpgrade"))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    super.worksWith(stack, host) && isRotatable(host)
+    worksWith(stack) && isRotatable(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
