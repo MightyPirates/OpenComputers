@@ -34,6 +34,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
       case named: NamedBlock => named
     }.sortBy(_.priority).headOption match {
       case Some(named) => return named.preferredName
+      case _ => // No preferred name.
     }
     try world.getTileEntity(x, y, z) match {
       case inventory: IInventory if !Strings.isNullOrEmpty(inventory.getInventoryName) => return inventory.getInventoryName.stripPrefix("container.")

@@ -3,19 +3,22 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.fluids.{FluidContainerRegistry, IFluidContainerItem, IFluidHandler}
+import net.minecraftforge.fluids.FluidContainerRegistry
+import net.minecraftforge.fluids.IFluidContainerItem
+import net.minecraftforge.fluids.IFluidHandler
 
-class UpgradeTankController(val owner: EnvironmentHost with Robot) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("tank_controller", Visibility.Neighbors).
-    withConnector().
     create()
 
   // ----------------------------------------------------------------------- //

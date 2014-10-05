@@ -2,27 +2,37 @@ package li.cil.oc.common.component
 
 import com.google.common.base.Strings
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.api.prefab
 import li.cil.oc.client.renderer.TextBufferRenderCache
-import li.cil.oc.client.{ComponentTracker => ClientComponentTracker, PacketSender => ClientPacketSender}
+import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common._
 import li.cil.oc.server.component.Keyboard
-import li.cil.oc.server.{ComponentTracker => ServerComponentTracker, PacketSender => ServerPacketSender}
-import li.cil.oc.util.{PackedColor, SideTracker}
-import li.cil.oc.{Settings, api, util}
+import li.cil.oc.server.{ComponentTracker => ServerComponentTracker}
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.PackedColor
+import li.cil.oc.util.SideTracker
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.util
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
+import net.minecraftforge.event.world.ChunkEvent
+import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends ManagedComponent with api.component.TextBuffer {
-  val node = api.Network.newNode(this, Visibility.Network).
+class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.component.TextBuffer {
+  override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
     create()

@@ -1,22 +1,30 @@
 package li.cil.oc.server.component
 
-import java.io.{FileNotFoundException, IOException}
+import java.io.FileNotFoundException
+import java.io.IOException
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.fs.Label
+import li.cil.oc.api.fs.Mode
+import li.cil.oc.api.fs.{FileSystem => IFileSystem}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.{Sound, component}
+import li.cil.oc.api.prefab
+import li.cil.oc.common.Sound
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.{NBTTagCompound, NBTTagIntArray, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagIntArray
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost] = None, val sound: Option[String] = None) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost] = None, val sound: Option[String] = None) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
     create()

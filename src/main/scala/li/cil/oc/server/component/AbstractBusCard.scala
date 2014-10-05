@@ -2,17 +2,19 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import net.minecraft.nbt.NBTTagCompound
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus._
 
 import scala.collection.convert.WrapAsScala._
 
-class AbstractBusCard(val device: IBusDevice) extends component.ManagedComponent with IBusDriver {
-  val node = Network.newNode(this, Visibility.Neighbors).
+class AbstractBusCard(val device: IBusDevice) extends prefab.ManagedEnvironment with IBusDriver {
+  override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("abstract_bus").
     withConnector().
     create()

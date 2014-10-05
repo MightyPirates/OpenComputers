@@ -2,17 +2,23 @@ package li.cil.oc.server.machine
 
 import java.util.concurrent.TimeUnit
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api.FileSystem
+import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.machine
 import li.cil.oc.api.machine._
 import li.cil.oc.api.network._
-import li.cil.oc.api.{FileSystem, Network, machine}
-import li.cil.oc.common.component.ManagedComponent
-import li.cil.oc.common.{SaveHandler, tileentity}
+import li.cil.oc.api.prefab
+import li.cil.oc.common.SaveHandler
+import li.cil.oc.common.tileentity
+import li.cil.oc.server
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ResultWrapper.result
 import li.cil.oc.util.ThreadPoolFactory
-import li.cil.oc.{OpenComputers, Settings, server}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
@@ -23,8 +29,8 @@ import net.minecraftforge.common.util.Constants.NBT
 import scala.Array.canBuildFrom
 import scala.collection.mutable
 
-class Machine(val host: MachineHost) extends ManagedComponent with machine.Machine with Runnable {
-  val node = Network.newNode(this, Visibility.Network).
+class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
     create()
@@ -551,13 +557,13 @@ class Machine(val host: MachineHost) extends ManagedComponent with machine.Machi
       node.network.node(address) match {
         case component: Component if component.name == name => // All is well.
         case _ =>
-        if (name == "filesystem") {
-          OpenComputers.log.trace(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
-          OpenComputers.log.trace("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
-        }
-        else OpenComputers.log.warn(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
-        signal("component_removed", address, name)
-        invalid += address
+          if (name == "filesystem") {
+            OpenComputers.log.trace(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
+            OpenComputers.log.trace("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
+          }
+          else OpenComputers.log.warn(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
+          signal("component_removed", address, name)
+          invalid += address
       }
     }
     for (address <- invalid) {

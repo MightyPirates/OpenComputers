@@ -1,15 +1,18 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.component
-import li.cil.oc.{Settings, api}
+import li.cil.oc.api.prefab
 import net.minecraft.block.Block
 import net.minecraftforge.fluids.FluidRegistry
 
-class Geolyzer(val host: EnvironmentHost) extends component.ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
+  override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("geolyzer").
     withConnector().
     create()

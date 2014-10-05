@@ -1,14 +1,16 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import net.minecraftforge.common.util.ForgeDirection
 
-class Redstone[+Owner <: RedstoneAware](val owner: Owner) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class Redstone[+Owner <: RedstoneAware](val owner: Owner) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("redstone", Visibility.Neighbors).
     create()
 

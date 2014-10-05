@@ -3,10 +3,11 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.prefab.AbstractValue
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
@@ -17,8 +18,8 @@ import net.minecraftforge.common.DimensionManager
 
 import scala.math.ScalaNumber
 
-class DebugCard(host: EnvironmentHost) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Neighbors).
+class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
     withConnector().
     create()
@@ -75,7 +76,7 @@ object DebugCard {
     Array(args map unwrap: _*)
   }
 
-  class PlayerValue(var name: String) extends AbstractValue {
+  class PlayerValue(var name: String) extends prefab.AbstractValue {
     def this() = this("") // For loading.
 
     // ----------------------------------------------------------------------- //
@@ -143,7 +144,7 @@ object DebugCard {
     }
   }
 
-  class WorldValue(var world: World) extends AbstractValue {
+  class WorldValue(var world: World) extends prefab.AbstractValue {
     def this() = this(null) // For loading.
 
     // ----------------------------------------------------------------------- //

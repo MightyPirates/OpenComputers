@@ -3,10 +3,12 @@ package li.cil.oc.server.component
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.api.prefab
 import li.cil.oc.api.tileentity.Robot
-import li.cil.oc.common.component
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
 import net.minecraft.item.ItemStack
@@ -16,8 +18,8 @@ import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 
 import scala.collection.mutable
 
-class UpgradeCrafting(val host: EnvironmentHost with Robot) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class UpgradeCrafting(val host: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("crafting").
     create()
 

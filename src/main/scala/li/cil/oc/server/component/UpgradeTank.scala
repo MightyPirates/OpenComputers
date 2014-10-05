@@ -3,12 +3,14 @@ package li.cil.oc.server.component
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.api.prefab
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fluids.{FluidStack, FluidTank, IFluidTank}
+import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.FluidTank
+import net.minecraftforge.fluids.IFluidTank
 
-class UpgradeTank(val owner: EnvironmentHost, val capacity: Int) extends ManagedComponent with IFluidTank {
-  val node = Network.newNode(this, Visibility.None).create()
+class UpgradeTank(val owner: EnvironmentHost, val capacity: Int) extends prefab.ManagedEnvironment with IFluidTank {
+  override val node = Network.newNode(this, Visibility.None).create()
 
   val tank = new FluidTank(capacity)
 
