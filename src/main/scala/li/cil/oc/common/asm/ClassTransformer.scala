@@ -76,6 +76,7 @@ class ClassTransformer extends IClassTransformer {
                 interfaces.foreach(classNode.interfaces.add)
               }
               else {
+                mod.disablePower()
                 log.warn(s"Skipping power support for mod ${mod.id}.")
                 missing.foreach(log.warn)
               }

@@ -84,15 +84,21 @@ object Mods {
   trait Mod {
     knownMods += this
 
+    private var powerDisabled = false
+
     protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
 
     protected def isModAvailable: Boolean
 
     def id: String
 
-    def isAvailable = isModAvailable && isPowerModEnabled
+    def isAvailable = !powerDisabled && isModAvailable && isPowerModEnabled
 
     def providesPower: Boolean = false
+
+    // This is called from the class transformer when injecting an interface of
+    // this power type fails, to avoid class not found / class cast exceptions.
+    def disablePower() = powerDisabled = true
   }
 
   class SimpleMod(val id: String, override val providesPower: Boolean = false) extends Mod {
