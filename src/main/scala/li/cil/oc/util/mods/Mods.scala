@@ -53,6 +53,7 @@ object Mods {
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new SimpleMod(IDs.GregTech)
   val IndustrialCraft2 = new ClassBasedMod(IDs.IndustrialCraft2,
+    "ic2.api.energy.tile.IEnergySink",
     "ic2.api.energy.tile.IEnergyTile",
     "ic2.api.energy.event.EnergyTileLoadEvent",
     "ic2.api.energy.event.EnergyTileUnloadEvent")(providesPower = true)

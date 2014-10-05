@@ -43,7 +43,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   def getSinkTier = Int.MaxValue
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = Mods.IndustrialCraft2.isAvailable && canConnectPower(direction)
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = useIndustrialCraft2Power && canConnectPower(direction)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
