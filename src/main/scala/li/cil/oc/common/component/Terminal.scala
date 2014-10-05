@@ -8,9 +8,9 @@ import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
-import li.cil.oc.init.Items
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound

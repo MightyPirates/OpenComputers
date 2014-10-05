@@ -1,6 +1,6 @@
 package li.cil.oc
 
-import li.cil.oc.init.Items
+import li.cil.oc.common.init.Items
 import net.minecraft.creativetab.CreativeTabs
 
 object CreativeTab extends CreativeTabs(CreativeTabs.getNextID, "OpenComputers") {

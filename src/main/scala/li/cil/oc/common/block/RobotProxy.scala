@@ -8,8 +8,8 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.tileentity
-import li.cil.oc.init.Blocks
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
 import li.cil.oc.util.ItemUtils

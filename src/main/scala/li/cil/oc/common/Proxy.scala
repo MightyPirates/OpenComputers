@@ -7,13 +7,13 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.event._
+import li.cil.oc.common.init.Blocks
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
-import li.cil.oc.init.Blocks
-import li.cil.oc.init.Items
 import li.cil.oc.server._
 import li.cil.oc.server.machine
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture

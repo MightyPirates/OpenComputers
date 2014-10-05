@@ -16,10 +16,10 @@ import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{Proxy => CommonProxy}
-import li.cil.oc.init.Items
 import li.cil.oc.util.Audio
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge

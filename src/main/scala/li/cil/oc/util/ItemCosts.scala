@@ -3,7 +3,7 @@ package li.cil.oc.util
 import java.util
 
 import li.cil.oc.Localization
-import li.cil.oc.init
+import li.cil.oc.common.init
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks

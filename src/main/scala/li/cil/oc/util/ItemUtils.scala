@@ -7,7 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
-import li.cil.oc.init.Blocks
+import li.cil.oc.common.init.Blocks
 import li.cil.oc.server
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemMap

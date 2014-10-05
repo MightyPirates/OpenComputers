@@ -8,7 +8,7 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
-import li.cil.oc.init.Items
+import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block

@@ -1,4 +1,4 @@
-package li.cil.oc.init
+package li.cil.oc.common.init
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Settings

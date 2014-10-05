@@ -5,9 +5,9 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.FloppyDisk
 import li.cil.oc.common.item.HardDiskDrive
-import li.cil.oc.init.Items
 import li.cil.oc.server.fs.FileSystem.ItemLabel
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
