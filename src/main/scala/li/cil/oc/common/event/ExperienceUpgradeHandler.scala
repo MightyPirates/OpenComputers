@@ -1,11 +1,11 @@
 package li.cil.oc.common.event
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.server.component
-import li.cil.oc.Localization
-import li.cil.oc.Settings
 import org.lwjgl.opengl.GL11
 
 object ExperienceUpgradeHandler {
@@ -19,7 +19,7 @@ object ExperienceUpgradeHandler {
   }
 
   @SubscribeEvent
-  def onRobotComputeDamageRate(e: RobotUsedTool.ComputeDamageRate) {
+  def onRobotComputeDamageRate(e: RobotUsedToolEvent.ComputeDamageRate) {
     e.setDamageRate(e.getDamageRate * math.max(0, 1 - getLevel(e.robot) * Settings.get.toolEfficiencyPerLevel))
   }
 

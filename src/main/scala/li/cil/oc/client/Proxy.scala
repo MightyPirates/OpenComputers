@@ -16,6 +16,7 @@ import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.event.FileAccessHandler
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
@@ -60,6 +61,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
+    MinecraftForge.EVENT_BUS.register(FileAccessHandler)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(ServerRack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)

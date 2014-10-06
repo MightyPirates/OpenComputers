@@ -17,7 +17,7 @@ public interface Container extends Item {
      * The type of slot provided as the dynamic slot. This will usually be
      * for other upgrades, but may be for any type of item component.
      * <p/>
-     * While the driver's own type implicitly has to be 'Upgrade' and could
+     * While the driver's own type implicitly has to be 'Container' and could
      * therefore be used instead, this makes the intention more clear.
      *
      * @param stack the item stack to get the provided slot type for.

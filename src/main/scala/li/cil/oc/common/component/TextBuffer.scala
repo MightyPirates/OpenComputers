@@ -118,7 +118,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     }
 
     this.synchronized {
-      _pendingCommands.foreach(_.sendToNearbyPlayers(host))
+      _pendingCommands.foreach(_.sendToPlayersNearHost(host))
       _pendingCommands = None
     }
   }

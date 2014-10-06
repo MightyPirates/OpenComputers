@@ -2,11 +2,11 @@ package li.cil.oc.common.event
 
 import cofh.api.energy.IEnergyContainerItem
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import li.cil.oc.api.event.RobotUsedTool
+import li.cil.oc.api.event.RobotUsedToolEvent
 
 object RedstoneFluxToolHandler {
   @SubscribeEvent
-  def onRobotApplyDamageRate(e: RobotUsedTool.ApplyDamageRate) {
+  def onRobotApplyDamageRate(e: RobotUsedToolEvent.ApplyDamageRate) {
     (e.toolBeforeUse.getItem, e.toolAfterUse.getItem) match {
       case (energyBefore: IEnergyContainerItem, energyAfter: IEnergyContainerItem) =>
         val damage = energyBefore.getEnergyStored(e.toolBeforeUse) - energyAfter.getEnergyStored(e.toolAfterUse)

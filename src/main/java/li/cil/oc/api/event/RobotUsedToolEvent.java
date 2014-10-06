@@ -3,7 +3,7 @@ package li.cil.oc.api.event;
 import li.cil.oc.api.tileentity.Robot;
 import net.minecraft.item.ItemStack;
 
-public class RobotUsedTool extends RobotEvent {
+public class RobotUsedToolEvent extends RobotEvent {
     /**
      * The tool that was used, before and after use.
      */
@@ -11,7 +11,7 @@ public class RobotUsedTool extends RobotEvent {
 
     protected double damageRate;
 
-    protected RobotUsedTool(Robot robot, ItemStack toolBeforeUse, ItemStack toolAfterUse, double damageRate) {
+    protected RobotUsedToolEvent(Robot robot, ItemStack toolBeforeUse, ItemStack toolAfterUse, double damageRate) {
         super(robot);
         this.toolBeforeUse = toolBeforeUse;
         this.toolAfterUse = toolAfterUse;
@@ -35,7 +35,7 @@ public class RobotUsedTool extends RobotEvent {
      * rate at which the tool should lose durability, which is used by the
      * experience upgrade, for example.
      */
-    public static class ComputeDamageRate extends RobotUsedTool {
+    public static class ComputeDamageRate extends RobotUsedToolEvent {
         public ComputeDamageRate(Robot robot, ItemStack toolBeforeUse, ItemStack toolAfterUse, double damageRate) {
             super(robot, toolBeforeUse, toolAfterUse, damageRate);
         }
@@ -62,7 +62,7 @@ public class RobotUsedTool extends RobotEvent {
      * durability that was lost. This may be required for tools where the
      * durability is stored in the item's NBT tag.
      */
-    public static class ApplyDamageRate extends RobotUsedTool {
+    public static class ApplyDamageRate extends RobotUsedToolEvent {
         public ApplyDamageRate(Robot robot, ItemStack toolBeforeUse, ItemStack toolAfterUse, double damageRate) {
             super(robot, toolBeforeUse, toolAfterUse, damageRate);
         }

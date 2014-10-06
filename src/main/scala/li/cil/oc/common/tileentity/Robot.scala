@@ -194,7 +194,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
               }
               else {
                 world.playSound(nx + 0.5, ny + 0.5, nz + 0.5, "liquid.water",
-                  world.rand.nextFloat * 0.25F + 0.75F, world.rand.nextFloat * 1.0F + 0.5F, false)
+                  world.rand.nextFloat * 0.25f + 0.75f, world.rand.nextFloat * 1.0f + 0.5f, false)
               }
             }
           }

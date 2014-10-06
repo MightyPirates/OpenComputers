@@ -2,6 +2,7 @@ package li.cil.oc.server.driver.item
 
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
+import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.Slot
@@ -18,7 +19,7 @@ object ComputerCraftMedia extends Item {
     if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && host != null) {
       val address = addressFromTag(dataTag(stack))
       val mount = ComputerCraft.createDiskMount(stack, host.world)
-      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), host, "floppy_access")) match {
+      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), host, Settings.resourceDomain + ":floppy_access")) match {
         case Some(environment) =>
           environment.node.asInstanceOf[oc.server.network.Node].address = address
           environment

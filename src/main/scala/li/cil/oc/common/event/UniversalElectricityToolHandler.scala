@@ -1,12 +1,12 @@
 package li.cil.oc.common.event
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import li.cil.oc.api.event.RobotUsedTool
+import li.cil.oc.api.event.RobotUsedToolEvent
 import li.cil.oc.util.mods.UniversalElectricity
 
 object UniversalElectricityToolHandler {
   @SubscribeEvent
-  def onRobotApplyDamageRate(e: RobotUsedTool.ApplyDamageRate) {
+  def onRobotApplyDamageRate(e: RobotUsedToolEvent.ApplyDamageRate) {
     if (UniversalElectricity.isEnergyItem(e.toolAfterUse)) {
       val damage = UniversalElectricity.getEnergyInItem(e.toolBeforeUse) - UniversalElectricity.getEnergyInItem(e.toolAfterUse)
       if (damage > 0) {

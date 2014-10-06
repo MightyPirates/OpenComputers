@@ -11,6 +11,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.mutable
+
 object PacketSender {
   def sendAbstractBusState(t: AbstractBusAware) {
     val pb = new SimplePacketBuilder(PacketType.AbstractBusState)
@@ -18,7 +20,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isAbstractBusAvailable)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendAnalyze(address: String, player: EntityPlayerMP) {
@@ -36,7 +38,7 @@ object PacketSender {
     pb.writeDouble(t.chargeSpeed)
     pb.writeBoolean(t.hasPower)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendColorChange(t: Colored) {
@@ -45,7 +47,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeInt(t.color)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendComputerState(t: Computer) {
@@ -54,7 +56,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isRunning)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendComputerUserList(t: Computer, list: Array[String]) {
@@ -64,7 +66,7 @@ object PacketSender {
     pb.writeInt(list.length)
     list.foreach(pb.writeUTF)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendDisassemblerActive(t: tileentity.Disassembler, active: Boolean) {
@@ -73,7 +75,35 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(active)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
+  // Avoid spamming the network with disk activity notices.
+  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[EnvironmentHost, mutable.Map[String, Long]]
+
+  def sendFileSystemActivity(host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
+    fileSystemAccessTimeouts.get(host) match {
+      case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
+      case _ =>
+        fileSystemAccessTimeouts.getOrElseUpdate(host, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
+
+        val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
+
+        pb.writeUTF(name)
+        host match {
+          case t: net.minecraft.tileentity.TileEntity =>
+            pb.writeBoolean(true)
+            pb.writeTileEntity(t)
+          case _ =>
+            pb.writeBoolean(false)
+            pb.writeInt(host.world.provider.dimensionId)
+            pb.writeDouble(host.xPosition)
+            pb.writeDouble(host.yPosition)
+            pb.writeDouble(host.zPosition)
+        }
+
+        pb.sendToPlayersNearHost(host, 64)
+    }
   }
 
   def sendFloppyChange(t: tileentity.DiskDrive, stack: ItemStack = null) {
@@ -82,7 +112,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeItemStack(stack)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendHologramClear(t: tileentity.Hologram) {
@@ -90,7 +120,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendHologramColor(t: tileentity.Hologram, index: Int, value: Int) {
@@ -100,7 +130,7 @@ object PacketSender {
     pb.writeInt(index)
     pb.writeInt(value)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendHologramPowerChange(t: tileentity.Hologram) {
@@ -109,7 +139,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(t.hasPower)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendHologramScale(t: tileentity.Hologram) {
@@ -118,7 +148,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeDouble(t.scale)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendHologramSet(t: tileentity.Hologram) {
@@ -136,7 +166,7 @@ object PacketSender {
       }
     }
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendHologramOffset(t: tileentity.Hologram) {
@@ -147,7 +177,7 @@ object PacketSender {
     pb.writeDouble(t.translation.yCoord)
     pb.writeDouble(t.translation.zCoord)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
 
@@ -180,7 +210,7 @@ object PacketSender {
     pb.writeDouble(t.globalBuffer)
     pb.writeDouble(t.globalBufferSize)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendRedstoneState(t: RedstoneAware) {
@@ -192,7 +222,7 @@ object PacketSender {
       pb.writeByte(t.output(d))
     }
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendRobotAssembling(t: tileentity.RobotAssembler, assembling: Boolean) {
@@ -201,7 +231,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(assembling)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearHost(t)
   }
 
   def sendRobotMove(t: tileentity.Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
@@ -214,7 +244,7 @@ object PacketSender {
     pb.writeInt(oz)
     pb.writeDirection(direction)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendRobotAnimateSwing(t: tileentity.Robot) {
@@ -223,7 +253,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToNearbyPlayers(t, 64)
+    pb.sendToPlayersNearTileEntity(t, 64)
   }
 
   def sendRobotAnimateTurn(t: tileentity.Robot) {
@@ -233,7 +263,7 @@ object PacketSender {
     pb.writeByte(t.turnAxis)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToNearbyPlayers(t, 64)
+    pb.sendToPlayersNearTileEntity(t, 64)
   }
 
   def sendRobotInventory(t: tileentity.Robot, slot: Int, stack: ItemStack) {
@@ -243,7 +273,7 @@ object PacketSender {
     pb.writeInt(slot)
     pb.writeItemStack(stack)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendRobotSelectedSlotChange(t: tileentity.Robot) {
@@ -252,7 +282,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
 
-    pb.sendToNearbyPlayers(t, 16)
+    pb.sendToPlayersNearTileEntity(t, 16)
   }
 
   def sendRotatableState(t: Rotatable) {
@@ -262,7 +292,7 @@ object PacketSender {
     pb.writeDirection(t.pitch)
     pb.writeDirection(t.yaw)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendSwitchActivity(t: tileentity.Switch) {
@@ -270,7 +300,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
 
-    pb.sendToNearbyPlayers(t, 64)
+    pb.sendToPlayersNearTileEntity(t, 64)
   }
 
   def appendTextBufferColorChange(pb: PacketBuilder, foreground: PackedColor.Color, background: PackedColor.Color) {
@@ -347,7 +377,7 @@ object PacketSender {
     pb.writeUTF(address)
     pb.writeBoolean(hasPower)
 
-    pb.sendToNearbyPlayers(host)
+    pb.sendToPlayersNearHost(host)
   }
 
   def sendScreenTouchMode(t: tileentity.Screen, value: Boolean) {
@@ -356,7 +386,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(value)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendServerPresence(t: tileentity.ServerRack) {
@@ -371,7 +401,7 @@ object PacketSender {
         pb.writeBoolean(false)
     }
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendServerState(t: tileentity.ServerRack) {
@@ -381,7 +411,7 @@ object PacketSender {
     pb.writeInt(-1)
     pb.writeInt(t.range)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendServerState(t: tileentity.ServerRack, number: Int, player: Option[EntityPlayerMP] = None) {
@@ -399,7 +429,7 @@ object PacketSender {
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToNearbyPlayers(t)
+      case _ => pb.sendToPlayersNearTileEntity(t)
     }
   }
 

@@ -147,7 +147,9 @@ public final class FileSystem {
      * @param label       the label of the file system.
      * @param host        the tile entity containing the file system.
      * @param accessSound the name of the sound effect to play when the file
-     *                    system is accessed.
+     *                    system is accessed. This has to be the fully
+     *                    qualified resource name, e.g.
+     *                    <tt>opencomputers:floppy_access</tt>.
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final EnvironmentHost host, final String accessSound) {
@@ -164,7 +166,9 @@ public final class FileSystem {
      * @param label       the read-only label of the file system.
      * @param host        the tile entity containing the file system.
      * @param accessSound the name of the sound effect to play when the file
-     *                    system is accessed.
+     *                    system is accessed. This has to be the fully
+     *                    qualified resource name, e.g.
+     *                    <tt>opencomputers:floppy_access</tt>.
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final EnvironmentHost host, final String accessSound) {
