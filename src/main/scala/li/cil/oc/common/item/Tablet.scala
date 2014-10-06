@@ -19,6 +19,7 @@ import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
@@ -248,9 +249,17 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
     null
   }
 
-  override def installedMemory = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
-    case Some(item) => Option(api.Driver.driverFor(item, getClass)) match {
-      case Some(driver: api.driver.item.Memory) => driver.amount(item)
+  override def callBudget = items.foldLeft(0.0)((acc, item) => acc + (item match {
+    case Some(itemStack) => Option(Driver.driverFor(itemStack, getClass)) match {
+      case Some(driver: Processor) if driver.slot(itemStack) == Slot.CPU => 0.5 + driver.tier(itemStack) * 0.5
+      case _ => 0
+    }
+    case _ => 0
+  }))
+
+  override def installedMemory = items.foldLeft(0)((acc, item) => acc + (item match {
+    case Some(itemStack) => Option(api.Driver.driverFor(itemStack, getClass)) match {
+      case Some(driver: api.driver.item.Memory) => driver.amount(itemStack)
       case _ => 0
     }
     case _ => 0

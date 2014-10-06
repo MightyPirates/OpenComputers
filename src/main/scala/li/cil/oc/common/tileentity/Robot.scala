@@ -9,6 +9,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.item
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.driver.item.Memory
+import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.event.RobotAnalyzeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.network._
@@ -544,6 +545,14 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
   def isUpgradeSlot(slot: Int) = containerSlotType(slot) == Slot.Upgrade
 
   // ----------------------------------------------------------------------- //
+
+  override def callBudget = (containerSlots ++ componentSlots).foldLeft(0.0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => 0.5 + driver.tier(stack) * 0.5
+      case _ => 0
+    }
+    case _ => 0
+  }))
 
   override def installedMemory = (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {

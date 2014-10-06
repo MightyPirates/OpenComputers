@@ -230,6 +230,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def getInventoryStackLimit = robot.getInventoryStackLimit
 
+  override def callBudget = robot.callBudget
+
   override def installedMemory = robot.installedMemory
 
   override def componentSlot(address: String) = robot.componentSlot(address)

@@ -23,6 +23,22 @@ public interface MachineHost extends EnvironmentHost {
     Class<? extends Architecture> cpuArchitecture();
 
     /**
+     * This determines how many direct calls the machine can make per tick.
+     * <p/>
+     * A call to a direct method with a limit will consume <tt>1 / limit</tt>
+     * of the available call budget. When the budget reaches zero, the machine
+     * is forced into a synchronized call to make it wait for the next tick.
+     * <p/>
+     * The default values used by OC are 0.5, 1.0 and 1.5 for a tier one, two
+     * and three CPU, respectively.
+     * <p/>
+     * The call budget is reset to this value each tick.
+     *
+     * @return the direct call budget, per tick.
+     */
+    double callBudget();
+
+    /**
      * The amount of memory (RAM) made available to the machine, in bytes.
      * <p/>
      * This is usually determined by the components installed in the owner, for

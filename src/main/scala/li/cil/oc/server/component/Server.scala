@@ -23,6 +23,8 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
 
   val inventory = new NetworkedInventory()
 
+  machine.onHostChanged()
+
   def tier = Items.multi.subItem(rack.getStackInSlot(number)) match {
     case Some(server: item.Server) => server.tier
     case _ => 0
@@ -41,9 +43,17 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
     null
   }
 
-  override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Option(Driver.driverFor(item, rack.getClass)) match {
-      case Some(driver: Memory) => driver.amount(item)
+  override def callBudget = inventory.items.foldLeft(0.0)((sum, item) => sum + (item match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => 0.5 + driver.tier(stack) * 0.5
+      case _ => 0
+    }
+    case _ => 0
+  }))
+
+  override def installedMemory = inventory.items.foldLeft(0)((sum, item) => sum + (item match {
+    case Some(stack) => Option(Driver.driverFor(stack, rack.getClass)) match {
+      case Some(driver: Memory) => driver.amount(stack)
       case _ => 0
     }
     case _ => 0

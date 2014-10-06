@@ -54,7 +54,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   private val signals = mutable.Queue.empty[Machine.Signal]
 
-  private val callCounts = mutable.Map.empty[Any, mutable.Map[String, Int]]
+  private var maxCallBudget = 1.0
+
+  @volatile private var callBudget = 0.0
 
   // ----------------------------------------------------------------------- //
 
@@ -78,7 +80,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  override def onHostChanged() = Option(architecture).foreach(_.recomputeMemory())
+  override def onHostChanged() = {
+    maxCallBudget = host.callBudget
+    Option(architecture).foreach(_.recomputeMemory())
+  }
 
   override def getBootAddress = bootAddress
 
@@ -246,14 +251,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     Option(node.network.node(address)) match {
       case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
         val direct = component.annotation(method).direct
-        if (direct && architecture.isInitialized) callCounts.synchronized {
-          val limit = component.annotation(method).limit
-          val counts = callCounts.getOrElseUpdate(component.address, mutable.Map.empty[String, Int])
-          val count = counts.getOrElseUpdate(method, 0)
-          if (count >= limit) {
-            throw new LimitReachedException()
-          }
-          counts(method) += 1
+        if (direct && architecture.isInitialized) {
+          checkLimit(component.annotation(method).limit)
         }
         component.invoke(method, this, args: _*)
       case _ => throw new IllegalArgumentException("no such component")
@@ -262,17 +261,19 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
     case Some(callback) =>
       val direct = callback.annotation.direct
-      if (direct && architecture.isInitialized) callCounts.synchronized {
-        val limit = callback.annotation.limit
-        val counts = callCounts.getOrElseUpdate(value, mutable.Map.empty[String, Int])
-        val count = counts.getOrElseUpdate(method, 0)
-        if (count >= limit) {
-          throw new LimitReachedException()
-        }
-        counts(method) += 1
+      if (direct && architecture.isInitialized) {
+        checkLimit(callback.annotation.limit)
       }
       Registry.convert(callback(value, this, new ArgumentsImpl(Seq(args: _*))))
     case _ => throw new NoSuchMethodException()
+  }
+
+  private def checkLimit(limit: Int) {
+    val callCost = math.max(1.0 / limit, 0.001)
+    if (callCost >= callBudget) {
+      throw new LimitReachedException()
+    }
+    callBudget -= callCost
   }
 
   override def addUser(name: String) {
@@ -356,8 +357,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       remainIdle -= 1
     }
 
-    // Reset direct call limits.
-    callCounts.synchronized(if (callCounts.size > 0) callCounts.clear())
+    // Reset direct call budget.
+    callBudget = maxCallBudget
 
     // Make sure we have enough power.
     if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
@@ -420,11 +421,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         }
       // Perform a synchronized call (message sending).
       case Machine.State.SynchronizedCall =>
-        // Clear direct call limits again, just to be on the safe side...
+        // Reset direct call budget again, just to be on the safe side...
         // Theoretically it'd be possible for the executor to do some direct
         // calls between the clear and the state check, which could in turn
         // make this synchronized call fail due the limit still being maxed.
-        callCounts.clear()
+        callBudget = maxCallBudget
         // We switch into running state, since we'll behave as though the call
         // were performed from our executor thread.
         switchTo(Machine.State.Running)

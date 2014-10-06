@@ -48,9 +48,17 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     }))
   }
 
-  override def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Option(Driver.driverFor(item, getClass)) match {
-      case Some(driver: Memory) => driver.amount(item)
+  override def callBudget = items.foldLeft(0.0)((sum, item) => sum + (item match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => 0.5 + driver.tier(stack) * 0.5
+      case _ => 0
+    }
+    case _ => 0
+  }))
+
+  override def installedMemory = items.foldLeft(0)((sum, item) => sum + (item match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Memory) => driver.amount(stack)
       case _ => 0
     }
     case _ => 0

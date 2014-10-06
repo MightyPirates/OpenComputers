@@ -101,18 +101,18 @@ trait Component extends network.Component with Node {
 
   override def methods = callbacks.keySet
 
+  override def annotation(method: String) =
+    callbacks.get(method) match {
+      case Some(callback) => callbacks(method).annotation
+      case _ => throw new NoSuchMethodException()
+    }
+
   override def invoke(method: String, context: Context, arguments: AnyRef*) =
     callbacks.get(method) match {
       case Some(callback) => hosts(method) match {
         case Some(environment) => Registry.convert(callback(environment, context, new ArgumentsImpl(Seq(arguments: _*))))
         case _ => throw new NoSuchMethodException()
       }
-      case _ => throw new NoSuchMethodException()
-    }
-
-  override def annotation(method: String) =
-    callbacks.get(method) match {
-      case Some(callback) => callbacks(method).annotation
       case _ => throw new NoSuchMethodException()
     }
 

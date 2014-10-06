@@ -710,7 +710,7 @@ sandbox.unicode = libunicode
 
 local function bootstrap()
   function boot_invoke(address, method, ...)
-    local result = table.pack(pcall(invoke, component, true, address, method, ...))
+    local result = table.pack(pcall(libcomponent.invoke, address, method, ...))
     if not result[1] then
       return nil, result[2]
     else
