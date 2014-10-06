@@ -14,27 +14,27 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val computer = tileEntity.asInstanceOf[Case]
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
+    RenderState.disableLighting()
+    RenderState.makeItBlend()
+    RenderState.setBlendAlpha(1)
+
+    GL11.glPushMatrix()
+
+    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+
+    computer.yaw match {
+      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case _ => // No yaw.
+    }
+
+    GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
+    GL11.glScalef(1, -1, 1)
+
     if (computer.isRunning) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-
-      RenderState.disableLighting()
-      RenderState.makeItBlend()
-      RenderState.setBlendAlpha(1)
-
-      GL11.glPushMatrix()
-
-      GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
-
-      computer.yaw match {
-        case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-        case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-        case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
-        case _ => // No yaw.
-      }
-
-      GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
-      GL11.glScalef(1, -1, 1)
-
       bindTexture(Textures.blockCaseFrontOn)
       val t = Tessellator.instance
       t.startDrawingQuads()
@@ -44,9 +44,20 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       t.addVertexWithUV(0, 0, 0, 0, 0)
       t.draw()
 
-      GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      if (System.currentTimeMillis() - computer.lastAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
+        bindTexture(Textures.blockCaseFrontActivity)
+        val t = Tessellator.instance
+        t.startDrawingQuads()
+        t.addVertexWithUV(0, 1, 0, 0, 1)
+        t.addVertexWithUV(1, 1, 0, 1, 1)
+        t.addVertexWithUV(1, 0, 0, 1, 0)
+        t.addVertexWithUV(0, 0, 0, 0, 0)
+        t.draw()
+      }
     }
+
+    GL11.glPopMatrix()
+    GL11.glPopAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

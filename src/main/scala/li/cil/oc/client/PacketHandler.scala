@@ -17,6 +17,7 @@ import li.cil.oc.util.Audio
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.nbt.CompressedStreamTools
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input.Keyboard
@@ -145,9 +146,10 @@ object PacketHandler extends CommonPacketHandler {
 
   def onFileSystemActivity(p: PacketParser) = {
     val sound = p.readUTF()
+    val data = CompressedStreamTools.read(p)
     if (p.readBoolean()) p.readTileEntity[net.minecraft.tileentity.TileEntity]() match {
       case Some(t) =>
-        MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent(sound, t))
+        MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent.Client(sound, t, data))
       case _ => // Invalid packet.
     }
     else world(p.player, p.readInt()) match {
@@ -155,7 +157,7 @@ object PacketHandler extends CommonPacketHandler {
         val x = p.readDouble()
         val y = p.readDouble()
         val z = p.readDouble()
-        MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent(sound, world, x, y, z))
+        MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent.Client(sound, world, x, y, z, data))
       case _ => // Invalid packet.
     }
   }

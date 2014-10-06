@@ -18,6 +18,9 @@ import net.minecraft.nbt.NBTTagCompound
 class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
+  // Used on client side to check whether to render disk activity indicators.
+  var lastAccess = 0L
+
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =

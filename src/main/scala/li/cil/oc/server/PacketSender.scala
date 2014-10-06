@@ -2,13 +2,17 @@ package li.cil.oc.server
 
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.network.Node
 import li.cil.oc.common._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
@@ -81,28 +85,36 @@ object PacketSender {
   // Avoid spamming the network with disk activity notices.
   val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[EnvironmentHost, mutable.Map[String, Long]]
 
-  def sendFileSystemActivity(host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
+  def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
     fileSystemAccessTimeouts.get(host) match {
       case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
       case _ =>
-        fileSystemAccessTimeouts.getOrElseUpdate(host, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
-
-        val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
-
-        pb.writeUTF(name)
-        host match {
-          case t: net.minecraft.tileentity.TileEntity =>
-            pb.writeBoolean(true)
-            pb.writeTileEntity(t)
-          case _ =>
-            pb.writeBoolean(false)
-            pb.writeInt(host.world.provider.dimensionId)
-            pb.writeDouble(host.xPosition)
-            pb.writeDouble(host.yPosition)
-            pb.writeDouble(host.zPosition)
+        val event = host match {
+          case t: net.minecraft.tileentity.TileEntity => new FileSystemAccessEvent.Server(name, t, node)
+          case _ => new FileSystemAccessEvent.Server(name, host.world, host.xPosition, host.yPosition, host.zPosition, node)
         }
+        MinecraftForge.EVENT_BUS.post(event)
+        if (!event.isCanceled) {
+          fileSystemAccessTimeouts.getOrElseUpdate(host, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
 
-        pb.sendToPlayersNearHost(host, 64)
+          val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
+
+          pb.writeUTF(event.getSound)
+          CompressedStreamTools.write(event.getData, pb)
+          event.getTileEntity match {
+            case t: net.minecraft.tileentity.TileEntity =>
+              pb.writeBoolean(true)
+              pb.writeTileEntity(t)
+            case _ =>
+              pb.writeBoolean(false)
+              pb.writeInt(event.getWorld.provider.dimensionId)
+              pb.writeDouble(event.getX)
+              pb.writeDouble(event.getY)
+              pb.writeDouble(event.getZ)
+          }
+
+          pb.sendToPlayersNearHost(host, 64)
+        }
     }
   }
 

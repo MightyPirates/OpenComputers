@@ -30,8 +30,11 @@ object Textures {
   val guiSlot = new ResourceLocation(Settings.resourceDomain, "textures/gui/slot.png")
 
   val blockCaseFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontOn.png")
+  val blockCaseFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontActivity.png")
+  val blockDiskDriveFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/DiskDriveFrontActivity.png")
   val blockHologram = new ResourceLocation(Settings.resourceDomain, "textures/blocks/HologramEffect.png")
   val blockRackFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontOn.png")
+  val blockRackFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontActivity.png")
   val blockRobot = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")
   val blockScreenUpIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
 

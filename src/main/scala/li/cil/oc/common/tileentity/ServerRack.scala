@@ -51,6 +51,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // For client side rendering.
   var isPresent = Array.fill[Option[String]](getSizeInventory)(None)
 
+  // Used on client side to check whether to render disk activity indicators.
+  var lastAccess = Array.fill(4)(0L)
+
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
