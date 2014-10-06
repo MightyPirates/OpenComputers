@@ -95,9 +95,18 @@ public @interface Callback {
      * Whether this callback should work like a getter.
      * <p/>
      * Callbacks that are getters do not appear as methods on a component's
-     * proxy. Instead they are accessed via the proxy's <tt>__index</tt>
-     * metamethod, i.e. it is accessed as a field, with it's only parameter
-     * being the accessed key.
+     * proxy. Instead they are accessed as fields, for example in Lua via the
+     * proxy's <tt>__index</tt> metamethod, with it's only parameter being the
+     * accessed key.
+     * <p/>
+     * Note: if you wish to have a field that is read/write, that is you need
+     * both a getter and a setter, you have to implement them in the same
+     * method. This a limitation due to callback names being unique. You can
+     * differentiate between contexts by checking the number of arguments.
+     * <p/>
+     * <em>Important</em>: this only works in environments (for components),
+     * it does <em>not</em> work for userdata (<tt>Value</tt> objects). For
+     * userdata, use the <tt>apply</tt> method instead.
      */
     boolean getter() default false;
 
@@ -105,9 +114,18 @@ public @interface Callback {
      * Whether this callback should work like a setter.
      * <p/>
      * Callbacks that are setters do not appear as methods on a component's
-     * proxy. Instead they are accessed via the proxy's <tt>__newindex</tt>
-     * metamethod, i.e. it is accessed as a field, with it's only parameters
-     * being the accessed key and the assigned value.
+     * proxy. Instead they are accessed as fields, for example in Lua via the
+     * proxy's <tt>__newindex</tt> metamethod, with it's only tow parameters
+     * being the accessed key and the new value.
+     * <p/>
+     * Note: if you wish to have a field that is read/write, that is you need
+     * both a getter and a setter, you have to implement them in the same
+     * method. This a limitation due to callback names being unique. You can
+     * differentiate between contexts by checking the number of arguments.
+     * <p/>
+     * <em>Important</em>: this only works in environments (for components),
+     * it does <em>not</em> work for userdata (<tt>Value</tt> objects). For
+     * userdata, use the <tt>unapply</tt> method instead.
      */
     boolean setter() default false;
 }

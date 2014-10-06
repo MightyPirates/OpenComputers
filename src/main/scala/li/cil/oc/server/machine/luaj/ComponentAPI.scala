@@ -48,7 +48,13 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       withComponent(args.checkjstring(1), component => {
         val table = LuaValue.tableOf()
         for ((name, annotation) <- machine.methods(component.host)) {
-          table.set(name, LuaValue.valueOf(annotation.direct))
+          table.set(name, LuaValue.tableOf(Array(
+            LuaValue.valueOf("direct"),
+            LuaValue.valueOf(annotation.direct),
+            LuaValue.valueOf("getter"),
+            LuaValue.valueOf(annotation.getter),
+            LuaValue.valueOf("setter"),
+            LuaValue.valueOf(annotation.setter))))
         }
         table
       })

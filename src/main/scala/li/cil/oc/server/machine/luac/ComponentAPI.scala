@@ -57,7 +57,13 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         lua.newTable()
         for ((name, annotation) <- machine.methods(component.host)) {
           lua.pushString(name)
+          lua.newTable()
           lua.pushBoolean(annotation.direct)
+          lua.setField(-2, "direct")
+          lua.pushBoolean(annotation.getter)
+          lua.setField(-2, "getter")
+          lua.pushBoolean(annotation.setter)
+          lua.setField(-2, "setter")
           lua.rawSet(-3)
         }
         1
