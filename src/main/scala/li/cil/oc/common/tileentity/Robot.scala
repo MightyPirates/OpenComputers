@@ -329,7 +329,7 @@ class Robot extends traits.Computer with traits.PowerInformation with tileentity
 
   override def readFromNBT(nbt: NBTTagCompound) {
     updateInventorySize()
-    Option(machine.architecture).foreach(_.recomputeMemory())
+    machine.onHostChanged()
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {

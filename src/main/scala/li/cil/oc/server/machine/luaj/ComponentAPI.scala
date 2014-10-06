@@ -1,6 +1,6 @@
 package li.cil.oc.server.machine.luaj
 
-import li.cil.oc.server
+import li.cil.oc.api.network.Component
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2.LuaValue
 import li.cil.repack.org.luaj.vm2.Varargs
@@ -38,23 +38,20 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       val address = args.checkjstring(1)
       components.get(address) match {
         case name: String =>
-          LuaValue.valueOf(owner.machine.host.componentSlot(address))
+          LuaValue.valueOf(machine.host.componentSlot(address))
         case _ =>
           LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))
       }
     })
 
     component.set("methods", (args: Varargs) => {
-      Option(node.network.node(args.checkjstring(1))) match {
-        case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
-          val table = LuaValue.tableOf()
-          for (method <- component.methods()) {
-            table.set(method, LuaValue.valueOf(component.isDirect(method)))
-          }
-          table
-        case _ =>
-          LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))
-      }
+      withComponent(args.checkjstring(1), component => {
+        val table = LuaValue.tableOf()
+        for ((name, annotation) <- machine.methods(component.host)) {
+          table.set(name, LuaValue.valueOf(annotation.direct))
+        }
+        table
+      })
     })
 
     component.set("invoke", (args: Varargs) => {
@@ -65,11 +62,20 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     })
 
     component.set("doc", (args: Varargs) => {
-      val address = args.checkjstring(1)
-      val method = args.checkjstring(2)
-      owner.documentation(() => machine.documentation(address, method))
+      withComponent(args.checkjstring(1), component => {
+        val method = args.checkjstring(2)
+        val methods = machine.methods(component.host)
+        owner.documentation(() => methods(method).doc)
+      })
     })
 
     lua.set("component", component)
+  }
+
+  private def withComponent(address: String, f: (Component) => Varargs) = Option(node.network.node(address)) match {
+    case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
+      f(component)
+    case _ =>
+      LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))
   }
 }

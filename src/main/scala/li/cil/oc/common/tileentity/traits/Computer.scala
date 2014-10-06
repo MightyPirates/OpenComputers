@@ -176,7 +176,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def markDirty() {
     super.markDirty()
     if (isServer) {
-      Option(machine.architecture).foreach(_.recomputeMemory())
+      machine.onHostChanged()
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
     }

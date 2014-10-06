@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * Note that methods annotated with this interface must have the following
  * signature:
  * <pre>
- *     Object[] f(Context context, Arguments arguments);
+ *     Object[] f(Context context, Arguments arguments) throws Exception;
  * </pre>
  * <p/>
  * The method may return <tt>null</tt> in case it doesn't wish return anything,
@@ -90,4 +90,24 @@ public @interface Callback {
      * <p/>
      */
     String doc() default "";
+
+    /**
+     * Whether this callback should work like a getter.
+     * <p/>
+     * Callbacks that are getters do not appear as methods on a component's
+     * proxy. Instead they are accessed via the proxy's <tt>__index</tt>
+     * metamethod, i.e. it is accessed as a field, with it's only parameter
+     * being the accessed key.
+     */
+    boolean getter() default false;
+
+    /**
+     * Whether this callback should work like a setter.
+     * <p/>
+     * Callbacks that are setters do not appear as methods on a component's
+     * proxy. Instead they are accessed via the proxy's <tt>__newindex</tt>
+     * metamethod, i.e. it is accessed as a field, with it's only parameters
+     * being the accessed key and the assigned value.
+     */
+    boolean setter() default false;
 }

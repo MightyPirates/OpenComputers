@@ -13,7 +13,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.tileentity
-import li.cil.oc.server
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
@@ -27,6 +26,7 @@ import net.minecraft.server.integrated.IntegratedServer
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.Array.canBuildFrom
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable {
@@ -77,6 +77,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   private var cost = Settings.get.computerCost * Settings.get.tickFrequency
 
   // ----------------------------------------------------------------------- //
+
+  override def onHostChanged() = Option(architecture).foreach(_.recomputeMemory())
 
   override def getBootAddress = bootAddress
 
@@ -235,12 +237,17 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue())
 
+  override def methods(value: scala.AnyRef) = Callbacks(value).map(entry => {
+    val (name, callback) = entry
+    name -> callback.annotation
+  })
+
   override def invoke(address: String, method: String, args: Array[AnyRef]) =
     Option(node.network.node(address)) match {
-      case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
-        val direct = component.isDirect(method)
+      case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
+        val direct = component.annotation(method).direct
         if (direct && architecture.isInitialized) callCounts.synchronized {
-          val limit = component.limit(method)
+          val limit = component.annotation(method).limit
           val counts = callCounts.getOrElseUpdate(component.address, mutable.Map.empty[String, Int])
           val count = counts.getOrElseUpdate(method, 0)
           if (count >= limit) {
@@ -252,16 +259,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       case _ => throw new IllegalArgumentException("no such component")
     }
 
-  override def documentation(address: String, method: String) = Option(node.network.node(address)) match {
-    case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node => component.doc(method)
-    case _ => throw new IllegalArgumentException("no such component")
-  }
-
   override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
     case Some(callback) =>
-      val direct = callback.direct
+      val direct = callback.annotation.direct
       if (direct && architecture.isInitialized) callCounts.synchronized {
-        val limit = callback.limit
+        val limit = callback.annotation.limit
         val counts = callCounts.getOrElseUpdate(value, mutable.Map.empty[String, Int])
         val count = counts.getOrElseUpdate(method, 0)
         if (count >= limit) {
@@ -270,11 +272,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         counts(method) += 1
       }
       Registry.convert(callback(value, this, new ArgumentsImpl(Seq(args: _*))))
-    case _ => throw new NoSuchMethodException()
-  }
-
-  override def documentation(value: Value, method: String): String = Callbacks(value).get(method) match {
-    case Some(callback) => callback.doc
     case _ => throw new NoSuchMethodException()
   }
 

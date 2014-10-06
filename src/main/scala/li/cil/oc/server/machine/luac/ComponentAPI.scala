@@ -53,20 +53,15 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "slot")
 
     lua.pushScalaFunction(lua => {
-      Option(node.network.node(lua.checkString(1))) match {
-        case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
-          lua.newTable()
-          for (method <- component.methods()) {
-            lua.pushString(method)
-            lua.pushBoolean(component.isDirect(method))
-            lua.rawSet(-3)
-          }
-          1
-        case _ =>
-          lua.pushNil()
-          lua.pushString("no such component")
-          2
-      }
+      withComponent(lua.checkString(1), component => {
+        lua.newTable()
+        for ((name, annotation) <- machine.methods(component.host)) {
+          lua.pushString(name)
+          lua.pushBoolean(annotation.direct)
+          lua.rawSet(-3)
+        }
+        1
+      })
     })
     lua.setField(-2, "methods")
 
@@ -79,12 +74,23 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "invoke")
 
     lua.pushScalaFunction(lua => {
-      val address = lua.checkString(1)
-      val method = lua.checkString(2)
-      owner.documentation(() => machine.documentation(address, method))
+      withComponent(lua.checkString(1), component => {
+        val method = lua.checkString(2)
+        val methods = machine.methods(component.host)
+        owner.documentation(() => methods(method).doc)
+      })
     })
     lua.setField(-2, "doc")
 
     lua.setGlobal("component")
+  }
+
+  private def withComponent(address: String, f: (Component) => Int) = Option(node.network.node(address)) match {
+    case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
+      f(component)
+    case _ =>
+      lua.pushNil()
+      lua.pushString("no such component")
+      2
   }
 }

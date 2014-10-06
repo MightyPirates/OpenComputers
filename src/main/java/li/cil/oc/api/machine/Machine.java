@@ -18,6 +18,12 @@ public interface Machine extends ManagedEnvironment, Context {
     MachineHost host();
 
     /**
+     * This must be called from the host when something relevant to the
+     * machine changes, such as a change in the amount of available memory.
+     */
+    void onHostChanged();
+
+    /**
      * The underlying architecture of the machine.
      * <p/>
      * This is what actually evaluates code running on the machine, where the
@@ -162,6 +168,19 @@ public interface Machine extends ManagedEnvironment, Context {
     Signal popSignal();
 
     /**
+     * Get a list of all methods and their annotations of the specified object.
+     * <p/>
+     * The specified object can be either a {@link li.cil.oc.api.machine.Value}
+     * or a {@link li.cil.oc.api.network.Environment}. This is useful for
+     * custom architectures, to allow providing a list of callback methods to
+     * evaluated programs.
+     *
+     * @param value the value to get the method listing for.
+     * @return the methods that can be called on the object.
+     */
+    Map<String, Callback> methods(Object value);
+
+    /**
      * Makes the machine call a component callback.
      * <p/>
      * This is intended to be used from architectures, but may be useful in
@@ -185,17 +204,6 @@ public interface Machine extends ManagedEnvironment, Context {
     Object[] invoke(String address, String method, Object[] args) throws Exception;
 
     /**
-     * Retrieves the docstring for the specified method of the specified
-     * component. This is the string set in a method's {@link Callback}
-     * annotation.
-     *
-     * @param address the address of the component.
-     * @param method  the name of the method.
-     * @return the docstring for that method.
-     */
-    String documentation(String address, String method);
-
-    /**
      * Makes the machine call a value callback.
      * <p/>
      * This is intended to be used from architectures, but may be useful in
@@ -216,17 +224,6 @@ public interface Machine extends ManagedEnvironment, Context {
      * @throws Exception                if the callback throws an exception.
      */
     Object[] invoke(Value value, String method, Object[] args) throws Exception;
-
-    /**
-     * Retrieves the docstring for the specified method of the specified
-     * value. This is the string set in a method's {@link Callback}
-     * annotation.
-     *
-     * @param value  the value.
-     * @param method the name of the method.
-     * @return the docstring for that method.
-     */
-    String documentation(Value value, String method);
 
     /**
      * The list of users registered on this machine.

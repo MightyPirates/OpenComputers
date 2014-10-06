@@ -1,5 +1,6 @@
 package li.cil.oc.api.network;
 
+import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 
 /**
@@ -66,8 +67,23 @@ public interface Component extends Node {
 
     /**
      * The list of names of methods exposed by this component.
+     * <p/>
+     * Note: this does not return the callback annotations directly, because
+     * those may not contain the method's name (as it defaults to the name of
+     * the annotated method).
      */
     Iterable<String> methods();
+
+    /**
+     * Get the annotation information of a method.
+     * <p/>
+     * This is needed for custom architecture implementations that need to know
+     * if a callback is direct or not, for example.
+     *
+     * @param method the method to the the info for.
+     * @return the annotation of the specified method or <tt>null</tt>.
+     */
+    Callback annotation(String method);
 
     /**
      * Tries to call a function with the specified name on this component.
@@ -84,16 +100,4 @@ public interface Component extends Node {
      * @throws NoSuchMethodException if there is no method with that name.
      */
     Object[] invoke(String method, Context context, Object... arguments) throws Exception;
-
-    /**
-     * Whether the specified method should be called directly or synchronously.
-     * <p/>
-     * Direct callbacks are called from a machine's executor thread, meaning
-     * its implementation has to take care of synchronization itself. Otherwise
-     * the callback is invoked from the Minecraft server thread.
-     *
-     * @param method the method to the the info for.
-     * @return <tt>true</tt> if the method shall be called directly.
-     */
-    boolean isDirect(String method);
 }

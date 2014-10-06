@@ -9,10 +9,11 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.machine.Value
 import li.cil.oc.server.machine.ArgumentsImpl
-import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
+
+import scala.collection.convert.WrapAsScala._
 
 class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def initialize() {
@@ -87,7 +88,10 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
-      lua.pushValue(Callbacks(value).map(entry => entry._1 -> entry._2.direct))
+      lua.pushValue(machine.methods(value).map(entry => {
+        val (name, annotation) = entry
+        name -> annotation.direct
+      }))
       1
     })
     lua.setField(-2, "methods")
@@ -96,14 +100,14 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
       val method = lua.checkString(2)
       val args = lua.toSimpleJavaObjects(3)
-      owner.invoke(() => owner.machine.invoke(value, method, args.toArray))
+      owner.invoke(() => machine.invoke(value, method, args.toArray))
     })
     lua.setField(-2, "invoke")
 
     lua.pushScalaFunction(lua => {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
       val method = lua.checkString(2)
-      owner.documentation(() => owner.machine.documentation(value, method))
+      owner.documentation(() => machine.methods(value)(method).doc)
     })
     lua.setField(-2, "doc")
 

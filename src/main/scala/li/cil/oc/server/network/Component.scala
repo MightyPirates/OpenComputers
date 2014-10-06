@@ -2,14 +2,14 @@ package li.cil.oc.server.network
 
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network
-import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.api.network._
+import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.server.machine.Callbacks.ComponentCallback
-import li.cil.oc.server.machine.Callbacks.PeripheralCallback
 import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.server.machine.Callbacks
+import li.cil.oc.server.machine.Callbacks.ComponentCallback
+import li.cil.oc.server.machine.Callbacks.PeripheralCallback
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
@@ -37,7 +37,7 @@ trait Component extends network.Component with Node {
             }
           case peripheral: PeripheralCallback =>
             multi.environments.find {
-              case (_, environment: ManagedPeripheral) => environment.methods.contains(peripheral.name)
+              case (_, environment: ManagedPeripheral) => environment.methods.contains(peripheral.annotation.value)
               case _ => false
             } match {
               case Some((_, environment)) => method -> Some(environment)
@@ -99,14 +99,9 @@ trait Component extends network.Component with Node {
 
   // ----------------------------------------------------------------------- //
 
-  def methods = callbacks.keySet
+  override def methods = callbacks.keySet
 
-  def doc(name: String) = callbacks.get(name) match {
-    case Some(callback) => callback.doc
-    case _ => throw new NoSuchMethodException()
-  }
-
-  def invoke(method: String, context: Context, arguments: AnyRef*) =
+  override def invoke(method: String, context: Context, arguments: AnyRef*) =
     callbacks.get(method) match {
       case Some(callback) => hosts(method) match {
         case Some(environment) => Registry.convert(callback(environment, context, new ArgumentsImpl(Seq(arguments: _*))))
@@ -115,15 +110,9 @@ trait Component extends network.Component with Node {
       case _ => throw new NoSuchMethodException()
     }
 
-  def isDirect(method: String) =
+  override def annotation(method: String) =
     callbacks.get(method) match {
-      case Some(callback) => callbacks(method).direct
-      case _ => throw new NoSuchMethodException()
-    }
-
-  def limit(method: String) =
-    callbacks.get(method) match {
-      case Some(callback) => callbacks(method).limit
+      case Some(callback) => callbacks(method).annotation
       case _ => throw new NoSuchMethodException()
     }
 

@@ -62,7 +62,7 @@ object Callbacks {
             val a = m.getAnnotation[machine.Callback](classOf[machine.Callback])
             val name = if (a.value != null && a.value.trim != "") a.value else m.getName
             if (shouldAdd(name)) {
-              callbacks += name -> new ComponentCallback(m, a.direct, a.limit, a.doc)
+              callbacks += name -> new ComponentCallback(m, a)
             }
           }
         )
@@ -91,11 +91,11 @@ object Callbacks {
 
   // ----------------------------------------------------------------------- //
 
-  abstract class Callback(val direct: Boolean, val limit: Int, val doc: String = "") {
+  abstract class Callback(val annotation: machine.Callback) {
     def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef]
   }
 
-  class ComponentCallback(val method: Method, direct: Boolean, limit: Int, doc: String) extends Callback(direct, limit, doc) {
+  class ComponentCallback(val method: Method, annotation: machine.Callback) extends Callback(annotation) {
     override def apply(instance: AnyRef, context: Context, args: Arguments) = try {
       method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
     } catch {
@@ -103,7 +103,7 @@ object Callbacks {
     }
   }
 
-  class PeripheralCallback(val name: String) extends Callback(true, 100) {
+  class PeripheralCallback(name: String) extends Callback(new PeripheralAnnotation(name)) {
     override def apply(instance: AnyRef, context: Context, args: Arguments) =
       instance match {
         case peripheral: ManagedPeripheral => peripheral.invoke(name, context, args)
