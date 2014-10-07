@@ -55,6 +55,8 @@ class DocumentationHandler(val pages: Option[Array[String]]) extends IUsageHandl
 
   private val DocPattern = """^function(\([^)]*\)[^-]*) -- (.*)$""".r
 
+  private val VexPattern = """^function(\([^)]*\)[^-]*); (.*)$""".r
+
   private def wrap(line: String, width: Int) = GuiDraw.fontRenderer.listFormattedStringToWidth(line, width)
 
   override def getUsageHandler(input: String, ingredients: AnyRef*): IUsageHandler = {
@@ -67,8 +69,9 @@ class DocumentationHandler(val pages: Option[Array[String]]) extends IUsageHandl
                 val doc = callback.annotation.doc
                 if (Strings.isNullOrEmpty(doc)) name
                 else {
-                  val (signature, documentation) = DocPattern findFirstIn doc match {
-                    case Some(DocPattern(head, tail)) => (name + head, tail)
+                  val (signature, documentation) = doc match {
+                    case DocPattern(head, tail) => (name + head, tail)
+                    case VexPattern(head, tail) => (name + head, tail)
                     case _ => (name, doc)
                   }
                   wrap(signature, 160).map(EnumChatFormatting.BLACK.toString + _).mkString("\n") +

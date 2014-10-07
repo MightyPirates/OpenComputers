@@ -88,6 +88,14 @@ public @interface Callback {
      * more importantly you should document the expected parameters and return
      * type here.
      * <p/>
+     * <em>Important</em>: the recommended format is either<br/>
+     * <tt>function(arg:type[, optionArg:type]):resultType -- Description.</tt><br/>
+     * or<br/>
+     * <tt>function(arg:type[, optionArg:type]):resultType; Description.</tt><br/>
+     * where the argument list can be of any format (as long as it doesn't contain
+     * further braces), and the return type is optional. These two formats are
+     * recognized by OC's NEI component documentation plugin. If you use a
+     * different format, the doc string will be used as-is.
      */
     String doc() default "";
 
