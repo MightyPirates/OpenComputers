@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item.Memory
@@ -45,7 +46,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
 
   override def callBudget = inventory.items.foldLeft(0.0)((sum, item) => sum + (item match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => 0.5 + driver.tier(stack) * 0.5
+      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
       case _ => 0
     }
     case _ => 0

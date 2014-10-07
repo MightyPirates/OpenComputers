@@ -50,6 +50,7 @@ class Settings(config: Config) {
 
   // ----------------------------------------------------------------------- //
   // computer
+
   val threads = config.getInt("computer.threads") max 1
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
@@ -67,6 +68,13 @@ class Settings(config: Config) {
     case _ =>
       OpenComputers.log.warn("Bad number of CPU component counts, ignoring.")
       Array(8, 12, 16)
+  }
+  val callBudgets = Array(config.getDoubleList("computer.callBudgets"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Double, tier2: Double, tier3: Double)
+    case _ =>
+      OpenComputers.log.warn("Bad number of CPU call budgets, ignoring.")
+      Array(0.5, 1.0, 1.5)
   }
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0

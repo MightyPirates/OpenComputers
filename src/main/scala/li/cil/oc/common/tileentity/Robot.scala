@@ -548,7 +548,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def callBudget = (containerSlots ++ componentSlots).foldLeft(0.0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => 0.5 + driver.tier(stack) * 0.5
+      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
       case _ => 0
     }
     case _ => 0

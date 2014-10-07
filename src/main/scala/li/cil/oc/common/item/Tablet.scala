@@ -251,7 +251,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   override def callBudget = items.foldLeft(0.0)((acc, item) => acc + (item match {
     case Some(itemStack) => Option(Driver.driverFor(itemStack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(itemStack) == Slot.CPU => 0.5 + driver.tier(itemStack) * 0.5
+      case Some(driver: Processor) if driver.slot(itemStack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
       case _ => 0
     }
     case _ => 0
