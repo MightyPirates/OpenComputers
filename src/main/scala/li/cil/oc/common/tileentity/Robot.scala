@@ -16,7 +16,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Blocks
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
 import li.cil.oc.server.driver
@@ -153,6 +152,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (event.isCanceled) return false
     }
 
+    val blockRobotProxy = api.Items.get("robot").block.asInstanceOf[common.block.RobotProxy]
+    val blockRobotAfterImage = api.Items.get("robotAfterimage").block.asInstanceOf[common.block.RobotAfterimage]
     val wasAir = world.isAirBlock(nx, ny, nz)
     val block = world.getBlock(nx, ny, nz)
     val metadata = world.getBlockMetadata(nx, ny, nz)
@@ -160,7 +161,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       // Setting this will make the tile entity created via the following call
       // to setBlock to re-use our "real" instance as the inner object, instead
       // of creating a new one.
-      Blocks.robotProxy.moving.set(Some(this))
+      blockRobotProxy.moving.set(Some(this))
       // Do *not* immediately send the change to clients to allow checking if it
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
@@ -168,13 +169,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       world.setBlockToAir(nx, ny, nz)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = world.setBlock(nx, ny, nz, Blocks.robotProxy, 0, 1) &&
+      val created = world.setBlock(nx, ny, nz, blockRobotProxy, 0, 1) &&
         world.getTileEntity(nx, ny, nz) == proxy
       if (created) {
         assert(x == nx && y == ny && z == nz)
         world.setBlock(ox, oy, oz, net.minecraft.init.Blocks.air, 0, 1)
-        world.setBlock(ox, oy, oz, Blocks.robotAfterimage, 0, 1)
-        assert(world.getBlock(ox, oy, oz) == Blocks.robotAfterimage)
+        world.setBlock(ox, oy, oz, blockRobotAfterImage, 0, 1)
+        assert(world.getBlock(ox, oy, oz) == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
@@ -186,7 +187,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         else {
           // If we broke some replaceable block (like grass) play its break sound.
           if (!wasAir) {
-            if (block != null && block != Blocks.robotAfterimage) {
+            if (block != null && block != blockRobotAfterImage) {
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
@@ -209,7 +210,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       created
     }
     finally {
-      Blocks.robotProxy.moving.set(None)
+      blockRobotProxy.moving.set(None)
     }
   }
 

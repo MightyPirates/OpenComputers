@@ -8,9 +8,6 @@ import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity
 
 object Blocks {
-  var robotProxy: RobotProxy = _
-  var robotAfterimage: RobotAfterimage = _
-
   def init() {
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
@@ -47,8 +44,8 @@ object Blocks {
     Recipes.addBlock(new PowerDistributor(), "powerDistributor", "oc:powerDistributor")
     Recipes.addBlock(new PowerConverter(), "powerConverter", "oc:powerConverter")
     Recipes.addBlock(new Redstone(), "redstone", "oc:redstone")
-    robotAfterimage = new RobotAfterimage()
-    robotProxy = Items.registerBlock(new RobotProxy(), "robot")
+    Items.registerBlock(new RobotAfterimage(), "robotAfterimage")
+    Items.registerBlock(new RobotProxy(), "robot")
     Recipes.addBlock(new Switch(), "switch", "oc:switch")
 
     // Copied to simple block for automatic conversion from old format (when

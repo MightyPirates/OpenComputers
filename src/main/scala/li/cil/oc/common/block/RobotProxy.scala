@@ -6,9 +6,9 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
@@ -194,7 +194,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
           robot.saveComponents()
           dropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }
-        if (world.getBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ) == Blocks.robotAfterimage) {
+        if (world.getBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ) == api.Items.get("robotAfterimage").block) {
           world.setBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ, net.minecraft.init.Blocks.air, 0, 1)
         }
       case _ =>

@@ -7,7 +7,8 @@ import java.util.zip.GZIPInputStream
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufInputStream
 import li.cil.oc.OpenComputers
-import li.cil.oc.common.init.Blocks
+import li.cil.oc.api
+import li.cil.oc.common.block.RobotAfterimage
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
@@ -58,9 +59,12 @@ abstract class PacketHandler {
           // In case a robot moved away before the packet arrived. This is
           // mostly used when the robot *starts* moving while the client sends
           // a request to the server.
-          Blocks.robotAfterimage.findMovingRobot(world, x, y, z) match {
-            case Some(robot) if classTag[T].runtimeClass.isAssignableFrom(robot.proxy.getClass) =>
-              return Some(robot.proxy.asInstanceOf[T])
+          api.Items.get("robotAfterimage").block match {
+            case afterimage: RobotAfterimage => afterimage.findMovingRobot(world, x, y, z) match {
+              case Some(robot) if classTag[T].runtimeClass.isAssignableFrom(robot.proxy.getClass) =>
+                return Some(robot.proxy.asInstanceOf[T])
+              case _ =>
+            }
             case _ =>
           }
       }

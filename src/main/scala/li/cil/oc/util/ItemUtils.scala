@@ -7,7 +7,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Blocks
 import li.cil.oc.server
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemMap
@@ -122,7 +121,7 @@ object ItemUtils {
     }
 
     def createItemStack() = {
-      val stack = new ItemStack(Blocks.robotProxy)
+      val stack = api.Items.get("robot").createItemStack(1)
       save(stack)
       stack
     }
