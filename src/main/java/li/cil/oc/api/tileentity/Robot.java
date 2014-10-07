@@ -1,9 +1,11 @@
 package li.cil.oc.api.tileentity;
 
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.IFluidHandler;
 
 /**
  * This interface allows interaction with robots.
@@ -27,7 +29,7 @@ import net.minecraft.item.ItemStack;
  * <p/>
  * <em>This interface is not meant to be implemented, just used</em>
  */
-public interface Robot extends ISidedInventory, Rotatable {
+public interface Robot extends Environment, EnvironmentHost, Rotatable, ISidedInventory, IFluidHandler {
     /**
      * Returns the fake player used to represent the robot as an entity for
      * certain actions that require one.

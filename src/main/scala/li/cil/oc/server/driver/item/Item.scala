@@ -6,7 +6,6 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
-import li.cil.oc.common.tileentity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
@@ -19,9 +18,11 @@ trait Item extends driver.Item {
 
   protected def isRotatable(host: Class[_ <: EnvironmentHost]) = classOf[api.tileentity.Rotatable].isAssignableFrom(host)
 
-  protected def isComputer(host: Class[_ <: EnvironmentHost]) = classOf[tileentity.traits.Computer].isAssignableFrom(host) || classOf[tileentity.ServerRack].isAssignableFrom(host)
+  protected def isComputer(host: Class[_ <: EnvironmentHost]) = classOf[api.tileentity.Case].isAssignableFrom(host)
 
   protected def isRobot(host: Class[_ <: EnvironmentHost]) = classOf[api.tileentity.Robot].isAssignableFrom(host)
+
+  protected def isServer(host: Class[_ <: EnvironmentHost]) = classOf[api.tileentity.ServerRack].isAssignableFrom(host)
 
   protected def isTablet(host: Class[_ <: EnvironmentHost]) = classOf[item.TabletWrapper].isAssignableFrom(host)
 }

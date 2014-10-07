@@ -31,7 +31,7 @@ import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
-class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
+class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice with api.tileentity.ServerRack {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
@@ -53,6 +53,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = Array.fill(4)(0L)
+
+  override def machine(slot: Int) = servers(slot).fold(null: api.machine.Machine)(_.machine)
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing

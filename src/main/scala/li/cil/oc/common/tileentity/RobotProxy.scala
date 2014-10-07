@@ -8,7 +8,6 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity
 import li.cil.oc.util.mods.Mods
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
@@ -21,7 +20,7 @@ import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with tileentity.Robot with ISidedInventory with IFluidHandler {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with ISidedInventory with IFluidHandler with api.tileentity.Robot {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //

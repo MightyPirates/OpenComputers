@@ -13,7 +13,6 @@ import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.event.RobotAnalyzeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity
 import li.cil.oc.client.gui
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
@@ -42,7 +41,7 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with tileentity.Robot with IFluidHandler {
+class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with api.tileentity.Robot {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
