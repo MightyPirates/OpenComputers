@@ -40,6 +40,8 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
 
+  override protected def energyThroughput = Settings.get.assemblerRate
+
   // ----------------------------------------------------------------------- //
 
   def isAssembling = requiredEnergy > 0

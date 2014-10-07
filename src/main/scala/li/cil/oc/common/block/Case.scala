@@ -69,6 +69,8 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
 
   // ----------------------------------------------------------------------- //
 
+  override def energyThroughput = Settings.get.caseRate(tier)
+
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
 
   // ----------------------------------------------------------------------- //

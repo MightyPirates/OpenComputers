@@ -39,6 +39,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
 
+  override protected def energyThroughput = Settings.get.chargerRate
+
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null

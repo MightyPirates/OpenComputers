@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
@@ -43,6 +44,8 @@ class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.Powe
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.SOUTH
 
   // ----------------------------------------------------------------------- //
+
+  override def energyThroughput = Settings.get.serverRackRate
 
   override def hasTileEntity(metadata: Int) = true
 

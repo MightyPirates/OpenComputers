@@ -54,6 +54,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
 
+  override protected def energyThroughput = Settings.get.disassemblerRate
+
   // ----------------------------------------------------------------------- //
 
   override def canUpdate = isServer

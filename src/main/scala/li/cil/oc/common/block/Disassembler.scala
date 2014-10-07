@@ -36,6 +36,8 @@ class Disassembler extends SimpleBlock with traits.PowerAcceptor {
 
   // ----------------------------------------------------------------------- //
 
+  override def energyThroughput = Settings.get.disassemblerRate
+
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Disassembler()

@@ -1,14 +1,16 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.common.EventHandler
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.common.EventHandler
+import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.mods.Mods
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
-import universalelectricity.api.core.grid.electric.IEnergyNode
 import universalelectricity.api.core.grid.INode
 import universalelectricity.api.core.grid.INodeProvider
+import universalelectricity.api.core.grid.electric.IEnergyNode
 import universalelectricity.core.grid.node.NodeEnergy
 
 trait UniversalElectricity extends Common {
@@ -29,37 +31,9 @@ trait UniversalElectricity extends Common {
   private def updateEnergy() {
     node match {
       case Some(energyNode: NodeEnergy) =>
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioUniversalElectricity
-          if (demand > 1) {
-            val power = energyNode.buffer.extractEnergy(demand, doExtract = true)
-            tryChangeBuffer(side, power * Settings.get.ratioUniversalElectricity)
-          }
-        }
+        tryAllSides((demand, _) => energyNode.buffer.extractEnergy(demand, doExtract = true), Settings.get.ratioUniversalElectricity)
       case _ =>
     }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  def getNode(nodeType: Class[_ <: INode], side: ForgeDirection): INode = {
-    if (nodeType != null && classOf[IEnergyNode].isAssignableFrom(nodeType)) node match {
-      case Some(energyNode: NodeEnergy) => energyNode
-      case _ =>
-        this match {
-          case nodeProvider: INodeProvider =>
-            val energyNode = new NodeEnergy(nodeProvider, 500, 500, 500) {
-              override def canConnect(from: ForgeDirection) = canConnectPower(from) && super.canConnect(from)
-            }
-            node = Option(energyNode)
-            energyNode
-          case _ =>
-            OpenComputers.log.warn("Failed setting up UniversalElectricity power, which most likely means the class transformer did not run. You're probably running in an incorrectly configured development environment. Try adding `-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader` to the VM options of your run configuration.")
-            null
-        }
-    }
-    else null
   }
 
   override def validate() {
@@ -75,5 +49,56 @@ trait UniversalElectricity extends Common {
   @Optional.Method(modid = Mods.IDs.UniversalElectricity)
   private def deconstructNode() {
     getNode(classOf[IEnergyNode], ForgeDirection.UNKNOWN).deconstruct()
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    if (useUniversalElectricityPower) loadNode(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  private def loadNode(nbt: NBTTagCompound) {
+    node match {
+      case Some(energyNode: NodeEnergy) => energyNode.load(nbt.getCompoundTag("uepower"))
+      case _ =>
+    }
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    if (useUniversalElectricityPower) saveNode(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  private def saveNode(nbt: NBTTagCompound) {
+    node match {
+      case Some(energyNode: NodeEnergy) => nbt.setNewCompoundTag("uepower", energyNode.save)
+      case _ =>
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  def getNode(nodeType: Class[_ <: INode], side: ForgeDirection): INode = {
+    if (nodeType != null && classOf[IEnergyNode].isAssignableFrom(nodeType)) node match {
+      case Some(energyNode: NodeEnergy) => energyNode
+      case _ =>
+        this match {
+          case nodeProvider: INodeProvider =>
+            val conversionBufferSize = energyThroughput * Settings.get.tickFrequency / Settings.get.ratioUniversalElectricity
+            val energyNode = new NodeEnergy(nodeProvider, conversionBufferSize, conversionBufferSize, conversionBufferSize) {
+              override def canConnect(from: ForgeDirection) = canConnectPower(from) && super.canConnect(from)
+            }
+            node = Option(energyNode)
+            energyNode
+          case _ =>
+            OpenComputers.log.warn("Failed setting up UniversalElectricity power, which most likely means the class transformer did not run. You're probably running in an incorrectly configured development environment. Try adding `-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader` to the VM options of your run configuration.")
+            null
+        }
+    }
+    else null
   }
 }

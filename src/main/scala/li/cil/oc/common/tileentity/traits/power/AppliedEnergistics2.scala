@@ -34,19 +34,17 @@ trait AppliedEnergistics2 extends Common {
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   private def updateEnergy() {
-    val grid = getGridNode(ForgeDirection.UNKNOWN).getGrid
-    if (grid != null) {
-      val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
-      if (cache != null) {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioAppliedEnergistics2
-          if (demand > 1) {
-            val power = cache.extractAEPower(demand, Actionable.MODULATE, PowerMultiplier.CONFIG)
-            tryChangeBuffer(side, power * Settings.get.ratioAppliedEnergistics2)
-          }
+    tryAllSides((demand, side) => {
+      val grid = getGridNode(side).getGrid
+      if (grid != null) {
+        val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
+        if (cache != null) {
+          cache.extractAEPower(demand, Actionable.MODULATE, PowerMultiplier.CONFIG)
         }
+        else 0.0
       }
-    }
+      else 0.0
+    }, Settings.get.ratioAppliedEnergistics2)
   }
 
   override def validate() {

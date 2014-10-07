@@ -34,6 +34,8 @@ class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAc
 
   // ----------------------------------------------------------------------- //
 
+  override def energyThroughput = Settings.get.assemblerRate
+
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.RobotAssembler()

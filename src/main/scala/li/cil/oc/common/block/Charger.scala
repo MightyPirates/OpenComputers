@@ -1,12 +1,12 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.BuildCraft
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -14,7 +14,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Charger extends RedstoneAware {
+class Charger extends RedstoneAware with traits.PowerAcceptor {
   override protected def customTextures = Array(
     None,
     None,
@@ -31,6 +31,8 @@ class Charger extends RedstoneAware {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def energyThroughput = Settings.get.chargerRate
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Charger()
 

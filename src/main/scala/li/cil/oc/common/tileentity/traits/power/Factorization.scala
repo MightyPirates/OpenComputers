@@ -4,10 +4,10 @@ import cpw.mods.fml.common.Optional
 import factorization.api.Charge
 import factorization.api.Coord
 import factorization.api.IChargeConductor
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import net.minecraftforge.common.util.ForgeDirection
+import li.cil.oc.util.mods.Mods
+import net.minecraft.nbt.NBTTagCompound
 
 trait Factorization extends Common {
   private lazy val useFactorizationPower = isServer && Mods.Factorization.isAvailable
@@ -23,31 +23,58 @@ trait Factorization extends Common {
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (useFactorizationPower) {
-      getCharge.update()
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioFactorization
-        if (demand > 1) {
-          val power = getCharge.deplete(demand.toInt)
-          tryChangeBuffer(side, power * Settings.get.ratioFactorization)
-        }
-      }
-    }
+    if (useFactorizationPower) updateEnergy()
     super.updateEntity()
   }
 
-  override def invalidate() {
-    if (useFactorizationPower) {
-      getCharge.invalidate()
+  @Optional.Method(modid = Mods.IDs.Factorization)
+  private def updateEnergy() {
+    getCharge.update()
+    if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      tryAllSides((demand, _) => getCharge.deplete(demand.toInt), Settings.get.ratioFactorization)
     }
+  }
+
+  override def invalidate() {
+    if (useFactorizationPower) invalidateCharge()
     super.invalidate()
   }
 
+  @Optional.Method(modid = Mods.IDs.Factorization)
+  private def invalidateCharge() {
+    getCharge.invalidate()
+  }
+
   override def onChunkUnload() {
-    if (useFactorizationPower && !isInvalid) {
-      getCharge.remove()
-    }
+    if (useFactorizationPower) removeCharge()
     super.onChunkUnload()
+  }
+
+  @Optional.Method(modid = Mods.IDs.Factorization)
+  private def removeCharge() {
+    if (!isInvalid) getCharge.remove()
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    if (useFactorizationPower) loadCharge(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.Factorization)
+  private def loadCharge(nbt: NBTTagCompound) {
+    getCharge.readFromNBT(nbt, "fzpower")
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    if (useFactorizationPower) saveCharge(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.Factorization)
+  private def saveCharge(nbt: NBTTagCompound) {
+    getCharge.writeToNBT(nbt, "fzpower")
   }
 
   // ----------------------------------------------------------------------- //

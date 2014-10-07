@@ -24,4 +24,6 @@ trait PowerAcceptor extends Block {
       case _ =>
     }
   }
+
+  def energyThroughput: Double
 }
