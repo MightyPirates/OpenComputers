@@ -20,13 +20,14 @@ object Callbacks {
   private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]
 
   def apply(host: Any) = host match {
-    case multi: CompoundBlockEnvironment => analyze(host)
-    case peripheral: ManagedPeripheral => analyze(host)
-    case _ => cache.getOrElseUpdate(host.getClass, analyze(host))
+    case multi: CompoundBlockEnvironment => dynamicAnalyze(host)
+    case peripheral: ManagedPeripheral => dynamicAnalyze(host)
+    case _ => cache.getOrElseUpdate(host.getClass, dynamicAnalyze(host))
   }
 
-  private def analyze(host: Any) = {
-    val callbacks = mutable.Map.empty[String, Callback]
+  def fromClass(environment: Class[_]) = staticAnalyze(Seq(environment))
+
+  private def dynamicAnalyze(host: Any) = {
     val whitelists = mutable.Buffer.empty[Set[String]]
     val seeds = host match {
       case multi: CompoundBlockEnvironment => multi.environments.map {
@@ -39,7 +40,30 @@ object Callbacks {
       }
       case single => Seq(host.getClass: Class[_])
     }
-    val whitelist = whitelists.reduceOption(_.intersect(_)).getOrElse(Set.empty[String])
+    val whitelist = whitelists.reduceOption(_.intersect(_)).getOrElse(Set.empty)
+    val callbacks = staticAnalyze(seeds, whitelist)
+    def shouldAdd(name: String) = !callbacks.contains(name) && (whitelist.isEmpty || whitelist.contains(name))
+    host match {
+      case multi: CompoundBlockEnvironment => multi.environments.map {
+        case (_, environment) => environment match {
+          case peripheral: ManagedPeripheral =>
+            for (name <- peripheral.methods() if shouldAdd(name)) {
+              callbacks += name -> new PeripheralCallback(name)
+            }
+          case _ =>
+        }
+      }
+      case peripheral: ManagedPeripheral =>
+        for (name <- peripheral.methods() if shouldAdd(name)) {
+          callbacks += name -> new PeripheralCallback(name)
+        }
+      case _ =>
+    }
+    callbacks.toMap
+  }
+
+  private def staticAnalyze(seeds: Seq[Class[_]], whitelist: Set[String] = Set.empty) = {
+    val callbacks = mutable.Map.empty[String, Callback]
     def shouldAdd(name: String) = !callbacks.contains(name) && (whitelist.isEmpty || whitelist.contains(name))
     for (seed <- seeds) {
       var c: Class[_] = seed
@@ -70,23 +94,7 @@ object Callbacks {
         c = c.getSuperclass
       }
     }
-    host match {
-      case multi: CompoundBlockEnvironment => multi.environments.map {
-        case (_, environment) => environment match {
-          case peripheral: ManagedPeripheral =>
-            for (name <- peripheral.methods() if shouldAdd(name)) {
-              callbacks += name -> new PeripheralCallback(name)
-            }
-          case _ =>
-        }
-      }
-      case peripheral: ManagedPeripheral =>
-        for (name <- peripheral.methods() if shouldAdd(name)) {
-          callbacks += name -> new PeripheralCallback(name)
-        }
-      case _ =>
-    }
-    callbacks.toMap
+    callbacks
   }
 
   // ----------------------------------------------------------------------- //

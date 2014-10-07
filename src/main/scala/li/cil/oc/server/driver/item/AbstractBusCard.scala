@@ -1,6 +1,7 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
+import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.common.Slot
@@ -9,7 +10,7 @@ import li.cil.oc.util.mods.Mods
 import net.minecraft.item.ItemStack
 import stargatetech2.api.bus.IBusDevice
 
-object AbstractBusCard extends Item with HostAware {
+object AbstractBusCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("abstractBusCard"))
 
@@ -23,4 +24,6 @@ object AbstractBusCard extends Item with HostAware {
   else null
 
   override def slot(stack: ItemStack) = Slot.Card
+
+  override def providedEnvironment(stack: ItemStack) = classOf[component.AbstractBusCard]
 }

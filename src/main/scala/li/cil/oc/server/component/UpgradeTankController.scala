@@ -23,6 +23,20 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
 
   // ----------------------------------------------------------------------- //
 
+  @Callback(doc = """function(side:number):number -- Get the amount of fluid in the tank on the specified side of the robot. Back refers to the robot's own selected tank.""")
+  def getTankLevel(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForTank(args, 0)
+    if (facing == owner.facing.getOpposite) result(owner.getFluidTank(owner.selectedTank).fold(0)(_.getFluidAmount))
+    else owner.world.getTileEntity(math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
+      case handler: IFluidHandler =>
+        result((owner.getFluidTank(owner.selectedTank) match {
+          case Some(tank) => handler.getTankInfo(facing.getOpposite).filter(info => info.fluid == null || info.fluid.isFluidEqual(tank.getFluid))
+          case _ => handler.getTankInfo(facing.getOpposite)
+        }).map(info => Option(info.fluid).fold(0)(_.amount)).sum)
+      case _ => result(Unit, "no tank")
+    }
+  }
+
   @Callback(doc = """function(side:number):number -- Get the capacity of the tank on the specified side of the robot. Back refers to the robot's own selected tank.""")
   def getTankCapacity(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForTank(args, 0)

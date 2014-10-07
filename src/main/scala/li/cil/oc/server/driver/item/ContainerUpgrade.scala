@@ -8,7 +8,7 @@ import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
 import net.minecraft.item.ItemStack
 
-object UpgradeContainer extends Item with Container {
+object ContainerUpgrade extends Item with Container {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("upgradeContainer1"), api.Items.get("upgradeContainer2"), api.Items.get("upgradeContainer3"))
 

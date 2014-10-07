@@ -79,6 +79,7 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
 
     OpenComputers.log.info("Initializing OpenComputers drivers.")
+    api.Driver.add(driver.block.EnvironmentProvider)
     api.Driver.add(driver.item.ComponentBus)
     api.Driver.add(driver.item.CPU)
     api.Driver.add(driver.item.DebugCard)
@@ -99,7 +100,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeChunkloader)
     api.Driver.add(driver.item.ContainerCard)
     api.Driver.add(driver.item.ContainerFloppy)
-    api.Driver.add(driver.item.UpgradeContainer)
+    api.Driver.add(driver.item.ContainerUpgrade)
     api.Driver.add(driver.item.UpgradeCrafting)
     api.Driver.add(driver.item.UpgradeExperience)
     api.Driver.add(driver.item.UpgradeGenerator)
