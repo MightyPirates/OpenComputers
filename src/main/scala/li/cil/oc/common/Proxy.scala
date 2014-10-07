@@ -62,6 +62,7 @@ class Proxy {
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
+    api.Machine.add(api.Machine.LuaArchitecture)
     api.Network.instance = network.Network
 
     if (Mods.ForgeMultipart.isAvailable) {

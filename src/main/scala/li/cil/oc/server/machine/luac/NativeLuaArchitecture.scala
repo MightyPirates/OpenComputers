@@ -4,6 +4,9 @@ import java.io.FileNotFoundException
 import java.io.IOException
 
 import com.google.common.base.Strings
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.ExecutionResult
 import li.cil.oc.api.machine.LimitReachedException
@@ -11,12 +14,10 @@ import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.repack.com.naef.jnlua._
 import net.minecraft.nbt.NBTTagCompound
 
+@Architecture.Name("Lua")
 class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: LuaState = null
 
@@ -126,8 +127,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def name() = "Lua"
 
   override def isInitialized = kernelMemory > 0
 

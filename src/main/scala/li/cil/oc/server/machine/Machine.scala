@@ -58,6 +58,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   @volatile private var callBudget = 0.0
 
+  // We want to ignore the call limit in synchronized calls to avoid errors.
+  private var inSynchronizedCall = false
+
   // ----------------------------------------------------------------------- //
 
   var worldTime = 0L // Game-world time for os.time().
@@ -268,7 +271,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     case _ => throw new NoSuchMethodException()
   }
 
-  private def checkLimit(limit: Int) {
+  private def checkLimit(limit: Int): Unit = if (!inSynchronizedCall) {
     val callCost = math.max(1.0 / limit, 0.001)
     if (callCost >= callBudget) {
       throw new LimitReachedException()
@@ -421,16 +424,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         }
       // Perform a synchronized call (message sending).
       case Machine.State.SynchronizedCall =>
-        // Reset direct call budget again, just to be on the safe side...
-        // Theoretically it'd be possible for the executor to do some direct
-        // calls between the clear and the state check, which could in turn
-        // make this synchronized call fail due the limit still being maxed.
-        callBudget = maxCallBudget
         // We switch into running state, since we'll behave as though the call
         // were performed from our executor thread.
         switchTo(Machine.State.Running)
         try {
+          inSynchronizedCall = true
           architecture.runSynchronized()
+          inSynchronizedCall = false
           // Check if the callback called pause() or stop().
           state.top match {
             case Machine.State.Running =>
@@ -450,6 +450,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           case e: Throwable =>
             OpenComputers.log.warn("Faulty architecture implementation for synchronized calls.", e)
             crash("gui.Error.InternalError")
+        }
+        finally {
+          inSynchronizedCall = false
         }
 
         assert(state.top != Machine.State.Running)
@@ -871,7 +874,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 }
 
 object Machine extends MachineAPI {
-  val checked = mutable.Set.empty[Class[_ <: Architecture]]
+  // Keep registration order, to allow deterministic iteration of the architectures.
+  val checked = mutable.LinkedHashSet.empty[Class[_ <: Architecture]]
 
   override def add(architecture: Class[_ <: Architecture]) {
     if (!checked.contains(architecture)) {
@@ -885,7 +889,7 @@ object Machine extends MachineAPI {
     }
   }
 
-  override def architectures() = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
+  override def architectures = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
 
   override def create(host: MachineHost) = new Machine(host)
 

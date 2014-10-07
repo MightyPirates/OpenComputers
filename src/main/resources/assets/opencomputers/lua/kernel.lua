@@ -480,12 +480,13 @@ local function isDirect(address, method)
     return cachedValue
   end
   local methods, reason = spcall(component.methods, address)
-  if methods then
-    for name, info in pairs(methods) do
-      if name == method then
-        directCache[cacheKey] = info.direct
-        return info.direct
-      end
+  if not methods then
+    return false
+  end
+  for name, info in pairs(methods) do
+    if name == method then
+      directCache[cacheKey] = info.direct
+      return info.direct
     end
   end
   error("no such method", 1)

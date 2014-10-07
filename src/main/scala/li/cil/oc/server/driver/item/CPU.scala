@@ -1,14 +1,17 @@
 package li.cil.oc.server.driver.item
 
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.machine.Architecture
 import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
 import net.minecraft.item.ItemStack
+
+import scala.collection.convert.WrapAsScala._
 
 object CPU extends Item with Processor {
   override def worksWith(stack: ItemStack) =
@@ -30,5 +33,15 @@ object CPU extends Item with Processor {
       case _ => 0
     }
 
-  override def architecture(stack: ItemStack) = Machine.LuaArchitecture
+  override def architecture(stack: ItemStack) = {
+    if (stack.hasTagCompound) {
+      val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass")
+      try Class.forName(archClass).asSubclass(classOf[Architecture]) catch {
+        case t: Throwable =>
+          OpenComputers.log.warn("Failed getting class for CPU architecture.", t)
+          null
+      }
+    }
+    else api.Machine.architectures.headOption.orNull
+  }
 }

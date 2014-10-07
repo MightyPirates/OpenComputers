@@ -4,19 +4,20 @@ import java.io.FileNotFoundException
 import java.io.IOException
 
 import com.google.common.base.Strings
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.ExecutionResult
 import li.cil.oc.api.machine.LimitReachedException
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ScalaClosure
 import li.cil.oc.util.ScalaClosure._
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.repack.org.luaj.vm2._
 import li.cil.repack.org.luaj.vm2.lib.jse.JsePlatform
 import net.minecraft.nbt.NBTTagCompound
 
+@Architecture.Name("LuaJ")
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: Globals = _
 
@@ -89,8 +90,6 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def name() = "LuaJ"
 
   override def isInitialized = doneWithInitRun
 
