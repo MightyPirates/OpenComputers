@@ -21,10 +21,8 @@ object ItemStack extends api.driver.Converter {
         output += "size" -> Int.box(stack.stackSize)
         output += "maxSize" -> Int.box(stack.getMaxStackSize)
         output += "hasTag" -> Boolean.box(stack.hasTagCompound)
-        output += "name" -> stack.getUnlocalizedName
-        if (stack.hasDisplayName) {
-          output += "label" -> stack.getDisplayName
-        }
+        output += "name" -> Item.itemRegistry.getNameForObject(stack.getItem)
+        output += "label" -> stack.getDisplayName
       case _ =>
     }
 }
