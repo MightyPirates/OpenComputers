@@ -8,11 +8,11 @@ import li.cil.oc.api
 import li.cil.oc.api.machine.Machine
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.integration.fmp.EventHandler
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound

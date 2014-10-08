@@ -1,10 +1,10 @@
 package li.cil.oc.integration.ic2
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.IMod
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object ModIndustrialCraft2 extends IMod {
+object ModIndustrialCraft2 extends ModProxy {
   override def getMod = Mods.IndustrialCraft2
 
   override def initialize() {

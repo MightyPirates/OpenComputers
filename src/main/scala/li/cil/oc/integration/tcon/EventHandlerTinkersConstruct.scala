@@ -1,10 +1,10 @@
-package li.cil.oc.common.event
+package li.cil.oc.integration.tcon
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraft.item.ItemStack
 
-object TinkersConstructToolHandler {
+object EventHandlerTinkersConstruct {
   def isTinkerTool(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey("InfiTool")
 
   @SubscribeEvent

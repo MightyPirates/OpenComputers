@@ -1,10 +1,10 @@
 package li.cil.oc.integration.buildcraft
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.IMod
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object ModBuildCraft extends IMod {
+object ModBuildCraft extends ModProxy {
   override def getMod = Mods.BuildCraft
 
   override def initialize() {

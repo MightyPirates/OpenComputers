@@ -1,10 +1,10 @@
-package li.cil.oc.common.event
+package li.cil.oc.integration.ue
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 import li.cil.oc.integration.util.UniversalElectricity
 
-object UniversalElectricityToolHandler {
+object EventHandlerUniversalElectricity {
   @SubscribeEvent
   def onRobotApplyDamageRate(e: RobotUsedToolEvent.ApplyDamageRate) {
     if (UniversalElectricity.isEnergyItem(e.toolAfterUse)) {

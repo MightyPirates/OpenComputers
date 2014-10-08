@@ -1,4 +1,4 @@
-package li.cil.oc.common.multipart
+package li.cil.oc.integration.fmp
 
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.raytracer.RayTracer
@@ -14,9 +14,9 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.MovingObjectPosition
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 
 object EventHandler {
   private var currentlyPlacing = false

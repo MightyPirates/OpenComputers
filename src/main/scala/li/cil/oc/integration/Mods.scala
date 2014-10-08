@@ -4,11 +4,34 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.ModAPIManager
 import cpw.mods.fml.common.versioning.VersionParser
 import li.cil.oc.Settings
+import li.cil.oc.integration.appeng.ModAppEng
+import li.cil.oc.integration.buildcraft.ModBuildCraft
+import li.cil.oc.integration.cofh.energy.ModCoFHEnergy
+import li.cil.oc.integration.cofh.tileentity.ModCoFHTileEntity
+import li.cil.oc.integration.cofh.transport.ModCoFHTransport
+import li.cil.oc.integration.computercraft.ModComputerCraft
+import li.cil.oc.integration.enderio.ModEnderIO
+import li.cil.oc.integration.enderstorage.ModEnderStorage
+import li.cil.oc.integration.fmp.ModForgeMultipart
+import li.cil.oc.integration.forestry.ModForestry
+import li.cil.oc.integration.gregtech.ModGregtech
+import li.cil.oc.integration.ic2.ModIndustrialCraft2
+import li.cil.oc.integration.mystcraft.ModMystcraft
+import li.cil.oc.integration.opencomputers.ModOpenComputers
+import li.cil.oc.integration.railcraft.ModRailcraft
+import li.cil.oc.integration.tcon.ModTinkersConstruct
+import li.cil.oc.integration.thaumcraft.ModThaumcraft
+import li.cil.oc.integration.thermalexpansion.ModThermalExpansion
+import li.cil.oc.integration.tmechworks.ModTMechworks
+import li.cil.oc.integration.ue.ModUniversalElectricity
+import li.cil.oc.integration.vanilla.ModVanilla
+import li.cil.oc.integration.versionchecker.ModVersionChecker
+import li.cil.oc.integration.waila.ModWaila
 
 import scala.collection.mutable
 
 object Mods {
-  private val handlers = mutable.Set.empty[IMod]
+  private val handlers = mutable.Set.empty[ModProxy]
 
   private val knownMods = mutable.ArrayBuffer.empty[Mod]
 
@@ -49,7 +72,7 @@ object Mods {
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
-  val StargateTech2 = new Mod {
+  val StargateTech2 = new ModBase {
     def id = IDs.StargateTech2
 
     protected override lazy val isModAvailable = Loader.isModLoaded(IDs.StargateTech2) && {
@@ -69,14 +92,44 @@ object Mods {
 
   // ----------------------------------------------------------------------- //
 
-  def integrate(mod: IMod) {
+  def init() {
+    integrate(ModAppEng)
+    integrate(ModBuildCraft)
+    integrate(ModCoFHEnergy)
+    integrate(ModCoFHTileEntity)
+    integrate(ModCoFHTransport)
+    integrate(ModEnderIO)
+    integrate(ModEnderStorage)
+    integrate(ModForestry)
+    integrate(ModForgeMultipart)
+    integrate(ModGregtech)
+    integrate(ModIndustrialCraft2)
+    integrate(ModMystcraft)
+    integrate(ModOpenComputers)
+    integrate(ModRailcraft)
+    integrate(ModThaumcraft)
+    integrate(ModThermalExpansion)
+    integrate(ModTinkersConstruct)
+    integrate(ModTMechworks)
+    integrate(ModUniversalElectricity)
+    integrate(ModVanilla)
+    integrate(ModVersionChecker)
+    integrate(ModWaila)
+
+    // Register the general IPeripheral driver last, if at all, to avoid it
+    // being used rather than other more concrete implementations, such as
+    // is the case in the Redstone in Motion driver (replaces 'move').
+    integrate(ModComputerCraft)
+  }
+
+  private def integrate(mod: ModProxy) {
     val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
     val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
     if (!isBlacklisted && (alwaysEnabled || mod.getMod.isAvailable) && handlers.add(mod)) {
-      li.cil.oc.OpenComputers.log.info(String.format("Initializing converters and drivers for '%s'.", mod.getMod.id))
+      li.cil.oc.OpenComputers.log.info(String.format("Initializing mod integration for '%s'.", mod.getMod.id))
       try mod.initialize() catch {
         case e: Throwable =>
-          li.cil.oc.OpenComputers.log.warn(String.format("Error initializing handler for '%s'", mod.getMod.id), e)
+          li.cil.oc.OpenComputers.log.warn(String.format("Error initializing integration for '%s'", mod.getMod.id), e)
       }
     }
   }
@@ -128,7 +181,7 @@ object Mods {
 
   // ----------------------------------------------------------------------- //
 
-  trait Mod {
+  trait ModBase extends Mod {
     knownMods += this
 
     protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
@@ -142,7 +195,7 @@ object Mods {
     def providesPower: Boolean = false
   }
 
-  class SimpleMod(val id: String, override val providesPower: Boolean = false) extends Mod {
+  class SimpleMod(val id: String, override val providesPower: Boolean = false) extends ModBase {
     override protected lazy val isModAvailable = {
       val version = VersionParser.parseVersionReference(id)
       if (Loader.isModLoaded(version.getLabel))
@@ -151,7 +204,7 @@ object Mods {
     }
   }
 
-  class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean) extends Mod {
+  class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean) extends ModBase {
     override protected lazy val isModAvailable = classNames.forall(className => try Class.forName(className) != null catch {
       case _: Throwable => false
     })

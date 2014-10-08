@@ -1,10 +1,10 @@
 package li.cil.oc.integration.mystcraft
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.IMod
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object ModMystcraft extends IMod {
+object ModMystcraft extends ModProxy {
   override def getMod = Mods.Mystcraft
 
   override def initialize() {

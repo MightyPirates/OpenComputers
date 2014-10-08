@@ -1,10 +1,10 @@
 package li.cil.oc.integration.enderstorage
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.IMod
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object ModEnderStorage extends IMod {
+object ModEnderStorage extends ModProxy {
   override def getMod = Mods.EnderStorage
 
   override def initialize() {

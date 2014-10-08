@@ -1,10 +1,10 @@
 package li.cil.oc.integration.vanilla
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.IMod
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object ModVanilla extends IMod {
+object ModVanilla extends ModProxy {
   def getMod = Mods.Minecraft
 
   def initialize() {

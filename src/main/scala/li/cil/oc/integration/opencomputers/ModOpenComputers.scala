@@ -1,13 +1,50 @@
 package li.cil.oc.integration.opencomputers
 
+import cpw.mods.fml.common.FMLCommonHandler
+import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.integration.IMod
+import li.cil.oc.common.EventHandler
+import li.cil.oc.common.Loot
+import li.cil.oc.common.SaveHandler
+import li.cil.oc.common.asm.SimpleComponentTickHandler
+import li.cil.oc.common.event._
+import li.cil.oc.common.item.Tablet
+import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.common.template.RobotTemplate
+import li.cil.oc.common.template.TabletTemplate
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
+import li.cil.oc.server.network.WirelessNetwork
+import net.minecraftforge.common.ForgeChunkManager
+import net.minecraftforge.common.MinecraftForge
 
-object ModOpenComputers extends IMod {
+object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
 
   override def initialize() {
+    RobotTemplate.register()
+    TabletTemplate.register()
+
+    Loot.init()
+    Recipes.init()
+
+    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
+
+    FMLCommonHandler.instance.bus.register(EventHandler)
+    FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
+    FMLCommonHandler.instance.bus.register(Tablet)
+
+    MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(EventHandler)
+    MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(Loot)
+    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
+    MinecraftForge.EVENT_BUS.register(SaveHandler)
+    MinecraftForge.EVENT_BUS.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
+    MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
+
     api.Driver.add(DriverBlockEnvironments)
 
     api.Driver.add(DriverComponentBus)

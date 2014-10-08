@@ -1,10 +1,10 @@
 package li.cil.oc.integration.cofh.tileentity
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.IMod
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object ModCoFHTileEntity extends IMod {
+object ModCoFHTileEntity extends ModProxy {
   override def getMod = Mods.CoFHTileEntity
 
   override def initialize() {

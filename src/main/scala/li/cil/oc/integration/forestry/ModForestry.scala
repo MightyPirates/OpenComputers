@@ -1,10 +1,10 @@
 package li.cil.oc.integration.forestry
 
 import li.cil.oc.api.Driver
-import li.cil.oc.integration.IMod
+import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object ModForestry extends IMod {
+object ModForestry extends ModProxy {
   override def getMod = Mods.Forestry
 
   override def initialize() {

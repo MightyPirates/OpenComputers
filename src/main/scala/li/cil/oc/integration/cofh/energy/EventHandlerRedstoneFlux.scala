@@ -1,10 +1,10 @@
-package li.cil.oc.common.event
+package li.cil.oc.integration.cofh.energy
 
 import cofh.api.energy.IEnergyContainerItem
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 
-object RedstoneFluxToolHandler {
+object EventHandlerRedstoneFlux {
   @SubscribeEvent
   def onRobotApplyDamageRate(e: RobotUsedToolEvent.ApplyDamageRate) {
     (e.toolBeforeUse.getItem, e.toolAfterUse.getItem) match {

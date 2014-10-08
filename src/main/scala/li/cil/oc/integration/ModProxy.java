@@ -1,7 +1,7 @@
 package li.cil.oc.integration;
 
-public interface IMod {
-    Mods.Mod getMod();
+public interface ModProxy {
+    Mod getMod();
 
     void initialize();
 }

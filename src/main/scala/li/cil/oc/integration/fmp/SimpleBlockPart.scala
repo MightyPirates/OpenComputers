@@ -1,4 +1,4 @@
-package li.cil.oc.common.multipart
+package li.cil.oc.integration.fmp
 
 import codechicken.multipart.TIconHitEffects
 import codechicken.multipart.TMultiPart

@@ -11,9 +11,9 @@ import li.cil.oc.Settings
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.client.Textures
-import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.fmp.CablePart
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
