@@ -55,7 +55,7 @@ repositories {
         url = "http://chickenbones.net/maven/"
     }
     maven {
-        name = "ic2"
+        name = "ic2, forestry"
         url = "http://maven.ic2.player.to/"
     }
     maven {
@@ -69,23 +69,26 @@ repositories {
 }
 
 configurations {
-  provided
-    shade
-    compile.extendsFrom provided, shade
+    provided
+    embedded
+    compile.extendsFrom provided, embedded
 }
 
 dependencies {
     provided "appeng:appliedenergistics2:${config.ae2.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
     provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
+    provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "dev.calclavia.universalelectricity:universal-electricity:+:dev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
+    provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
-    shade files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
+    embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 }
 
 idea.module.scopes.PROVIDED.plus += configurations.provided
@@ -95,6 +98,7 @@ minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
 
     replaceIn "li/cil/oc/OpenComputers.scala"
+    replaceIn "li/cil/occ/OpenComponents.java"
     replace "@VERSION@", project.simpleVersion
 }
 
@@ -116,7 +120,7 @@ processResources {
 }
 
 jar {
-    configurations.shade.each { dep ->
+    configurations.embedded.each { dep ->
         from(project.zipTree(dep)){
             exclude 'META-INF', 'META-INF/**'
         }
@@ -135,7 +139,7 @@ javadoc {
 // because the normal default jar task has been modified to be obfuscated
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    configurations.shade.each { dep ->
+    configurations.embedded.each { dep ->
         from(project.zipTree(dep)){
             exclude 'META-INF', 'META-INF/**'
         }

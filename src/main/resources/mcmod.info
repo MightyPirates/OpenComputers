@@ -8,7 +8,7 @@
   "authorList": ["Florian 'Sangar' Nuecke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
-  "requiredMods": [ "Forge@[10.12.1.1060,)" ],
+  "requiredMods": [ "Forge@[10.13.0.1180,)" ],
   "dependencies": [
     "BuildCraft|Energy",
     "ComputerCraft",
@@ -20,6 +20,24 @@
     "StargateTech2",
     "ThermalExpansion",
     "UniversalElectricity"
+  ],
+  "dependants": [],
+  "useDependencyInformation": "true"
+}, {
+  "modid": "OpenComponents",
+  "name": "OpenComponents",
+  "description": "This mod is an addon for OpenComputers that adds a bunch of drivers.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/MightyPirates/OpenComponents",
+  "authorList": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
+  "credits" : "OpenPeripherals",
+  "requiredMods": [ "Forge@[10.13.1.1180,)", "OpenComputers" ],
+  "dependencies": [
+    "BuildCraft|Core",
+    "EnderStorage",
+    "IC2",
+    "ThermalExpansion"
   ],
   "dependants": [],
   "useDependencyInformation": "true"
