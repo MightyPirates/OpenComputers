@@ -2,7 +2,7 @@ package li.cil.oc.integration.thermalexpansion;
 
 import li.cil.oc.api.Driver;
 import li.cil.oc.integration.IMod;
-import li.cil.oc.util.mods.Mods;
+import li.cil.oc.integration.Mods;
 
 public final class ModThermalExpansion implements IMod {
     @Override

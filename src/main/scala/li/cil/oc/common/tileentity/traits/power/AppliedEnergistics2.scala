@@ -13,7 +13,7 @@ import appeng.api.util.DimensionalCoord
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 

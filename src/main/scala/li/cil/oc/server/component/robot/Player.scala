@@ -9,9 +9,9 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.mods.PortalGun
-import li.cil.oc.util.mods.TinkersConstruct
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.PortalGun
+import li.cil.oc.integration.util.TinkersConstruct
 import net.minecraft.block.Block
 import net.minecraft.block.BlockPistonBase
 import net.minecraft.entity.Entity

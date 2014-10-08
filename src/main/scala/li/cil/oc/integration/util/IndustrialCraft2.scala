@@ -1,5 +1,6 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
+import li.cil.oc.integration.Mods
 import net.minecraft.item.ItemStack
 
 object IndustrialCraft2 {

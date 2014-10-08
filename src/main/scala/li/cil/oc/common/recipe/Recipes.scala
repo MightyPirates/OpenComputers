@@ -10,8 +10,8 @@ import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
-import li.cil.oc.util.mods.GregTech
-import li.cil.oc.util.mods.NEI
+import li.cil.oc.integration.util.GregTech
+import li.cil.oc.integration.util.NEI
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock

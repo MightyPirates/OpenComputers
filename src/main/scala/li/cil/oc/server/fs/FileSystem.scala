@@ -7,9 +7,9 @@ import java.util.UUID
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.fs.Mode
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.component
-import li.cil.oc.util.mods.ComputerCraft
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.util.ComputerCraft
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api

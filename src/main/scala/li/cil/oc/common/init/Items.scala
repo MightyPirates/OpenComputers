@@ -9,8 +9,8 @@ import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
-import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer

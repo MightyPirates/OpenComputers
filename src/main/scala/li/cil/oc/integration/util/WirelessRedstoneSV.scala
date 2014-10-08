@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
 import li.cil.oc.server.component.RedstoneWireless
 import net.minecraft.world.World

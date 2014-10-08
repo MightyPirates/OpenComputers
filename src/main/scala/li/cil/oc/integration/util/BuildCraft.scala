@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
 import buildcraft.api.tools.IToolWrench
 import cpw.mods.fml.common.ModAPIManager

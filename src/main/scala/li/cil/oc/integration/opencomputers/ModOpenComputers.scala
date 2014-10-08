@@ -2,7 +2,7 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.api
 import li.cil.oc.integration.IMod
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 
 object ModOpenComputers extends IMod {
   override def getMod = Mods.OpenComputers

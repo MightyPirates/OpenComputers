@@ -5,7 +5,7 @@ import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
-import li.cil.oc.util.mods.NEI
+import li.cil.oc.integration.util.NEI
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.Tessellator

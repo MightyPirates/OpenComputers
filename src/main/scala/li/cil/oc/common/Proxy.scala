@@ -14,7 +14,7 @@ import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
-import li.cil.oc.integration.Registry
+import li.cil.oc.integration.Mods
 import li.cil.oc.integration.appeng.ModAppEng
 import li.cil.oc.integration.buildcraft.ModBuildCraft
 import li.cil.oc.integration.cofh.energy.ModCoFHEnergy
@@ -40,8 +40,7 @@ import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.UpdateCheck
-import li.cil.oc.util.mods.ComputerCraft
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.util.ComputerCraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeChunkManager
@@ -99,28 +98,28 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
 
     OpenComputers.log.info("Initializing OpenComputers drivers.")
-    Registry.add(new ModAppEng)
-    Registry.add(new ModBuildCraft)
-    Registry.add(new ModCoFHEnergy)
-    Registry.add(new ModCoFHTileEntity)
-    Registry.add(new ModCoFHTransport)
-    Registry.add(new ModEnderIO)
-    Registry.add(new ModEnderStorage)
-    Registry.add(new ModForestry)
-    Registry.add(new ModGregtech)
-    Registry.add(new ModIndustrialCraft2)
-    Registry.add(new ModMystcraft)
-    Registry.add(ModOpenComputers)
-    Registry.add(new ModRailcraft)
-    Registry.add(new ModThaumcraft)
-    Registry.add(new ModThermalExpansion)
-    Registry.add(new ModTMechworks)
-    Registry.add(ModVanilla)
+    Mods.integrate(new ModAppEng)
+    Mods.integrate(new ModBuildCraft)
+    Mods.integrate(new ModCoFHEnergy)
+    Mods.integrate(new ModCoFHTileEntity)
+    Mods.integrate(new ModCoFHTransport)
+    Mods.integrate(new ModEnderIO)
+    Mods.integrate(new ModEnderStorage)
+    Mods.integrate(new ModForestry)
+    Mods.integrate(new ModGregtech)
+    Mods.integrate(new ModIndustrialCraft2)
+    Mods.integrate(new ModMystcraft)
+    Mods.integrate(ModOpenComputers)
+    Mods.integrate(new ModRailcraft)
+    Mods.integrate(new ModThaumcraft)
+    Mods.integrate(new ModThermalExpansion)
+    Mods.integrate(new ModTMechworks)
+    Mods.integrate(ModVanilla)
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations, such as
     // is the case in the Redstone in Motion driver (replaces 'move').
-    Registry.add(ModComputerCraft)
+    Mods.integrate(ModComputerCraft)
 
     OpenComputers.log.info("Initializing assembler templates.")
     RobotTemplate.register()

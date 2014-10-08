@@ -2,7 +2,7 @@ package li.cil.oc.common.event
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
-import li.cil.oc.util.mods.UniversalElectricity
+import li.cil.oc.integration.util.UniversalElectricity
 
 object UniversalElectricityToolHandler {
   @SubscribeEvent

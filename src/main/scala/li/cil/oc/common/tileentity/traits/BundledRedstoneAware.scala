@@ -2,9 +2,9 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.mods.ProjectRed
+import li.cil.oc.integration.util.ProjectRed
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
 import mods.immibis.redlogic.api.wiring.IInsulatedRedstoneWire

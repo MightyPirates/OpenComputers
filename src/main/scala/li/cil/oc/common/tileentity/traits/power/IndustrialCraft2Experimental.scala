@@ -5,7 +5,7 @@ import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection

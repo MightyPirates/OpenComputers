@@ -12,7 +12,7 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion
 import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 
 import scala.collection.convert.WrapAsScala._

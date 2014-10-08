@@ -2,8 +2,8 @@ package li.cil.oc.common.asm
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.mods.Mods.Mod
+import li.cil.oc.integration.Mods
+import Mods.Mod
 import net.minecraft.launchwrapper.IClassTransformer
 import net.minecraft.launchwrapper.LaunchClassLoader
 import org.apache.logging.log4j.LogManager

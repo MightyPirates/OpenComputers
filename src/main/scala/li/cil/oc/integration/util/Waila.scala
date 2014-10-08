@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
 import java.util
 
@@ -7,6 +7,7 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
 import mcp.mobius.waila.api.IWailaConfigHandler
 import mcp.mobius.waila.api.IWailaDataAccessor
 import mcp.mobius.waila.api.IWailaDataProvider

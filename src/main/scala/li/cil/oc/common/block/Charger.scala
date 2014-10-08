@@ -6,7 +6,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.integration.util.BuildCraft
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer

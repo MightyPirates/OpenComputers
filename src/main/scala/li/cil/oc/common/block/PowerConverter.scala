@@ -5,9 +5,9 @@ import java.util
 
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.mods.NEI
+import li.cil.oc.integration.util.NEI
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World

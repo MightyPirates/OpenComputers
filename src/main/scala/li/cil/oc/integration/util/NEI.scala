@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
 import java.util
 
@@ -13,6 +13,7 @@ import com.google.common.base.Strings
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.Callbacks
 import net.minecraft.block.Block

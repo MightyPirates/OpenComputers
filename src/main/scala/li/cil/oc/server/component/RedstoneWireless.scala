@@ -10,8 +10,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity.traits.RedstoneAware
-import li.cil.oc.util.mods
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
 
 @Optional.InterfaceList(Array(
@@ -29,7 +29,7 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
 
   @Callback(doc = """function():number -- Get the wireless redstone input.""")
   def getWirelessInput(context: Context, args: Arguments): Array[AnyRef] = {
-    wirelessInput = mods.WirelessRedstone.getInput(this)
+    wirelessInput = util.WirelessRedstone.getInput(this)
     result(wirelessInput)
   }
 
@@ -41,7 +41,7 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
     val oldValue = wirelessOutput
     wirelessOutput = args.checkBoolean(0)
 
-    mods.WirelessRedstone.updateOutput(this)
+    util.WirelessRedstone.updateOutput(this)
 
     context.pause(0.1)
     result(oldValue)
@@ -55,14 +55,14 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
     val oldValue = wirelessFrequency
     val newValue = args.checkInteger(0)
 
-    mods.WirelessRedstone.removeReceiver(this)
-    mods.WirelessRedstone.removeTransmitter(this)
+    util.WirelessRedstone.removeReceiver(this)
+    util.WirelessRedstone.removeTransmitter(this)
 
     wirelessFrequency = newValue
     wirelessInput = false
     wirelessOutput = false
 
-    mods.WirelessRedstone.addReceiver(this)
+    util.WirelessRedstone.addReceiver(this)
 
     context.pause(0.5)
     result(oldValue)
@@ -102,8 +102,8 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      mods.WirelessRedstone.removeReceiver(this)
-      mods.WirelessRedstone.removeTransmitter(this)
+      util.WirelessRedstone.removeReceiver(this)
+      util.WirelessRedstone.removeTransmitter(this)
     }
   }
 

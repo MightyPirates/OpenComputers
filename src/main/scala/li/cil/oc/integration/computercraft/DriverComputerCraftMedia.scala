@@ -6,9 +6,9 @@ import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.Slot
+import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.Item
-import li.cil.oc.util.mods.ComputerCraft
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.util.ComputerCraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 

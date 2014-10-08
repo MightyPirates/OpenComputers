@@ -6,7 +6,7 @@ import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 import li.cil.oc.common.tileentity.traits.Environment
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.BundledRedstone
+import li.cil.oc.integration.util.BundledRedstone
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 

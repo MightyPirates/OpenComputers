@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
 import codechicken.wirelessredstone.core.WirelessReceivingDevice
 import codechicken.wirelessredstone.core.WirelessTransmittingDevice

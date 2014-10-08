@@ -1,4 +1,6 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
+
+import li.cil.oc.integration.Mods
 
 object BundledRedstone {
   def isAvailable = Mods.RedLogic.isAvailable ||

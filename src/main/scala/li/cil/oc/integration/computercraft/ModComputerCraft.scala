@@ -2,7 +2,7 @@ package li.cil.oc.integration.computercraft
 
 import li.cil.oc.api.Driver
 import li.cil.oc.integration.IMod
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 
 object ModComputerCraft extends IMod {
   def getMod = Mods.ComputerCraft

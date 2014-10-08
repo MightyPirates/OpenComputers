@@ -14,8 +14,8 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.mods.Mods
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection

@@ -8,7 +8,7 @@ import li.cil.oc.common
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component
 import li.cil.oc.server.machine.Machine
-import li.cil.oc.util.mods.BundledRedstone
+import li.cil.oc.integration.util.BundledRedstone
 import net.minecraft.block.Block
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack

@@ -5,10 +5,10 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.network
 import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.mods.StargateTech2
+import li.cil.oc.integration.util.StargateTech2
 import net.minecraft.nbt.NBTTagCompound
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus.IBusDevice

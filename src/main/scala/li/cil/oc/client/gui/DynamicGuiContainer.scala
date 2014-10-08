@@ -4,7 +4,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.container.Player
 import li.cil.oc.util.RenderState
-import li.cil.oc.util.mods.NEI
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.Localization
 import li.cil.oc.common
 import net.minecraft.client.renderer.Tessellator

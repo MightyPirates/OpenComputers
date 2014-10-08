@@ -6,7 +6,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.integration.util.BuildCraft
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
 import li.cil.oc.OpenComputers

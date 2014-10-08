@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge

@@ -5,8 +5,8 @@ import java.util
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.tileentity.traits.power.UniversalElectricity
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
-import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack

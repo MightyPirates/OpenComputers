@@ -14,8 +14,8 @@ import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.network.{Node => MutableNode}
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Color
 import li.cil.oc.util.SideTracker
 import li.cil.oc.OpenComputers

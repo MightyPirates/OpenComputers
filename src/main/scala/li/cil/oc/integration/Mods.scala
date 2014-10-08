@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration
 
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.ModAPIManager
@@ -8,53 +8,13 @@ import li.cil.oc.Settings
 import scala.collection.mutable
 
 object Mods {
-
-  object IDs {
-    final val AppliedEnergistics2 = "appliedenergistics2"
-    final val BattleGear2 = "battlegear2"
-    final val BuildCraft = "BuildCraft|Core"
-    final val BuildCraftPower = "BuildCraftAPI|power"
-    final val CoFHEnergy = "CoFHAPI|energy"
-    final val CoFHTileEntity = "CoFHAPI|tileentity"
-    final val CoFHTransport = "CoFHAPI|transport"
-    final val ComputerCraft = "ComputerCraft"
-    final val CraftingCosts = "CraftingCosts"
-    final val ElectricalAge = "Eln"
-    final val EnderIO = "EnderIO"
-    final val EnderStorage = "EnderStorage"
-    final val Factorization = "factorization"
-    final val Forestry = "Forestry"
-    final val ForgeMultipart = "ForgeMultipart"
-    final val Galacticraft = "Galacticraft API"
-    final val GregTech = "gregtech"
-    final val IndustrialCraft2 = "IC2"
-    final val IndustrialCraft2API = "IC2API"
-    final val IndustrialCraft2Classic = "IC2-Classic"
-    final val Mekanism = "Mekanism"
-    final val Minecraft = "Minecraft"
-    final val MineFactoryReloaded = "MineFactoryReloaded"
-    final val Mystcraft = "Mystcraft"
-    final val NotEnoughItems = "NotEnoughItems"
-    final val OpenComputers = "OpenComputers"
-    final val PortalGun = "PortalGun"
-    final val ProjectRedTransmission = "ProjRed|Transmission"
-    final val Railcraft = "Railcraft"
-    final val RedLogic = "RedLogic"
-    final val StargateTech2 = "StargateTech2"
-    final val Thaumcraft = "Thaumcraft"
-    final val ThermalExpansion = "ThermalExpansion"
-    final val TinkersConstruct = "TConstruct"
-    final val TMechWorks = "TMechworks"
-    final val UniversalElectricity = "UniversalElectricity"
-    final val VersionChecker = "VersionChecker"
-    final val Waila = "Waila"
-    final val WirelessRedstoneCBE = "WR-CBE|Core"
-    final val WirelessRedstoneSV = "WirelessRedstoneCore"
-  }
+  private val handlers = mutable.Set.empty[IMod]
 
   private val knownMods = mutable.ArrayBuffer.empty[Mod]
 
   lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
+
+  // ----------------------------------------------------------------------- //
 
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
@@ -106,6 +66,68 @@ object Mods {
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
   val WirelessRedstoneSV = new SimpleMod(IDs.WirelessRedstoneSV)
+
+  // ----------------------------------------------------------------------- //
+
+  def integrate(mod: IMod) {
+    val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
+    val alwaysEnabled = mod.getMod == null || mod == Mods.Minecraft
+    if (!isBlacklisted && (alwaysEnabled || mod.getMod.isAvailable) && handlers.add(mod)) {
+      OpenComputers.log.info(String.format("Initializing converters and drivers for '%s'.", mod.getMod.id))
+      try mod.initialize() catch {
+        case e: Throwable => {
+          OpenComputers.log.warn(String.format("Error initializing handler for '%s'", mod.getMod.id), e)
+        }
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  object IDs {
+    final val AppliedEnergistics2 = "appliedenergistics2"
+    final val BattleGear2 = "battlegear2"
+    final val BuildCraft = "BuildCraft|Core"
+    final val BuildCraftPower = "BuildCraftAPI|power"
+    final val CoFHEnergy = "CoFHAPI|energy"
+    final val CoFHTileEntity = "CoFHAPI|tileentity"
+    final val CoFHTransport = "CoFHAPI|transport"
+    final val ComputerCraft = "ComputerCraft"
+    final val CraftingCosts = "CraftingCosts"
+    final val ElectricalAge = "Eln"
+    final val EnderIO = "EnderIO"
+    final val EnderStorage = "EnderStorage"
+    final val Factorization = "factorization"
+    final val Forestry = "Forestry"
+    final val ForgeMultipart = "ForgeMultipart"
+    final val Galacticraft = "Galacticraft API"
+    final val GregTech = "gregtech"
+    final val IndustrialCraft2 = "IC2"
+    final val IndustrialCraft2API = "IC2API"
+    final val IndustrialCraft2Classic = "IC2-Classic"
+    final val Mekanism = "Mekanism"
+    final val Minecraft = "Minecraft"
+    final val MineFactoryReloaded = "MineFactoryReloaded"
+    final val Mystcraft = "Mystcraft"
+    final val NotEnoughItems = "NotEnoughItems"
+    final val OpenComputers = "OpenComputers"
+    final val PortalGun = "PortalGun"
+    final val ProjectRedTransmission = "ProjRed|Transmission"
+    final val Railcraft = "Railcraft"
+    final val RedLogic = "RedLogic"
+    final val StargateTech2 = "StargateTech2"
+    final val Thaumcraft = "Thaumcraft"
+    final val ThermalExpansion = "ThermalExpansion"
+    final val TinkersConstruct = "TConstruct"
+    final val TMechWorks = "TMechworks"
+    final val UniversalElectricity = "UniversalElectricity"
+    final val VersionChecker = "VersionChecker"
+    final val Waila = "Waila"
+    final val WirelessRedstoneCBE = "WR-CBE|Core"
+    final val WirelessRedstoneSV = "WirelessRedstoneCore"
+  }
+
+  // ----------------------------------------------------------------------- //
 
   trait Mod {
     knownMods += this

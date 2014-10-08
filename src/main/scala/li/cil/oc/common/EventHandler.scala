@@ -11,12 +11,12 @@ import li.cil.oc.api.Network
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.SideTracker
 import li.cil.oc.util.UpdateCheck
-import li.cil.oc.util.mods
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.util
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -88,8 +88,8 @@ object EventHandler {
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!rs.owner.isInvalid) {
-        mods.WirelessRedstone.addReceiver(rs)
-        mods.WirelessRedstone.updateOutput(rs)
+        util.WirelessRedstone.addReceiver(rs)
+        util.WirelessRedstone.updateOutput(rs)
       })
     }
   }
@@ -114,7 +114,7 @@ object EventHandler {
         if (!LuaStateFactory.isAvailable) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)
         }
-        if (Mods.ProjectRedTransmission.isAvailable && !mods.ProjectRed.isAPIAvailable) {
+        if (Mods.ProjectRedTransmission.isAvailable && !util.ProjectRed.isAPIAvailable) {
           player.addChatMessage(Localization.Chat.WarningProjectRed)
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {

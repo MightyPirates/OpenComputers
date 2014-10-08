@@ -7,7 +7,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.NEI
+import li.cil.oc.integration.util.NEI
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity

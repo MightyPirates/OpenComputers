@@ -5,7 +5,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
-import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.integration.util.BuildCraft
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer

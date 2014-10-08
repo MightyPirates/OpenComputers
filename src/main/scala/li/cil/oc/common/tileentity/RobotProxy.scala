@@ -8,7 +8,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer

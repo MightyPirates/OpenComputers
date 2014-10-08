@@ -1,4 +1,4 @@
-package li.cil.oc.util.mods
+package li.cil.oc.integration.util
 
 import dan200.computercraft.api.ComputerCraftAPI
 import dan200.computercraft.api.filesystem.IMount

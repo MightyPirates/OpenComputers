@@ -2,7 +2,7 @@ package li.cil.oc.integration.appeng;
 
 import li.cil.oc.api.Driver;
 import li.cil.oc.integration.IMod;
-import li.cil.oc.util.mods.Mods;
+import li.cil.oc.integration.util.Mods;
 
 public class ModAppEng implements IMod {
     @Override

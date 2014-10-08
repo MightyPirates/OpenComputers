@@ -3,10 +3,10 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.common.Tier
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
-import li.cil.oc.util.mods.BundledRedstone
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.mods.WirelessRedstone
+import li.cil.oc.integration.util.BundledRedstone
+import li.cil.oc.integration.util.WirelessRedstone
 import net.minecraft.item.ItemStack
 
 class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate with ItemTier {

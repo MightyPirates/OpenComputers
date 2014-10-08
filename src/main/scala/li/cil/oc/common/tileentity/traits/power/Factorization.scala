@@ -6,7 +6,7 @@ import factorization.api.Coord
 import factorization.api.IChargeConductor
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 
 trait Factorization extends Common {

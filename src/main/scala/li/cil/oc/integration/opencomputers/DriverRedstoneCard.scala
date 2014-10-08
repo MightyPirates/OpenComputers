@@ -12,8 +12,8 @@ import li.cil.oc.common.item
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.server.component
-import li.cil.oc.util.mods.BundledRedstone
-import li.cil.oc.util.mods.WirelessRedstone
+import li.cil.oc.integration.util.BundledRedstone
+import li.cil.oc.integration.util.WirelessRedstone
 import net.minecraft.item.ItemStack
 
 object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {

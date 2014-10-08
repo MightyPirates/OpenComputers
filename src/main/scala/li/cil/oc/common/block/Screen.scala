@@ -11,7 +11,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Tooltip
-import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.integration.util.BuildCraft
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase

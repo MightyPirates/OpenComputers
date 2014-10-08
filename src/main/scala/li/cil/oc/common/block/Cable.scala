@@ -13,8 +13,8 @@ import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.client.Textures
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
-import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.tileentity.TileEntity

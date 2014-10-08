@@ -1,12 +1,13 @@
-package li.cil.oc.integration.opencomputers
+package li.cil.oc.integration.stargatetech2
 
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.common.Slot
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.server.component
-import li.cil.oc.util.mods.Mods
 import net.minecraft.item.ItemStack
 import stargatetech2.api.bus.IBusDevice
 
