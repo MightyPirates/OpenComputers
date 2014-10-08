@@ -25,10 +25,10 @@ class ClassTransformer extends IClassTransformer {
     Mods.BuildCraftPower -> Array("buildcraft/api/power/IPowerReceptor"),
     Mods.Factorization -> Array("factorization/api/IChargeConductor"),
     Mods.Galacticraft -> Array("micdoodle8/mods/galacticraft/api/power/IEnergyHandlerGC"),
-    Mods.IndustrialCraft2 -> Array("ic2/api/energy/tile/IEnergySink"),
+    Mods.IndustrialCraft2API -> Array("ic2/api/energy/tile/IEnergySink"),
     Mods.IndustrialCraft2Classic -> Array("ic2classic/api/energy/tile/IEnergySink"),
     Mods.Mekanism -> Array("mekanism/api/energy/IStrictEnergyAcceptor"),
-    Mods.RedstoneFlux -> Array("cofh/api/energy/IEnergyHandler"),
+    Mods.CoFHEnergy -> Array("cofh/api/energy/IEnergyHandler"),
     Mods.UniversalElectricity -> Array("universalelectricity/api/core/grid/INodeProvider")
   )
 

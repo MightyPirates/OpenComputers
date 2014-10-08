@@ -10,8 +10,10 @@
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
   "requiredMods": [ "Forge@[10.13.0.1180,)" ],
   "dependencies": [
+    "BuildCraft|Core",
     "BuildCraft|Energy",
     "ComputerCraft",
+    "EnderStorage",
     "ForgeMultipart",
     "IC2",
     "MineFactoryReloaded",
@@ -20,24 +22,6 @@
     "StargateTech2",
     "ThermalExpansion",
     "UniversalElectricity"
-  ],
-  "dependants": [],
-  "useDependencyInformation": "true"
-}, {
-  "modid": "OpenComponents",
-  "name": "OpenComponents",
-  "description": "This mod is an addon for OpenComputers that adds a bunch of drivers.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "https://github.com/MightyPirates/OpenComponents",
-  "authorList": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
-  "credits" : "OpenPeripherals",
-  "requiredMods": [ "Forge@[10.13.1.1180,)", "OpenComputers" ],
-  "dependencies": [
-    "BuildCraft|Core",
-    "EnderStorage",
-    "IC2",
-    "ThermalExpansion"
   ],
   "dependants": [],
   "useDependencyInformation": "true"

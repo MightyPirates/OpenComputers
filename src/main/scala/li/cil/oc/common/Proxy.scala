@@ -14,6 +14,25 @@ import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
+import li.cil.oc.integration.Registry
+import li.cil.oc.integration.appeng.ModAppEng
+import li.cil.oc.integration.buildcraft.ModBuildCraft
+import li.cil.oc.integration.cofh.energy.ModCoFHEnergy
+import li.cil.oc.integration.cofh.tileentity.ModCoFHTileEntity
+import li.cil.oc.integration.cofh.transport.ModCoFHTransport
+import li.cil.oc.integration.computercraft.ModComputerCraft
+import li.cil.oc.integration.enderio.ModEnderIO
+import li.cil.oc.integration.enderstorage.ModEnderStorage
+import li.cil.oc.integration.forestry.ModForestry
+import li.cil.oc.integration.gregtech.ModGregtech
+import li.cil.oc.integration.ic2.ModIndustrialCraft2
+import li.cil.oc.integration.mystcraft.ModMystcraft
+import li.cil.oc.integration.opencomputers.ModOpenComputers
+import li.cil.oc.integration.railcraft.ModRailcraft
+import li.cil.oc.integration.thaumcraft.ModThaumcraft
+import li.cil.oc.integration.thermalexpansion.ModThermalExpansion
+import li.cil.oc.integration.tmechworks.ModTMechworks
+import li.cil.oc.integration.vanilla.ModVanilla
 import li.cil.oc.server._
 import li.cil.oc.server.machine
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
@@ -80,56 +99,28 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
 
     OpenComputers.log.info("Initializing OpenComputers drivers.")
-    api.Driver.add(driver.block.EnvironmentProvider)
-    api.Driver.add(driver.item.ComponentBus)
-    api.Driver.add(driver.item.CPU)
-    api.Driver.add(driver.item.DebugCard)
-    api.Driver.add(driver.item.FileSystem)
-    api.Driver.add(driver.item.Geolyzer)
-    api.Driver.add(driver.item.GraphicsCard)
-    api.Driver.add(driver.item.InternetCard)
-    api.Driver.add(driver.item.LinkedCard)
-    api.Driver.add(driver.item.Loot)
-    api.Driver.add(driver.item.Memory)
-    api.Driver.add(driver.item.NetworkCard)
-    api.Driver.add(driver.item.Keyboard)
-    api.Driver.add(driver.item.RedstoneCard)
-    api.Driver.add(driver.item.Screen)
-    api.Driver.add(driver.item.Tablet)
-    api.Driver.add(driver.item.UpgradeAngel)
-    api.Driver.add(driver.item.UpgradeBattery)
-    api.Driver.add(driver.item.UpgradeChunkloader)
-    api.Driver.add(driver.item.ContainerCard)
-    api.Driver.add(driver.item.ContainerFloppy)
-    api.Driver.add(driver.item.ContainerUpgrade)
-    api.Driver.add(driver.item.UpgradeCrafting)
-    api.Driver.add(driver.item.UpgradeExperience)
-    api.Driver.add(driver.item.UpgradeGenerator)
-    api.Driver.add(driver.item.UpgradeInventory)
-    api.Driver.add(driver.item.UpgradeInventoryController)
-    api.Driver.add(driver.item.UpgradeNavigation)
-    api.Driver.add(driver.item.UpgradePiston)
-    api.Driver.add(driver.item.UpgradeSign)
-    api.Driver.add(driver.item.UpgradeSolarGenerator)
-    api.Driver.add(driver.item.UpgradeTank)
-    api.Driver.add(driver.item.UpgradeTankController)
-    api.Driver.add(driver.item.UpgradeTractorBeam)
-    api.Driver.add(driver.item.WirelessNetworkCard)
+    Registry.add(new ModAppEng)
+    Registry.add(new ModBuildCraft)
+    Registry.add(new ModCoFHEnergy)
+    Registry.add(new ModCoFHTileEntity)
+    Registry.add(new ModCoFHTransport)
+    Registry.add(new ModEnderIO)
+    Registry.add(new ModEnderStorage)
+    Registry.add(new ModForestry)
+    Registry.add(new ModGregtech)
+    Registry.add(new ModIndustrialCraft2)
+    Registry.add(new ModMystcraft)
+    Registry.add(ModOpenComputers)
+    Registry.add(new ModRailcraft)
+    Registry.add(new ModThaumcraft)
+    Registry.add(new ModThermalExpansion)
+    Registry.add(new ModTMechworks)
+    Registry.add(ModVanilla)
 
-    if (Mods.StargateTech2.isAvailable) {
-      OpenComputers.log.info("Initializing StargateTech2 converter and driver.")
-      api.Driver.add(driver.converter.BusPacketNetScanDevice)
-      api.Driver.add(driver.item.AbstractBusCard)
-    }
-    if (Mods.ComputerCraft.isAvailable) {
-      OpenComputers.log.info("Initializing ComputerCraft 1.6x floppy driver.")
-      api.Driver.add(driver.item.ComputerCraftMedia)
-    }
-
-    OpenComputers.log.info("Initializing vanilla converters.")
-    api.Driver.add(driver.converter.FluidStack)
-    api.Driver.add(driver.converter.FluidTankInfo)
-    api.Driver.add(driver.converter.ItemStack)
+    // Register the general IPeripheral driver last, if at all, to avoid it
+    // being used rather than other more concrete implementations, such as
+    // is the case in the Redstone in Motion driver (replaces 'move').
+    Registry.add(ModComputerCraft)
 
     OpenComputers.log.info("Initializing assembler templates.")
     RobotTemplate.register()
@@ -160,7 +151,7 @@ class Proxy {
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
 
-    if (Mods.RedstoneFlux.isAvailable) {
+    if (Mods.CoFHEnergy.isAvailable) {
       OpenComputers.log.info("Initializing Redstone Flux tool support.")
       MinecraftForge.EVENT_BUS.register(RedstoneFluxToolHandler)
     }

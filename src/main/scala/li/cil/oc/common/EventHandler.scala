@@ -56,7 +56,7 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {

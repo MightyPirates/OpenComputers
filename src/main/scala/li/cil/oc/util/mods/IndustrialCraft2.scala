@@ -12,7 +12,7 @@ object IndustrialCraft2 {
     case _: Throwable => None
   }
 
-  def isMiningLaser(stack: ItemStack) = stack != null && Mods.IndustrialCraft2.isAvailable && (miningLaser match {
+  def isMiningLaser(stack: ItemStack) = stack != null && Mods.IndustrialCraft2API.isAvailable && (miningLaser match {
     case Some(laser) => laser.getItem == stack.getItem
     case _ => false
   })

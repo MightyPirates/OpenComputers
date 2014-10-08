@@ -3,8 +3,10 @@ package li.cil.oc
 import java.io._
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.util.UUID
 
 import com.google.common.net.InetAddresses
+import com.mojang.authlib.GameProfile
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion
@@ -182,7 +184,8 @@ class Settings(config: Config) {
     case _ =>
       OpenComputers.log.warn("Bad number of computer case conversion rates, ignoring.")
       Array(5.0, 10.0, 20.0)
-  }) ++ Array(9001.0) // Creative case.
+  }) ++ Array(9001.0)
+  // Creative case.
   val chargerRate = config.getDouble("power.rate.charger") max 0
   val disassemblerRate = config.getDouble("power.rate.disassembler") max 0
   val powerConverterRate = config.getDouble("power.rate.powerConverter") max 0
@@ -270,6 +273,14 @@ class Settings(config: Config) {
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
+
+  // ----------------------------------------------------------------------- //
+  // integration
+  val modBlacklist = config.getStringList("integration.modBlacklist")
+  val peripheralBlacklist = config.getStringList("integration.peripheralBlacklist")
+  val fakePlayerUuid = config.getString("integration.fakePlayerUuid")
+  val fakePlayerName = config.getString("integration.fakePlayerName")
+  val fakePlayerProfile = new GameProfile(UUID.fromString(fakePlayerUuid), fakePlayerName)
 
   // ----------------------------------------------------------------------- //
   // debug

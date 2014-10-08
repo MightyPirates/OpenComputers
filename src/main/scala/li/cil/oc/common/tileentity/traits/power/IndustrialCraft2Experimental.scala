@@ -13,7 +13,7 @@ import net.minecraftforge.common.util.ForgeDirection
 trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   private var conversionBuffer = 0.0
 
-  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2.isAvailable
+  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2API.isAvailable
 
   // ----------------------------------------------------------------------- //
 
@@ -24,7 +24,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
   private def updateEnergy() {
     tryAllSides((demand, _) => {
       val result = math.min(demand, conversionBuffer)
@@ -69,19 +69,19 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
   def getSinkTier: Int = Int.MaxValue
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection): Boolean = Mods.IndustrialCraft2.isAvailable && canConnectPower(direction)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection): Boolean = Mods.IndustrialCraft2API.isAvailable && canConnectPower(direction)
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
   def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
     conversionBuffer += amount
     0.0
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
   def getDemandedEnergy: Double = {
     if (!useIndustrialCraft2Power) 0.0
     else if (conversionBuffer < energyThroughput * Settings.get.tickFrequency)

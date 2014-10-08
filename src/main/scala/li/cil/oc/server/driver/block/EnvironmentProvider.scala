@@ -26,9 +26,9 @@ object EnvironmentProvider extends driver.Block with EnvironmentAware {
   override def createEnvironment(world: World, x: Int, y: Int, z: Int) = null
 
   override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] = stack.getItem match {
-    case block: ItemBlock =>
+    case block: ItemBlock if block.field_150939_a != null =>
       if (isOneOf(block.field_150939_a, "accessPoint")) classOf[tileentity.AccessPoint]
-      else if (isOneOf(block.field_150939_a, "robotAssembler")) classOf[tileentity.Assembler]
+      else if (isOneOf(block.field_150939_a, "assembler")) classOf[tileentity.Assembler]
       else if (isOneOf(block.field_150939_a, "case1", "case2", "case3", "caseCreative")) classOf[Machine]
       else if (isOneOf(block.field_150939_a, "hologram1", "hologram2")) classOf[tileentity.Hologram]
       else if (isOneOf(block.field_150939_a, "motionSensor")) classOf[tileentity.MotionSensor]

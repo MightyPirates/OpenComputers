@@ -1,8 +1,8 @@
 package li.cil.oc.util.mods
 
-import cpw.mods.fml.common.versioning.VersionParser
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.ModAPIManager
+import cpw.mods.fml.common.versioning.VersionParser
 import li.cil.oc.Settings
 
 import scala.collection.mutable
@@ -12,26 +12,39 @@ object Mods {
   object IDs {
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
+    final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftPower = "BuildCraftAPI|power"
+    final val CoFHEnergy = "CoFHAPI|energy"
+    final val CoFHTileEntity = "CoFHAPI|tileentity"
+    final val CoFHTransport = "CoFHAPI|transport"
     final val ComputerCraft = "ComputerCraft"
     final val CraftingCosts = "CraftingCosts"
     final val ElectricalAge = "Eln"
+    final val EnderIO = "EnderIO"
+    final val EnderStorage = "EnderStorage"
     final val Factorization = "factorization"
+    final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
-    final val IndustrialCraft2 = "IC2API"
+    final val IndustrialCraft2 = "IC2"
+    final val IndustrialCraft2API = "IC2API"
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val Mekanism = "Mekanism"
+    final val Minecraft = "Minecraft"
     final val MineFactoryReloaded = "MineFactoryReloaded"
+    final val Mystcraft = "Mystcraft"
     final val NotEnoughItems = "NotEnoughItems"
+    final val OpenComputers = "OpenComputers"
     final val PortalGun = "PortalGun"
     final val ProjectRedTransmission = "ProjRed|Transmission"
+    final val Railcraft = "Railcraft"
     final val RedLogic = "RedLogic"
-    final val RedstoneFlux = "CoFHAPI|energy"
     final val StargateTech2 = "StargateTech2"
+    final val Thaumcraft = "Thaumcraft"
     final val ThermalExpansion = "ThermalExpansion"
     final val TinkersConstruct = "TConstruct"
+    final val TMechWorks = "TMechworks"
     final val UniversalElectricity = "UniversalElectricity"
     final val VersionChecker = "VersionChecker"
     final val Waila = "Waila"
@@ -45,26 +58,37 @@ object Mods {
 
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower, providesPower = true)
+  val CoFHEnergy = new SimpleMod(IDs.CoFHEnergy, providesPower = true)
+  val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
+  val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
+  val EnderIO = new SimpleMod(IDs.EnderIO)
+  val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
+  val Forestry = new SimpleMod(IDs.Forestry)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new SimpleMod(IDs.GregTech)
-  val IndustrialCraft2 = new ClassBasedMod(IDs.IndustrialCraft2,
+  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
+  val IndustrialCraft2API = new ClassBasedMod(IDs.IndustrialCraft2API,
     "ic2.api.energy.tile.IEnergyTile",
     "ic2.api.energy.event.EnergyTileLoadEvent",
     "ic2.api.energy.event.EnergyTileUnloadEvent")(providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
+  val Minecraft = new SimpleMod(IDs.Minecraft)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
+  val Mystcraft = new SimpleMod(IDs.Mystcraft)
   val NotEnoughItems = new SimpleMod(IDs.NotEnoughItems)
+  val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val PortalGun = new SimpleMod(IDs.PortalGun)
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
+  val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
-  val RedstoneFlux = new SimpleMod(IDs.RedstoneFlux, providesPower = true)
   val StargateTech2 = new Mod {
     def id = IDs.StargateTech2
 
@@ -73,8 +97,10 @@ object Mods {
       mod.getVersion.startsWith("0.7.")
     }
   }
+  val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
+  val TMechWorks = new SimpleMod(IDs.TMechWorks)
   val UniversalElectricity = new SimpleMod(IDs.UniversalElectricity, providesPower = true)
   val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
