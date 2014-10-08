@@ -32,6 +32,7 @@ import li.cil.oc.integration.railcraft.ModRailcraft
 import li.cil.oc.integration.thaumcraft.ModThaumcraft
 import li.cil.oc.integration.thermalexpansion.ModThermalExpansion
 import li.cil.oc.integration.tmechworks.ModTMechworks
+import li.cil.oc.integration.util.ComputerCraft
 import li.cil.oc.integration.vanilla.ModVanilla
 import li.cil.oc.server._
 import li.cil.oc.server.machine
@@ -40,7 +41,6 @@ import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.UpdateCheck
-import li.cil.oc.integration.util.ComputerCraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeChunkManager
@@ -98,22 +98,22 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
 
     OpenComputers.log.info("Initializing OpenComputers drivers.")
-    Mods.integrate(new ModAppEng)
-    Mods.integrate(new ModBuildCraft)
-    Mods.integrate(new ModCoFHEnergy)
-    Mods.integrate(new ModCoFHTileEntity)
-    Mods.integrate(new ModCoFHTransport)
-    Mods.integrate(new ModEnderIO)
-    Mods.integrate(new ModEnderStorage)
-    Mods.integrate(new ModForestry)
-    Mods.integrate(new ModGregtech)
-    Mods.integrate(new ModIndustrialCraft2)
-    Mods.integrate(new ModMystcraft)
+    Mods.integrate(ModAppEng)
+    Mods.integrate(ModBuildCraft)
+    Mods.integrate(ModCoFHEnergy)
+    Mods.integrate(ModCoFHTileEntity)
+    Mods.integrate(ModCoFHTransport)
+    Mods.integrate(ModEnderIO)
+    Mods.integrate(ModEnderStorage)
+    Mods.integrate(ModForestry)
+    Mods.integrate(ModGregtech)
+    Mods.integrate(ModIndustrialCraft2)
+    Mods.integrate(ModMystcraft)
     Mods.integrate(ModOpenComputers)
-    Mods.integrate(new ModRailcraft)
-    Mods.integrate(new ModThaumcraft)
-    Mods.integrate(new ModThermalExpansion)
-    Mods.integrate(new ModTMechworks)
+    Mods.integrate(ModRailcraft)
+    Mods.integrate(ModThaumcraft)
+    Mods.integrate(ModThermalExpansion)
+    Mods.integrate(ModTMechworks)
     Mods.integrate(ModVanilla)
 
     // Register the general IPeripheral driver last, if at all, to avoid it

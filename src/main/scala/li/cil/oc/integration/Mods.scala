@@ -71,13 +71,12 @@ object Mods {
 
   def integrate(mod: IMod) {
     val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
-    val alwaysEnabled = mod.getMod == null || mod == Mods.Minecraft
+    val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
     if (!isBlacklisted && (alwaysEnabled || mod.getMod.isAvailable) && handlers.add(mod)) {
-      OpenComputers.log.info(String.format("Initializing converters and drivers for '%s'.", mod.getMod.id))
+      li.cil.oc.OpenComputers.log.info(String.format("Initializing converters and drivers for '%s'.", mod.getMod.id))
       try mod.initialize() catch {
-        case e: Throwable => {
-          OpenComputers.log.warn(String.format("Error initializing handler for '%s'", mod.getMod.id), e)
-        }
+        case e: Throwable =>
+          li.cil.oc.OpenComputers.log.warn(String.format("Error initializing handler for '%s'", mod.getMod.id), e)
       }
     }
   }

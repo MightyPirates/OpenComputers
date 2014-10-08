@@ -12,11 +12,11 @@ import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.SideTracker
 import li.cil.oc.util.UpdateCheck
-import li.cil.oc.integration.util
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack

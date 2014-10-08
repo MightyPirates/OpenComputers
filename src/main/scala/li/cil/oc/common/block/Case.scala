@@ -4,13 +4,13 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.BuildCraft
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity

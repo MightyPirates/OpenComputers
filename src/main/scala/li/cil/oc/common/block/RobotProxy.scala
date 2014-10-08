@@ -10,11 +10,11 @@ import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.Tooltip
-import li.cil.oc.integration.util.NEI
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase

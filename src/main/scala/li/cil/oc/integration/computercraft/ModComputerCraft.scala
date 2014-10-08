@@ -5,9 +5,9 @@ import li.cil.oc.integration.IMod
 import li.cil.oc.integration.Mods
 
 object ModComputerCraft extends IMod {
-  def getMod = Mods.ComputerCraft
+  override def getMod = Mods.ComputerCraft
 
-  def initialize() {
+  override def initialize() {
     Driver.add(DriverComputerCraftMedia)
 
     try {
