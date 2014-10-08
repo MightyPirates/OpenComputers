@@ -1,9 +1,9 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
 import net.minecraftforge.common.util.ForgeDirection
 
 class Capacitor extends traits.Environment {

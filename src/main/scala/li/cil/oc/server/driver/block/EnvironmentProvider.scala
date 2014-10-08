@@ -6,7 +6,6 @@ import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.server.component
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.mods.BundledRedstone
@@ -29,11 +28,11 @@ object EnvironmentProvider extends driver.Block with EnvironmentAware {
   override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] = stack.getItem match {
     case block: ItemBlock =>
       if (isOneOf(block.field_150939_a, "accessPoint")) classOf[tileentity.AccessPoint]
-      else if (isOneOf(block.field_150939_a, "robotAssembler")) classOf[tileentity.RobotAssembler]
+      else if (isOneOf(block.field_150939_a, "robotAssembler")) classOf[tileentity.Assembler]
       else if (isOneOf(block.field_150939_a, "case1", "case2", "case3", "caseCreative")) classOf[Machine]
       else if (isOneOf(block.field_150939_a, "hologram1", "hologram2")) classOf[tileentity.Hologram]
       else if (isOneOf(block.field_150939_a, "motionSensor")) classOf[tileentity.MotionSensor]
-      else if (isOneOf(block.field_150939_a, "redstone")) if (BundledRedstone.isAvailable) classOf[component.RedstoneBundled] else classOf[component.Redstone[RedstoneAware]]
+      else if (isOneOf(block.field_150939_a, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Simple]
       else if (isOneOf(block.field_150939_a, "screen2", "screen3")) classOf[common.component.Screen]
       else null
     case _ => null

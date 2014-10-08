@@ -3,12 +3,12 @@ package li.cil.oc.client.gui
 import java.util
 
 import li.cil.oc.Localization
-import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.Textures
+import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.template.AssemblerTemplates
-import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
@@ -16,11 +16,11 @@ import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
 
-class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity.RobotAssembler) extends DynamicGuiContainer(new container.RobotAssembler(playerInventory, assembler)) {
+class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends DynamicGuiContainer(new container.Assembler(playerInventory, assembler)) {
   xSize = 176
   ySize = 192
 
-  private def assemblerContainer = inventorySlots.asInstanceOf[container.RobotAssembler]
+  private def assemblerContainer = inventorySlots.asInstanceOf[container.Assembler]
 
   protected var runButton: ImageButton = _
 

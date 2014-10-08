@@ -21,8 +21,8 @@ class Redstone extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.addInformation(metadata, stack, player, tooltip, advanced)
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (Mods.RedLogic.isAvailable) {
       tooltip.addAll(Tooltip.get("RedstoneCard.RedLogic"))
     }

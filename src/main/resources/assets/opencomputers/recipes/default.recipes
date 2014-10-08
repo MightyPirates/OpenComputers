@@ -366,6 +366,11 @@ adapter {
           ["oc:cable", "oc:circuitChip1", "oc:cable"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+assembler {
+  input: [[ingotIron, workbench, ingotIron]
+          [craftingPiston, "oc:circuitChip2", craftingPiston]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
 cable {
   input: [["", nuggetIron, ""]
           [nuggetIron, redstone, nuggetIron]
@@ -449,11 +454,6 @@ serverRack {
 redstone {
   input: [[ingotIron, "oc:circuitChip3", ingotIron]
           [blockRedstone, "oc:redstoneCard1", blockRedstone]
-          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
-}
-robotAssembler {
-  input: [[ingotIron, workbench, ingotIron]
-          [craftingPiston, "oc:circuitChip2", craftingPiston]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
 switch {

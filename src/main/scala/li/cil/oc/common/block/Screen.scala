@@ -4,19 +4,19 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.Color
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Tooltip
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import li.cil.oc.util.mods.BuildCraft
 import net.minecraft.client.renderer.texture.IIconRegister
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
@@ -34,7 +34,7 @@ class Screen(val tier: Int) extends RedstoneAware {
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
-  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
     tooltip.addAll(Tooltip.get(getClass.getSimpleName, w, h, depth))

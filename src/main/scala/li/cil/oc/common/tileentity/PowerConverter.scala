@@ -2,9 +2,9 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.api.network._
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.network._
 import net.minecraftforge.common.util.ForgeDirection
 
 class PowerConverter extends traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable {

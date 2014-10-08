@@ -15,6 +15,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.Callbacks
+import net.minecraft.block.Block
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.Container
 import net.minecraft.item.ItemBlock
@@ -22,8 +23,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumChatFormatting
 
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 object NEI {
+  val hiddenBlocks = mutable.Set.empty[Block]
+
   def isInputFocused = Mods.NotEnoughItems.isAvailable && (try isInputFocused0 catch {
     case _: Throwable => false
   })
@@ -37,6 +41,8 @@ object NEI {
     else None
 
   private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
+
+  def hide(block: Block): Unit = if (Mods.NotEnoughItems.isAvailable) hiddenBlocks += block
 }
 
 @SideOnly(Side.CLIENT)
@@ -47,6 +53,9 @@ class NEIOpenComputersConfig extends IConfigureNEI {
 
   override def loadConfig() {
     API.registerUsageHandler(new DocumentationHandler())
+    for (block <- NEI.hiddenBlocks) {
+      API.hideItem(new ItemStack(block))
+    }
   }
 }
 
@@ -104,7 +113,7 @@ class DocumentationHandler(val pages: Option[Array[String]]) extends IUsageHandl
     this
   }
 
-  override def getRecipeName = "OpenComputers"
+  override def getRecipeName = "OpenComputers API"
 
   override def recipiesPerPage = 1
 

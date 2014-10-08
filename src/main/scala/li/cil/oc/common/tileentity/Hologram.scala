@@ -2,6 +2,8 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -12,8 +14,6 @@ import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.mods.Waila
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB

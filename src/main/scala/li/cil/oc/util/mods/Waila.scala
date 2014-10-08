@@ -3,10 +3,10 @@ package li.cil.oc.util.mods
 import java.util
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.common.block._
-import li.cil.oc.common.tileentity
 import li.cil.oc.Localization
 import li.cil.oc.Settings
+import li.cil.oc.common.block._
+import li.cil.oc.common.tileentity
 import mcp.mobius.waila.api.IWailaConfigHandler
 import mcp.mobius.waila.api.IWailaDataAccessor
 import mcp.mobius.waila.api.IWailaDataProvider
@@ -27,7 +27,7 @@ object Waila {
       registrar.registerSyncedNBTKey("y", clazz)
       registrar.registerSyncedNBTKey("z", clazz)
     }
-    registerKeys(classOf[tileentity.RobotAssembler], Settings.namespace + "node")
+    registerKeys(classOf[tileentity.Assembler], Settings.namespace + "node")
     registerKeys(classOf[tileentity.AccessPoint], Settings.namespace + "componentNodes", Settings.namespace + "strength")
     registerKeys(classOf[tileentity.Capacitor], Settings.namespace + "node")
     registerKeys(classOf[tileentity.Case], Settings.namespace + "address")

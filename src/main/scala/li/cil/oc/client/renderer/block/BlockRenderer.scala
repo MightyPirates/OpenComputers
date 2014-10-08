@@ -174,7 +174,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
 
         true
-      case assembler: tileentity.RobotAssembler =>
+      case assembler: tileentity.Assembler =>
         Assembler.render(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler")

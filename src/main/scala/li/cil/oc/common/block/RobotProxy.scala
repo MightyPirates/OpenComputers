@@ -14,6 +14,7 @@ import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.NEI
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -30,8 +31,8 @@ import net.minecraftforge.common.util.ForgeDirection
 
 class RobotProxy extends RedstoneAware with traits.SpecialBlock {
   setLightOpacity(0)
-
-  showInItemList = false
+  setCreativeTab(null)
+  NEI.hide(this)
 
   override val getUnlocalizedName = "Robot"
 
@@ -66,9 +67,17 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
 
   override def rarity = EnumRarity.epic
 
-  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override protected def tooltipHead(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    super.tooltipHead(metadata, stack, player, tooltip, advanced)
     addLines(stack, tooltip)
+  }
+
+  override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get("Robot"))
+  }
+
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.RobotData(stack)
       for (component <- info.containers ++ info.components) {

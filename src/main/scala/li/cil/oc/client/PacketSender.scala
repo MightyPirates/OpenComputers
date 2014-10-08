@@ -1,11 +1,11 @@
 package li.cil.oc.client
 
 import li.cil.oc.Settings
-import li.cil.oc.common.tileentity._
-import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.CompressedPacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.SimplePacketBuilder
+import li.cil.oc.common.tileentity._
+import li.cil.oc.common.tileentity.traits.Computer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.util.ResourceLocation
@@ -113,7 +113,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRobotAssemblerStart(t: RobotAssembler) {
+  def sendRobotAssemblerStart(t: Assembler) {
     val pb = new SimplePacketBuilder(PacketType.RobotAssemblerStart)
 
     pb.writeTileEntity(t)

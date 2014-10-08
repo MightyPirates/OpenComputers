@@ -67,7 +67,7 @@ object Callbacks {
     def shouldAdd(name: String) = !callbacks.contains(name) && (whitelist.isEmpty || whitelist.contains(name))
     for (seed <- seeds) {
       var c: Class[_] = seed
-      while (c != classOf[Object]) {
+      while (c!= null && c != classOf[Object]) {
         val ms = c.getDeclaredMethods
 
         ms.filter(_.isAnnotationPresent(classOf[machine.Callback])).foreach(m =>

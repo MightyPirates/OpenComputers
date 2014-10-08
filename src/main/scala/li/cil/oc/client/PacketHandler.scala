@@ -269,7 +269,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotAssemblingState(p: PacketParser) =
-    p.readTileEntity[RobotAssembler]() match {
+    p.readTileEntity[Assembler]() match {
       case Some(t) =>
         if (p.readBoolean()) t.requiredEnergy = 9001
         else t.requiredEnergy = 0

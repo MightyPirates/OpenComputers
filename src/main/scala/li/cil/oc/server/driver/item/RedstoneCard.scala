@@ -25,11 +25,11 @@ object RedstoneCard extends Item with HostAware with EnvironmentAware {
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
       case redstone: BundledRedstoneAware if BundledRedstone.isAvailable && tier(stack) == Tier.Two =>
-        if (WirelessRedstone.isAvailable) new RedstoneBundledWireless(redstone)
-        else new RedstoneBundled(redstone)
+        if (WirelessRedstone.isAvailable) new component.Redstone.BundledWireless(redstone)
+        else new component.Redstone.Bundled(redstone)
       case redstone: RedstoneAware =>
-        if (tier(stack) == Tier.Two && WirelessRedstone.isAvailable) new RedstoneWireless(redstone)
-        else new component.Redstone[RedstoneAware](redstone)
+        if (tier(stack) == Tier.Two && WirelessRedstone.isAvailable) new component.Redstone.Wireless(redstone)
+        else new component.Redstone.Simple(redstone)
       case _ => null
     }
 
@@ -45,17 +45,11 @@ object RedstoneCard extends Item with HostAware with EnvironmentAware {
     if (stack.getItemDamage == api.Items.get("redstoneCard1").createItemStack(1).getItemDamage)
       classOf[component.Redstone[RedstoneAware]]
     else if (BundledRedstone.isAvailable) {
-      if (WirelessRedstone.isAvailable) classOf[RedstoneBundledWireless]
-      else classOf[RedstoneBundled]
+      if (WirelessRedstone.isAvailable) classOf[component.Redstone.BundledWireless]
+      else classOf[component.Redstone.Bundled]
     }
     else {
-      if (WirelessRedstone.isAvailable) classOf[RedstoneWireless]
-      else classOf[component.Redstone[RedstoneAware]]
+      if (WirelessRedstone.isAvailable) classOf[component.Redstone.Wireless]
+      else classOf[component.Redstone.Simple]
     }
 }
-
-class RedstoneBundled(redstone: BundledRedstoneAware) extends component.Redstone[BundledRedstoneAware](redstone) with component.RedstoneBundled
-
-class RedstoneWireless(redstone: RedstoneAware) extends component.Redstone[RedstoneAware](redstone) with component.RedstoneWireless
-
-class RedstoneBundledWireless(redstone: BundledRedstoneAware) extends RedstoneBundled(redstone) with component.RedstoneWireless

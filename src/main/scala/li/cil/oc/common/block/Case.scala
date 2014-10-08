@@ -57,14 +57,15 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.epic).apply(tier)
 
-  override def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    val slots = tier match {
-      case 0 => "2/1/1"
-      case 1 => "2/2/2"
-      case 2 | 3 => "3/2/3"
-      case _ => "0/0/0"
-    }
-    tooltip.addAll(Tooltip.get("Case", slots))
+  override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName, slots))
+  }
+
+  private def slots = tier match {
+    case 0 => "2/1/1"
+    case 1 => "2/2/2"
+    case 2 | 3 => "3/2/3"
+    case _ => "0/0/0"
   }
 
   // ----------------------------------------------------------------------- //

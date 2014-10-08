@@ -9,6 +9,8 @@ import net.minecraft.world.World
 abstract class GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
+      case assembler: tileentity.Assembler if id == GuiType.RobotAssembler.id =>
+        new container.Assembler(player.inventory, assembler)
       case charger: tileentity.Charger if id == GuiType.Charger.id =>
         new container.Charger(player.inventory, charger)
       case computer: tileentity.Case if id == GuiType.Case.id =>
@@ -21,8 +23,6 @@ abstract class GuiHandler extends IGuiHandler {
         new container.Robot(player.inventory, proxy.robot)
       case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
         new container.ServerRack(player.inventory, rack)
-      case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
-        new container.RobotAssembler(player.inventory, assembler)
       case switch: tileentity.Switch if id == GuiType.Switch.id =>
         new container.Switch(player.inventory, switch)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {

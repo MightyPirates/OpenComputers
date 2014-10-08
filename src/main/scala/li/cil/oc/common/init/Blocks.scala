@@ -10,6 +10,7 @@ import li.cil.oc.common.tileentity
 object Blocks {
   def init() {
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
+    GameRegistry.registerTileEntity(classOf[tileentity.Assembler], Settings.namespace + "assembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
@@ -24,7 +25,6 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
-    GameRegistry.registerTileEntity(classOf[tileentity.RobotAssembler], Settings.namespace + "robotAssembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
@@ -70,7 +70,7 @@ object Blocks {
     // v1.3.0
     Recipes.addBlock(new Hologram(Tier.Two), "hologram2", "oc:hologram2")
     Recipes.addBlock(new Geolyzer(), "geolyzer", "oc:geolyzer")
-    Recipes.addBlock(new Assembler(), "robotAssembler", "oc:robotAssembler")
+    Recipes.addBlock(new Assembler(), "assembler", "oc:assembler")
     Recipes.addBlock(new Disassembler(), "disassembler", "oc:disassembler")
 
     // v1.3.2

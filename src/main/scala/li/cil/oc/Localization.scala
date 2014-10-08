@@ -65,27 +65,27 @@ object Localization {
   }
 
   object Assembler {
-    def InsertTemplate = localizeImmediately("gui.RobotAssembler.InsertCase")
+    def InsertTemplate = localizeImmediately("gui.Assembler.InsertCase")
 
-    def CollectResult = localizeImmediately("gui.RobotAssembler.CollectRobot")
+    def CollectResult = localizeImmediately("gui.Assembler.Collect")
 
-    def InsertCPU = localizeLater("gui.RobotAssembler.InsertCPU")
+    def InsertCPU = localizeLater("gui.Assembler.InsertCPU")
 
-    def InsertRAM = localizeLater("gui.RobotAssembler.InsertRAM")
+    def InsertRAM = localizeLater("gui.Assembler.InsertRAM")
 
     def Complexity(complexity: Int, maxComplexity: Int) = {
-      val message = localizeLater("gui.RobotAssembler.Complexity", complexity.toString, maxComplexity.toString)
+      val message = localizeLater("gui.Assembler.Complexity", complexity.toString, maxComplexity.toString)
       if (complexity > maxComplexity) new ChatComponentText("§4").appendSibling(message)
       else message
     }
 
-    def Run = localizeImmediately("gui.RobotAssembler.Run")
+    def Run = localizeImmediately("gui.Assembler.Run")
 
-    def Progress(progress: Double, timeRemaining: String) = localizeImmediately("gui.RobotAssembler.Progress", progress.toInt.toString, timeRemaining)
+    def Progress(progress: Double, timeRemaining: String) = localizeImmediately("gui.Assembler.Progress", progress.toInt.toString, timeRemaining)
 
-    def Warning(name: String) = new ChatComponentText("§7- ").appendSibling(localizeLater("gui.RobotAssembler.Warning." + name))
+    def Warning(name: String) = new ChatComponentText("§7- ").appendSibling(localizeLater("gui.Assembler.Warning." + name))
 
-    def Warnings = localizeLater("gui.RobotAssembler.Warnings")
+    def Warnings = localizeLater("gui.Assembler.Warnings")
   }
 
   object ServerRack {

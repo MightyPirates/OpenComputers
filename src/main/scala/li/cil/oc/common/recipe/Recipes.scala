@@ -11,6 +11,7 @@ import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import li.cil.oc.util.mods.GregTech
+import li.cil.oc.util.mods.NEI
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
@@ -335,7 +336,9 @@ object Recipes {
       case Some(stack) => stack.showInItemList = false
       case _ => value.getItem match {
         case itemBlock: ItemBlock => itemBlock.field_150939_a match {
-          case simple: SimpleBlock => simple.showInItemList = false
+          case simple: SimpleBlock =>
+            simple.setCreativeTab(null)
+            NEI.hide(simple)
           case _ =>
         }
         case _ =>

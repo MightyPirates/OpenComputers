@@ -1,24 +1,21 @@
 package li.cil.oc.common.block
 
-import java.util
-
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.CreativeTab
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Colored
 import li.cil.oc.common.tileentity.traits.Inventory
 import li.cil.oc.common.tileentity.traits.Rotatable
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
-import li.cil.oc.CreativeTab
-import li.cil.oc.Settings
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IIconRegister
-import net.minecraft.creativetab.CreativeTabs
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EnumCreatureType
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
@@ -102,7 +99,19 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   @SideOnly(Side.CLIENT)
   def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    tooltipHead(metadata, stack, player, tooltip, advanced)
+    tooltipBody(metadata, stack, player, tooltip, advanced)
+    tooltipTail(metadata, stack, player, tooltip, advanced)
+  }
+
+  protected def tooltipHead(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+  }
+
+  protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName))
+  }
+
+  protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
   }
 
   // ----------------------------------------------------------------------- //
@@ -152,13 +161,6 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
       case inventory: Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
-
-  @SideOnly(Side.CLIENT)
-  override def getSubBlocks(item: net.minecraft.item.Item, tab: CreativeTabs, list: util.List[_]) = {
-    if (showInItemList) {
-      super.getSubBlocks(item, tab, list)
-    }
-  }
 
   // ----------------------------------------------------------------------- //
 

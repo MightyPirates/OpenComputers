@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity.RobotAssembler
+import li.cil.oc.common.tileentity.Assembler
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
@@ -13,7 +13,7 @@ object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val assembler = tileEntity.asInstanceOf[RobotAssembler]
+    val assembler = tileEntity.asInstanceOf[Assembler]
 
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 

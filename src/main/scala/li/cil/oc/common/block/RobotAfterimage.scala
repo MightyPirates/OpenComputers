@@ -7,6 +7,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.mods.NEI
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
@@ -18,8 +19,8 @@ import net.minecraftforge.common.util.ForgeDirection
 
 class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
   setLightOpacity(0)
-
-  showInItemList = false
+  setCreativeTab(null)
+  NEI.hide(this)
 
   private var icon: IIcon = _
 

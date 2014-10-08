@@ -2,6 +2,8 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -10,13 +12,11 @@ import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotAssembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {
+class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).

@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.potion.Potion

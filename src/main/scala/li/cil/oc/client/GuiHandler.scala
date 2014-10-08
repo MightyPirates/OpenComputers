@@ -17,6 +17,8 @@ import net.minecraft.world.World
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =
     world.getTileEntity(x, y, z) match {
+      case assembler: tileentity.Assembler if id == GuiType.RobotAssembler.id =>
+        new gui.Assembler(player.inventory, assembler)
       case computer: tileentity.Case if id == GuiType.Case.id =>
         new gui.Case(player.inventory, computer)
       case charger: tileentity.Charger if id == GuiType.Charger.id =>
@@ -29,8 +31,6 @@ object GuiHandler extends CommonGuiHandler {
         new gui.Robot(player.inventory, proxy.robot)
       case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
         new gui.ServerRack(player.inventory, rack)
-      case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
-        new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
         new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled)
       case switch: tileentity.Switch if id == GuiType.Switch.id =>
