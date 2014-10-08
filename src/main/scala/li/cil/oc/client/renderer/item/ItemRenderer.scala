@@ -1,11 +1,11 @@
 package li.cil.oc.client.renderer.item
 
-import li.cil.oc.api.detail.ItemInfo
-import li.cil.oc.client.Textures
-import li.cil.oc.server.driver.item.Item
-import li.cil.oc.util.RenderState
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.client.Textures
+import li.cil.oc.integration.opencomputers.Item
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.entity.RenderItem

@@ -12,8 +12,9 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
+import li.cil.oc.integration.opencomputers.DriverAbstractBusCard
+import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.component
-import li.cil.oc.server.driver
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods
@@ -105,7 +106,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   def hasAbstractBusCard = servers exists {
     case Some(server) => server.machine.isRunning && server.inventory.items.exists {
-      case Some(stack) => driver.item.AbstractBusCard.worksWith(stack, getClass)
+      case Some(stack) => DriverAbstractBusCard.worksWith(stack, getClass)
       case _ => false
     }
     case _ => false
@@ -113,7 +114,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   def hasRedstoneCard = servers exists {
     case Some(server) => server.machine.isRunning && server.inventory.items.exists {
-      case Some(stack) => driver.item.RedstoneCard.worksWith(stack, getClass)
+      case Some(stack) => DriverRedstoneCard.worksWith(stack, getClass)
       case _ => false
     }
     case _ => false

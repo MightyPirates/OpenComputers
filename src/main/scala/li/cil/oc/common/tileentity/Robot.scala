@@ -16,9 +16,11 @@ import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.integration.opencomputers.DriverKeyboard
+import li.cil.oc.integration.opencomputers.DriverRedstoneCard
+import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
-import li.cil.oc.server.driver
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
@@ -564,7 +566,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(driver.item.RedstoneCard.worksWith(_, getClass)))
+  override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
 
   private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
@@ -644,8 +646,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       // Since these are very special (as they have special behavior in the
       // GUI) I feel it's OK to handle it like this, instead of some extra API
       // logic making the differentiation of assembler and containers generic.
-      driver != server.driver.item.Screen &&
-        driver != server.driver.item.Keyboard &&
+      driver != DriverScreen &&
+        driver != DriverKeyboard &&
         driver.slot(stack) == containerSlotType(i) &&
         driver.tier(stack) <= containerSlotTier(i)
     case (i, _) if isInventorySlot(i) => true // Normal inventory.

@@ -7,7 +7,8 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
-import li.cil.oc.server
+import li.cil.oc.integration.opencomputers.DriverScreen
+import li.cil.oc.integration.opencomputers.DriverUpgradeExperience
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemMap
 import net.minecraft.item.ItemStack
@@ -86,7 +87,7 @@ object ItemUtils {
         // Old robot, upgrade to new modular model.
         tier = 0
         val experienceUpgrade = api.Items.get("experienceUpgrade").createItemStack(1)
-        server.driver.item.UpgradeExperience.dataTag(experienceUpgrade).setDouble(Settings.namespace + "xp", nbt.getDouble(Settings.namespace + "xp"))
+        DriverUpgradeExperience.dataTag(experienceUpgrade).setDouble(Settings.namespace + "xp", nbt.getDouble(Settings.namespace + "xp"))
         components = Array(
           api.Items.get("screen1").createItemStack(1),
           api.Items.get("keyboard").createItemStack(1),
@@ -132,7 +133,7 @@ object ItemUtils {
       // robot in creative mode.
       val newInfo = new RobotData(stack)
       newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
-        case Some(driver) if driver == server.driver.item.Screen =>
+        case Some(driver) if driver == DriverScreen =>
           val nbt = driver.dataTag(cs)
           for (tagName <- nbt.func_150296_c().toArray) {
             nbt.removeTag(tagName.asInstanceOf[String])

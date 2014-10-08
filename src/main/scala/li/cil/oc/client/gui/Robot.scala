@@ -2,18 +2,18 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.client.gui.widget.ProgressBar
-import li.cil.oc.client.renderer.TextBufferRenderCache
-import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.client.Textures
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
-import li.cil.oc.server.driver
-import li.cil.oc.util.RenderState
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.client.Textures
+import li.cil.oc.client.gui.widget.ProgressBar
+import li.cil.oc.client.renderer.TextBufferRenderCache
+import li.cil.oc.client.renderer.gui.BufferRenderer
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.container
+import li.cil.oc.common.tileentity
+import li.cil.oc.integration.opencomputers
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
@@ -28,7 +28,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     case Some(buffer: api.component.TextBuffer) => buffer
   }.headOption.orNull
 
-  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(driver.item.Keyboard)
+  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
 
   private val withScreenHeight = 256
   private val noScreenHeight = 108

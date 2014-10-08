@@ -15,7 +15,8 @@ import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
-import li.cil.oc.server.driver
+import li.cil.oc.integration.opencomputers.DriverAbstractBusCard
+import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods
@@ -91,12 +92,12 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def onMachineDisconnect(node: Node) = this.onDisconnect(node)
 
   def hasAbstractBusCard = items.exists {
-    case Some(item) => machine.isRunning && driver.item.AbstractBusCard.worksWith(item, getClass)
+    case Some(item) => machine.isRunning && DriverAbstractBusCard.worksWith(item, getClass)
     case _ => false
   }
 
   def hasRedstoneCard = items.exists {
-    case Some(item) => machine.isRunning && driver.item.RedstoneCard.worksWith(item, getClass)
+    case Some(item) => machine.isRunning && DriverRedstoneCard.worksWith(item, getClass)
     case _ => false
   }
 
