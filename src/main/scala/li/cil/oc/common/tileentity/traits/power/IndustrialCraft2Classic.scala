@@ -78,7 +78,7 @@ trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
   def getMaxSafeInput: Int = Int.MaxValue
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
-  def acceptsEnergyFrom(emitter: TileEntity, direction: Direction) = Mods.IndustrialCraft2Classic.isAvailable && canConnectPower(direction.toForgeDirection)
+  def acceptsEnergyFrom(emitter: TileEntity, direction: Direction) = useIndustrialCraft2ClassicPower && canConnectPower(direction.toForgeDirection)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
   def injectEnergy(directionFrom: Direction, amount: Int): Boolean = {

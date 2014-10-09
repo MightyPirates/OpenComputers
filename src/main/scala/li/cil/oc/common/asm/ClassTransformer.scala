@@ -2,7 +2,6 @@ package li.cil.oc.common.asm
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
-import li.cil.oc.integration.Mod
 import li.cil.oc.integration.Mods
 import net.minecraft.launchwrapper.IClassTransformer
 import net.minecraft.launchwrapper.LaunchClassLoader
@@ -20,7 +19,7 @@ class ClassTransformer extends IClassTransformer {
 
   private val log = LogManager.getLogger("OpenComputers")
 
-  private lazy val powerTypes = Map[Mod, Array[String]](
+  private lazy val powerTypes = Map[Mods.ModBase, Array[String]](
     Mods.AppliedEnergistics2 -> Array("appeng/api/networking/IGridHost"),
     Mods.BuildCraftPower -> Array("buildcraft/api/power/IPowerReceptor"),
     Mods.Factorization -> Array("factorization/api/IChargeConductor"),
@@ -80,6 +79,7 @@ class ClassTransformer extends IClassTransformer {
                 interfaces.foreach(classNode.interfaces.add)
               }
               else {
+                mod.disablePower()
                 log.warn(s"Skipping power support for mod ${mod.id}.")
                 missing.foreach(log.warn)
               }
