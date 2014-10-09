@@ -4,8 +4,8 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.SidedEnvironment
-import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound

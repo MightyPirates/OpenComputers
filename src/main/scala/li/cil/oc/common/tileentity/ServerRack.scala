@@ -8,17 +8,17 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Network
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
+import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.integration.util.Waila
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

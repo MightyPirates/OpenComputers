@@ -7,8 +7,8 @@ import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.Waila

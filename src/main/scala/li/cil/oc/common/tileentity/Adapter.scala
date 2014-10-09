@@ -2,8 +2,8 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity.Analyzable
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList

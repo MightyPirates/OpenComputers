@@ -1,8 +1,8 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.Localization
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity.Analyzable
 import li.cil.oc.server.PacketSender
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
