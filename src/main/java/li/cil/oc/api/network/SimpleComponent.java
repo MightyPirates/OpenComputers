@@ -1,4 +1,4 @@
-package li.cil.oc.api.tileentity;
+package li.cil.oc.api.network;
 
 /**
  * This interface can be used to easily convert tile entities to components,
@@ -36,7 +36,7 @@ package li.cil.oc.api.tileentity;
  * <p/>
  * For example:
  * <pre>
- *     {@literal @}Optional.Interface(iface = "li.cil.oc.api.tileentity.SimpleComponent", modid = "OpenComputers")
+ *     {@literal @}Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")
  *     public class TileEntityMyFancyThing extends TileEntity
  *            implements SimpleComponent
  *     {
@@ -55,7 +55,7 @@ package li.cil.oc.api.tileentity;
  * Using the alternative method to provide methods:
  * <pre>
  *     {@literal @}Optional.InterfaceList({
- *         {@literal @}Optional.Interface(iface = "li.cil.oc.api.tileentity.SimpleComponent", modid = "OpenComputers"),
+ *         {@literal @}Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
  *         {@literal @}Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
  *     })
  *     public class TileEntityMyFancyThing extends TileEntity

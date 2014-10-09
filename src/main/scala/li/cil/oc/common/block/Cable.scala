@@ -9,7 +9,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Environment
-import li.cil.oc.api.tileentity.SidedEnvironment
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods

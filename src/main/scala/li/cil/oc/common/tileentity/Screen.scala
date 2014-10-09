@@ -5,7 +5,6 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity.Analyzable
-import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity

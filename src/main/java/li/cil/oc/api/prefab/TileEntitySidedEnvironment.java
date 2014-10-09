@@ -2,13 +2,13 @@ package li.cil.oc.api.prefab;
 
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Node;
-import li.cil.oc.api.tileentity.SidedEnvironment;
+import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 
 /**
- * TileEntities can implement the {@link li.cil.oc.api.tileentity.SidedEnvironment}
+ * TileEntities can implement the {@link li.cil.oc.api.network.SidedEnvironment}
  * interface to allow them to interact with the component network, by providing
  * a separate {@link li.cil.oc.api.network.Node} for each block face, and
  * connecting it to said network. This allows more control over connectivity

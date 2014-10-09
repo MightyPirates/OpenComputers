@@ -13,7 +13,8 @@ import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.api.tileentity.SidedEnvironment
+import li.cil.oc.api.network.SidedEnvironment
+import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods

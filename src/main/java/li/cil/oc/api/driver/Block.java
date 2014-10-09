@@ -10,7 +10,7 @@ import net.minecraft.world.World;
  * placed in the world, but cannot be modified to or don't want to have their
  * {@link net.minecraft.tileentity.TileEntity} implement one of the interfaces
  * for environments ({@link li.cil.oc.api.network.Environment} or
- * {@link li.cil.oc.api.tileentity.SidedEnvironment}).
+ * {@link li.cil.oc.api.network.SidedEnvironment}).
  * <p/>
  * A block driver is used by <tt>Adapter</tt> blocks to check its neighbors and
  * whether those neighbors should be treated as components or not. If a driver

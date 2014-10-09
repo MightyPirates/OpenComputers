@@ -2,13 +2,12 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.MovingAverage
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection

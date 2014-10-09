@@ -33,7 +33,7 @@ public final class Network {
      * connected to any existing adjacent tile entity nodes. If none exist a
      * new network with the specified tile entity's node as its sole entry.
      * <p/>
-     * If the tile entity is a {@link li.cil.oc.api.tileentity.SidedEnvironment}
+     * If the tile entity is a {@link li.cil.oc.api.network.SidedEnvironment}
      * the same rules as for simple environments apply, except that the
      * respective for each side is used when connecting, and each side's node
      * is added to its own new network, if necessary.

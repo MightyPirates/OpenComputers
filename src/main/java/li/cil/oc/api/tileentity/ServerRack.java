@@ -2,6 +2,7 @@ package li.cil.oc.api.tileentity;
 
 import li.cil.oc.api.machine.Machine;
 import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.inventory.IInventory;
 
 /**

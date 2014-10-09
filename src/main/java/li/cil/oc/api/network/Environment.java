@@ -13,7 +13,7 @@ package li.cil.oc.api.network;
  * environment for the block you wish to connect instead.
  * <p/>
  * To get some more control over which sides of your block may connect to a
- * network, see {@link li.cil.oc.api.tileentity.SidedEnvironment}.
+ * network, see {@link SidedEnvironment}.
  * <p/>
  * When a tile entity implements this interface a good way of connecting and
  * disconnecting is the following pattern:

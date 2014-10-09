@@ -9,11 +9,10 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.tileentity.Analyzable
-import li.cil.oc.api.tileentity.SidedEnvironment
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.integration.Mods
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.integration.util.Waila
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
