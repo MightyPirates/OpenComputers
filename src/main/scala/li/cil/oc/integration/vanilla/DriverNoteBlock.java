@@ -11,20 +11,10 @@ import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntityNote;
 import net.minecraft.world.World;
 
-public final class DriverNoteBlock extends DriverTileEntity implements NamedBlock {
+public final class DriverNoteBlock extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityNote.class;
-    }
-
-    @Override
-    public String preferredName() {
-        return "note_block";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
     }
 
     @Override
@@ -32,9 +22,19 @@ public final class DriverNoteBlock extends DriverTileEntity implements NamedBloc
         return new Environment((TileEntityNote) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityNote> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityNote> implements NamedBlock {
         public Environment(final TileEntityNote tileEntity) {
             super(tileEntity, "note_block");
+        }
+
+        @Override
+        public String preferredName() {
+            return "note_block";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(direct = true, doc = "function():number -- Get the currently set pitch on this note block.")

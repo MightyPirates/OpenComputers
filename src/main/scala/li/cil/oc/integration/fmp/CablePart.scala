@@ -92,7 +92,7 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
 
   override def onWorldJoin() {
     super.onWorldJoin()
-    common.EventHandler.schedule(() => tile)
+    common.EventHandler.scheduleFMP(() => tile)
   }
 
   override def onWorldSeparate() {

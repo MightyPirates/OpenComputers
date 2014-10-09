@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EventHandler {
-  val pending = mutable.Buffer.empty[() => Unit]
+  private val pending = mutable.Buffer.empty[() => Unit]
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -40,8 +40,14 @@ object EventHandler {
     }
   }
 
+  def schedule(f: () => Unit) {
+    pending.synchronized {
+      pending += f
+    }
+  }
+
   @Optional.Method(modid = Mods.IDs.ForgeMultipart)
-  def schedule(tileEntity: () => TileEntity) {
+  def scheduleFMP(tileEntity: () => TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity()))
     }

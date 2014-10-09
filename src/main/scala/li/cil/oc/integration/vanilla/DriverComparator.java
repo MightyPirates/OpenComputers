@@ -10,20 +10,10 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntityComparator;
 import net.minecraft.world.World;
 
-public final class DriverComparator extends DriverTileEntity implements NamedBlock {
+public final class DriverComparator extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityComparator.class;
-    }
-
-    @Override
-    public String preferredName() {
-        return "comparator";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
     }
 
     @Override
@@ -31,9 +21,19 @@ public final class DriverComparator extends DriverTileEntity implements NamedBlo
         return new Environment((TileEntityComparator) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityComparator> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityComparator> implements NamedBlock {
         public Environment(final TileEntityComparator tileEntity) {
             super(tileEntity, "comparator");
+        }
+
+        @Override
+        public String preferredName() {
+            return "comparator";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():number -- Get the strength of the comparators output signal.")

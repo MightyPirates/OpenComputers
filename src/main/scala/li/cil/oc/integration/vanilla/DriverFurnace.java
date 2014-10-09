@@ -10,20 +10,10 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.world.World;
 
-public final class DriverFurnace extends DriverTileEntity implements NamedBlock {
+public final class DriverFurnace extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityFurnace.class;
-    }
-
-    @Override
-    public String preferredName() {
-        return "furnace";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
     }
 
     @Override
@@ -31,9 +21,19 @@ public final class DriverFurnace extends DriverTileEntity implements NamedBlock 
         return new Environment((TileEntityFurnace) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityFurnace> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityFurnace> implements NamedBlock {
         public Environment(final TileEntityFurnace tileEntity) {
             super(tileEntity, "furnace");
+        }
+
+        @Override
+        public String preferredName() {
+            return "furnace";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():number -- The number of ticks that the furnace will keep burning from the last consumed fuel.")

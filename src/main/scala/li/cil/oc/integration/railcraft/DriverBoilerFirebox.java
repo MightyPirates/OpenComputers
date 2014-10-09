@@ -11,7 +11,7 @@ import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public class DriverBoilerFirebox extends DriverTileEntity implements NamedBlock {
+public class DriverBoilerFirebox extends DriverTileEntity {
     private static final Class<?> TileBoilerFirebox = Reflection.getClass("mods.railcraft.common.blocks.machine.beta.TileBoilerFirebox");
 
     @Override
@@ -20,24 +20,23 @@ public class DriverBoilerFirebox extends DriverTileEntity implements NamedBlock 
     }
 
     @Override
-    public String preferredName() {
-        return "boiler_firebox";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
-    }
-
-    @Override
     public Class<?> getTileEntityClass() {
         return TileBoilerFirebox;
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> {
-
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> implements NamedBlock {
         public Environment(final TileEntity tileEntity) {
             super(tileEntity, "boiler_firebox");
+        }
+
+        @Override
+        public String preferredName() {
+            return "boiler_firebox";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():boolean -- Get whether the boiler is active or not")
@@ -49,6 +48,5 @@ public class DriverBoilerFirebox extends DriverTileEntity implements NamedBlock 
         public Object[] getTemperature(final Context context, final Arguments args) {
             return new Object[]{Reflection.tryInvoke(tileEntity, "getTemperature")};
         }
-
     }
 }

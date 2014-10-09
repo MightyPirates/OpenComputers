@@ -13,7 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public final class DriverSteamTurbine extends DriverTileEntity implements NamedBlock {
+public final class DriverSteamTurbine extends DriverTileEntity {
     private static final Class<?> TileSteamTurbine = Reflection.getClass("mods.railcraft.common.blocks.machine.alpha.TileSteamTurbine");
 
     @Override
@@ -22,23 +22,23 @@ public final class DriverSteamTurbine extends DriverTileEntity implements NamedB
     }
 
     @Override
-    public String preferredName() {
-        return "steam_turbine";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
-    }
-
-    @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
         return new Environment(world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> implements NamedBlock {
         public Environment(final TileEntity tileEntity) {
             super(tileEntity, "steam_turbine");
+        }
+
+        @Override
+        public String preferredName() {
+            return "steam_turbine";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():number --  Returns the output of the steam turbine")

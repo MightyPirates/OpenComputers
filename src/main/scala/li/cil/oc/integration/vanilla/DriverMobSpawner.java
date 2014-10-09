@@ -10,20 +10,10 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.world.World;
 
-public final class DriverMobSpawner extends DriverTileEntity implements NamedBlock {
+public final class DriverMobSpawner extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityMobSpawner.class;
-    }
-
-    @Override
-    public String preferredName() {
-        return "mob_spawner";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
     }
 
     @Override
@@ -31,9 +21,19 @@ public final class DriverMobSpawner extends DriverTileEntity implements NamedBlo
         return new Environment((TileEntityMobSpawner) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityMobSpawner> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityMobSpawner> implements NamedBlock {
         public Environment(final TileEntityMobSpawner tileEntity) {
             super(tileEntity, "mob_spawner");
+        }
+
+        @Override
+        public String preferredName() {
+            return "mob_spawner";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():string -- Get the name of the entity that is being spawned by this spawner.")

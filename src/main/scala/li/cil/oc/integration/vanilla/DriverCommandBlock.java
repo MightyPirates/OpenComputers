@@ -10,20 +10,10 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.world.World;
 
-public final class DriverCommandBlock extends DriverTileEntity implements NamedBlock {
+public final class DriverCommandBlock extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityCommandBlock.class;
-    }
-
-    @Override
-    public String preferredName() {
-        return "command_block";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
     }
 
     @Override
@@ -31,9 +21,19 @@ public final class DriverCommandBlock extends DriverTileEntity implements NamedB
         return new Environment((TileEntityCommandBlock) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityCommandBlock> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityCommandBlock> implements NamedBlock {
         public Environment(final TileEntityCommandBlock tileEntity) {
             super(tileEntity, "command_block");
+        }
+
+        @Override
+        public String preferredName() {
+            return "command_block";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(direct = true, doc = "function():string -- Get the command currently set in this command block.")

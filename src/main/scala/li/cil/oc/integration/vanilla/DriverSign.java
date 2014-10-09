@@ -10,20 +10,10 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.world.World;
 
-public final class DriverSign extends DriverTileEntity implements NamedBlock {
+public final class DriverSign extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntitySign.class;
-    }
-
-    @Override
-    public String preferredName() {
-        return "sign";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
     }
 
     @Override
@@ -31,9 +21,19 @@ public final class DriverSign extends DriverTileEntity implements NamedBlock {
         return new Environment((TileEntitySign) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntitySign> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntitySign> implements NamedBlock {
         public Environment(final TileEntitySign tileEntity) {
             super(tileEntity, "sign");
+        }
+
+        @Override
+        public String preferredName() {
+            return "sign";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback(doc = "function():string -- Get the text currently being displayed on the sign, as a multi-line string.")

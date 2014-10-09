@@ -8,8 +8,8 @@ object ModAppEng extends ModProxy {
   override def getMod = Mods.AppliedEnergistics2
 
   override def initialize() {
-    Driver.add(new DriverGridNode)
-    Driver.add(new DriverCellContainer)
+    Driver.add(DriverController)
+
     Driver.add(new ConverterCellInventory)
   }
 }

@@ -11,7 +11,7 @@ import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public final class DriverMassFab extends DriverTileEntity implements NamedBlock {
+public final class DriverMassFab extends DriverTileEntity {
     private static final Class<?> TileController = Reflection.getClass("ic2.core.block.machine.tileentity.TileEntityMatter");
 
     @Override
@@ -20,23 +20,23 @@ public final class DriverMassFab extends DriverTileEntity implements NamedBlock 
     }
 
     @Override
-    public String preferredName() {
-        return "mass_fab";
-    }
-
-    @Override
-    public int priority() {
-        return 0;
-    }
-
-    @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
         return new Environment(world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> implements NamedBlock {
         public Environment(final TileEntity tileEntity) {
             super(tileEntity, "mass_fab");
+        }
+
+        @Override
+        public String preferredName() {
+            return "mass_fab";
+        }
+
+        @Override
+        public int priority() {
+            return 0;
         }
 
         @Callback
