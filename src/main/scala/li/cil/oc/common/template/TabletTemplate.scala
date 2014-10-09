@@ -46,7 +46,7 @@ object TabletTemplate extends Template {
     nbt.setString("select", "li.cil.oc.common.template.TabletTemplate.select")
     nbt.setString("validate", "li.cil.oc.common.template.TabletTemplate.validate")
     nbt.setString("assemble", "li.cil.oc.common.template.TabletTemplate.assemble")
-    nbt.setString("hostClass", "li.cil.oc.common.item.TabletWrapper")
+    nbt.setString("hostClass", "li.cil.oc.api.internal.Tablet")
 
     val upgradeSlots = new NBTTagList()
     upgradeSlots.appendTag(Map("tier" -> Tier.Three))
