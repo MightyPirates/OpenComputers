@@ -3,10 +3,10 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots
@@ -18,7 +18,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with api.tileentity.Case {
+class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case {
   def this() = this(0)
 
   // Used on client side to check whether to render disk activity indicators.

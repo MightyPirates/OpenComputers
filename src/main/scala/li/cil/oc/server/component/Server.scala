@@ -5,6 +5,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
@@ -19,14 +20,14 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHost {
+class Server(val rack: tileentity.ServerRack, val slot: Int) extends MachineHost with internal.Server {
   val machine = Machine.create(this)
 
   val inventory = new NetworkedInventory()
 
   machine.onHostChanged()
 
-  def tier = Items.multi.subItem(rack.getStackInSlot(number)) match {
+  def tier = Items.multi.subItem(rack.getStackInSlot(slot)) match {
     case Some(server: item.Server) => server.tier
     case _ => 0
   }
@@ -125,7 +126,7 @@ class Server(val rack: tileentity.ServerRack, val number: Int) extends MachineHo
 
     var containerOverride: ItemStack = _
 
-    override def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(number)
+    override def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(slot)
 
     override def node() = machine.node
 

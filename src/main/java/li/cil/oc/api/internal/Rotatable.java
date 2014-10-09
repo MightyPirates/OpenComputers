@@ -1,4 +1,4 @@
-package li.cil.oc.api.tileentity;
+package li.cil.oc.api.internal;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -9,7 +9,7 @@ import net.minecraftforge.common.util.ForgeDirection;
  * {@link li.cil.oc.api.driver.Item#createEnvironment(net.minecraft.item.ItemStack, li.cil.oc.api.driver.EnvironmentHost)}
  * method.
  * <p/>
- * <em>This interface is not meant to be implemented, just used</em>
+ * This interface is <em>not meant to be implemented</em>, just used.
  */
 public interface Rotatable {
     /**

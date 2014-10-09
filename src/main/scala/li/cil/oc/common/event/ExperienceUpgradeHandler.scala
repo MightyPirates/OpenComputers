@@ -4,7 +4,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
-import li.cil.oc.api.tileentity.Robot
+import li.cil.oc.api.internal.Robot
 import li.cil.oc.server.component
 import org.lwjgl.opengl.GL11
 

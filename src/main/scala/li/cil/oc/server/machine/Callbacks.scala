@@ -10,7 +10,6 @@ import li.cil.oc.api.machine
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.ManagedPeripheral
-import li.cil.oc.api.tileentity.Robot
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 
 import scala.collection.immutable
@@ -67,12 +66,12 @@ object Callbacks {
     def shouldAdd(name: String) = !callbacks.contains(name) && (whitelist.isEmpty || whitelist.contains(name))
     for (seed <- seeds) {
       var c: Class[_] = seed
-      while (c!= null && c != classOf[Object]) {
+      while (c != null && c != classOf[Object]) {
         val ms = c.getDeclaredMethods
 
         ms.filter(_.isAnnotationPresent(classOf[machine.Callback])).foreach(m =>
           if (m.getParameterTypes.size != 2 ||
-            (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[Robot]) ||
+            m.getParameterTypes()(0) != classOf[Context] ||
             m.getParameterTypes()(1) != classOf[Arguments]) {
             OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
           }

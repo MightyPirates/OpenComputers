@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.tileentity.Robot;
+import li.cil.oc.api.internal.Robot;
 import net.minecraft.item.ItemStack;
 
 public class RobotUsedToolEvent extends RobotEvent {

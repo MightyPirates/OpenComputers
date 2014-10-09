@@ -1,6 +1,7 @@
-package li.cil.oc.api.tileentity;
+package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
+import li.cil.oc.api.machine.Machine;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
@@ -27,9 +28,14 @@ import net.minecraftforge.fluids.IFluidHandler;
  * no inventory, depending on the configuration of the robot. The hard-wired
  * components cannot be changed (removed/replaced).
  * <p/>
- * <em>This interface is not meant to be implemented, just used</em>
+ * This interface is <em>not meant to be implemented</em>, just used.
  */
 public interface Robot extends Environment, EnvironmentHost, Rotatable, ISidedInventory, IFluidHandler {
+    /**
+     * The machine currently hosted by this robot.
+     */
+    Machine machine();
+
     /**
      * Returns the fake player used to represent the robot as an entity for
      * certain actions that require one.

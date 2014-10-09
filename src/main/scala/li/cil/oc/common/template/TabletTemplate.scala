@@ -3,9 +3,9 @@ package li.cil.oc.common.template
 import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.item.TabletWrapper
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
@@ -20,7 +20,7 @@ object TabletTemplate extends Template {
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
-  override protected def hostClass = classOf[TabletWrapper]
+  override protected def hostClass = classOf[internal.Tablet]
 
   def select(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tabletCase")
 

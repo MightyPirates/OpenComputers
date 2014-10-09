@@ -7,7 +7,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.api.tileentity.Rotatable
+import li.cil.oc.api.internal.Rotatable
 import net.minecraft.tileentity.TileEntitySign
 
 class UpgradeSign(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment {

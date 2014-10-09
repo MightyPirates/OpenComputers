@@ -9,7 +9,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.api.tileentity.Rotatable
+import li.cil.oc.api.internal.Rotatable
 import net.minecraft.block.BlockPistonBase
 import net.minecraft.init.Blocks
 import net.minecraft.world.World

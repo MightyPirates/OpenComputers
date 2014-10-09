@@ -2,12 +2,12 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.server.PacketSender
 import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.api.internal
+import li.cil.oc.server.PacketSender
 import net.minecraft.nbt.NBTTagCompound
 
-trait Colored extends TileEntity with api.tileentity.Colored {
+trait Colored extends TileEntity with internal.Colored {
   private var _color = 0
 
   def color = _color

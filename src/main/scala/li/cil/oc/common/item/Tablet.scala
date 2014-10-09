@@ -18,13 +18,12 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
-import li.cil.oc.api.tileentity.Rotatable
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
@@ -119,18 +118,18 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends ComponentInventory with EnvironmentHost with MachineHost with Rotatable {
-  lazy val machine = if (holder.worldObj.isRemote) null else Machine.create(this)
+class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends ComponentInventory with MachineHost with internal.Tablet {
+  lazy val machine = if (player.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
 
-  val tablet = if (holder.worldObj.isRemote) null else new component.Tablet(this)
+  val tablet = if (player.worldObj.isRemote) null else new component.Tablet(this)
 
   private var isInitialized = !world.isRemote
 
   def items = data.items
 
-  override def facing = RotationHelper.fromYaw(holder.rotationYaw)
+  override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
   override def toLocal(value: ForgeDirection) = value // TODO do we care?
 
@@ -224,17 +223,15 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   // ----------------------------------------------------------------------- //
 
-  override def xPosition = holder.posX
+  override def xPosition = player.posX
 
-  override def yPosition = holder.posY + holder.getEyeHeight
+  override def yPosition = player.posY + player.getEyeHeight
 
-  override def zPosition = holder.posZ
+  override def zPosition = player.posZ
 
-  override def world = holder.worldObj
+  override def world = player.worldObj
 
-  override def markChanged(): Unit = {
-
-  }
+  override def markChanged() {}
 
   // ----------------------------------------------------------------------- //
 
@@ -282,7 +279,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
   // ----------------------------------------------------------------------- //
 
   def update(world: World, player: EntityPlayer, slot: Int, selected: Boolean) {
-    holder = player
+    this.player = player
     if (!isInitialized) {
       isInitialized = true
       // This delayed initialization on the client side is required to allow
@@ -376,7 +373,7 @@ object Tablet {
         currentHolder = holder
         val wrapper = cache.get(id, this)
         wrapper.stack = stack
-        wrapper.holder = holder
+        wrapper.player = holder
         wrapper
       }
     }

@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Network
+import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
@@ -32,7 +33,7 @@ import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
-class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice with api.tileentity.ServerRack {
+class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice with internal.ServerRack {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
@@ -55,7 +56,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = Array.fill(4)(0L)
 
-  override def machine(slot: Int) = servers(slot).fold(null: api.machine.Machine)(_.machine)
+  override def server(slot: Int) = servers(slot).orNull
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
@@ -272,7 +273,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       servers collect {
         case Some(server) =>
           server.inventory.updateComponents()
-          terminals(server.number).buffer.update()
+          terminals(server.slot).buffer.update()
       }
     }
   }

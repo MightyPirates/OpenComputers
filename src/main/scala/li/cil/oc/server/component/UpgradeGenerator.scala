@@ -10,7 +10,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.api.tileentity.Robot
+import li.cil.oc.api.internal.Robot
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
