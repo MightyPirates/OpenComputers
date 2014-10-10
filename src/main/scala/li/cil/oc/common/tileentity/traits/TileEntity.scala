@@ -21,9 +21,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def block = getBlockType
 
-  def isClient = SideTracker.isClient
+  def isClient = !isServer
 
-  def isServer = SideTracker.isServer
+  def isServer = if (world != null) !world.isRemote else SideTracker.isServer
 
   // ----------------------------------------------------------------------- //
 
