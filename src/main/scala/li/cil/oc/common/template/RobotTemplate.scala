@@ -1,15 +1,21 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
-import li.cil.oc.common.{Slot, Tier}
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.internal
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
-import li.cil.oc.{Settings, api}
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 
 object RobotTemplate extends Template {
+  override protected def hostClass = classOf[internal.Robot]
+
   def selectTier1(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.One
 
   def selectTier2(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Two
@@ -43,6 +49,7 @@ object RobotTemplate extends Template {
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectTier1")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.internal.Robot")
 
       val containerSlots = new NBTTagList()
       containerSlots.appendTag(Map("tier" -> Tier.Two))
@@ -76,6 +83,7 @@ object RobotTemplate extends Template {
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectTier2")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.internal.Robot")
 
       val containerSlots = new NBTTagList()
       containerSlots.appendTag(Map("tier" -> Tier.Three))
@@ -112,6 +120,7 @@ object RobotTemplate extends Template {
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectTier3")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.internal.Robot")
 
       val containerSlots = new NBTTagList()
       containerSlots.appendTag(Map("tier" -> Tier.Three))
@@ -152,6 +161,7 @@ object RobotTemplate extends Template {
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectCreative")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.internal.Robot")
 
       val containerSlots = new NBTTagList()
       containerSlots.appendTag(Map("tier" -> Tier.Three))

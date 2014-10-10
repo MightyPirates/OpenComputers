@@ -1,8 +1,10 @@
 package li.cil.oc.api.prefab;
 
 import net.minecraft.block.Block;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * If you wish to create a block component for a third-party block, i.e. a block
@@ -31,18 +33,17 @@ public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
         return worksWith(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
     }
 
-    protected boolean worksWith(final Block block, final int referenceMetadata) {
-        throw new RuntimeException("not yet implemented");
-//        for (ItemStack supportedBlock : blocks) {
-//            if (supportedBlock != null && supportedBlock.getItem() instanceof ItemBlock) {
-//                final ItemBlock supportedItemBlock = (ItemBlock) supportedBlock.getItem();
-//                final int supportedId = supportedItemBlock.getBlockID();
-//                final int supportedMetadata = supportedItemBlock.getMetadata(supportedBlock.getItemDamage());
-//                if (referenceId == supportedId && (referenceMetadata == supportedMetadata || supportedBlock.getItemDamage() == OreDictionary.WILDCARD_VALUE)) {
-//                    return true;
-//                }
-//            }
-//        }
-//        return false;
+    protected boolean worksWith(final Block referenceBlock, final int referenceMetadata) {
+        for (ItemStack stack : blocks) {
+            if (stack != null && stack.getItem() instanceof ItemBlock) {
+                final ItemBlock item = (ItemBlock) stack.getItem();
+                final Block supportedBlock = item.field_150939_a;
+                final int supportedMetadata = item.getMetadata(stack.getItemDamage());
+                if (referenceBlock == supportedBlock && (referenceMetadata == supportedMetadata || stack.getItemDamage() == OreDictionary.WILDCARD_VALUE)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

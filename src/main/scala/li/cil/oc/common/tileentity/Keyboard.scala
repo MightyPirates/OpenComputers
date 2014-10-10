@@ -1,9 +1,12 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Analyzable, SidedEnvironment}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.network.Analyzable
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
@@ -13,7 +16,7 @@ class Keyboard extends traits.Environment with traits.Rotatable with traits.Immi
 
   val keyboard = {
     val keyboardItem = api.Items.get("keyboard").createItemStack(1)
-    api.Driver.driverFor(keyboardItem).createEnvironment(keyboardItem, this)
+    api.Driver.driverFor(keyboardItem, getClass).createEnvironment(keyboardItem, this)
   }
 
   override def node = keyboard.node

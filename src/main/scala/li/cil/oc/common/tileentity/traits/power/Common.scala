@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.tileentity.traits.TileEntity
@@ -14,6 +15,23 @@ trait Common extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
+  protected def energyThroughput: Double
+
+  protected def tryAllSides(provider: (Double, ForgeDirection) => Double, ratio: Double) {
+    // We make sure to only call this every `Settings.get.tickFrequency` ticks,
+    // but our throughput is per tick, so multiply this up for actual budget.
+    var budget = energyThroughput * Settings.get.tickFrequency
+    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+      val demand = math.min(budget, globalDemand(side)) / ratio
+      if (demand > 1) {
+        val energy = provider(demand, side) * ratio
+        budget -= tryChangeBuffer(side, energy)
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
   def canConnectPower(side: ForgeDirection) =
     !Settings.get.ignorePower && side != null && side != ForgeDirection.UNKNOWN &&
       (if (isClient) hasConnector(side) else connector(side).isDefined)
@@ -22,8 +40,9 @@ trait Common extends TileEntity {
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
-        if (doReceive) amount - node.changeBuffer(amount)
-        else math.min(amount, node.globalBufferSize - node.globalBuffer)
+        val cappedAmount = math.max(-energyThroughput, math.min(energyThroughput, amount))
+        if (doReceive) amount - node.changeBuffer(cappedAmount)
+        else math.min(cappedAmount, globalDemand(side))
       case _ => 0
     }
 
@@ -40,4 +59,6 @@ trait Common extends TileEntity {
       case Some(node) => node.globalBufferSize
       case _ => 0
     }
+
+  def globalDemand(side: ForgeDirection) = math.max(0, math.min(energyThroughput, globalBufferSize(side) - globalBuffer(side)))
 }

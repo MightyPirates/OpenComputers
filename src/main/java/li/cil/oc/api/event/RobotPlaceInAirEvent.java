@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.machine.Robot;
+import li.cil.oc.api.internal.Robot;
 
 /**
  * This event is fired when a robot tries to place a block and has no point of

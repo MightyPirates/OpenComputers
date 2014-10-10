@@ -1,9 +1,11 @@
 package li.cil.oc.client.renderer
 
-import java.util.concurrent.{Callable, TimeUnit}
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.CacheBuilder
-import cpw.mods.fml.common.eventhandler.{EventPriority, SubscribeEvent}
+import cpw.mods.fml.common.eventhandler.EventPriority
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
@@ -11,7 +13,8 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.Entity
 import net.minecraftforge.client.event.RenderPlayerEvent
-import org.lwjgl.opengl.{GL11, GL12}
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -20,9 +23,9 @@ object PetRenderer {
   val hidden = mutable.Set.empty[String]
 
   private val entitledPlayers = Map(
-    "Kethtar" -> (0.3, 0.9, 0.6),
-    "Jodarion" -> (1.0, 0.0, 0.0),
-    "DaKaTotal" -> (0.5, 0.7, 1.0)
+    "Kethtar" ->(0.3, 0.9, 0.6),
+    "Jodarion" ->(1.0, 0.0, 0.0),
+    "DaKaTotal" ->(0.5, 0.7, 1.0)
   )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().

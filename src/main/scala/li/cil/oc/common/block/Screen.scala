@@ -2,91 +2,120 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.{BuildCraft, Mods}
-import li.cil.oc.util.{Color, PackedColor, Tooltip}
-import li.cil.oc.{Localization, OpenComputers, Settings}
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import net.minecraft.entity.{EntityLivingBase, Entity}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.tileentity
+import li.cil.oc.integration.util.BuildCraft
+import li.cil.oc.util.Color
+import li.cil.oc.util.PackedColor
+import li.cil.oc.util.Tooltip
+import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
-import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware with SimpleDelegate {
-  override val unlocalizedName = super.unlocalizedName + tier
+class Screen(val tier: Int) extends RedstoneAware {
+  setLightLevel(0.34f)
+
+  @SideOnly(Side.CLIENT)
+  override def getRenderColor(metadata: Int) = Color.byTier(tier)
+
+  // ----------------------------------------------------------------------- //
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
-  @SideOnly(Side.CLIENT)
-  override def color = Color.byTier(tier)
-
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
-    tooltip.addAll(Tooltip.get(super.unlocalizedName, w, h, depth))
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName, w, h, depth))
   }
 
-  @Optional.Method(modid = Mods.IDs.Waila)
-  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val node = accessor.getNBTData.getCompoundTag("node")
-    if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
-    }
-  }
+  // ----------------------------------------------------------------------- //
 
   object Icons {
     var b, b2, bbl, bbl2, bbm, bbm2, bbr, bbr2, bhb, bhb2, bhm, bhm2, bht, bht2, bml, bmm, bmr, btl, btm, btr, bvb, bvb2, bvm, bvt, f, f2, fbl, fbl2, fbm, fbm2, fbr, fbr2, fhb, fhb2, fhm, fhm2, fht, fht2, fml, fmm, fmr, ftl, ftm, ftr, fvb, fvb2, fvm, fvt = null: IIcon
 
     def fh = Array(fht, fhm, fhb)
+
     def fv = Array(fvt, fvm, fvb)
+
     def bh = Array(bht, bhm, bhb)
+
     def bv = Array(bvt, bvm, bvb)
 
     def fth = Array(ftl, ftm, ftr)
+
     def fmh = Array(fml, fmm, fmr)
+
     def fbh = Array(fbl, fbm, fbr)
+
     def bth = Array(btl, btm, btr)
+
     def bmh = Array(bml, bmm, bmr)
+
     def bbh = Array(bbl, bbm, bbr)
 
     def ftv = Array(ftl, fml, fbl)
+
     def fmv = Array(ftm, fmm, fbm)
+
     def fbv = Array(ftr, fmr, fbr)
+
     def btv = Array(btl, bml, bbl)
+
     def bmv = Array(btm, bmm, bbm)
+
     def bbv = Array(btr, bmr, bbr)
 
     def fh2 = Array(fht2, fhm2, fhb2)
+
     def fv2 = Array(fvt, fvm, fvb2)
+
     def bh2 = Array(bht2, bhm2, bhb2)
+
     def bv2 = Array(bvt, bvm, bvb2)
+
     def fbh2 = Array(fbl2, fbm2, fbr2)
+
     def bbh2 = Array(bbl2, bbm2, bbr2)
 
     def fud = Icons.fh2 ++ Icons.fv2 ++ Icons.fth ++ Icons.fmh ++ Icons.fbh2
+
     def bud = Icons.bh2.reverse ++ Icons.bv2 ++ Icons.bth.reverse ++ Icons.bmh.reverse ++ Icons.bbh2.reverse
+
     def fsn = Icons.fh ++ Icons.fv ++ Icons.fth ++ Icons.fmh ++ Icons.fbh
+
     def few = Icons.fv ++ Icons.fh ++ Icons.ftv ++ Icons.fmv ++ Icons.fbv
+
     def bsn = Icons.bh ++ Icons.bv ++ Icons.bth ++ Icons.bmh ++ Icons.bbh
+
     def bew = Icons.bv ++ Icons.bh ++ Icons.btv ++ Icons.bmv ++ Icons.bbv
 
     def sud = Array(Icons.bvt, Icons.bvm, Icons.bvb2)
+
     def sse = Array(Icons.bhb2, Icons.bhm2, Icons.bht2)
+
     def snw = Array(Icons.bht2, Icons.bhm2, Icons.bhb2)
 
     def th = Array(Icons.bhb, Icons.bhm, Icons.bht)
+
     def tv = Array(Icons.bvb, Icons.bvm, Icons.bvt)
   }
 
   // This an ugly monstrosity, but it's still better than having to manually
   // compute ambient occlusion in a custom block renderer to keep the lighting
   // pretty... which would be even more grotesque.
-  override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
+  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.width > 1 || screen.height > 1 =>
         val right = screen.width - 1
@@ -135,30 +164,30 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
               }
             }
             if (screen.height == 1) {
-              if (lx == 0) Some(ht)
-              else if (lx == right) Some(hb)
-              else Some(hm)
+              if (lx == 0) ht
+              else if (lx == right) hb
+              else hm
             }
             else if (screen.width == 1) {
-              if (ly == 0) Some(vb)
-              else if (ly == bottom) Some(vt)
-              else Some(vm)
+              if (ly == 0) vb
+              else if (ly == bottom) vt
+              else vm
             }
             else {
               if (lx == 0) {
-                if (ly == 0) Some(bl)
-                else if (ly == bottom) Some(tl)
-                else Some(ml)
+                if (ly == 0) bl
+                else if (ly == bottom) tl
+                else ml
               }
               else if (lx == right) {
-                if (ly == 0) Some(br)
-                else if (ly == bottom) Some(tr)
-                else Some(mr)
+                if (ly == 0) br
+                else if (ly == bottom) tr
+                else mr
               }
               else {
-                if (ly == 0) Some(bm)
-                else if (ly == bottom) Some(tm)
-                else Some(mm)
+                if (ly == 0) bm
+                else if (ly == bottom) tm
+                else mm
               }
             }
           case ForgeDirection.EAST | ForgeDirection.WEST =>
@@ -174,12 +203,12 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
               }
             }
             if (screen.height == 1) {
-              Some(Icons.b2)
+              Icons.b2
             }
             else {
-              if (ly == 0) Some(b)
-              else if (ly == bottom) Some(t)
-              else Some(m)
+              if (ly == 0) b
+              else if (ly == bottom) t
+              else m
             }
           case ForgeDirection.UP | ForgeDirection.DOWN =>
             val (sn, ew) =
@@ -200,15 +229,15 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
               }
             }
             if (screen.width == 1) {
-              if (screen.pitch == ForgeDirection.NORTH) Some(Icons.b)
-              else Some(Icons.b2)
+              if (screen.pitch == ForgeDirection.NORTH) Icons.b
+              else Icons.b2
             }
             else {
-              if (lx == 0) Some(b)
-              else if (lx == right) Some(t)
-              else Some(m)
+              if (lx == 0) b
+              else if (lx == right) t
+              else m
             }
-          case _ => None
+          case _ => null
         }
       case screen: tileentity.Screen =>
         val (f, b, t, s) = screen.pitch match {
@@ -216,22 +245,22 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
           case _ => (Icons.f, Icons.b, Icons.b2, Icons.b2)
         }
         localSide match {
-          case ForgeDirection.SOUTH => Some(f)
-          case ForgeDirection.NORTH => Some(b)
-          case ForgeDirection.DOWN | ForgeDirection.UP => Some(t)
-          case _ => Some(s)
+          case ForgeDirection.SOUTH => f
+          case ForgeDirection.NORTH => b
+          case ForgeDirection.DOWN | ForgeDirection.UP => t
+          case _ => s
         }
-      case _ => icon(localSide)
+      case _ => getIcon(localSide, 0)
     }
 
-  override def icon(side: ForgeDirection) =
-    Some(side match {
+  override def getIcon(side: ForgeDirection, metadata: Int) =
+    side match {
       case ForgeDirection.SOUTH => Icons.f2
       case ForgeDirection.DOWN | ForgeDirection.UP => Icons.b
       case _ => Icons.b2
-    })
+    }
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerBlockIcons(iconRegister: IIconRegister) = {
     Icons.b = iconRegister.registerIcon(Settings.resourceDomain + ":screen/b")
     Icons.b2 = iconRegister.registerIcon(Settings.resourceDomain + ":screen/b2")
     Icons.bbl = iconRegister.registerIcon(Settings.resourceDomain + ":screen/bbl")
@@ -282,33 +311,24 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
     Icons.fvt = iconRegister.registerIcon(Settings.resourceDomain + ":screen/fvt")
   }
 
-  override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
+  // ----------------------------------------------------------------------- //
+
+  override def hasTileEntity(metadata: Int) = true
+
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Screen(tier)
 
   // ----------------------------------------------------------------------- //
 
-  override def drops(world: World, x: Int, y: Int, z: Int, fortune: Int) = {
-    // Always drop the new screen block (with proper redstone support).
-    val list = new java.util.ArrayList[ItemStack]()
-    list.add(createItemStack())
-    Some(list)
-  }
-
-  override def hasTileEntity = true
-
-  override def createTileEntity(world: World) = Some(new tileentity.Screen(tier))
-
-  // ----------------------------------------------------------------------- //
-
-  override def addedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) {
-    super.addedByEntity(world, x, y, z, player, stack)
+  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) {
+    super.onBlockPlacedBy(world, x, y, z, player, stack)
     world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen => screen.delayUntilCheckForMultiBlock = 0
       case _ =>
     }
   }
 
-  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, x, y, z, player, side, hitX, hitY, hitZ, force = false)
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, x, y, z, player, side, hitX, hitY, hitZ, force = false)
 
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                  side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) =
@@ -327,13 +347,13 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
       case _ => false
     }
 
-  override def walk(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+  override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity) =
     if (!world.isRemote) world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.tier > 0 && screen.facing == ForgeDirection.UP => screen.walk(entity)
       case _ =>
     }
 
-  override def collide(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+  override def onEntityCollidedWithBlock(world: World, x: Int, y: Int, z: Int, entity: Entity) =
     if (world.isRemote) (entity, world.getTileEntity(x, y, z)) match {
       case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
         val hitX = math.max(0, math.min(1, arrow.posX - x))
@@ -362,13 +382,13 @@ class Screen(val parent: SimpleDelegator, val tier: Int) extends RedstoneAware w
 
   // ----------------------------------------------------------------------- //
 
-  override def validRotations(world: World, x: Int, y: Int, z: Int) =
+  override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen =>
         if (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) ForgeDirection.VALID_DIRECTIONS
         else ForgeDirection.VALID_DIRECTIONS.filter {
           d => d != screen.facing && d != screen.facing.getOpposite
         }
-      case _ => super.validRotations(world, x, y, z)
+      case _ => super.getValidRotations(world, x, y, z)
     }
 }

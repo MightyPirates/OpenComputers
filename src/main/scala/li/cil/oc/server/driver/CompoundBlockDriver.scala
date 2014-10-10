@@ -6,7 +6,8 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.inventory.IInventory
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 
@@ -30,9 +31,11 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   }
 
   private def tryGetName(world: World, x: Int, y: Int, z: Int, environments: Seq[ManagedEnvironment]): String = {
-    for (environment <- environments) environment match {
-      case named: NamedBlock => return named.preferredName
-      case _ =>
+    environments.collect {
+      case named: NamedBlock => named
+    }.sortBy(_.priority).headOption match {
+      case Some(named) => return named.preferredName
+      case _ => // No preferred name.
     }
     try world.getTileEntity(x, y, z) match {
       case inventory: IInventory if !Strings.isNullOrEmpty(inventory.getInventoryName) => return inventory.getInventoryName.stripPrefix("container.")

@@ -3,8 +3,10 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.common.Tier
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
+import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.util.Tooltip
-import li.cil.oc.util.mods.{BundledRedstone, Mods, WirelessRedstone}
 import net.minecraft.item.ItemStack
 
 class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate with ItemTier {
@@ -20,12 +22,12 @@ class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate with I
       if (Mods.ProjectRedTransmission.isAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".ProjectRed"))
       }
-    if (Mods.RedLogic.isAvailable) {
+      if (Mods.RedLogic.isAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedLogic"))
-    }
-    if (Mods.MineFactoryReloaded.isAvailable) {
+      }
+      if (Mods.MineFactoryReloaded.isAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".RedNet"))
-    }
+      }
       if (Mods.WirelessRedstoneCBE.isAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessCBE"))
       }

@@ -2,17 +2,20 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
-import li.cil.oc.common.component
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.prefab
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
 
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeTractorBeam(owner: Container, player: () => EntityPlayer) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class UpgradeTractorBeam(owner: EnvironmentHost, player: () => EntityPlayer) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("tractor_beam").
     create()
 

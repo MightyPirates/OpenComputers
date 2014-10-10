@@ -1,18 +1,25 @@
 package li.cil.oc.common.recipe
 
-import java.io.{File, FileReader}
+import java.io.File
+import java.io.FileReader
 
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
+import li.cil.oc.common.block.SimpleBlock
+import li.cil.oc.common.init.Items
+import li.cil.oc.integration.util.GregTech
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
-import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
+import net.minecraft.item.Item
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraftforge.oredict.OreDictionary
+import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
-import net.minecraftforge.oredict.{OreDictionary, RecipeSorter}
 import org.apache.commons.io.FileUtils
 
 import scala.collection.convert.WrapAsScala._
@@ -22,15 +29,7 @@ object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
   val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
 
-  def addBlock[T <: common.block.Delegate](delegate: T, name: String, oreDict: String = null) = {
-    Items.registerBlock(delegate, name)
-    list += delegate.createItemStack() -> name
-    register(oreDict, delegate.createItemStack())
-    delegate
-  }
-
-  def addNewBlock(instance: Block, name: String, oreDict: String = null) = {
-    GameRegistry.registerBlock(instance, classOf[common.block.Item], name)
+  def addBlock(instance: Block, name: String, oreDict: String = null) = {
     Items.registerBlock(instance, name)
     list += new ItemStack(instance) -> name
     register(oreDict, new ItemStack(instance))
@@ -335,8 +334,13 @@ object Recipes {
   private def hide(value: ItemStack) {
     Items.multi.subItem(value) match {
       case Some(stack) => stack.showInItemList = false
-      case _ => common.block.Delegator.subBlock(value) match {
-        case Some(block) => block.showInItemList = false
+      case _ => value.getItem match {
+        case itemBlock: ItemBlock => itemBlock.field_150939_a match {
+          case simple: SimpleBlock =>
+            simple.setCreativeTab(null)
+            NEI.hide(simple)
+          case _ =>
+        }
         case _ =>
       }
     }

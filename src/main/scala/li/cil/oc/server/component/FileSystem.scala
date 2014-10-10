@@ -1,25 +1,30 @@
 package li.cil.oc.server.component
 
-import java.io.{FileNotFoundException, IOException}
+import java.io.FileNotFoundException
+import java.io.IOException
 
+import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.fs.Label
+import li.cil.oc.api.fs.Mode
+import li.cil.oc.api.fs.{FileSystem => IFileSystem}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.{Sound, component}
-import li.cil.oc.server.driver.item.ComputerCraftMedia
-import li.cil.oc.server.fs.FileSystem.ItemLabel
+import li.cil.oc.api.prefab
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagIntArray, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagIntArray
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[Container] = None) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost] = None, val sound: Option[String] = None) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
     create()
@@ -60,21 +65,25 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
 
   @Callback(direct = true, doc = """function(path:string):boolean -- Returns whether an object exists at the specified absolute path in the file system.""")
   def exists(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    diskActivity()
     result(fileSystem.exists(clean(args.checkString(0))))
   }
 
   @Callback(direct = true, doc = """function(path:string):number -- Returns the size of the object at the specified absolute path in the file system.""")
   def size(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    diskActivity()
     result(fileSystem.size(clean(args.checkString(0))))
   }
 
   @Callback(direct = true, doc = """function(path:string):boolean -- Returns whether the object at the specified absolute path in the file system is a directory.""")
   def isDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    diskActivity()
     result(fileSystem.isDirectory(clean(args.checkString(0))))
   }
 
   @Callback(direct = true, doc = """function(path:string):number -- Returns the (real world) timestamp of when the object at the specified absolute path in the file system was modified.""")
   def lastModified(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    diskActivity()
     result(fileSystem.lastModified(clean(args.checkString(0))))
   }
 
@@ -82,7 +91,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
   def list(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     Option(fileSystem.list(clean(args.checkString(0)))) match {
       case Some(list) =>
-        makeSomeNoise()
+        diskActivity()
         Array(list)
       case _ => null
     }
@@ -93,7 +102,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
     val success = recurse(clean(args.checkString(0)))
-    if (success) makeSomeNoise()
+    diskActivity()
     result(success)
   }
 
@@ -102,14 +111,14 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
     val success = recurse(clean(args.checkString(0)))
-    if (success) makeSomeNoise()
+    diskActivity()
     result(success)
   }
 
   @Callback(doc = """function(from:string, to:string):boolean -- Renames/moves an object from the first specified absolute path in the file system to the second.""")
   def rename(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val success = fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1)))
-    if (success) makeSomeNoise()
+    diskActivity()
     result(success)
   }
 
@@ -138,6 +147,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     if (handle > 0) {
       owners.getOrElseUpdate(context.node.address, mutable.Set.empty[Int]) += handle
     }
+    diskActivity()
     result(handle)
   }
 
@@ -163,7 +173,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
           if (!node.tryChangeBuffer(-Settings.get.hddReadCost * bytes.length)) {
             throw new IOException("not enough energy")
           }
-          makeSomeNoise()
+          diskActivity()
           result(bytes)
         }
         else {
@@ -203,7 +213,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         file.write(value)
-        makeSomeNoise()
+        diskActivity()
         result(true)
       case _ => throw new IOException("bad file descriptor")
     }
@@ -253,10 +263,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
       val ownerNbt = list.getCompoundTagAt(index)
       val address = ownerNbt.getString("address")
       if (address != "") {
-        // Was tag list in 1.6, so wee need to check this when upgrading.
-        if (ownerNbt.hasKey("handles", NBT.TAG_INT_ARRAY)) {
-          owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]
-        }
+        owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]
       }
     })
 
@@ -304,31 +311,10 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     if (!owners.contains(owner) || !owners(owner).contains(handle))
       throw new IOException("bad file descriptor")
 
-  private lazy val floppies = Set(api.Items.get("floppy"), api.Items.get("lootDisk"), api.Items.get("openOS"))
-
-  private lazy val hdds = Set(api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"))
-
-  private def isFloppy(stack: ItemStack) = floppies contains api.Items.get(stack)
-
-  private def isHardDisk(stack: ItemStack) = hdds contains api.Items.get(stack)
-
-  private def makeSomeNoise() {
-    container.foreach(c =>
-      // Well, this is hacky as shit, but who cares.
-      label match {
-        case item: ItemLabel =>
-          if (isFloppy(item.stack)) {
-            Sound.playDiskActivity(c, isFloppy = true)
-          }
-          else if (isHardDisk(item.stack)) {
-            Sound.playDiskActivity(c, isFloppy = false)
-          }
-        case _ =>
-          if (Mods.ComputerCraft.isAvailable) {
-            if (label.isInstanceOf[ComputerCraftMedia.ComputerCraftLabel]) {
-              Sound.playDiskActivity(c, isFloppy = true)
-            }
-          }
-      })
+  private def diskActivity() {
+    (sound, host) match {
+      case (Some(s), Some(h)) => ServerPacketSender.sendFileSystemActivity(node, h, s)
+      case _ =>
+    }
   }
 }

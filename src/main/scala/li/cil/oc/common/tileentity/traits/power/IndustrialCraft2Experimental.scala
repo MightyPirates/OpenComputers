@@ -2,18 +2,36 @@ package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.Event
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.integration.Mods
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
 trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
-  private var lastInjectedAmount = 0.0
+  private var conversionBuffer = 0.0
 
-  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2.isAvailable
+  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2API.isAvailable
 
   // ----------------------------------------------------------------------- //
+
+  override def updateEntity() {
+    super.updateEntity()
+    if (useIndustrialCraft2Power && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+      updateEnergy()
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  private def updateEnergy() {
+    tryAllSides((demand, _) => {
+      val result = math.min(demand, conversionBuffer)
+      conversionBuffer -= result
+      result
+    }, Settings.get.ratioIndustrialCraft2)
+  }
 
   override def validate() {
     super.validate()
@@ -39,40 +57,35 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def getSinkTier = Int.MaxValue
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = useIndustrialCraft2Power && canConnectPower(direction)
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
-    lastInjectedAmount = amount
-    var energy = amount * Settings.get.ratioIndustrialCraft2
-    // Work around IC2 being uncooperative and always just passing 'unknown' along here.
-    if (directionFrom == ForgeDirection.UNKNOWN) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS if energy > 0) {
-        energy -= tryChangeBuffer(side, energy)
-      }
-      energy / Settings.get.ratioIndustrialCraft2
-    }
-    else amount - tryChangeBuffer(directionFrom, energy) / Settings.get.ratioIndustrialCraft2
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    conversionBuffer = nbt.getDouble(Settings.namespace + "ic2power")
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def getDemandedEnergy = {
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    nbt.setDouble(Settings.namespace + "ic2power", conversionBuffer)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  def getSinkTier: Int = Int.MaxValue
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection): Boolean = useIndustrialCraft2Power && canConnectPower(direction)
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
+    conversionBuffer += amount
+    0.0
+  }
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  def getDemandedEnergy: Double = {
     if (!useIndustrialCraft2Power) 0.0
-    else {
-      var force = false
-      val demand = ForgeDirection.VALID_DIRECTIONS.map(side => {
-        val size = globalBufferSize(side)
-        val value = globalBuffer(side)
-        val space = size - value
-        force = force || (space > size / 2)
-        space
-      }).max / Settings.get.ratioIndustrialCraft2
-      if (force || lastInjectedAmount <= 0 || demand >= lastInjectedAmount) demand
-      else 0.0
-    }
+    else if (conversionBuffer < energyThroughput * Settings.get.tickFrequency)
+      math.min(ForgeDirection.VALID_DIRECTIONS.map(globalDemand).max, energyThroughput / Settings.get.ratioIndustrialCraft2)
+    else 0
   }
 }

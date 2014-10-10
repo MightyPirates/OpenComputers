@@ -1,7 +1,8 @@
 package li.cil.oc.util
 
 import net.minecraft.entity.item.EntityMinecartContainer
-import net.minecraft.inventory.{IInventory, ISidedInventory}
+import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.AxisAlignedBB

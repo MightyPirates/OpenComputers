@@ -2,7 +2,8 @@ package li.cil.oc.client.gui
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
-import li.cil.oc.common.{Slot, Tier}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import net.minecraft.util.IIcon
 import net.minecraftforge.client.event.TextureStitchEvent
 
@@ -24,8 +25,8 @@ object Icons {
       byTier += Tier.None -> iconRegister.registerIcon(Settings.resourceDomain + ":icons/na")
       for (tier <- Tier.One to Tier.Three) {
         byTier += tier -> iconRegister.registerIcon(Settings.resourceDomain + ":icons/tier" + tier)
+      }
     }
-  }
   }
 
   def get(slotType: String) = bySlotType.get(slotType).orNull

@@ -3,14 +3,17 @@ package li.cil.oc.common.tileentity.traits.power
 import java.util
 
 import appeng.api.AEApi
-import appeng.api.config.{Actionable, PowerMultiplier}
+import appeng.api.config.Actionable
+import appeng.api.config.PowerMultiplier
 import appeng.api.networking._
 import appeng.api.networking.energy.IEnergyGrid
-import appeng.api.util.{AECableType, AEColor, DimensionalCoord}
+import appeng.api.util.AECableType
+import appeng.api.util.AEColor
+import appeng.api.util.DimensionalCoord
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -31,20 +34,18 @@ trait AppliedEnergistics2 extends Common {
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   private def updateEnergy() {
-    val grid = getGridNode(ForgeDirection.UNKNOWN).getGrid
+    tryAllSides((demand, side) => {
+      val grid = getGridNode(side).getGrid
     if (grid != null) {
       val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
       if (cache != null) {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioAppliedEnergistics2
-          if (demand > 1) {
-            val power = cache.extractAEPower(demand, Actionable.MODULATE, PowerMultiplier.CONFIG)
-            tryChangeBuffer(side, power * Settings.get.ratioAppliedEnergistics2)
+          cache.extractAEPower(demand, Actionable.MODULATE, PowerMultiplier.CONFIG)
           }
+        else 0.0
         }
+      else 0.0
+    }, Settings.get.ratioAppliedEnergistics2)
       }
-    }
-  }
 
   override def validate() {
     super.validate()
@@ -108,10 +109,10 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
 
   override def getFlags = util.EnumSet.noneOf(classOf[GridFlags])
 
-  override def isWorldAccessable = true
-
   // rv2
   def isWorldAccessible = true
+
+  override def isWorldAccessable = true
 
   override def getLocation = new DimensionalCoord(tileEntity)
 

@@ -1,13 +1,19 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.{Component, Analyzable, Node, Visibility}
+import li.cil.oc.api.network.Analyzable
+import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ItemUtils
-import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -32,6 +38,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
+
+  override protected def energyThroughput = Settings.get.chargerRate
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
@@ -129,8 +137,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def getSizeInventory = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
-    case (0, Some(driver)) => Slot(driver, stack) == Slot.Tablet
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Tablet
     case _ => false
   }
 

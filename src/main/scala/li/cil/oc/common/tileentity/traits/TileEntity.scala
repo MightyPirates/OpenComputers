@@ -1,8 +1,12 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, OpenComputers}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.client.Sound
+import li.cil.oc.common.EventHandler
+import li.cil.oc.common.block.DelegatorConverter
 import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
@@ -35,6 +39,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   override def validate() {
     super.validate()
     initialize()
+    EventHandler.schedule(() => DelegatorConverter.convert(world, x, y, z, None))
   }
 
   override def invalidate() {
@@ -57,6 +62,11 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    EventHandler.schedule(() => DelegatorConverter.convert(world, x, y, z, Option(nbt)))
+  }
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}

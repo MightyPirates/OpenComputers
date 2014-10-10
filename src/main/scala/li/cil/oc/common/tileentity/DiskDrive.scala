@@ -1,18 +1,26 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.{Analyzable, Component, Visibility}
-import li.cil.oc.common.{Slot, Sound}
+import li.cil.oc.api.network.Analyzable
+import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Sound
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
+
+  // Used on client side to check whether to render disk activity indicators.
+  var lastAccess = 0L
 
   // ----------------------------------------------------------------------- //
 
@@ -28,8 +36,8 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
 
   override def getSizeInventory = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
-    case (0, Some(driver)) => Slot(driver, stack) == Slot.Floppy
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Floppy
     case _ => false
   }
 
@@ -69,7 +77,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     if (nbt.hasKey("disk")) {
-      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("disk")))
+      setInventorySlotContents(0, ItemUtils.loadStack(nbt.getCompoundTag("disk")))
     }
   }
 }

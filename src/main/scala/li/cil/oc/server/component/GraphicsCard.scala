@@ -1,16 +1,20 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import li.cil.oc.util.PackedColor
-import li.cil.oc.{Localization, Settings}
 import net.minecraft.nbt.NBTTagCompound
 
-abstract class GraphicsCard extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Neighbors).
+abstract class GraphicsCard extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
     create()
@@ -280,7 +284,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
         val w = s.getWidth
         val h = s.getHeight
         message.source.host match {
-          case machine: machine.Machine if machine.lastError != null =>
+          case machine: li.cil.oc.server.machine.Machine if machine.lastError != null =>
             if (s.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
             else s.setBackgroundColor(0x000000)
             s.fill(0, 0, w, h, ' ')
@@ -313,7 +317,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node || screenAddress.exists(_ == node.address)) {
+    if (node == this.node || screenAddress.contains(node.address)) {
       screenAddress = None
       screenInstance = None
     }

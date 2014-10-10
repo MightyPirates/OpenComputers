@@ -5,15 +5,21 @@ import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import cpw.mods.fml.common.eventhandler.{EventPriority, SubscribeEvent}
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.machine.Owner
-import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
-import net.minecraft.world.{ChunkCoordIntPair, World}
+import cpw.mods.fml.common.eventhandler.EventPriority
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
-import org.apache.commons.lang3.{JavaVersion, SystemUtils}
+import net.minecraftforge.event.world.ChunkDataEvent
+import net.minecraftforge.event.world.WorldEvent
+import org.apache.commons.lang3.JavaVersion
+import org.apache.commons.lang3.SystemUtils
 
 import scala.collection.mutable
 
@@ -31,21 +37,21 @@ object SaveHandler {
 
   def statePath = new io.File(savePath, "state")
 
-  def scheduleSave(owner: Owner, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
-    scheduleSave(owner.world, owner.x, owner.z, nbt, name, data)
+  def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+    scheduleSave(host.world, host.xPosition, host.zPosition, nbt, name, data)
   }
 
-  def scheduleSave(owner: Owner, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(owner, nbt, name, writeNBT(save))
+  def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(host, nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(container: Container, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(container.world, math.floor(container.xPosition).toInt, math.floor(container.zPosition).toInt, nbt, name, writeNBT(save))
+  def scheduleSave(host: EnvironmentHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(host.world, math.floor(host.xPosition).toInt, math.floor(host.zPosition).toInt, nbt, name, writeNBT(save))
   }
 
-  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val dimension = world.provider.dimensionId
-    val chunk = new ChunkCoordIntPair(x >> 4, z >> 4)
+    val chunk = new ChunkCoordIntPair(math.floor(x).toInt >> 4, math.floor(z).toInt >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
@@ -56,7 +62,7 @@ object SaveHandler {
     scheduleSave(dimension, chunk, name, data)
   }
 
-  def scheduleSave(world: World, x: Int, z: Int, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
     scheduleSave(world, x, z, nbt, name, writeNBT(save))
   }
 

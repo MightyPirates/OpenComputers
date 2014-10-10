@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.api.network.Arguments
+import li.cil.oc.api.machine.Arguments
 import li.cil.oc.common.tileentity.Robot
 import net.minecraft.inventory.IInventory
 import net.minecraftforge.common.util.ForgeDirection

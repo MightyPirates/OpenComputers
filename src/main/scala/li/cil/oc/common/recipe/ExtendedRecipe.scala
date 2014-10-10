@@ -3,11 +3,13 @@ package li.cil.oc.common.recipe
 import java.util.UUID
 
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{Color, SideTracker}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.util.Color
+import li.cil.oc.util.SideTracker
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTBase, NBTTagCompound}
+import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
 

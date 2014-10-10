@@ -3,7 +3,8 @@ package li.cil.oc.common.launch
 import java.util
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.{MCVersion, TransformerExclusions}
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 import li.cil.oc.common.asm.ClassTransformer
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))

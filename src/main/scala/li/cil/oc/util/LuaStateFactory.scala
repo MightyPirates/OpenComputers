@@ -1,15 +1,18 @@
 package li.cil.oc.util
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.channels.Channels
 
 import com.google.common.base.Strings
+import li.cil.oc.server.machine.Machine
+import li.cil.oc.util.ExtendedLuaState._
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.repack.com.naef.jnlua
 import li.cil.repack.com.naef.jnlua.LuaState
 import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
-import li.cil.oc.server.component.machine.Machine
-import li.cil.oc.util.ExtendedLuaState._
-import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
 
 import scala.util.Random

@@ -4,18 +4,26 @@ import com.google.common.base.Strings
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Network
+import li.cil.oc.api.internal
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
-import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.opencomputers.DriverRedstoneCard
+import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
+import li.cil.oc.integration.util.Waila
+import li.cil.oc.server.component
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.{Mods, Waila}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
@@ -25,7 +33,7 @@ import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
-class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
+class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice with internal.ServerRack {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
@@ -38,17 +46,24 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
 
-  private var hasChanged = false
+  private var markChunkDirty = false
 
   var internalSwitch = false
 
   // For client side rendering.
   var isPresent = Array.fill[Option[String]](getSizeInventory)(None)
 
+  // Used on client side to check whether to render disk activity indicators.
+  var lastAccess = Array.fill(4)(0L)
+
+  override def server(slot: Int) = servers(slot).orNull
+
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) sidedNode(side).asInstanceOf[Connector] else null)
+
+  override protected def energyThroughput = Settings.get.serverRackRate
 
   override def getWorld = world
 
@@ -81,7 +96,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // ----------------------------------------------------------------------- //
 
-  def markAsChanged() = hasChanged = true
+  def markForSaving() = markChunkDirty = true
 
   override def installedComponents = servers.flatMap {
     case Some(server) => server.inventory.components collect {
@@ -92,7 +107,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   def hasAbstractBusCard = servers exists {
     case Some(server) => server.machine.isRunning && server.inventory.items.exists {
-      case Some(stack) => driver.item.AbstractBusCard.worksWith(stack)
+      case Some(stack) => DriverAbstractBusCard.worksWith(stack, getClass)
       case _ => false
     }
     case _ => false
@@ -100,7 +115,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   def hasRedstoneCard = servers exists {
     case Some(server) => server.machine.isRunning && server.inventory.items.exists {
-      case Some(stack) => driver.item.RedstoneCard.worksWith(stack)
+      case Some(stack) => DriverRedstoneCard.worksWith(stack, getClass)
       case _ => false
     }
     case _ => false
@@ -118,7 +133,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // ----------------------------------------------------------------------- //
 
   override protected def distribute() = {
-    def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.node.asInstanceOf[Connector]) else null
+    def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector]) else null
     val nodes = (0 to 3).map(node)
     def network(connector: Connector) = if (connector != null && connector.network != null) connector.network else this
     val (sumBuffer, sumSize) = super.distribute()
@@ -152,7 +167,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         val side = toGlobal(sides(slot))
         if (side != sourceSide) {
           servers(slot) match {
-            case Some(server) => server.node.sendToNeighbors("network.message", packet)
+            case Some(server) => server.machine.node.sendToNeighbors("network.message", packet)
             case _ =>
           }
         }
@@ -167,7 +182,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     // network messages originate from the actual server nodes themselves.
     // The otherwise come from the network card.
     if (message.name != "network.message" || !(servers collect {
-      case Some(server) => server.node
+      case Some(server) => server.machine.node
     }).contains(message.source)) super.onPlugMessage(plug, message)
   }
 
@@ -235,13 +250,13 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       servers collect {
         case Some(server) =>
           if (server.tier == Tier.Four && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-            server.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+            server.machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
           }
           server.machine.update()
       }
 
-      if (hasChanged) {
-        hasChanged = false
+      if (markChunkDirty) {
+        markChunkDirty = false
         world.markTileEntityChunkModified(x, y, z, this)
       }
 
@@ -258,7 +273,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       servers collect {
         case Some(server) =>
           server.inventory.updateComponents()
-          terminals(server.number).buffer.update()
+          terminals(server.slot).buffer.update()
       }
     }
   }

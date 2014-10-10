@@ -3,10 +3,14 @@ package li.cil.oc.common.item
 import java.util
 import java.util.UUID
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.common.{GuiType, Tier, tileentity}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.Tier
+import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

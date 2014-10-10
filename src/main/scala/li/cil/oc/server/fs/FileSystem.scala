@@ -4,11 +4,15 @@ import java.io
 import java.net.URL
 import java.util.UUID
 
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.fs.{Label, Mode}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.fs.Label
+import li.cil.oc.api.fs.Mode
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.ComputerCraft
 import li.cil.oc.server.component
-import li.cil.oc.util.mods.{ComputerCraft, Mods}
-import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
@@ -101,11 +105,11 @@ object FileSystem extends api.detail.FileSystemAPI {
     else null
   }
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: Container) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, sound: String) =
+    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(sound)))).orNull
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, container: Container) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), container)
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, sound: String) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull

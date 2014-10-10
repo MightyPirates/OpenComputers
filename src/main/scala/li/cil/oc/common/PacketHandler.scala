@@ -1,17 +1,23 @@
 package li.cil.oc.common
 
-import java.io.{DataInputStream, InputStream}
+import java.io.DataInputStream
+import java.io.InputStream
 import java.util.zip.GZIPInputStream
 
-import io.netty.buffer.{ByteBuf, ByteBufInputStream}
-import li.cil.oc.{Blocks, OpenComputers}
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufInputStream
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
+import li.cil.oc.common.block.RobotAfterimage
+import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.ClassTag
+import scala.reflect.classTag
 
 abstract class PacketHandler {
   /** Top level dispatcher based on packet type. */
@@ -54,9 +60,12 @@ abstract class PacketHandler {
           // In case a robot moved away before the packet arrived. This is
           // mostly used when the robot *starts* moving while the client sends
           // a request to the server.
-          Blocks.robotAfterimage.findMovingRobot(world, x, y, z) match {
-            case Some(robot) if classTag[T].runtimeClass.isAssignableFrom(robot.proxy.getClass) =>
-              return Some(robot.proxy.asInstanceOf[T])
+          api.Items.get("robotAfterimage").block match {
+            case afterimage: RobotAfterimage => afterimage.findMovingRobot(world, x, y, z) match {
+              case Some(robot) if classTag[T].runtimeClass.isAssignableFrom(robot.proxy.getClass) =>
+                return Some(robot.proxy.asInstanceOf[T])
+              case _ =>
+            }
             case _ =>
           }
       }
@@ -76,7 +85,7 @@ abstract class PacketHandler {
     def readItemStack() = {
       val haveStack = readBoolean()
       if (haveStack) {
-        ItemStack.loadItemStackFromNBT(readNBT())
+        ItemUtils.loadStack(readNBT())
       }
       else null
     }

@@ -44,7 +44,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
      *       // If you do not need energy remove this call.
      *       .withConnector()
      *       // This call marks the tile entity as a component. This means you
-     *       // can mark methods in it using the {@link li.cil.oc.api.network.Callback}
+     *       // can mark methods in it using the {@link li.cil.oc.api.machine.Callback}
      *       // annotation, making them callable from user code. The first
      *       // parameter is the name by which the component will be known in
      *       // the computer, in this case it could be accessed as

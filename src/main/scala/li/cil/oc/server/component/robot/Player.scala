@@ -5,27 +5,38 @@ import java.util.UUID
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.{Mods, PortalGun, TinkersConstruct}
-import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.block.{Block, BlockPistonBase}
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.PortalGun
+import li.cil.oc.integration.util.TinkersConstruct
+import net.minecraft.block.Block
+import net.minecraft.block.BlockPistonBase
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.IMerchant
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.EnumStatus
-import net.minecraft.entity.{Entity, EntityLivingBase, IMerchant}
-import net.minecraft.init.{Blocks, Items}
-import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.init.Blocks
+import net.minecraft.init.Items
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
 import net.minecraft.world.WorldServer
-import net.minecraftforge.common.util.{FakePlayer, ForgeDirection}
-import net.minecraftforge.common.{ForgeHooks, MinecraftForge}
+import net.minecraftforge.common.ForgeHooks
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.util.FakePlayer
+import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.ForgeEventFactory
+import net.minecraftforge.event.entity.player.EntityInteractEvent
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
-import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 
@@ -216,7 +227,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       posX -= offset.offsetX * 0.6
       posY -= offset.offsetY * 0.6
       posZ -= offset.offsetZ * 0.6
-      robot.computer.pause(heldTicks / 20.0)
+      robot.machine.pause(heldTicks / 20.0)
       // These are functions to avoid null pointers if newStack is null.
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
@@ -386,10 +397,10 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
     // Only if the underlying type didn't change.
     if (stack.getItem == oldStack.getItem) {
-      val damageRate = new RobotUsedTool.ComputeDamageRate(robot, oldStack, stack, Settings.get.itemDamageRate)
+      val damageRate = new RobotUsedToolEvent.ComputeDamageRate(robot, oldStack, stack, Settings.get.itemDamageRate)
       MinecraftForge.EVENT_BUS.post(damageRate)
       if (damageRate.getDamageRate < 1) {
-        MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, oldStack, stack, damageRate.getDamageRate))
+        MinecraftForge.EVENT_BUS.post(new RobotUsedToolEvent.ApplyDamageRate(robot, oldStack, stack, damageRate.getDamageRate))
       }
     }
   }

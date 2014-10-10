@@ -2,7 +2,8 @@ package li.cil.oc.common.container
 
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.inventory.ServerInventory
-import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.InventoryPlayer
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends Player(playerInventory, serverInventory) {
   for (i <- 0 to 1) {

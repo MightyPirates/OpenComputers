@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
-import li.cil.oc.api.network.{Analyzable, Node}
+import li.cil.oc.api.network.Analyzable
+import li.cil.oc.api.network.Node
 import net.minecraft.entity.player.EntityPlayer
 
 trait NotAnalyzable extends Analyzable {

@@ -1,24 +1,33 @@
 package li.cil.oc.server.component
 
-import java.io.{BufferedWriter, FileNotFoundException, IOException, OutputStreamWriter}
+import java.io.BufferedWriter
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.OutputStreamWriter
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
-import java.util.concurrent.{Callable, ExecutionException}
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutionException
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
-import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 
 import scala.collection.mutable
 
-class InternetCard extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class InternetCard extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("internet", Visibility.Neighbors).
     create()
 

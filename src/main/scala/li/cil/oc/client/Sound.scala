@@ -1,19 +1,28 @@
 package li.cil.oc.client
 
-import java.net.{MalformedURLException, URL, URLConnection, URLStreamHandler}
-import java.util.{Timer, TimerTask, UUID}
+import java.net.MalformedURLException
+import java.net.URL
+import java.net.URLConnection
+import java.net.URLStreamHandler
+import java.util.Timer
+import java.util.TimerTask
+import java.util.UUID
 
 import cpw.mods.fml.client.FMLClientHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.ReflectionHelper
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
-import net.minecraft.client.audio.{SoundCategory, SoundManager, SoundPoolEntry}
+import net.minecraft.client.audio.SoundCategory
+import net.minecraft.client.audio.SoundManager
+import net.minecraft.client.audio.SoundPoolEntry
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.WorldEvent
-import paulscode.sound.{SoundSystem, SoundSystemConfig}
+import paulscode.sound.SoundSystem
+import paulscode.sound.SoundSystemConfig
 
 import scala.collection.mutable
 

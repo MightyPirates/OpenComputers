@@ -1,22 +1,37 @@
 package li.cil.oc.common.block
 
 import codechicken.lib.vec.Cuboid6
-import codechicken.multipart.{JNormalOcclusion, NormalOcclusionTest, TFacePart, TileMultipart}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import codechicken.multipart.JNormalOcclusion
+import codechicken.multipart.NormalOcclusionTest
+import codechicken.multipart.TFacePart
+import codechicken.multipart.TileMultipart
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
-import li.cil.oc.api.network.{Environment, SidedEnvironment}
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.client.Textures
-import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.fmp.CablePart
 import li.cil.oc.util.Color
-import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
+class Cable extends SimpleBlock with traits.SpecialBlock {
+  setLightOpacity(0)
+
+  // For Immibis Microblock support.
+  val ImmibisMicroblocks_TransformableBlockMarker = null
+
+  // For FMP part coloring.
+  var colorMultiplierOverride: Option[Int] = None
+
   override protected def customTextures = Array(
     Some("CablePart"),
     Some("CablePart"),
@@ -26,37 +41,32 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
     Some("CablePart")
   )
 
-  // ----------------------------------------------------------------------- //
-
   @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IconRegister) {
-    super.registerIcons(iconRegister)
+  override def registerBlockIcons(iconRegister: IIconRegister) {
+    super.registerBlockIcons(iconRegister)
     Textures.Cable.iconCap = iconRegister.registerIcon(Settings.resourceDomain + ":CableCap")
   }
 
-  override def hasTileEntity = true
-
-  override def createTileEntity(world: World) = Some(new tileentity.Cable())
-
-  // ----------------------------------------------------------------------- //
-
-  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = false
-
-  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
-
-  override def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
+  override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    colorMultiplierOverride.getOrElse(super.colorMultiplier(world, x, y, z))
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   // ----------------------------------------------------------------------- //
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) {
+  override def hasTileEntity(metadata: Int) = true
+
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Cable()
+
+  // ----------------------------------------------------------------------- //
+
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
     world.markBlockForUpdate(x, y, z)
-    super.neighborBlockChanged(world, x, y, z, block)
+    super.onNeighborBlockChange(world, x, y, z, block)
   }
 
-  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {
-    parent.setBlockBounds(Cable.bounds(world, x, y, z))
+  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int): Unit = {
+    setBlockBounds(Cable.bounds(world, x, y, z))
   }
 }
 

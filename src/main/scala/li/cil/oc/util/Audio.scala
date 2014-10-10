@@ -9,7 +9,9 @@ import li.cil.oc.OpenComputers
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
 import org.lwjgl.BufferUtils
-import org.lwjgl.openal.{AL, AL10, Util}
+import org.lwjgl.openal.AL
+import org.lwjgl.openal.AL10
+import org.lwjgl.openal.Util
 
 import scala.collection.mutable
 

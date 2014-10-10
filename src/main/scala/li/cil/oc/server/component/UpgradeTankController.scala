@@ -2,22 +2,40 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.fluids.{FluidContainerRegistry, IFluidContainerItem, IFluidHandler}
+import net.minecraftforge.fluids.FluidContainerRegistry
+import net.minecraftforge.fluids.IFluidContainerItem
+import net.minecraftforge.fluids.IFluidHandler
 
-class UpgradeTankController(val owner: Container with Robot) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("tank_controller", Visibility.Neighbors).
-    withConnector().
     create()
 
   // ----------------------------------------------------------------------- //
+
+  @Callback(doc = """function(side:number):number -- Get the amount of fluid in the tank on the specified side of the robot. Back refers to the robot's own selected tank.""")
+  def getTankLevel(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForTank(args, 0)
+    if (facing == owner.facing.getOpposite) result(owner.getFluidTank(owner.selectedTank).fold(0)(_.getFluidAmount))
+    else owner.world.getTileEntity(math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
+      case handler: IFluidHandler =>
+        result((owner.getFluidTank(owner.selectedTank) match {
+          case Some(tank) => handler.getTankInfo(facing.getOpposite).filter(info => info.fluid == null || info.fluid.isFluidEqual(tank.getFluid))
+          case _ => handler.getTankInfo(facing.getOpposite)
+        }).map(info => Option(info.fluid).fold(0)(_.amount)).sum)
+      case _ => result(Unit, "no tank")
+    }
+  }
 
   @Callback(doc = """function(side:number):number -- Get the capacity of the tank on the specified side of the robot. Back refers to the robot's own selected tank.""")
   def getTankCapacity(context: Context, args: Arguments): Array[AnyRef] = {

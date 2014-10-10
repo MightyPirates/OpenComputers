@@ -11,12 +11,15 @@ import li.cil.oc.api.Network
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.util.{LuaStateFactory, SideTracker, mods}
+import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.LuaStateFactory
+import li.cil.oc.util.SideTracker
+import li.cil.oc.util.UpdateCheck
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
@@ -29,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EventHandler {
-  val pending = mutable.Buffer.empty[() => Unit]
+  private val pending = mutable.Buffer.empty[() => Unit]
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -37,8 +40,14 @@ object EventHandler {
     }
   }
 
+  def schedule(f: () => Unit) {
+    pending.synchronized {
+      pending += f
+    }
+  }
+
   @Optional.Method(modid = Mods.IDs.ForgeMultipart)
-  def schedule(tileEntity: () => TileEntity) {
+  def scheduleFMP(tileEntity: () => TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity()))
     }
@@ -53,7 +62,7 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
@@ -85,8 +94,8 @@ object EventHandler {
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!rs.owner.isInvalid) {
-        mods.WirelessRedstone.addReceiver(rs)
-        mods.WirelessRedstone.updateOutput(rs)
+        util.WirelessRedstone.addReceiver(rs)
+        util.WirelessRedstone.updateOutput(rs)
       })
     }
   }
@@ -111,7 +120,7 @@ object EventHandler {
         if (!LuaStateFactory.isAvailable) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)
         }
-        if (Mods.ProjectRedTransmission.isAvailable && !mods.ProjectRed.isAPIAvailable) {
+        if (Mods.ProjectRedTransmission.isAvailable && !util.ProjectRed.isAPIAvailable) {
           player.addChatMessage(Localization.Chat.WarningProjectRed)
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
@@ -150,7 +159,7 @@ object EventHandler {
           if (stack != null && api.Items.get(stack) == navigationUpgrade) {
             // Restore the map currently used in the upgrade.
             val nbt = driver.dataTag(stack)
-            val map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
+            val map = ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
             if (!e.player.inventory.addItemStackToInventory(map)) {
               e.player.dropPlayerItemWithRandomChoice(map, false)
             }

@@ -1,7 +1,9 @@
 package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
-import li.cil.oc.util.{PackedColor, RenderState, TextBuffer}
+import li.cil.oc.util.PackedColor
+import li.cil.oc.util.RenderState
+import li.cil.oc.util.TextBuffer
 import org.lwjgl.opengl.GL11
 
 /**

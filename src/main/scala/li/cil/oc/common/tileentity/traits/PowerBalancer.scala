@@ -1,7 +1,8 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
-import li.cil.oc.api.network.{Connector, SidedEnvironment}
+import li.cil.oc.api.network.Connector
+import li.cil.oc.api.network.SidedEnvironment
 import net.minecraftforge.common.util.ForgeDirection
 
 trait PowerBalancer extends PowerInformation with SidedEnvironment {

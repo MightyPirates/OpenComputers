@@ -1,11 +1,17 @@
 package li.cil.oc.common.component
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
-import li.cil.oc.api.network.{Component, Node, Visibility}
-import li.cil.oc.common.{item, tileentity}
+import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.init.Items
+import li.cil.oc.common.item
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Items, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -15,7 +21,7 @@ import scala.collection.mutable
 class Terminal(val rack: tileentity.ServerRack, val number: Int) {
   val buffer = {
     val screenItem = api.Items.get("screen1").createItemStack(1)
-    val buffer = api.Driver.driverFor(screenItem).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
+    val buffer = api.Driver.driverFor(screenItem, rack.getClass).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
     val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(1)
     buffer.setMaximumResolution(maxWidth, maxHeight)
     buffer.setMaximumColorDepth(Settings.screenDepthsByTier(1))
@@ -24,7 +30,7 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
 
   val keyboard = {
     val keyboardItem = api.Items.get("keyboard").createItemStack(1)
-    val keyboard = api.Driver.driverFor(keyboardItem).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
+    val keyboard = api.Driver.driverFor(keyboardItem, rack.getClass).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
     keyboard.setUsableOverride(new UsabilityChecker {
       override def isUsableByPlayer(keyboard: api.component.Keyboard, player: EntityPlayer) = {
         val stack = player.getCurrentEquippedItem

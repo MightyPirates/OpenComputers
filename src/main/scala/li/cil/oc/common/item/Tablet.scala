@@ -1,23 +1,37 @@
 package li.cil.oc.common.item
 
 import java.util.UUID
-import java.util.concurrent.{Callable, TimeUnit}
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 
-import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.RemovalListener
+import com.google.common.cache.RemovalNotification
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, ServerTickEvent}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.driver.Container
-import li.cil.oc.api.machine.Owner
-import li.cil.oc.api.network.{Message, Node}
-import li.cil.oc.api.{Machine, Rotatable}
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
+import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.Driver
+import li.cil.oc.api.Machine
+import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.internal
+import li.cil.oc.api.machine.Architecture
+import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Node
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.ItemUtils.TabletData
-import li.cil.oc.util.{ItemUtils, RotationHelper}
-import li.cil.oc.{Localization, OpenComputers, Settings, api}
+import li.cil.oc.util.RotationHelper
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -39,13 +53,10 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   @SideOnly(Side.CLIENT)
   override def icon(stack: ItemStack, pass: Int) = {
-    val nbt = stack.getTagCompound
-    if (nbt != null) {
-      val data = new ItemUtils.TabletData()
-      data.load(nbt)
+    if (stack.hasTagCompound) {
+      val data = new ItemUtils.TabletData(stack)
       if (data.isRunning) iconOn else iconOff
-    }
-    else super.icon(stack, pass)
+    } else super.icon(stack, pass)
   }
 
   override def registerIcons(iconRegister: IconRegister) = {
@@ -93,27 +104,32 @@ class Tablet(val parent: Delegator) extends Delegate {
         player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
       }
       else {
-        Tablet.get(stack, player).start()
+        val computer = Tablet.get(stack, player).machine
+        computer.start()
+        computer.lastError match {
+          case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+          case _ =>
+        }
       }
     }
-    else if (!world.isRemote) Tablet.Server.get(stack, player).computer.stop()
+    else if (!world.isRemote) Tablet.Server.get(stack, player).machine.stop()
     player.swingItem()
     stack
   }
 }
 
-class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends ComponentInventory with Container with Owner with Rotatable {
-  lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
+class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends ComponentInventory with MachineHost with internal.Tablet {
+  lazy val machine = if (player.worldObj.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
 
-  val tablet = if (holder.worldObj.isRemote) null else new component.Tablet(this)
+  val tablet = if (player.worldObj.isRemote) null else new component.Tablet(this)
 
   private var isInitialized = !world.isRemote
 
   def items = data.items
 
-  override def facing = RotationHelper.fromYaw(holder.rotationYaw)
+  override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
   override def toLocal(value: ForgeDirection) = value // TODO do we care?
 
@@ -125,7 +141,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
       load(data)
       if (!world.isRemote) {
         tablet.load(data.getCompoundTag(Settings.namespace + "component"))
-        computer.load(data.getCompoundTag(Settings.namespace + "data"))
+        machine.load(data.getCompoundTag(Settings.namespace + "data"))
       }
     }
   }
@@ -140,7 +156,7 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
         data.setTag(Settings.namespace + "data", new NBTTagCompound())
       }
       data.setNewCompoundTag(Settings.namespace + "component", tablet.save)
-      data.setNewCompoundTag(Settings.namespace + "data", computer.save)
+      data.setNewCompoundTag(Settings.namespace + "data", machine.save)
 
       // Force tablets into stopped state to avoid errors when trying to
       // load deleted machine states.
@@ -151,8 +167,8 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   readFromNBT()
   if (!world.isRemote) {
-    api.Network.joinNewNetwork(computer.node)
-    computer.stop()
+    api.Network.joinNewNetwork(machine.node)
+    machine.stop()
     val charge = math.max(0, this.data.energy - tablet.node.globalBuffer)
     tablet.node.changeBuffer(charge)
     writeToNBT()
@@ -195,39 +211,52 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   override def onMessage(message: Message) {}
 
-  override def componentContainer = this
+  override def host = this
 
   override def getSizeInventory = items.length
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 
-  override def isUseableByPlayer(player: EntityPlayer) = canInteract(player.getCommandSenderName)
+  override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getCommandSenderName)
 
   override def markDirty() {}
 
   // ----------------------------------------------------------------------- //
 
-  override def xPosition = holder.posX
+  override def xPosition = player.posX
 
-  override def yPosition = holder.posY + 1
+  override def yPosition = player.posY + player.getEyeHeight
 
-  override def zPosition = holder.posZ
+  override def zPosition = player.posZ
+
+  override def world = player.worldObj
 
   override def markChanged() {}
 
   // ----------------------------------------------------------------------- //
 
-  override def x = holder.posX.toInt
+  override def cpuArchitecture: Class[_ <: Architecture] = {
+    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
+      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
+        case Some(driver: api.driver.item.Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
+        case _ =>
+      }
+      case _ =>
+    }
+    null
+  }
 
-  override def y = holder.posY.toInt + 1
+  override def callBudget = items.foldLeft(0.0)((acc, item) => acc + (item match {
+    case Some(itemStack) => Option(Driver.driverFor(itemStack, getClass)) match {
+      case Some(driver: Processor) if driver.slot(itemStack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
+      case _ => 0
+    }
+    case _ => 0
+  }))
 
-  override def z = holder.posZ.toInt
-
-  override def world = holder.worldObj
-
-  override def installedMemory = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
-    case Some(item) => Option(api.Driver.driverFor(item)) match {
-      case Some(driver: api.driver.Memory) => driver.amount(item)
+  override def installedMemory = items.foldLeft(0)((acc, item) => acc + (item match {
+    case Some(itemStack) => Option(api.Driver.driverFor(itemStack, getClass)) match {
+      case Some(driver: api.driver.item.Memory) => driver.amount(itemStack)
       case _ => 0
     }
     case _ => 0
@@ -235,7 +264,9 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   override def maxComponents = 32
 
-  override def markAsChanged() {}
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+
+  override def markForSaving() {}
 
   override def onMachineConnect(node: Node) = onConnect(node)
 
@@ -243,33 +274,12 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
 
   // ----------------------------------------------------------------------- //
 
-  override def node = Option(computer).fold(null: Node)(_.node)
-
-  override def canInteract(player: String) = computer.canInteract(player)
-
-  override def isRunning = computer.isRunning
-
-  override def isPaused = computer.isPaused
-
-  override def start() = {
-    val result = computer.start()
-    computer.lastError match {
-      case message if message != null => holder.addChatMessage(Localization.Analyzer.LastError(message))
-      case _ =>
-    }
-    result
-  }
-
-  override def pause(seconds: Double) = computer.pause(seconds)
-
-  override def stop() = computer.stop()
-
-  override def signal(name: String, args: AnyRef*) = computer.signal(name, args)
+  override def node = Option(machine).fold(null: Node)(_.node)
 
   // ----------------------------------------------------------------------- //
 
   def update(world: World, player: EntityPlayer, slot: Int, selected: Boolean) {
-    holder = player
+    this.player = player
     if (!isInitialized) {
       isInitialized = true
       // This delayed initialization on the client side is required to allow
@@ -284,9 +294,9 @@ class TabletWrapper(var stack: ItemStack, var holder: EntityPlayer) extends Comp
       }
     }
     if (!world.isRemote) {
-      computer.update()
+      machine.update()
       updateComponents()
-      data.isRunning = computer.isRunning
+      data.isRunning = machine.isRunning
       data.energy = tablet.node.globalBuffer()
       data.maxEnergy = tablet.node.globalBufferSize()
     }
@@ -363,7 +373,7 @@ object Tablet {
         currentHolder = holder
         val wrapper = cache.get(id, this)
         wrapper.stack = stack
-        wrapper.holder = holder
+        wrapper.player = holder
         wrapper
       }
     }
@@ -377,8 +387,8 @@ object Tablet {
       if (tablet.node != null) {
         // Server.
         tablet.writeToNBT()
-        tablet.computer.stop()
-        for (node <- tablet.computer.node.network.nodes) {
+        tablet.machine.stop()
+        for (node <- tablet.machine.node.network.nodes) {
           node.remove()
         }
         tablet.writeToNBT()

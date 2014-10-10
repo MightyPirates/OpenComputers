@@ -1,14 +1,22 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.SaveHandler
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.mods.{Mods, Waila}
-import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{Vec3, AxisAlignedBB}
+import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.Vec3
 import net.minecraftforge.common.util.ForgeDirection
 
 class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable {
@@ -347,15 +355,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 1
     super.readFromNBT(nbt)
-    if (nbt.hasKey(Settings.namespace + "volume") && nbt.hasKey(Settings.namespace + "colors")) {
-      nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
-      nbt.getIntArray(Settings.namespace + "colors").map(convertColor).copyToArray(colors)
-    }
-    else {
-      val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
-      tag.getIntArray("volume").copyToArray(volume)
-      tag.getIntArray("colors").map(convertColor).copyToArray(colors)
-    }
+    val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
+    tag.getIntArray("volume").copyToArray(volume)
+    tag.getIntArray("colors").map(convertColor).copyToArray(colors)
     scale = nbt.getDouble(Settings.namespace + "scale")
     translation.xCoord = nbt.getDouble(Settings.namespace + "offsetX")
     translation.yCoord = nbt.getDouble(Settings.namespace + "offsetY")

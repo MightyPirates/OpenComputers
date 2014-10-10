@@ -1,9 +1,16 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -11,10 +18,24 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 
-class AccessPoint extends Switch with WirelessEndpoint {
+class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor {
   var strength = Settings.get.maxWirelessRange
 
-  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withComponent("access_point").create())
+  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+    withComponent("access_point").
+    create())
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override protected def hasConnector(side: ForgeDirection) = true
+
+  override protected def connector(side: ForgeDirection) = sidedNode(side) match {
+    case connector: Connector => Option(connector)
+    case _ => None
+  }
+
+  override protected def energyThroughput = Settings.get.accessPointRate
 
   // ----------------------------------------------------------------------- //
 
@@ -49,15 +70,17 @@ class AccessPoint extends Switch with WirelessEndpoint {
   override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
     super.relayPacket(sourceSide, packet)
     if (strength > 0) {
-      if (sourceSide == null || sourceSide == ForgeDirection.UNKNOWN || {
-        val cost = Settings.get.wirelessCostPerRange
-        val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
-        connector.tryChangeBuffer(-strength * cost)
-      }) api.Network.sendWirelessPacket(this, strength, packet)
+      val cost = Settings.get.wirelessCostPerRange
+      val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
+      if (connector.tryChangeBuffer(-strength * cost)) {
+        api.Network.sendWirelessPacket(this, strength, packet)
+      }
     }
   }
 
-  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).withConnector().create()
+  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).
+    withConnector(math.round(Settings.get.bufferAccessPoint)).
+    create()
 
   // ----------------------------------------------------------------------- //
 

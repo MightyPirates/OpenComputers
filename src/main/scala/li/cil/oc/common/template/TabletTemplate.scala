@@ -1,14 +1,17 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
-import li.cil.oc.{Settings, api}
-import li.cil.oc.common.{Slot, Tier}
-import li.cil.oc.server.driver.item
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.internal
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 
 import scala.collection.mutable
 
@@ -17,16 +20,11 @@ object TabletTemplate extends Template {
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
+  override protected def hostClass = classOf[internal.Tablet]
+
   def select(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tabletCase")
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
-
-  def validateUpgrade(inventory: IInventory, slot: Int, tier: Int, stack: ItemStack): Boolean = Option(api.Driver.driverFor(stack)) match {
-    case Some(driver) if Slot(driver, stack) == Slot.Upgrade =>
-      driver != item.Screen &&
-        Slot(driver, stack) == Slot.Upgrade && driver.tier(stack) <= tier
-    case _ => false
-  }
 
   def assemble(inventory: IInventory): Array[AnyRef] = {
     val items = mutable.ArrayBuffer(
@@ -48,11 +46,12 @@ object TabletTemplate extends Template {
     nbt.setString("select", "li.cil.oc.common.template.TabletTemplate.select")
     nbt.setString("validate", "li.cil.oc.common.template.TabletTemplate.validate")
     nbt.setString("assemble", "li.cil.oc.common.template.TabletTemplate.assemble")
+    nbt.setString("hostClass", "li.cil.oc.api.internal.Tablet")
 
     val upgradeSlots = new NBTTagList()
-    upgradeSlots.appendTag(Map("tier" -> Tier.Three, "validate" -> "li.cil.oc.common.template.TabletTemplate.validateUpgrade"))
-    upgradeSlots.appendTag(Map("tier" -> Tier.Two, "validate" -> "li.cil.oc.common.template.TabletTemplate.validateUpgrade"))
-    upgradeSlots.appendTag(Map("tier" -> Tier.One, "validate" -> "li.cil.oc.common.template.TabletTemplate.validateUpgrade"))
+    upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+    upgradeSlots.appendTag(Map("tier" -> Tier.Two))
+    upgradeSlots.appendTag(Map("tier" -> Tier.One))
     nbt.setTag("upgradeSlots", upgradeSlots)
 
     val componentSlots = new NBTTagList()

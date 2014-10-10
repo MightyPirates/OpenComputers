@@ -3,7 +3,7 @@ package li.cil.oc.client.renderer.block
 import codechicken.multipart.TileMultipart
 import li.cil.oc.client.Textures
 import li.cil.oc.common
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.tileentity.TileEntity

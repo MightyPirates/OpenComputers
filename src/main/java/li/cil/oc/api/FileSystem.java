@@ -1,7 +1,7 @@
 package li.cil.oc.api;
 
 import li.cil.oc.api.detail.FileSystemAPI;
-import li.cil.oc.api.driver.Container;
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
 
@@ -143,33 +143,42 @@ public final class FileSystem {
      * <p/>
      * The container may be <tt>null</tt>, if no such context can be provided.
      *
-     * @param fileSystem the file system to wrap.
-     * @param label      the label of the file system.
-     * @param container  the tile entity containing the file system.
+     * @param fileSystem  the file system to wrap.
+     * @param label       the label of the file system.
+     * @param host        the tile entity containing the file system.
+     * @param accessSound the name of the sound effect to play when the file
+     *                    system is accessed. This has to be the fully
+     *                    qualified resource name, e.g.
+     *                    <tt>opencomputers:floppy_access</tt>.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final Container container) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final EnvironmentHost host, final String accessSound) {
         if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label, container);
+            return instance.asManagedEnvironment(fileSystem, label, host, accessSound);
         return null;
     }
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, Container)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, li.cil.oc.api.driver.EnvironmentHost, String)},
      * but creates a read-only label initialized to the specified value.
      *
-     * @param fileSystem the file system to wrap.
-     * @param label      the read-only label of the file system.
+     * @param fileSystem  the file system to wrap.
+     * @param label       the read-only label of the file system.
+     * @param host        the tile entity containing the file system.
+     * @param accessSound the name of the sound effect to play when the file
+     *                    system is accessed. This has to be the fully
+     *                    qualified resource name, e.g.
+     *                    <tt>opencomputers:floppy_access</tt>.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final Container container) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final EnvironmentHost host, final String accessSound) {
         if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label, container);
+            return instance.asManagedEnvironment(fileSystem, label, host, accessSound);
         return null;
     }
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, Container)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, li.cil.oc.api.driver.EnvironmentHost, String)},
      * but does not provide a container.
      *
      * @param fileSystem the file system to wrap.

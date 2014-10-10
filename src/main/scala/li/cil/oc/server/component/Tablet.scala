@@ -2,12 +2,15 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
-import li.cil.oc.common.component
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.prefab
 import li.cil.oc.common.item.TabletWrapper
 
-class Tablet(val tablet: TabletWrapper) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class Tablet(val tablet: TabletWrapper) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("tablet").
     withConnector(Settings.get.bufferTablet).
     create()
@@ -15,5 +18,5 @@ class Tablet(val tablet: TabletWrapper) extends component.ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function():boolean -- Whether the local bus interface is enabled.""")
-  def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(tablet.holder.rotationPitch)
+  def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.rotationPitch)
 }

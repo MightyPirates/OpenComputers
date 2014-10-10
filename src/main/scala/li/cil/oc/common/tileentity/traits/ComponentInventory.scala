@@ -1,12 +1,13 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.inventory
 import net.minecraft.nbt.NBTTagCompound
 
 trait ComponentInventory extends Environment with Inventory with inventory.ComponentInventory {
-  override def componentContainer = this
+  override def host = this
 
   override def isComponentSlot(slot: Int) = isServer
 

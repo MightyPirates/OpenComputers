@@ -1,13 +1,17 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.Network
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.{Network, Rotatable}
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
+import li.cil.oc.api.internal.Rotatable
 import net.minecraft.tileentity.TileEntitySign
 
-class UpgradeSign(val owner: Container with Rotatable) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class UpgradeSign(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("sign", Visibility.Neighbors).
     withConnector().
     create()
@@ -28,17 +32,17 @@ class UpgradeSign(val owner: Container with Rotatable) extends component.Managed
     findSign match {
       case Some(sign) =>
         text.copyToArray(sign.signText)
-        owner.world.markBlockForUpdate(sign.xCoord, sign.yCoord, sign.zCoord)
+        host.world.markBlockForUpdate(sign.xCoord, sign.yCoord, sign.zCoord)
         result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
     }
   }
 
   private def findSign = {
-    val (x, y, z) = (math.floor(owner.xPosition).toInt, math.floor(owner.yPosition).toInt, math.floor(owner.zPosition).toInt)
-    owner.world.getTileEntity(x, y, z) match {
+    val (x, y, z) = (math.floor(host.xPosition).toInt, math.floor(host.yPosition).toInt, math.floor(host.zPosition).toInt)
+    host.world.getTileEntity(x, y, z) match {
       case sign: TileEntitySign => Option(sign)
-      case _ => owner.world.getTileEntity(x + owner.facing.offsetX, y + owner.facing.offsetY, z + owner.facing.offsetZ) match {
+      case _ => host.world.getTileEntity(x + host.facing.offsetX, y + host.facing.offsetY, z + host.facing.offsetZ) match {
         case sign: TileEntitySign => Option(sign)
         case _ => None
       }

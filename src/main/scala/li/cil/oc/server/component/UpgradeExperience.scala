@@ -1,12 +1,16 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
-import li.cil.oc.common.component
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.prefab
 import net.minecraft.nbt.NBTTagCompound
 
-class UpgradeExperience extends component.ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+class UpgradeExperience extends prefab.ManagedEnvironment {
+  override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("experience").
     withConnector(30 * Settings.get.bufferPerLevel).
     create()

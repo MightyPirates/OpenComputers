@@ -1,19 +1,28 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{InventoryUtils, ItemUtils}
-import li.cil.oc.{OpenComputers, Settings, api}
-import net.minecraft.item.crafting.{CraftingManager, IRecipe, ShapedRecipes, ShapelessRecipes}
-import net.minecraft.item.{ItemBucket, ItemStack}
+import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.ItemUtils
+import net.minecraft.item.ItemBucket
+import net.minecraft.item.ItemStack
+import net.minecraft.item.crafting.CraftingManager
+import net.minecraft.item.crafting.IRecipe
+import net.minecraft.item.crafting.ShapedRecipes
+import net.minecraft.item.crafting.ShapelessRecipes
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.oredict.{ShapedOreRecipe, ShapelessOreRecipe}
+import net.minecraftforge.oredict.ShapedOreRecipe
+import net.minecraftforge.oredict.ShapelessOreRecipe
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -44,6 +53,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override protected def hasConnector(side: ForgeDirection) = side != ForgeDirection.UP
 
   override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
+
+  override protected def energyThroughput = Settings.get.disassemblerRate
 
   // ----------------------------------------------------------------------- //
 
@@ -200,9 +211,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     queue.clear()
-    queue ++= nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).map((list, index) => {
-      ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(index))
-    })
+    queue ++= nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).
+      map((list, index) => ItemUtils.loadStack(list.getCompoundTagAt(index)))
     buffer = nbt.getDouble(Settings.namespace + "buffer")
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     isActive = queue.nonEmpty

@@ -1,20 +1,30 @@
 package li.cil.oc.server.component.robot
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.event.RobotPlaceInAirEvent
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.api.prefab
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.{OpenComputers, Settings, api}
-import net.minecraft.entity.item.{EntityItem, EntityMinecart}
-import net.minecraft.entity.{Entity, EntityLivingBase}
-import net.minecraft.item.{ItemBlock, ItemStack}
+import li.cil.oc.util.ResultWrapper.result
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.item.EntityItem
+import net.minecraft.entity.item.EntityMinecart
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
-import net.minecraft.util.{MovingObjectPosition, Vec3}
+import net.minecraft.util.Vec3
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
@@ -22,8 +32,8 @@ import net.minecraftforge.fluids._
 
 import scala.collection.convert.WrapAsScala._
 
-class Robot(val robot: tileentity.Robot) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
+  override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
     create()

@@ -1,7 +1,9 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.common.{InventorySlots, tileentity}
-import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
+import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.tileentity
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.InventoryPlayer
 
 class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends Player(playerInventory, computer) {
   for (i <- 0 to (if (computer.tier >= 2) 2 else 1)) {
