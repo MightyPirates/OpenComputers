@@ -125,6 +125,7 @@ processResources {
 }
 
 jar {
+    exclude "cofh/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)){
             exclude 'META-INF', 'META-INF/**'
@@ -144,6 +145,7 @@ javadoc {
 // because the normal default jar task has been modified to be obfuscated
 task deobfJar(type: Jar) {
     from sourceSets.main.output
+    exclude "cofh/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)){
             exclude 'META-INF', 'META-INF/**'

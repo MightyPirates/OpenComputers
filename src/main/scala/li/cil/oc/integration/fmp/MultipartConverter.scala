@@ -3,12 +3,17 @@ package li.cil.oc.integration.fmp
 import java.util
 
 import codechicken.lib.vec.BlockCoord
+import codechicken.multipart.MultiPartRegistry
 import codechicken.multipart.MultiPartRegistry.IPartConverter
 import li.cil.oc.api.Items
 import li.cil.oc.common.tileentity.Cable
 import net.minecraft.world.World
 
 object MultipartConverter extends IPartConverter {
+  def init() {
+    MultiPartRegistry.registerConverter(this)
+  }
+
   override def blockTypes = util.Arrays.asList(Items.get("cable").block)
 
   override def convert(world: World, pos: BlockCoord) = {
