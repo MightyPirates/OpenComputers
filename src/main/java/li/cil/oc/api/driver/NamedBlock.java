@@ -26,8 +26,8 @@ public interface NamedBlock {
      * This is used to determine which name to use in case multiple
      * environments with this interface are merged.
      * <p/>
-     * If multiple named environments are merged the one with the
-     * <em>highest</em> priority is selected. Negative values are
+     * If multiple named environments are merged the name of the environment
+     * with the <em>highest</em> priority is selected. Negative values are
      * allowed. The recommended default value is therefore zero.
      * <p/>
      * If multiple environments with the same priority exist, the
