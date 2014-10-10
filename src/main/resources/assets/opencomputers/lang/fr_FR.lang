@@ -1,6 +1,6 @@
 # Blocks
 oc:tile.Adapter.name=Adaptateur
-oc:tile.Cable.name=Cable
+oc:tile.Cable.name=Câble
 oc:tile.Capacitor.name=Capaciteur
 oc:tile.Case0.name=Boitier (Niveau 1)
 oc:tile.Case1.name=Boitier (Niveau 2)
@@ -53,7 +53,7 @@ oc:item.NetworkCard.name=Carte réseau
 oc:item.NumPad.name=Pavé numérique
 oc:item.PrintedCircuitBoard.name=Circuit imprimé
 oc:item.RawCircuitBoard.name=Plaque de circuit imprimé brute
-oc:item.RedstoneCard.name=Carte Redstone
+oc:item.RedstoneCard.name=Carte de Redstone
 oc:item.Transistor.name=Transistor
 oc:item.UpgradeCrafting.name=Amélioration "Artisanat"
 oc:item.UpgradeGenerator.name=Amélioration "Générateur"

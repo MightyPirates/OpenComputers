@@ -42,7 +42,7 @@ object Mods {
 
   lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
 
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2)
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2 + "@[rv1,)")
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower, providesPower = true)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
@@ -53,6 +53,7 @@ object Mods {
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new SimpleMod(IDs.GregTech)
   val IndustrialCraft2 = new ClassBasedMod(IDs.IndustrialCraft2,
+    "ic2.api.energy.tile.IEnergySink",
     "ic2.api.energy.tile.IEnergyTile",
     "ic2.api.energy.event.EnergyTileLoadEvent",
     "ic2.api.energy.event.EnergyTileUnloadEvent")(providesPower = true)
@@ -83,15 +84,21 @@ object Mods {
   trait Mod {
     knownMods += this
 
+    private var powerDisabled = false
+
     protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
 
     protected def isModAvailable: Boolean
 
     def id: String
 
-    def isAvailable = isModAvailable && isPowerModEnabled
+    def isAvailable = !powerDisabled && isModAvailable && isPowerModEnabled
 
     def providesPower: Boolean = false
+
+    // This is called from the class transformer when injecting an interface of
+    // this power type fails, to avoid class not found / class cast exceptions.
+    def disablePower() = powerDisabled = true
   }
 
   class SimpleMod(val id: String, override val providesPower: Boolean = false) extends Mod {
