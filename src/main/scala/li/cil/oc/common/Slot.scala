@@ -1,19 +1,21 @@
 package li.cil.oc.common
 
-object Slot {
-  val None = "none"
-  val Any = "any"
+import li.cil.oc.api.driver
 
-  val Card = "card"
-  val ComponentBus = "component_bus"
-  val Container = "container"
-  val CPU = "cpu"
-  val Floppy = "floppy"
-  val HDD = "hdd"
-  val Memory = "memory"
-  val Tablet = "tablet"
+object Slot {
+  val None = driver.item.Slot.None
+  val Any = driver.item.Slot.Any
+
+  val Card = driver.item.Slot.Card
+  val ComponentBus = driver.item.Slot.ComponentBus
+  val Container = driver.item.Slot.Container
+  val CPU = driver.item.Slot.CPU
+  val Floppy = driver.item.Slot.Floppy
+  val HDD = driver.item.Slot.HDD
+  val Memory = driver.item.Slot.Memory
+  val Tablet = driver.item.Slot.Tablet
   val Tool = "tool"
-  val Upgrade = "upgrade"
+  val Upgrade = driver.item.Slot.Upgrade
 
   val All = Array(Card, ComponentBus, Container, CPU, Floppy, HDD, Memory, Tablet, Tool, Upgrade)
 }

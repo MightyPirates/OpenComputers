@@ -73,6 +73,7 @@ public interface Item {
      *
      * @param stack the item stack to get the slot type for.
      * @return the slot type of the specified item.
+     * @see li.cil.oc.api.driver.item.Slot
      */
     String slot(ItemStack stack);
 
