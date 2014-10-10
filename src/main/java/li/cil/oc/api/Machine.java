@@ -1,6 +1,5 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.detail.MachineAPI;
 import li.cil.oc.api.machine.Architecture;
 import li.cil.oc.api.machine.MachineHost;
 
@@ -18,8 +17,8 @@ import java.util.Collections;
  * convenience feature to make architectures usable via the built-in CPUs.
  * <p/>
  * Note that these methods should <em>not</em> be called in the pre-init phase,
- * since the {@link #instance} may not have been initialized at that time. Only
- * start calling these methods in the init phase or later.
+ * since the {@link li.cil.oc.api.API#machine} may not have been initialized
+ * at that time. Only start calling these methods in the init phase or later.
  */
 public final class Machine {
     /**
@@ -32,16 +31,16 @@ public final class Machine {
      * @param architecture the architecture to register.
      */
     public static void add(Class<? extends Architecture> architecture) {
-        if (instance != null)
-            instance.add(architecture);
+        if (API.machine != null)
+            API.machine.add(architecture);
     }
 
     /**
      * A list of all <em>registered</em> architectures.
      */
     public static Iterable<Class<? extends Architecture>> architectures() {
-        if (instance != null)
-            return instance.architectures();
+        if (API.machine != null)
+            return API.machine.architectures();
         return Collections.emptyList();
     }
 
@@ -55,8 +54,8 @@ public final class Machine {
      * @return the newly created machine.
      */
     public static li.cil.oc.api.machine.Machine create(MachineHost host) {
-        if (instance != null)
-            return instance.create(host);
+        if (API.machine != null)
+            return API.machine.create(host);
         return null;
     }
 
@@ -64,8 +63,6 @@ public final class Machine {
 
     private Machine() {
     }
-
-    public static MachineAPI instance = null;
 
     /**
      * The built-in Lua architecture. This will be set to the native Lua

@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.util.NEI
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
@@ -13,6 +14,8 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 
 class DelegatorConverter extends Block(Material.rock) {
+  NEI.hide(this)
+
   override def hasTileEntity(metadata: Int) = true
 
   // We don't have to register this tile entity because it'll vanish immediately anyway, so
@@ -23,6 +26,8 @@ class DelegatorConverter extends Block(Material.rock) {
 object DelegatorConverter {
 
   class Item(block: Block) extends ItemBlock(block) {
+    override def getItemStackDisplayName(stack: ItemStack) = "Pick me up to fix me!"
+
     override def onUpdate(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) {
       entity match {
         case player: EntityPlayer => DelegatorConverter.convert(stack, this) match {

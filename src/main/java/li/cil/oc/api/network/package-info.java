@@ -5,7 +5,9 @@
  * all of OpenComputers' components, including blocks and items alike.
  */
 @cpw.mods.fml.common.API(
-        owner = "OpenComputers|Core",
+        owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Network",
-        apiVersion = "3.0.1")
+        apiVersion = API.VERSION)
 package li.cil.oc.api.network;
+
+import li.cil.oc.api.API;

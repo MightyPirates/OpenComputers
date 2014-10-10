@@ -1,6 +1,5 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.detail.DriverAPI;
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentHost;
@@ -16,6 +15,10 @@ import net.minecraft.world.World;
  * block that should interact with the mod's component network it is enough to
  * have it implement {@link li.cil.oc.api.network.Environment} - no driver is
  * needed in that case.
+ * <p/>
+ * Note that these methods should <em>not</em> be called in the pre-init phase,
+ * since the {@link li.cil.oc.api.API#driver} may not have been initialized
+ * at that time. Only start calling these methods in the init phase or later.
  *
  * @see Network
  * @see Block
@@ -35,8 +38,8 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final Block driver) {
-        if (instance != null)
-            instance.add(driver);
+        if (API.driver != null)
+            API.driver.add(driver);
     }
 
     /**
@@ -51,8 +54,8 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final Item driver) {
-        if (instance != null)
-            instance.add(driver);
+        if (API.driver != null)
+            API.driver.add(driver);
     }
 
     /**
@@ -67,8 +70,8 @@ public final class Driver {
      * @param converter the converter to register.
      */
     public static void add(final Converter converter) {
-        if (instance != null)
-            instance.add(converter);
+        if (API.driver != null)
+            API.driver.add(converter);
     }
 
     /**
@@ -87,8 +90,8 @@ public final class Driver {
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
     public static Block driverFor(World world, int x, int y, int z) {
-        if (instance != null)
-            return instance.driverFor(world, x, y, z);
+        if (API.driver != null)
+            return API.driver.driverFor(world, x, y, z);
         return null;
     }
 
@@ -104,8 +107,8 @@ public final class Driver {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     public static Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
-        if (instance != null)
-            return instance.driverFor(stack, host);
+        if (API.driver != null)
+            return API.driver.driverFor(stack, host);
         return null;
     }
 
@@ -123,8 +126,8 @@ public final class Driver {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     public static Item driverFor(ItemStack stack) {
-        if (instance != null)
-            return instance.driverFor(stack);
+        if (API.driver != null)
+            return API.driver.driverFor(stack);
         return null;
     }
 
@@ -132,6 +135,4 @@ public final class Driver {
 
     private Driver() {
     }
-
-    public static DriverAPI instance = null;
 }

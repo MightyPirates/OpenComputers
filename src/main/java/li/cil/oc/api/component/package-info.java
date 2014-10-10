@@ -6,7 +6,9 @@
  * mod itself.
  */
 @cpw.mods.fml.common.API(
-        owner = "OpenComputers|Core",
+        owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Component",
-        apiVersion = "3.0.1")
+        apiVersion = API.VERSION)
 package li.cil.oc.api.component;
+
+import li.cil.oc.api.API;

@@ -9,7 +9,6 @@ import li.cil.oc.common.init.Items
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.server._
-import li.cil.oc.server.machine
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.util.LuaStateFactory
@@ -42,15 +41,15 @@ class Proxy {
     OpenComputers.log.info("Initializing OpenComputers API.")
 
     api.CreativeTab.instance = CreativeTab
-    api.Driver.instance = driver.Registry
-    api.FileSystem.instance = fs.FileSystem
-    api.Items.instance = Items
-    api.Machine.instance = machine.Machine
+    api.API.driver = driver.Registry
+    api.API.fileSystem = fs.FileSystem
+    api.API.items = Items
+    api.API.machine = machine.Machine
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
     api.Machine.add(api.Machine.LuaArchitecture)
-    api.Network.instance = network.Network
+    api.API.network = network.Network
   }
 
   def init(e: FMLInitializationEvent) {

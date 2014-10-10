@@ -1,6 +1,5 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.detail.FileSystemAPI;
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
@@ -18,8 +17,8 @@ import li.cil.oc.api.network.ManagedEnvironment;
  * and set the visibility to the desired value.
  * <p/>
  * Note that these methods should <em>not</em> be called in the pre-init phase,
- * since the {@link #instance} may not have been initialized at that time. Only
- * start calling these methods in the init phase or later.
+ * since the {@link li.cil.oc.api.API#fileSystem} may not have been initialized
+ * at that time. Only start calling these methods in the init phase or later.
  */
 public final class FileSystem {
     /**
@@ -44,8 +43,8 @@ public final class FileSystem {
      * @return a file system wrapping the specified folder.
      */
     public static li.cil.oc.api.fs.FileSystem fromClass(final Class<?> clazz, final String domain, final String root) {
-        if (instance != null)
-            return instance.fromClass(clazz, domain, root);
+        if (API.fileSystem != null)
+            return API.fileSystem.fromClass(clazz, domain, root);
         return null;
     }
 
@@ -73,8 +72,8 @@ public final class FileSystem {
      * @return a file system wrapping the specified folder.
      */
     public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(final String root, final long capacity, final boolean buffered) {
-        if (instance != null)
-            return instance.fromSaveDirectory(root, capacity, buffered);
+        if (API.fileSystem != null)
+            return API.fileSystem.fromSaveDirectory(root, capacity, buffered);
         return null;
     }
 
@@ -103,8 +102,8 @@ public final class FileSystem {
      * @return a file system residing in memory.
      */
     public static li.cil.oc.api.fs.FileSystem fromMemory(final long capacity) {
-        if (instance != null)
-            return instance.fromMemory(capacity);
+        if (API.fileSystem != null)
+            return API.fileSystem.fromMemory(capacity);
         return null;
     }
 
@@ -121,8 +120,8 @@ public final class FileSystem {
      * @return a file system wrapping the specified mount.
      */
     public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final Object mount) {
-        if (instance != null)
-            return instance.fromComputerCraft(mount);
+        if (API.fileSystem != null)
+            return API.fileSystem.fromComputerCraft(mount);
         return null;
     }
 
@@ -153,8 +152,8 @@ public final class FileSystem {
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final EnvironmentHost host, final String accessSound) {
-        if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label, host, accessSound);
+        if (API.fileSystem != null)
+            return API.fileSystem.asManagedEnvironment(fileSystem, label, host, accessSound);
         return null;
     }
 
@@ -172,8 +171,8 @@ public final class FileSystem {
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final EnvironmentHost host, final String accessSound) {
-        if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label, host, accessSound);
+        if (API.fileSystem != null)
+            return API.fileSystem.asManagedEnvironment(fileSystem, label, host, accessSound);
         return null;
     }
 
@@ -186,8 +185,8 @@ public final class FileSystem {
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label) {
-        if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label);
+        if (API.fileSystem != null)
+            return API.fileSystem.asManagedEnvironment(fileSystem, label);
         return null;
     }
 
@@ -200,8 +199,8 @@ public final class FileSystem {
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label) {
-        if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label);
+        if (API.fileSystem != null)
+            return API.fileSystem.asManagedEnvironment(fileSystem, label);
         return null;
     }
 
@@ -214,8 +213,8 @@ public final class FileSystem {
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem) {
-        if (instance != null)
-            return instance.asManagedEnvironment(fileSystem);
+        if (API.fileSystem != null)
+            return API.fileSystem.asManagedEnvironment(fileSystem);
         return null;
     }
 
@@ -223,6 +222,4 @@ public final class FileSystem {
 
     private FileSystem() {
     }
-
-    public static FileSystemAPI instance = null;
 }
