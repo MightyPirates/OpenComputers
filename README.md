@@ -45,7 +45,7 @@ repositories {
     maven { url = "http://maven.cil.li/" }
 }
 dependencies {
-    compile "li.cil.oc:OpenComputers:MC1.7.10-1.3.+:api"
+    compile "li.cil.oc:OpenComputers:MC1.7.10-1.4.+:api"
 }
 ```
 Adjust the version number accordingly to the version you'd like to build against.
@@ -73,18 +73,18 @@ Open the project and you will be asked to *import the Gradle project* (check you
 
 
 
-[api]: https://github.com/MightyPirates/OpenComputers/tree/master/src/main/java/li/cil/oc/api
+[api]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/java/li/cil/oc/api
 [code conventions]: https://github.com/MightyPirates/OpenComputers/wiki/CodeConventions
-[dev-jar]: http://oc.cil.li/index.php?/page/latest.php?repo=OpenComputers-MC1.7&type=dev
+[dev-jar]: http://oc.cil.li/index.php?/page/latest.php?repo=OpenComputers-dev-MC1.7.10&type=dev
 [forums]: http://oc.cil.li/
 [irc]: http://webchat.esper.net/?channels=#oc
 [issues]: https://github.com/MightyPirates/OpenComputers/issues?state=open
 [jenkins]: http://ci.cil.li/
-[localizations]: https://github.com/MightyPirates/OpenComputers/tree/master/src/main/resources/assets/opencomputers/lang
-[loot]: https://github.com/MightyPirates/OpenComputers/tree/master/src/main/resources/assets/opencomputers/loot
-[manpages]: https://github.com/MightyPirates/OpenComputers/tree/master/src/main/resources/assets/opencomputers/lua/rom/usr/man
+[localizations]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/lang
+[loot]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/loot
+[manpages]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/lua/rom/usr/man
 [mcf]: http://www.minecraftforum.net/topic/2201440-opencomputers-v122/
-[pack.mcmeta]: https://github.com/MightyPirates/OpenComputers/blob/master/src/main/resources/pack.mcmeta
+[pack.mcmeta]: https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/src/main/resources/pack.mcmeta
 [releases]: https://github.com/MightyPirates/OpenComputers/releases
-[robot names]: https://github.com/MightyPirates/OpenComputers/blob/master/src/main/resources/assets/opencomputers/robot.names
+[robot names]: https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/src/main/resources/assets/opencomputers/robot.names
 [wiki]: https://ocdoc.cil.li/
