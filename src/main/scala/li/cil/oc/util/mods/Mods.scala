@@ -42,7 +42,7 @@ object Mods {
 
   lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
 
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2 + "@[rv2-alpha-1,)")
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2 + "@[rv1,)")
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower, providesPower = true)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
