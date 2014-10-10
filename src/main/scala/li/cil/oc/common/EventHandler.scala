@@ -14,12 +14,12 @@ import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.SideTracker
 import li.cil.oc.util.UpdateCheck
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
@@ -159,7 +159,7 @@ object EventHandler {
           if (stack != null && api.Items.get(stack) == navigationUpgrade) {
             // Restore the map currently used in the upgrade.
             val nbt = driver.dataTag(stack)
-            val map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
+            val map = ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
             if (!e.player.inventory.addItemStackToInventory(map)) {
               e.player.dropPlayerItemWithRandomChoice(map, false)
             }

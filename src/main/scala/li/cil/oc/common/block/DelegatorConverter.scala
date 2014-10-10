@@ -48,11 +48,25 @@ object DelegatorConverter {
     }
   }
 
-  def convert(stack: ItemStack, item: ItemBlock) = {
+  def convert(stack: ItemStack): ItemStack = stack.getItem match {
+    case item: ItemBlock =>
+      convert(stack, item) match {
+        case Some(newStack) => newStack
+        case _ => stack
+      }
+    case _ => stack
+  }
+
+  def convert(stack: ItemStack, item: ItemBlock): Option[ItemStack] = {
     val block = item.field_150939_a
     val meta = stack.getItemDamage
     getDescriptor(block, meta) match {
-      case Some(descriptor) => Option(descriptor.createItemStack(stack.stackSize))
+      case Some(descriptor) =>
+        val newStack = descriptor.createItemStack(stack.stackSize)
+        if (stack.hasTagCompound) {
+          newStack.setTagCompound(stack.getTagCompound.copy().asInstanceOf[NBTTagCompound])
+        }
+        Option(newStack)
       case _ => None
     }
   }

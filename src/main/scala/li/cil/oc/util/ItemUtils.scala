@@ -7,6 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
+import li.cil.oc.common.block.DelegatorConverter
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.integration.opencomputers.DriverUpgradeExperience
 import li.cil.oc.util.ExtendedNBT._
@@ -27,6 +28,8 @@ object ItemUtils {
     else if (descriptor == api.Items.get("caseCreative")) Tier.Four
     else Tier.None
   }
+
+  def loadStack(nbt: NBTTagCompound) = DelegatorConverter.convert(ItemStack.loadItemStackFromNBT(nbt))
 
   abstract class ItemData extends Persistable {
     def load(stack: ItemStack) {
@@ -76,12 +79,10 @@ object ItemUtils {
       robotEnergy = nbt.getInteger(Settings.namespace + "robotEnergy")
       if (nbt.hasKey(Settings.namespace + "components")) {
         tier = nbt.getInteger(Settings.namespace + "tier")
-        components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).map((list, index) => {
-          ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(index))
-        }).toArray
-        containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).map((list, index) => {
-          ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(index))
-        }).toArray
+        components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
+          map((list, index) => loadStack(list.getCompoundTagAt(index))).toArray
+        containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
+          map((list, index) => loadStack(list.getCompoundTagAt(index))).toArray
       }
       else {
         // Old robot, upgrade to new modular model.
@@ -191,7 +192,7 @@ object ItemUtils {
 
     override def load(nbt: NBTTagCompound) {
       if (nbt.hasKey(Settings.namespace + "map")) {
-        map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
+        map = loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
       }
     }
 
@@ -218,7 +219,7 @@ object ItemUtils {
         val slotNbt = list.getCompoundTagAt(index)
         val slot = slotNbt.getByte("slot")
         if (slot >= 0 && slot < items.length) {
-          items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
+          items(slot) = Option(loadStack(slotNbt.getCompoundTag("item")))
         }
       })
       isRunning = nbt.getBoolean(Settings.namespace + "isRunning")

@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBufInputStream
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.common.block.RobotAfterimage
+import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
@@ -84,7 +85,7 @@ abstract class PacketHandler {
     def readItemStack() = {
       val haveStack = readBoolean()
       if (haveStack) {
-        ItemStack.loadItemStackFromNBT(readNBT())
+        ItemUtils.loadStack(readNBT())
       }
       else null
     }

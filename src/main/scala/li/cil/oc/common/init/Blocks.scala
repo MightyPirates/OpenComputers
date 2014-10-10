@@ -10,7 +10,7 @@ import li.cil.oc.common.tileentity
 object Blocks {
   def init() {
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
-    GameRegistry.registerTileEntity(classOf[tileentity.Assembler], Settings.namespace + "assembler")
+    GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Assembler], Settings.namespace + "assembler", Settings.namespace + "robotAssembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
