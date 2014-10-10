@@ -104,7 +104,7 @@ public @interface Callback {
      * <p/>
      * Callbacks that are getters do not appear as methods on a component's
      * proxy. Instead they are accessed as fields, for example in Lua via the
-     * proxy's <tt>__index</tt> metamethod, with it's only parameter being the
+     * proxy's <tt>__index</tt> metamethod, with its only parameter being the
      * accessed key.
      * <p/>
      * Note: if you wish to have a field that is read/write, that is you need
@@ -123,7 +123,7 @@ public @interface Callback {
      * <p/>
      * Callbacks that are setters do not appear as methods on a component's
      * proxy. Instead they are accessed as fields, for example in Lua via the
-     * proxy's <tt>__newindex</tt> metamethod, with it's only tow parameters
+     * proxy's <tt>__newindex</tt> metamethod, with its only two parameters
      * being the accessed key and the new value.
      * <p/>
      * Note: if you wish to have a field that is read/write, that is you need
