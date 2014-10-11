@@ -16,6 +16,7 @@ import li.cil.oc.integration.fmp.ModForgeMultipart
 import li.cil.oc.integration.forestry.ModForestry
 import li.cil.oc.integration.gregtech.ModGregtech
 import li.cil.oc.integration.ic2.ModIndustrialCraft2
+import li.cil.oc.integration.mfr.ModMineFactoryReloaded
 import li.cil.oc.integration.mystcraft.ModMystcraft
 import li.cil.oc.integration.opencomputers.ModOpenComputers
 import li.cil.oc.integration.railcraft.ModRailcraft
@@ -105,6 +106,7 @@ object Mods {
     integrate(ModForgeMultipart)
     integrate(ModGregtech)
     integrate(ModIndustrialCraft2)
+    integrate(ModMineFactoryReloaded)
     integrate(ModMystcraft)
     integrate(ModOpenComputers)
     integrate(ModRailcraft)
