@@ -2,6 +2,7 @@ package thaumcraft.api;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -133,6 +134,29 @@ public class ThaumcraftApiHelper {
         }
         return false;
     }
+	
+	public static boolean areItemStackTagsEqualForCrafting(ItemStack slotItem,ItemStack recipeItem)
+    {
+    	if (recipeItem == null || slotItem == null) return false;
+    	if (recipeItem.stackTagCompound!=null && slotItem.stackTagCompound==null ) return false;
+    	if (recipeItem.stackTagCompound==null ) return true;
+    	
+    	Iterator iterator = recipeItem.stackTagCompound.func_150296_c().iterator();
+        while (iterator.hasNext())
+        {
+            String s = (String)iterator.next();
+            if (slotItem.stackTagCompound.hasKey(s)) {
+            	if (!slotItem.stackTagCompound.getTag(s).toString().equals(
+            			recipeItem.stackTagCompound.getTag(s).toString())) {
+            		return false;
+            	}
+            } else {
+        		return false;
+            }
+            
+        }
+        return true;
+    }
 
     public static boolean itemMatches(ItemStack target, ItemStack input, boolean strict)
     {
@@ -140,7 +164,8 @@ public class ThaumcraftApiHelper {
         {
             return false;
         }
-        return (target.getItem() == input.getItem() && ((target.getItemDamage() == OreDictionary.WILDCARD_VALUE && !strict) || target.getItemDamage() == input.getItemDamage()));
+        return (target.getItem() == input.getItem() && 
+        		((target.getItemDamage() == OreDictionary.WILDCARD_VALUE && !strict) || target.getItemDamage() == input.getItemDamage()));
     }
     
     
@@ -264,5 +289,48 @@ public class ThaumcraftApiHelper {
 	    	FMLLog.warning("[Thaumcraft API] Could not invoke thaumcraft.common.items.wands.WandManager method consumeVisFromInventory");
 	    }
 		return ot;
+	}
+	
+	
+	static Method addWarpToPlayer;
+	/**
+	 * This adds permanents or temporary warp to a player. It will automatically be synced clientside
+	 * @param player the player using the wand
+	 * @param amount how much warp to add. Negative amounts are only valid for temporary warp
+	 * @param temporary add temporary warp instead of permanent
+	 */
+	public static void addWarpToPlayer(EntityPlayer player, int amount, boolean temporary) {
+		boolean ot = false;
+	    try {
+	        if(addWarpToPlayer == null) {
+	            Class fake = Class.forName("thaumcraft.common.Thaumcraft");
+	            addWarpToPlayer = fake.getMethod("addWarpToPlayer", 
+	            		EntityPlayer.class, int.class, boolean.class);
+	        }
+	        addWarpToPlayer.invoke(null, player, amount, temporary);
+	    } catch(Exception ex) { 
+	    	FMLLog.warning("[Thaumcraft API] Could not invoke thaumcraft.common.Thaumcraft method addWarpToPlayer");
+	    }
+	}
+	
+	static Method addStickyWarpToPlayer;
+	/**
+	 * This "sticky" warp to a player. Sticky warp is permanent warp that can be removed.
+	 * It will automatically be synced clientside
+	 * @param player the player using the wand
+	 * @param amount how much warp to add. Can have negative amounts.
+	 */
+	public static void addStickyWarpToPlayer(EntityPlayer player, int amount) {
+		boolean ot = false;
+	    try {
+	        if(addStickyWarpToPlayer == null) {
+	            Class fake = Class.forName("thaumcraft.common.Thaumcraft");
+	            addStickyWarpToPlayer = fake.getMethod("addStickyWarpToPlayer", 
+	            		EntityPlayer.class, int.class);
+	        }
+	        addStickyWarpToPlayer.invoke(null, player, amount);
+	    } catch(Exception ex) { 
+	    	FMLLog.warning("[Thaumcraft API] Could not invoke thaumcraft.common.Thaumcraft method addStickyWarpToPlayer");
+	    }
 	}
 }

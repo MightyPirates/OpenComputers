@@ -14,17 +14,17 @@ public class ConverterIAspectContainer implements Converter {
     public void convert(final Object value, final Map<Object, Object> output) {
         if (value instanceof IAspectContainer) {
             final IAspectContainer container = (IAspectContainer) value;
-            output.put("aspectList", container.getAspects());
+            output.put("aspects", container.getAspects());
         }
 
         if (value instanceof AspectList) {
-            final AspectList aspectList = (AspectList) value;
+            final AspectList aspects = (AspectList) value;
             int i = 0;
-            for (Aspect aspect : aspectList.getAspects()) {
+            for (Aspect aspect : aspects.getAspects()) {
                 if (aspect == null) continue;
                 final HashMap<Object, Object> aspectMap = Maps.newHashMap();
                 aspectMap.put("name", aspect.getName());
-                aspectMap.put("quantity", aspectList.getAmount(aspect));
+                aspectMap.put("amount", aspects.getAmount(aspect));
                 output.put(++i, aspectMap);
             }
         }

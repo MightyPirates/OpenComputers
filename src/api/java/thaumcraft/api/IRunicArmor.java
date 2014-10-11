@@ -1,6 +1,5 @@
 package thaumcraft.api;
 
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 
 /**

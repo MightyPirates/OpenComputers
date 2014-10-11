@@ -9,6 +9,8 @@ object ModThaumcraft extends ModProxy {
 
   override def initialize() {
     Driver.add(new DriverAspectContainer)
+
     Driver.add(new ConverterIAspectContainer)
+    Driver.add(ConverterAspectItem)
   }
 }

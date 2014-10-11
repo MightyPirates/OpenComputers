@@ -10,6 +10,7 @@ public class DamageSourceThaumcraft extends DamageSource
 	public static DamageSource taint = new DamageSourceThaumcraft("taint").setDamageBypassesArmor().setMagicDamage();
 	public static DamageSource tentacle = new DamageSourceThaumcraft("tentacle");
 	public static DamageSource swarm = new DamageSourceThaumcraft("swarm");
+	public static DamageSource dissolve = new DamageSourceThaumcraft("dissolve").setDamageBypassesArmor();
 	
     protected DamageSourceThaumcraft(String par1Str) {
 		super(par1Str);

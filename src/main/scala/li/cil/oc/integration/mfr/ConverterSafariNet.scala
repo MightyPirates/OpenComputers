@@ -15,7 +15,7 @@ object ConverterSafariNet extends Converter {
     "MineFactoryReloaded:item.mfr.safarinet.singleuse",
     "MineFactoryReloaded:item.mfr.safarinet.jailer")
 
-  override def convert(value: scala.Any, output: util.Map[AnyRef, AnyRef]) = value match {
+  override def convert(value: scala.Any, output: util.Map[AnyRef, AnyRef]): Unit = value match {
     case stack: ItemStack =>
       val name = Item.itemRegistry.getNameForObject(stack.getItem)
       if (SafariNetNames.contains(name)) {
