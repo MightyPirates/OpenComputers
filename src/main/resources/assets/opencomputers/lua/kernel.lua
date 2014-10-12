@@ -32,6 +32,50 @@ end
 
 -------------------------------------------------------------------------------
 
+local function smatch(f, s, ...)
+  if #s > system.maxPatternInputLength() then
+    return nil, "input too long, see maxPatternInputLength in the config"
+  end
+  return f(s, ...)
+end
+
+-- Replacing methods in actual string table to also take care of OO
+-- calls (i.e. ("asd"):match(...)).
+local string_find, string_gmatch, string_gsub, string_match =
+      string.find, string.gmatch, string.gsub, string.match
+local function installPatternSandbox()
+  string.find = function(...)
+    return smatch(string_find, ...)
+  end
+  string.gmatch = function(...)
+    return smatch(string_gmatch, ...)
+  end
+  string.gsub = function(...)
+    return smatch(string_gsub, ...)
+  end
+  string.match = function(...)
+    return smatch(string_match, ...)
+  end
+end
+installPatternSandbox()
+
+-------------------------------------------------------------------------------
+
+local loadHookMetatable
+loadHookMetatable = {
+  [persistKey and persistKey() or "LuaJ"] = function()
+    return function()
+      -- Has to be re-applied after loading saved state because global
+      -- metatables (such as the string one) aren't persisted automatically.
+      installPatternSandbox()
+      return setmetatable({}, loadHookMetatable)
+    end
+  end
+}
+local loadHook = setmetatable({}, loadHookMetatable)
+
+-------------------------------------------------------------------------------
+
 local function spcall(...)
   local result = table.pack(pcall(...))
   if not result[1] then
