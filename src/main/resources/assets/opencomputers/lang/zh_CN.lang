@@ -81,7 +81,7 @@ item.oc.Server1.name=高级服务器
 item.oc.Server2.name=超级服务器
 item.oc.Server3.name=创造模式服务器
 item.oc.Tablet.name=平板电脑
-+item.oc.TabletCase.name=平板电脑保护套
+item.oc.TabletCase.name=平板电脑保护套
 item.oc.Terminal.name=远程终端
 item.oc.Transistor.name=晶体管
 item.oc.UpgradeAngel.name=天使方块升级
@@ -167,6 +167,7 @@ oc:gui.Terminal.OutOfRange=无信号.
 
 # Containers
 oc:container.AccessPoint=桥接器
+oc:container.Adapter=适配器
 oc:container.Case=计算机
 oc:container.Charger=充电器
 oc:container.Disassembler=分解器
