@@ -889,7 +889,7 @@ object Machine extends MachineAPI {
     }
   }
 
-  override def architectures = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
+  override def architectures = checked.toSeq
 
   override def create(host: MachineHost) = new Machine(host)
 

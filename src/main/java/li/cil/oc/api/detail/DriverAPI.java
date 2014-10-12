@@ -7,6 +7,8 @@ import li.cil.oc.api.driver.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
+import java.util.Collection;
+
 public interface DriverAPI {
     /**
      * Registers a new driver for a block component.
@@ -92,4 +94,26 @@ public interface DriverAPI {
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     Item driverFor(ItemStack stack);
+
+    /**
+     * Get a list of all registered block drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     *
+     * @return the list of all registered block drivers.
+     */
+    Collection<Block> blockDrivers();
+
+    /**
+     * Get a list of all registered item drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     *
+     * @return the list of all registered item drivers.
+     */
+    Collection<Item> itemDrivers();
 }

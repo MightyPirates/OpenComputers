@@ -7,6 +7,8 @@ import li.cil.oc.api.driver.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
+import java.util.Collection;
+
 /**
  * This API allows registering new drivers with the mod.
  * <p/>
@@ -128,6 +130,40 @@ public final class Driver {
     public static Item driverFor(ItemStack stack) {
         if (API.driver != null)
             return API.driver.driverFor(stack);
+        return null;
+    }
+
+    /**
+     * Get a list of all registered block drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     * <p/>
+     * The returned collection is read-only.
+     *
+     * @return the list of all registered block drivers.
+     */
+    public static Collection<Block> blockDrivers() {
+        if (API.driver != null)
+            return API.driver.blockDrivers();
+        return null;
+    }
+
+    /**
+     * Get a list of all registered item drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     * <p/>
+     * The returned collection is read-only.
+     *
+     * @return the list of all registered item drivers.
+     */
+    public static Collection<Item> itemDrivers() {
+        if (API.driver != null)
+            return API.driver.itemDrivers();
         return null;
     }
 

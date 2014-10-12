@@ -3,6 +3,8 @@ package li.cil.oc.api.network;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 
+import java.util.Collection;
+
 /**
  * Components are nodes that can be addressed computers via drivers.
  * <p/>
@@ -68,11 +70,13 @@ public interface Component extends Node {
     /**
      * The list of names of methods exposed by this component.
      * <p/>
-     * Note: this does not return the callback annotations directly, because
-     * those may not contain the method's name (as it defaults to the name of
-     * the annotated method).
+     * This does not return the callback annotations directly, because those
+     * may not contain the method's name (as it defaults to the name of the
+     * annotated method).
+     * <p/>
+     * The returned collection is read-only.
      */
-    Iterable<String> methods();
+    Collection<String> methods();
 
     /**
      * Get the annotation information of a method.

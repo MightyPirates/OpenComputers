@@ -11,6 +11,7 @@ import li.cil.oc.api.machine.Value
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.math.ScalaNumber
@@ -75,6 +76,10 @@ private[oc] object Registry extends api.detail.DriverAPI {
   def driverFor(stack: ItemStack) =
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
+
+  override def blockDrivers = blocks.toSeq
+
+  override def itemDrivers = items.toSeq
 
   def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 

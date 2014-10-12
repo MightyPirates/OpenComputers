@@ -4,6 +4,8 @@ import li.cil.oc.api.machine.Architecture;
 import li.cil.oc.api.machine.Machine;
 import li.cil.oc.api.machine.MachineHost;
 
+import java.util.Collection;
+
 public interface MachineAPI {
     /**
      * Register an architecture that can be used to create new machines.
@@ -25,7 +27,7 @@ public interface MachineAPI {
      * a custom architecture also registers it, you may not see it in this list
      * until it also created a new machine using that architecture.
      */
-    Iterable<Class<? extends Architecture>> architectures();
+    Collection<Class<? extends Architecture>> architectures();
 
     /**
      * Creates a new machine for the specified host.
