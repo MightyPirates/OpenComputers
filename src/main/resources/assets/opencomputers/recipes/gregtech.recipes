@@ -35,7 +35,7 @@ ram1 {
 }
 ram2 {
   input: [["oc:circuitChip1", "oc:circuitChip1", "oc:circuitChip1"]
-          ["", "oc:ram1", ""]
+          ["oc:ram1", "oc:materialCircuitBoardPrinted", "oc:ram1"]
           ["", craftingToolWrench, ""]]
 }
 ram3 {

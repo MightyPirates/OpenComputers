@@ -38,7 +38,7 @@ ram1 {
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram2 {
-  input: [["oc:circuitChip1", "oc:circuitChip1", "oc:circuitChip1"]
+  input: [["oc:circuitChip1", "oc:circuitChip2", "oc:circuitChip1"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram3 {
@@ -46,7 +46,7 @@ ram3 {
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram4 {
-  input: [["oc:circuitChip2", "oc:circuitChip2", "oc:circuitChip2"]
+  input: [["oc:circuitChip2", "oc:circuitChip3", "oc:circuitChip2"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram5 {
@@ -55,7 +55,7 @@ ram5 {
 }
 ram6 {
   input: [["oc:circuitChip3", "oc:circuitChip3", "oc:circuitChip3"]
-          ["", "oc:materialCircuitBoardPrinted", ""]]
+          ["oc:circuitChip2", "oc:materialCircuitBoardPrinted", "oc:circuitChip2"]]
 }
 
 floppy {

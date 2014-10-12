@@ -35,8 +35,8 @@ ram1 {
           ["oc:materialCircuitBoardPrinted", "oc:materialCircuitBoardPrinted", "oc:materialCircuitBoardPrinted"]]
 }
 ram2 {
-  input: [["oc:circuitChip2", "oc:circuitChip2", "oc:circuitChip2"]
-          ["", "oc:ram1", ""]]
+  input: [["oc:circuitChip1", "oc:circuitChip1", "oc:circuitChip1"]
+          ["oc:ram1", "oc:materialCircuitBoardPrinted", "oc:ram1"]]
 }
 ram3 {
   input: [["oc:circuitChip2", "oc:circuitChip2", "oc:circuitChip2"]
