@@ -4,9 +4,10 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
+import li.cil.oc.api.internal.Adapter
+import li.cil.oc.api.internal.Robot
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -15,10 +16,11 @@ object DriverUpgradeTankController extends Item with HostAware with EnvironmentA
     isOneOf(stack, api.Items.get("tankControllerUpgrade"))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && isRobot(host)
+    worksWith(stack) && (isRobot(host) || isAdapter(host))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
-    case robot: EnvironmentHost with Robot => new component.UpgradeTankController(robot)
+    case robot: EnvironmentHost with Robot => new component.UpgradeTankControllerInRobot(robot)
+    case adapter: EnvironmentHost with Adapter => new component.UpgradeTankControllerInAdapter(adapter)
     case _ => null
   }
 
@@ -26,5 +28,5 @@ object DriverUpgradeTankController extends Item with HostAware with EnvironmentA
 
   override def tier(stack: ItemStack) = Tier.Two
 
-  override def providedEnvironment(stack: ItemStack) = classOf[component.UpgradeTankController]
+  override def providedEnvironment(stack: ItemStack) = classOf[component.UpgradeTankControllerInRobot]
 }

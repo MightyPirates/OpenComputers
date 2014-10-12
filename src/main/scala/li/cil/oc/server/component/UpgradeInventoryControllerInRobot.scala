@@ -3,45 +3,86 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.api.internal.Robot
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
+import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
 
-class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
+class UpgradeInventoryControllerInRobot(val host: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("inventory_controller", Visibility.Neighbors).
     create()
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(doc = """function():number -- Get the number of slots in the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
+  @Callback(doc = """function(side:number):number -- Get the number of slots in the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForInventory(args, 0)
     if (facing == host.facing.getOpposite) result(host.inventorySize)
     else InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
-      case Some(inventory) => result(inventory.getSizeInventory)
+      case Some(inventory) if inventory.isUseableByPlayer(host.player) => result(inventory.getSizeInventory)
       case _ => result(Unit, "no inventory")
     }
   }
 
-  @Callback(doc = """function():table -- Get a description of the stack in the the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
+  @Callback(doc = """function(side:number, slot:number):number -- Get number of items in the specified slot of the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
+  def getSlotStackSize(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForInventory(args, 0)
+    if (facing == host.facing.getOpposite)
+      result(Option(host.getStackInSlot(args.checkSlot(host, 1))).fold(0)(_.stackSize))
+    else InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+      case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
+        result(Option(inventory.getStackInSlot(args.checkSlot(inventory, 1))).fold(0)(_.stackSize))
+      case _ => result(Unit, "no inventory")
+    }
+  }
+
+  @Callback(doc = """function(side:number, slot:number):number -- Get the maximum number of items in the specified slot of the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
+  def getSlotMaxStackSize(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForInventory(args, 0)
+    if (facing == host.facing.getOpposite)
+      result(Option(host.getStackInSlot(args.checkSlot(host, 1))).fold(0)(_.getMaxStackSize))
+    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+      case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
+        result(Option(inventory.getStackInSlot(args.checkSlot(inventory, 1))).fold(0)(_.getMaxStackSize))
+      case _ => result(Unit, "no inventory")
+    }
+  }
+
+  @Callback(doc = """function(slotA:number, slotB:number):boolean -- Get whether the items in the two specified slots of the inventory on the specified side of the robot are of the same type. Back refers to the robot's own inventory.""")
+  def compareStacks(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForInventory(args, 0)
+    if (facing == host.facing.getOpposite) {
+      val stackA = host.getStackInSlot(args.checkSlot(host, 1))
+      val stackB = host.getStackInSlot(args.checkSlot(host, 2))
+      result(haveSameItemType(stackA, stackB))
+    }
+    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+      case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
+        val stackA = inventory.getStackInSlot(args.checkSlot(inventory, 1))
+        val stackB = inventory.getStackInSlot(args.checkSlot(inventory, 2))
+        result(haveSameItemType(stackA, stackB))
+      case _ => result(Unit, "no inventory")
+    }
+  }
+
+  @Callback(doc = """function(side:number, slot:number):table -- Get a description of the stack in the the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
   def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForInventory(args, 0)
-    val slot = args.checkInteger(1) - 1
     if (facing == host.facing.getOpposite) {
-      if (slot < 0 || slot >= host.inventorySize) result(Unit)
-      else result(host.getStackInSlot(slot + 1 + host.containerCount))
+      val slot = args.checkSlot(host, 1)
+      result(host.getStackInSlot(slot))
     }
     else InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
-      case Some(inventory) =>
-        if (slot < 0 || slot > inventory.getSizeInventory) result(Unit)
-        else result(inventory.getStackInSlot(slot))
+      case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
+        val slot = args.checkSlot(inventory, 1)
+        result(inventory.getStackInSlot(slot))
       case _ => result(Unit, "no inventory")
     }
   }
@@ -108,6 +149,15 @@ class UpgradeInventoryController(val host: EnvironmentHost with Robot) extends p
     }
     else result(false)
   }
+
+  private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
+    (Option(stackA), Option(stackB)) match {
+      case (Some(a), Some(b)) =>
+        a.getItem == b.getItem &&
+          (!a.getHasSubtypes || a.getItemDamage == b.getItemDamage)
+      case (None, None) => true
+      case _ => false
+    }
 
   private def checkSideForInventory(args: Arguments, n: Int) = host.toGlobal(args.checkSide(n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN))
 

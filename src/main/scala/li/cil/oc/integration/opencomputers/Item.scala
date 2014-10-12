@@ -16,11 +16,13 @@ trait Item extends driver.Item {
 
   protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*) = items.filter(_ != null).contains(api.Items.get(stack))
 
-  protected def isRotatable(host: Class[_ <: EnvironmentHost]) = classOf[internal.Rotatable].isAssignableFrom(host)
+  protected def isAdapter(host: Class[_ <: EnvironmentHost]) = classOf[internal.Adapter].isAssignableFrom(host)
 
   protected def isComputer(host: Class[_ <: EnvironmentHost]) = classOf[internal.Case].isAssignableFrom(host)
 
   protected def isRobot(host: Class[_ <: EnvironmentHost]) = classOf[internal.Robot].isAssignableFrom(host)
+
+  protected def isRotatable(host: Class[_ <: EnvironmentHost]) = classOf[internal.Rotatable].isAssignableFrom(host)
 
   protected def isServer(host: Class[_ <: EnvironmentHost]) = classOf[internal.Server].isAssignableFrom(host)
 

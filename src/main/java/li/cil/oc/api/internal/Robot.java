@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fluids.IFluidTank;
 
 /**
  * This interface allows interaction with robots.
@@ -70,6 +71,11 @@ public interface Robot extends Environment, EnvironmentHost, Rotatable, ISidedIn
     int inventorySize();
 
     /**
+     * The number of tanks currently installed in the robot.
+     */
+    int tankCount();
+
+    /**
      * Get the item stack in the specified inventory slot.
      * <p/>
      * This operates on the underlying, real inventory, as described in the
@@ -97,6 +103,14 @@ public interface Robot extends Environment, EnvironmentHost, Rotatable, ISidedIn
     Environment getComponentInSlot(int index);
 
     /**
+     * Get the installed fluid tank with the specified index.
+     *
+     * @param index the index of the tank to get.
+     * @return the tank with the specified index.
+     */
+    IFluidTank getFluidTank(int index);
+
+    /**
      * Gets the index of the currently selected slot in the robot's inventory.
      * <p/>
      * This is the index in the underlying, <em>real</em> inventory. To get
@@ -106,6 +120,13 @@ public interface Robot extends Environment, EnvironmentHost, Rotatable, ISidedIn
      * @return the index of the currently selected slot.
      */
     int selectedSlot();
+
+    /**
+     * Get the index of the currently selected tank.
+     *
+     * @return the index of the currently selected tank.
+     */
+    int selectedTank();
 
     /**
      * Sends the state of the <em>item</em> in the specified slot to the client

@@ -52,11 +52,17 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def componentCount = robot.componentCount
 
+  override def tankCount = robot.tankCount
+
   override def inventorySize = robot.inventorySize
 
   override def getComponentInSlot(index: Int) = robot.getComponentInSlot(index)
 
-  override def selectedSlot() = robot.selectedSlot
+  override def getFluidTank(index: Int) = robot.getFluidTank(index)
+
+  override def selectedSlot = robot.selectedSlot
+
+  override def selectedTank = robot.selectedTank
 
   override def synchronizeSlot(slot: Int) = robot.synchronizeSlot(slot)
 

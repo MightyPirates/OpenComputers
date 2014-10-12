@@ -3,12 +3,12 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
@@ -16,7 +16,7 @@ import net.minecraftforge.fluids.FluidContainerRegistry
 import net.minecraftforge.fluids.IFluidContainerItem
 import net.minecraftforge.fluids.IFluidHandler
 
-class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
+class UpgradeTankControllerInRobot(val host: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("tank_controller", Visibility.Neighbors).
     create()
@@ -26,10 +26,10 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
   @Callback(doc = """function(side:number):number -- Get the amount of fluid in the tank on the specified side of the robot. Back refers to the robot's own selected tank.""")
   def getTankLevel(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForTank(args, 0)
-    if (facing == owner.facing.getOpposite) result(owner.getFluidTank(owner.selectedTank).fold(0)(_.getFluidAmount))
-    else owner.world.getTileEntity(math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
+    if (facing == host.facing.getOpposite) result(Option(host.getFluidTank(host.selectedTank)).fold(0)(_.getFluidAmount))
+    else host.world.getTileEntity(math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
       case handler: IFluidHandler =>
-        result((owner.getFluidTank(owner.selectedTank) match {
+        result((Option(host.getFluidTank(host.selectedTank)) match {
           case Some(tank) => handler.getTankInfo(facing.getOpposite).filter(info => info.fluid == null || info.fluid.isFluidEqual(tank.getFluid))
           case _ => handler.getTankInfo(facing.getOpposite)
         }).map(info => Option(info.fluid).fold(0)(_.amount)).sum)
@@ -40,10 +40,10 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
   @Callback(doc = """function(side:number):number -- Get the capacity of the tank on the specified side of the robot. Back refers to the robot's own selected tank.""")
   def getTankCapacity(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForTank(args, 0)
-    if (facing == owner.facing.getOpposite) result(owner.getFluidTank(owner.selectedTank).fold(0)(_.getCapacity))
-    else owner.world.getTileEntity(math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
+    if (facing == host.facing.getOpposite) result(Option(host.getFluidTank(host.selectedTank)).fold(0)(_.getCapacity))
+    else host.world.getTileEntity(math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
       case handler: IFluidHandler =>
-        result((owner.getFluidTank(owner.selectedTank) match {
+        result((Option(host.getFluidTank(host.selectedTank)) match {
           case Some(tank) => handler.getTankInfo(facing.getOpposite).filter(info => info.fluid == null || info.fluid.isFluidEqual(tank.getFluid))
           case _ => handler.getTankInfo(facing.getOpposite)
         }).map(_.capacity).foldLeft(0)((max, capacity) => math.max(max, capacity)))
@@ -54,9 +54,9 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
   @Callback(doc = """function(side:number):table -- Get a description of the fluid in the the tank on the specified side of the robot. Back refers to the robot's own selected tank.""")
   def getFluidInTank(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = checkSideForTank(args, 0)
-    if (facing == owner.facing.getOpposite) result(owner.getFluidTank(owner.selectedTank).map(_.getFluid).orNull)
-    else owner.world.getTileEntity(math.floor(owner.xPosition).toInt + facing.offsetX, math.floor(owner.yPosition).toInt + facing.offsetY, math.floor(owner.zPosition).toInt + facing.offsetZ) match {
-      case handler: IFluidHandler => result(Option(handler.getTankInfo(facing.getOpposite)).map(_.map(_.fluid)).orNull)
+    if (facing == host.facing.getOpposite) result(Option(host.getFluidTank(host.selectedTank)).map(_.getFluid).orNull)
+    else host.world.getTileEntity(math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+      case handler: IFluidHandler => result(handler.getTankInfo(facing.getOpposite))
       case _ => result(Unit, "no tank")
     }
   }
@@ -65,9 +65,9 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
   @Callback(doc = """function([amount:number]):boolean -- Transfers fluid from a tank in the selected inventory slot to the selected tank.""")
   def drain(context: Context, args: Arguments): Array[AnyRef] = {
     val amount = args.optionalFluidCount(0)
-    owner.getFluidTank(owner.selectedTank) match {
+    Option(host.getFluidTank(host.selectedTank)) match {
       case Some(tank) =>
-        owner.getStackInSlot(owner.selectedSlot) match {
+        host.getStackInSlot(host.selectedSlot) match {
           case stack: ItemStack =>
             if (FluidContainerRegistry.isFilledContainer(stack)) {
               val contents = FluidContainerRegistry.getFluidForFilledItem(stack)
@@ -80,8 +80,8 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
               }
               else {
                 tank.fill(contents, true)
-                owner.decrStackSize(owner.selectedSlot, 1)
-                owner.player().inventory.addItemStackToInventory(container)
+                host.decrStackSize(host.selectedSlot, 1)
+                host.player().inventory.addItemStackToInventory(container)
                 result(true)
               }
             }
@@ -105,9 +105,9 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
   @Callback(doc = """function([amount:number]):boolean -- Transfers fluid from the selected tank to a tank in the selected inventory slot.""")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
     val amount = args.optionalFluidCount(0)
-    owner.getFluidTank(owner.selectedTank) match {
+    Option(host.getFluidTank(host.selectedTank)) match {
       case Some(tank) =>
-        owner.getStackInSlot(owner.selectedSlot) match {
+        host.getStackInSlot(host.selectedSlot) match {
           case stack: ItemStack =>
             if (FluidContainerRegistry.isEmptyContainer(stack)) {
               val drained = tank.drain(amount, false)
@@ -117,8 +117,8 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
               }
               else {
                 tank.drain(FluidContainerRegistry.getFluidForFilledItem(filled).amount, true)
-                owner.decrStackSize(owner.selectedSlot, 1)
-                owner.player().inventory.addItemStackToInventory(filled)
+                host.decrStackSize(host.selectedSlot, 1)
+                host.player().inventory.addItemStackToInventory(filled)
                 result(true)
               }
             }
@@ -139,5 +139,5 @@ class UpgradeTankController(val owner: EnvironmentHost with Robot) extends prefa
     }
   }
 
-  private def checkSideForTank(args: Arguments, n: Int) = owner.toGlobal(args.checkSide(n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN))
+  private def checkSideForTank(args: Arguments, n: Int) = host.toGlobal(args.checkSide(n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN))
 }

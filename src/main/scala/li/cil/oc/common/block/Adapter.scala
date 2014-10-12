@@ -1,7 +1,10 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -23,6 +26,17 @@ class Adapter extends SimpleBlock {
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
 
   // ----------------------------------------------------------------------- //
+
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (!player.isSneaking) {
+      if (!world.isRemote) {
+        player.openGui(OpenComputers, GuiType.Adapter.id, world, x, y, z)
+      }
+      true
+    }
+    else false
+  }
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
     world.getTileEntity(x, y, z) match {

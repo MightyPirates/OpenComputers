@@ -9,7 +9,9 @@ import net.minecraft.world.World
 abstract class GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
-      case assembler: tileentity.Assembler if id == GuiType.RobotAssembler.id =>
+      case adapter: tileentity.Adapter if id == GuiType.Adapter.id =>
+        new container.Adapter(player.inventory, adapter)
+      case assembler: tileentity.Assembler if id == GuiType.Assembler.id =>
         new container.Assembler(player.inventory, assembler)
       case charger: tileentity.Charger if id == GuiType.Charger.id =>
         new container.Charger(player.inventory, charger)

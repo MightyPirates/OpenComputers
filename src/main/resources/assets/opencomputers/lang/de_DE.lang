@@ -167,8 +167,9 @@ oc:gui.Terminal.OutOfRange=Kein Signal.
 
 # Containers
 oc:container.AccessPoint=Access Point
+oc:container.Adapter=Adapter
 oc:container.Case=Computer
-oc:containertile.Charger=Ladestation
+oc:container.Charger=Ladestation
 oc:container.Disassembler=Recycler
 oc:container.DiskDrive=Diskettenlaufwerk
 oc:container.Server=Server

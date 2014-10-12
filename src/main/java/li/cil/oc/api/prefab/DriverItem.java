@@ -59,8 +59,8 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
 
     // Convenience methods provided for HostAware drivers.
 
-    protected boolean isRotatable(Class<? extends EnvironmentHost> host) {
-        return li.cil.oc.api.internal.Rotatable.class.isAssignableFrom(host);
+    protected boolean isAdapter(Class<? extends EnvironmentHost> host) {
+        return li.cil.oc.api.internal.Adapter.class.isAssignableFrom(host);
     }
 
     protected boolean isComputer(Class<? extends EnvironmentHost> host) {
@@ -69,6 +69,10 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
 
     protected boolean isRobot(Class<? extends EnvironmentHost> host) {
         return li.cil.oc.api.internal.Robot.class.isAssignableFrom(host);
+    }
+
+    protected boolean isRotatable(Class<? extends EnvironmentHost> host) {
+        return li.cil.oc.api.internal.Rotatable.class.isAssignableFrom(host);
     }
 
     protected boolean isServer(Class<? extends EnvironmentHost> host) {

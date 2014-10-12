@@ -20,7 +20,7 @@ import net.minecraft.entity.player.EntityPlayer;
  * for assignability, which allows for items that make no sense in tablets to
  * deny being placed into them in the assembler, for example.
  * <p/>
- * The only purpose is to allow identifying tile entities as computer cases
+ * The only purpose is to allow identifying tile entities as tablets
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */

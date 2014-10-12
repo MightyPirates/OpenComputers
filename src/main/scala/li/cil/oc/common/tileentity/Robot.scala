@@ -673,7 +673,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  def getFluidTank(tank: Int) = {
+  def getFluidTank(tank: Int) = tryGetTank(tank).orNull
+
+  def tryGetTank(tank: Int) = {
     val tanks = components.collect {
       case Some(tank: IFluidTank) => tank
     }
@@ -689,21 +691,21 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   // ----------------------------------------------------------------------- //
 
   override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) =
-    getFluidTank(selectedTank) match {
+    tryGetTank(selectedTank) match {
       case Some(tank) =>
         tank.fill(resource, doFill)
       case _ => 0
     }
 
   override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) =
-    getFluidTank(selectedTank) match {
+    tryGetTank(selectedTank) match {
       case Some(tank) if tank.getFluid != null && tank.getFluid.isFluidEqual(resource) =>
         tank.drain(resource.amount, doDrain)
       case _ => null
     }
 
   override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = {
-    getFluidTank(selectedTank) match {
+    tryGetTank(selectedTank) match {
       case Some(tank) =>
         tank.drain(maxDrain, doDrain)
       case _ => null
@@ -711,14 +713,14 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   override def canFill(from: ForgeDirection, fluid: Fluid) = {
-    getFluidTank(selectedTank) match {
+    tryGetTank(selectedTank) match {
       case Some(tank) => tank.getFluid == null || tank.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
   override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
-    getFluidTank(selectedTank) match {
+    tryGetTank(selectedTank) match {
       case Some(tank) => tank.getFluid != null && tank.getFluid.getFluid == fluid
       case _ => false
     }

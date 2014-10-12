@@ -46,7 +46,7 @@ class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAc
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.RobotAssembler.id, world, x, y, z)
+        player.openGui(OpenComputers, GuiType.Assembler.id, world, x, y, z)
       }
       true
     }

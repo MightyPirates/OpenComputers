@@ -817,7 +817,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
 
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))
 
-  private def getTank(index: Int) = robot.getFluidTank(index)
+  private def getTank(index: Int) = robot.tryGetTank(index)
 
   private def fluidInTank(index: Int) = getTank(index) match {
     case Some(tank) => Option(tank.getFluid)

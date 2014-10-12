@@ -285,6 +285,10 @@ class Settings(config: Config) {
   val fakePlayerName = config.getString("integration.fakePlayerName")
   val fakePlayerProfile = new GameProfile(UUID.fromString(fakePlayerUuid), fakePlayerName)
 
+  // integration.vanilla
+  val enableInventoryDriver = config.getBoolean("integration.vanilla.enableInventoryDriver")
+  val enableTankDriver = config.getBoolean("integration.vanilla.enableTankDriver")
+
   // ----------------------------------------------------------------------- //
   // debug
   val logLuaCallbackErrors = config.getBoolean("debug.logCallbackErrors")
