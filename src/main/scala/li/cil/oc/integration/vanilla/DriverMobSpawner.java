@@ -1,5 +1,6 @@
 package li.cil.oc.integration.vanilla;
 
+import li.cil.oc.api.driver.EnvironmentAware;
 import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -7,10 +8,13 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.world.World;
 
-public final class DriverMobSpawner extends DriverTileEntity {
+public final class DriverMobSpawner extends DriverTileEntity implements EnvironmentAware {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityMobSpawner.class;
@@ -19,6 +23,13 @@ public final class DriverMobSpawner extends DriverTileEntity {
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
         return new Environment((TileEntityMobSpawner) world.getTileEntity(x, y, z));
+    }
+
+    @Override
+    public Class<? extends li.cil.oc.api.network.Environment> providedEnvironment(ItemStack stack) {
+        if (stack != null && Block.getBlockFromItem(stack.getItem()) == Blocks.mob_spawner)
+            return Environment.class;
+        return null;
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityMobSpawner> implements NamedBlock {

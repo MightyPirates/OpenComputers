@@ -6,6 +6,7 @@ import appeng.api.storage.data.IAEItemStack
 import appeng.tile.networking.TileController
 import appeng.util.item.AEItemStack
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -16,6 +17,8 @@ import li.cil.oc.api.prefab.DriverTileEntity
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper._
+import net.minecraft.block.Block
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
@@ -24,11 +27,14 @@ import scala.collection.convert.WrapAsScala._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object DriverController extends DriverTileEntity {
+object DriverController extends DriverTileEntity with EnvironmentAware {
   def getTileEntityClass = classOf[TileController]
 
   def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileController])
+
+  override def providedEnvironment(stack: ItemStack) =
+    if (stack != null && Block.getBlockFromItem(stack.getItem) == Block.getBlockFromName("appliedenergistics2:tile.BlockController")) classOf[Environment] else null
 
   class Environment(tileEntity: TileController) extends ManagedTileEntityEnvironment[TileController](tileEntity, "me_controller") with NamedBlock {
     override def preferredName = "me_controller"

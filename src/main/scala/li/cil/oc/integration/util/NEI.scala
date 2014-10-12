@@ -19,7 +19,6 @@ import li.cil.oc.server.machine.Callbacks
 import net.minecraft.block.Block
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.Container
-import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumChatFormatting
 
@@ -95,13 +94,9 @@ class DocumentationHandler(val pages: Option[Array[String]]) extends IUsageHandl
           val callbacks = Option(Registry.driverFor(stack)) match {
             case Some(driver: EnvironmentAware) =>
               getCallbacks(driver.providedEnvironment(stack))
-            case _ => stack.getItem match {
-              case block: ItemBlock =>
-                Registry.blocks.collect {
-                  case driver: EnvironmentAware => driver.providedEnvironment(stack)
-                }.filter(_ != null).map(getCallbacks).flatten
-              case _ => Seq.empty // No driver for this item.
-            }
+            case _ => Registry.blocks.collect {
+              case driver: EnvironmentAware => driver.providedEnvironment(stack)
+            }.filter(_ != null).map(getCallbacks).flatten
           }
 
           if (callbacks.size > 0) {

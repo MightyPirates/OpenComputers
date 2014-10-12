@@ -1,5 +1,6 @@
 package li.cil.oc.integration.vanilla;
 
+import li.cil.oc.api.driver.EnvironmentAware;
 import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -7,11 +8,14 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityNote;
 import net.minecraft.world.World;
 
-public final class DriverNoteBlock extends DriverTileEntity {
+public final class DriverNoteBlock extends DriverTileEntity implements EnvironmentAware {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityNote.class;
@@ -20,6 +24,13 @@ public final class DriverNoteBlock extends DriverTileEntity {
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
         return new Environment((TileEntityNote) world.getTileEntity(x, y, z));
+    }
+
+    @Override
+    public Class<? extends li.cil.oc.api.network.Environment> providedEnvironment(ItemStack stack) {
+        if (stack != null && Block.getBlockFromItem(stack.getItem()) == Blocks.noteblock)
+            return Environment.class;
+        return null;
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityNote> implements NamedBlock {

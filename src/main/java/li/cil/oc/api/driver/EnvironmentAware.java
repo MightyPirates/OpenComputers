@@ -23,12 +23,7 @@ public interface EnvironmentAware {
      * Get the type of environment that would be created for the specified
      * block or item.
      * <p/>
-     * Note that for block drivers this is called for any type of item stack
-     * where the underlying item is of type <tt>ItemBlock</tt>. This may make
-     * very specific, non-standard implementations not work (where normal items
-     * generate actual blocks when "placed"), but this does not outweigh the
-     * benefits in performance and utility - it allows to always safely cast
-     * the item to <tt>ItemBlock</tt> when this is called on a block driver.
+     * Note that for block drivers this is called for any type of item stack.
      * <p/>
      * For item drivers this is only called if {@link Item#worksWith(net.minecraft.item.ItemStack)}
      * returns <tt>true</tt>.
