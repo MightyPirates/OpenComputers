@@ -1,10 +1,14 @@
 package li.cil.oc.integration.appeng
 
+import appeng.api.config.Actionable
 import appeng.api.networking.crafting.ICraftingLink
+import appeng.api.networking.crafting.ICraftingRequester
 import appeng.api.networking.security.MachineSource
 import appeng.api.storage.data.IAEItemStack
+import appeng.core.Api
 import appeng.tile.networking.TileController
 import appeng.util.item.AEItemStack
+import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.NamedBlock
@@ -16,14 +20,19 @@ import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.api.prefab.DriverTileEntity
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -83,8 +92,33 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
       result(tileEntity.getProxy.getEnergy.getStoredPower)
   }
 
-  class Craftable(var controller: TileController, var stack: IAEItemStack) extends AbstractValue {
+  class Craftable(var controller: TileController, var stack: IAEItemStack) extends AbstractValue with ICraftingRequester {
     def this() = this(null, null)
+
+    private val links = mutable.Set.empty[ICraftingLink]
+
+    // ----------------------------------------------------------------------- //
+
+    override def getRequestedJobs = ImmutableSet.copyOf(links.toIterable)
+
+    override def jobStateChange(link: ICraftingLink) {
+      links -= link
+    }
+
+    override def injectCratedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack
+
+    // rv2
+    def injectCraftedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack
+
+    override def getActionableNode = controller.getActionableNode
+
+    override def getCableConnectionType(side: ForgeDirection) = controller.getCableConnectionType(side)
+
+    override def securityBreak() = controller.securityBreak()
+
+    override def getGridNode(side: ForgeDirection) = controller.getGridNode(side)
+
+    // ----------------------------------------------------------------------- //
 
     @Callback(doc = "function():table -- Returns the item stack representation of the crafting result.")
     def getItemStack(context: Context, args: Arguments): Array[AnyRef] = Array(stack.getItemStack)
@@ -107,7 +141,11 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
       Future {
         try {
           val job = future.get() // Make 100% sure we wait for this outside the scheduled closure.
-          EventHandler.schedule(() => status.setLink(craftingGrid.submitJob(job, null, null, true, source)))
+          EventHandler.schedule(() => {
+            val link = craftingGrid.submitJob(job, Craftable.this, null, true, source)
+            status.setLink(link)
+            links += link
+          })
         }
         catch {
           case e: Exception =>
@@ -118,6 +156,8 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
 
       result(status)
     }
+
+    // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
@@ -135,6 +175,11 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
           }
         })
       }
+      links ++= nbt.getTagList("links", NBT.TAG_LIST).map {
+        case (list, index) =>
+          val nbt = list.getCompoundTagAt(index)
+          Api.instance.storage.loadCraftingLink(nbt, this)
+      }
     }
 
     override def save(nbt: NBTTagCompound) {
@@ -146,6 +191,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
         nbt.setInteger("y", controller.yCoord)
         nbt.setInteger("z", controller.zCoord)
       }
+      nbt.setNewTagList("links", links)
     }
   }
 
