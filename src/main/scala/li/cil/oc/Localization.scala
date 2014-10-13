@@ -6,7 +6,9 @@ import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.util.StatCollector
 
 object Localization {
-  private def resolveKey(key: String) = if (StatCollector.canTranslate(Settings.namespace + key)) Settings.namespace + key else key
+  private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
+
+  def canLocalize(key: String) = StatCollector.canTranslate(key)
 
   def localizeLater(formatKey: String, values: AnyRef*) = new ChatComponentTranslation(resolveKey(formatKey), values: _*)
 

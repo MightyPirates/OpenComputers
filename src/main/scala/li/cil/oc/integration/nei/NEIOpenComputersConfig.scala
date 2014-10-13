@@ -14,7 +14,11 @@ class NEIOpenComputersConfig extends IConfigureNEI {
   override def getVersion = "1.0.0"
 
   override def loadConfig() {
-    API.registerUsageHandler(new DocumentationHandler())
+    // Non-alphabetic order haunts my OCD, but I want the "Manual" to show up
+    // before the API doc.
+    API.registerUsageHandler(new GeneralUsageHandler())
+    API.registerUsageHandler(new CallbackDocHandler())
+
     for (block <- NEI.hiddenBlocks) {
       API.hideItem(new ItemStack(block))
     }
