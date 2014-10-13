@@ -4,30 +4,7 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.ModAPIManager
 import cpw.mods.fml.common.versioning.VersionParser
 import li.cil.oc.Settings
-import li.cil.oc.integration.appeng.ModAppEng
-import li.cil.oc.integration.buildcraft.ModBuildCraft
-import li.cil.oc.integration.cofh.energy.ModCoFHEnergy
-import li.cil.oc.integration.cofh.tileentity.ModCoFHTileEntity
-import li.cil.oc.integration.cofh.transport.ModCoFHTransport
-import li.cil.oc.integration.computercraft.ModComputerCraft
-import li.cil.oc.integration.enderio.ModEnderIO
-import li.cil.oc.integration.enderstorage.ModEnderStorage
-import li.cil.oc.integration.fmp.ModForgeMultipart
-import li.cil.oc.integration.forestry.ModForestry
-import li.cil.oc.integration.gregtech.ModGregtech
-import li.cil.oc.integration.ic2.ModIndustrialCraft2
-import li.cil.oc.integration.mfr.ModMineFactoryReloaded
-import li.cil.oc.integration.mystcraft.ModMystcraft
-import li.cil.oc.integration.opencomputers.ModOpenComputers
-import li.cil.oc.integration.railcraft.ModRailcraft
-import li.cil.oc.integration.tcon.ModTinkersConstruct
-import li.cil.oc.integration.thaumcraft.ModThaumcraft
-import li.cil.oc.integration.thermalexpansion.ModThermalExpansion
-import li.cil.oc.integration.tmechworks.ModTMechworks
-import li.cil.oc.integration.ue.ModUniversalElectricity
-import li.cil.oc.integration.vanilla.ModVanilla
-import li.cil.oc.integration.versionchecker.ModVersionChecker
-import li.cil.oc.integration.waila.ModWaila
+import li.cil.oc.integration
 
 import scala.collection.mutable
 
@@ -90,42 +67,44 @@ object Mods {
   val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
-  val WirelessRedstoneSV = new SimpleMod(IDs.WirelessRedstoneSV)
+  val WirelessRedstoneSVE = new SimpleMod(IDs.WirelessRedstoneSV)
 
   // ----------------------------------------------------------------------- //
 
   def init() {
-    integrate(ModAppEng)
-    integrate(ModBuildCraft)
-    integrate(ModCoFHEnergy)
-    integrate(ModCoFHTileEntity)
-    integrate(ModCoFHTransport)
-    integrate(ModEnderIO)
-    integrate(ModEnderStorage)
-    integrate(ModForestry)
-    integrate(ModForgeMultipart)
-    integrate(ModGregtech)
-    integrate(ModIndustrialCraft2)
-    integrate(ModMineFactoryReloaded)
-    integrate(ModMystcraft)
-    integrate(ModOpenComputers)
-    integrate(ModRailcraft)
-    integrate(ModThaumcraft)
-    integrate(ModThermalExpansion)
-    integrate(ModTinkersConstruct)
-    integrate(ModTMechworks)
-    integrate(ModUniversalElectricity)
-    integrate(ModVanilla)
-    integrate(ModVersionChecker)
-    integrate(ModWaila)
+    tryInit(integration.appeng.ModAppEng)
+    tryInit(integration.buildcraft.ModBuildCraft)
+    tryInit(integration.cofh.energy.ModCoFHEnergy)
+    tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
+    tryInit(integration.cofh.transport.ModCoFHTransport)
+    tryInit(integration.enderio.ModEnderIO)
+    tryInit(integration.enderstorage.ModEnderStorage)
+    tryInit(integration.forestry.ModForestry)
+    tryInit(integration.fmp.ModForgeMultipart)
+    tryInit(integration.gregtech.ModGregtech)
+    tryInit(integration.ic2.ModIndustrialCraft2)
+    tryInit(integration.mfr.ModMineFactoryReloaded)
+    tryInit(integration.mystcraft.ModMystcraft)
+    tryInit(integration.opencomputers.ModOpenComputers)
+    tryInit(integration.railcraft.ModRailcraft)
+    tryInit(integration.thaumcraft.ModThaumcraft)
+    tryInit(integration.thermalexpansion.ModThermalExpansion)
+    tryInit(integration.tcon.ModTinkersConstruct)
+    tryInit(integration.tmechworks.ModTMechworks)
+    tryInit(integration.ue.ModUniversalElectricity)
+    tryInit(integration.vanilla.ModVanilla)
+    tryInit(integration.versionchecker.ModVersionChecker)
+    tryInit(integration.waila.ModWaila)
+    tryInit(integration.wrcbe.ModWRCBE)
+    tryInit(integration.wrsve.ModWRSVE)
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations, such as
     // is the case in the Redstone in Motion driver (replaces 'move').
-    integrate(ModComputerCraft)
+    tryInit(integration.computercraft.ModComputerCraft)
   }
 
-  private def integrate(mod: ModProxy) {
+  private def tryInit(mod: ModProxy) {
     val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
     val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
     if (!isBlacklisted && (alwaysEnabled || mod.getMod.isAvailable) && handlers.add(mod)) {

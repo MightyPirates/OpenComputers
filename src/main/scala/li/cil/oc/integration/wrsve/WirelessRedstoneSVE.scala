@@ -1,13 +1,14 @@
-package li.cil.oc.integration.util
+package li.cil.oc.integration.wrsve
 
+import li.cil.oc.integration.util.WirelessRedstone.WirelessRedstoneSystem
 import li.cil.oc.server.component.RedstoneWireless
 import net.minecraft.world.World
 
 import scala.language.reflectiveCalls
 
-object WirelessRedstoneSV {
+object WirelessRedstoneSVE extends WirelessRedstoneSystem {
   private val ether = try {
-    Option(Class.forName("wirelessredstone.ether.RedstoneEther").getMethod("getInstance").invoke(null).asInstanceOf[ {
+    Option(Class.forName("net.slimevoid.wirelessredstone.ether.RedstoneEther").getMethod("getInstance").invoke(null).asInstanceOf[ {
       def addTransmitter(world: World, x: Int, y: Int, z: Int, frequency: AnyRef)
 
       def remTransmitter(world: World, x: Int, y: Int, z: Int, frequency: AnyRef)

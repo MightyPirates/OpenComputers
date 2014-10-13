@@ -1,31 +1,42 @@
 package li.cil.oc.integration.util
 
-import li.cil.oc.integration.Mods
 import li.cil.oc.server.component.RedstoneWireless
 
+import scala.collection.mutable
+
 object WirelessRedstone {
-  def isAvailable = Mods.WirelessRedstoneCBE.isAvailable ||
-    Mods.WirelessRedstoneSV.isAvailable
+  val systems = mutable.Set.empty[WirelessRedstoneSystem]
+
+  def isAvailable = systems.size > 0
 
   def addReceiver(rs: RedstoneWireless) {
-    WirelessRedstoneCBE.addReceiver(rs)
-    WirelessRedstoneSV.addReceiver(rs)
+    systems.foreach(_.addReceiver(rs))
   }
 
   def removeReceiver(rs: RedstoneWireless) {
-    WirelessRedstoneCBE.removeReceiver(rs)
-    WirelessRedstoneSV.removeReceiver(rs)
-  }
-
-  def removeTransmitter(rs: RedstoneWireless) {
-    WirelessRedstoneCBE.removeTransmitter(rs)
-    WirelessRedstoneSV.removeTransmitter(rs)
+    systems.foreach(_.removeReceiver(rs))
   }
 
   def updateOutput(rs: RedstoneWireless) {
-    WirelessRedstoneCBE.updateOutput(rs)
-    WirelessRedstoneSV.updateOutput(rs)
+    systems.foreach(_.updateOutput(rs))
   }
 
-  def getInput(rs: RedstoneWireless) = WirelessRedstoneCBE.getInput(rs) || WirelessRedstoneSV.getInput(rs)
+  def removeTransmitter(rs: RedstoneWireless) {
+    systems.foreach(_.removeTransmitter(rs))
+  }
+
+  def getInput(rs: RedstoneWireless) = systems.exists(_.getInput(rs))
+
+  trait WirelessRedstoneSystem {
+    def addReceiver(rs: RedstoneWireless)
+
+    def removeReceiver(rs: RedstoneWireless)
+
+    def updateOutput(rs: RedstoneWireless)
+
+    def removeTransmitter(rs: RedstoneWireless)
+
+    def getInput(rs: RedstoneWireless): Boolean
+  }
+
 }

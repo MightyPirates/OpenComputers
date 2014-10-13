@@ -31,7 +31,7 @@ class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate with I
       if (Mods.WirelessRedstoneCBE.isAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessCBE"))
       }
-      if (Mods.WirelessRedstoneSV.isAvailable) {
+      if (Mods.WirelessRedstoneSVE.isAvailable) {
         tooltip.addAll(Tooltip.get(super.unlocalizedName + ".WirelessSV"))
       }
     }

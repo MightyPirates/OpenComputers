@@ -104,6 +104,8 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
     if (node == this.node) {
       util.WirelessRedstone.removeReceiver(this)
       util.WirelessRedstone.removeTransmitter(this)
+      wirelessOutput = false
+      wirelessFrequency = 0
     }
   }
 
