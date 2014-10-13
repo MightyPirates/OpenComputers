@@ -18,15 +18,19 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.IMerchant
 import net.minecraft.entity.item.EntityItem
+import net.minecraft.entity.item.EntityMinecartHopper
+import net.minecraft.entity.passive.EntityHorse
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.EnumStatus
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
+import net.minecraft.tileentity._
 import net.minecraft.util._
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.ForgeHooks
@@ -489,4 +493,26 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
 
   override def addChatMessage(message: IChatComponent) {}
+
+  override def displayGUIWorkbench(x: Int, y: Int, z: Int) {}
+
+  override def displayGUIEnchantment(x: Int, y: Int, z: Int, idk: String) {}
+
+  override def displayGUIAnvil(x: Int, y: Int, z: Int) {}
+
+  override def displayGUIChest(inventory: IInventory) {}
+
+  override def displayGUIHopperMinecart(cart: EntityMinecartHopper) {}
+
+  override def displayGUIHorse(horse: EntityHorse, inventory: IInventory) {}
+
+  override def func_146104_a(tileEntity: TileEntityBeacon) {}
+
+  override def func_146098_a(tileEntity: TileEntityBrewingStand) {}
+
+  override def func_146102_a(tileEntity: TileEntityDispenser) {}
+
+  override def func_146101_a(tileEntity: TileEntityFurnace) {}
+
+  override def func_146093_a(tileEntity: TileEntityHopper) {}
 }

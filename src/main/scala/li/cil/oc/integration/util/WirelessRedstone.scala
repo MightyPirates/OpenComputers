@@ -10,19 +10,27 @@ object WirelessRedstone {
   def isAvailable = systems.size > 0
 
   def addReceiver(rs: RedstoneWireless) {
-    systems.foreach(_.addReceiver(rs))
+    systems.foreach(system => try system.addReceiver(rs) catch {
+      case _: Throwable => // Ignore
+    })
   }
 
   def removeReceiver(rs: RedstoneWireless) {
-    systems.foreach(_.removeReceiver(rs))
+    systems.foreach(system => try system.removeReceiver(rs) catch {
+      case _: Throwable => // Ignore
+    })
   }
 
   def updateOutput(rs: RedstoneWireless) {
-    systems.foreach(_.updateOutput(rs))
+    systems.foreach(system => try system.updateOutput(rs) catch {
+      case _: Throwable => // Ignore
+    })
   }
 
   def removeTransmitter(rs: RedstoneWireless) {
-    systems.foreach(_.removeTransmitter(rs))
+    systems.foreach(system => try system.removeTransmitter(rs) catch {
+      case _: Throwable => // Ignore
+    })
   }
 
   def getInput(rs: RedstoneWireless) = systems.exists(_.getInput(rs))
