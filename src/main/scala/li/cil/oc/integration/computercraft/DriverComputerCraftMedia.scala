@@ -1,35 +1,39 @@
 package li.cil.oc.integration.computercraft
 
+import dan200.computercraft.api.filesystem.IMount
+import dan200.computercraft.api.filesystem.IWritableMount
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.Slot
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.Item
-import li.cil.oc.integration.util.ComputerCraft
+import li.cil.oc.server.fs.ComputerCraftFileSystem
+import li.cil.oc.server.fs.ComputerCraftWritableFileSystem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object DriverComputerCraftMedia extends Item {
-  override def worksWith(stack: ItemStack) =
-    Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack)
+  override def worksWith(stack: ItemStack) = stack.getItem.isInstanceOf[IMedia]
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && host != null) {
-      val address = addressFromTag(dataTag(stack))
-      val mount = ComputerCraft.createDiskMount(stack, host.world)
-      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), host, Settings.resourceDomain + ":floppy_access")) match {
-        case Some(environment) =>
-          environment.node.asInstanceOf[oc.server.network.Node].address = address
-          environment
-        case _ => null
-      }
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
+    val address = addressFromTag(dataTag(stack))
+    val mount = oc.api.FileSystem.fromComputerCraft(stack.getItem.asInstanceOf[IMedia].createDataMount(stack, host.world))
+    Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), host, Settings.resourceDomain + ":floppy_access")) match {
+      case Some(environment) =>
+        environment.node.asInstanceOf[oc.server.network.Node].address = address
+        environment
+      case _ => null
     }
-    else null
+  }
 
   override def slot(stack: ItemStack) = Slot.Floppy
+
+  def createFileSystem(mount: AnyRef) = Option(mount) collect {
+    case rw: IWritableMount => new ComputerCraftWritableFileSystem(rw)
+    case ro: IMount => new ComputerCraftFileSystem(ro)
+  }
 
   private def addressFromTag(tag: NBTTagCompound) =
     if (tag.hasKey("node") && tag.getCompoundTag("node").hasKey("address")) {
