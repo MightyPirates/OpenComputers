@@ -1,8 +1,14 @@
 package li.cil.oc.util
 
+import com.google.common.base.Charsets
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.machine.Arguments
 import net.minecraft.inventory.IInventory
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTSizeTracker
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.language.implicitConversions
@@ -63,6 +69,35 @@ object ExtendedArguments {
       if (allowed.isEmpty || (allowed contains direction)) direction
       else throw new IllegalArgumentException("unsupported side")
     }
+
+    def checkItemStack(n: Int) = {
+      val map = args.checkTable(n)
+      map.get("name") match {
+        case name: String =>
+          val damage = map.get("damage") match {
+            case number: Number => number.intValue()
+            case _ => 0
+          }
+          val tag = map.get("tag") match {
+            case ba: Array[Byte] => toNbtTagCompound(ba)
+            case s: String => toNbtTagCompound(s.getBytes(Charsets.UTF_8))
+            case _ => None
+          }
+          makeStack(name, damage, tag)
+        case _ => throw new IllegalArgumentException("invalid item stack")
+      }
+    }
   }
 
+  private def makeStack(name: String, damage: Int, tag: Option[NBTTagCompound]) = {
+    Item.itemRegistry.getObject(name) match {
+      case item: Item =>
+        val stack = new ItemStack(item, 1, damage)
+        tag.foreach(stack.setTagCompound)
+        stack
+      case _ => throw new IllegalArgumentException("invalid item stack")
+    }
+  }
+
+  private def toNbtTagCompound(data: Array[Byte]) = Option(CompressedStreamTools.func_152457_a(data, NBTSizeTracker.field_152451_a))
 }
