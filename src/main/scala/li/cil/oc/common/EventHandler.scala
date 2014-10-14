@@ -149,6 +149,14 @@ object EventHandler {
   }
 
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
+  lazy val transistor = api.Items.get("transistor")
+  lazy val case1 = api.Items.get("case1")
+  lazy val openOS = api.Items.get("openOS")
+  lazy val chip1 = api.Items.get("chip1")
+  lazy val ram1 = api.Items.get("ram1")
+  lazy val cpu1 = api.Items.get("cpu1")
+  lazy val screen1 = api.Items.get("screen1")
+  lazy val keyboard = api.Items.get("keyboard")
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
@@ -165,6 +173,25 @@ object EventHandler {
             }
           }
         })
+    }
+    //Achievements
+    else if (api.Items.get(e.crafting) == transistor) {
+      e.player.addStat(Achievements.achievementTransistor, 1)
+    } else if (api.Items.get(e.crafting) == case1) {
+      e.player.addStat(Achievements.achievementCase1, 1)
+    } else if (api.Items.get(e.crafting) == openOS) {
+      e.player.addStat(Achievements.achievementOpenOS, 1)
+    } else if (api.Items.get(e.crafting) == chip1) {
+      e.player.addStat(Achievements.achievementChip1, 1)
+    } else if (api.Items.get(e.crafting) == ram1) {
+      e.player.addStat(Achievements.achievementRAM, 1)
+    } else if (api.Items.get(e.crafting) == cpu1) {
+      e.player.addStat(Achievements.achievementCPU, 1)
+    } else if (api.Items.get(e.crafting) == screen1) {
+      e.player.addStat(Achievements.achievementScreen, 1)
+    } else if (api.Items.get(e.crafting) == keyboard) {
+      e.player.addStat(Achievements.achievementKeyboard, 1)
+
     }
   }
 
