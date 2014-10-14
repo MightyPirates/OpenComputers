@@ -57,7 +57,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   // ----------------------------------------------------------------------- //
 
-  override def receivePacket(packet: Packet, distance: Double) {
+  override def receivePacket(packet: Packet, source: WirelessEndpoint) {
     tryEnqueuePacket(ForgeDirection.UNKNOWN, packet)
     if (Mods.ComputerCraft.isAvailable) {
       packet.data.headOption match {

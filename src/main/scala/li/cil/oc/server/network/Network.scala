@@ -494,8 +494,8 @@ object Network extends api.detail.NetworkAPI {
   // ----------------------------------------------------------------------- //
 
   override def sendWirelessPacket(source: WirelessEndpoint, strength: Double, packet: network.Packet) {
-    for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(source, strength)) {
-      endpoint.receivePacket(packet, distance)
+    for (endpoint <- WirelessNetwork.computeReachableFrom(source, strength)) {
+      endpoint.receivePacket(packet, source)
     }
   }
 
