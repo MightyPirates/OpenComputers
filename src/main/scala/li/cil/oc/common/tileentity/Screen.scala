@@ -59,8 +59,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
 
-  // Allow connections from front for keyboards, just don't render cables as connected...
-  override def sidedNode(side: ForgeDirection) = node
+  // Allow connections from front for keyboards, and keyboards only...
+  override def sidedNode(side: ForgeDirection) = if (toLocal(side) != ForgeDirection.SOUTH || world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ).isInstanceOf[Keyboard]) node else null
 
   // ----------------------------------------------------------------------- //
 
