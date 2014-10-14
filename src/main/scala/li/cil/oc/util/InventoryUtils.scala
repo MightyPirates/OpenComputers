@@ -50,7 +50,7 @@ object InventoryUtils {
    * The number of items inserted can be limited, to avoid unnecessary
    * changes to the inventory the stack may come from, for example.
    */
-  def insertIntoInventorySlot(stack: ItemStack, inventory: IInventory, side: ForgeDirection, slot: Int, limit: Int = 64) =
+  def insertIntoInventorySlot(stack: ItemStack, inventory: IInventory, side: ForgeDirection, slot: Int, limit: Int = 64, simulate: Boolean = false) =
     (stack != null && limit > 0) && {
       val isSideValidForSlot = inventory match {
         case inventory: ISidedInventory => inventory.canInsertItem(slot, stack, side.ordinal)
@@ -64,15 +64,22 @@ object InventoryUtils {
         if (shouldMerge) {
           val space = maxStackSize - existing.stackSize
           val amount = math.min(space, math.min(stack.stackSize, limit))
-          existing.stackSize += amount
           stack.stackSize -= amount
-          inventory.markDirty()
-          true
+          if (simulate) amount > 0
+          else {
+            existing.stackSize += amount
+            inventory.markDirty()
+            true
+          }
         }
         else (existing == null) && {
           val amount = math.min(maxStackSize, math.min(stack.stackSize, limit))
-          inventory.setInventorySlotContents(slot, stack.splitStack(amount))
-          true
+          val inserted = stack.splitStack(amount)
+          if (simulate) amount > 0
+          else {
+            inventory.setInventorySlotContents(slot, inserted)
+            true
+          }
         }
       }
     }
@@ -142,7 +149,7 @@ object InventoryUtils {
    * item stack will be adjusted to reflect the number items inserted, by
    * having its size decremented accordingly.
    */
-  def insertIntoInventory(stack: ItemStack, inventory: IInventory, side: ForgeDirection, limit: Int = 64) =
+  def insertIntoInventory(stack: ItemStack, inventory: IInventory, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false) =
     (stack != null && limit > 0) && {
       var success = false
       var remaining = limit
@@ -151,7 +158,7 @@ object InventoryUtils {
       if (shouldTryMerge) {
         for (slot <- 0 until inventory.getSizeInventory) {
           val stackSize = stack.stackSize
-          if ((inventory.getStackInSlot(slot) != null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining)) {
+          if ((inventory.getStackInSlot(slot) != null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
             remaining -= stackSize - stack.stackSize
             success = true
           }
@@ -160,7 +167,7 @@ object InventoryUtils {
 
       for (slot <- 0 until inventory.getSizeInventory) {
         val stackSize = stack.stackSize
-        if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining)) {
+        if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
           remaining -= stackSize - stack.stackSize
           success = true
         }
@@ -187,8 +194,8 @@ object InventoryUtils {
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
    * in the world.
    */
-  def insertIntoInventoryAt(stack: ItemStack, world: World, x: Int, y: Int, z: Int, side: ForgeDirection, limit: Int = 64): Boolean =
-    inventoryAt(world, x, y, z).exists(insertIntoInventory(stack, _, side, limit))
+  def insertIntoInventoryAt(stack: ItemStack, world: World, x: Int, y: Int, z: Int, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false): Boolean =
+    inventoryAt(world, x, y, z).exists(insertIntoInventory(stack, _, side, limit, simulate))
 
   /**
    * Utility method for calling <tt>extractFromInventory</tt> on an inventory
