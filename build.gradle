@@ -76,14 +76,17 @@ repositories {
     }
 
     ivy {
-        name 'ProjectRed'
-        artifactPattern "http://ci.indiewikis.com:8080/job/Project%20Red/${config.projred.build}/artifact/build/libs/[module]-${config.minecraft.version}-[revision].${config.projred.build}.[ext]"
+        name 'Galacticraft'
+        artifactPattern "http://ci.micdoodle8.com/job/Galacticraft-1.7/${config.gc.build}/artifact/Forge/build/libs/[module]-BETA-1.7-[revision].${config.gc.build}.[ext]"
     }
     ivy {
         name 'Mekanism'
         artifactPattern "http://ci.indiewikis.com:8080/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
     }
-
+    ivy {
+        name 'ProjectRed'
+        artifactPattern "http://ci.indiewikis.com:8080/job/Project%20Red/${config.projred.build}/artifact/build/libs/[module]-${config.minecraft.version}-[revision].${config.projred.build}.[ext]"
+    }
     ivy {
         name 'immibis'
         artifactPattern "https://dl.dropboxusercontent.com/u/2944265/mods/autobuilt/files/[module]-[revision].[ext]"
@@ -133,10 +136,10 @@ dependencies {
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
 
+    provided name: 'GalacticraftCore', version: config.gc.version, ext: 'jar'
+    provided name: 'Mekanism', version: config.mekanism.version, ext: 'jar'
     provided name: 'ProjectRed-Base', version: config.projred.version, ext: 'jar'
     provided name: 'ProjectRed-Integration', version: config.projred.version, ext: 'jar'
-    provided name: 'Mekanism', version: config.mekanism.version, ext: 'jar'
-
     provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
 
     provided name: 'CoFHLib', version: URLEncoder.encode(config.cofhlib.version, "UTF-8"), ext: 'jar'
