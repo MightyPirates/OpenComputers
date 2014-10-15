@@ -11,16 +11,8 @@ object ModComputerCraft extends ModProxy {
     PeripheralProvider.init()
 
     Driver.add(DriverComputerCraftMedia)
+    Driver.add(new DriverPeripheral())
 
-    try {
-      val driver = new DriverPeripheral()
-      if (driver.isValid) {
-        Driver.add(new ConverterLuaObject)
-        Driver.add(driver)
-      }
-    }
-    catch {
-      case ignored: Throwable =>
-    }
+    Driver.add(new ConverterLuaObject)
   }
 }

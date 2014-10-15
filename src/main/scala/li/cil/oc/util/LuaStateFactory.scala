@@ -6,10 +6,10 @@ import java.io.FileOutputStream
 import java.nio.channels.Channels
 
 import com.google.common.base.Strings
-import li.cil.oc.server.machine.Machine
-import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.server.machine.Machine
+import li.cil.oc.util.ExtendedLuaState._
 import li.cil.repack.com.naef.jnlua
 import li.cil.repack.com.naef.jnlua.LuaState
 import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
