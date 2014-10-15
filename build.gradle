@@ -160,7 +160,6 @@ minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
 
     replaceIn "li/cil/oc/OpenComputers.scala"
-    replaceIn "li/cil/occ/OpenComponents.java"
     replace "@VERSION@", project.simpleVersion
 }
 
@@ -227,10 +226,17 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier 'javadoc'
 }
 
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java
+    from sourceSets.main.scala
+    classifier = 'sources'
+}
+
 artifacts {
     archives deobfJar
     archives apiJar
     archives javadocJar
+    archives sourcesJar
 }
 
 publishing {
@@ -239,6 +245,7 @@ publishing {
             artifact jar
             artifact apiJar
             artifact javadocJar
+            artifact sourcesJar
             artifact deobfJar { classifier 'dev' }
         }
     }
