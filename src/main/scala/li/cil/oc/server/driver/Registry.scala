@@ -2,12 +2,16 @@ package li.cil.oc.server.driver
 
 import java.util
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
-import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.math.ScalaNumber
@@ -57,9 +61,25 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case _ => null
     }
 
+  def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
+    if (stack != null) {
+      val hostAware = items.collect {
+        case driver: HostAware if driver.worksWith(stack) => driver
+      }
+      if (hostAware.size > 0) {
+        hostAware.find(_.worksWith(stack, host)).orNull
+      }
+      else driverFor(stack)
+    }
+    else null
+
   def driverFor(stack: ItemStack) =
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
+
+  override def blockDrivers = blocks.toSeq
+
+  override def itemDrivers = items.toSeq
 
   def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 

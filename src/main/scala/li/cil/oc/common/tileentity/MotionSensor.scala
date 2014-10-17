@@ -1,11 +1,16 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Visibility
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.potion.Potion
-import net.minecraft.util.{AxisAlignedBB, Vec3}
+import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.Vec3
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable

@@ -2,27 +2,38 @@ package li.cil.oc.common.tileentity
 
 import java.util.UUID
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Driver
-import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
+import li.cil.oc.api.driver.item
+import li.cil.oc.api.driver.item.Container
+import li.cil.oc.api.driver.item.Memory
+import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.event.RobotAnalyzeEvent
+import li.cil.oc.api.event.RobotMoveEvent
+import li.cil.oc.api.internal
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
-import li.cil.oc.common.block.Delegator
-import li.cil.oc.common.{Slot, Tier}
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
+import li.cil.oc.integration.opencomputers.DriverKeyboard
+import li.cil.oc.integration.opencomputers.DriverRedstoneCard
+import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
-import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
-import net.minecraft.block.{Block, BlockLiquid}
+import net.minecraft.block.Block
+import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
+import net.minecraftforge.fluids._
 
 import scala.collection.mutable
 
@@ -32,7 +43,7 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with api.machine.Robot {
+class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
@@ -42,7 +53,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   val inventory = new Inventory(this)
 
   if (isServer) {
-    computer.setCostPerTick(Settings.get.robotCost)
+    machine.setCostPerTick(Settings.get.robotCost)
   }
 
   // ----------------------------------------------------------------------- //
@@ -54,6 +65,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   var inventorySize = -1
 
   var selectedSlot = actualSlot(0)
+
+  var selectedTank = 0
 
   // For client.
   var renderingErrored = false
@@ -73,7 +86,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     components(slot) match {
       case Some(component) =>
         // We're guaranteed to have a driver for entries.
-        save(component, Driver.driverFor(stack), stack)
+        save(component, Driver.driverFor(stack, getClass), stack)
       case _ =>
     }
     ServerPacketSender.sendRobotInventory(this, slot, stack)
@@ -87,7 +100,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
 
   // ----------------------------------------------------------------------- //
 
-  override def node = if (isServer) computer.node else null
+  override def node = if (isServer) machine.node else null
 
   var globalBuffer, globalBufferSize = 0.0
 
@@ -142,6 +155,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       if (event.isCanceled) return false
     }
 
+    val blockRobotProxy = api.Items.get("robot").block.asInstanceOf[common.block.RobotProxy]
+    val blockRobotAfterImage = api.Items.get("robotAfterimage").block.asInstanceOf[common.block.RobotAfterimage]
     val wasAir = world.isAirBlock(nx, ny, nz)
     val block = world.getBlock(nx, ny, nz)
     val metadata = world.getBlockMetadata(nx, ny, nz)
@@ -149,7 +164,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       // Setting this will make the tile entity created via the following call
       // to setBlock to re-use our "real" instance as the inner object, instead
       // of creating a new one.
-      Blocks.robotProxy.moving.set(Some(this))
+      blockRobotProxy.moving.set(Some(this))
       // Do *not* immediately send the change to clients to allow checking if it
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
@@ -157,13 +172,13 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       world.setBlockToAir(nx, ny, nz)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = Blocks.robotProxy.setBlock(world, nx, ny, nz, 1) &&
+      val created = world.setBlock(nx, ny, nz, blockRobotProxy, 0, 1) &&
         world.getTileEntity(nx, ny, nz) == proxy
       if (created) {
         assert(x == nx && y == ny && z == nz)
         world.setBlock(ox, oy, oz, net.minecraft.init.Blocks.air, 0, 1)
-        Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
-        assert(Delegator.subBlock(world, ox, oy, oz).contains(Blocks.robotAfterimage))
+        world.setBlock(ox, oy, oz, blockRobotAfterImage, 0, 1)
+        assert(world.getBlock(ox, oy, oz) == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
@@ -175,7 +190,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
         else {
           // If we broke some replaceable block (like grass) play its break sound.
           if (!wasAir) {
-            if (block != null && !Delegator.subBlock(block, metadata).contains(Blocks.robotAfterimage)) {
+            if (block != null && block != blockRobotAfterImage) {
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
@@ -183,7 +198,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
               }
               else {
                 world.playSound(nx + 0.5, ny + 0.5, nz + 0.5, "liquid.water",
-                  world.rand.nextFloat * 0.25F + 0.75F, world.rand.nextFloat * 1.0F + 0.5F, false)
+                  world.rand.nextFloat * 0.25f + 0.75f, world.rand.nextFloat * 1.0f + 0.5f, false)
               }
             }
           }
@@ -198,7 +213,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       created
     }
     finally {
-      Blocks.robotProxy.moving.set(None)
+      blockRobotProxy.moving.set(None)
     }
   }
 
@@ -300,10 +315,6 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       // Ensure we have a node address, because the proxy needs this to initialize
       // its own node to the same address ours has.
       api.Network.joinNewNetwork(node)
-
-      // Flush excess energy to other components (mostly relevant for upgrading
-      // robots from 1.2 to 1.3, to move energy to the experience upgrade).
-      bot.node.setLocalBufferSize(bot.node.localBufferSize)
     }
   }
 
@@ -321,10 +332,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    info.load(nbt)
-
     updateInventorySize()
-    computer.architecture.recomputeMemory()
+    machine.onHostChanged()
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {
@@ -336,6 +345,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     if (inventorySize > 0) {
       selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
     }
+    selectedTank = nbt.getInteger(Settings.namespace + "selectedTank")
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
@@ -357,6 +367,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     nbt.setString(Settings.namespace + "owner", owner)
     ownerUuid.foreach(uuid => nbt.setString(Settings.namespace + "ownerUuid", uuid.toString))
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
+    nbt.setInteger(Settings.namespace + "selectedTank", selectedTank)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
       nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
@@ -443,9 +454,10 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       }
       if (isComponentSlot(slot)) {
         super.onItemAdded(slot, stack)
+        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
       if (isInventorySlot(slot)) {
-        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
       }
     }
   }
@@ -464,7 +476,10 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
         common.Sound.playDiskEject(this)
       }
       if (isInventorySlot(slot)) {
-        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+      }
+      if (isComponentSlot(slot)) {
+        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
     }
   }
@@ -500,8 +515,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
 
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
-    Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.UpgradeContainer) => Slot(driver, stack, Some(driver.providedSlot))
+    Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Container) => driver.providedSlot(stack)
       case _ => Slot.None
     }
   }
@@ -509,8 +524,8 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
 
   def containerSlotTier(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
-    Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.UpgradeContainer) => driver.providedTier(stack)
+    Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Container) => driver.providedTier(stack)
       case _ => Tier.None
     }
   }
@@ -523,30 +538,40 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
   def isInventorySlot(slot: Int) = inventorySlots contains slot
 
   def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => Slot(driver, stack) == Slot.Floppy
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver) => driver.slot(stack) == Slot.Floppy
       case _ => false
     }
     case _ => false
   })
 
-  def isUpgradeSlot(slot: Int) = false // slot == 3 TODO upgrade synching for rendering
+  def isUpgradeSlot(slot: Int) = containerSlotType(slot) == Slot.Upgrade
 
   // ----------------------------------------------------------------------- //
 
-  override def installedMemory = (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.Memory) => driver.amount(stack)
+  override def callBudget = (containerSlots ++ componentSlots).foldLeft(0.0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
       case _ => 0
     }
     case _ => 0
   }))
 
-  override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(driver.item.RedstoneCard.worksWith))
+  override def installedMemory = (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Memory) => driver.amount(stack)
+      case _ => 0
+    }
+    case _ => 0
+  }))
+
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+
+  override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
 
   private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.Inventory) => driver.inventoryCapacity(stack)
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: item.Inventory) => driver.inventoryCapacity(stack)
       case _ => 0
     }
     case _ => 0
@@ -612,14 +637,7 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
     }
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) =
-    world.getTileEntity(x, y, z) match {
-      case t: RobotProxy if t == proxy && computer.canInteract(player.getCommandSenderName) =>
-        player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
-      case _ => false
-    }
-
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, _) => true // Allow anything in the tool slot.
     case (i, Some(driver)) if isContainerSlot(i) =>
       // Yay special cases! Dynamic screens kind of work, but are pretty derpy
@@ -629,9 +647,9 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       // Since these are very special (as they have special behavior in the
       // GUI) I feel it's OK to handle it like this, instead of some extra API
       // logic making the differentiation of assembler and containers generic.
-      driver != server.driver.item.Screen &&
-        driver != server.driver.item.Keyboard &&
-        Slot(driver, stack) == containerSlotType(i) &&
+      driver != DriverScreen &&
+        driver != DriverKeyboard &&
+        driver.slot(stack) == containerSlotType(i) &&
         driver.tier(stack) <= containerSlotTier(i)
     case (i, _) if isInventorySlot(i) => true // Normal inventory.
     case _ => false // Invalid slot.
@@ -652,4 +670,64 @@ class Robot extends traits.Computer with traits.PowerInformation with api.machin
       case ForgeDirection.EAST => containerSlots.toArray
       case _ => inventorySlots.toArray
     }
+
+  // ----------------------------------------------------------------------- //
+
+  def getFluidTank(tank: Int) = tryGetTank(tank).orNull
+
+  def tryGetTank(tank: Int) = {
+    val tanks = components.collect {
+      case Some(tank: IFluidTank) => tank
+    }
+    if (tank < 0 || tank >= tanks.length) None
+    else Option(tanks(tank))
+  }
+
+  def tankCount = components.count {
+    case Some(tank: IFluidTank) => true
+    case _ => false
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) =
+    tryGetTank(selectedTank) match {
+      case Some(tank) =>
+        tank.fill(resource, doFill)
+      case _ => 0
+    }
+
+  override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) =
+    tryGetTank(selectedTank) match {
+      case Some(tank) if tank.getFluid != null && tank.getFluid.isFluidEqual(resource) =>
+        tank.drain(resource.amount, doDrain)
+      case _ => null
+    }
+
+  override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = {
+    tryGetTank(selectedTank) match {
+      case Some(tank) =>
+        tank.drain(maxDrain, doDrain)
+      case _ => null
+    }
+  }
+
+  override def canFill(from: ForgeDirection, fluid: Fluid) = {
+    tryGetTank(selectedTank) match {
+      case Some(tank) => tank.getFluid == null || tank.getFluid.getFluid == fluid
+      case _ => false
+    }
+  }
+
+  override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
+    tryGetTank(selectedTank) match {
+      case Some(tank) => tank.getFluid != null && tank.getFluid.getFluid == fluid
+      case _ => false
+    }
+  }
+
+  override def getTankInfo(from: ForgeDirection) =
+    components.collect {
+      case Some(tank: IFluidTank) => tank.getInfo
+    }.toArray
 }

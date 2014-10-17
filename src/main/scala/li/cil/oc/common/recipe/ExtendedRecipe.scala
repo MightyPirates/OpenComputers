@@ -3,11 +3,15 @@ package li.cil.oc.common.recipe
 import java.util.UUID
 
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{Color, SideTracker}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.util.Color
+import li.cil.oc.util.SideTracker
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+
+import scala.collection.convert.WrapAsScala._
 
 object ExtendedRecipe {
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
@@ -41,10 +45,18 @@ object ExtendedRecipe {
       val nbt = craftedStack.getTagCompound
       for (i <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(i)
-        if (stack != null) Color.findDye(stack) match {
-          case Some(oreDictName) =>
-            nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf(oreDictName))
-          case _ =>
+        if (stack != null) {
+          Color.findDye(stack) match {
+            case Some(oreDictName) =>
+              nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf(oreDictName))
+            case _ =>
+          }
+          if (api.Items.get(stack) == floppy && stack.hasTagCompound) {
+            val oldData = stack.getTagCompound
+            for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
+              nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
+            }
+          }
         }
       }
     }

@@ -2,14 +2,19 @@ package li.cil.oc.server
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.machine.Machine
+import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
-import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
-import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
-import li.cil.oc.{Localization, Settings, api}
-import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
+import li.cil.oc.common.tileentity.traits.Computer
+import li.cil.oc.common.tileentity.traits.TileEntity
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.integration.fmp.EventHandler
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraftforge.common.DimensionManager
@@ -47,7 +52,7 @@ object PacketHandler extends CommonPacketHandler {
   def onComputerPower(p: PacketParser) =
     p.readTileEntity[TileEntity]() match {
       case Some(t: Computer) => p.player match {
-        case player: EntityPlayerMP => trySetComputerPower(t.computer, p.readBoolean(), player)
+        case player: EntityPlayerMP => trySetComputerPower(t.machine, p.readBoolean(), player)
         case _ =>
       }
       case Some(r: ServerRack) => r.servers(p.readInt()) match {
@@ -147,7 +152,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onRobotAssemblerStart(p: PacketParser) =
-    p.readTileEntity[RobotAssembler]() match {
+    p.readTileEntity[Assembler]() match {
       case Some(assembler) => assembler.start(p.player match {
         case player: EntityPlayerMP => player.capabilities.isCreativeMode
         case _ => false

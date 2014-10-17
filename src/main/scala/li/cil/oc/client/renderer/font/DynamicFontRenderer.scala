@@ -2,9 +2,12 @@ package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
-import li.cil.oc.util.{FontUtil, RenderState}
+import li.cil.oc.util.FontUtil
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.resources.{IReloadableResourceManager, IResourceManager, IResourceManagerReloadListener}
+import net.minecraft.client.resources.IReloadableResourceManager
+import net.minecraft.client.resources.IResourceManager
+import net.minecraft.client.resources.IResourceManagerReloadListener
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl._
 

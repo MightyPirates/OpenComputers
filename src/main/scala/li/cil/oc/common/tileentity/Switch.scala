@@ -1,23 +1,23 @@
 package li.cil.oc.common.tileentity
 
 import com.google.common.base.Charsets
-import cpw.mods.fml.common.Optional
-import dan200.computercraft.api.lua.ILuaContext
-import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
+import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.{Message, Packet}
-import li.cil.oc.common.{InventorySlots, Slot, item}
+import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Packet
+import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.Slot
+import li.cil.oc.common.init.Items
+import li.cil.oc.common.item
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-@Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = Mods.IDs.ComputerCraft)
-class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
+class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentInventory {
   var lastMessage = 0L
 
   val computers = mutable.Buffer.empty[AnyRef]
@@ -27,66 +27,6 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override def canUpdate = isServer
 
   // ----------------------------------------------------------------------- //
-
-  @Optional.Method(modid = Mods.IDs.ComputerCraft)
-  override def getType = "oc_adapter"
-
-  @Optional.Method(modid = Mods.IDs.ComputerCraft)
-  override def attach(computer: IComputerAccess) {
-    computers += computer
-    openPorts += computer -> mutable.Set.empty
-  }
-
-  @Optional.Method(modid = Mods.IDs.ComputerCraft)
-  override def detach(computer: IComputerAccess) {
-    computers -= computer
-    openPorts -= computer
-  }
-
-  @Optional.Method(modid = Mods.IDs.ComputerCraft)
-  override def getMethodNames = Array("open", "isOpen", "close", "closeAll", "maxPacketSize", "transmit", "isWireless")
-
-  @Optional.Method(modid = Mods.IDs.ComputerCraft)
-  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) = getMethodNames()(method) match {
-    case "open" =>
-      val port = checkPort(arguments, 0)
-      if (openPorts(computer).size >= 128)
-        throw new IllegalArgumentException("too many open channels")
-      result(openPorts(computer).add(port))
-    case "isOpen" =>
-      val port = checkPort(arguments, 0)
-      result(openPorts(computer).contains(port))
-    case "close" =>
-      val port = checkPort(arguments, 0)
-      result(openPorts(computer).remove(port))
-    case "closeAll" =>
-      openPorts(computer).clear()
-      null
-    case "maxPacketSize" =>
-      result(Settings.get.maxNetworkPacketSize)
-    case "transmit" =>
-      val sendPort = checkPort(arguments, 0)
-      val answerPort = checkPort(arguments, 1)
-      val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
-      val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
-      result(tryEnqueuePacket(ForgeDirection.UNKNOWN, packet))
-    case "isWireless" => result(this.isInstanceOf[AccessPoint])
-    case _ => null
-  }
-
-  @Optional.Method(modid = Mods.IDs.ComputerCraft)
-  override def equals(other: IPeripheral) = other == this
-
-  // ----------------------------------------------------------------------- //
-
-  protected def checkPort(args: Array[AnyRef], index: Int) = {
-    if (args.length < index - 1 || !args(index).isInstanceOf[Double])
-      throw new IllegalArgumentException("bad argument #%d (number expected)".format(index + 1))
-    val port = args(index).asInstanceOf[Double].toInt
-    if (port < 1 || port > 0xFFFF)
-      throw new IllegalArgumentException("bad argument #%d (number in [1, 65535] expected)".format(index + 1))
-    port
-  }
 
   protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
     for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
@@ -134,34 +74,34 @@ class Switch extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   }
 
   private def updateLimits(slot: Int, stack: ItemStack) {
-    Driver.driverFor(stack) match {
-      case driver if Slot(driver, stack) == Slot.CPU =>
+    Driver.driverFor(stack, getClass) match {
+      case driver if driver.slot(stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
-      case driver if Slot(driver, stack) == Slot.Memory =>
+      case driver if driver.slot(stack) == Slot.Memory =>
         relayAmount = math.max(1, relayBaseAmount + (Items.multi.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         }))
-      case driver if Slot(driver, stack) == Slot.HDD =>
+      case driver if driver.slot(stack) == Slot.HDD =>
         maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
     }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    Driver.driverFor(stack) match {
-      case driver if Slot(driver, stack) == Slot.CPU => relayDelay = relayBaseDelay
-      case driver if Slot(driver, stack) == Slot.Memory => relayAmount = relayBaseAmount
-      case driver if Slot(driver, stack) == Slot.HDD => maxQueueSize = queueBaseSize
+    Driver.driverFor(stack, getClass) match {
+      case driver if driver.slot(stack) == Slot.CPU => relayDelay = relayBaseDelay
+      case driver if driver.slot(stack) == Slot.Memory => relayAmount = relayBaseAmount
+      case driver if driver.slot(stack) == Slot.HDD => maxQueueSize = queueBaseSize
     }
   }
 
   override def getSizeInventory = InventorySlots.switch.length
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    Option(Driver.driverFor(stack)).fold(false)(driver => {
+    Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.switch(slot)
-      Slot(driver, stack) == provided.slot && driver.tier(stack) <= provided.tier
+      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
 
   // ----------------------------------------------------------------------- //

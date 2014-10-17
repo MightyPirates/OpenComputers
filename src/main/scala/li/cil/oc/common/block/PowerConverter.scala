@@ -5,14 +5,22 @@ import java.util
 
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Tooltip
-import li.cil.oc.util.mods.Mods
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
-  showInItemList = !Settings.get.ignorePower
+class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
+  if (Settings.get.ignorePower) {
+    setCreativeTab(null)
+    NEI.hide(this)
+  }
+
+  private val formatter = new DecimalFormat("#.#")
+
+  // ----------------------------------------------------------------------- //
 
   override protected def customTextures = Array(
     None,
@@ -23,46 +31,49 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
     Some("PowerConverterSide")
   )
 
-  private val formatter = new DecimalFormat("#.#")
-
   // ----------------------------------------------------------------------- //
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipLines(stack, player, tooltip, advanced)
-    def addExtension(x: Double) =
-      if (x >= 1e9) formatter.format(x / 1e9) + "G"
-      else if (x >= 1e6) formatter.format(x / 1e6) + "M"
-      else if (x >= 1e3) formatter.format(x / 1e3) + "K"
-      else formatter.format(x)
-    def addRatio(name: String, ratio: Double) {
-      val (a, b) =
-        if (ratio > 1) (1.0, ratio)
-        else (1.0 / ratio, 1.0)
-      tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, addExtension(a), addExtension(b)))
-    }
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
+
     if (Mods.BuildCraftPower.isAvailable) {
-      addRatio("BuildCraft", Settings.get.ratioBuildCraft)
+      addRatio(tooltip, "BuildCraft", Settings.get.ratioBuildCraft)
     }
     if (Mods.Factorization.isAvailable) {
-      addRatio("Factorization", Settings.get.ratioFactorization)
+      addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
     }
-    if (Mods.IndustrialCraft2.isAvailable || Mods.IndustrialCraft2Classic.isAvailable) {
-      addRatio("IndustrialCraft2", Settings.get.ratioIndustrialCraft2)
+    if (Mods.IndustrialCraft2API.isAvailable || Mods.IndustrialCraft2Classic.isAvailable) {
+      addRatio(tooltip, "IndustrialCraft2", Settings.get.ratioIndustrialCraft2)
     }
     if (Mods.Mekanism.isAvailable) {
-      addRatio("Mekanism", Settings.get.ratioMekanism)
+      addRatio(tooltip, "Mekanism", Settings.get.ratioMekanism)
     }
-    if (Mods.RedstoneFlux.isAvailable) {
-      addRatio("ThermalExpansion", Settings.get.ratioRedstoneFlux)
+    if (Mods.CoFHEnergy.isAvailable) {
+      addRatio(tooltip, "ThermalExpansion", Settings.get.ratioRedstoneFlux)
     }
     if (Mods.UniversalElectricity.isAvailable) {
-      addRatio("UniversalElectricity", Settings.get.ratioUniversalElectricity)
+      addRatio(tooltip, "UniversalElectricity", Settings.get.ratioUniversalElectricity)
     }
+  }
+
+  private def addExtension(x: Double) =
+    if (x >= 1e9) formatter.format(x / 1e9) + "G"
+    else if (x >= 1e6) formatter.format(x / 1e6) + "M"
+    else if (x >= 1e3) formatter.format(x / 1e3) + "K"
+    else formatter.format(x)
+
+  private def addRatio(tooltip: util.List[String], name: String, ratio: Double) {
+    val (a, b) =
+      if (ratio > 1) (1.0, ratio)
+      else (1.0 / ratio, 1.0)
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName + "." + name, addExtension(a), addExtension(b)))
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity = true
+  override def energyThroughput = Settings.get.powerConverterRate
 
-  override def createTileEntity(world: World) = Some(new tileentity.PowerConverter())
+  override def hasTileEntity(metadata: Int) = true
+
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
 }

@@ -1,8 +1,10 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
+import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 
 trait ItemStackInventory extends Inventory {
@@ -29,7 +31,7 @@ trait ItemStackInventory extends Inventory {
       for (i <- 0 until (list.tagCount min items.length)) {
         val tag = list.getCompoundTagAt(i)
         if (!tag.hasNoTags) {
-          items(i) = Option(ItemStack.loadItemStackFromNBT(tag))
+          items(i) = Option(ItemUtils.loadStack(tag))
         }
       }
     }

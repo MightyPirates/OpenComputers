@@ -1,15 +1,18 @@
 package li.cil.oc.util
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.channels.Channels
 
 import com.google.common.base.Strings
-import com.naef.jnlua
-import com.naef.jnlua.LuaState
-import com.naef.jnlua.NativeSupport.Loader
-import li.cil.oc.server.component.machine.Machine
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.repack.com.naef.jnlua
+import li.cil.repack.com.naef.jnlua.LuaState
+import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
 import org.apache.commons.lang3.SystemUtils
 
 import scala.util.Random
@@ -34,18 +37,18 @@ object LuaStateFactory {
   private val libraryName = {
     if (!Strings.isNullOrEmpty(Settings.get.forceNativeLib)) Settings.get.forceNativeLib
 
-    else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X86) "native.32.bsd.so"
     else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X64) "native.64.bsd.so"
+    else if (SystemUtils.IS_OS_FREE_BSD && Architecture.IS_OS_X86) "native.32.bsd.so"
 
     else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_ARM) "native.32.arm.so"
-    else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X86) "native.32.so"
     else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X64) "native.64.so"
+    else if (SystemUtils.IS_OS_LINUX && Architecture.IS_OS_X86) "native.32.so"
 
-    else if (SystemUtils.IS_OS_MAC && Architecture.IS_OS_X86) "native.32.dylib"
     else if (SystemUtils.IS_OS_MAC && Architecture.IS_OS_X64) "native.64.dylib"
+    else if (SystemUtils.IS_OS_MAC && Architecture.IS_OS_X86) "native.32.dylib"
 
-    else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X86) "native.32.dll"
     else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X64) "native.64.dll"
+    else if (SystemUtils.IS_OS_WINDOWS && Architecture.IS_OS_X86) "native.32.dll"
 
     else null
   }

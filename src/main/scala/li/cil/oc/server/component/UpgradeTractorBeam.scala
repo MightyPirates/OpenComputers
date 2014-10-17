@@ -2,22 +2,26 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.machine.Robot
-import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
-import li.cil.oc.common.component
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.prefab
 import net.minecraft.entity.item.EntityItem
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
 
 import scala.collection.convert.WrapAsScala._
 
-class UpgradeTractorBeam(owner: Robot) extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class UpgradeTractorBeam(owner: EnvironmentHost, player: () => EntityPlayer) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("tractor_beam").
     create()
 
   private val pickupRadius = 3
 
-  private def world = owner.player.getEntityWorld
+  private def world = owner.world
 
   @Callback(doc = """function():boolean -- Tries to pick up a random item in the robots' vicinity.""")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
@@ -28,9 +32,10 @@ class UpgradeTractorBeam(owner: Robot) extends component.ManagedComponent {
       val item = items(world.rand.nextInt(items.size))
       val stack = item.getEntityItem
       val size = stack.stackSize
-      item.onCollideWithPlayer(owner.player)
+      item.onCollideWithPlayer(player())
       if (stack.stackSize < size || item.isDead) {
         context.pause(Settings.get.suckDelay)
+        world.playAuxSFX(2003, math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt, 0)
         return result(true)
       }
     }
@@ -38,7 +43,7 @@ class UpgradeTractorBeam(owner: Robot) extends component.ManagedComponent {
   }
 
   private def pickupBounds = {
-    val player = owner.player
+    val player = this.player()
     val x = player.posX
     val y = player.posY
     val z = player.posZ

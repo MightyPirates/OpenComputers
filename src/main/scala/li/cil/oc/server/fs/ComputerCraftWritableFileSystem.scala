@@ -1,6 +1,7 @@
 package li.cil.oc.server.fs
 
-import java.io.{IOException, OutputStream}
+import java.io.IOException
+import java.io.OutputStream
 
 import dan200.computercraft.api.filesystem.IWritableMount
 import li.cil.oc.api.fs.Mode

@@ -55,7 +55,7 @@ public interface FileSystem extends Persistable {
      *
      * @param path the path to check at.
      * @return <tt>true</tt> if the path points to a file or directory;
-     *         <tt>false</tt> otherwise.
+     * <tt>false</tt> otherwise.
      */
     boolean exists(String path);
 
@@ -115,8 +115,8 @@ public interface FileSystem extends Persistable {
      *
      * @param path the path to the folder to get the contents of.
      * @return an array with the names of all objects in that folder;
-     *         <tt>null</tt> if the specified object does not exist or is not a
-     *         folder.
+     * <tt>null</tt> if the specified object does not exist or is not a
+     * folder.
      */
     String[] list(String path);
 
@@ -134,7 +134,7 @@ public interface FileSystem extends Persistable {
      *
      * @param path the path to the object to delete.
      * @return <tt>true</tt> if the object was successfully deleted;
-     *         <tt>false</tt> otherwise.
+     * <tt>false</tt> otherwise.
      */
     boolean delete(String path);
 
@@ -162,7 +162,7 @@ public interface FileSystem extends Persistable {
      * @param from the name of the file or folder to move.
      * @param to   the location to move the file or folder to.
      * @return <tt>true</tt> if the object was renamed;
-     *         <tt>false</tt> otherwise.
+     * <tt>false</tt> otherwise.
      * @throws FileNotFoundException if the source is not a file or folder.
      */
     boolean rename(String from, String to) throws FileNotFoundException;
@@ -180,7 +180,7 @@ public interface FileSystem extends Persistable {
      * @param path the path of the object for which to set the modification time.
      * @param time the time the object was supposedly last modified.
      * @return <tt>true</tt> if the modification time was adjusted;
-     *         <tt>false</tt> otherwise.
+     * <tt>false</tt> otherwise.
      */
     boolean setLastModified(String path, long time);
 
@@ -223,7 +223,7 @@ public interface FileSystem extends Persistable {
      *
      * @param handle the ID of the handle to get the wrapper for.
      * @return the wrapper for that handle ID; <tt>null</tt> if there is no
-     *         handle with the specified ID.
+     * handle with the specified ID.
      */
     Handle getHandle(int handle);
 

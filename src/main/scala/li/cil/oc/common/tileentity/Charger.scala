@@ -1,14 +1,25 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Analyzable, Node, Visibility}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.Driver
+import li.cil.oc.api.network.Analyzable
+import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.Slot
+import li.cil.oc.common.item.Tablet
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.{Localization, Settings, api}
+import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with Analyzable {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -28,6 +39,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
 
+  override protected def energyThroughput = Settings.get.chargerRate
+
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null
@@ -39,8 +52,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer) {
-      val charge = Settings.get.chargeRate * chargeSpeed
+    if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
+      val charge = Settings.get.chargeRateRobot * chargeSpeed * Settings.get.tickFrequency
       val canCharge = charge > 0 && node.globalBuffer >= charge
       if (hasPower && !canCharge) {
         hasPower = false
@@ -53,8 +66,25 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       if (canCharge) robots.collect {
         case Some(proxy) => node.changeBuffer(proxy.robot.bot.node.changeBuffer(charge + node.changeBuffer(-charge)))
       }
+
+      // Charge tablet if present.
+      val stack = getStackInSlot(0)
+      if (stack != null && chargeSpeed > 0) {
+        def tryCharge(energy: Double, maxEnergy: Double, handler: (Double) => Unit) {
+          if (energy < maxEnergy) {
+            val itemCharge = math.min(maxEnergy - energy, Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency)
+            node.tryChangeBuffer(-itemCharge)
+            handler(itemCharge)
+          }
+        }
+        val data = new ItemUtils.TabletData(stack)
+        tryCharge(data.energy, data.maxEnergy, (amount) => {
+          data.energy = math.min(data.maxEnergy, data.energy + amount)
+          data.save(stack)
+        })
+      }
     }
-    else if (chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
+    else if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
       ForgeDirection.VALID_DIRECTIONS.map(side => world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).collect {
         case proxy: RobotProxy if proxy.globalBuffer / proxy.globalBufferSize < 0.95 =>
           val theta = world.rand.nextDouble * Math.PI
@@ -101,6 +131,26 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     super.writeToNBTForClient(nbt)
     nbt.setDouble("chargeSpeed", chargeSpeed)
     nbt.setBoolean("hasPower", hasPower)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getSizeInventory = 1
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Tablet
+    case _ => false
+  }
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    Tablet.Server.cache.invalidate(Tablet.getId(stack))
+    components(slot) match {
+      case Some(environment) => environment.node match {
+        case component: Component => component.setVisibility(Visibility.Network)
+      }
+      case _ =>
+    }
   }
 
   // ----------------------------------------------------------------------- //

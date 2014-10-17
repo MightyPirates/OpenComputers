@@ -35,9 +35,9 @@ More control
 ------------
 If you really need more control over how how your tile entity interacts with OpenComputer's internal network, you will have to implement the `Environment` interface on your tile entity. There's a basic implementation in the prefab package, named `TileEntityEnvironment`. Doing so will give you access to the `Node` that connects to the component network, and you must take care of the construction of the node itself (using the factory method in `api.Network`). This allows you to make the node a `Connector` node, which will allow you to draw internal power from OpenComputers or feed energy into it. You will also be able to send messages over the component network, see the `send...` methods in the `Node` interface. See the documentation on those interfaces to get a better idea on how they work together.
 
-Making a thrid-party block available as component / peripheral
+Making a third-party block available as component / peripheral
 --------------------------------------------------------------
-Blocks from other mods, i.e. blocks where you have no control over the tile entity implementation, can be accessed using the Adapter block as long as there is a driver available that supports the block. If there are multiple drivers they are automatically merged. Please see the [OpenComponents][] project for examples, and consider contributing any block drivers you write to it. Thank you.
+Blocks from other mods, i.e. blocks where you have no control over the tile entity implementation, can be accessed using the Adapter block as long as there is a driver available that supports the block. If there are multiple drivers they are automatically merged. Please see the [integration][] package for examples, and consider contributing any block drivers you write. Thank you!
 
 Making items available as components
 ------------------------------------
@@ -82,4 +82,4 @@ public class TileEntityWithFileSystem extends TileEntityEnvironment {
 ```
 
 
-[OpenComponents]: https://github.com/MightyPirates/OpenComponents
+[integration]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/scala/li/cil/oc/integration

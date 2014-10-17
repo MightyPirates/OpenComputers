@@ -1,27 +1,37 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
+import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.item.Memory
+import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
-import li.cil.oc.api.{Driver, driver}
-import li.cil.oc.common.{InventorySlots, Slot, Tier}
+import li.cil.oc.common
+import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.util.Color
-import li.cil.oc.{Settings, common}
-import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.server.MinecraftServer
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored {
+class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case {
   def this() = this(0)
+
+  // Used on client side to check whether to render disk activity indicators.
+  var lastAccess = 0L
 
   color = Color.byTier(tier)
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing && computer != null) computer.node.asInstanceOf[Connector] else null)
+  override protected def connector(side: ForgeDirection) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
+
+  override protected def energyThroughput = Settings.get.caseRate(tier)
 
   override def getWorld = world
 
@@ -31,40 +41,35 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   // ----------------------------------------------------------------------- //
 
-  private def serverPlayer(player: String): EntityPlayer = MinecraftServer.getServer.getConfigurationManager.func_152612_a(player)
-
-  @SideOnly(Side.CLIENT)
-  private def clientPlayer: EntityPlayer = Minecraft.getMinecraft.thePlayer // Avoid client class getting loaded on server.
-
-  override def canInteract(player: String) =
-    super.canInteract(player) &&
-      (!isCreativeCase || Option(if (isServer) serverPlayer(player) else clientPlayer).exists(_.capabilities.isCreativeMode))
-
   def recomputeMaxComponents() {
     maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
-      case Some(item) => Option(Driver.driverFor(item)) match {
-        case Some(driver: driver.Processor) => driver.supportedComponents(item)
+      case Some(item) => Option(Driver.driverFor(item, getClass)) match {
+        case Some(driver: Processor) => driver.supportedComponents(item)
         case _ => 0
       }
       case _ => 0
     }))
   }
 
-  override def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Option(Driver.driverFor(item)) match {
-      case Some(driver: driver.Memory) => driver.amount(item)
+  override def callBudget = items.foldLeft(0.0)((sum, item) => sum + (item match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
       case _ => 0
     }
     case _ => 0
   }))
 
-  def hasCPU = items.exists {
-    case Some(stack) => Option(Driver.driverFor(stack)) match {
-      case Some(driver) => Slot(driver, stack) == Slot.CPU
-      case _ => false
+  override def installedMemory = items.foldLeft(0)((sum, item) => sum + (item match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Memory) => driver.amount(stack)
+      case _ => 0
     }
-    case _ => false
-  }
+    case _ => 0
+  }))
+
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+
+  def hasCPU = cpuArchitecture != null
 
   // ----------------------------------------------------------------------- //
 
@@ -96,15 +101,23 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
-    if (InventorySlots.computer(tier)(slot).slot == Slot.Floppy) {
-      common.Sound.playDiskInsert(this)
+    if (isServer) {
+      if (InventorySlots.computer(tier)(slot).slot == Slot.Floppy) {
+        common.Sound.playDiskInsert(this)
+      }
     }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    if (InventorySlots.computer(tier)(slot).slot == Slot.Floppy) {
-      common.Sound.playDiskEject(this)
+    if (isServer) {
+      val slotType = InventorySlots.computer(tier)(slot).slot
+      if (slotType == Slot.Floppy) {
+        common.Sound.playDiskEject(this)
+      }
+      if (slotType == Slot.CPU) {
+        machine.stop()
+      }
     }
   }
 
@@ -116,15 +129,11 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    world.getTileEntity(x, y, z) match {
-      case t: traits.TileEntity if t == this && canInteract(player.getCommandSenderName) =>
-        player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
-      case _ => false
-    }
+    super.isUseableByPlayer(player) && (!isCreativeCase || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    Option(Driver.driverFor(stack)).fold(false)(driver => {
+    Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {
       val provided = InventorySlots.computer(tier)(slot)
-      Slot(driver, stack) == provided.slot && driver.tier(stack) <= provided.tier
+      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
     })
 }

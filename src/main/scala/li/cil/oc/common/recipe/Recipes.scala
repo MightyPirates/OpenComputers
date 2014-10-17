@@ -1,18 +1,25 @@
 package li.cil.oc.common.recipe
 
-import java.io.{File, FileReader}
+import java.io.File
+import java.io.FileReader
 
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
+import li.cil.oc.common.block.SimpleBlock
+import li.cil.oc.common.init.Items
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
-import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
+import net.minecraft.item.Item
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraftforge.oredict.OreDictionary
+import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
-import net.minecraftforge.oredict.{OreDictionary, RecipeSorter}
 import org.apache.commons.io.FileUtils
 
 import scala.collection.convert.WrapAsScala._
@@ -22,15 +29,7 @@ object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
   val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
 
-  def addBlock[T <: common.block.Delegate](delegate: T, name: String, oreDict: String = null) = {
-    Items.registerBlock(delegate, name)
-    list += delegate.createItemStack() -> name
-    register(oreDict, delegate.createItemStack())
-    delegate
-  }
-
-  def addNewBlock(instance: Block, name: String, oreDict: String = null) = {
-    GameRegistry.registerBlock(instance, classOf[common.block.Item], name)
+  def addBlock(instance: Block, name: String, oreDict: String = null) = {
     Items.registerBlock(instance, name)
     list += new ItemStack(instance) -> name
     register(oreDict, new ItemStack(instance))
@@ -131,33 +130,40 @@ object Recipes {
           case "shaped" => addShapedRecipe(output, recipe)
           case "shapeless" => addShapelessRecipe(output, recipe)
           case "furnace" => addFurnaceRecipe(output, recipe)
-          case "gt_assembler" => addGTAssemblingMachineRecipe(output, recipe)
+          case "gt_assembler" =>
+            if (Mods.GregTech.isAvailable) {
+              addGTAssemblingMachineRecipe(output, recipe)
+            }
+            else {
+              OpenComputers.log.warn(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item!")
+              hide(output)
+            }
           case other =>
-            OpenComputers.log.warn("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: Invalid recipe type '" + other + "'.")
+            OpenComputers.log.warn(s"Failed adding recipe for '$name', you will not be able to craft this item! The error was: Invalid recipe type '$other'.")
             hide(output)
         }
       }
       catch {
         case e: RecipeException =>
-          OpenComputers.log.warn("Failed adding " + recipeType + " recipe for '" + name + "', you will not be able to craft this item! The error was: " + e.getMessage)
+          OpenComputers.log.warn(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item! The error was: ${e.getMessage}")
           hide(output)
       }
     }
     else {
-      OpenComputers.log.info("No recipe for '" + name + "', you will not be able to craft this item.")
+      OpenComputers.log.info(s"No recipe for '$name', you will not be able to craft this item.")
       hide(output)
     }
   }
   catch {
     case e: Throwable =>
-      OpenComputers.log.error("Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
+      OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item!", e)
       hide(output)
   }
 
   private def addShapedRecipe(output: ItemStack, recipe: Config) {
     val rows = recipe.getList("input").unwrapped().map {
       case row: java.util.List[AnyRef]@unchecked => row.map(parseIngredient)
-      case other => throw new RecipeException("Invalid row entry for shaped recipe (not a list: " + other + ").")
+      case other => throw new RecipeException(s"Invalid row entry for shaped recipe (not a list: $other).")
     }
     output.stackSize = tryGetCount(recipe)
 
@@ -204,17 +210,17 @@ object Recipes {
       case null => Array.empty[ItemStack]
       case stack: ItemStack => Array(stack)
       case name: String => Array(OreDictionary.getOres(name): _*)
-      case other => throw new RecipeException("Invalid ingredient type: " + other + ".")
+      case other => throw new RecipeException(s"Invalid ingredient type: $other.")
     }
     output.stackSize = tryGetCount(recipe)
 
     if (inputs.size < 1 || inputs.size > 2) {
-      throw new RecipeException("Invalid recipe length: " + inputs.size + ", should be 1 or 2.")
+      throw new RecipeException(s"Invalid recipe length: ${inputs.size}, should be 1 or 2.")
     }
 
     val inputCount = recipe.getIntList("count")
     if (inputCount.size() != inputs.size) {
-      throw new RecipeException("Ingredient and input count mismatch: " + inputs.size + " != " + inputCount.size + ".")
+      throw new RecipeException(s"Ingredient and input count mismatch: ${inputs.size} != ${inputCount.size}.")
     }
 
     val eu = recipe.getInt("eu")
@@ -227,9 +233,9 @@ object Recipes {
       for (input1 <- inputs(0)) {
         if (inputs(1) != null) {
           for (input2 <- inputs(1))
-            GregTech.addAssemblerRecipe(input1, input2, output, duration, eu)
+            gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, input2, output, duration, eu)
         }
-        else GregTech.addAssemblerRecipe(input1, null, output, duration, eu)
+        else gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, null, output, duration, eu)
       }
     }
   }
@@ -254,7 +260,7 @@ object Recipes {
       if (map.contains("oreDict")) {
         map.get("oreDict") match {
           case value: String => value
-          case other => throw new RecipeException("Invalid name in recipe (not a string: " + other + ").")
+          case other => throw new RecipeException(s"Invalid name in recipe (not a string: $other).")
         }
       }
       else if (map.contains("item")) {
@@ -262,10 +268,10 @@ object Recipes {
           case name: String =>
             findItem(name) match {
               case Some(item: Item) => new ItemStack(item, 1, tryGetId(map))
-              case _ => throw new RecipeException("No item found with name '" + name + "'.")
+              case _ => throw new RecipeException(s"No item found with name '$name'.")
             }
           case id: Number => new ItemStack(validateItemId(id), 1, tryGetId(map))
-          case other => throw new RecipeException("Invalid item name in recipe (not a string: " + other + ").")
+          case other => throw new RecipeException(s"Invalid item name in recipe (not a string: $other).")
         }
       }
       else if (map.contains("block")) {
@@ -273,10 +279,10 @@ object Recipes {
           case name: String =>
             findBlock(name) match {
               case Some(block: Block) => new ItemStack(block, 1, tryGetId(map))
-              case _ => throw new RecipeException("No block found with name '" + name + "'.")
+              case _ => throw new RecipeException(s"No block found with name '$name'.")
             }
           case id: Number => new ItemStack(validateBlockId(id), 1, tryGetId(map))
-          case other => throw new RecipeException("Invalid block name (not a string: " + other + ").")
+          case other => throw new RecipeException(s"Invalid block name (not a string: $other).")
         }
       }
       else throw new RecipeException("Invalid ingredient type (no oreDict, item or block entry).")
@@ -289,11 +295,11 @@ object Recipes {
           case _ =>
             findBlock(name) match {
               case Some(block: Block) => new ItemStack(block, 1, 0)
-              case _ => throw new RecipeException("No ore dictionary entry, item or block found for ingredient with name '" + name + "'.")
+              case _ => throw new RecipeException(s"No ore dictionary entry, item or block found for ingredient with name '$name'.")
             }
         }
       }
-    case other => throw new RecipeException("Invalid ingredient type (not a map or string): " + other)
+    case other => throw new RecipeException(s"Invalid ingredient type (not a map or string): $other")
   }
 
   private def findItem(name: String) = Item.itemRegistry.find {
@@ -321,22 +327,27 @@ object Recipes {
   private def validateBlockId(id: Number) = {
     val index = id.intValue
     val block = Block.getBlockById(index)
-    if (block == null) throw new RecipeException("Invalid block ID: " + index)
+    if (block == null) throw new RecipeException(s"Invalid block ID: $index")
     block
   }
 
   private def validateItemId(id: Number) = {
     val index = id.intValue
     val item = Item.getItemById(index)
-    if (item == null) throw new RecipeException("Invalid item ID: " + index)
+    if (item == null) throw new RecipeException(s"Invalid item ID: $index")
     item
   }
 
   private def hide(value: ItemStack) {
     Items.multi.subItem(value) match {
       case Some(stack) => stack.showInItemList = false
-      case _ => common.block.Delegator.subBlock(value) match {
-        case Some(block) => block.showInItemList = false
+      case _ => value.getItem match {
+        case itemBlock: ItemBlock => itemBlock.field_150939_a match {
+          case simple: SimpleBlock =>
+            simple.setCreativeTab(null)
+            NEI.hide(simple)
+          case _ =>
+        }
         case _ =>
       }
     }

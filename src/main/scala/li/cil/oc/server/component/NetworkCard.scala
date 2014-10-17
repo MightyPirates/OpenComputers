@@ -1,16 +1,21 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.component
+import li.cil.oc.api.prefab
 import net.minecraft.nbt._
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard extends component.ManagedComponent {
-  val node = Network.newNode(this, Visibility.Network).
+class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     create()
 
@@ -97,7 +102,13 @@ class NetworkCard extends component.ManagedComponent {
     }
   }
 
-  def receivePacket(packet: Packet, distance: Double) {
+  def receivePacket(packet: Packet, source: WirelessEndpoint) {
+    val (dx, dy, dz) = ((source.x + 0.5) - host.xPosition, (source.y + 0.5) - host.yPosition, (source.z + 0.5) - host.zPosition)
+    val distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+    receivePacket(packet, distance)
+  }
+
+  protected def receivePacket(packet: Packet, distance: Double) {
     if (packet.source != node.address && Option(packet.destination).forall(_ == node.address) && openPorts.contains(packet.port)) {
       node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
     }

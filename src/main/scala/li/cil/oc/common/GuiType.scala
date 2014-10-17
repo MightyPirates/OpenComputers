@@ -3,11 +3,13 @@ package li.cil.oc.common
 object GuiType extends Enumeration {
   val
 
+  Adapter,
+  Assembler,
   Case,
+  Charger,
   Disassembler,
   DiskDrive,
   Rack,
-  RobotAssembler,
   Robot,
   Screen,
   Server,

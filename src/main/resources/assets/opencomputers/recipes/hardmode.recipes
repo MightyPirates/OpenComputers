@@ -35,8 +35,8 @@ ram1 {
           ["oc:materialCircuitBoardPrinted", "oc:materialCircuitBoardPrinted", "oc:materialCircuitBoardPrinted"]]
 }
 ram2 {
-  input: [["oc:circuitChip2", "oc:circuitChip2", "oc:circuitChip2"]
-          ["", "oc:ram1", ""]]
+  input: [["oc:circuitChip1", "oc:circuitChip1", "oc:circuitChip1"]
+          ["oc:ram1", "oc:materialCircuitBoardPrinted", "oc:ram1"]]
 }
 ram3 {
   input: [["oc:circuitChip2", "oc:circuitChip2", "oc:circuitChip2"]
@@ -352,7 +352,7 @@ powerDistributor {
           ["oc:cable", "oc:circuitChip1", "oc:cable"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
-rack {
+serverRack {
   input: [["oc:circuitChip3", "oc:wlanCard", "oc:circuitChip3"]
           [fenceIron, chest, fenceIron]
           ["oc:switch", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]

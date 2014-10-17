@@ -6,15 +6,19 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.api.component
+import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.client.renderer.PetRenderer
+import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
-import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input.Keyboard
 
@@ -38,6 +42,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
       case PacketType.DisassemblerActiveChange => onDisassemblerActiveChange(p)
+      case PacketType.FileSystemActivity => onFileSystemActivity(p)
       case PacketType.FloppyChange => onFloppyChange(p)
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
@@ -129,7 +134,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Computer]() match {
       case Some(t) =>
         val count = p.readInt()
-        t.users = (0 until count).map(_ => p.readUTF())
+        t.setUsers((0 until count).map(_ => p.readUTF()))
       case _ => // Invalid packet.
     }
 
@@ -138,6 +143,24 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) => t.isActive = p.readBoolean()
       case _ => // Invalid packet.
     }
+
+  def onFileSystemActivity(p: PacketParser) = {
+    val sound = p.readUTF()
+    val data = CompressedStreamTools.read(p)
+    if (p.readBoolean()) p.readTileEntity[net.minecraft.tileentity.TileEntity]() match {
+      case Some(t) =>
+        MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent.Client(sound, t, data))
+      case _ => // Invalid packet.
+    }
+    else world(p.player, p.readInt()) match {
+      case Some(world) =>
+        val x = p.readDouble()
+        val y = p.readDouble()
+        val z = p.readDouble()
+        MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent.Client(sound, world, x, y, z, data))
+      case _ => // Invalid packet.
+    }
+  }
 
   def onFloppyChange(p: PacketParser) =
     p.readTileEntity[DiskDrive]() match {
@@ -246,7 +269,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onRobotAssemblingState(p: PacketParser) =
-    p.readTileEntity[RobotAssembler]() match {
+    p.readTileEntity[Assembler]() match {
       case Some(t) =>
         if (p.readBoolean()) t.requiredEnergy = 9001
         else t.requiredEnergy = 0

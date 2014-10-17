@@ -1,8 +1,6 @@
 package li.cil.oc.api.machine;
 
 import li.cil.oc.api.Persistable;
-import li.cil.oc.api.network.Arguments;
-import li.cil.oc.api.network.Context;
 
 /**
  * A value object can be pushed to a machine like a primitive value.
@@ -20,7 +18,7 @@ import li.cil.oc.api.network.Context;
  * </ul>
  * <p/>
  * Callbacks can be defined in a manner similar to environments, e.g. using the
- * {@link li.cil.oc.api.network.Callback} annotation.
+ * {@link Callback} annotation.
  */
 public interface Value extends Persistable {
     /**
@@ -71,9 +69,9 @@ public interface Value extends Persistable {
      * object to multiple machines. You should usually <em>not</em> do that,
      * but if you do, realize this method may be called by either machine.
      *
-     * @param context   the context from which the method is called, usually the
-     *                  instance of the computer running the script that just
-     *                  garbage collected the object.
+     * @param context the context from which the method is called, usually the
+     *                instance of the computer running the script that just
+     *                garbage collected the object.
      */
     void dispose(Context context);
 }

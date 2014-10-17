@@ -30,6 +30,9 @@ public interface Item {
      * be installed in a computer. Note that the return value should not change
      * over time; if it does, though, an already installed component will not
      * be ejected, since this value is only checked when adding components.
+     * <p/>
+     * This is a context-agnostic variant used mostly for "house-keeping"
+     * stuff, such as querying slot types and tier.
      *
      * @param stack the item to check.
      * @return <tt>true</tt> if the item is supported; <tt>false</tt> otherwise.
@@ -45,21 +48,21 @@ public interface Item {
      * there's a built-in driver for that. You may still opt to not implement
      * this - i.e. it is safe to return <tt>null</tt> here.
      * <p/>
-     * Keep in mind that the container's location may change if the owner is
+     * Keep in mind that the host's location may change if the owner is
      * a robot. This is important if you cache the location somewhere. For
      * example, the wireless network card checks in a robot movement event
      * handler for position changes to update the index structure used for
      * receiver look-up.
      * <p/>
      * This is expected to return a <em>new instance</em> each time it is
-     * called. The created instance's life cycle is managed by the container
+     * called. The created instance's life cycle is managed by the host
      * that caused its creation.
      *
-     * @param stack     the item stack for which to get the environment.
-     * @param container the container the environment will be managed by.
+     * @param stack the item stack for which to get the environment.
+     * @param host  the host the environment will be managed by.
      * @return the environment for that item.
      */
-    ManagedEnvironment createEnvironment(ItemStack stack, Container container);
+    ManagedEnvironment createEnvironment(ItemStack stack, EnvironmentHost host);
 
     /**
      * The slot type of the specified item this driver supports.
@@ -70,12 +73,9 @@ public interface Item {
      *
      * @param stack the item stack to get the slot type for.
      * @return the slot type of the specified item.
-     * @deprecated This will be replaced in 1.4, where slot types will then be
-     * referred to by name (using Strings) instead, to make this system more
-     * flexible (not requiring an API change for each new slot type, e.g.).
+     * @see li.cil.oc.api.driver.item.Slot
      */
-    @Deprecated
-    Slot slot(ItemStack stack);
+    String slot(ItemStack stack);
 
     /**
      * The tier of the specified item this driver supports.

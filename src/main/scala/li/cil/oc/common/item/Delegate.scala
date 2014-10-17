@@ -2,14 +2,18 @@ package li.cil.oc.common.item
 
 import java.util
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.util.{ItemCosts, Rarity, Tooltip}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.util.ItemCosts
+import li.cil.oc.util.Rarity
+import li.cil.oc.util.Tooltip
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import org.lwjgl.input
 
@@ -87,7 +91,7 @@ trait Delegate {
         ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
       }
       else {
-        tooltip.add(StatCollector.translateToLocalFormatted(
+        tooltip.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
           input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
       }
@@ -123,5 +127,5 @@ trait Delegate {
   // ----------------------------------------------------------------------- //
 
   def equals(stack: ItemStack) =
-    stack != null && stack.getItem == parent && parent.subItem(stack).exists(_ == this)
+    stack != null && stack.getItem == parent && parent.subItem(stack).contains(this)
 }

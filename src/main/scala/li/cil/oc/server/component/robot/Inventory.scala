@@ -3,7 +3,8 @@ package li.cil.oc.server.component.robot
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagList
 
 import scala.util.control.Breaks._

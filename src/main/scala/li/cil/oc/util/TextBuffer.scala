@@ -232,16 +232,13 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     foreground = PackedColor.Color(nbt.getInteger("foreground"), nbt.getBoolean("foregroundIsPalette"))
     background = PackedColor.Color(nbt.getInteger("background"), nbt.getBoolean("backgroundIsPalette"))
 
-    // For upgrading from 1.6 - was tag list of short before.
-    if (nbt.hasKey("color", NBT.TAG_INT_ARRAY)) {
-      val c = nbt.getIntArray("color")
-      for (i <- 0 until h) {
-        val rowColor = color(i)
-        for (j <- 0 until w) {
-          val index = j + i * w
-          if (index < c.length) {
-            rowColor(j) = c(index).toShort
-          }
+    val c = nbt.getIntArray("color")
+    for (i <- 0 until h) {
+      val rowColor = color(i)
+      for (j <- 0 until w) {
+        val index = j + i * w
+        if (index < c.length) {
+          rowColor(j) = c(index).toShort
         }
       }
     }

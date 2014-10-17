@@ -25,6 +25,12 @@ object ExtendedNBT {
 
   implicit def toNbt(value: String) = new NBTTagString(value)
 
+  implicit def toNbt(value: {def writeToNBT(nbt: NBTTagCompound): Unit}) = {
+    val nbt = new NBTTagCompound()
+    value.writeToNBT(nbt)
+    nbt
+  }
+
   implicit def toNbt(value: ItemStack) = {
     val nbt = new NBTTagCompound()
     if (value != null) {
@@ -68,6 +74,8 @@ object ExtendedNBT {
   implicit def byteArrayIterableToNbt(value: Iterable[Array[Byte]]) = value.map(toNbt)
 
   implicit def stringIterableToNbt(value: Iterable[String]) = value.map(toNbt)
+
+  implicit def writableIterableToNbt(value: Iterable[ {def writeToNBT(nbt: NBTTagCompound): Unit}]) = value.map(toNbt)
 
   implicit def itemStackIterableToNbt(value: Iterable[ItemStack]) = value.map(toNbt)
 

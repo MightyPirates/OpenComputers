@@ -44,7 +44,7 @@ package li.cil.oc.api.network;
  * <li>Make the environment's {@link #node} a {@link Component} and ensure
  * its {@link Component#visibility} is set to a value where it can
  * be seen by computers in the network.</li>
- * <li>Annotate methods in the environment as {@link Callback}s.</li>
+ * <li>Annotate methods in the environment as {@link li.cil.oc.api.machine.Callback}s.</li>
  * </ol>
  */
 public interface Environment {
@@ -70,11 +70,11 @@ public interface Environment {
      * For example, if node A is added to a network with nodes B and C, these
      * calls are made:
      * <ul>
-     *     <li>A.onConnect(A)</li>
-     *     <li>A.onConnect(B)</li>
-     *     <li>A.onConnect(C)</li>
-     *     <li>B.onConnect(A)</li>
-     *     <li>C.onConnect(A)</li>
+     * <li>A.onConnect(A)</li>
+     * <li>A.onConnect(B)</li>
+     * <li>A.onConnect(C)</li>
+     * <li>B.onConnect(A)</li>
+     * <li>C.onConnect(A)</li>
      * </ul>
      */
     void onConnect(Node node);
@@ -93,9 +93,9 @@ public interface Environment {
      * For example, if node A is removed from a network with nodes A, B and C,
      * these calls are made:
      * <ul>
-     *     <li>A.onDisconnect(A)</li>
-     *     <li>B.onDisconnect(A)</li>
-     *     <li>C.onDisconnect(A)</li>
+     * <li>A.onDisconnect(A)</li>
+     * <li>B.onDisconnect(A)</li>
+     * <li>C.onDisconnect(A)</li>
      * </ul>
      */
     void onDisconnect(Node node);

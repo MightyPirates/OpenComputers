@@ -9,24 +9,36 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 object Tooltip {
-  val maxWidth = 220
+  private val maxWidth = 220
+
+  private val nl = """\[nl\]"""
+
+  private def font = Minecraft.getMinecraft.fontRenderer
 
   def get(name: String, args: Any*): java.util.List[String] = {
-    val tooltip = Localization.localizeImmediately("tooltip." + name).format(args.map(_.toString): _*)
+    val tooltip = Localization.localizeImmediately("tooltip." + name).
+      format(args.map(_.toString): _*)
     val isSubTooltip = name.contains(".")
-    val font = Minecraft.getMinecraft.fontRenderer
     val shouldShorten = (isSubTooltip || font.getStringWidth(tooltip) > maxWidth) && !KeyBindings.showExtendedTooltips
     if (shouldShorten) {
       if (isSubTooltip) Seq.empty[String]
       else Seq(Localization.localizeImmediately("tooltip.TooLong", Keyboard.getKeyName(KeyBindings.extendedTooltip.getKeyCode)))
     }
-    else {
-      val nl = """\[nl\]"""
-      tooltip.
+    else tooltip.
+      split(nl).
+      map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
+      flatten.
+      toList
+  }
+
+  def extended(name: String, args: Any*): java.util.List[String] =
+    if (KeyBindings.showExtendedTooltips) {
+      Localization.localizeImmediately("tooltip." + name).
+        format(args.map(_.toString): _*).
         split(nl).
         map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
         flatten.
         toList
     }
-  }
+    else Seq.empty[String]
 }

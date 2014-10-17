@@ -1,11 +1,13 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.detail.DriverAPI;
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.driver.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+
+import java.util.Collection;
 
 /**
  * This API allows registering new drivers with the mod.
@@ -15,6 +17,10 @@ import net.minecraft.world.World;
  * block that should interact with the mod's component network it is enough to
  * have it implement {@link li.cil.oc.api.network.Environment} - no driver is
  * needed in that case.
+ * <p/>
+ * Note that these methods should <em>not</em> be called in the pre-init phase,
+ * since the {@link li.cil.oc.api.API#driver} may not have been initialized
+ * at that time. Only start calling these methods in the init phase or later.
  *
  * @see Network
  * @see Block
@@ -34,8 +40,8 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final Block driver) {
-        if (instance != null)
-            instance.add(driver);
+        if (API.driver != null)
+            API.driver.add(driver);
     }
 
     /**
@@ -50,8 +56,8 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final Item driver) {
-        if (instance != null)
-            instance.add(driver);
+        if (API.driver != null)
+            API.driver.add(driver);
     }
 
     /**
@@ -66,8 +72,8 @@ public final class Driver {
      * @param converter the converter to register.
      */
     public static void add(final Converter converter) {
-        if (instance != null)
-            instance.add(converter);
+        if (API.driver != null)
+            API.driver.add(converter);
     }
 
     /**
@@ -86,8 +92,8 @@ public final class Driver {
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
     public static Block driverFor(World world, int x, int y, int z) {
-        if (instance != null)
-            return instance.driverFor(world, x, y, z);
+        if (API.driver != null)
+            return API.driver.driverFor(world, x, y, z);
         return null;
     }
 
@@ -99,11 +105,65 @@ public final class Driver {
      * will be used.
      *
      * @param stack the item stack to get a driver for.
+     * @param host  the type that will host the environment created by returned driver.
+     * @return a driver for the item, or <tt>null</tt> if there is none.
+     */
+    public static Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host) {
+        if (API.driver != null)
+            return API.driver.driverFor(stack, host);
+        return null;
+    }
+
+    /**
+     * Looks up a driver for the specified item stack.
+     * <p/>
+     * Note that unlike for blocks, there can always only be one item driver
+     * per item. If there are multiple ones, the first one that was registered
+     * will be used.
+     * <p/>
+     * This is a context-agnostic variant used mostly for "house-keeping"
+     * stuff, such as querying slot types and tier.
+     *
+     * @param stack the item stack to get a driver for.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     public static Item driverFor(ItemStack stack) {
-        if (instance != null)
-            return instance.driverFor(stack);
+        if (API.driver != null)
+            return API.driver.driverFor(stack);
+        return null;
+    }
+
+    /**
+     * Get a list of all registered block drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     * <p/>
+     * The returned collection is read-only.
+     *
+     * @return the list of all registered block drivers.
+     */
+    public static Collection<Block> blockDrivers() {
+        if (API.driver != null)
+            return API.driver.blockDrivers();
+        return null;
+    }
+
+    /**
+     * Get a list of all registered item drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     * <p/>
+     * The returned collection is read-only.
+     *
+     * @return the list of all registered item drivers.
+     */
+    public static Collection<Item> itemDrivers() {
+        if (API.driver != null)
+            return API.driver.itemDrivers();
         return null;
     }
 
@@ -111,6 +171,4 @@ public final class Driver {
 
     private Driver() {
     }
-
-    public static DriverAPI instance = null;
 }

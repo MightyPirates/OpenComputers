@@ -1,7 +1,7 @@
 package li.cil.oc.util
 
-import li.cil.oc.api.machine.Robot
-import li.cil.oc.api.network.Arguments
+import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.machine.Arguments
 import net.minecraft.inventory.IInventory
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -18,6 +18,12 @@ object ExtendedArguments {
       }
       else 64
 
+    def optionalFluidCount(n: Int) =
+      if (args.count > n && args.checkAny(n) != null) {
+        math.max(0, args.checkInteger(n))
+      }
+      else 1000
+
     def checkSlot(inventory: IInventory, n: Int) = {
       val slot = args.checkInteger(n) - 1
       if (slot < 0 || slot >= inventory.getSizeInventory) {
@@ -26,12 +32,25 @@ object ExtendedArguments {
       slot
     }
 
+    def optSlot(inventory: IInventory, n: Int, default: Int) = {
+      if (n >= 0 && n < args.count()) checkSlot(inventory, n)
+      else default
+    }
+
     def checkSlot(robot: Robot, n: Int) = {
       val slot = args.checkInteger(n) - 1
       if (slot < 0 || slot >= robot.inventorySize) {
         throw new IllegalArgumentException("invalid slot")
       }
       slot + 1 + robot.containerCount
+    }
+
+    def checkTank(robot: Robot, n: Int) = {
+      val tank = args.checkInteger(n) - 1
+      if (tank < 0 || tank >= robot.tankCount) {
+        throw new IllegalArgumentException("invalid tank index")
+      }
+      tank
     }
 
     def checkSideForAction(n: Int) = checkSide(n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)

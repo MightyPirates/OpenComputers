@@ -1,9 +1,13 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import buildcraft.api.power.{IPowerReceptor, PowerHandler}
+import buildcraft.api.power.IPowerReceptor
+import buildcraft.api.power.PowerHandler
 import cpw.mods.fml.common.Optional
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.integration.Mods
+import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 trait BuildCraft extends Common {
@@ -16,14 +20,35 @@ trait BuildCraft extends Common {
   override def updateEntity() {
     super.updateEntity()
     if (useBuildCraftPower && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val demand = (globalBufferSize(side) - globalBuffer(side)) / Settings.get.ratioBuildCraft
-        if (demand > 1) {
-          val power = getPowerProvider.useEnergy(1, demand.toFloat, true)
-          tryChangeBuffer(side, power * Settings.get.ratioBuildCraft)
-        }
-      }
+      updateEnergy()
     }
+  }
+
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
+  private def updateEnergy() {
+    tryAllSides((demand, _) => getPowerProvider.useEnergy(1, demand.toFloat, true), Settings.get.ratioBuildCraft)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    if (useBuildCraftPower) loadHandler(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
+  private def loadHandler(nbt: NBTTagCompound) {
+    Option(getPowerProvider).foreach(_.readFromNBT(nbt.getCompoundTag(Settings.namespace + "bcpower")))
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    if (useBuildCraftPower) saveHandler(nbt)
+  }
+
+  @Optional.Method(modid = Mods.IDs.BuildCraftPower)
+  private def saveHandler(nbt: NBTTagCompound) {
+    Option(getPowerProvider).foreach(h => nbt.setNewCompoundTag(Settings.namespace + "bcpower", h.writeToNBT))
   }
 
   // ----------------------------------------------------------------------- //
@@ -35,7 +60,8 @@ trait BuildCraft extends Common {
         case receptor: IPowerReceptor =>
           val handler = new PowerHandler(receptor, PowerHandler.Type.MACHINE)
           if (handler != null) {
-            handler.configure(1, 320, Float.MaxValue, 640)
+            val conversionBufferSize = energyThroughput * Settings.get.tickFrequency / Settings.get.ratioBuildCraft
+            handler.configure(1, conversionBufferSize, Float.MaxValue, conversionBufferSize)
             handler.configurePowerPerdition(0, 0)
             powerHandler = Some(handler)
           }

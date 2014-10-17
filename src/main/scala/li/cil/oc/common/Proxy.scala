@@ -1,29 +1,21 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
-import li.cil.oc.common.asm.SimpleComponentTickHandler
-import li.cil.oc.common.event._
-import li.cil.oc.common.item.Tablet
-import li.cil.oc.common.multipart.MultiPart
+import li.cil.oc.common.init.Blocks
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.template.{RobotTemplate, TabletTemplate}
+import li.cil.oc.integration.Mods
 import li.cil.oc.server._
-import li.cil.oc.server.component.machine
-import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
-import li.cil.oc.server.network.WirelessNetwork
+import li.cil.oc.server.machine.luac.NativeLuaArchitecture
+import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -35,6 +27,7 @@ class Proxy {
     Items.init()
 
     OpenComputers.log.info("Initializing additional OreDict entries.")
+
     registerExclusive("craftingPiston", new ItemStack(net.minecraft.init.Blocks.piston), new ItemStack(net.minecraft.init.Blocks.sticky_piston))
     registerExclusive("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch))
     registerExclusive("nuggetGold", new ItemStack(net.minecraft.init.Items.gold_nugget))
@@ -48,135 +41,23 @@ class Proxy {
     OpenComputers.log.info("Initializing OpenComputers API.")
 
     api.CreativeTab.instance = CreativeTab
-    api.Driver.instance = driver.Registry
-    api.FileSystem.instance = fs.FileSystem
-    api.Items.instance = Items
-    api.Machine.instance = machine.Machine
+    api.API.driver = driver.Registry
+    api.API.fileSystem = fs.FileSystem
+    api.API.items = Items
+    api.API.machine = machine.Machine
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
-    api.Network.instance = network.Network
-
-    if (Mods.ForgeMultipart.isAvailable) {
-      OpenComputers.log.info("Initializing Forge MultiPart support.")
-      MultiPart.init()
-    }
-    if (Mods.ComputerCraft.isAvailable) {
-      OpenComputers.log.info("Initializing ComputerCraft support.")
-      ComputerCraft.init()
-    }
+    api.Machine.add(api.Machine.LuaArchitecture)
+    api.API.network = network.Network
   }
 
   def init(e: FMLInitializationEvent) {
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
     OpenComputers.channel.register(server.PacketHandler)
 
-    OpenComputers.log.info("Initializing OpenComputers drivers.")
-    api.Driver.add(driver.item.ComponentBus)
-    api.Driver.add(driver.item.CPU)
-    api.Driver.add(driver.item.DebugCard)
-    api.Driver.add(driver.item.FileSystem)
-    api.Driver.add(driver.item.Geolyzer)
-    api.Driver.add(driver.item.GraphicsCard)
-    api.Driver.add(driver.item.InternetCard)
-    api.Driver.add(driver.item.LinkedCard)
-    api.Driver.add(driver.item.Loot)
-    api.Driver.add(driver.item.Memory)
-    api.Driver.add(driver.item.NetworkCard)
-    api.Driver.add(driver.item.Keyboard)
-    api.Driver.add(driver.item.RedstoneCard)
-    api.Driver.add(driver.item.Screen)
-    api.Driver.add(driver.item.Tablet)
-    api.Driver.add(driver.item.UpgradeAngel)
-    api.Driver.add(driver.item.UpgradeBattery)
-    api.Driver.add(driver.item.UpgradeChunkloader)
-    api.Driver.add(driver.item.UpgradeContainerCard)
-    api.Driver.add(driver.item.UpgradeContainerFloppy)
-    api.Driver.add(driver.item.UpgradeContainerUpgrade)
-    api.Driver.add(driver.item.UpgradeCrafting)
-    api.Driver.add(driver.item.UpgradeExperience)
-    api.Driver.add(driver.item.UpgradeGenerator)
-    api.Driver.add(driver.item.UpgradeInventory)
-    api.Driver.add(driver.item.UpgradeInventoryController)
-    api.Driver.add(driver.item.UpgradeNavigation)
-    api.Driver.add(driver.item.UpgradePiston)
-    api.Driver.add(driver.item.UpgradeSign)
-    api.Driver.add(driver.item.UpgradeSolarGenerator)
-    api.Driver.add(driver.item.UpgradeTractorBeam)
-    api.Driver.add(driver.item.WirelessNetworkCard)
-
-    if (Mods.StargateTech2.isAvailable) {
-      OpenComputers.log.info("Initializing StargateTech2 converter and driver.")
-      api.Driver.add(driver.converter.BusPacketNetScanDevice)
-      api.Driver.add(driver.item.AbstractBusCard)
-    }
-    if (Mods.ComputerCraft.isAvailable) {
-      OpenComputers.log.info("Initializing ComputerCraft 1.6x floppy driver.")
-      api.Driver.add(driver.item.ComputerCraftMedia)
-    }
-
-    OpenComputers.log.info("Initializing vanilla converters.")
-    api.Driver.add(driver.converter.FluidTankInfo)
-    api.Driver.add(driver.converter.ItemStack)
-
-    OpenComputers.log.info("Initializing assembler templates.")
-    RobotTemplate.register()
-    TabletTemplate.register()
-
-    OpenComputers.log.info("Initializing loot disks.")
-    Loot.init()
-
-    OpenComputers.log.info("Initializing recipes.")
-    Recipes.init()
-
-    OpenComputers.log.info("Initializing event handlers.")
-
-    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
-
-    FMLCommonHandler.instance.bus.register(EventHandler)
-    FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
-    FMLCommonHandler.instance.bus.register(Tablet)
-
-    MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(EventHandler)
-    MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
-    MinecraftForge.EVENT_BUS.register(Loot)
-    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
-    MinecraftForge.EVENT_BUS.register(SaveHandler)
-    MinecraftForge.EVENT_BUS.register(Tablet)
-    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
-    MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
-
-    if (Mods.RedstoneFlux.isAvailable) {
-      OpenComputers.log.info("Initializing Redstone Flux tool support.")
-      MinecraftForge.EVENT_BUS.register(RedstoneFluxToolHandler)
-    }
-    if (Mods.TinkersConstruct.isAvailable) {
-      OpenComputers.log.info("Initializing Tinker's Construct tool support.")
-      MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)
-    }
-    if (Mods.UniversalElectricity.isAvailable) {
-      OpenComputers.log.info("Initializing electric tool support.")
-      MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
-    }
-    if (Mods.VersionChecker.isAvailable) {
-      UpdateCheck.info onSuccess {
-        case Some(release) =>
-          val nbt = new NBTTagCompound()
-          nbt.setString("newVersion", release.tag_name)
-          nbt.setString("updateUrl", "https://github.com/MightyPirates/OpenComputers/releases")
-          nbt.setBoolean("isDirectLink", false)
-          if (release.body != null) {
-            nbt.setString("changeLog", release.body.replaceAll("\r\n", "\n"))
-          }
-          FMLInterModComms.sendRuntimeMessage(OpenComputers.ID, Mods.IDs.VersionChecker, "addUpdate", nbt)
-      }
-    }
-    if (Mods.Waila.isAvailable) {
-      OpenComputers.log.info("Initializing Waila support.")
-      FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
-    }
+    OpenComputers.log.info("Initializing mod integration.")
+    Mods.init()
   }
 
   def postInit(e: FMLPostInitializationEvent) {
@@ -201,7 +82,8 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard"
+    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
+    OpenComputers.ID + ":rack" -> "serverRack"
   )
 
   private val itemRenames = Map(
@@ -210,7 +92,8 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard"
+    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
+    OpenComputers.ID + ":rack" -> "serverRack"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

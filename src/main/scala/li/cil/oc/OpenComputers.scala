@@ -4,7 +4,8 @@ import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
-import cpw.mods.fml.common.{Mod, SidedProxy}
+import cpw.mods.fml.common.Mod
+import cpw.mods.fml.common.SidedProxy
 import li.cil.oc.common.Proxy
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.CommandHandler
@@ -31,8 +32,8 @@ object OpenComputers {
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) {
-    proxy.preInit(e)
     log = e.getModLog
+    proxy.preInit(e)
   }
 
   @EventHandler

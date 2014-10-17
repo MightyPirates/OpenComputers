@@ -1,16 +1,19 @@
 package li.cil.oc.common
 
-import java.io.{ByteArrayOutputStream, DataOutputStream, OutputStream}
+import java.io.ByteArrayOutputStream
+import java.io.DataOutputStream
+import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.internal.FMLProxyPacket
 import io.netty.buffer.Unpooled
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.driver.Container
+import li.cil.oc.api.driver.EnvironmentHost
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -41,9 +44,9 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 
   def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
 
-  def sendToNearbyPlayers(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
+  def sendToPlayersNearTileEntity(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
 
-  def sendToNearbyPlayers(c: Container): Unit = sendToNearbyPlayers(c.world, c.xPosition, c.yPosition, c.zPosition, 1024)
+  def sendToPlayersNearHost(host: EnvironmentHost, range: Double = 1024): Unit = sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Double) {
     val dimension = world.provider.dimensionId

@@ -1,23 +1,27 @@
 package li.cil.oc
 
 import java.io._
-import java.net.{Inet4Address, InetAddress}
+import java.net.Inet4Address
+import java.net.InetAddress
+import java.util.UUID
 
 import com.google.common.net.InetAddresses
+import com.mojang.authlib.GameProfile
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
+import cpw.mods.fml.common.versioning.DefaultArtifactVersion
+import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 
 import scala.collection.convert.WrapAsScala._
-import scala.io.{Codec, Source}
+import scala.io.Codec
+import scala.io.Source
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
   // client
-
   val screenTextFadeStartDistance = config.getDouble("client.screenTextFadeStartDistance")
   val maxScreenTextRenderDistance = config.getDouble("client.maxScreenTextRenderDistance")
   val textLinearFiltering = config.getBoolean("client.textLinearFiltering")
@@ -65,16 +69,24 @@ class Settings(config: Config) {
       OpenComputers.log.warn("Bad number of CPU component counts, ignoring.")
       Array(8, 12, 16)
   }
+  val callBudgets = Array(config.getDoubleList("computer.callBudgets"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Double, tier2: Double, tier3: Double)
+    case _ =>
+      OpenComputers.log.warn("Bad number of CPU call budgets, ignoring.")
+      Array(0.5, 1.0, 1.5)
+  }
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
-  val allowBytecode = config.getBoolean("computer.allowBytecode")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
   val executionDelay = config.getInt("computer.executionDelay") max 0
 
+  // computer.lua
+  val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
+
   // ----------------------------------------------------------------------- //
   // robot
-
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")
@@ -84,9 +96,7 @@ class Settings(config: Config) {
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1
   val nameFormat = config.getString("robot.nameFormat")
 
-  // ----------------------------------------------------------------------- //
   // robot.xp
-
   val baseXpToLevel = config.getDouble("robot.xp.baseValue") max 0
   val constantXpGrowth = config.getDouble("robot.xp.constantGrowth") max 1
   val exponentialXpGrowth = config.getDouble("robot.xp.exponentialGrowth") max 1
@@ -113,11 +123,11 @@ class Settings(config: Config) {
 
   // ----------------------------------------------------------------------- //
   // power
-
   val pureIgnorePower = config.getBoolean("power.ignorePower")
   lazy val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
-  val chargeRate = config.getDouble("power.chargerChargeRate")
+  val chargeRateRobot = config.getDouble("power.chargerChargeRate")
+  val chargeRateTablet = config.getDouble("power.chargerChargeRateTablet")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
@@ -138,6 +148,8 @@ class Settings(config: Config) {
       OpenComputers.log.warn("Bad number of battery upgrade buffer sizes, ignoring.")
       Array(10000.0, 15000.0, 20000.0)
   }
+  val bufferTablet = config.getDouble("power.buffer.tablet") max 0
+  val bufferAccessPoint = config.getDouble("power.buffer.accessPoint") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
@@ -159,11 +171,30 @@ class Settings(config: Config) {
   val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
   val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
+  val tabletBaseCost = config.getDouble("power.cost.tabletAssemblyBase") max 0
+  val tabletComplexityCost = config.getDouble("power.cost.tabletAssemblyComplexity") max 0
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
 
+  // power.rate
+  val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
+  val assemblerRate = config.getDouble("power.rate.assembler") max 0
+  val caseRate = (Array(config.getDoubleList("power.rate.case"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Double, tier2: Double, tier3: Double)
+    case _ =>
+      OpenComputers.log.warn("Bad number of computer case conversion rates, ignoring.")
+      Array(5.0, 10.0, 20.0)
+  }) ++ Array(9001.0)
+  // Creative case.
+  val chargerRate = config.getDouble("power.rate.charger") max 0
+  val disassemblerRate = config.getDouble("power.rate.disassembler") max 0
+  val powerConverterRate = config.getDouble("power.rate.powerConverter") max 0
+  val serverRackRate = config.getDouble("power.rate.serverRack") max 0
+
   // power.value
+  private val valueAppliedEnergistics2 = config.getDouble("power.value.AppliedEnergistics2")
   private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
   private val valueFactorization = config.getDouble("power.value.Factorization")
   private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
@@ -174,6 +205,7 @@ class Settings(config: Config) {
 
   private val valueInternal = valueBuildCraft
 
+  val ratioAppliedEnergistics2 = valueAppliedEnergistics2 / valueInternal
   val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioFactorization = valueFactorization / valueInternal
   val ratioGalacticraft = valueGalacticraft / valueInternal
@@ -242,6 +274,20 @@ class Settings(config: Config) {
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
+  val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
+
+  // ----------------------------------------------------------------------- //
+  // integration
+  val modBlacklist = config.getStringList("integration.modBlacklist")
+  val peripheralBlacklist = config.getStringList("integration.peripheralBlacklist")
+  val fakePlayerUuid = config.getString("integration.fakePlayerUuid")
+  val fakePlayerName = config.getString("integration.fakePlayerName")
+  val fakePlayerProfile = new GameProfile(UUID.fromString(fakePlayerUuid), fakePlayerName)
+
+  // integration.vanilla
+  val enableInventoryDriver = config.getBoolean("integration.vanilla.enableInventoryDriver")
+  val enableTankDriver = config.getBoolean("integration.vanilla.enableTankDriver")
+  val allowCompressedNBTTags = config.getBoolean("integration.vanilla.allowCompressedNBTTags")
 
   // ----------------------------------------------------------------------- //
   // debug
@@ -259,6 +305,8 @@ class Settings(config: Config) {
   val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
   val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
+  val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
+  val enableDebugCard = config.getBoolean("debug.enableDebugCard")
 }
 
 object Settings {
@@ -346,6 +394,11 @@ object Settings {
       "computer.debug",
       "misc.alwaysTryNative",
       "misc.verbosePersistenceErrors"
+    ),
+    // Upgrading to version 1.3.5, added forgotten check for item stack,
+    // inspection, patch to true to avoid stuff suddenly breaking.
+    VersionRange.createFromVersionSpec("1.3.4") -> Array(
+      "misc.allowItemStackInspection"
     )
   )
 

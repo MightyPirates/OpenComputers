@@ -3,9 +3,12 @@ package li.cil.oc.common.block
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.world.World
 
-class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
+class PowerDistributor extends SimpleBlock {
+  setLightLevel(0.34f)
+
   override protected def customTextures = Array(
     None,
     Some("PowerDistributorTop"),
@@ -15,18 +18,16 @@ class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
     Some("PowerDistributorSide")
   )
 
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
+  override def registerBlockIcons(iconRegister: IIconRegister) = {
+    super.registerBlockIcons(iconRegister)
     Textures.PowerDistributor.iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":PowerDistributorSideOn")
     Textures.PowerDistributor.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":PowerDistributorTopOn")
   }
 
-  override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
-
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity = true
+  override def hasTileEntity(metadata: Int) = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.PowerDistributor())
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.PowerDistributor()
 }
 

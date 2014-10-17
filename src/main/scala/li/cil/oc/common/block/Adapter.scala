@@ -1,11 +1,15 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
+class Adapter extends SimpleBlock {
   override protected def customTextures = Array(
     None,
     Some("AdapterTop"),
@@ -17,19 +21,30 @@ class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity = true
+  override def hasTileEntity(metadata: Int) = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Adapter())
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
 
   // ----------------------------------------------------------------------- //
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) =
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (!player.isSneaking) {
+      if (!world.isRemote) {
+        player.openGui(OpenComputers, GuiType.Adapter.id, world, x, y, z)
+      }
+      true
+    }
+    else false
+  }
+
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
     world.getTileEntity(x, y, z) match {
       case adapter: tileentity.Adapter => adapter.neighborChanged()
       case _ => // Ignore.
     }
 
-  override def neighborTileChanged(world: IBlockAccess, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) =
+  override def onNeighborChange(world: IBlockAccess, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) =
     world.getTileEntity(x, y, z) match {
       case adapter: tileentity.Adapter =>
         val (dx, dy, dz) = (tileX - x, tileY - y, tileZ - z)

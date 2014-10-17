@@ -1,15 +1,22 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.Driver
+import li.cil.oc.api.internal
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
-import li.cil.oc.{Settings, api}
+import li.cil.oc.common.Slot
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-class Adapter extends traits.Environment with Analyzable {
+class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
@@ -127,6 +134,15 @@ class Adapter extends traits.Environment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
+  override def getSizeInventory = 1
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Upgrade
+    case _ => false
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
@@ -162,6 +178,8 @@ class Adapter extends traits.Environment with Analyzable {
     }
     nbt.setTag(Settings.namespace + "adapter.blocks", blocksNbt)
   }
+
+  // ----------------------------------------------------------------------- //
 
   private class BlockData(val name: String, val data: NBTTagCompound)
 

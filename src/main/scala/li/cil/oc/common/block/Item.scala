@@ -2,14 +2,21 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.ItemUtils
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemBlock, ItemStack}
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
+import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+import org.lwjgl.input
 
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
@@ -18,32 +25,30 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
-    block match {
-      case delegator: Delegator[_] => delegator.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
-      case _ => block match {
-        case simple: SimpleBlock => simple.tooltipLines(getMetadata(stack.getItemDamage), stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
-        case _ =>
-      }
+    (block, tooltip) match {
+      case (simple: SimpleBlock, lines: util.List[String]@unchecked) =>
+        simple.addInformation(getMetadata(stack.getItemDamage), stack, player, lines, advanced)
+
+        if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMENU)) {
+          ItemCosts.addTooltip(stack, lines)
+        }
+        else {
+          lines.add(StatCollector.translateToLocalFormatted(
+            Settings.namespace + "tooltip.MaterialCosts",
+            input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+        }
+      case _ =>
     }
   }
 
-  override def getRarity(stack: ItemStack) = Delegator.subBlock(stack) match {
-    case Some(subBlock) => subBlock.rarity
-    case _ => block match {
-      case simple: SimpleBlock => simple.rarity
-      case _ => EnumRarity.common
-    }
+  override def getRarity(stack: ItemStack) = block match {
+    case simple: SimpleBlock => simple.rarity
+    case _ => EnumRarity.common
   }
 
   override def getMetadata(itemDamage: Int) = itemDamage
 
   override def getUnlocalizedName = Settings.namespace + "tile"
-
-  override def getUnlocalizedName(stack: ItemStack) =
-    block match {
-      case delegator: Delegator[_] => Settings.namespace + "tile." + delegator.getUnlocalizedName(stack.getItemDamage)
-      case _ => block.getUnlocalizedName
-    }
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false
 

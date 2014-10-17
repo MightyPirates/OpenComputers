@@ -2,17 +2,14 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.common.Optional
-import li.cil.oc.{Settings, Localization}
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
-import li.cil.oc.util.mods.Mods
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
+class Redstone extends RedstoneAware {
   override protected def customTextures = Array(
     Some("RedstoneTop"),
     Some("RedstoneTop"),
@@ -22,8 +19,10 @@ class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDel
     Some("RedstoneSide")
   )
 
-  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    super.tooltipLines(stack, player, tooltip, advanced)
+  // ----------------------------------------------------------------------- //
+
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (Mods.RedLogic.isAvailable) {
       tooltip.addAll(Tooltip.get("RedstoneCard.RedLogic"))
     }
@@ -32,13 +31,7 @@ class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDel
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.Waila)
-  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "redstone").getCompoundTag("node")
-    if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
-    }
-  }
+  // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = Some(new tileentity.Redstone())
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Redstone()
 }

@@ -9,7 +9,8 @@ import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.{RenderBlocks, Tessellator}
+import net.minecraft.client.renderer.RenderBlocks
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.util.ForgeDirection
@@ -24,8 +25,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     RenderState.checkError(getClass.getName + ".renderInventoryBlock: entering (aka: wasntme)")
 
     GL11.glPushMatrix()
-    Delegator.subBlock(block, metadata) match {
-      case Some(cable: Cable) =>
+    block match {
+      case cable: Cable =>
         GL11.glScalef(1.6f, 1.6f, 1.6f)
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
@@ -33,20 +34,20 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable")
-      case Some(proxy@(_: RobotProxy | _: RobotAfterimage)) =>
+      case proxy@(_: RobotProxy | _: RobotAfterimage) =>
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         GL11.glTranslatef(-0.5f, -0.45f, -0.5f)
         RobotRenderer.renderChassis()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")
-      case Some(assembler: RobotAssembler) =>
+      case assembler: Assembler =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         Assembler.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
-      case Some(hologram: Hologram) =>
+      case hologram: Hologram =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         Hologram.render(block, metadata, renderer)
@@ -55,9 +56,6 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram")
       case _ =>
         block match {
-          case delegator: Delegator[_] =>
-            delegator.setBlockBoundsForItemRender(metadata)
-            delegator.preItemRender(metadata)
           case simple: SimpleBlock =>
             simple.setBlockBoundsForItemRender(metadata)
             simple.preItemRender(metadata)
@@ -176,7 +174,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
 
         true
-      case assembler: tileentity.RobotAssembler =>
+      case assembler: tileentity.Assembler =>
         Assembler.render(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler")

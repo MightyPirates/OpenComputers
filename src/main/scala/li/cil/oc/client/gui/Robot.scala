@@ -2,20 +2,25 @@ package li.cil.oc.client.gui
 
 import java.util
 
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
-import li.cil.oc.common.{container, tileentity}
-import li.cil.oc.server.driver
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.container
+import li.cil.oc.common.tileentity
+import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.RenderState
-import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import org.lwjgl.input.{Keyboard, Mouse}
+import org.lwjgl.input.Keyboard
+import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
@@ -23,7 +28,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     case Some(buffer: api.component.TextBuffer) => buffer
   }.headOption.orNull
 
-  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor).contains(driver.item.Keyboard)
+  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)
 
   private val withScreenHeight = 256
   private val noScreenHeight = 108
@@ -51,8 +56,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val maxBufferHeight = 140.0
 
   private def bufferWidth = math.min(maxBufferWidth, TextBufferRenderCache.renderer.charRenderWidth * Settings.screenResolutionsByTier(0)._1)
+
   private def bufferHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * Settings.screenResolutionsByTier(0)._2)
+
   override protected def bufferX = (8 + (maxBufferWidth - bufferWidth) / 2).toInt
+
   override protected def bufferY = (8 + (maxBufferHeight - bufferHeight) / 2).toInt
 
   private val inventoryX = 169

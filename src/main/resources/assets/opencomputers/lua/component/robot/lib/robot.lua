@@ -41,24 +41,24 @@ function robot.inventorySize()
 end
 
 
-function robot.select(slot)
-  return component.robot.select(slot)
+function robot.select(...)
+  return component.robot.select(...)
 end
 
-function robot.count(slot)
-  return component.robot.count(slot)
+function robot.count(...)
+  return component.robot.count(...)
 end
 
-function robot.space(slot)
-  return component.robot.space(slot)
+function robot.space(...)
+  return component.robot.space(...)
 end
 
-function robot.compareTo(slot)
-  return component.robot.compareTo(slot)
+function robot.compareTo(...)
+  return component.robot.compareTo(...)
 end
 
-function robot.transferTo(slot, count)
-  return component.robot.transferTo(slot, count)
+function robot.transferTo(...)
+  return component.robot.transferTo(...)
 end
 
 -------------------------------------------------------------------------------
@@ -193,6 +193,79 @@ end
 function robot.turnAround()
   local turn = math.random() < 0.5 and robot.turnLeft or robot.turnRight
   return turn() and turn()
+end
+
+-------------------------------------------------------------------------------
+-- Tank
+
+function robot.tankCount()
+  return component.robot.tankCount()
+end
+
+
+function robot.selectTank(tank)
+  return component.robot.selectTank(tank)
+end
+
+function robot.tankLevel(...)
+  return component.robot.tankLevel(...)
+end
+
+function robot.tankSpace(...)
+  return component.robot.tankSpace(...)
+end
+
+function robot.compareFluidTo(...)
+  return component.robot.compareFluidTo(...)
+end
+
+function robot.transferFluidTo(...)
+  return component.robot.transferFluidTo(...)
+end
+
+-------------------------------------------------------------------------------
+-- Tank + World
+
+function robot.compareFluid()
+  return component.robot.compareFluid(sides.front)
+end
+
+function robot.compareFluidUp()
+  return component.robot.compareFluid(sides.up)
+end
+
+function robot.compareFluidDown()
+  return component.robot.compareFluid(sides.down)
+end
+
+function robot.drain(count)
+  checkArg(1, count, "nil", "number")
+  return component.robot.drain(sides.front, count)
+end
+
+function robot.drainUp(count)
+  checkArg(1, count, "nil", "number")
+  return component.robot.drain(sides.up, count)
+end
+
+function robot.drainDown(count)
+  checkArg(1, count, "nil", "number")
+  return component.robot.drain(sides.down, count)
+end
+
+function robot.fill(count)
+  checkArg(1, count, "nil", "number")
+  return component.robot.fill(sides.front, count)
+end
+
+function robot.fillUp(count)
+  checkArg(1, count, "nil", "number")
+  return component.robot.fill(sides.up, count)
+end
+
+function robot.fillDown(count)
+  checkArg(1, count, "nil", "number")
+  return component.robot.fill(sides.down, count)
 end
 
 -------------------------------------------------------------------------------

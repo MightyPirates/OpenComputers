@@ -2,13 +2,16 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
-import li.cil.oc.common.{container, tileentity}
-import li.cil.oc.{Localization, Settings}
-import net.minecraft.client.gui.{GuiButton, GuiScreen}
+import li.cil.oc.client.Textures
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.container
+import li.cil.oc.common.tileentity
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.StatCollector
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
@@ -96,7 +99,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Prevents NEI render glitch.
 
     fontRendererObj.drawString(
-      StatCollector.translateToLocal(rack.getInventoryName),
+      Localization.localizeImmediately(rack.getInventoryName),
       8, 6, 0x404040)
 
     val rangeY = 39

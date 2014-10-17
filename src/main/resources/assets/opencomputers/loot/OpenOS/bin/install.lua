@@ -52,11 +52,12 @@ local result, reason = os.execute("/bin/cp -vr /mnt/" .. boot .. "/* /mnt/" .. m
 if not result then
   error(reason, 0)
 end
-computer.setBootAddress(choice.address)
+choice.setLabel("OpenOS")
 
-print("All done! Would you like to reboot now? [Y/n]")
+print("All done! Set as boot device and reboot now? [Y/n]")
 local result = io.read()
 if not result or result == "" or result:sub(1, 1):lower() == "y" then
+  computer.setBootAddress(choice.address)
   print("\nRebooting now!")
   computer.shutdown(true)
 end

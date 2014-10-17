@@ -43,7 +43,12 @@ function process.load(path, env, init, name)
       reason = "no exec command"
     else
       code = function()
-        return require("shell").execute(command, env, path)
+        local result = table.pack(require("shell").execute(command, env, path))
+        if not result[1] then
+          error(result[2], 0)
+        else
+          return table.unpack(result, 1, result.n)
+        end
       end
     end
   else

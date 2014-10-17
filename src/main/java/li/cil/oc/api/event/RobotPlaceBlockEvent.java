@@ -1,7 +1,7 @@
 package li.cil.oc.api.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import li.cil.oc.api.machine.Robot;
+import li.cil.oc.api.internal.Robot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 

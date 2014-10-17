@@ -1,16 +1,16 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
-import li.cil.oc.api.network.{Connector, SidedEnvironment}
-import li.cil.oc.api.{driver, network}
+import li.cil.oc.api.driver
+import li.cil.oc.api.network
+import li.cil.oc.api.network.Connector
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-import scala.math.ScalaNumber
-
-trait Environment extends TileEntity with network.Environment with driver.Container {
+trait Environment extends TileEntity with network.Environment with driver.EnvironmentHost {
   protected var isChangeScheduled = false
 
   override def xPosition = x + 0.5
@@ -84,11 +84,5 @@ trait Environment extends TileEntity with network.Environment with driver.Contai
 
   // ----------------------------------------------------------------------- //
 
-  final protected def result(args: Any*): Array[AnyRef] = {
-    def unwrap(arg: Any): AnyRef = arg match {
-      case x: ScalaNumber => x.underlying
-      case x => x.asInstanceOf[AnyRef]
-    }
-    Array(args map unwrap: _*)
-  }
+  protected def result(args: Any*) = li.cil.oc.util.ResultWrapper.result(args: _*)
 }

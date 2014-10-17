@@ -2,9 +2,12 @@ package li.cil.oc.api.detail;
 
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
+import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.driver.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+
+import java.util.Collection;
 
 public interface DriverAPI {
     /**
@@ -72,7 +75,45 @@ public interface DriverAPI {
      * will be used.
      *
      * @param stack the item stack to get a driver for.
+     * @param host  the type that will host the environment created by returned driver.
+     * @return a driver for the item, or <tt>null</tt> if there is none.
+     */
+    Item driverFor(ItemStack stack, Class<? extends EnvironmentHost> host);
+
+    /**
+     * Looks up a driver for the specified item stack.
+     * <p/>
+     * Note that unlike for blocks, there can always only be one item driver
+     * per item. If there are multiple ones, the first one that was registered
+     * will be used.
+     * <p/>
+     * This is a context-agnostic variant used mostly for "house-keeping"
+     * stuff, such as querying slot types and tier.
+     *
+     * @param stack the item stack to get a driver for.
      * @return a driver for the item, or <tt>null</tt> if there is none.
      */
     Item driverFor(ItemStack stack);
+
+    /**
+     * Get a list of all registered block drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     *
+     * @return the list of all registered block drivers.
+     */
+    Collection<Block> blockDrivers();
+
+    /**
+     * Get a list of all registered item drivers.
+     * <p/>
+     * This is intended to allow checking for particular drivers using more
+     * customized logic, and in particular to check for drivers with the
+     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     *
+     * @return the list of all registered item drivers.
+     */
+    Collection<Item> itemDrivers();
 }

@@ -53,6 +53,7 @@ function serialization.serialize(value, pretty)
             table.insert(oks, k)
           end
         end
+        table.sort(ks)
         table.sort(sks)
         for _, k in ipairs(sks) do
           table.insert(ks, k)

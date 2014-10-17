@@ -1,10 +1,15 @@
 package li.cil.oc.client
 
+import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api.component.TextBuffer
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.item
 import li.cil.oc.common.item.Tablet
-import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
-import li.cil.oc.{Items, Localization, Settings}
+import li.cil.oc.common.tileentity
+import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
@@ -12,8 +17,14 @@ import net.minecraft.world.World
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =
     world.getTileEntity(x, y, z) match {
+      case adapter: tileentity.Adapter if id == GuiType.Adapter.id =>
+        new gui.Adapter(player.inventory, adapter)
+      case assembler: tileentity.Assembler if id == GuiType.Assembler.id =>
+        new gui.Assembler(player.inventory, assembler)
       case computer: tileentity.Case if id == GuiType.Case.id =>
         new gui.Case(player.inventory, computer)
+      case charger: tileentity.Charger if id == GuiType.Charger.id =>
+        new gui.Charger(player.inventory, charger)
       case disassembler: tileentity.Disassembler if id == GuiType.Disassembler.id =>
         new gui.Disassembler(player.inventory, disassembler)
       case drive: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
@@ -22,8 +33,6 @@ object GuiHandler extends CommonGuiHandler {
         new gui.Robot(player.inventory, proxy.robot)
       case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
         new gui.ServerRack(player.inventory, rack)
-      case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
-        new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
         new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled)
       case switch: tileentity.Switch if id == GuiType.Switch.id =>

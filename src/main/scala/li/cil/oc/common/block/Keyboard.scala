@@ -1,38 +1,47 @@
 package li.cil.oc.common.block
 
-import java.util
 import java.util.Random
 
-import cpw.mods.fml.common.Optional
+import li.cil.oc.api
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.Mods
-import li.cil.oc.{CreativeTab, Localization, Settings, api}
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
-import net.minecraft.block.material.Material
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-class Keyboard extends SimpleBlock(Material.rock) {
-  setBlockName("Keyboard")
-  setBlockTextureName(Settings.resourceDomain + ":keyboard")
+class Keyboard extends SimpleBlock with traits.SpecialBlock {
   setLightOpacity(0)
-  setCreativeTab(CreativeTab)
 
-  override def renderAsNormalBlock = false
+  // For Immibis Microblock support.
+  val ImmibisMicroblocks_TransformableBlockMarker = null
 
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = true
+  override protected def customTextures = Array(
+    Some("Keyboard"),
+    Some("Keyboard"),
+    Some("Keyboard"),
+    Some("Keyboard"),
+    Some("Keyboard"),
+    Some("Keyboard")
+  )
 
-  override def isOpaqueCube = false
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
-  override def isNormalCube = false
+  override def setBlockBoundsForItemRender(metadata: Int) = setBlockBounds(ForgeDirection.NORTH, ForgeDirection.WEST)
+
+  override def preItemRender(metadata: Int) {
+    GL11.glTranslatef(-0.75f, 0, 0)
+    GL11.glScalef(1.5f, 1.5f, 1.5f)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Keyboard()
+
+  // ----------------------------------------------------------------------- //
 
   override def updateTick(world: World, x: Int, y: Int, z: Int, rng: Random) =
     world.getTileEntity(x, y, z) match {
@@ -54,13 +63,6 @@ class Keyboard extends SimpleBlock(Material.rock) {
       case _ =>
     }
 
-  override def setBlockBoundsForItemRender(metadata: Int) = setBlockBounds(ForgeDirection.NORTH, ForgeDirection.WEST)
-
-  override def preItemRender(metadata: Int) {
-    GL11.glTranslatef(-0.75f, 0, 0)
-    GL11.glScalef(1.5f, 1.5f, 1.5f)
-  }
-
   private def setBlockBounds(pitch: ForgeDirection, yaw: ForgeDirection) {
     val (forward, up) = pitch match {
       case side@(ForgeDirection.DOWN | ForgeDirection.UP) => (side, yaw)
@@ -81,7 +83,7 @@ class Keyboard extends SimpleBlock(Material.rock) {
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
     world.getTileEntity(x, y, z) match {
-      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.ordinal) => // Can stay.
+      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite) => // Can stay.
       case _ =>
         dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
         world.setBlockToAir(x, y, z)
@@ -100,8 +102,8 @@ class Keyboard extends SimpleBlock(Material.rock) {
           x + keyboard.facing.getOpposite.offsetX,
           y + keyboard.facing.getOpposite.offsetY,
           z + keyboard.facing.getOpposite.offsetZ)
-        Delegator.subBlock(world, sx, sy, sz) match {
-          case Some(screen: Screen) => Some((keyboard, screen, sx, sy, sz, keyboard.facing.getOpposite))
+        world.getBlock(sx, sy, sz) match {
+          case screen: Screen => Some((keyboard, screen, sx, sy, sz, keyboard.facing.getOpposite))
           case _ =>
             // Special case #1: check for screen in front of the keyboard.
             val forward = keyboard.facing match {
@@ -112,16 +114,16 @@ class Keyboard extends SimpleBlock(Material.rock) {
               x + forward.offsetX,
               y + forward.offsetY,
               z + forward.offsetZ)
-            Delegator.subBlock(world, sx, sy, sz) match {
-              case Some(screen: Screen) => Some((keyboard, screen, sx, sy, sz, forward))
+            world.getBlock(sx, sy, sz) match {
+              case screen: Screen => Some((keyboard, screen, sx, sy, sz, forward))
               case _ if keyboard.facing != ForgeDirection.UP && keyboard.facing != ForgeDirection.DOWN =>
                 // Special case #2: check for screen below keyboards on walls.
                 val (sx, sy, sz) = (
                   x - forward.offsetX,
                   y - forward.offsetY,
                   z - forward.offsetZ)
-                Delegator.subBlock(world, sx, sy, sz) match {
-                  case Some(screen: Screen) => Some((keyboard, screen, sx, sy, sz, forward.getOpposite))
+                world.getBlock(sx, sy, sz) match {
+                  case screen: Screen => Some((keyboard, screen, sx, sy, sz, forward.getOpposite))
                   case _ => None
                 }
               case _ => None
@@ -131,12 +133,4 @@ class Keyboard extends SimpleBlock(Material.rock) {
     }
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) = null
-
-  @Optional.Method(modid = Mods.IDs.Waila)
-  def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "keyboard").getCompoundTag("node")
-    if (node.hasKey("address")) {
-      tooltip.add(Localization.Analyzer.Address(node.getString("address")).getUnformattedText)
-    }
-  }
 }

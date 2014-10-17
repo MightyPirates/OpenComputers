@@ -14,6 +14,12 @@
  * <p/>
  * There are also a couple of interfaces in here that are not meant to be
  * implemented, but merely to allow accessing some mod internals in a regulated
- * fashion, such as {@link li.cil.oc.api.machine.Robot}.
+ * fashion, such as {@link li.cil.oc.api.internal.Robot}.
  */
+@cpw.mods.fml.common.API(
+        owner = API.ID_OWNER,
+        provides = "OpenComputersAPI|Machine",
+        apiVersion = API.VERSION)
 package li.cil.oc.api.machine;
+
+import li.cil.oc.api.API;

@@ -1,7 +1,7 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IGuiHandler
-import li.cil.oc.Items
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.ServerInventory
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
@@ -9,6 +9,12 @@ import net.minecraft.world.World
 abstract class GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
+      case adapter: tileentity.Adapter if id == GuiType.Adapter.id =>
+        new container.Adapter(player.inventory, adapter)
+      case assembler: tileentity.Assembler if id == GuiType.Assembler.id =>
+        new container.Assembler(player.inventory, assembler)
+      case charger: tileentity.Charger if id == GuiType.Charger.id =>
+        new container.Charger(player.inventory, charger)
       case computer: tileentity.Case if id == GuiType.Case.id =>
         new container.Case(player.inventory, computer)
       case disassembler: tileentity.Disassembler if id == GuiType.Disassembler.id =>
@@ -19,8 +25,6 @@ abstract class GuiHandler extends IGuiHandler {
         new container.Robot(player.inventory, proxy.robot)
       case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
         new container.ServerRack(player.inventory, rack)
-      case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
-        new container.RobotAssembler(player.inventory, assembler)
       case switch: tileentity.Switch if id == GuiType.Switch.id =>
         new container.Switch(player.inventory, switch)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {

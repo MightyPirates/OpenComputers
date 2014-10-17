@@ -18,7 +18,7 @@ package li.cil.oc.api.network;
  * interface have to created using a class transformer. If any of the methods
  * already exist, this will fail! If things don't work, check your logs, first.
  * <p/>
- * To expose methods to OC, tag them with {@link li.cil.oc.api.network.Callback}
+ * To expose methods to OC, tag them with {@link li.cil.oc.api.machine.Callback}
  * and have them use the according signature (see the documentation on the
  * <tt>Callback</tt> annotation).
  * <p/>

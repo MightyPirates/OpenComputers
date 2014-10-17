@@ -1,11 +1,15 @@
 package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.integration.Mods
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.mods.Mods
-import mods.immibis.redlogic.api.wiring.{IConnectable, IRedstoneEmitter, IRedstoneUpdatable, IWire}
+import mods.immibis.redlogic.api.wiring.IConnectable
+import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
+import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
+import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.init.Blocks
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection

@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.machine.Robot;
+import li.cil.oc.api.internal.Robot;
 
 /**
  * Fired when a robot performed an action that would cause exhaustion for a

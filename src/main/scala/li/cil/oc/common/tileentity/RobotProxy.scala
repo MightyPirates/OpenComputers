@@ -1,10 +1,15 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api
+import li.cil.oc.api.internal
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.integration.Mods
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -12,8 +17,11 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fluids.Fluid
+import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.IFluidHandler
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with ISidedInventory with IFluidHandler with internal.Robot {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //
@@ -22,7 +30,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     withComponent("robot", Visibility.Neighbors).
     create()
 
-  override def computer = robot.computer
+  override def machine = robot.machine
 
   override def maxComponents = robot.maxComponents
 
@@ -32,8 +40,10 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def disconnectComponents() {}
 
+  @SideOnly(Side.CLIENT)
   override def isRunning = robot.isRunning
 
+  @SideOnly(Side.CLIENT)
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
   override def player() = robot.player()
@@ -42,11 +52,17 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def componentCount = robot.componentCount
 
+  override def tankCount = robot.tankCount
+
   override def inventorySize = robot.inventorySize
 
   override def getComponentInSlot(index: Int) = robot.getComponentInSlot(index)
 
-  override def selectedSlot() = robot.selectedSlot
+  override def getFluidTank(index: Int) = robot.getFluidTank(index)
+
+  override def selectedSlot = robot.selectedSlot
+
+  override def selectedTank = robot.selectedTank
 
   override def synchronizeSlot(slot: Int) = robot.synchronizeSlot(slot)
 
@@ -54,15 +70,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   @Callback(doc = """function():boolean -- Starts the robot. Returns true if the state changed.""")
   def start(context: Context, args: Arguments): Array[AnyRef] =
-    result(!computer.isPaused && computer.start())
+    result(!machine.isPaused && machine.start())
 
   @Callback(doc = """function():boolean -- Stops the robot. Returns true if the state changed.""")
   def stop(context: Context, args: Arguments): Array[AnyRef] =
-    result(computer.stop())
+    result(machine.stop())
 
   @Callback(direct = true, doc = """function():boolean -- Returns whether the robot is running.""")
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
-    result(computer.isRunning)
+    result(machine.isRunning)
 
   override def onMessage(message: Message) {
     super.onMessage(message)
@@ -105,6 +121,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
+    robot.info.load(nbt)
     super.readFromNBT(nbt)
     robot.readFromNBT(nbt)
   }
@@ -219,7 +236,11 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def getInventoryStackLimit = robot.getInventoryStackLimit
 
+  override def callBudget = robot.callBudget
+
   override def installedMemory = robot.installedMemory
+
+  override def componentSlot(address: String) = robot.componentSlot(address)
 
   override def getInventoryName = robot.getInventoryName
 
@@ -237,7 +258,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  override def markAsChanged() = robot.markAsChanged()
+  override def markForSaving() = robot.markForSaving()
 
   override def hasRedstoneCard = robot.hasRedstoneCard
 
@@ -250,4 +271,18 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   override def globalBufferSize = robot.globalBufferSize
 
   override def globalBufferSize_=(value: Double) = robot.globalBufferSize = value
+
+  // ----------------------------------------------------------------------- //
+
+  override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) = robot.fill(from, resource, doFill)
+
+  override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) = robot.drain(from, resource, doDrain)
+
+  override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = robot.drain(from, maxDrain, doDrain)
+
+  override def canFill(from: ForgeDirection, fluid: Fluid) = robot.canFill(from, fluid)
+
+  override def canDrain(from: ForgeDirection, fluid: Fluid) = robot.canDrain(from, fluid)
+
+  override def getTankInfo(from: ForgeDirection) = robot.getTankInfo(from)
 }
