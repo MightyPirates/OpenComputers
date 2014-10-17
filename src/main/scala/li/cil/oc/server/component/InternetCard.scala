@@ -70,7 +70,7 @@ class InternetCard extends prefab.ManagedEnvironment {
   def connect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
-    val port = if (args.count > 1) args.checkInteger(1) else -1
+    val port = args.optInteger(1, -1)
     if (!Settings.get.tcpEnabled) {
       return result(Unit, "tcp connections are unavailable")
     }
@@ -119,7 +119,7 @@ class InternetCard extends prefab.ManagedEnvironment {
   def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val handle = args.checkInteger(0)
-    val n = math.min(Settings.get.maxReadBuffer, math.max(0, if (args.count > 1) args.checkInteger(1) else Int.MaxValue))
+    val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
     connections.get(handle) match {
       case Some(connection) => result(connection.read(n))
       case _ => throw new IOException("bad connection descriptor")

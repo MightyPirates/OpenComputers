@@ -25,7 +25,7 @@ class UpgradeCrafting(val host: EnvironmentHost with Robot) extends prefab.Manag
 
   @Callback(doc = """function([count:number]):number -- Tries to craft the specified number of items in the top left area of the inventory.""")
   def craft(context: Context, args: Arguments): Array[AnyRef] = {
-    val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
+    val count = args.optInteger(0, Int.MaxValue)
     result(CraftingInventory.craft(count): _*)
   }
 

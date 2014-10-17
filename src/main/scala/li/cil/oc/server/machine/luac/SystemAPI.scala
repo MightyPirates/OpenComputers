@@ -39,13 +39,6 @@ class SystemAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "timeout")
 
-    // Maximum length of inputs to pattern matcher.
-    lua.pushScalaFunction(lua => {
-      lua.pushNumber(Settings.get.maxPatternInputLength)
-      1
-    })
-    lua.setField(-2, "maxPatternInputLength")
-
     lua.setGlobal("system")
   }
 }

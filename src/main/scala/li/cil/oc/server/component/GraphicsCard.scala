@@ -93,7 +93,7 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
         else {
           (oldValue, Unit)
         }
-      s.setBackgroundColor(color, args.count > 1 && args.checkBoolean(1))
+      s.setBackgroundColor(color, args.optBoolean(1, false))
       result(oldColor, oldIndex)
     })
   }
@@ -113,7 +113,7 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
         else {
           (oldValue, Unit)
         }
-      s.setForegroundColor(color, args.count > 1 && args.checkBoolean(1))
+      s.setForegroundColor(color, args.optBoolean(1, false))
       result(oldColor, oldIndex)
     })
   }
@@ -220,7 +220,7 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val value = args.checkString(2)
-    val vertical = args.count > 3 && args.checkBoolean(3)
+    val vertical = args.optBoolean(3, false)
 
     screen(s => {
       if (consumePower(value.length, Settings.get.gpuSetCost)) {

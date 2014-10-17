@@ -84,7 +84,6 @@ class Settings(config: Config) {
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
-  val maxPatternInputLength = config.getInt("computer.lua.maxPatternInputLength")
 
   // ----------------------------------------------------------------------- //
   // robot

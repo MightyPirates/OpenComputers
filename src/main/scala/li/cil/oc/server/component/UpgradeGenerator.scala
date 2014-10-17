@@ -37,7 +37,7 @@ class UpgradeGenerator(val host: EnvironmentHost with Robot) extends prefab.Mana
 
   @Callback(doc = """function([count:number]):boolean -- Tries to insert fuel from the selected slot into the generator's queue.""")
   def insert(context: Context, args: Arguments): Array[AnyRef] = {
-    val count = if (args.count > 0) args.checkInteger(0) else 64
+    val count = args.optInteger(0, 64)
     val player = host.player
     val stack = player.inventory.getStackInSlot(host.selectedSlot)
     if (stack == null) return result(Unit, "selected slot is empty")
@@ -75,7 +75,7 @@ class UpgradeGenerator(val host: EnvironmentHost with Robot) extends prefab.Mana
 
   @Callback(doc = """function([count:number]):boolean -- Tries to remove items from the generator's queue.""")
   def remove(context: Context, args: Arguments): Array[AnyRef] = {
-    val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
+    val count = args.optInteger(0, Int.MaxValue)
     inventory match {
       case Some(stack) =>
         val removedStack = stack.splitStack(math.min(count, stack.stackSize))
