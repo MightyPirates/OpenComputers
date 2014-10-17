@@ -133,7 +133,7 @@ do
     return l
   end
 
-  function capture_to_close(ms)
+  local function capture_to_close(ms)
     local level = ms.level
     while level > 0 do
       level = level - 1
@@ -622,21 +622,6 @@ do
   string.gmatch = str_gmatch
   string.gsub = str_gsub
 end
-
--------------------------------------------------------------------------------
-
-local loadHookMetatable
-loadHookMetatable = {
-  [persistKey and persistKey() or "LuaJ"] = function()
-    return function()
-      -- Has to be re-applied after loading saved state because global
-      -- metatables (such as the string one) aren't persisted automatically.
-      installPatternSandbox()
-      return setmetatable({}, loadHookMetatable)
-    end
-  end
-}
-local loadHook = setmetatable({}, loadHookMetatable)
 
 -------------------------------------------------------------------------------
 
