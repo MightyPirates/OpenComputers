@@ -17,6 +17,6 @@ class Tablet(val tablet: TabletWrapper) extends prefab.ManagedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(doc = """function():boolean -- Whether the local bus interface is enabled.""")
+  @Callback(doc = """function():number -- Gets the pitch of the player holding the tablet.""")
   def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(tablet.player.rotationPitch)
 }
