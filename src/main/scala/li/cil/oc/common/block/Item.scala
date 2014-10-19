@@ -48,7 +48,10 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def getMetadata(itemDamage: Int) = itemDamage
 
-  override def getUnlocalizedName = Settings.namespace + "tile"
+  override def getUnlocalizedName = block match {
+    case simple: SimpleBlock => simple.getUnlocalizedName
+    case _ => Settings.namespace + "tile"
+  }
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false
 
