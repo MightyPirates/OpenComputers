@@ -14,7 +14,7 @@ object DriverComponentBus extends Item with Processor {
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 
-  override def slot(stack: ItemStack) = Slot.None
+  override def slot(stack: ItemStack) = Slot.ComponentBus
 
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
