@@ -76,8 +76,8 @@ object WirelessNetwork {
           filter(_._2 <= range * range).
           map {
           case (c, distance) => (c, Math.sqrt(distance))
-        } filter isUnobstructed(endpoint, strength)
-      case _ => Iterable.empty[(WirelessEndpoint, Double)]
+        } filter isUnobstructed(endpoint, strength) map(_._1)
+      case _ => Iterable.empty[WirelessEndpoint]
     }
   }
 

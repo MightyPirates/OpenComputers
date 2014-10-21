@@ -1,6 +1,5 @@
 package li.cil.oc.integration.computercraft;
 
-import cpw.mods.fml.common.Loader;
 import dan200.computercraft.api.filesystem.IMount;
 import dan200.computercraft.api.filesystem.IWritableMount;
 import dan200.computercraft.api.lua.ILuaContext;
@@ -20,7 +19,6 @@ import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,8 +27,6 @@ import java.util.Set;
 public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
     private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
 
-    private static final Method ComputerCraft_getPeripheralAt;
-
     static {
         for (String name : Settings.get().peripheralBlacklist()) {
             final Class<?> clazz = Reflection.getClass(name);
@@ -38,21 +34,6 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 blacklist.add(clazz);
             }
         }
-
-        Method getPeripheralAt = null;
-        try {
-            getPeripheralAt = Class.forName("dan200.computercraft.ComputerCraft").
-                    getMethod("getPeripheralAt", World.class, int.class, int.class, int.class, int.class);
-        } catch (Exception e) {
-            if (Loader.instance().getIndexedModList().get("ComputerCraft").getVersion().startsWith("1.6")) {
-                OpenComputers.log().warn("Error getting access to ComputerCraft peripherals.", e);
-            }
-        }
-        ComputerCraft_getPeripheralAt = getPeripheralAt;
-    }
-
-    public boolean isValid() {
-        return ComputerCraft_getPeripheralAt != null;
     }
 
     private boolean isBlacklisted(final Object o) {
@@ -64,12 +45,10 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
     }
 
     private IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
-        if (ComputerCraft_getPeripheralAt != null) {
-            try {
-                return (IPeripheral) ComputerCraft_getPeripheralAt.invoke(null, world, x, y, z, -1);
-            } catch (Exception e) {
-                OpenComputers.log().warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
-            }
+        try {
+            return dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, -1);
+        } catch (Exception e) {
+            OpenComputers.log().warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
         }
         return null;
     }
@@ -182,11 +161,27 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
             }
 
             @Override
+            public String mount(String desiredLocation, IMount mount, String driveName) {
+                if (fileSystems.containsKey(desiredLocation)) {
+                    return null;
+                }
+                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
+            }
+
+            @Override
             public String mountWritable(final String desiredLocation, final IWritableMount mount) {
                 if (fileSystems.containsKey(desiredLocation)) {
                     return null;
                 }
                 return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount)));
+            }
+
+            @Override
+            public String mountWritable(String desiredLocation, IWritableMount mount, String driveName) {
+                if (fileSystems.containsKey(desiredLocation)) {
+                    return null;
+                }
+                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
             }
 
             private String mount(final String path, final li.cil.oc.api.network.ManagedEnvironment fileSystem) {

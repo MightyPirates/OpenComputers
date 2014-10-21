@@ -142,7 +142,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
       throw new IOException("too many open handles")
     }
     val path = args.checkString(0)
-    val mode = if (args.count > 1) args.checkString(1) else "r"
+    val mode = args.optString(1, "r")
     val handle = fileSystem.open(clean(path), parseMode(mode))
     if (handle > 0) {
       owners.getOrElseUpdate(context.node.address, mutable.Set.empty[Int]) += handle

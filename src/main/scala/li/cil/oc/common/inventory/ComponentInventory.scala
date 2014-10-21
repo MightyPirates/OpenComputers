@@ -38,7 +38,7 @@ trait ComponentInventory extends Inventory with network.Environment {
     for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
       val stack = getStackInSlot(slot)
       if (stack != null && components(slot).isEmpty && isComponentSlot(slot)) {
-        components(slot) = Option(Driver.driverFor(stack, host.getClass)) match {
+        components(slot) = Option(Driver.driverFor(stack)) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, host)) match {
               case Some(component) =>
@@ -84,7 +84,7 @@ trait ComponentInventory extends Inventory with network.Environment {
         components(slot) match {
           case Some(component) =>
             // We're guaranteed to have a driver for entries.
-            save(component, Driver.driverFor(stack, host.getClass), stack)
+            save(component, Driver.driverFor(stack), stack)
           case _ => // Nothing special to save.
         }
       }
@@ -96,7 +96,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   override def getInventoryStackLimit = 1
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot)) {
-    Option(Driver.driverFor(stack, host.getClass)).foreach(driver =>
+    Option(Driver.driverFor(stack)).foreach(driver =>
       Option(driver.createEnvironment(stack, host)) match {
         case Some(component) => this.synchronized {
           components(slot) = Some(component)
@@ -127,7 +127,7 @@ trait ComponentInventory extends Inventory with network.Environment {
         components(slot) = None
         updatingComponents -= component
         Option(component.node).foreach(_.remove())
-        Option(Driver.driverFor(stack, host.getClass)).foreach(save(component, _, stack))
+        Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
         // However, nodes then may add themselves to a network again, to
         // ensure they have an address that gets sent to the client, used
         // for associating some components with each other. So we do it again.

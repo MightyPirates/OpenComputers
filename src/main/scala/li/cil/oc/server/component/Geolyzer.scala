@@ -21,7 +21,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def scan(computer: Context, args: Arguments): Array[AnyRef] = {
     val rx = args.checkInteger(0)
     val rz = args.checkInteger(1)
-    val includeReplaceable = !(args.count > 2 && args.checkBoolean(2))
+    val includeReplaceable = !args.optBoolean(2, false)
     if (math.abs(rx) > Settings.get.geolyzerRange || math.abs(rz) > Settings.get.geolyzerRange) {
       throw new IllegalArgumentException("location out of bounds")
     }

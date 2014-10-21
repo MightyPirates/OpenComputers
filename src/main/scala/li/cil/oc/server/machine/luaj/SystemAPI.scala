@@ -15,9 +15,6 @@ class SystemAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     // How long programs may run without yielding before we stop them.
     system.set("timeout", (_: Varargs) => LuaValue.valueOf(Settings.get.timeout))
 
-    // Maximum length of inputs to pattern matcher.
-    system.set("maxPatternInputLength", (_: Varargs) => LuaValue.valueOf(Settings.get.maxPatternInputLength))
-
     lua.set("system", system)
   }
 }

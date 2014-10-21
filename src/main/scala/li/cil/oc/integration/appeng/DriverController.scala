@@ -129,7 +129,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
         return result(Unit, "no controller")
       }
 
-      val count = if (args.count > 0) args.checkInteger(0) else 1
+      val count = args.optInteger(0, 1)
       val request = stack.copy
       request.setStackSize(count)
 

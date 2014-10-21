@@ -32,6 +32,11 @@ object ExtendedArguments {
       slot
     }
 
+    def optSlot(inventory: IInventory, n: Int, default: Int) = {
+      if (n >= 0 && n < args.count()) checkSlot(inventory, n)
+      else default
+    }
+
     def checkSlot(robot: Robot, n: Int) = {
       val slot = args.checkInteger(n) - 1
       if (slot < 0 || slot >= robot.inventorySize) {

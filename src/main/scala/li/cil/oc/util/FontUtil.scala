@@ -17,7 +17,7 @@ object FontUtil {
         is.read(ba)
         is.close()
       } catch {
-        case e: IOException => OpenComputers.log.warn("Failed loading character widths. Font rendering will probably be derpy is all hell.", e)
+        case e: IOException => OpenComputers.log.warn("Failed loading character widths. Font rendering will probably be derpy as all hell.", e)
       }
     }
     ba

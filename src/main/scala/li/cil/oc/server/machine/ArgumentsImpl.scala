@@ -4,6 +4,11 @@ import java.util
 
 import com.google.common.base.Charsets
 import li.cil.oc.api.machine.Arguments
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTSizeTracker
+import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
@@ -108,6 +113,29 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     else checkTable(index)
   }
 
+  def checkItemStack(index: Int) = {
+    val map = checkTable(index)
+    map.get("name") match {
+      case name: String =>
+        val damage = map.get("damage") match {
+          case number: Number => number.intValue()
+          case _ => 0
+        }
+        val tag = map.get("tag") match {
+          case ba: Array[Byte] => toNbtTagCompound(ba)
+          case s: String => toNbtTagCompound(s.getBytes(Charsets.UTF_8))
+          case _ => None
+        }
+        makeStack(name, damage, tag)
+      case _ => throw new IllegalArgumentException("invalid item stack")
+    }
+  }
+
+  def optItemStack(index: Int, default: ItemStack) = {
+    if (!isDefined(index)) default
+    else checkItemStack(index)
+  }
+
   def isBoolean(index: Int) =
     index >= 0 && index < count && (args(index) match {
       case value: java.lang.Boolean => true
@@ -149,6 +177,16 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
       case _ => false
     })
 
+  def isItemStack(index: Int) =
+    isTable(index) && {
+      val map = checkTable(index)
+      map.get("name") match {
+        case value: String => true
+        case value: Array[Byte] => true
+        case _ => false
+      }
+    }
+
   def toArray = args.map {
     case value: Array[Byte] => new String(value, Charsets.UTF_8)
     case value => value
@@ -178,4 +216,16 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     case value: mutable.Map[_, _] => "table"
     case _ => value.getClass.getSimpleName
   }
+
+  private def makeStack(name: String, damage: Int, tag: Option[NBTTagCompound]) = {
+    Item.itemRegistry.getObject(name) match {
+      case item: Item =>
+        val stack = new ItemStack(item, 1, damage)
+        tag.foreach(stack.setTagCompound)
+        stack
+      case _ => throw new IllegalArgumentException("invalid item stack")
+    }
+  }
+
+  private def toNbtTagCompound(data: Array[Byte]) = Option(CompressedStreamTools.func_152457_a(data, NBTSizeTracker.field_152451_a))
 }

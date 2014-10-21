@@ -51,7 +51,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     if (isServer) machine.canInteract(player)
     else !Settings.get.canComputersBeOwned || _users.isEmpty || _users.contains(player)
 
-  @SideOnly(Side.CLIENT)
   def isRunning = _isRunning
 
   @SideOnly(Side.CLIENT)

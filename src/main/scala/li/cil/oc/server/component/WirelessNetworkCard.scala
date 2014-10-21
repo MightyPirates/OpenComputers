@@ -2,19 +2,19 @@ package li.cil.oc.server.component
 
 import java.io._
 
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.language.implicitConversions
 
-class WirelessNetworkCard(val host: EnvironmentHost) extends NetworkCard with WirelessEndpoint {
+class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with WirelessEndpoint {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     withConnector().

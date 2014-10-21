@@ -80,7 +80,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
-  protected def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) = queue.synchronized {
+  def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) = queue.synchronized {
     if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
       if (relayCooldown < 0) {

@@ -27,4 +27,3 @@ object NEI {
 
   def hide(block: Block): Unit = if (Mods.NotEnoughItems.isAvailable) hiddenBlocks += block
 }
-

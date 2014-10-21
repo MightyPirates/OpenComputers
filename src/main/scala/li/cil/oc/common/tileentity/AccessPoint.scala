@@ -57,7 +57,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   // ----------------------------------------------------------------------- //
 
-  override def receivePacket(packet: Packet, distance: Double) {
+  override def receivePacket(packet: Packet, source: WirelessEndpoint) {
     tryEnqueuePacket(ForgeDirection.UNKNOWN, packet)
     if (Mods.ComputerCraft.isAvailable) {
       packet.data.headOption match {
@@ -71,8 +71,12 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
     super.relayPacket(sourceSide, packet)
     if (strength > 0) {
       val cost = Settings.get.wirelessCostPerRange
-      val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
-      if (connector.tryChangeBuffer(-strength * cost)) {
+      val tryChangeBuffer =
+        if (sourceSide == ForgeDirection.UNKNOWN)
+          (amount: Double) => plugs.exists(_.node.asInstanceOf[Connector].tryChangeBuffer(amount))
+        else
+          (amount: Double) => plugs(sourceSide.ordinal).node.asInstanceOf[Connector].tryChangeBuffer(amount)
+      if (tryChangeBuffer(-strength * cost)) {
         api.Network.sendWirelessPacket(this, strength, packet)
       }
     }
