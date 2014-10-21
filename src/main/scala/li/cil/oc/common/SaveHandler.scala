@@ -11,6 +11,7 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
@@ -38,7 +39,7 @@ object SaveHandler {
   def statePath = new io.File(savePath, "state")
 
   def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
-    scheduleSave(host.world, host.xPosition, host.zPosition, nbt, name, data)
+    scheduleSave(BlockPosition(host), nbt, name, data)
   }
 
   def scheduleSave(host: MachineHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
@@ -46,12 +47,21 @@ object SaveHandler {
   }
 
   def scheduleSave(host: EnvironmentHost, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(host.world, math.floor(host.xPosition).toInt, math.floor(host.zPosition).toInt, nbt, name, writeNBT(save))
+    scheduleSave(BlockPosition(host), nbt, name, writeNBT(save))
   }
 
   def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+    scheduleSave(BlockPosition(x, 0, z, world), nbt, name, data)
+  }
+
+  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
+    scheduleSave(world, x, z, nbt, name, writeNBT(save))
+  }
+
+  def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
+    val world = position.world.get
     val dimension = world.provider.dimensionId
-    val chunk = new ChunkCoordIntPair(math.floor(x).toInt >> 4, math.floor(z).toInt >> 4)
+    val chunk = new ChunkCoordIntPair(position.x >> 4, position.y >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
@@ -60,10 +70,6 @@ object SaveHandler {
     nbt.setInteger("chunkZ", chunk.chunkZPos)
 
     scheduleSave(dimension, chunk, name, data)
-  }
-
-  def scheduleSave(world: World, x: Double, z: Double, nbt: NBTTagCompound, name: String, save: NBTTagCompound => Unit) {
-    scheduleSave(world, x, z, nbt, name, writeNBT(save))
   }
 
   private def writeNBT(save: NBTTagCompound => Unit) = {

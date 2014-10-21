@@ -8,6 +8,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.util.BlockPosition
 import net.minecraft.block.Block
 import net.minecraftforge.fluids.FluidRegistry
 
@@ -25,9 +26,9 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     if (math.abs(rx) > Settings.get.geolyzerRange || math.abs(rz) > Settings.get.geolyzerRange) {
       throw new IllegalArgumentException("location out of bounds")
     }
-    val (x, y, z) = (math.floor(host.xPosition).toInt, math.floor(host.yPosition).toInt, math.floor(host.zPosition).toInt)
-    val bx = x + rx
-    val bz = z + rz
+    val blockPos = BlockPosition(host)
+    val bx = blockPos.x + rx
+    val bz = blockPos.z + rz
 
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
@@ -38,10 +39,10 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     // Map to [-1, 1). The additional /33f is for normalization below.
     val values = noise.map(_ / 128f / 33f)
     for (ry <- 0 until count) {
-      val by = y + ry - 32
+      val by = blockPos.y + ry - 32
       if (!host.world.isAirBlock(bx, by, bz)) {
         val block = host.world.getBlock(bx, by, bz)
-        if (block != null && (includeReplaceable || isFluid(block) || !block.isReplaceable(host.world, x, y, z))) {
+        if (block != null && (includeReplaceable || isFluid(block) || !block.isReplaceable(host.world, blockPos.x, blockPos.y, blockPos.z))) {
           values(ry) = values(ry) * (math.abs(ry - 32) + 1) * Settings.get.geolyzerNoise + block.getBlockHardness(host.world, bx, by, bz)
         }
       }

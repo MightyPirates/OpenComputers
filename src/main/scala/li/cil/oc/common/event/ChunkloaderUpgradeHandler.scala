@@ -5,6 +5,7 @@ import java.util
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.UpgradeChunkloader
+import li.cil.oc.util.BlockPosition
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
@@ -61,7 +62,8 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
   }
 
   def updateLoadedChunk(loader: UpgradeChunkloader) {
-    val centerChunk = new ChunkCoordIntPair(math.floor(loader.host.xPosition).toInt >> 4, math.floor(loader.host.zPosition).toInt >> 4)
+    val blockPos = BlockPosition(loader.host)
+    val centerChunk = new ChunkCoordIntPair(blockPos.x >> 4, blockPos.z >> 4)
     val robotChunks = (for (x <- -1 to 1; z <- -1 to 1) yield new ChunkCoordIntPair(centerChunk.chunkXPos + x, centerChunk.chunkZPos + z)).toSet
 
     loader.ticket.foreach(ticket => {
