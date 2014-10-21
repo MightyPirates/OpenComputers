@@ -3,6 +3,7 @@ package li.cil.oc.integration.opencomputers
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
+import li.cil.oc.common.Achievement
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
@@ -27,6 +28,7 @@ object ModOpenComputers extends ModProxy {
 
     Loot.init()
     Recipes.init()
+    Achievement.init()
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 

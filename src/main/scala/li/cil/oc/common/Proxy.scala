@@ -58,13 +58,11 @@ class Proxy {
 
     OpenComputers.log.info("Initializing mod integration.")
     Mods.init()
-
   }
 
   def postInit(e: FMLPostInitializationEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
-    Achievements.init()
   }
 
   private def registerExclusive(name: String, items: ItemStack*) {

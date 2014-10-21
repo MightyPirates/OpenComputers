@@ -148,23 +148,25 @@ object EventHandler {
     ClientPacketSender.sendPetVisibility()
   }
 
-  lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
-  lazy val transistor = api.Items.get("transistor")
-  lazy val case1 = api.Items.get("case1")
-  lazy val openOS = api.Items.get("openOS")
-  lazy val chip1 = api.Items.get("chip1")
-  lazy val ram1 = api.Items.get("ram1")
-  lazy val cpu1 = api.Items.get("cpu1")
-  lazy val screen1 = api.Items.get("screen1")
-  lazy val keyboard = api.Items.get("keyboard")
+  private lazy val NavigationUpgrade = api.Items.get("navigationUpgrade")
+  private lazy val Achievements = Map(
+    api.Items.get("transistor") -> Achievement.Transistor,
+    api.Items.get("case1") -> Achievement.Case,
+    api.Items.get("openOS") -> Achievement.OpenOS,
+    api.Items.get("chip1") -> Achievement.Microchip,
+    api.Items.get("ram1") -> Achievement.Memory,
+    api.Items.get("cpu1") -> Achievement.CPU,
+    api.Items.get("screen1") -> Achievement.Screen,
+    api.Items.get("keyboard") -> Achievement.Keyboard
+  )
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
-    if (api.Items.get(e.crafting) == navigationUpgrade) {
+    if (api.Items.get(e.crafting) == NavigationUpgrade) {
       Option(api.Driver.driverFor(e.crafting)).foreach(driver =>
         for (i <- 0 until e.craftMatrix.getSizeInventory) {
           val stack = e.craftMatrix.getStackInSlot(i)
-          if (stack != null && api.Items.get(stack) == navigationUpgrade) {
+          if (stack != null && api.Items.get(stack) == NavigationUpgrade) {
             // Restore the map currently used in the upgrade.
             val nbt = driver.dataTag(stack)
             val map = ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
@@ -174,25 +176,9 @@ object EventHandler {
           }
         })
     }
-    //Achievements
-    else if (api.Items.get(e.crafting) == transistor) {
-      e.player.addStat(Achievements.achievementTransistor, 1)
-    } else if (api.Items.get(e.crafting) == case1) {
-      e.player.addStat(Achievements.achievementCase1, 1)
-    } else if (api.Items.get(e.crafting) == openOS) {
-      e.player.addStat(Achievements.achievementOpenOS, 1)
-    } else if (api.Items.get(e.crafting) == chip1) {
-      e.player.addStat(Achievements.achievementChip1, 1)
-    } else if (api.Items.get(e.crafting) == ram1) {
-      e.player.addStat(Achievements.achievementRAM, 1)
-    } else if (api.Items.get(e.crafting) == cpu1) {
-      e.player.addStat(Achievements.achievementCPU, 1)
-    } else if (api.Items.get(e.crafting) == screen1) {
-      e.player.addStat(Achievements.achievementScreen, 1)
-    } else if (api.Items.get(e.crafting) == keyboard) {
-      e.player.addStat(Achievements.achievementKeyboard, 1)
 
-    }
+    // Achievements.
+    Achievements.get(api.Items.get(e.crafting)).foreach(e.player.addStat(_, 1))
   }
 
   @SubscribeEvent
