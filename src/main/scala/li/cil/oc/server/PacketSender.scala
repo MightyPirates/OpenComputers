@@ -6,6 +6,7 @@ import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -448,10 +449,11 @@ object PacketSender {
   def sendSound(world: World, x: Double, y: Double, z: Double, frequency: Int, duration: Int) {
     val pb = new SimplePacketBuilder(PacketType.Sound)
 
+    val blockPos = BlockPosition(x, y, z)
     pb.writeInt(world.provider.dimensionId)
-    pb.writeInt(math.floor(x).toInt)
-    pb.writeInt(math.floor(y).toInt)
-    pb.writeInt(math.floor(z).toInt)
+    pb.writeInt(blockPos.x)
+    pb.writeInt(blockPos.y)
+    pb.writeInt(blockPos.z)
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
 

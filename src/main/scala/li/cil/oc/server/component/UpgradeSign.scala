@@ -8,6 +8,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.api.internal.Rotatable
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.tileentity.TileEntitySign
 
 class UpgradeSign(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment {
@@ -39,10 +41,10 @@ class UpgradeSign(val host: EnvironmentHost with Rotatable) extends prefab.Manag
   }
 
   private def findSign = {
-    val (x, y, z) = (math.floor(host.xPosition).toInt, math.floor(host.yPosition).toInt, math.floor(host.zPosition).toInt)
-    host.world.getTileEntity(x, y, z) match {
+    val hostPos = BlockPosition(host)
+    host.world.getTileEntity(hostPos) match {
       case sign: TileEntitySign => Option(sign)
-      case _ => host.world.getTileEntity(x + host.facing.offsetX, y + host.facing.offsetY, z + host.facing.offsetZ) match {
+      case _ => host.world.getTileEntity(hostPos.offset(host.facing)) match {
         case sign: TileEntitySign => Option(sign)
         case _ => None
       }

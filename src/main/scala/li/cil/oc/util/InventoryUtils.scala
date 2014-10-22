@@ -18,7 +18,7 @@ object InventoryUtils {
    * This performs special handling for (double-)chests and also checks for
    * mine carts with chests.
    */
-  def inventoryAt(world: World, x: Int, y: Int, z: Int) = {
+  def inventoryAt(world: World, x: Int, y: Int, z: Int): Option[IInventory] = {
     world.getTileEntity(x, y, z) match {
       case chest: TileEntityChest => Option(net.minecraft.init.Blocks.chest.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord))
       case inventory: IInventory => Some(inventory)
@@ -28,6 +28,8 @@ object InventoryUtils {
         find(!_.isDead)
     }
   }
+
+  def inventoryAt(blockPos: BlockPosition): Option[IInventory] = inventoryAt(blockPos.world.get, blockPos.x, blockPos.y, blockPos.z)
 
   /**
    * Inserts a stack into an inventory.

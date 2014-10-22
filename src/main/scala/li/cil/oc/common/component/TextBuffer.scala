@@ -21,6 +21,7 @@ import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{ComponentTracker => ServerComponentTracker}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
@@ -433,7 +434,8 @@ object TextBuffer {
   def onChunkUnload(e: ChunkEvent.Unload) {
     val chunk = e.getChunk
     clientBuffers = clientBuffers.filter(t => {
-      val keep = t.host.world != e.world || !chunk.isAtLocation(math.floor(t.host.xPosition).toInt << 4, math.floor(t.host.zPosition).toInt << 4)
+      val blockPos = BlockPosition(t.host)
+      val keep = t.host.world != e.world || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
       if (!keep) {
         ClientComponentTracker.remove(t.proxy.nodeAddress)
       }
@@ -614,7 +616,6 @@ object TextBuffer {
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
       sendToKeyboards("keyboard.keyDown", player, Char.box(character), Int.box(code))
     }
-
 
     override def keyUp(character: Char, code: Int, player: EntityPlayer) {
       sendToKeyboards("keyboard.keyUp", player, Char.box(character), Int.box(code))
