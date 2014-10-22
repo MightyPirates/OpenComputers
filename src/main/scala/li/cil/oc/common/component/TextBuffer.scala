@@ -617,7 +617,6 @@ object TextBuffer {
       sendToKeyboards("keyboard.keyDown", player, Char.box(character), Int.box(code))
     }
 
-
     override def keyUp(character: Char, code: Int, player: EntityPlayer) {
       sendToKeyboards("keyboard.keyUp", player, Char.box(character), Int.box(code))
     }

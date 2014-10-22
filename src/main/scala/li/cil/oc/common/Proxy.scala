@@ -45,11 +45,14 @@ class Proxy {
     api.API.fileSystem = fs.FileSystem
     api.API.items = Items
     api.API.machine = machine.Machine
+    api.API.network = network.Network
+
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
     api.Machine.add(api.Machine.LuaArchitecture)
-    api.API.network = network.Network
+    if (Settings.get.registerLuaJArchitecture)
+      api.Machine.add(classOf[LuaJLuaArchitecture])
   }
 
   def init(e: FMLInitializationEvent) {

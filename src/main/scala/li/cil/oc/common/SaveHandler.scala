@@ -61,7 +61,7 @@ object SaveHandler {
   def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val world = position.world.get
     val dimension = world.provider.dimensionId
-    val chunk = new ChunkCoordIntPair(position.x >> 4, position.y >> 4)
+    val chunk = new ChunkCoordIntPair(position.x >> 4, position.z >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
     // not available on load / may have changed if the computer was moved.
