@@ -11,7 +11,7 @@ import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectio
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode
 
-@Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = Mods.IDs.MineFactoryReloaded)
+@Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode", modid = Mods.IDs.MineFactoryReloaded)
 abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
   override def hasTileEntity(metadata: Int) = true
 

@@ -57,7 +57,7 @@ do
       return self
     end,
     head = function(self, len)
-      return string_sub(self.data, self.pos, self.pos + (len or self:len()) - 1)
+      return string.sub(self.data, self.pos, self.pos + (len or self:len()) - 1)
     end,
     len = function(self)
       return #self.data - (self.pos - 1)
@@ -67,7 +67,7 @@ do
       if pos == #self.data + 1 then
         return "\0"
       end
-      return string_sub(self.data, pos, pos)
+      return string.sub(self.data, pos, pos)
     end,
     copy = function(self, offset)
       return strptr(self.data, self.pos + (offset or 0))
