@@ -16,6 +16,8 @@ object ExtendedWorld {
 
     def getBlockMetadata(position: BlockPosition) = world.getBlockMetadata(position.x, position.y, position.z)
 
+    def getBlockMapColor(position: BlockPosition) = getBlock(position).getMapColor(getBlockMetadata(position))
+
     def getTileEntity(position: BlockPosition): TileEntity = world.getTileEntity(position.x, position.y, position.z)
 
     def getTileEntity(host: EnvironmentHost): TileEntity = getTileEntity(BlockPosition(host))
