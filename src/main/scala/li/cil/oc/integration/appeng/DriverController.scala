@@ -61,15 +61,15 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
     @Callback(doc = "function():table -- Get a list of known item recipes. These can be used to issue crafting requests.")
     def getCraftables(context: Context, args: Arguments): Array[AnyRef] =
       result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.
-        filter(_.isCraftable).map(new Craftable(tileEntity, _)))
+        filter(_.isCraftable).map(new Craftable(tileEntity, _)).toArray)
 
     @Callback(doc = "function():table -- Get a list of the stored items in the network.")
     def getItemsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-      result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.map(_.getItemStack))
+      result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.map(_.getItemStack).toArray)
 
     @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
     def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-      result(tileEntity.getProxy.getStorage.getFluidInventory.getStorageList.map(_.getFluidStack))
+      result(tileEntity.getProxy.getStorage.getFluidInventory.getStorageList.map(_.getFluidStack).toArray)
 
     @Callback(doc = "function():number -- Get the average power injection into the network.")
     def getAvgPowerInjection(context: Context, args: Arguments): Array[AnyRef] =
