@@ -160,7 +160,7 @@ object EventHandler {
             // Restore the map currently used in the upgrade.
             val nbt = driver.dataTag(stack)
             val map = ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
-            if (!e.player.inventory.addItemStackToInventory(map)) {
+            if (map != null && !e.player.inventory.addItemStackToInventory(map)) {
               e.player.dropPlayerItemWithRandomChoice(map, false)
             }
           }

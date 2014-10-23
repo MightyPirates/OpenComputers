@@ -53,13 +53,18 @@ object DelegatorConverter {
     }
   }
 
-  def convert(stack: ItemStack): ItemStack = stack.getItem match {
-    case item: ItemBlock =>
-      convert(stack, item) match {
-        case Some(newStack) => newStack
-        case _ => stack
+  def convert(stack: ItemStack): ItemStack = {
+    if (stack != null) {
+      stack.getItem match {
+        case item: ItemBlock =>
+          convert(stack, item) match {
+            case Some(newStack) => return newStack
+            case _ =>
+          }
+        case _ =>
       }
-    case _ => stack
+    }
+    stack
   }
 
   def convert(stack: ItemStack, item: ItemBlock): Option[ItemStack] = {
