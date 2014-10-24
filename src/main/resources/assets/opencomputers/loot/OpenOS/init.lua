@@ -150,9 +150,9 @@ do
   os.sleep(0.5) -- Allow signal processing by libraries.
   computer.pushSignal("init") -- so libs know components are initialized.
 
-  require('rc').allRunCommand('start') -- run all enabled rc scripts
+  status("Initializing system...")
+  os.sleep(0.1)
 
-  status("Starting shell...")
   require("term").clear()
   os.sleep(0.1) -- Allow init processing.
 end

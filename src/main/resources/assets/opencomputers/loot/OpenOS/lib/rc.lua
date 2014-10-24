@@ -1,70 +1,77 @@
 local fs = require('filesystem')
 
-local function loadConfig()
-  local env = {}
-  local fun, reason = loadfile('/etc/rc.cfg', 't', env)
-  if fun then
-    local res, reason = fun()
-    if true then
-      return env
-    else
-      return nil, reason
-    end
-  else
-    return nil, reason
-  end
-end
-
+-- Keeps track of loaded scripts to retain local values between invocation
+-- of their command callbacks.
 local loaded = {}
 
-local function load(name, args)
+local rc = {}
+
+local function loadConfig()
+  local env = {}
+  local result, reason = loadfile('/etc/rc.cfg', 't', env)
+  if result then
+    result, reason = xpcall(result, debug.traceback)
+    if result then
+      return env
+    end
+  end
+  return nil, reason
+end
+
+function rc.load(name, args)
   if loaded[name] then
     return loaded[name]
   end
-  local fileName = fs.concat('/etc/rc.d/', name ..'.lua')
-  local env = setmetatable({args=args}, {__index = _G})
-  local fun, reason = loadfile(fileName, 't', env)
-  if fun then
-    local res, reason = fun()
-    loaded[name] = env
-    return env
-  else
-    return nil, reason
+  local fileName = fs.concat('/etc/rc.d/', name .. '.lua')
+  local env = setmetatable({args = args}, {__index = _G})
+  local result, reason = loadfile(fileName, 't', env)
+  if result then
+    result, reason = xpcall(result, debug.traceback)
+    if result then
+      loaded[name] = env
+      return env
+    end
   end
+  return nil, reason
 end
 
-local function unload(name)
+function rc.unload(name)
   loaded[name] = nil
 end
 
 local function rawRunCommand(name, cmd, args, ...)
-  local env, reason = load(name, args)
-  if not env then
-    return nil, reason
+  local result, what = rc.load(name, args)
+  if result then
+    if type(result[cmd]) == "function" then
+      result, what = xpcall(result[cmd], debug.traceback, ...)
+      if result then
+        return true
+      end
+    else
+      what = "Command '" .. cmd .. "' not found in daemon '" .. name .. "'"
+    end
   end
-  if env[cmd] then
-    return env[cmd](...)
-  else
-    return nil, "Command '" .. cmd .. "' not found in daemon '" .. name .. "'"
-  end
+  return nil, what
 end
 
-local function runCommand(name, cmd, ...)
+function rc.runCommand(name, cmd, ...)
   local conf, reason = loadConfig()
   if not conf then
     return nil, reason
   end
-  local args = conf[name]
-  return rawRunCommand(name, cmd, args, ...)
+  return rawRunCommand(name, cmd, conf[name], ...)
 end
 
-local function allRunCommand(cmd, ...)
-  local conf = loadConfig()
-  local res = {}
-  for i, name in ipairs(conf.enable) do
-    res[name] = {rawRunCommand(name, cmd, conf[name], ...)}
+function rc.allRunCommand(cmd, ...)
+  local conf, reason = loadConfig()
+  if not conf then
+    return nil, reason
   end
-  return res
+  local results = {}
+  for _, name in ipairs(conf.enabled or {}) do
+    results[name] = table.pack(rawRunCommand(name, cmd, conf[name], ...))
+  end
+  return results
 end
 
-return {load = load, unload = unload, loadConfig = loadConfig, runCommand = runCommand, allRunCommand=allRunCommand}
+return rc

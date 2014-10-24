@@ -9,5 +9,5 @@ function start(msg)
     print(msg)
   end
   print(count)
-  count = count +1
+  count = count + 1
 end

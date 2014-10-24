@@ -1,9 +1,13 @@
 local rc = require('rc')
 
-local args = {...}
+local args = table.pack(...)
+if args.n < 2 then
+  io.write("Usage: rc <service> <command> [args...]")
+  return
+end
 
-local res, reason = rc.runCommand(table.unpack(args))
+local result, reason = rc.runCommand(table.unpack(args))
 
-if reason then
-  print(reason)
+if not result then
+  io.stderr:write(reason .. "\n")
 end
