@@ -9,7 +9,6 @@ object ModBuildCraft extends ModProxy {
 
   override def initialize() {
     Driver.add(new DriverPipeTE)
-    Driver.add(new DriverPowerReceptor)
     Driver.add(new DriverMachine)
   }
 }
