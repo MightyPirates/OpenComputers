@@ -9,5 +9,6 @@ function start(msg)
     print(msg)
   end
   print(count)
+  print("runlevel: " .. require("computer").runlevel())
   count = count + 1
 end

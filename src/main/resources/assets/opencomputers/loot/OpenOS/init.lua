@@ -5,6 +5,18 @@ do
   local computer = computer
   local unicode = unicode
 
+  -- Runlevel information.
+  local runlevel, shutdown = "S", computer.shutdown
+  computer.runlevel = function() return runlevel end
+  computer.shutdown = function(reboot)
+    runlevel = reboot and 6 or 0
+    if os.sleep then
+      computer.pushSignal("shutdown")
+      os.sleep(0.1) -- Allow shutdown processing.
+    end
+    shutdown(reboot)
+  end
+
   -- Low level dofile implementation to read filesystem libraries.
   local rom = {}
   function rom.invoke(method, ...)
@@ -151,10 +163,9 @@ do
   computer.pushSignal("init") -- so libs know components are initialized.
 
   status("Initializing system...")
-  os.sleep(0.1)
-
   require("term").clear()
   os.sleep(0.1) -- Allow init processing.
+  runlevel = 1
 end
 
 local function motd()
