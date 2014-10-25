@@ -203,7 +203,8 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
       bounds.maxZ.toFloat)
   }
 
-  final override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+  // NOTE: must not be final for immibis microblocks to work.
+  override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
     this.synchronized(intersect(world, x, y, z, origin, direction))
 
   protected def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
@@ -241,7 +242,8 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   // ----------------------------------------------------------------------- //
 
-  final override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
+  // NOTE: must not be final for immibis microblocks to work.
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     world.getTileEntity(x, y, z) match {
       case colored: Colored if Color.isDye(player.getHeldItem) =>
         colored.color = Color.dyeColor(player.getHeldItem)
