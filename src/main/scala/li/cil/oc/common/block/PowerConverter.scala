@@ -36,9 +36,6 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
 
-    if (Mods.BuildCraftPower.isAvailable) {
-      addRatio(tooltip, "BuildCraft", Settings.get.ratioBuildCraft)
-    }
     if (Mods.Factorization.isAvailable) {
       addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
     }

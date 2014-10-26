@@ -7,27 +7,24 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
-import li.cil.oc.util.Reflection;
+import mods.railcraft.common.blocks.machine.alpha.TileSteamTurbine;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 public final class DriverSteamTurbine extends DriverTileEntity {
-    private static final Class<?> TileSteamTurbine = Reflection.getClass("mods.railcraft.common.blocks.machine.alpha.TileSteamTurbine");
-
     @Override
     public Class<?> getTileEntityClass() {
-        return TileSteamTurbine;
+        return TileSteamTurbine.class;
     }
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment(world.getTileEntity(x, y, z));
+        return new Environment((TileSteamTurbine) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> implements NamedBlock {
-        public Environment(final TileEntity tileEntity) {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileSteamTurbine> implements NamedBlock {
+        public Environment(final TileSteamTurbine tileEntity) {
             super(tileEntity, "steam_turbine");
         }
 
@@ -43,19 +40,19 @@ public final class DriverSteamTurbine extends DriverTileEntity {
 
         @Callback(doc = "function():number --  Returns the output of the steam turbine")
         public Object[] getTurbineOutput(final Context context, final Arguments args) {
-            return new Object[]{Reflection.tryInvoke(tileEntity, "getOutput")};
+            return new Object[]{tileEntity.getOutput()};
         }
 
-        @Callback(doc = "function():number --  Returns the durability of the rotor in percent.")
+        @Callback(doc = "function():number -- Returns the durability of the rotor in percent.")
         public Object[] getTurbineRotorStatus(final Context context, final Arguments args) {
-            IInventory inventory = Reflection.tryInvoke(tileEntity, "getInventory");
+            final IInventory inventory = tileEntity.getInventory();
             if (inventory != null && inventory.getSizeInventory() > 0) {
                 final ItemStack itemStack = inventory.getStackInSlot(0);
                 if (itemStack != null) {
                     return new Object[]{100 - (int) (itemStack.getItemDamage() * 100.0 / itemStack.getMaxDamage())};
                 }
             }
-            return new Object[]{null, "no Inventory"};
+            return new Object[]{0};
         }
     }
 }

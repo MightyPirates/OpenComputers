@@ -26,7 +26,6 @@ public class DriverAspectContainer extends DriverTileEntity {
     public static final class Environment extends ManagedTileEntityEnvironment<IAspectContainer> {
         public Environment(final IAspectContainer tileEntity) {
             super(tileEntity, "aspect_container");
-
         }
 
         @Callback(doc = "function():table -- Get the Aspects stored in the block")

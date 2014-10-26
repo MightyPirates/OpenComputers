@@ -21,7 +21,6 @@ class ClassTransformer extends IClassTransformer {
 
   private lazy val powerTypes = Map[Mods.ModBase, Array[String]](
     Mods.AppliedEnergistics2 -> Array("appeng/api/networking/IGridHost"),
-    Mods.BuildCraftPower -> Array("buildcraft/api/power/IPowerReceptor"),
     Mods.Factorization -> Array("factorization/api/IChargeConductor"),
     Mods.Galacticraft -> Array("micdoodle8/mods/galacticraft/api/power/IEnergyHandlerGC"),
     Mods.IndustrialCraft2API -> Array("ic2/api/energy/tile/IEnergySink"),

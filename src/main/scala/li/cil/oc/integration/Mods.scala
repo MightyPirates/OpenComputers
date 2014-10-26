@@ -20,7 +20,6 @@ object Mods {
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2 + "@[rv1,)")
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
-  val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower, providesPower = true)
   val CoFHEnergy = new SimpleMod(IDs.CoFHEnergy, providesPower = true)
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)

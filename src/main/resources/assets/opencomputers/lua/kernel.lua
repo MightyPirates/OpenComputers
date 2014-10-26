@@ -1241,7 +1241,7 @@ local libcomputer = {
   end,
 
   shutdown = function(reboot)
-    coroutine.yield(reboot ~= nil and reboot ~= false)
+    coroutine.yield(not not reboot)
   end,
   pushSignal = function(...)
     return spcall(computer.pushSignal, ...)
