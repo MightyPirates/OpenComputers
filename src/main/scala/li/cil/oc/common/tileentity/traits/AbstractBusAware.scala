@@ -10,9 +10,9 @@ import li.cil.oc.integration.util.StargateTech2
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
-import stargatetech2.api.StargateTechAPI
-import stargatetech2.api.bus.IBusDevice
-import stargatetech2.api.bus.IBusInterface
+import lordfokas.stargatetech2.api.StargateTechAPI
+import lordfokas.stargatetech2.api.bus.IBusDevice
+import lordfokas.stargatetech2.api.bus.IBusInterface
 
 // IMPORTANT: for some reason that is beyond me we cannot implement the
 // IBusDevice here directly, since we'll get an error if the interface is not

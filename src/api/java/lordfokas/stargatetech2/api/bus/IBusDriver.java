@@ -1,4 +1,4 @@
-package stargatetech2.api.bus;
+package lordfokas.stargatetech2.api.bus;
 
 /**
  * This provides a level of abstraction over the IBusInterface.

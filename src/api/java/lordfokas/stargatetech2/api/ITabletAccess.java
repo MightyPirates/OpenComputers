@@ -1,4 +1,4 @@
-package stargatetech2.api;
+package lordfokas.stargatetech2.api;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;

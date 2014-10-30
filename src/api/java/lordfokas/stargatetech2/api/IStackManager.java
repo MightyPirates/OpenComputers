@@ -1,4 +1,4 @@
-package stargatetech2.api;
+package lordfokas.stargatetech2.api;
 
 import java.util.Collection;
 

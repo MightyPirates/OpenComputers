@@ -1,4 +1,4 @@
-package stargatetech2.api.bus;
+package lordfokas.stargatetech2.api.bus;
 
 import java.util.ArrayList;
 import java.util.Hashtable;

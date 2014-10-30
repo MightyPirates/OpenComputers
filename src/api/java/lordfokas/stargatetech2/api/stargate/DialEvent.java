@@ -1,10 +1,8 @@
-package stargatetech2.api.stargate;
-
+package lordfokas.stargatetech2.api.stargate;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import cpw.mods.fml.common.eventhandler.Event;
 
-public abstract class DialEvent extends Event {
+public abstract class DialEvent extends StargateEvent {
 	public final Address sourceAddress;
 	public final Address destAddress;
 	public final int duration;

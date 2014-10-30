@@ -1,4 +1,4 @@
-package stargatetech2.api;
+package lordfokas.stargatetech2.api;
 
 public abstract class StargateTechAPI implements IStargateTechAPI {
 	protected static IStargateTechAPI apiInstance;

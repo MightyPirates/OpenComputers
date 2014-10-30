@@ -1,4 +1,4 @@
-package stargatetech2.api.stargate;
+package lordfokas.stargatetech2.api.stargate;
 
 import net.minecraft.world.World;
 

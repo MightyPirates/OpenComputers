@@ -1,9 +1,9 @@
-package stargatetech2.api;
+package lordfokas.stargatetech2.api;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraftforge.fluids.Fluid;
-import stargatetech2.api.stargate.IStargateNetwork;
-import stargatetech2.api.stargate.IStargatePlacer;
+import lordfokas.stargatetech2.api.stargate.IStargateNetwork;
+import lordfokas.stargatetech2.api.stargate.IStargatePlacer;
 
 public interface IStargateTechAPI {
 	/**
@@ -30,9 +30,4 @@ public interface IStargateTechAPI {
 	 * @return The current IFactory instance.
 	 */
 	public IFactory getFactory();
-	
-	/**
-	 * @return The current IStackManager instance.
-	 */
-	public IStackManager getStackManager();
 }

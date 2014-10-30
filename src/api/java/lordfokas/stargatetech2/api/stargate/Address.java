@@ -1,4 +1,4 @@
-package stargatetech2.api.stargate;
+package lordfokas.stargatetech2.api.stargate;
 
 public class Address {
 	private Symbol[] symbols;

@@ -3,7 +3,7 @@ package li.cil.oc.integration.stargatetech2
 import java.util
 
 import li.cil.oc.api
-import stargatetech2.api.bus.BusPacketNetScan
+import lordfokas.stargatetech2.api.bus.BusPacketNetScan
 
 import scala.collection.convert.WrapAsScala._
 
