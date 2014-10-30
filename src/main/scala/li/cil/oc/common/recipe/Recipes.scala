@@ -302,15 +302,15 @@ object Recipes {
     case other => throw new RecipeException(s"Invalid ingredient type (not a map or string): $other")
   }
 
-  private def findItem(name: String) = Item.itemRegistry.find {
+  private def findItem(name: String) = Option(Item.itemRegistry.getObject(name)).orElse(Item.itemRegistry.find {
     case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name
     case _ => false
-  }
+  })
 
-  private def findBlock(name: String) = Block.blockRegistry.find {
+  private def findBlock(name: String) = Option(Block.blockRegistry.getObject(name)).orElse(Block.blockRegistry.find {
     case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name
     case _ => false
-  }
+  })
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
 
