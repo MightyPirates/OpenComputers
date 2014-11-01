@@ -17,6 +17,7 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
+import net.minecraft.util.RegistryNamespaced
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
@@ -302,15 +303,19 @@ object Recipes {
     case other => throw new RecipeException(s"Invalid ingredient type (not a map or string): $other")
   }
 
-  private def findItem(name: String) = Option(Item.itemRegistry.getObject(name)).orElse(Item.itemRegistry.find {
+  private def findItem(name: String) = getObjectWithoutFallback(Item.itemRegistry, name).orElse(Item.itemRegistry.find {
     case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name
     case _ => false
   })
 
-  private def findBlock(name: String) = Option(Block.blockRegistry.getObject(name)).orElse(Block.blockRegistry.find {
+  private def findBlock(name: String) = getObjectWithoutFallback(Block.blockRegistry, name).orElse(Block.blockRegistry.find {
     case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name
     case _ => false
   })
+
+  private def getObjectWithoutFallback(registry: RegistryNamespaced, key: String) =
+    if (registry.containsKey(key)) Option(registry.getObject(key))
+    else None
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
 
