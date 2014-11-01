@@ -33,15 +33,16 @@ object DriverCPU extends Item with Processor {
       case _ => 0
     }
 
-  override def architecture(stack: ItemStack) = {
+  override def architecture(stack: ItemStack): Class[_ <: Architecture] = {
     if (stack.hasTagCompound) {
       val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass")
-      try Class.forName(archClass).asSubclass(classOf[Architecture]) catch {
+      try return Class.forName(archClass).asSubclass(classOf[Architecture]) catch {
         case t: Throwable =>
-          OpenComputers.log.warn("Failed getting class for CPU architecture.", t)
-          null
+          OpenComputers.log.warn("Failed getting class for CPU architecture. Resetting CPU to use the default.", t)
+          stack.getTagCompound.removeTag(Settings.namespace + "archClass")
+          stack.getTagCompound.removeTag(Settings.namespace + "archName")
       }
     }
-    else api.Machine.architectures.headOption.orNull
+    api.Machine.architectures.headOption.orNull
   }
 }
