@@ -1,5 +1,7 @@
 package li.cil.oc.integration.vanilla;
 
+import cpw.mods.fml.common.eventhandler.Event;
+import li.cil.oc.Settings;
 import li.cil.oc.api.driver.EnvironmentAware;
 import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
@@ -8,10 +10,15 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.event.world.BlockEvent;
 
 public final class DriverSign extends DriverTileEntity implements EnvironmentAware {
     @Override
@@ -53,6 +60,10 @@ public final class DriverSign extends DriverTileEntity implements EnvironmentAwa
 
         @Callback(doc = "function(value:string):string -- Set the multi-line text the sign should display. This is clamped as necessary.")
         public Object[] setValue(final Context context, final Arguments args) {
+            if (!canChangeSign(null, tileEntity)) {
+                return new Object[]{null, "not allowed"};
+            }
+
             final String value = args.checkString(0);
             final String[] lines = value.split("\n");
             for (int i = 0; i < 4; ++i) {
@@ -81,5 +92,22 @@ public final class DriverSign extends DriverTileEntity implements EnvironmentAwa
             }
             return value.toString();
         }
+    }
+
+    public static boolean canChangeSign(EntityPlayer player, final TileEntitySign tileEntity) {
+        if (player == null) {
+            player = FakePlayerFactory.get((WorldServer) tileEntity.getWorldObj(), Settings.get().fakePlayerProfile());
+        }
+        if (!tileEntity.getWorldObj().canMineBlock(player, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)) {
+            return false;
+        }
+
+        final BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, tileEntity.getWorldObj(), tileEntity.getBlockType(), tileEntity.getBlockMetadata(), player);
+        MinecraftForge.EVENT_BUS.post(event);
+        if (event.isCanceled() || event.getResult() == Event.Result.DENY) {
+            return false;
+        }
+
+        return true;
     }
 }
