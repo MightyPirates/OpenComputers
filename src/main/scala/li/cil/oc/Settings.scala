@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
 import scala.io.Codec
 import scala.io.Source
+import scala.util.matching.Regex
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
@@ -362,7 +363,7 @@ object Settings {
       val out = new PrintWriter(file)
       out.write(config.root.render(renderSettings).lines.
         // Indent two spaces instead of four.
-        map(line => """^(\s*)""".r.replaceAllIn(line, m => m.group(1).replace("  ", " "))).
+        map(line => """^(\s*)""".r.replaceAllIn(line, m => Regex.quoteReplacement(m.group(1).replace("  ", " ")))).
         // Finalize the string.
         filter(_ != "").mkString(nl).
         // Newline after values.
