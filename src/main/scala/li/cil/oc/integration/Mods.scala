@@ -76,7 +76,6 @@ object Mods {
     tryInit(integration.cofh.energy.ModCoFHEnergy)
     tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
     tryInit(integration.cofh.transport.ModCoFHTransport)
-    tryInit(integration.enderio.ModEnderIO)
     tryInit(integration.enderstorage.ModEnderStorage)
     tryInit(integration.forestry.ModForestry)
     tryInit(integration.fmp.ModForgeMultipart)
