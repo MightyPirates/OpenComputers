@@ -128,6 +128,16 @@ public interface Arguments extends Iterable<Object> {
      * restoring NBT data attached to the item stack.
      * <p/>
      * Throws an error if there are too few arguments.
+     * <p/>
+     * <em>Important</em>: usually you will not want to be using this. Some
+     * items require NBT information to fully describe them, and by default
+     * this information is not returned to underlying architectures when
+     * item stacks are returned from callbacks. This means the scripts can
+     * usually not provide this full information, so the roundtrip callback->
+     * script->callback will be incomplete.
+     * <p/>
+     * Instead, please make use of the {@link li.cil.oc.api.internal.Database}
+     * component to get complete item stack descriptors.
      *
      * @param index the index from which to get the argument.
      * @return the item stack at the specified index.

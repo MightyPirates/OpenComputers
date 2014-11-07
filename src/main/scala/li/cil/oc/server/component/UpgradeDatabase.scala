@@ -52,9 +52,9 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
           }
           context.pause(0.25)
           result(numberToCopy)
-        case _ => result(null, "not a database")
+        case _ => throw new IllegalArgumentException("not a database")
       }
-      case _ => result(null, "no such component")
+      case _ => throw new IllegalArgumentException("no such component")
     }
   }
 
