@@ -3,9 +3,8 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
-import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
-import li.cil.oc.common.item
+import li.cil.oc.common.{Slot, Tier, item}
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -23,6 +22,6 @@ object DriverUpgradeBattery extends Item with HostAware {
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(battery: item.UpgradeBattery) => battery.tier
-      case _ => 0
+      case _ => Tier.One
     }
 }

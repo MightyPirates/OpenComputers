@@ -1,12 +1,12 @@
 package li.cil.oc.common
 
 object Tier {
-  val None = -1
-  val One = 0
-  val Two = 1
-  val Three = 2
-  val Four = 3
-  val Five = 4
-  val Six = 5
-  val Any = Int.MaxValue
+  final val None = -1
+  final val One = 0
+  final val Two = 1
+  final val Three = 2
+  final val Four = 3
+  final val Five = 4
+  final val Six = 5
+  final val Any = Int.MaxValue
 }

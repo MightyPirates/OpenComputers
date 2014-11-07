@@ -1,14 +1,11 @@
 package li.cil.oc.integration.opencomputers
 
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{OpenComputers, Settings, api}
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine.Architecture
-import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
-import li.cil.oc.common.item
+import li.cil.oc.common.{Slot, Tier, item}
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsScala._
@@ -24,13 +21,13 @@ object DriverCPU extends Item with Processor {
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(cpu: item.CPU) => cpu.tier
-      case _ => 0
+      case _ => Tier.One
     }
 
   override def supportedComponents(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(cpu: item.CPU) => Settings.get.cpuComponentSupport(cpu.tier)
-      case _ => 0
+      case _ => Tier.One
     }
 
   override def architecture(stack: ItemStack): Class[_ <: Architecture] = {

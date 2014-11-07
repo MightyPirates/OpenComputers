@@ -276,6 +276,7 @@ class Settings(config: Config) {
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
+  val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
 
   // ----------------------------------------------------------------------- //
   // integration

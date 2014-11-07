@@ -7,6 +7,7 @@ object GuiType extends Enumeration {
   Assembler,
   Case,
   Charger,
+  Database,
   Disassembler,
   DiskDrive,
   Rack,

@@ -1,15 +1,11 @@
 package li.cil.oc.client
 
-import li.cil.oc.Localization
-import li.cil.oc.Settings
+import li.cil.oc.{Localization, Settings}
 import li.cil.oc.api.component.TextBuffer
-import li.cil.oc.common.GuiType
 import li.cil.oc.common.init.Items
-import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.item
+import li.cil.oc.common.inventory.{DatabaseInventory, ServerInventory}
 import li.cil.oc.common.item.Tablet
-import li.cil.oc.common.tileentity
-import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
+import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
@@ -38,6 +34,14 @@ object GuiHandler extends CommonGuiHandler {
       case switch: tileentity.Switch if id == GuiType.Switch.id =>
         new gui.Switch(player.inventory, switch)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
+        case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
+          new gui.Database(player.inventory, new DatabaseInventory {
+            override def tier = database.tier
+
+            override def container = player.getCurrentEquippedItem
+
+            override def isUseableByPlayer(player: EntityPlayer) = player == player
+          })
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new gui.Server(player.inventory, new ServerInventory {
             override def tier = server.tier

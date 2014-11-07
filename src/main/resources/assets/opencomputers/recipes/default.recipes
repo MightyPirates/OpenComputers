@@ -156,6 +156,21 @@ craftingUpgrade {
           ["oc:circuitChip1", workbench, "oc:circuitChip1"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+databaseUpgrade1 {
+  input: [[ingotIron, "oc:analyzer", ingotIron]
+          ["oc:circuitChip1", "oc:hdd1", "oc:circuitChip1"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+databaseUpgrade2 {
+  input: [[ingotIron, "oc:analyzer", ingotIron]
+          ["oc:circuitChip2", "oc:hdd2", "oc:circuitChip2"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+databaseUpgrade3 {
+  input: [[ingotIron, "oc:analyzer", ingotIron]
+          ["oc:circuitChip3", "oc:hdd3", "oc:circuitChip3"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
 experienceUpgrade {
   input: [[ingotGold, "", ingotGold]
           ["oc:circuitChip2", emerald, "oc:circuitChip2"]
