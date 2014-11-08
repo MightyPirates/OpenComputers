@@ -19,11 +19,7 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
 
   override def getStackInSlot(slot: Int) = Option(data.getStackInSlot(slot)).map(_.copy()).orNull
 
-  override def findStackWithHash(needle: String) = {
-    val slot = indexOf(needle)
-    if (slot >= 0) data.getStackInSlot(slot).copy()
-    else null
-  }
+  override def findStackWithHash(needle: String) = indexOf(needle)
 
   @Callback(doc = "function(slot:number):table -- Get the representation of the item stack stored in the specified slot.")
   def get(context: Context, args: Arguments): Array[AnyRef] = result(data.getStackInSlot(args.checkSlot(data, 0)))

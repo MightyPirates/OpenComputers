@@ -37,12 +37,11 @@ public interface Database {
     /**
      * Get an item stack with the specified hash stored in this database.
      * <p/>
-     * This will return <tt>null</tt> if there is no entry with a matching
-     * hash. If there is an entry, this will return a <em>copy</em> of that
-     * item stack, so it is safe to modify the returned stack.
+     * This will return a negative value if there is no entry with a matching
+     * hash.
      *
      * @param hash the hash of the item stack.
-     * @return the item stack with the specified hash.
+     * @return the index of item stack with the specified hash.
      */
-    ItemStack findStackWithHash(String hash);
+    int findStackWithHash(String hash);
 }
