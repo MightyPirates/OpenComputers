@@ -36,6 +36,19 @@ This mod is [licensed under the **MIT license**](https://github.com/MightyPirate
    OpenComputers generates floppy disks in dungeon chests that can contain data from a selection of 'loot' directories. For example, the IRC client and the Better Shell (besh) are two programs that can be found on such loot disks. If you'd like to contribute a program that can be found this way, please have a look at [the loot readme][loot], which explains how to add custom loot. Simply pull request your loot!
 4. **Core Scripts**  
    If you would like to contribute scripts to the "core" Lua code (which basically defines 'OpenOS'), please have a look at the [code conventions][] for Lua to save us all some time. Bug fixes are always welcome. Additional programs and features should be kept small. Bigger programs (rule of thumb: larger than 3KiB) should go onto loot disks.
+5. **Drivers**  
+   As of OC 1.4, mod interaction that was previously provided by OpenComponents it now fully integrated into OC itself. If you wish to contribute a drivers for blocks from other mods, cool! Have a look at the [integration][] package to get an idea of how to structure modules and read the readme in that package for more information (in particular on additional criteria to get your PR merged).
+
+####Pull requests
+The following are a few quick guidelines on pull requests. That is to say they are not necessarily *rules*, so there may be exceptions and all that. Just try to stick to those points as a baseline.
+- Make sure your code is formatted properly.
+- Make sure it builds and works.
+- Try to keep your changes as minimal as possible. In particular, no whitespace changes in existing files, please.
+- Feel free to code in Java, but don't be surprised if I convert it to Scala later on, if I feel it makes the code more concise ;-)
+- When adding mod dependencies, keep them *weak*, i.e. make sure OC still works without that mod. Also, prefer adding a gradle dependency over adding API class files to the repo.
+- Squash your commits!
+
+Also, and this should go without saying, your contributed code will also fall under OC's license, unless otherwise specified (in the super rare case of adding third-party stuff, add the according license information as a `LICENSE-???` file, please).
 
 ## Extending
 ### In your own mod
@@ -88,3 +101,4 @@ Open the project and you will be asked to *import the Gradle project* (check you
 [releases]: https://github.com/MightyPirates/OpenComputers/releases
 [robot names]: https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/src/main/resources/assets/opencomputers/robot.names
 [wiki]: https://ocdoc.cil.li/
+[integration]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/scala/li/cil/oc/integration

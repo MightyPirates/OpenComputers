@@ -97,8 +97,7 @@ object Mods {
     tryInit(integration.wrsve.ModWRSVE)
 
     // Register the general IPeripheral driver last, if at all, to avoid it
-    // being used rather than other more concrete implementations, such as
-    // is the case in the Redstone in Motion driver (replaces 'move').
+    // being used rather than other more concrete implementations.
     tryInit(integration.computercraft.ModComputerCraft)
   }
 
