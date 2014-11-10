@@ -84,7 +84,7 @@ openOS {
 }
 
 abstractBusCard {
-  input: [[{block="StargateTech2:busCable"}, {item="StargateTech2:naquadah", subID=3}, ""]
+  input: [[{block="StargateTech2:block.busCable"}, {item="StargateTech2:naquadah", subID=3}, ""]
           ["", "oc:materialCard", ""]]
 }
 graphicsCard1 {
