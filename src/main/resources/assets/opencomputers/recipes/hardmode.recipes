@@ -77,7 +77,7 @@ hdd3 {
 }
 
 abstractBusCard {
-  input: [[busCable, {item=naquadah, subID=8}, ""]
+  input: [[{block="StargateTech2:block.busCable"}, {item="StargateTech2:naquadah", subID=3}, ""]
           ["", "oc:materialCard", ""]]
 }
 graphicsCard1 {
