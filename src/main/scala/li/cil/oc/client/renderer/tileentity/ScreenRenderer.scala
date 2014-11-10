@@ -165,7 +165,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     }
 
     // Slightly offset the text so it doesn't clip into the screen.
-    GL11.glTranslatef(0, 0, 0.01f)
+    GL11.glTranslated(0, 0, 0.01)
 
     RenderState.checkError(getClass.getName + ".draw: setup")
 
