@@ -26,7 +26,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
-import stargatetech2.api.bus.IBusDevice
+import lordfokas.stargatetech2.api.bus.IBusDevice
 
 import scala.collection.mutable
 

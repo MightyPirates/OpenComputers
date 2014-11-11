@@ -15,7 +15,7 @@ trait Inventory extends IInventory {
 
   override def getStackInSlot(slot: Int) = items(slot).orNull
 
-  override def decrStackSize(slot: Int, amount: Int) = items(slot) match {
+  override def decrStackSize(slot: Int, amount: Int) = (items(slot) match {
     case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
       setInventorySlotContents(slot, null)
       stack
@@ -23,6 +23,9 @@ trait Inventory extends IInventory {
       val result = stack.splitStack(amount)
       markDirty()
       result
+    case _ => null
+  }) match {
+    case stack: ItemStack if stack.stackSize > 0 => stack
     case _ => null
   }
 

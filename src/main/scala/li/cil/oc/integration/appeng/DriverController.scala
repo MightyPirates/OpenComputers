@@ -143,14 +143,19 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
           val job = future.get() // Make 100% sure we wait for this outside the scheduled closure.
           EventHandler.schedule(() => {
             val link = craftingGrid.submitJob(job, Craftable.this, null, true, source)
-            status.setLink(link)
-            links += link
+            if (link != null) {
+              status.setLink(link)
+              links += link
+            }
+            else {
+              status.fail("missing resources?")
+            }
           })
         }
         catch {
           case e: Exception =>
             OpenComputers.log.debug("Error submitting job to AE2.", e)
-            status.cancel()
+            status.fail(e.toString)
         }
       }
 
@@ -198,31 +203,48 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
   class CraftingStatus extends AbstractValue {
     private var isComputing = true
     private var link: Option[ICraftingLink] = None
+    private var failed = false
+    private var reason = "no link"
 
     def setLink(value: ICraftingLink) {
-      link = Option(value)
       isComputing = false
+      link = Option(value)
     }
 
-    def cancel() {
+    def fail(reason: String) {
       isComputing = false
+      failed = true
+      this.reason = s"request failed ($reason)"
     }
 
     @Callback(doc = "function():boolean -- Get whether the crafting request has been canceled.")
     def isCanceled(context: Context, args: Arguments): Array[AnyRef] = {
       if (isComputing) return result(false, "computing")
-      link.fold(result(false, "no link"))(l => result(l.isCanceled))
+      link.fold(result(failed, reason))(l => result(l.isCanceled))
     }
 
     @Callback(doc = "function():boolean -- Get whether the crafting request is done.")
     def isDone(context: Context, args: Arguments): Array[AnyRef] = {
       if (isComputing) return result(false, "computing")
-      link.fold(result(true, "no link"))(l => result(l.isDone))
+      link.fold(result(!failed, reason))(l => result(l.isDone))
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
+      failed = link.fold(true)(!_.isDone)
+      nbt.setBoolean("failed", failed)
+      if (failed && reason != null) {
+        nbt.setString("reason", reason)
+      }
     }
 
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
       isComputing = false
+      failed = nbt.getBoolean("failed")
+      if (failed && nbt.hasKey("reason")) {
+        reason = nbt.getString("reason")
+      }
     }
   }
 

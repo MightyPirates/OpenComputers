@@ -17,7 +17,6 @@ object ModVanilla extends ModProxy {
     Driver.add(new DriverMobSpawner)
     Driver.add(new DriverNoteBlock)
     Driver.add(new DriverRecordPlayer)
-    Driver.add(new DriverSign)
 
     if (Settings.get.enableInventoryDriver) {
       Driver.add(new DriverInventory)

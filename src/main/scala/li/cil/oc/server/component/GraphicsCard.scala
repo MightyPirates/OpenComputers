@@ -13,6 +13,8 @@ import li.cil.oc.api.prefab
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 
+import scala.util.matching.Regex
+
 abstract class GraphicsCard extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
@@ -290,7 +292,7 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
             s.fill(0, 0, w, h, ' ')
             try {
               val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
-              val lines = wrapRegEx.replaceAllIn(Localization.localizeImmediately(machine.lastError).replace("\t", "  ") + "\n", m => m.group(1) + "\n").lines.toArray
+              val lines = wrapRegEx.replaceAllIn(Localization.localizeImmediately(machine.lastError).replace("\t", "  ") + "\n", m => Regex.quoteReplacement(m.group(1) + "\n")).lines.toArray
               val firstRow = ((h - lines.length) / 2) max 2
 
               val message = "Unrecoverable Error"

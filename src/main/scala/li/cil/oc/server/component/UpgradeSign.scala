@@ -1,53 +1,64 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.Network
+import cpw.mods.fml.common.eventhandler.Event
+import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network._
+import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.prefab
-import li.cil.oc.api.internal.Rotatable
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntitySign
+import net.minecraft.world.WorldServer
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.util.{FakePlayerFactory, ForgeDirection}
+import net.minecraftforge.event.world.BlockEvent
 
-class UpgradeSign(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("sign", Visibility.Neighbors).
-    withConnector().
-    create()
+abstract class UpgradeSign extends prefab.ManagedEnvironment {
+  def host: EnvironmentHost
 
-  // ----------------------------------------------------------------------- //
-
-  @Callback(doc = """function():string -- Get the text on the sign in front of the robot.""")
-  def getValue(context: Context, args: Arguments): Array[AnyRef] = {
-    findSign match {
+  protected def getValue(tileEntity: Option[TileEntitySign]): Array[AnyRef] = {
+    tileEntity match {
       case Some(sign) => result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
     }
   }
 
-  @Callback(doc = """function(value:string):string -- Set the text on the sign in front of the robot.""")
-  def setValue(context: Context, args: Arguments): Array[AnyRef] = {
-    val text = args.checkString(0).lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line)
-    findSign match {
+  protected def setValue(tileEntity: Option[TileEntitySign], text: String): Array[AnyRef] = {
+    tileEntity match {
       case Some(sign) =>
-        text.copyToArray(sign.signText)
+        val player = host match {
+          case robot: Robot => robot.player
+          case _ => FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+        }
+        if (!canChangeSign(player, sign)) {
+          return result(Unit, "not allowed")
+        }
+
+        text.lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line).copyToArray(sign.signText)
         host.world.markBlockForUpdate(sign.xCoord, sign.yCoord, sign.zCoord)
         result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
     }
   }
 
-  private def findSign = {
+  protected def findSign(side: ForgeDirection) = {
     val hostPos = BlockPosition(host)
     host.world.getTileEntity(hostPos) match {
       case sign: TileEntitySign => Option(sign)
-      case _ => host.world.getTileEntity(hostPos.offset(host.facing)) match {
+      case _ => host.world.getTileEntity(hostPos.offset(side)) match {
         case sign: TileEntitySign => Option(sign)
         case _ => None
       }
     }
+  }
+
+  private def canChangeSign(player: EntityPlayer, tileEntity: TileEntitySign): Boolean = {
+    if (!host.world.canMineBlock(player, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)) {
+      return false
+    }
+    val event = new BlockEvent.BreakEvent(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, host.world, tileEntity.getBlockType, tileEntity.getBlockMetadata, player)
+    MinecraftForge.EVENT_BUS.post(event)
+    !(event.isCanceled || event.getResult == Event.Result.DENY)
   }
 }

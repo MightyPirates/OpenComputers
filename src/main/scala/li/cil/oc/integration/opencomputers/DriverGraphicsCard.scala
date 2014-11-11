@@ -1,11 +1,9 @@
 package li.cil.oc.integration.opencomputers
 
-import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentAware
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.common
-import li.cil.oc.common.Slot
+import li.cil.oc.api.driver.{EnvironmentAware, EnvironmentHost}
+import li.cil.oc.{api, common}
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -15,9 +13,9 @@ object DriverGraphicsCard extends Item with EnvironmentAware {
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     tier(stack) match {
-      case 0 => new component.GraphicsCard.Tier1()
-      case 1 => new component.GraphicsCard.Tier2()
-      case 2 => new component.GraphicsCard.Tier3()
+      case Tier.One => new component.GraphicsCard.Tier1()
+      case Tier.Two => new component.GraphicsCard.Tier2()
+      case Tier.Three => new component.GraphicsCard.Tier3()
       case _ => null
     }
 
@@ -26,7 +24,7 @@ object DriverGraphicsCard extends Item with EnvironmentAware {
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(gpu: common.item.GraphicsCard) => gpu.tier
-      case _ => 0
+      case _ => Tier.One
     }
 
   override def providedEnvironment(stack: ItemStack) = classOf[component.GraphicsCard]

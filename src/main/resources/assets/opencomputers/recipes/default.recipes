@@ -84,7 +84,7 @@ openOS {
 }
 
 abstractBusCard {
-  input: [["StargateTech2:block.busCable", {item="StargateTech2:item.naquadah", subID=3}, ""]
+  input: [[{block="StargateTech2:block.busCable"}, {item="StargateTech2:naquadah", subID=3}, ""]
           ["", "oc:materialCard", ""]]
 }
 graphicsCard1 {
@@ -154,6 +154,21 @@ chunkloaderUpgrade {
 craftingUpgrade {
   input: [[ingotIron, "", ingotIron]
           ["oc:circuitChip1", workbench, "oc:circuitChip1"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+databaseUpgrade1 {
+  input: [[ingotIron, "oc:analyzer", ingotIron]
+          ["oc:circuitChip1", "oc:hdd1", "oc:circuitChip1"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+databaseUpgrade2 {
+  input: [[ingotIron, "oc:analyzer", ingotIron]
+          ["oc:circuitChip2", "oc:hdd2", "oc:circuitChip2"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+databaseUpgrade3 {
+  input: [[ingotIron, "oc:analyzer", ingotIron]
+          ["oc:circuitChip3", "oc:hdd3", "oc:circuitChip3"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
 experienceUpgrade {

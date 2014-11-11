@@ -24,7 +24,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       GL11.glPushMatrix()
 
       GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
-      GL11.glScalef(1.002f, -1.002f, 1.002f)
+      GL11.glScaled(1.0025, -1.0025, 1.0025)
       GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
       bindTexture(TextureMap.locationBlocksTexture)

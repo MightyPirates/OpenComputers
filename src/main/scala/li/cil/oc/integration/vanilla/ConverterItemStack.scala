@@ -25,7 +25,7 @@ object ConverterItemStack extends api.driver.Converter {
         output += "name" -> Item.itemRegistry.getNameForObject(stack.getItem)
         output += "label" -> stack.getDisplayName
 
-        if (stack.hasTagCompound && Settings.get.allowCompressedNBTTags) {
+        if (stack.hasTagCompound && Settings.get.allowItemStackNBTTags) {
           output += "tag" -> CompressedStreamTools.compress(stack.getTagCompound)
         }
       case _ =>

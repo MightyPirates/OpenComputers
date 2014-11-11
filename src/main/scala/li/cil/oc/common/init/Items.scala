@@ -250,5 +250,10 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradePiston(multi), "pistonUpgrade", "oc:pistonUpgrade")
     Recipes.addItem(new item.UpgradeTank(multi), "tankUpgrade", "oc:tankUpgrade")
     Recipes.addItem(new item.UpgradeTankController(multi), "tankControllerUpgrade", "oc:tankControllerUpgrade")
+
+    // 1.4.0
+    Recipes.addItem(new item.UpgradeDatabase(multi, Tier.One), "databaseUpgrade1", "oc:databaseUpgrade1")
+    Recipes.addItem(new item.UpgradeDatabase(multi, Tier.Two), "databaseUpgrade2", "oc:databaseUpgrade2")
+    Recipes.addItem(new item.UpgradeDatabase(multi, Tier.Three), "databaseUpgrade3", "oc:databaseUpgrade3")
   }
 }
