@@ -43,7 +43,7 @@ trait Common extends TileEntity {
     else connector(side) match {
       case Some(node) =>
         val cappedAmount = math.max(0, math.min(math.min(energyThroughput, amount), globalDemand(side)))
-        if (doReceive) amount - node.changeBuffer(cappedAmount)
+        if (doReceive) cappedAmount - node.changeBuffer(cappedAmount)
         else cappedAmount
       case _ => 0
     }
