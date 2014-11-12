@@ -1,15 +1,13 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
-import universalelectricity.api.core.grid.INode
-import universalelectricity.api.core.grid.INodeProvider
+import universalelectricity.api.core.grid.{INode, INodeProvider}
 import universalelectricity.api.core.grid.electric.IEnergyNode
 import universalelectricity.core.grid.node.NodeEnergy
 

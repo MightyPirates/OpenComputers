@@ -3,8 +3,7 @@ package li.cil.oc.common.tileentity.traits.power
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.Event
 import ic2classic.api.Direction
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound

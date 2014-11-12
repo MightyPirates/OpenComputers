@@ -1,11 +1,8 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import factorization.api.Charge
-import factorization.api.Coord
-import factorization.api.IChargeConductor
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import factorization.api.{Charge, Coord, IChargeConductor}
+import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 
