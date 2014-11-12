@@ -4,7 +4,7 @@ import li.cil.oc.api
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 
-object StargateTech2 extends ModProxy {
+object ModStargateTech2 extends ModProxy {
   override def getMod = Mods.StargateTech2
 
   override def initialize() {
