@@ -59,7 +59,7 @@ public final class DriverBeacon extends DriverTileEntity implements EnvironmentA
         }
 
         @Callback(doc = "function():string -- Get the name of the active secondary effect.")
-        public Object[] getSecondayEffect(final Context context, final Arguments args) {
+        public Object[] getSecondaryEffect(final Context context, final Arguments args) {
             return new Object[]{getEffectName(tileEntity.getSecondaryEffect())};
         }
     }

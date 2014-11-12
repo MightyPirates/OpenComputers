@@ -9,7 +9,7 @@ import scala.language.implicitConversions
 
 object ExtendedArguments {
 
-  implicit def extendedArguments(args: Arguments) = new ExtendedArguments(args)
+  implicit def extendedArguments(args: Arguments): ExtendedArguments = new ExtendedArguments(args)
 
   class ExtendedArguments(val args: Arguments) {
     def optionalItemCount(n: Int) =

@@ -25,12 +25,12 @@ public final class DriverEnderEnergy extends DriverTileEntity {
             super(tileEntity, "ender_energy");
         }
 
-        @Callback(doc = "function():boolean --  Returns whether the tileentity can receive energy.")
+        @Callback(doc = "function():boolean --  Returns whether the tile entity can receive energy.")
         public Object[] canReceiveEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveEnergy()};
         }
 
-        @Callback(doc = "function():boolean --  Returns whether the tileentity can send energy.")
+        @Callback(doc = "function():boolean --  Returns whether the tile entity can send energy.")
         public Object[] canSendEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendEnergy()};
         }

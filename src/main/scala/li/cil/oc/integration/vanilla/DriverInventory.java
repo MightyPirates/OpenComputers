@@ -39,19 +39,19 @@ public final class DriverInventory extends DriverTileEntity {
 
         @Callback(doc = "function():string -- Get the name of this inventory.")
         public Object[] getInventoryName(final Context context, final Arguments args) {
-            if (!checkPermission()) return new Object[]{null, "permission denied"};
+            if (notPermitted()) return new Object[]{null, "permission denied"};
             return new Object[]{tileEntity.getInventoryName()};
         }
 
         @Callback(doc = "function():number -- Get the number of slots in this inventory.")
         public Object[] getInventorySize(final Context context, final Arguments args) {
-            if (!checkPermission()) return new Object[]{null, "permission denied"};
+            if (notPermitted()) return new Object[]{null, "permission denied"};
             return new Object[]{tileEntity.getSizeInventory()};
         }
 
         @Callback(doc = "function(slot:number):number -- Get the stack size of the item stack in the specified slot.")
         public Object[] getSlotStackSize(final Context context, final Arguments args) {
-            if (!checkPermission()) return new Object[]{null, "permission denied"};
+            if (notPermitted()) return new Object[]{null, "permission denied"};
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
             if (stack != null) {
@@ -63,7 +63,7 @@ public final class DriverInventory extends DriverTileEntity {
 
         @Callback(doc = "function(slot:number):number -- Get the maximum stack size of the item stack in the specified slot.")
         public Object[] getSlotMaxStackSize(final Context context, final Arguments args) {
-            if (!checkPermission()) return new Object[]{null, "permission denied"};
+            if (notPermitted()) return new Object[]{null, "permission denied"};
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
             if (stack != null) {
@@ -75,7 +75,7 @@ public final class DriverInventory extends DriverTileEntity {
 
         @Callback(doc = "function(slotA:number, slotB:number):boolean -- Compare the two item stacks in the specified slots for equality.")
         public Object[] compareStacks(final Context context, final Arguments args) {
-            if (!checkPermission()) return new Object[]{null, "permission denied"};
+            if (notPermitted()) return new Object[]{null, "permission denied"};
             final int slotA = checkSlot(args, 0);
             final int slotB = checkSlot(args, 1);
             if (slotA == slotB) {
@@ -94,7 +94,7 @@ public final class DriverInventory extends DriverTileEntity {
 
         @Callback(doc = "function(slotA:number, slotB:number[, count:number=math.huge]):boolean -- Move up to the specified number of items from the first specified slot to the second.")
         public Object[] transferStack(final Context context, final Arguments args) {
-            if (!checkPermission()) return new Object[]{null, "permission denied"};
+            if (notPermitted()) return new Object[]{null, "permission denied"};
             final int slotA = checkSlot(args, 0);
             final int slotB = checkSlot(args, 1);
             final int count = Math.max(0, Math.min(args.count() > 2 && args.checkAny(2) != null ? args.checkInteger(2) : 64, tileEntity.getInventoryStackLimit()));
@@ -137,7 +137,7 @@ public final class DriverInventory extends DriverTileEntity {
         @Callback(doc = "function(slot:number):table -- Get a description of the item stack in the specified slot.")
         public Object[] getStackInSlot(final Context context, final Arguments args) {
             if (Settings.get().allowItemStackInspection()) {
-                if (!checkPermission()) return new Object[]{null, "permission denied"};
+                if (notPermitted()) return new Object[]{null, "permission denied"};
                 return new Object[]{tileEntity.getStackInSlot(checkSlot(args, 0))};
             } else {
                 return new Object[]{null, "not enabled in config"};
@@ -147,7 +147,7 @@ public final class DriverInventory extends DriverTileEntity {
         @Callback(doc = "function():table -- Get a list of descriptions for all item stacks in this inventory.")
         public Object[] getAllStacks(final Context context, final Arguments args) {
             if (Settings.get().allowItemStackInspection()) {
-                if (!checkPermission()) return new Object[]{null, "permission denied"};
+                if (notPermitted()) return new Object[]{null, "permission denied"};
                 ItemStack[] allStacks = new ItemStack[tileEntity.getSizeInventory()];
                 for (int i = 0; i < tileEntity.getSizeInventory(); i++) {
                     allStacks[i] = tileEntity.getStackInSlot(i);
@@ -170,10 +170,10 @@ public final class DriverInventory extends DriverTileEntity {
             return stackA.getItem().equals(stackB.getItem()) && !stackA.getHasSubtypes() || stackA.getItemDamage() == stackB.getItemDamage();
         }
 
-        private boolean checkPermission() {
+        private boolean notPermitted() {
             synchronized (fakePlayer) {
                 fakePlayer.setPosition(position.xCoord, position.yCoord, position.zCoord);
-                return tileEntity.isUseableByPlayer(fakePlayer);
+                return !tileEntity.isUseableByPlayer(fakePlayer);
             }
         }
     }

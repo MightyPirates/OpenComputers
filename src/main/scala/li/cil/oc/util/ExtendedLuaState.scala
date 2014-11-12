@@ -17,7 +17,7 @@ import scala.runtime.BoxedUnit
 
 object ExtendedLuaState {
 
-  implicit def extendLuaState(state: LuaState) = new ExtendedLuaState(state)
+  implicit def extendLuaState(state: LuaState): ExtendedLuaState = new ExtendedLuaState(state)
 
   class ExtendedLuaState(val lua: LuaState) {
     def pushScalaFunction(f: (LuaState) => Int) = lua.pushJavaFunction(new JavaFunction {
