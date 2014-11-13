@@ -67,7 +67,6 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
-    MinecraftForge.EVENT_BUS.register(FileSystemAccessHandler)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(ServerRack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
