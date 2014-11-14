@@ -21,7 +21,7 @@ import scala.collection.mutable
 object AssemblerTemplates {
   val NoSlot = new Slot(Slot.None, Tier.None, None, None)
 
-  val templates = mutable.ArrayBuffer.empty[Template]
+  private val templates = mutable.ArrayBuffer.empty[Template]
 
   def add(template: NBTTagCompound): Unit = try {
     val selector = getStaticMethod(template.getString("select"), classOf[ItemStack])

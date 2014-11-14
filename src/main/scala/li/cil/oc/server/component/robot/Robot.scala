@@ -1,30 +1,22 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{OpenComputers, Settings, api}
 import li.cil.oc.api.event.RobotPlaceInAirEvent
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{ToolDurabilityProviders, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.item.EntityMinecart
-import net.minecraft.item.ItemBlock
-import net.minecraft.item.ItemStack
+import net.minecraft.entity.{Entity, EntityLivingBase}
+import net.minecraft.entity.item.{EntityItem, EntityMinecart}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
-import net.minecraft.util.Vec3
+import net.minecraft.util.{MovingObjectPosition, Vec3}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
@@ -449,10 +441,10 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
     Option(robot.getStackInSlot(0)) match {
       case Some(item) =>
-        if (item.isItemStackDamageable) {
-          result(item.getMaxDamage - item.getItemDamage, item.getMaxDamage - item.getItemDamageForDisplay, item.getMaxDamage)
+        ToolDurabilityProviders.getDurability(item) match {
+          case Some(durability) => result(durability)
+          case _ => result(Unit, "tool cannot be damaged")
         }
-        else result(Unit, "tool cannot be damaged")
       case _ => result(Unit, "no tool equipped")
     }
   }

@@ -4,11 +4,11 @@ import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
-import cpw.mods.fml.common.Mod
-import cpw.mods.fml.common.SidedProxy
-import li.cil.oc.common.Proxy
+import cpw.mods.fml.common.{Mod, SidedProxy}
 import li.cil.oc.common.template.AssemblerTemplates
+import li.cil.oc.common.{Proxy, ToolDurabilityProviders}
 import li.cil.oc.server.CommandHandler
+import net.minecraftforge.common.util.Constants.NBT
 import org.apache.logging.log4j.LogManager
 
 import scala.collection.convert.WrapAsScala._
@@ -52,8 +52,15 @@ object OpenComputers {
   def imc(e: IMCEvent) = {
     for (message <- e.getMessages) {
       if (message.key == "registerAssemblerTemplate" && message.isNBTMessage) {
-        log.info(s"Registering new assembler template from mod ${message.getSender}.")
+        if (message.getNBTValue.hasKey("name", NBT.TAG_STRING))
+          log.info(s"Registering new assembler template '${message.getNBTValue.getString("name")}' from mod ${message.getSender}.")
+        else
+          log.info(s"Registering new, unnamed assembler template from mod ${message.getSender}.")
         AssemblerTemplates.add(message.getNBTValue)
+      }
+      else if (message.key == "registerToolDurabilityProvider" && message.isStringMessage) {
+        log.info(s"Registering new tool durability provider '${message.getStringValue}' from mod ${message.getSender}.")
+        ToolDurabilityProviders.add(message.getStringValue)
       }
     }
   }

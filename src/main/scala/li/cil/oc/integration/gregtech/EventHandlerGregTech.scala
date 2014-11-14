@@ -1,16 +1,17 @@
-package li.cil.oc.integration.cofh.energy
+package li.cil.oc.integration.gregtech
 
-import cofh.api.energy.IEnergyContainerItem
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import gregtech.api.interfaces.IDamagableItem
+import gregtech.api.items.GT_MetaGenerated_Tool
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraft.item.ItemStack
 
-object EventHandlerRedstoneFlux {
+object EventHandlerGregTech {
   @SubscribeEvent
   def onRobotApplyDamageRate(e: RobotUsedToolEvent.ApplyDamageRate) {
     (e.toolBeforeUse.getItem, e.toolAfterUse.getItem) match {
-      case (energyBefore: IEnergyContainerItem, energyAfter: IEnergyContainerItem) =>
-        val damage = energyBefore.getEnergyStored(e.toolBeforeUse) - energyAfter.getEnergyStored(e.toolAfterUse)
+      case (itemBefore: IDamagableItem, itemAfter: IDamagableItem) =>
+        val damage = GT_MetaGenerated_Tool.getToolDamage(e.toolAfterUse) - GT_MetaGenerated_Tool.getToolDamage(e.toolBeforeUse)
         if (damage > 0) {
           val actualDamage = damage * e.getDamageRate
           val repairedDamage =
@@ -18,7 +19,7 @@ object EventHandlerRedstoneFlux {
               damage - math.floor(actualDamage).toInt
             else
               damage - math.ceil(actualDamage).toInt
-          energyAfter.receiveEnergy(e.toolAfterUse, repairedDamage, false)
+          GT_MetaGenerated_Tool.setToolDamage(e.toolAfterUse, GT_MetaGenerated_Tool.getToolDamage(e.toolAfterUse) - repairedDamage)
         }
       case _ =>
     }
@@ -26,7 +27,7 @@ object EventHandlerRedstoneFlux {
 
   def getDurability(stack: ItemStack): Double = {
     stack.getItem match {
-      case item: IEnergyContainerItem => item.getEnergyStored(stack).toDouble / item.getMaxEnergyStored(stack).toDouble
+      case item: IDamagableItem => 1.0 - GT_MetaGenerated_Tool.getToolDamage(stack).toDouble / GT_MetaGenerated_Tool.getToolMaxDamage(stack).toDouble
       case _ => Double.NaN
     }
   }
