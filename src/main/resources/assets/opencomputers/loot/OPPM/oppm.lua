@@ -544,7 +544,7 @@ while not choice do
 end
 candidates = nil
 
-print("Installing OpenOS to device " .. (choice.getLabel() or choice.address))
+print("Installing OPPM to device " .. (choice.getLabel() or choice.address))
 os.sleep(0.25)
 local mnt = choice.address:sub(1, 3)
 local result, reason = shell.execute("oppm", nil, "install", "-f", "oppm", "/mnt/" .. mnt .. "/usr/", "--iKnowWhatIAmDoing")
