@@ -4,28 +4,7 @@ local event = require("event")
 local unicode = require("unicode")
 local shell = require("shell")
 
-local args = {...}
-
-local name = "OpenOS"
-local postInstallLabel = "OpenOS"
-local origin = computer.getBootAddress():sub(1, 3)
-local setLabel = true
-local setBoot = true
-local askReboot = true
-
-for _, arg in ipairs(args) do
-  if arg:match("^--name=") then
-    name = arg:match("=(.+)") or "OpenOS"
-  elseif arg:match("^--from=") then
-    origin = arg:match("=(.+)") and arg:match("=(.+)"):sub(1, 3) or computer.getBootAddress():sub(1, 3)
-  elseif arg:match("^--nolabelset") then
-    setLabel = false
-  elseif arg:match("^--noboot") then
-    setBoot = false
-  elseif arg:match("^--noreboot") then
-    askReboot = false
-  end
-end
+local args, options = shell.parse(...)
 
 local candidates = {}
 for address in component.list("filesystem") do
@@ -67,6 +46,8 @@ while not choice do
 end
 candidates = nil
 
+local name = options.name or "OpenOS"
+local origin = options.from and options.from:sub(1,3) or computer.getBootAddress():sub(1, 3)
 print("Installing " .. name .." to device " .. (choice.getLabel() or choice.address))
 os.sleep(0.25)
 local mnt = choice.address:sub(1, 3)
@@ -74,15 +55,16 @@ local result, reason = os.execute("/bin/cp -vr /mnt/" .. origin .. "/* /mnt/" ..
 if not result then
   error(reason, 0)
 end
-if setLabel then choice.setLabel(name) end
+if not options.nolabelset then choice.setLabel(name) end
 
-if askReboot then
-  print("All done! " .. (setBoot and "Set as boot device and r" or "R") .. "eboot now? [Y/n]")
+if not options.noreboot then
+  print("All done! " .. ((not options.noboot) and "Set as boot device and r" or "R") .. "eboot now? [Y/n]")
   local result = io.read()
   if not result or result == "" or result:sub(1, 1):lower() == "y" then
-    if setBoot then computer.setBootAddress(choice.address)end
+    if not options.noboot then computer.setBootAddress(choice.address)end
     print("\nRebooting now!")
     computer.shutdown(true)
   end
 end
 print("Returning to shell.")
+
