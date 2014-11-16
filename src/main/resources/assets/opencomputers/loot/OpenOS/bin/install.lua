@@ -47,11 +47,12 @@ end
 candidates = nil
 
 local name = options.name or "OpenOS"
-local origin = options.from and options.from:sub(1,3) or computer.getBootAddress():sub(1, 3)
 print("Installing " .. name .." to device " .. (choice.getLabel() or choice.address))
 os.sleep(0.25)
+local origin = options.from and options.from:sub(1,3) or computer.getBootAddress():sub(1, 3)
+local fromDir = options.fromDir or "/"
 local mnt = choice.address:sub(1, 3)
-local result, reason = os.execute("/bin/cp -vr /mnt/" .. origin .. "/* /mnt/" .. mnt .. "/")
+local result, reason = os.execute("/bin/cp -vr /mnt/" .. origin .. fromDir .. "* /mnt/" .. mnt .. "/")
 if not result then
   error(reason, 0)
 end
@@ -67,4 +68,6 @@ if not options.noreboot then
   end
 end
 print("Returning to shell.")
+return "/mnt/" .. origin .. "/"
+
 
