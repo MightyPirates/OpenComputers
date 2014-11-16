@@ -31,7 +31,7 @@ function network.icmp.ping(addr, payload)
     return pingid
 end
 
-function internal.icmp.hanlde(origin, data)
+function internal.icmp.handle(origin, data)
     if data:sub(2,2) == "P" then
         local matcher = data:sub(3):gmatch("[^:]+")
         local compid = matcher()
@@ -70,7 +70,7 @@ function network.udp.send(addr, port, data)
     driver.send(addr, "D".. string.char(math.floor(port/256))..string.char(port%256)..data)
 end
 
-function internal.udp.hanlde(origin, data)
+function internal.udp.handle(origin, data)
     local port = data:byte(2)*256 + data:byte(3)
     if internal.udp.ports[port] then
         computer.pushSignal("datagram", origin, port, data:sub(4))
@@ -133,7 +133,7 @@ function network.tcp.send(channel, data)
     return false
 end
 
-function internal.tcp.hanlde(origin, data)
+function internal.tcp.handle(origin, data)
     if data:sub(2,2) == "O" then
         local port = data:byte(3)*256 + data:byte(4)
         local rchan = data:byte(5)*256 + data:byte(6)
@@ -195,9 +195,9 @@ end
 
 event.listen("network_message", function(_, origin, data)
     --print("NETMSG/",origin,data)
-    if data:sub(1,1) == "I" then internal.icmp.hanlde(origin, data)
-    elseif data:sub(1,1) == "T" then internal.tcp.hanlde(origin, data)
-    elseif data:sub(1,1) == "D" then internal.udp.hanlde(origin, data) end
+    if data:sub(1,1) == "I" then internal.icmp.handle(origin, data)
+    elseif data:sub(1,1) == "T" then internal.tcp.handle(origin, data)
+    elseif data:sub(1,1) == "D" then internal.udp.handle(origin, data) end
         
 end)
 
@@ -212,11 +212,3 @@ network.info.getInterfaceInfo = function(...)return driver.intstat(...) end
 ------------
 
 return network
-
-
-
-
-
-
-
-
