@@ -4,6 +4,8 @@ local event = require("event")
 local unicode = require("unicode")
 local shell = require("shell")
 
+local args, options = shell.parse(...)
+
 local candidates = {}
 for address in component.list("filesystem") do
   local dev = component.proxy(address)
@@ -44,21 +46,25 @@ while not choice do
 end
 candidates = nil
 
-print("Installing OpenOS to device " .. (choice.getLabel() or choice.address))
+local name = options.name or "OpenOS"
+local origin = options.from and options.from:sub(1,3) or computer.getBootAddress():sub(1, 3)
+print("Installing " .. name .." to device " .. (choice.getLabel() or choice.address))
 os.sleep(0.25)
-local boot = computer.getBootAddress():sub(1, 3)
 local mnt = choice.address:sub(1, 3)
-local result, reason = os.execute("/bin/cp -vr /mnt/" .. boot .. "/* /mnt/" .. mnt .. "/")
+local result, reason = os.execute("/bin/cp -vr /mnt/" .. origin .. "/* /mnt/" .. mnt .. "/")
 if not result then
   error(reason, 0)
 end
-choice.setLabel("OpenOS")
+if not options.nolabelset then choice.setLabel(name) end
 
-print("All done! Set as boot device and reboot now? [Y/n]")
-local result = io.read()
-if not result or result == "" or result:sub(1, 1):lower() == "y" then
-  computer.setBootAddress(choice.address)
-  print("\nRebooting now!")
-  computer.shutdown(true)
+if not options.noreboot then
+  print("All done! " .. ((not options.noboot) and "Set as boot device and r" or "R") .. "eboot now? [Y/n]")
+  local result = io.read()
+  if not result or result == "" or result:sub(1, 1):lower() == "y" then
+    if not options.noboot then computer.setBootAddress(choice.address)end
+    print("\nRebooting now!")
+    computer.shutdown(true)
+  end
 end
 print("Returning to shell.")
+
