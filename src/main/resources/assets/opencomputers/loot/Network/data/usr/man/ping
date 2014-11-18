@@ -1,0 +1,16 @@
+NAME
+  ping - check if host is reachable
+  
+SYNOPSIS
+  ping [address]
+  
+DESCRIPTION
+  Sends special ping packet to remote host and waits for answer
+  
+EXAMPLES
+  ping localhost
+    Pings self
+  
+  ping somehost
+    Sends ping to somehost
+
