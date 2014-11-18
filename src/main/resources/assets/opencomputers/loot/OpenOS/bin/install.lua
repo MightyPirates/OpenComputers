@@ -68,6 +68,3 @@ if not options.noreboot then
   end
 end
 print("Returning to shell.")
-return "/mnt/" .. origin .. "/"
-
-
