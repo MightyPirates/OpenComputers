@@ -389,25 +389,27 @@ object Network extends api.detail.NetworkAPI {
           tileEntity.xCoord + side.offsetX,
           tileEntity.yCoord + side.offsetY,
           tileEntity.zCoord + side.offsetZ)
-        val localNode = getNetworkNode(tileEntity, side)
-        val neighborTileEntity = tileEntity.getWorldObj.getTileEntity(nx, ny, nz)
-        val neighborNode = getNetworkNode(neighborTileEntity, side.getOpposite)
-        localNode match {
-          case Some(node: MutableNode) =>
-            neighborNode match {
-              case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
-                val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
-                val canConnectFMP = !Mods.ForgeMultipart.isAvailable ||
-                  (canConnectFromSideFMP(tileEntity, side) && canConnectFromSideFMP(neighborTileEntity, side.getOpposite))
-                val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
-                if (canConnectColor && canConnectFMP && canConnectIM) neighbor.connect(node)
-                else node.disconnect(neighbor)
-              case _ =>
-            }
-            if (node.network == null) {
-              joinNewNetwork(node)
-            }
-          case _ =>
+        if (tileEntity.getWorldObj.blockExists(nx, ny, nz)) {
+          val localNode = getNetworkNode(tileEntity, side)
+          val neighborTileEntity = tileEntity.getWorldObj.getTileEntity(nx, ny, nz)
+          val neighborNode = getNetworkNode(neighborTileEntity, side.getOpposite)
+          localNode match {
+            case Some(node: MutableNode) =>
+              neighborNode match {
+                case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
+                  val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
+                  val canConnectFMP = !Mods.ForgeMultipart.isAvailable ||
+                    (canConnectFromSideFMP(tileEntity, side) && canConnectFromSideFMP(neighborTileEntity, side.getOpposite))
+                  val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
+                  if (canConnectColor && canConnectFMP && canConnectIM) neighbor.connect(node)
+                  else node.disconnect(neighbor)
+                case _ =>
+              }
+              if (node.network == null) {
+                joinNewNetwork(node)
+              }
+            case _ =>
+          }
         }
       }
     }

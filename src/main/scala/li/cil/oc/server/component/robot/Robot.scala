@@ -574,7 +574,8 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
     val side = checkSideForAction(args, 0)
     fluidInTank(selectedTank) match {
       case Some(stack) =>
-        world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+        val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+        if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
           case handler: IFluidHandler =>
             result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
           case _ =>
@@ -582,6 +583,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
             val fluid = FluidRegistry.lookupFluidForBlock(block)
             result(stack.getFluid == fluid)
         }
+        else result(false)
       case _ => result(false)
     }
   }
@@ -597,32 +599,36 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
         if (count > 0 && amount == 0) {
           result(Unit, "tank is full")
         }
-        else world.getTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-          case handler: IFluidHandler =>
-            tank.getFluid match {
-              case stack: FluidStack =>
-                val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
-                if ((drained != null && drained.amount > 0) || amount == 0) {
-                  tank.fill(drained, true)
+        else {
+          val (nx, ny, nz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+          if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
+            case handler: IFluidHandler =>
+              tank.getFluid match {
+                case stack: FluidStack =>
+                  val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
+                  if ((drained != null && drained.amount > 0) || amount == 0) {
+                    tank.fill(drained, true)
+                    result(true)
+                  }
+                  else result(Unit, "incompatible or no fluid")
+                case _ =>
+                  tank.fill(handler.drain(facing.getOpposite, amount, true), true)
                   result(true)
-                }
-                else result(Unit, "incompatible or no fluid")
-              case _ =>
-                tank.fill(handler.drain(facing.getOpposite, amount, true), true)
+              }
+            case _ =>
+              val block = world.getBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+              val fluid = FluidRegistry.lookupFluidForBlock(block)
+              if (fluid == null) {
+                result(Unit, "incompatible or no fluid")
+              }
+              else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
+                tank.fill(new FluidStack(fluid, 1000), true)
+                world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
                 result(true)
-            }
-          case _ =>
-            val block = world.getBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-            val fluid = FluidRegistry.lookupFluidForBlock(block)
-            if (fluid == null) {
-              result(Unit, "incompatible or no fluid")
-            }
-            else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
-              tank.fill(new FluidStack(fluid, 1000), true)
-              world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-              result(true)
-            }
-            else result(Unit, "tank is full")
+              }
+              else result(Unit, "tank is full")
+          }
+          else result(Unit, "incompatible or no fluid")
         }
       case _ => result(Unit, "no tank selected")
     }
@@ -639,7 +645,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
           result(Unit, "tank is empty")
         }
         val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-        world.getTileEntity(bx, by, bz) match {
+        if (world.blockExists(bx, by, bz)) world.getTileEntity(bx, by, bz) match {
           case handler: IFluidHandler =>
             tank.getFluid match {
               case stack: FluidStack =>
@@ -673,6 +679,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
               result(true)
             }
         }
+        else result(Unit, "no space")
       case _ => result(Unit, "no tank selected")
     }
   }

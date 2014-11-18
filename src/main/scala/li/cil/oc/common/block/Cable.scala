@@ -96,7 +96,10 @@ object Cable {
     val tileEntity = world.getTileEntity(x, y, z)
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      if (!world.isAirBlock(tx, ty, tz)) {
+      if (world match {
+        case world: World => world.blockExists(tx, ty, tz)
+        case _ => !world.isAirBlock(tx, ty, tz)
+      }) {
         val neighborTileEntity = world.getTileEntity(tx, ty, tz)
         val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
         val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)

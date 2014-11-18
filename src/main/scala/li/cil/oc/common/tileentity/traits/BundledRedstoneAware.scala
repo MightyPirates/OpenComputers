@@ -131,10 +131,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   protected def computeBundledInput(side: ForgeDirection): Array[Int] = {
     val redLogic = if (Mods.RedLogic.isAvailable) {
-      world.getTileEntity(
-        x + side.offsetX,
-        y + side.offsetY,
-        z + side.offsetZ) match {
+      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
         case wire: IInsulatedRedstoneWire =>
           var strength: Array[Int] = null
           for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal()) && strength == null) {
@@ -150,10 +148,13 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
           strength
         case _ => null
       }
-    } else null
+      else null
+    }
+    else null
     val projectRed = if (Mods.ProjectRedTransmission.isAvailable && ProjectRed.isAPIAvailable) {
       Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
-    } else null
+    }
+    else null
     (redLogic, projectRed) match {
       case (a: Array[Int], b: Array[Int]) => (a, b).zipped.map((r1, r2) => math.max(r1, r2))
       case (a: Array[Int], _) => a

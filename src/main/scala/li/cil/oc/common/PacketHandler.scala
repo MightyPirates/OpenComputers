@@ -52,7 +52,7 @@ abstract class PacketHandler {
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
       world(player, dimension) match {
         case None => // Invalid dimension.
-        case Some(world) =>
+        case Some(world) if world.blockExists(x, y, z) =>
           val t = world.getTileEntity(x, y, z)
           if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass)) {
             return Some(t.asInstanceOf[T])
