@@ -48,7 +48,7 @@ public final class DriverRecordPlayer extends DriverTileEntity implements Enviro
             return 0;
         }
 
-        @Callback(doc = "function():string -- Get the title of the record currently in the juke box.")
+        @Callback(doc = "function():string -- Get the title of the record currently in the jukebox.")
         public Object[] getRecord(final Context context, final Arguments args) {
             final ItemStack record = tileEntity.func_145856_a();
             if (record == null || !(record.getItem() instanceof ItemRecord)) {

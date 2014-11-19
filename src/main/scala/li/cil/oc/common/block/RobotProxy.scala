@@ -154,11 +154,11 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
         // change since this player got into range he might have the wrong one,
         // so we send him the current one just in case.
         world.getTileEntity(x, y, z) match {
-          case proxy: tileentity.RobotProxy =>
+          case proxy: tileentity.RobotProxy if proxy.robot.node.network != null =>
             PacketSender.sendRobotSelectedSlotChange(proxy.robot)
+            player.openGui(OpenComputers, GuiType.Robot.id, world, x, y, z)
           case _ =>
         }
-        player.openGui(OpenComputers, GuiType.Robot.id, world, x, y, z)
       }
       true
     }

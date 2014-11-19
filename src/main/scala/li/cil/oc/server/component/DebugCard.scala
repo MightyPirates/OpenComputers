@@ -258,18 +258,21 @@ object DebugCard {
       result(world.canBlockSeeTheSky(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
     }
 
-    @Callback(doc = """function(x:number, y:number, z:number, id:number, meta:number):number -- Set the block at the specified coordinates.""")
+    @Callback(doc = """function(x:number, y:number, z:number, id:number or string, meta:number):number -- Set the block at the specified coordinates.""")
     def setBlock(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.setBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2), Block.getBlockById(args.checkInteger(3)), args.checkInteger(4), 3))
+      val block = if (args.isInteger(3)) Block.getBlockById(args.checkInteger(3)) else Block.getBlockFromName(args.checkString(3))
+      val metadata = args.checkInteger(4)
+      result(world.setBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2), block, metadata, 3))
     }
 
-    @Callback(doc = """function(x1:number, y1:number, z1:number, x2:number, y2:number, z2:number, id:number, meta:number):number -- Set all blocks in the area defined by the two corner points (x1, y1, z1) and (x2, y2, z2).""")
+    @Callback(doc = """function(x1:number, y1:number, z1:number, x2:number, y2:number, z2:number, id:number or string, meta:number):number -- Set all blocks in the area defined by the two corner points (x1, y1, z1) and (x2, y2, z2).""")
     def setBlocks(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
       val (xMin, yMin, zMin) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val (xMax, yMax, zMax) = (args.checkInteger(3), args.checkInteger(4), args.checkInteger(5))
-      val (block, metadata) = (Block.getBlockById(args.checkInteger(6)), args.checkInteger(7))
+      val block = if (args.isInteger(6)) Block.getBlockById(args.checkInteger(6)) else Block.getBlockFromName(args.checkString(6))
+      val metadata = args.checkInteger(7)
       for (x <- math.min(xMin, xMax) to math.max(xMin, xMax)) {
         for (y <- math.min(yMin, yMax) to math.max(yMin, yMax)) {
           for (z <- math.min(zMin, zMax) to math.max(zMin, zMax)) {

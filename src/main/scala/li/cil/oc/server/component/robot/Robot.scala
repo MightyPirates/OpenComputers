@@ -1,30 +1,22 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{OpenComputers, Settings, api}
 import li.cil.oc.api.event.RobotPlaceInAirEvent
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{ToolDurabilityProviders, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.item.EntityMinecart
-import net.minecraft.item.ItemBlock
-import net.minecraft.item.ItemStack
+import net.minecraft.entity.{Entity, EntityLivingBase}
+import net.minecraft.entity.item.{EntityItem, EntityMinecart}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
-import net.minecraft.util.Vec3
+import net.minecraft.util.{MovingObjectPosition, Vec3}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
@@ -449,10 +441,10 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
     Option(robot.getStackInSlot(0)) match {
       case Some(item) =>
-        if (item.isItemStackDamageable) {
-          result(item.getMaxDamage - item.getItemDamage, item.getMaxDamage - item.getItemDamageForDisplay, item.getMaxDamage)
+        ToolDurabilityProviders.getDurability(item) match {
+          case Some(durability) => result(durability)
+          case _ => result(Unit, "tool cannot be damaged")
         }
-        else result(Unit, "tool cannot be damaged")
       case _ => result(Unit, "no tool equipped")
     }
   }
@@ -582,7 +574,8 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
     val side = checkSideForAction(args, 0)
     fluidInTank(selectedTank) match {
       case Some(stack) =>
-        world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+        val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+        if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
           case handler: IFluidHandler =>
             result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
           case _ =>
@@ -590,6 +583,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
             val fluid = FluidRegistry.lookupFluidForBlock(block)
             result(stack.getFluid == fluid)
         }
+        else result(false)
       case _ => result(false)
     }
   }
@@ -605,32 +599,36 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
         if (count > 0 && amount == 0) {
           result(Unit, "tank is full")
         }
-        else world.getTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-          case handler: IFluidHandler =>
-            tank.getFluid match {
-              case stack: FluidStack =>
-                val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
-                if ((drained != null && drained.amount > 0) || amount == 0) {
-                  tank.fill(drained, true)
+        else {
+          val (nx, ny, nz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+          if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
+            case handler: IFluidHandler =>
+              tank.getFluid match {
+                case stack: FluidStack =>
+                  val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
+                  if ((drained != null && drained.amount > 0) || amount == 0) {
+                    tank.fill(drained, true)
+                    result(true)
+                  }
+                  else result(Unit, "incompatible or no fluid")
+                case _ =>
+                  tank.fill(handler.drain(facing.getOpposite, amount, true), true)
                   result(true)
-                }
-                else result(Unit, "incompatible or no fluid")
-              case _ =>
-                tank.fill(handler.drain(facing.getOpposite, amount, true), true)
+              }
+            case _ =>
+              val block = world.getBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+              val fluid = FluidRegistry.lookupFluidForBlock(block)
+              if (fluid == null) {
+                result(Unit, "incompatible or no fluid")
+              }
+              else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
+                tank.fill(new FluidStack(fluid, 1000), true)
+                world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
                 result(true)
-            }
-          case _ =>
-            val block = world.getBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-            val fluid = FluidRegistry.lookupFluidForBlock(block)
-            if (fluid == null) {
-              result(Unit, "incompatible or no fluid")
-            }
-            else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
-              tank.fill(new FluidStack(fluid, 1000), true)
-              world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-              result(true)
-            }
-            else result(Unit, "tank is full")
+              }
+              else result(Unit, "tank is full")
+          }
+          else result(Unit, "incompatible or no fluid")
         }
       case _ => result(Unit, "no tank selected")
     }
@@ -647,7 +645,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
           result(Unit, "tank is empty")
         }
         val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-        world.getTileEntity(bx, by, bz) match {
+        if (world.blockExists(bx, by, bz)) world.getTileEntity(bx, by, bz) match {
           case handler: IFluidHandler =>
             tank.getFluid match {
               case stack: FluidStack =>
@@ -681,6 +679,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
               result(true)
             }
         }
+        else result(Unit, "no space")
       case _ => result(Unit, "no tank selected")
     }
   }

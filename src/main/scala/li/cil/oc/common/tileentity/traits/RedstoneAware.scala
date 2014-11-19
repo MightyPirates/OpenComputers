@@ -116,23 +116,26 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   // ----------------------------------------------------------------------- //
 
   protected def computeInput(side: ForgeDirection) = {
-    val (sx, sy, sz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-    // See BlockRedstoneLogic.getInputStrength() for reference.
-    val vanilla = math.max(world.getIndirectPowerLevelTo(sx, sy, sz, side.ordinal()),
-      if (world.getBlock(sx, sy, sz) == Blocks.redstone_wire) world.getBlockMetadata(sx, sy, sz) else 0)
-    val redLogic = if (Mods.RedLogic.isAvailable) {
-      world.getTileEntity(sx, sy, sz) match {
-        case emitter: IRedstoneEmitter =>
-          var strength = 0
-          for (i <- -1 to 5) {
-            strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
-          }
-          strength
-        case _ => 0
+    val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+    if (!world.blockExists(nx, ny, nz)) 0
+    else {
+      // See BlockRedstoneLogic.getInputStrength() for reference.
+      val vanilla = math.max(world.getIndirectPowerLevelTo(nx, ny, nz, side.ordinal()),
+        if (world.getBlock(nx, ny, nz) == Blocks.redstone_wire) world.getBlockMetadata(nx, ny, nz) else 0)
+      val redLogic = if (Mods.RedLogic.isAvailable) {
+        world.getTileEntity(nx, ny, nz) match {
+          case emitter: IRedstoneEmitter =>
+            var strength = 0
+            for (i <- -1 to 5) {
+              strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
+            }
+            strength
+          case _ => 0
+        }
       }
+      else 0
+      math.max(vanilla, redLogic)
     }
-    else 0
-    math.max(vanilla, redLogic)
   }
 
   protected def onRedstoneInputChanged(side: ForgeDirection) {}

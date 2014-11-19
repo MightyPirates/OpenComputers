@@ -46,6 +46,7 @@ object RobotTemplate extends Template {
     // Tier 1
     {
       val nbt = new NBTTagCompound()
+      nbt.setString("name", "Robot (Tier 1)")
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectTier1")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
@@ -80,6 +81,7 @@ object RobotTemplate extends Template {
     // Tier 2
     {
       val nbt = new NBTTagCompound()
+      nbt.setString("name", "Robot (Tier 2)")
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectTier2")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
@@ -117,6 +119,7 @@ object RobotTemplate extends Template {
     // Tier 3
     {
       val nbt = new NBTTagCompound()
+      nbt.setString("name", "Robot (Tier 3)")
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectTier3")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")
@@ -158,6 +161,7 @@ object RobotTemplate extends Template {
     // Creative
     {
       val nbt = new NBTTagCompound()
+      nbt.setString("name", "Robot (Creative)")
       nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectCreative")
       nbt.setString("validate", "li.cil.oc.common.template.RobotTemplate.validate")
       nbt.setString("assemble", "li.cil.oc.common.template.RobotTemplate.assemble")

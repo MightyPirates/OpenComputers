@@ -1,0 +1,47 @@
+NAME
+  network - Advanced self-routing API
+  
+METHODS
+  network.icmp.ping(addr, payload)
+    Sends ping message to addr, message will come back triggering
+    'ping_reply' event
+
+  network.ip.bind(addr)
+    Attaches addnitional address to this computer, useful for
+    core servers which addresses must me easisy rememberable
+    Address SOULD be up to 64 characters, allowed characters: a-zA-Z, '-'
+    
+  network.udp.open(port)
+    Starts listening on specified port, when data arrives at port "datagram"
+    event is triggered with origin, port, data parameters
+ 
+  network.udp.close(port)
+    Stops listening on specified port
+
+  network.udp.send(addr, port, data)
+    Sends data to specified host and port. Specified port MUST be open
+    on remote machine
+
+  network.tcp.listen(port)
+    Starts listening at specified port. When connection arrives event
+    "tcp", "connection", channel, remoteaddr, port
+    is trigerred
+    
+  network.tcp.unlisten(port)
+    Stops listening on specified port. Note that all connections made to
+    this port will remain untouched
+    
+  network.tcp.open(addr, port)
+    Tries to open a new connection. Will trigger event
+    "tcp", "connection", channel, remoteaddr, port
+    When remote host accepted the connection
+    
+  network.tcp.close(channel)
+    Closes earlier opened connection, will trigger
+    "tcp", "close", channel, remoteaddr, port
+    on remote side
+    
+  network.tcp.send(channel, data)
+    Sends data to other side, will trigger
+    "tcp", "message", ch, data, remoteaddr, port
+    event on remote side

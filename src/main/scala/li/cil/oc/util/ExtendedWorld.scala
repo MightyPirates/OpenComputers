@@ -5,11 +5,13 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
+import scala.language.implicitConversions
+
 object ExtendedWorld {
 
-  implicit def extendedBlockAccess(world: IBlockAccess) = new ExtendedBlockAccess(world)
+  implicit def extendedBlockAccess(world: IBlockAccess): ExtendedBlockAccess = new ExtendedBlockAccess(world)
 
-  implicit def extendedWorld(world: World) = new ExtendedWorld(world)
+  implicit def extendedWorld(world: World): ExtendedWorld = new ExtendedWorld(world)
 
   class ExtendedBlockAccess(val world: IBlockAccess) {
     def getBlock(position: BlockPosition) = world.getBlock(position.x, position.y, position.z)

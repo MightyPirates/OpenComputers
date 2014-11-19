@@ -25,9 +25,9 @@ class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAc
 
   override def registerBlockIcons(iconRegister: IIconRegister) = {
     super.registerBlockIcons(iconRegister)
-    Textures.RobotAssembler.iconSideAssembling = iconRegister.registerIcon(Settings.resourceDomain + ":AssemblerSideAssembling")
-    Textures.RobotAssembler.iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":AssemblerSideOn")
-    Textures.RobotAssembler.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":AssemblerTopOn")
+    Textures.Assembler.iconSideAssembling = iconRegister.registerIcon(Settings.resourceDomain + ":AssemblerSideAssembling")
+    Textures.Assembler.iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":AssemblerSideOn")
+    Textures.Assembler.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":AssemblerTopOn")
   }
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.DOWN || side == ForgeDirection.UP

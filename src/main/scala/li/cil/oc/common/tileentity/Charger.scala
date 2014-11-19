@@ -1,15 +1,9 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Localization
-import li.cil.oc.Settings
-import li.cil.oc.api
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.{Localization, Settings, api}
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.Analyzable
-import li.cil.oc.api.network.Component
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Analyzable, Component, Node, Visibility}
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -85,7 +79,11 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       }
     }
     else if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
-      ForgeDirection.VALID_DIRECTIONS.map(side => world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).collect {
+      ForgeDirection.VALID_DIRECTIONS.map(side => {
+        val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+        if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz)
+        else null
+      }).collect {
         case proxy: RobotProxy if proxy.globalBuffer / proxy.globalBufferSize < 0.95 =>
           val theta = world.rand.nextDouble * Math.PI
           val phi = world.rand.nextDouble * Math.PI * 2
@@ -168,7 +166,11 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   def onNeighborChanged() {
     checkRedstoneInputChanged()
-    ForgeDirection.VALID_DIRECTIONS.map(side => (side.ordinal(), world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ))).collect {
+    ForgeDirection.VALID_DIRECTIONS.map(side => (side.ordinal(), {
+      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz)
+      else null
+    })).collect {
       case (side, proxy: RobotProxy) => robots(side) = Some(proxy)
       case (side, _) => robots(side) = None
     }

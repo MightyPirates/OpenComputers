@@ -3,13 +3,10 @@ package li.cil.oc.common.tileentity.traits.power
 import java.util
 
 import appeng.api.AEApi
-import appeng.api.config.Actionable
-import appeng.api.config.PowerMultiplier
+import appeng.api.config.{Actionable, PowerMultiplier}
 import appeng.api.networking._
 import appeng.api.networking.energy.IEnergyGrid
-import appeng.api.util.AECableType
-import appeng.api.util.AEColor
-import appeng.api.util.DimensionalCoord
+import appeng.api.util.{AECableType, AEColor, DimensionalCoord}
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
@@ -36,16 +33,16 @@ trait AppliedEnergistics2 extends Common {
   private def updateEnergy() {
     tryAllSides((demand, side) => {
       val grid = getGridNode(side).getGrid
-    if (grid != null) {
-      val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
-      if (cache != null) {
+      if (grid != null) {
+        val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
+        if (cache != null) {
           cache.extractAEPower(demand, Actionable.MODULATE, PowerMultiplier.CONFIG)
-          }
-        else 0.0
         }
+        else 0.0
+      }
       else 0.0
     }, Settings.get.ratioAppliedEnergistics2)
-      }
+  }
 
   override def validate() {
     super.validate()

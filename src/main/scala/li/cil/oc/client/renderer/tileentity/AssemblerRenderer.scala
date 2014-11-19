@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
-object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
+object AssemblerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
@@ -29,7 +29,7 @@ object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
     t.startDrawingQuads()
 
     {
-      val icon = Textures.RobotAssembler.iconTopOn
+      val icon = Textures.Assembler.iconTopOn
       t.addVertexWithUV(-0.5, 0.55, 0.5, icon.getMinU, icon.getMaxV)
       t.addVertexWithUV(0.5, 0.55, 0.5, icon.getMaxU, icon.getMaxV)
       t.addVertexWithUV(0.5, 0.55, -0.5, icon.getMaxU, icon.getMinV)
@@ -43,7 +43,7 @@ object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
       t.startDrawingQuads()
 
       if (assembler.isAssembling) {
-        val icon = Textures.RobotAssembler.iconSideAssembling
+        val icon = Textures.Assembler.iconSideAssembling
         t.addVertexWithUV(indent, 0.5, -indent, icon.getInterpolatedU((0.5 - indent) * 16), icon.getMaxV)
         t.addVertexWithUV(indent, 0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMaxV)
         t.addVertexWithUV(indent, -0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMinV)
@@ -51,7 +51,7 @@ object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
       }
 
       {
-        val icon = Textures.RobotAssembler.iconSideOn
+        val icon = Textures.Assembler.iconSideOn
         t.addVertexWithUV(0.5005, 0.5, -0.5, icon.getMinU, icon.getMaxV)
         t.addVertexWithUV(0.5005, 0.5, 0.5, icon.getMaxU, icon.getMaxV)
         t.addVertexWithUV(0.5005, -0.5, 0.5, icon.getMaxU, icon.getMinV)

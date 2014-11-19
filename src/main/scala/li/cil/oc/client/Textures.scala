@@ -72,7 +72,7 @@ object Textures {
     val icons = Array.fill[IIcon](6)(null)
   }
 
-  object RobotAssembler {
+  object Assembler {
     var iconSideAssembling: IIcon = _
     var iconSideOn: IIcon = _
     var iconTopOn: IIcon = _

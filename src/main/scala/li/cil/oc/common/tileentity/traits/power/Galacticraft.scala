@@ -9,7 +9,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.language.implicitConversions
 
 trait Galacticraft extends Common {
-  private implicit def toDirection(source: EnergySource) = source match {
+  private implicit def toDirection(source: EnergySource): ForgeDirection = source match {
     case adjacent: EnergySource.EnergySourceAdjacent => adjacent.direction
     case _ => ForgeDirection.UNKNOWN
   }

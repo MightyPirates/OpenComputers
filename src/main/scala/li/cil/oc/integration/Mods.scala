@@ -85,6 +85,7 @@ object Mods {
     tryInit(integration.mystcraft.ModMystcraft)
     tryInit(integration.opencomputers.ModOpenComputers)
     tryInit(integration.railcraft.ModRailcraft)
+    tryInit(integration.stargatetech2.ModStargateTech2)
     tryInit(integration.thaumcraft.ModThaumcraft)
     tryInit(integration.thermalexpansion.ModThermalExpansion)
     tryInit(integration.tcon.ModTinkersConstruct)
