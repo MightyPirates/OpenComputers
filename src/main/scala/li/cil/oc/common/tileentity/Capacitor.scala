@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.{Settings, api}
 import li.cil.oc.api.network.{Node, Visibility}
+import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.util.ForgeDirection
 
 class Capacitor extends traits.Environment {
@@ -48,14 +48,14 @@ class Capacitor extends traits.Environment {
           })
         }) +
         Settings.get.bufferCapacitorAdjacencyBonus / 2 * indirectNeighbors.count {
-          case (nx, ny, nz) if world.blockExists(nx, ny, nz) => world.getTileEntity(nx, ny, nz) match {
+          case (nx, ny, nz) => world.blockExists(nx, ny, nz) && (world.getTileEntity(nx, ny, nz) match {
             case capacitor: Capacitor =>
               if (updateSecondGradeNeighbors) {
                 capacitor.recomputeCapacity()
               }
               true
             case _ => false
-          }
+          })
         })
   }
 
