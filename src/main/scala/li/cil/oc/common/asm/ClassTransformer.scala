@@ -19,17 +19,6 @@ class ClassTransformer extends IClassTransformer {
 
   private val log = LogManager.getLogger("OpenComputers")
 
-  private lazy val powerTypes = Map[Mods.ModBase, Array[String]](
-    Mods.AppliedEnergistics2 -> Array("appeng/api/networking/IGridHost"),
-    Mods.Factorization -> Array("factorization/api/IChargeConductor"),
-    Mods.Galacticraft -> Array("micdoodle8/mods/galacticraft/api/power/IEnergyHandlerGC"),
-    Mods.IndustrialCraft2API -> Array("ic2/api/energy/tile/IEnergySink"),
-    Mods.IndustrialCraft2Classic -> Array("ic2classic/api/energy/tile/IEnergySink"),
-    Mods.Mekanism -> Array("mekanism/api/energy/IStrictEnergyAcceptor"),
-    Mods.CoFHEnergy -> Array("cofh/api/energy/IEnergyHandler"),
-    Mods.UniversalElectricity -> Array("universalelectricity/api/core/grid/INodeProvider")
-  )
-
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
     var transformedClass = basicClass
     try {
@@ -65,23 +54,56 @@ class ClassTransformer extends IClassTransformer {
           }
           classNode.methods.removeAll(incompleteMethods)
 
-          // Inject available power interfaces into power acceptors.
-          if (classNode.interfaces.contains("li/cil/oc/common/tileentity/traits/PowerAcceptor")) {
-            def missingImplementations(interfaceName: String) = {
-              val node = classNodeFor(interfaceName)
-              if (node == null) Seq(s"Interface ${interfaceName.replaceAll("/", ".")} not found.")
-              else node.methods.filterNot(im => classNode.methods.exists(cm => im.name == cm.name && im.desc == cm.desc)).map(method => s"Missing implementation of ${method.name + method.desc}")
+          // Inject available interfaces where requested.
+          if (classNode.visibleAnnotations != null) {
+            def injectInterface(annotation: AnnotationNode): Unit = {
+              val values = annotation.values.grouped(2).map(buffer => buffer(0) -> buffer(1)).toMap
+              (values.get("value"), values.get("modid")) match {
+                case (Some(interfaceName: String), Some(modid: String)) =>
+                  Mods.All.find(_.id == modid) match {
+                    case Some(mod) =>
+                      if (mod.isAvailable) {
+                        val interfaceDesc = interfaceName.replaceAllLiterally(".", "/")
+                        val node = classNodeFor(interfaceDesc)
+                        if (node == null) {
+                          log.warn(s"Interface $interfaceName not found, skipping injection.")
+                        }
+                        else {
+                          val missing = node.methods.filterNot(im => classNode.methods.exists(cm => im.name == cm.name && im.desc == cm.desc)).map(method => s"Missing implementation of ${method.name + method.desc}")
+                          if (missing.isEmpty) {
+                            log.info(s"Injecting interface $interfaceName into $name.")
+                            classNode.interfaces.add(interfaceDesc)
+                          }
+                          else {
+                            log.warn(s"Missing implementations for interface $interfaceName, skipping injection.")
+                            missing.foreach(log.warn)
+                          }
+                        }
+                      }
+                      else {
+                        log.info(s"Skipping interface $interfaceName from missing mod $modid.")
+                        mod.disablePower()
+                      }
+                    case _ =>
+                      log.warn(s"Skipping interface $interfaceName from unknown mod $modid.")
+                  }
+                case _ =>
+              }
             }
-            for ((mod, interfaces) <- powerTypes if mod.isAvailable) {
-              val missing = interfaces.flatMap(missingImplementations)
-              if (missing.isEmpty) {
-                interfaces.foreach(classNode.interfaces.add)
-              }
-              else {
-                mod.disablePower()
-                log.warn(s"Skipping power support for mod ${mod.id}.")
-                missing.foreach(log.warn)
-              }
+            classNode.visibleAnnotations.find(_.desc == "Lli/cil/oc/common/asm/Injectable$Interface;") match {
+              case Some(annotation) =>
+                injectInterface(annotation)
+              case _ =>
+            }
+            classNode.visibleAnnotations.find(_.desc == "Lli/cil/oc/common/asm/Injectable$InterfaceList;") match {
+              case Some(annotation) =>
+                val values = annotation.values.grouped(2).map(buffer => buffer(0) -> buffer(1)).toMap
+                values.get("value") match {
+                  case Some(interfaceList: java.lang.Iterable[AnnotationNode]) =>
+                    interfaceList.foreach(injectInterface)
+                  case _ =>
+                }
+              case _ =>
             }
           }
 

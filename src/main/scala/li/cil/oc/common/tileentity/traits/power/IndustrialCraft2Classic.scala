@@ -3,14 +3,17 @@ package li.cil.oc.common.tileentity.traits.power
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.Event
 import ic2classic.api.Direction
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
+@Injectable.Interface(value = "ic2classic.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2Classic)
 trait IndustrialCraft2Classic extends Common with IndustrialCraft2Common {
   private var conversionBuffer = 0.0
 

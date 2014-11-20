@@ -1,11 +1,16 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import factorization.api.{Charge, Coord, IChargeConductor}
-import li.cil.oc.{OpenComputers, Settings}
+import factorization.api.Charge
+import factorization.api.Coord
+import factorization.api.IChargeConductor
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 
+@Injectable.Interface(value = "factorization.api.IChargeConductor", modid = Mods.IDs.Factorization)
 trait Factorization extends Common {
   private lazy val useFactorizationPower = isServer && Mods.Factorization.isAvailable
 
