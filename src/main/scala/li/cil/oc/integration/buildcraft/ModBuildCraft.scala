@@ -8,7 +8,7 @@ object ModBuildCraft extends ModProxy {
   override def getMod = Mods.BuildCraft
 
   override def initialize() {
-    Driver.add(new DriverPipeTE)
-    Driver.add(new DriverMachine)
+    Driver.add(new DriverPipeTile)
+    Driver.add(new DriverControllable)
   }
 }

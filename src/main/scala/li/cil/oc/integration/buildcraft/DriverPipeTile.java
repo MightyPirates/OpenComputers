@@ -12,7 +12,7 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public final class DriverPipeTE extends DriverTileEntity {
+public final class DriverPipeTile extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return IPipeTile.class;
@@ -41,7 +41,7 @@ public final class DriverPipeTE extends DriverTileEntity {
         @Callback(doc = "function():string --  Returns the type of the pipe.")
         public Object[] getPipeType(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.getPipeType().name().toLowerCase()};
+                return new Object[]{tileEntity.getPipeType().name()};
             } catch (Throwable ignored) {
             }
             return new Object[]{null, "none"};
@@ -59,7 +59,25 @@ public final class DriverPipeTE extends DriverTileEntity {
         @Callback(doc = "function(color:string):boolean -- Returns whether the pipe is wired with the given color.")
         public Object[] isWired(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.isWireActive(PipeWire.valueOf(args.checkString(0)))};
+                return new Object[]{tileEntity.getPipe().isWired(PipeWire.valueOf(args.checkString(0)))};
+            } catch (Throwable ignored) {
+            }
+            return new Object[]{false};
+        }
+
+        @Callback(doc = "function(color:string):boolean -- Returns whether the wired with the given color is active.")
+        public Object[] isWireActive(final Context context, final Arguments args) {
+            try {
+                return new Object[]{tileEntity.getPipe().isWireActive(PipeWire.valueOf(args.checkString(0)))};
+            } catch (Throwable ignored) {
+            }
+            return new Object[]{false};
+        }
+
+        @Callback(doc = "function(side:number):boolean -- Returns whether the pipe has a gate on the specified side.")
+        public Object[] hasGate(final Context context, final Arguments args) {
+            try {
+                return new Object[]{tileEntity.getPipe().hasGate(ForgeDirection.getOrientation(args.checkInteger(0)))};
             } catch (Throwable ignored) {
             }
             return new Object[]{false};
