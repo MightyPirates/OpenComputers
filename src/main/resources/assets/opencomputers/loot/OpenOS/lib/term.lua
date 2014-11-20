@@ -126,7 +126,7 @@ function term.read(history, dobreak, hint, pwchar)
   end
   local hintCache, hintIndex
 
-  if pwchar then
+  if pwchar and unicode.len(pwchar) > 0 then
     pwchar = unicode.sub(pwchar, 1, 1)
   end
 
