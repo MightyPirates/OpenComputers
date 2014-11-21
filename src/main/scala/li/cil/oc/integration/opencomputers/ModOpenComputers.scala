@@ -46,6 +46,8 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(Tablet)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
+    MinecraftForge.EVENT_BUS.register(li.cil.oc.client.ComponentTracker)
+    MinecraftForge.EVENT_BUS.register(li.cil.oc.server.ComponentTracker)
 
     api.Driver.add(DriverBlockEnvironments)
 

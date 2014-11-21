@@ -11,13 +11,15 @@ import scala.collection.mutable
 object Mods {
   private val handlers = mutable.Set.empty[ModProxy]
 
-  private val knownMods = mutable.ArrayBuffer.empty[Mod]
+  private val knownMods = mutable.ArrayBuffer.empty[ModBase]
 
   lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
 
   // ----------------------------------------------------------------------- //
 
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2 + "@[rv1,)")
+  def All = knownMods.clone()
+
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val CoFHEnergy = new SimpleMod(IDs.CoFHEnergy, providesPower = true)
@@ -181,9 +183,9 @@ object Mods {
     def disablePower() = powerDisabled = true
   }
 
-  class SimpleMod(val id: String, override val providesPower: Boolean = false) extends ModBase {
+  class SimpleMod(val id: String, override val providesPower: Boolean = false, version: String = "") extends ModBase {
     override protected lazy val isModAvailable = {
-      val version = VersionParser.parseVersionReference(id)
+      val version = VersionParser.parseVersionReference(id + this.version)
       if (Loader.isModLoaded(version.getLabel))
         version.containsVersion(Loader.instance.getIndexedModList.get(version.getLabel).getProcessedVersion)
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)

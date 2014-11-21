@@ -3,19 +3,24 @@ package li.cil.oc.common.tileentity.traits.power
 import java.util
 
 import appeng.api.AEApi
-import appeng.api.config.{Actionable, PowerMultiplier}
+import appeng.api.config.Actionable
+import appeng.api.config.PowerMultiplier
 import appeng.api.networking._
 import appeng.api.networking.energy.IEnergyGrid
-import appeng.api.util.{AECableType, AEColor, DimensionalCoord}
+import appeng.api.util.AECableType
+import appeng.api.util.AEColor
+import appeng.api.util.DimensionalCoord
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
+@Injectable.Interface(value = "appeng.api.networking.IGridHost", modid = Mods.IDs.AppliedEnergistics2)
 trait AppliedEnergistics2 extends Common {
   private lazy val useAppliedEnergistics2Power = isServer && Mods.AppliedEnergistics2.isAvailable
 

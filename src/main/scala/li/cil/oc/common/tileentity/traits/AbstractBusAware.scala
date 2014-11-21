@@ -5,28 +5,21 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.network
 import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.StargateTech2
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.nbt.NBTTagCompound
 import lordfokas.stargatetech2.api.StargateTechAPI
 import lordfokas.stargatetech2.api.bus.IBusDevice
 import lordfokas.stargatetech2.api.bus.IBusInterface
+import net.minecraft.nbt.NBTTagCompound
 
-// IMPORTANT: for some reason that is beyond me we cannot implement the
-// IBusDevice here directly, since we'll get an error if the interface is not
-// provided (i.e. if SGT2 isn't installed), even if we tell FML to strip it.
-// Assuming FML properly strips the interface (and it looks like it does, when
-// inspecting it in the debugger, i.e. getInterfaces() doesn't contain it), it
-// probably is something derping up in the class loader... the thing that
-// confuses me the most, though, is that it apparently works for redstone and
-// the CC interface, so... yeah. I'm out of ideas.
+@Injectable.Interface(value = "lordfokas.stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
 trait AbstractBusAware extends TileEntity with network.Environment {
-  self: IBusDevice =>
   protected var _isAbstractBusAvailable: Boolean = _
 
-  protected lazy val fakeInterface = Array[AnyRef](StargateTechAPI.api.getFactory.getIBusInterface(this, null))
+  protected lazy val fakeInterface = Array[AnyRef](StargateTechAPI.api.getFactory.getIBusInterface(this.asInstanceOf[IBusDevice], null))
 
   def installedComponents: Iterable[ManagedEnvironment]
 
