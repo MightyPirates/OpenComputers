@@ -119,7 +119,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     }
 
     this.synchronized {
-      _pendingCommands.foreach(_.sendToPlayersNearHost(host))
+      _pendingCommands.foreach(_.sendToPlayersNearHost(host, Option(Settings.get.maxWirelessRange * Settings.get.maxWirelessRange)))
       _pendingCommands = None
     }
   }
