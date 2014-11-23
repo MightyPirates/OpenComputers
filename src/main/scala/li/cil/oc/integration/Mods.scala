@@ -108,10 +108,10 @@ object Mods {
     val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
     val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
     if (!isBlacklisted && (alwaysEnabled || mod.getMod.isAvailable) && handlers.add(mod)) {
-      li.cil.oc.OpenComputers.log.info(String.format("Initializing mod integration for '%s'.", mod.getMod.id))
+      li.cil.oc.OpenComputers.log.info(s"Initializing mod integration for '${mod.getMod.id}'.")
       try mod.initialize() catch {
         case e: Throwable =>
-          li.cil.oc.OpenComputers.log.warn(String.format("Error initializing integration for '%s'", mod.getMod.id), e)
+          li.cil.oc.OpenComputers.log.warn(s"Error initializing integration for '${mod.getMod.id}'", e)
       }
     }
   }

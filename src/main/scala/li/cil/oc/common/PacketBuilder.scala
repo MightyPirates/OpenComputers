@@ -44,17 +44,17 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 
   def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
 
-  def sendToPlayersNearTileEntity(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
+  def sendToPlayersNearTileEntity(t: TileEntity, range: Option[Double] = None): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
 
-  def sendToPlayersNearHost(host: EnvironmentHost, range: Double = 1024): Unit = sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
+  def sendToPlayersNearHost(host: EnvironmentHost, range: Option[Double] = None): Unit = sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
 
-  def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Double) {
+  def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Option[Double]) {
     val dimension = world.provider.dimensionId
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
     val manager = server.getConfigurationManager
     for (player <- manager.playerEntityList.map(_.asInstanceOf[EntityPlayerMP]) if player.dimension == dimension) {
-      val playerRenderDistance = Int.MaxValue // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
-      val playerSpecificRange = math.min(range, (manager.getViewDistance min playerRenderDistance) * 16)
+      val playerRenderDistance = 16 // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
+      val playerSpecificRange = range.getOrElse((manager.getViewDistance min playerRenderDistance) * 16.0)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
         sendToPlayer(player)
       }

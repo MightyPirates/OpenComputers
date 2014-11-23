@@ -255,5 +255,6 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradeDatabase(multi, Tier.One), "databaseUpgrade1", "oc:databaseUpgrade1")
     Recipes.addItem(new item.UpgradeDatabase(multi, Tier.Two), "databaseUpgrade2", "oc:databaseUpgrade2")
     Recipes.addItem(new item.UpgradeDatabase(multi, Tier.Three), "databaseUpgrade3", "oc:databaseUpgrade3")
+    registerItem(new item.Debugger(multi), "debugger")
   }
 }

@@ -114,7 +114,7 @@ object PacketSender {
               pb.writeDouble(event.getZ)
           }
 
-          pb.sendToPlayersNearHost(host, 64)
+          pb.sendToPlayersNearHost(host, Option(64))
         }
     }
   }
@@ -266,7 +266,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToPlayersNearTileEntity(t, 64)
+    pb.sendToPlayersNearTileEntity(t, Option(64))
   }
 
   def sendRobotAnimateTurn(t: tileentity.Robot) {
@@ -276,7 +276,7 @@ object PacketSender {
     pb.writeByte(t.turnAxis)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToPlayersNearTileEntity(t, 64)
+    pb.sendToPlayersNearTileEntity(t, Option(64))
   }
 
   def sendRobotInventory(t: tileentity.Robot, slot: Int, stack: ItemStack) {
@@ -295,7 +295,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
 
-    pb.sendToPlayersNearTileEntity(t, 16)
+    pb.sendToPlayersNearTileEntity(t, Option(16))
   }
 
   def sendRotatableState(t: Rotatable) {
@@ -313,7 +313,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
 
-    pb.sendToPlayersNearTileEntity(t, 64)
+    pb.sendToPlayersNearTileEntity(t, Option(64))
   }
 
   def appendTextBufferColorChange(pb: PacketBuilder, foreground: PackedColor.Color, background: PackedColor.Color) {
@@ -457,6 +457,6 @@ object PacketSender {
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
 
-    pb.sendToNearbyPlayers(world, x, y, z, 16)
+    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
   }
 }

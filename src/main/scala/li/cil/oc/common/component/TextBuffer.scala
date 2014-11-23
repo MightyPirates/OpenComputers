@@ -4,6 +4,7 @@ import com.google.common.base.Strings
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.component.TextBuffer.ColorDepth
@@ -24,6 +25,7 @@ import li.cil.oc.util
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.SideTracker
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.event.world.ChunkEvent
@@ -119,7 +121,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     }
 
     this.synchronized {
-      _pendingCommands.foreach(_.sendToPlayersNearHost(host))
+      _pendingCommands.foreach(_.sendToPlayersNearHost(host, Option(Settings.get.maxWirelessRange * Settings.get.maxWirelessRange)))
       _pendingCommands = None
     }
   }
@@ -551,26 +553,48 @@ object TextBuffer {
       dirty = true
     }
 
-    override def keyDown(character: Char, code: Int, player: EntityPlayer) =
+    override def keyDown(character: Char, code: Int, player: EntityPlayer) {
+      debug(s"{type = keyDown, char = $character, code = $code}")
       ClientPacketSender.sendKeyDown(nodeAddress, character, code)
+    }
 
-    override def keyUp(character: Char, code: Int, player: EntityPlayer) =
+    override def keyUp(character: Char, code: Int, player: EntityPlayer) {
+      debug(s"{type = keyUp, char = $character, code = $code}")
       ClientPacketSender.sendKeyUp(nodeAddress, character, code)
+    }
 
-    override def clipboard(value: String, player: EntityPlayer) =
+    override def clipboard(value: String, player: EntityPlayer) {
+      debug(s"{type = clipboard}")
       ClientPacketSender.sendClipboard(nodeAddress, value)
+    }
 
-    override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) =
+    override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
+      debug(s"{type = mouseDown, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = false, button)
+    }
 
-    override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) =
+    override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) {
+      debug(s"{type = mouseDrag, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = true, button)
+    }
 
-    override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) =
+    override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) {
+      debug(s"{type = mouseUp, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseUp(nodeAddress, x, y, button)
+    }
 
-    override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) =
+    override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
+      debug(s"{type = mouseScroll, x = $x, y = $y, delta = $delta}")
       ClientPacketSender.sendMouseScroll(nodeAddress, x, y, delta)
+    }
+
+    private lazy val Debugger = api.Items.get("debugger")
+
+    private def debug(message: String) {
+      if (api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {
+        OpenComputers.log.info(s"[NETWORK DEBUGGER] Sending packet to node $nodeAddress: " + message)
+      }
+    }
   }
 
   class ServerProxy(val owner: TextBuffer) extends Proxy {

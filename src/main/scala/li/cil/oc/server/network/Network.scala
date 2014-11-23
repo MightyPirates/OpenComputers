@@ -679,6 +679,8 @@ object Network extends api.detail.NetworkAPI {
         case value => OpenComputers.log.warn("Unexpected type while saving network packet: " + value.getClass.getName)
       }
     }
+
+    override def toString = s"{source = $source, destination = $destination, port = $port, data = [${data.mkString(", ")}}]}"
   }
 
   // ----------------------------------------------------------------------- //
