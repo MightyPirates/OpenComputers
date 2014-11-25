@@ -591,7 +591,7 @@ object TextBuffer {
     private lazy val Debugger = api.Items.get("debugger")
 
     private def debug(message: String) {
-      if (api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {
+      if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.thePlayer != null && api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {
         OpenComputers.log.info(s"[NETWORK DEBUGGER] Sending packet to node $nodeAddress: " + message)
       }
     }
