@@ -20,7 +20,7 @@ import scala.io.Codec
 import scala.io.Source
 import scala.util.matching.Regex
 
-class Settings(config: Config) {
+class Settings(val config: Config) {
   // ----------------------------------------------------------------------- //
   // client
   val screenTextFadeStartDistance = config.getDouble("client.screenTextFadeStartDistance")
