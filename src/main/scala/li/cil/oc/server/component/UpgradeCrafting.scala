@@ -3,20 +3,23 @@ package li.cil.oc.server.component
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.api.internal.Robot
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
+import net.minecraft.item.crafting.IRecipe
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.util.control.Breaks._
 
 class UpgradeCrafting(val host: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
@@ -36,43 +39,50 @@ class UpgradeCrafting(val host: EnvironmentHost with Robot) extends prefab.Manag
 
     def craft(wantedCount: Int): Seq[_] = {
       load()
-      val manager = CraftingManager.getInstance
-      val result = manager.findMatchingRecipe(CraftingInventory, host.world)
-      if (result == null) return Seq(false, 0)
-      val targetStackSize = if (result.isStackable) math.min(wantedCount, result.getMaxStackSize) else result.stackSize
-      val timesCrafted = math.min(targetStackSize / result.stackSize, amountPossible)
-      if (timesCrafted <= 0) return Seq(true, 0)
-      FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
-      val surplus = mutable.ArrayBuffer.empty[ItemStack]
-      for (slot <- 0 until getSizeInventory) {
-        val stack = getStackInSlot(slot)
-        if (stack != null) {
-          decrStackSize(slot, timesCrafted)
-          val item = stack.getItem
-          if (item.hasContainerItem(stack)) {
-            val container = item.getContainerItem(stack)
-            if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
-              MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container))
-            }
-            else if (container.getItem.doesContainerItemLeaveCraftingGrid(container) || getStackInSlot(slot) != null) {
-              surplus += container
-            }
-            else {
-              container.stackSize *= timesCrafted
-              setInventorySlotContents(slot, container)
+      CraftingManager.getInstance.getRecipeList.find {
+        case recipe: IRecipe => recipe.matches(CraftingInventory, host.world)
+        case _ => false // Shouldn't ever happen, but...
+      } match {
+        case Some(recipe: IRecipe) =>
+          var countCrafted = 0
+          breakable {
+            while (countCrafted < wantedCount && recipe.matches(this, host.world)) {
+              val result = recipe.getCraftingResult(CraftingInventory)
+              if (result == null || result.stackSize < 1) break()
+              countCrafted += result.stackSize
+              FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
+              val surplus = mutable.ArrayBuffer.empty[ItemStack]
+              for (slot <- 0 until getSizeInventory) {
+                val stack = getStackInSlot(slot)
+                if (stack != null) {
+                  decrStackSize(slot, 1)
+                  val item = stack.getItem
+                  if (item.hasContainerItem(stack)) {
+                    val container = item.getContainerItem(stack)
+                    if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
+                      MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container))
+                    }
+                    else if (container.getItem.doesContainerItemLeaveCraftingGrid(container) || getStackInSlot(slot) != null) {
+                      surplus += container
+                    }
+                    else {
+                      setInventorySlotContents(slot, container)
+                    }
+                  }
+                }
+              }
+              save()
+              val inventory = host.player.inventory
+              inventory.addItemStackToInventory(result)
+              for (stack <- surplus) {
+                inventory.addItemStackToInventory(stack)
+              }
+              load()
             }
           }
-        }
+          Seq(true, countCrafted)
+        case _ => Seq(false, 0)
       }
-      save()
-      result.stackSize *= timesCrafted
-      val countCrafted = result.stackSize
-      val inventory = host.player.inventory
-      inventory.addItemStackToInventory(result)
-      for (stack <- surplus) {
-        inventory.addItemStackToInventory(stack)
-      }
-      Seq(true, countCrafted)
     }
 
     def load() {
