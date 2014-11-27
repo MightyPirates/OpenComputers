@@ -132,7 +132,7 @@ dependencies {
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "dev.calclavia.universalelectricity:universal-electricity:${config.ue.version}:dev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
-    provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:api"
+    provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
 

@@ -105,7 +105,8 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
       links -= link
     }
 
-    override def injectCratedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack
+    // rv1
+    def injectCratedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack
 
     // rv2
     def injectCraftedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack

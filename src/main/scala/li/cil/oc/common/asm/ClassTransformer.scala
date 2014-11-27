@@ -99,7 +99,7 @@ class ClassTransformer extends IClassTransformer {
               case Some(annotation) =>
                 val values = annotation.values.grouped(2).map(buffer => buffer(0) -> buffer(1)).toMap
                 values.get("value") match {
-                  case Some(interfaceList: java.lang.Iterable[AnnotationNode]) =>
+                  case Some(interfaceList: java.lang.Iterable[AnnotationNode]@unchecked) =>
                     interfaceList.foreach(injectInterface)
                   case _ =>
                 }

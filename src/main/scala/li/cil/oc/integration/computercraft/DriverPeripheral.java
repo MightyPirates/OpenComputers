@@ -25,18 +25,20 @@ import java.util.Map;
 import java.util.Set;
 
 public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
-    private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
-
-    static {
-        for (String name : Settings.get().peripheralBlacklist()) {
-            final Class<?> clazz = Reflection.getClass(name);
-            if (clazz != null) {
-                blacklist.add(clazz);
-            }
-        }
-    }
+    private static Set<Class<?>> blacklist;
 
     private boolean isBlacklisted(final Object o) {
+        // Delayed initialization of the resolved classes to allow registering
+        // additional entries via IMC.
+        if (blacklist == null) {
+            blacklist = new HashSet<Class<?>>();
+            for (String name : Settings.get().peripheralBlacklist()) {
+                final Class<?> clazz = Reflection.getClass(name);
+                if (clazz != null) {
+                    blacklist.add(clazz);
+                }
+            }
+        }
         for (Class<?> clazz : blacklist) {
             if (clazz.isInstance(o))
                 return true;

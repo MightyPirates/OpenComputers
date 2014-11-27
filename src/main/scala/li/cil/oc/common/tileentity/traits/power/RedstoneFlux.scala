@@ -6,7 +6,7 @@ import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import net.minecraftforge.common.util.ForgeDirection
 
-@Injectable.Interface(value = "cofh.api.energy.IEnergyHandler", modid = Mods.IDs.CoFHEnergy)
+@Injectable.Interface(value = "cofh.api.energy.IEnergyReceiver", modid = Mods.IDs.CoFHEnergy)
 trait RedstoneFlux extends Common {
   @Optional.Method(modid = Mods.IDs.CoFHEnergy)
   def canConnectEnergy(from: ForgeDirection) = Mods.CoFHEnergy.isAvailable && canConnectPower(from)
@@ -21,7 +21,4 @@ trait RedstoneFlux extends Common {
 
   @Optional.Method(modid = Mods.IDs.CoFHEnergy)
   def getMaxEnergyStored(from: ForgeDirection) = (globalBufferSize(from) / Settings.get.ratioRedstoneFlux).toInt
-
-  @Optional.Method(modid = Mods.IDs.CoFHEnergy)
-  def extractEnergy(from: ForgeDirection, maxExtract: Int, simulate: Boolean) = 0
 }

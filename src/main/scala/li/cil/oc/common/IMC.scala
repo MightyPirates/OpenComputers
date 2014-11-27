@@ -45,6 +45,12 @@ object IMC {
           case t: Throwable => OpenComputers.log.warn("Failed registering wrench tool.", t)
         }
       }
+      else if (message.key == "blacklistPeripheral" && message.isStringMessage) {
+        OpenComputers.log.info(s"Blacklisting CC peripheral '${message.getStringValue}' as requested by mod ${message.getSender}.")
+        if (!Settings.get.peripheralBlacklist.contains(message.getStringValue)) {
+          Settings.get.peripheralBlacklist.add(message.getStringValue)
+        }
+      }
     }
   }
 
