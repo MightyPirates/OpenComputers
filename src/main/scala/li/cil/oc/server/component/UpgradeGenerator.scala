@@ -101,7 +101,10 @@ class UpgradeGenerator(val host: EnvironmentHost with Robot) extends prefab.Mana
       updateClient()
       stack.stackSize -= 1
       if (stack.stackSize <= 0) {
-        inventory = None
+        if (stack.getItem.hasContainerItem(stack))
+          inventory = Option(stack.getItem.getContainerItem(stack))
+        else
+          inventory = None
       }
     }
     if (remainingTicks > 0) {
