@@ -467,13 +467,10 @@ object TextBuffer {
 
     var dirty = false
 
-    var lastChange = 0L
-
     var nodeAddress = ""
 
     def markDirty() {
       dirty = true
-      lastChange = owner.host.world.getTotalWorldTime
     }
 
     def render() = false
@@ -517,8 +514,9 @@ object TextBuffer {
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
     override def render() = {
+      val wasDirty = dirty
       TextBufferRenderCache.render(owner)
-      lastChange == owner.host.world.getTotalWorldTime
+      wasDirty
     }
 
     override def onScreenColorChange() {

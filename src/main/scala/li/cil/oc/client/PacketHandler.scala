@@ -373,7 +373,9 @@ object PacketHandler extends CommonPacketHandler {
 
   def onTextBufferInit(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: li.cil.oc.common.component.TextBuffer) => buffer.data.load(p.readNBT())
+      case Some(buffer: li.cil.oc.common.component.TextBuffer) =>
+        buffer.data.load(p.readNBT())
+        buffer.proxy.markDirty()
       case _ => // Invalid packet.
     }
   }
