@@ -74,6 +74,7 @@ public abstract class GeolyzerEvent extends Event {
          * The side of the geolyzer on which the block to scan is located.
          */
         public final ForgeDirection side;
+
         /**
          * The retrieved data for the block being scanned.
          */
