@@ -13,7 +13,6 @@ object ModIndustrialCraft2 extends ModProxy {
     FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerToolDurabilityProvider", "li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.getDurability")
     FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.useWrench")
 
-
     MinecraftForge.EVENT_BUS.register(EventHandlerIndustrialCraft2)
 
     Driver.add(new DriverEnergyConductor)

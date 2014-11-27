@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item.Memory
@@ -8,8 +9,10 @@ import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.ComponentInventory
@@ -19,11 +22,15 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.ForgeDirection
 
-class Server(val rack: tileentity.ServerRack, val slot: Int) extends MachineHost with internal.Server {
+class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment with MachineHost with internal.Server {
   val machine = Machine.create(this)
 
   val inventory = new NetworkedInventory()
+
+  // Used to grab messages when not connected to any side in the server rack.
+  val node = api.Network.newNode(this, Visibility.Network).create()
 
   machine.onHostChanged()
 
@@ -94,7 +101,32 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends MachineHost
 
   // ----------------------------------------------------------------------- //
 
-  override def onMachineConnect(node: Node) = inventory.onConnect(node)
+  override def onConnect(node: Node) {}
+
+  override def onDisconnect(node: Node) {}
+
+  override def onMessage(message: Message) {
+    // If we're internal mode and this server is not connected to any side, we
+    // must manually propagate network messages to other servers in the rack.
+    // Ensure the message originated in our local network, to avoid infinite
+    // recursion if two unconnected servers are in one server rack.
+    if (rack.internalSwitch && message.name == "network.message" &&
+      rack.sides(this.slot) == ForgeDirection.UNKNOWN && node.network.node(message.source.address) != null) {
+      for (slot <- 0 until rack.servers.length) {
+        rack.servers(slot) match {
+          case Some(server) if server != this => server.machine.node.sendToNeighbors(message.name, message.data: _*)
+          case _ =>
+        }
+      }
+    }
+  }
+
+  override def onMachineConnect(node: Node) {
+    if (node == machine.node) {
+      node.connect(this.node)
+    }
+    inventory.onConnect(node)
+  }
 
   override def onMachineDisconnect(node: Node) = inventory.onDisconnect(node)
 
