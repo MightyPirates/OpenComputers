@@ -1,8 +1,8 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.client.Textures
-import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.RenderState
@@ -21,6 +21,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
 
   private var screen: Screen = null
+
+  private lazy val screens = Set(api.Items.get("screen1"), api.Items.get("screen2"), api.Items.get("screen3"))
 
   // ----------------------------------------------------------------------- //
   // Rendering
@@ -104,11 +106,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     // Show up vector overlay when holding same screen block.
     val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
     if (stack != null) {
-      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.x, screen.y, screen.z) ||
-        (stack.getItem match {
-          case block: block.Item => block.getMetadata(stack.getItemDamage) == screen.getBlockMetadata
-          case _ => false
-        })) {
+      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.x, screen.y, screen.z) || screens.contains(api.Items.get(stack))) {
         GL11.glPushMatrix()
         transform()
         bindTexture(Textures.blockScreenUpIndicator)
