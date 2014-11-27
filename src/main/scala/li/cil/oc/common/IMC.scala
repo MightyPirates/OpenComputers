@@ -8,6 +8,8 @@ import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.template.AssemblerTemplates
+import li.cil.oc.integration.util.Wrench
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.Constants.NBT
 
@@ -27,7 +29,7 @@ object IMC {
       }
       else if (message.key == "registerToolDurabilityProvider" && message.isStringMessage) {
         OpenComputers.log.info(s"Registering new tool durability provider '${message.getStringValue}' from mod ${message.getSender}.")
-        try ToolDurabilityProviders.add(IMC.getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
+        try ToolDurabilityProviders.add(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering tool durability provider.", t)
         }
       }
@@ -35,6 +37,12 @@ object IMC {
         OpenComputers.log.info(s"Got a request for our configuration from mod ${message.getSender}.")
         try tryInvokeStaticVoid(getStaticMethod(message.getStringValue, classOf[Config]), Settings.get.config) catch {
           case t: Throwable => OpenComputers.log.warn("Failed sending config.", t)
+        }
+      }
+      else if (message.key == "registerWrenchTool" && message.isStringMessage) {
+        OpenComputers.log.info(s"Registering new wrench tool '${message.getStringValue}' from mod ${message.getSender}.")
+        try Wrench.add(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[Int], classOf[Int], classOf[Int], classOf[Boolean])) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering wrench tool.", t)
         }
       }
     }

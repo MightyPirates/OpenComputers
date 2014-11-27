@@ -4,7 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
-import li.cil.oc.integration.util.BuildCraft
+import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
@@ -104,7 +104,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     // Show up vector overlay when holding same screen block.
     val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
     if (stack != null) {
-      if (BuildCraft.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.x, screen.y, screen.z) ||
+      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.x, screen.y, screen.z) ||
         (stack.getItem match {
           case block: block.Item => block.getMetadata(stack.getItemDamage) == screen.getBlockMetadata
           case _ => false

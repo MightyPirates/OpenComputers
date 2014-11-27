@@ -8,7 +8,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.BuildCraft
+import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.Color
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Tooltip
@@ -332,7 +332,7 @@ class Screen(val tier: Int) extends RedstoneAware {
 
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                  side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) =
-    if (BuildCraft.holdsApplicableWrench(player, x, y, z)) false
+    if (Wrench.holdsApplicableWrench(player, x, y, z)) false
     else world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this

@@ -1,8 +1,12 @@
 package li.cil.oc.integration.ic2
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import ic2.api.item.{ElectricItem, IElectricItem, ISpecialElectricItem}
+import ic2.api.item.ElectricItem
+import ic2.api.item.IElectricItem
+import ic2.api.item.ISpecialElectricItem
+import ic2.core.item.tool.ItemToolWrench
 import li.cil.oc.api.event.RobotUsedToolEvent
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 object EventHandlerIndustrialCraft2 {
@@ -39,6 +43,18 @@ object EventHandlerIndustrialCraft2 {
       case item: ISpecialElectricItem => item.getManager(stack).getCharge(stack) / item.getMaxCharge(stack)
       case item: IElectricItem => ElectricItem.manager.getCharge(stack) / item.getMaxCharge(stack)
       case _ => Double.NaN
+    }
+  }
+
+  def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
+    player.getCurrentEquippedItem.getItem match {
+      case wrench: ItemToolWrench =>
+        if (changeDurability) {
+          wrench.damage(player.getHeldItem, 1, player)
+          true
+        }
+        else wrench.canTakeDamage(player.getHeldItem, 1)
+      case _ => false
     }
   }
 }

@@ -10,7 +10,7 @@ object ModCoFHEnergy extends ModProxy {
   override def getMod = Mods.CoFHEnergy
 
   override def initialize() {
-    FMLInterModComms.sendMessage("OpenComputers", "registerToolDurabilityProvider", "li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.getDurability")
+    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerToolDurabilityProvider", "li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.getDurability")
 
     MinecraftForge.EVENT_BUS.register(EventHandlerRedstoneFlux)
 

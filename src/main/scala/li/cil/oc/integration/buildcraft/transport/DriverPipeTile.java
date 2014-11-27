@@ -1,4 +1,4 @@
-package li.cil.oc.integration.buildcraft;
+package li.cil.oc.integration.buildcraft.transport;
 
 import buildcraft.api.transport.IPipeTile;
 import buildcraft.api.transport.PipeWire;
