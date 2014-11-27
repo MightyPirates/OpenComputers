@@ -10,6 +10,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.item.ItemStack
@@ -88,6 +89,27 @@ class UpgradeInventoryControllerInRobot(val host: EnvironmentHost with Robot) ex
     }
   }
   else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(side:number, slot:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack description in the specified slot of the database with the specified address. Returns true if something was overwritten.""")
+  def store(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForInventory(args, 0)
+    def store(stack: ItemStack) = DatabaseAccess.withDatabase(node, args.checkString(2), database => {
+      val dbSlot = args.checkSlot(database.data, 3)
+      val nonEmpty = database.data.getStackInSlot(dbSlot) != null
+      database.data.setInventorySlotContents(dbSlot, stack.copy())
+      result(nonEmpty)
+    })
+    if (facing == host.facing.getOpposite) {
+      val slot = args.checkSlot(host, 1)
+      store(host.getStackInSlot(slot))
+    }
+    else InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
+      case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
+        val slot = args.checkSlot(inventory, 1)
+        store(inventory.getStackInSlot(slot))
+      case _ => result(Unit, "no inventory")
+    }
+  }
 
   @Callback(doc = """function(facing:number, slot:number[, count:number]):boolean -- Drops the selected item stack into the specified slot of an inventory.""")
   def dropIntoSlot(context: Context, args: Arguments): Array[AnyRef] = {

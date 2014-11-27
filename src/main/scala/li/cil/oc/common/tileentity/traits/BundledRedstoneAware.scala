@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity.traits
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.ProjectRed
 import li.cil.oc.util.ExtendedNBT._
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
@@ -151,7 +150,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
       else null
     }
     else null
-    val projectRed = if (Mods.ProjectRedTransmission.isAvailable && ProjectRed.isAPIAvailable) {
+    val projectRed = if (Mods.ProjectRedTransmission.isAvailable) {
       Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
     }
     else null

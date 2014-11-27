@@ -22,7 +22,11 @@ object Mods {
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
+  val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
+  val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
+  val BuildCraftTransport = new SimpleMod(IDs.BuildCraftTransport)
   val CoFHEnergy = new SimpleMod(IDs.CoFHEnergy, providesPower = true)
+  val CoFHItem = new SimpleMod(IDs.CoFHItem)
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
@@ -74,8 +78,11 @@ object Mods {
 
   def init() {
     tryInit(integration.appeng.ModAppEng)
-    tryInit(integration.buildcraft.ModBuildCraft)
+    tryInit(integration.buildcraft.tools.ModBuildCraftAPITools)
+    tryInit(integration.buildcraft.tiles.ModBuildCraftAPITiles)
+    tryInit(integration.buildcraft.transport.ModBuildCraftAPITransport)
     tryInit(integration.cofh.energy.ModCoFHEnergy)
+    tryInit(integration.cofh.item.ModCoFHItem)
     tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
     tryInit(integration.cofh.transport.ModCoFHTransport)
     tryInit(integration.enderstorage.ModEnderStorage)
@@ -123,7 +130,11 @@ object Mods {
     final val BattleGear2 = "battlegear2"
     final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftPower = "BuildCraftAPI|power"
+    final val BuildCraftTiles = "BuildCraftAPI|tiles"
+    final val BuildCraftTools = "BuildCraftAPI|tools"
+    final val BuildCraftTransport = "BuildCraftAPI|transport"
     final val CoFHEnergy = "CoFHAPI|energy"
+    final val CoFHItem = "CoFHAPI|item"
     final val CoFHTileEntity = "CoFHAPI|tileentity"
     final val CoFHTransport = "CoFHAPI|transport"
     final val ComputerCraft = "ComputerCraft"

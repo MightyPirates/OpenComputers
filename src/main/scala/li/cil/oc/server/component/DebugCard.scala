@@ -8,13 +8,20 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.server.component.DebugCard.CommandSender
+import li.cil.oc.util.BlockPosition
 import net.minecraft.block.Block
+import net.minecraft.command.ICommandSender
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.management.UserListOpsEntry
+import net.minecraft.util.IChatComponent
 import net.minecraft.world.World
+import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.FakePlayerFactory
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
@@ -60,6 +67,14 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def getPlayer(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
     result(new DebugCard.PlayerValue(args.checkString(0)))
+  }
+
+  @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")
+  def runCommand(context: Context, args: Arguments): Array[AnyRef] = {
+    val command = args.checkString(0)
+    val sender = new CommandSender(host)
+    val value = MinecraftServer.getServer.getCommandManager.executeCommand(sender, command)
+    result(value, sender.messages.orNull)
   }
 }
 
@@ -296,4 +311,31 @@ object DebugCard {
     }
   }
 
+  class CommandSender(val host: EnvironmentHost) extends ICommandSender {
+    val fakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+
+    var messages: Option[String] = None
+
+    override def getCommandSenderName = fakePlayer.getCommandSenderName
+
+    override def getEntityWorld = host.world
+
+    override def addChatMessage(message: IChatComponent) {
+      messages = Option(messages.getOrElse("") + message.getUnformattedText)
+    }
+
+    override def canCommandSenderUseCommand(level: Int, command: String) = {
+      val profile = fakePlayer.getGameProfile
+      val server = fakePlayer.mcServer
+      val config = server.getConfigurationManager
+      config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
+        case entry: UserListOpsEntry => entry.func_152644_a >= level
+        case _ => server.getOpPermissionLevel >= level
+      })
+    }
+
+    override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates
+
+    override def func_145748_c_() = fakePlayer.func_145748_c_()
+  }
 }

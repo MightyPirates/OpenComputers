@@ -366,14 +366,14 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      ServerComponentTracker.add(node.address, this)
+      ServerComponentTracker.add(host.world, node.address, this)
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      ServerComponentTracker.remove(node.address)
+      ServerComponentTracker.remove(host.world, node.address)
     }
   }
 
@@ -439,7 +439,7 @@ object TextBuffer {
       val blockPos = BlockPosition(t.host)
       val keep = t.host.world != e.world || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
       if (!keep) {
-        ClientComponentTracker.remove(t.proxy.nodeAddress)
+        ClientComponentTracker.remove(t.host.world, t.proxy.nodeAddress)
       }
       keep
     })
@@ -450,7 +450,7 @@ object TextBuffer {
     clientBuffers = clientBuffers.filter(t => {
       val keep = t.host.world != e.world
       if (!keep) {
-        ClientComponentTracker.remove(t.proxy.nodeAddress)
+        ClientComponentTracker.remove(t.host.world, t.proxy.nodeAddress)
       }
       keep
     })
@@ -458,7 +458,7 @@ object TextBuffer {
 
   def registerClientBuffer(t: TextBuffer) {
     ClientPacketSender.sendTextBufferInit(t.proxy.nodeAddress)
-    ClientComponentTracker.add(t.proxy.nodeAddress, t)
+    ClientComponentTracker.add(t.host.world, t.proxy.nodeAddress, t)
     clientBuffers += t
   }
 
@@ -467,13 +467,10 @@ object TextBuffer {
 
     var dirty = false
 
-    var lastChange = 0L
-
     var nodeAddress = ""
 
     def markDirty() {
       dirty = true
-      lastChange = owner.host.world.getTotalWorldTime
     }
 
     def render() = false
@@ -517,8 +514,9 @@ object TextBuffer {
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
     override def render() = {
+      val wasDirty = dirty
       TextBufferRenderCache.render(owner)
-      lastChange == owner.host.world.getTotalWorldTime
+      wasDirty
     }
 
     override def onScreenColorChange() {
@@ -591,7 +589,7 @@ object TextBuffer {
     private lazy val Debugger = api.Items.get("debugger")
 
     private def debug(message: String) {
-      if (api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {
+      if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.thePlayer != null && api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {
         OpenComputers.log.info(s"[NETWORK DEBUGGER] Sending packet to node $nodeAddress: " + message)
       }
     }

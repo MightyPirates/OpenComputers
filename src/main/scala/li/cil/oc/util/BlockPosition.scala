@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.api.driver.EnvironmentHost
+import net.minecraft.util.ChunkCoordinates
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -24,6 +25,8 @@ case class BlockPosition(x: Int, y: Int, z: Int, world: Option[World]) {
     z + direction.offsetZ,
     world
   )
+
+  def toChunkCoordinates = new ChunkCoordinates(x, y, z)
 }
 
 object BlockPosition {

@@ -11,7 +11,12 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -45,8 +50,8 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(doc = """function(side:number[,options:table]):table -- Get some information on a directly adjacent block.""")
   def analyze(computer: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-    val localSide = host match {
-      case rotatable: Rotatable => rotatable.toLocal(side)
+    val globalSide = host match {
+      case rotatable: Rotatable => rotatable.toGlobal(side)
       case _ => side
     }
     val options = args.optTable(1, Map.empty[AnyRef, AnyRef])
@@ -54,10 +59,38 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
-    val event = new Analyze(host, options, localSide)
+    val event = new Analyze(host, options, globalSide)
     MinecraftForge.EVENT_BUS.post(event)
     if (event.isCanceled) result(Unit, "scan was canceled")
     else result(event.data)
   }
   else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(side:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack representation of the block on the specified side in a database component.""")
+  def store(computer: Context, args: Arguments): Array[AnyRef] = {
+    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val globalSide = host match {
+      case rotatable: Rotatable => rotatable.toGlobal(side)
+      case _ => side
+    }
+
+    if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+      return result(Unit, "not enough energy")
+
+    val blockPos = BlockPosition(host).offset(globalSide)
+    val block = host.world.getBlock(blockPos)
+    val item = Item.getItemFromBlock(block)
+    if (item == null) result(Unit, "block has no registered item representation")
+    else {
+      val metadata = host.world.getBlockMetadata(blockPos)
+      val damage = block.damageDropped(metadata)
+      val stack = new ItemStack(item, 1, damage)
+      DatabaseAccess.withDatabase(node, args.checkString(1), database => {
+        val toSlot = args.checkSlot(database.data, 2)
+        val nonEmpty = database.data.getStackInSlot(toSlot) != null
+        database.data.setInventorySlotContents(toSlot, stack)
+        result(nonEmpty)
+      })
+    }
+  }
 }

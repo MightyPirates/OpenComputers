@@ -2,11 +2,13 @@ package li.cil.oc.common.recipe
 
 import java.util.UUID
 
-import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.Color
-import li.cil.oc.util.SideTracker
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.integration.Mods
+import li.cil.oc.util.Color
+import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.SideTracker
+import net.minecraft.init.Blocks
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -17,8 +19,15 @@ object ExtendedRecipe {
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   private lazy val linkedCard = api.Items.get("linkedCard")
   private lazy val floppy = api.Items.get("floppy")
+  private lazy val disabled = {
+    val stack = new ItemStack(Blocks.dirt)
+    val tag = new NBTTagCompound()
+    tag.setNewCompoundTag("display", _.setNewTagList("Lore", "Autocrafting of this item is disabled to avoid exploits."))
+    stack.setTagCompound(tag)
+    stack
+  }
 
-  def addNBTToResult(craftedStack: ItemStack, inventory: InventoryCrafting) = {
+  def addNBTToResult(craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
     if (api.Items.get(craftedStack) == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
         for (i <- 0 until inventory.getSizeInventory) {
@@ -31,11 +40,14 @@ object ExtendedRecipe {
         })
     }
 
-    if (api.Items.get(craftedStack) == linkedCard && SideTracker.isServer) {
-      Option(api.Driver.driverFor(craftedStack)).foreach(driver => {
-        val nbt = driver.dataTag(craftedStack)
-        nbt.setString(Settings.namespace + "tunnel", UUID.randomUUID().toString)
-      })
+    if (api.Items.get(craftedStack) == linkedCard) {
+      if (weAreBeingCalledFromAppliedEnergistics2) return disabled.copy()
+      if (SideTracker.isServer) {
+        Option(api.Driver.driverFor(craftedStack)).foreach(driver => {
+          val nbt = driver.dataTag(craftedStack)
+          nbt.setString(Settings.namespace + "tunnel", UUID.randomUUID().toString)
+        })
+      }
     }
 
     if (api.Items.get(craftedStack) == floppy) {
@@ -63,4 +75,6 @@ object ExtendedRecipe {
 
     craftedStack
   }
+
+  private def weAreBeingCalledFromAppliedEnergistics2 = Mods.AppliedEnergistics2.isAvailable && new Exception().getStackTrace.exists(_.getClassName == "appeng.container.implementations.ContainerPatternTerm")
 }

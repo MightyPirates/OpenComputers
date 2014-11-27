@@ -10,6 +10,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.inventory.IInventory
@@ -78,6 +79,22 @@ class UpgradeInventoryControllerInAdapter(val host: EnvironmentHost with Adapter
     }
   }
   else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(side:number, slot:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack description in the specified slot of the database with the specified address. Returns true if something was overwritten.""")
+  def store(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
+      case Some(inventory) if checkPermission(inventory) =>
+        val stack = inventory.getStackInSlot(args.checkSlot(inventory, 1))
+        DatabaseAccess.withDatabase(node, args.checkString(2), database => {
+          val dbSlot = args.checkSlot(database.data, 3)
+          val nonEmpty = database.data.getStackInSlot(dbSlot) != null
+          database.data.setInventorySlotContents(dbSlot, stack.copy())
+          result(nonEmpty)
+        })
+      case _ => result(Unit, "no inventory")
+    }
+  }
 
   private def checkPermission(inventory: IInventory) = {
     fakePlayer synchronized {

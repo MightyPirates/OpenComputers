@@ -120,9 +120,6 @@ object EventHandler {
         if (!LuaStateFactory.isAvailable) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)
         }
-        if (Mods.ProjectRedTransmission.isAvailable && !util.ProjectRed.isAPIAvailable) {
-          player.addChatMessage(Localization.Chat.WarningProjectRed)
-        }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
           player.addChatMessage(Localization.Chat.WarningPower)
         }

@@ -1,4 +1,4 @@
-package li.cil.oc.integration.buildcraft;
+package li.cil.oc.integration.buildcraft.tiles;
 
 import buildcraft.api.tiles.IControllable;
 import li.cil.oc.api.machine.Arguments;

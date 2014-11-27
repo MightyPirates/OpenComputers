@@ -8,6 +8,6 @@ object ModWaila extends ModProxy {
   override def getMod = Mods.Waila
 
   override def initialize() {
-    FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.integration.waila.BlockDataProvider.init")
+    FMLInterModComms.sendMessage(Mods.IDs.Waila, "register", "li.cil.oc.integration.waila.BlockDataProvider.init")
   }
 }
