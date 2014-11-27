@@ -6,9 +6,9 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.inventory.IInventory
@@ -43,8 +43,8 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
   def indexOf(context: Context, args: Arguments): Array[AnyRef] = result(indexOf(args.checkString(0), 1))
 
   @Callback(doc = "function(slot:number):boolean -- Clears the specified slot. Returns true if there was something in the slot before.")
-  def clearSlot(context: Context, args: Arguments): Array[AnyRef] = {
-    val slot = args.checkInteger(0)
+  def clear(context: Context, args: Arguments): Array[AnyRef] = {
+    val slot = args.checkSlot(data, 0)
     val nonEmpty = data.getStackInSlot(slot) != null
     data.setInventorySlotContents(slot, null)
     result(nonEmpty)
@@ -57,19 +57,19 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
     def set(inventory: IInventory) = {
       val toSlot = args.checkSlot(inventory, 1)
       val nonEmpty = inventory.getStackInSlot(toSlot) != null
-      inventory.setInventorySlotContents(toSlot, entry)
+      inventory.setInventorySlotContents(toSlot, entry.copy())
       result(nonEmpty)
     }
-    if (args.count > 2) withDatabase(args.checkString(2), database => set(database.data))
+    if (args.count > 2) DatabaseAccess.withDatabase(node, args.checkString(2), database => set(database.data))
     else set(data)
   }
 
   @Callback(doc = "function(address:string):number -- Copies the data stored in this database to another database with the specified address.")
   def clone(context: Context, args: Arguments): Array[AnyRef] = {
-    withDatabase(args.checkString(0), database => {
+    DatabaseAccess.withDatabase(node, args.checkString(0), database => {
       val numberToCopy = math.min(data.getSizeInventory, database.data.getSizeInventory)
       for (slot <- 0 until numberToCopy) {
-        database.data.setInventorySlotContents(slot, data.getStackInSlot(slot))
+        database.data.setInventorySlotContents(slot, data.getStackInSlot(slot).copy())
       }
       context.pause(0.25)
       result(numberToCopy)
@@ -84,15 +84,5 @@ class UpgradeDatabase(val data: IInventory) extends prefab.ManagedEnvironment wi
       case _ =>
     }
     -1
-  }
-
-  private def withDatabase(address: String, f: UpgradeDatabase => Array[AnyRef]): Array[AnyRef] = {
-    node.network.node(address) match {
-      case component: Component => component.host match {
-        case database: UpgradeDatabase => f(database)
-        case _ => throw new IllegalArgumentException("not a database")
-      }
-      case _ => throw new IllegalArgumentException("no such component")
-    }
   }
 }
