@@ -46,7 +46,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def analyze(computer: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
     val localSide = host match {
-      case rotatable: Rotatable => rotatable.toLocal(side)
+      case rotatable: Rotatable => rotatable.toGlobal(side)
       case _ => side
     }
     val options = args.optTable(1, Map.empty[AnyRef, AnyRef])
