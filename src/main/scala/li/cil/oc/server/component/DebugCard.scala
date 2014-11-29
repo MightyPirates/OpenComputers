@@ -97,7 +97,7 @@ object DebugCard {
       }
     }
 
-    @Callback(doc = """function():userdata -- Get the container's world object.""")
+    @Callback(doc = """function():userdata -- Get the player's world object.""")
     def getWorld(context: Context, args: Arguments): Array[AnyRef] = {
       withPlayer(player => result(new DebugCard.WorldValue(player.getEntityWorld)))
     }

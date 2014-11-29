@@ -57,7 +57,7 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock {
       })
   }
 
-  override def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
+  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard => setBlockBounds(keyboard.pitch, keyboard.yaw)
       case _ =>
