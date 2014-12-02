@@ -1,6 +1,5 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.CustomModLoadingErrorDisplayException
 import cpw.mods.fml.client.registry.ClientRegistry
 import cpw.mods.fml.client.registry.RenderingRegistry
 import cpw.mods.fml.common.FMLCommonHandler
@@ -18,7 +17,6 @@ import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
-import li.cil.oc.common.event.FileSystemAccessHandler
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack

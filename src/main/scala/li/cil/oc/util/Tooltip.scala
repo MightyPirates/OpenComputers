@@ -11,8 +11,6 @@ import scala.collection.convert.WrapAsScala._
 object Tooltip {
   private val maxWidth = 220
 
-  private val nl = """\[nl\]"""
-
   private def font = Minecraft.getMinecraft.fontRenderer
 
   def get(name: String, args: Any*): java.util.List[String] = {
@@ -25,7 +23,7 @@ object Tooltip {
       else Seq(Localization.localizeImmediately("tooltip.TooLong", Keyboard.getKeyName(KeyBindings.extendedTooltip.getKeyCode)))
     }
     else tooltip.
-      split(nl).
+      lines.
       map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
       flatten.
       toList
@@ -35,7 +33,7 @@ object Tooltip {
     if (KeyBindings.showExtendedTooltips) {
       Localization.localizeImmediately("tooltip." + name).
         format(args.map(_.toString): _*).
-        split(nl).
+        lines.
         map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
         flatten.
         toList

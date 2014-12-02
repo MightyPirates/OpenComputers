@@ -466,6 +466,11 @@ serverRack {
           [fenceIron, chest, fenceIron]
           ["oc:switch", "oc:materialCircuitBoardPrinted", "oc:powerDistributor"]]
 }
+raid {
+  input: [[nuggetIron, "oc:cpu3", nuggetIron]
+          ["oc:ram1", "oc:diskDrive", "oc:ram1"]
+          [nuggetIron, "oc:circuitChip2", nuggetIron]]
+}
 redstone {
   input: [[ingotIron, "oc:circuitChip3", ingotIron]
           [blockRedstone, "oc:redstoneCard1", blockRedstone]

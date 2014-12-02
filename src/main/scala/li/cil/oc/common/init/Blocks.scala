@@ -85,6 +85,6 @@ object Blocks {
     Recipes.addBlock(new MotionSensor(), "motionSensor", "oc:motionSensor")
 
     // v1.4.2
-    Items.registerBlock(new Raid(), "raid")
+    Recipes.addBlock(new Raid(), "raid", "oc:raid")
   }
 }

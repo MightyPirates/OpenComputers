@@ -5,7 +5,11 @@ import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.util.StatCollector
 
+import scala.util.matching.Regex
+
 object Localization {
+  private val nl = Regex.quote("[nl]")
+
   private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
 
   def canLocalize(key: String) = StatCollector.canTranslate(key)
@@ -14,9 +18,9 @@ object Localization {
 
   def localizeLater(key: String) = new ChatComponentTranslation(resolveKey(key))
 
-  def localizeImmediately(formatKey: String, values: AnyRef*) = StatCollector.translateToLocalFormatted(resolveKey(formatKey), values: _*)
+  def localizeImmediately(formatKey: String, values: AnyRef*) = StatCollector.translateToLocalFormatted(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
 
-  def localizeImmediately(key: String) = StatCollector.translateToLocal(resolveKey(key))
+  def localizeImmediately(key: String) = StatCollector.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
 
   object Analyzer {
     def Address(value: String) = localizeLater("gui.Analyzer.Address", value)
