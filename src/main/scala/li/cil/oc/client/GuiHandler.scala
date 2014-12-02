@@ -13,26 +13,28 @@ import net.minecraft.world.World
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =
     world.getTileEntity(x, y, z) match {
-      case adapter: tileentity.Adapter if id == GuiType.Adapter.id =>
-        new gui.Adapter(player.inventory, adapter)
-      case assembler: tileentity.Assembler if id == GuiType.Assembler.id =>
-        new gui.Assembler(player.inventory, assembler)
-      case computer: tileentity.Case if id == GuiType.Case.id =>
-        new gui.Case(player.inventory, computer)
-      case charger: tileentity.Charger if id == GuiType.Charger.id =>
-        new gui.Charger(player.inventory, charger)
-      case disassembler: tileentity.Disassembler if id == GuiType.Disassembler.id =>
-        new gui.Disassembler(player.inventory, disassembler)
-      case drive: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
-        new gui.DiskDrive(player.inventory, drive)
-      case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>
-        new gui.Robot(player.inventory, proxy.robot)
-      case rack: tileentity.ServerRack if id == GuiType.Rack.id =>
-        new gui.ServerRack(player.inventory, rack)
-      case screen: tileentity.Screen if id == GuiType.Screen.id =>
-        new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled)
-      case switch: tileentity.Switch if id == GuiType.Switch.id =>
-        new gui.Switch(player.inventory, switch)
+      case t: tileentity.Adapter if id == GuiType.Adapter.id =>
+        new gui.Adapter(player.inventory, t)
+      case t: tileentity.Assembler if id == GuiType.Assembler.id =>
+        new gui.Assembler(player.inventory, t)
+      case t: tileentity.Case if id == GuiType.Case.id =>
+        new gui.Case(player.inventory, t)
+      case t: tileentity.Charger if id == GuiType.Charger.id =>
+        new gui.Charger(player.inventory, t)
+      case t: tileentity.Disassembler if id == GuiType.Disassembler.id =>
+        new gui.Disassembler(player.inventory, t)
+      case t: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
+        new gui.DiskDrive(player.inventory, t)
+      case t: tileentity.Raid if id == GuiType.Raid.id =>
+        new gui.Raid(player.inventory, t)
+      case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
+        new gui.Robot(player.inventory, t.robot)
+      case t: tileentity.ServerRack if id == GuiType.Rack.id =>
+        new gui.ServerRack(player.inventory, t)
+      case t: tileentity.Screen if id == GuiType.Screen.id =>
+        new gui.Screen(t.origin.buffer, t.tier > 0, () => t.origin.hasKeyboard, () => t.origin.buffer.isRenderingEnabled)
+      case t: tileentity.Switch if id == GuiType.Switch.id =>
+        new gui.Switch(player.inventory, t)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
           new gui.Database(player.inventory, new DatabaseInventory {

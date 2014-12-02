@@ -9,6 +9,7 @@ import li.cil.oc.common.tileentity
 
 object Blocks {
   def init() {
+    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "access_point")
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
     GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Assembler], Settings.namespace + "assembler", Settings.namespace + "robotAssembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
@@ -23,12 +24,12 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motion_sensor")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
+    GameRegistry.registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
-    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "access_point")
 
     // These are purely for converting existing blocks in delegator format to the new,
     // one block type per block format.
@@ -82,5 +83,8 @@ object Blocks {
 
     // v1.3.2
     Recipes.addBlock(new MotionSensor(), "motionSensor", "oc:motionSensor")
+
+    // v1.4.2
+    Items.registerBlock(new Raid(), "raid")
   }
 }

@@ -585,15 +585,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     bootAddress = nbt.getString("bootAddress")
 
     state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
-    nbt.getTagList("users", NBT.TAG_STRING).foreach((list, index) => _users += list.getStringTagAt(index))
+    nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.func_150285_a_())
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
     }
 
-    _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((list, index) => {
-      val c = list.getCompoundTagAt(index)
-      c.getString("address") -> c.getString("name")
-    })
+    _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) =>
+      tag.getString("address") -> tag.getString("name"))
 
     tmp.foreach(fs => {
       if (nbt.hasKey("tmp")) fs.load(nbt.getCompoundTag("tmp"))
@@ -603,8 +601,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (state.size > 0 && isRunning && init()) try {
       architecture.load(nbt)
 
-      signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((list, index) => {
-        val signalNbt = list.getCompoundTagAt(index)
+      signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((signalNbt: NBTTagCompound) => {
         val argsNbt = signalNbt.getCompoundTag("args")
         val argsLength = argsNbt.getInteger("length")
         new Machine.Signal(signalNbt.getString("name"),

@@ -259,8 +259,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    nbt.getTagList("owners", NBT.TAG_COMPOUND).foreach((list, index) => {
-      val ownerNbt = list.getCompoundTagAt(index)
+    nbt.getTagList("owners", NBT.TAG_COMPOUND).foreach((ownerNbt: NBTTagCompound) => {
       val address = ownerNbt.getString("address")
       if (address != "") {
         owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]

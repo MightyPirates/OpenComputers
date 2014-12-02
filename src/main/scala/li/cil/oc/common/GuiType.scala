@@ -11,6 +11,7 @@ object GuiType extends Enumeration {
   Disassembler,
   DiskDrive,
   Rack,
+  Raid,
   Robot,
   Screen,
   Server,

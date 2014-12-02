@@ -226,6 +226,17 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendRaidChange(t: tileentity.Raid) {
+    val pb = new SimplePacketBuilder(PacketType.RaidStateChange)
+
+    pb.writeTileEntity(t)
+    for (slot <- 0 until t.getSizeInventory) {
+      pb.writeBoolean(t.getStackInSlot(slot) != null)
+    }
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendRedstoneState(t: RedstoneAware) {
     val pb = new SimplePacketBuilder(PacketType.RedstoneState)
 

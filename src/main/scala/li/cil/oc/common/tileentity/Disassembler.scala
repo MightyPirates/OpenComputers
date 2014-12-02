@@ -212,7 +212,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     super.readFromNBT(nbt)
     queue.clear()
     queue ++= nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).
-      map((list, index) => ItemUtils.loadStack(list.getCompoundTagAt(index)))
+      map((tag: NBTTagCompound) => ItemUtils.loadStack(tag))
     buffer = nbt.getDouble(Settings.namespace + "buffer")
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     isActive = queue.nonEmpty

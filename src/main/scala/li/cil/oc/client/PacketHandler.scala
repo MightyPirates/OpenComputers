@@ -52,6 +52,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
+      case PacketType.RaidStateChange => onRaidStateChange(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
@@ -243,6 +244,15 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.globalBuffer = p.readDouble()
         t.globalBufferSize = p.readDouble()
+      case _ => // Invalid packet.
+    }
+
+  def onRaidStateChange(p: PacketParser) =
+    p.readTileEntity[Raid]() match {
+      case Some(t) =>
+        for (slot <- 0 until t.getSizeInventory) {
+          t.presence(slot) = p.readBoolean()
+        }
       case _ => // Invalid packet.
     }
 

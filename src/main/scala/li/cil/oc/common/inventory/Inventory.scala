@@ -37,18 +37,16 @@ trait Inventory extends IInventory {
       return
     }
 
-    if (items(slot).isDefined) {
-      onItemRemoved(slot, items(slot).get)
+    val oldStack = items(slot)
+    items(slot) = None
+    if (oldStack.isDefined) {
+      onItemRemoved(slot, oldStack.get)
     }
-
-    if (stack == null || stack.stackSize < getInventoryStackRequired) {
-      items(slot) = None
-    }
-    else {
+    if (stack != null && stack.stackSize >= getInventoryStackRequired) {
+      if (stack.stackSize > getInventoryStackLimit) {
+        stack.stackSize = getInventoryStackLimit
+      }
       items(slot) = Some(stack)
-    }
-    if (stack != null && stack.stackSize > getInventoryStackLimit) {
-      stack.stackSize = getInventoryStackLimit
     }
 
     if (items(slot).isDefined) {
@@ -75,8 +73,7 @@ trait Inventory extends IInventory {
   // ----------------------------------------------------------------------- //
 
   def load(nbt: NBTTagCompound) {
-    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((list, index) => {
-      val slotNbt = list.getCompoundTagAt(index)
+    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
         items(slot) = Option(ItemUtils.loadStack(slotNbt.getCompoundTag("item")))

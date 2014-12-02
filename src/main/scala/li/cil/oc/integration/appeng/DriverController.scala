@@ -181,11 +181,8 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
           }
         })
       }
-      links ++= nbt.getTagList("links", NBT.TAG_LIST).map {
-        case (list, index) =>
-          val nbt = list.getCompoundTagAt(index)
-          Api.instance.storage.loadCraftingLink(nbt, this)
-      }
+      links ++= nbt.getTagList("links", NBT.TAG_LIST).map(
+        (nbt: NBTTagCompound) => Api.instance.storage.loadCraftingLink(nbt, this))
     }
 
     override def save(nbt: NBTTagCompound) {

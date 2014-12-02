@@ -29,9 +29,9 @@ object AssemblerTemplates {
     val validator = IMC.getStaticMethod(template.getString("validate"), classOf[IInventory])
     val assembler = IMC.getStaticMethod(template.getString("assemble"), classOf[IInventory])
     val hostClass = tryGetHostClass(template.getString("hostClass"))
-    val containerSlots = template.getTagList("containerSlots", NBT.TAG_COMPOUND).map((list, index) => parseSlot(list.getCompoundTagAt(index), Some(Slot.Container), hostClass)).take(3).padTo(3, NoSlot).toArray
-    val upgradeSlots = template.getTagList("upgradeSlots", NBT.TAG_COMPOUND).map((list, index) => parseSlot(list.getCompoundTagAt(index), Some(Slot.Upgrade), hostClass)).take(9).padTo(9, NoSlot).toArray
-    val componentSlots = template.getTagList("componentSlots", NBT.TAG_COMPOUND).map((list, index) => parseSlot(list.getCompoundTagAt(index), None, hostClass)).take(9).padTo(9, NoSlot).toArray
+    val containerSlots = template.getTagList("containerSlots", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) => parseSlot(tag, Some(Slot.Container), hostClass)).take(3).padTo(3, NoSlot).toArray
+    val upgradeSlots = template.getTagList("upgradeSlots", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) => parseSlot(tag, Some(Slot.Upgrade), hostClass)).take(9).padTo(9, NoSlot).toArray
+    val componentSlots = template.getTagList("componentSlots", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) => parseSlot(tag, None, hostClass)).take(9).padTo(9, NoSlot).toArray
 
     templates += new Template(selector, validator, assembler, containerSlots, upgradeSlots, componentSlots)
   }
