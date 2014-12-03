@@ -18,7 +18,8 @@ if not file then
   return
 end
 
-local function readlines(file, line, num)
+local line = nil
+local function readlines(num)
   local w, h = component.gpu.getResolution()
   num = num or (h - 1)
   term.setCursorBlink(false)
@@ -39,10 +40,9 @@ local function readlines(file, line, num)
   return true
 end
 
-local line = nil
 while true do
   term.clear()
-  if not readlines(file, line) then
+  if not readlines() then
     return
   end
   while true do
@@ -56,7 +56,7 @@ while true do
         break
       elseif code == keyboard.keys.enter or code == keyboard.keys.down then
         term.clearLine()
-        if not readlines(file, line, 1) then
+        if not readlines(1) then
           return
         end
       end
