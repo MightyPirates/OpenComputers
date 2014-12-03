@@ -79,7 +79,7 @@ end
 function process.running(level) -- kept for backwards compat, prefer process.info
   local info = process.info(level)
   if info then
-    return process.path, process.env, process.command
+    return info.path, info.env, info.command
   end
 end
 
