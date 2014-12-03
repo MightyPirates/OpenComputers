@@ -470,4 +470,17 @@ object PacketSender {
 
     pb.sendToNearbyPlayers(world, x, y, z, Option(16))
   }
+
+  def sendSound(world: World, x: Double, y: Double, z: Double, pattern: String) {
+    val pb = new SimplePacketBuilder(PacketType.SoundPattern)
+
+    val blockPos = BlockPosition(x, y, z)
+    pb.writeInt(world.provider.dimensionId)
+    pb.writeInt(blockPos.x)
+    pb.writeInt(blockPos.y)
+    pb.writeInt(blockPos.z)
+    pb.writeUTF(pattern)
+
+    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+  }
 }

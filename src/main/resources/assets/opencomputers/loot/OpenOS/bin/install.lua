@@ -56,7 +56,7 @@ local result, reason = os.execute("/bin/cp -vr /mnt/" .. origin .. fromDir .. "*
 if not result then
   error(reason, 0)
 end
-if not options.nolabelset then choice.setLabel(name) end
+if not options.nolabelset then pcall(choice.setLabel, name) end
 
 if not options.noreboot then
   print("All done! " .. ((not options.noboot) and "Set as boot device and r" or "R") .. "eboot now? [Y/n]")

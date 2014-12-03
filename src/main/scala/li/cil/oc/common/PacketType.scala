@@ -43,6 +43,7 @@ object PacketType extends Enumeration {
   ScreenTouchMode,
   ServerPresence,
   Sound,
+  SoundPattern,
 
   // Client -> Server
   ComputerPower,

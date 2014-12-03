@@ -1351,6 +1351,7 @@ local function bootstrap()
   if not init then
     error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
   end
+  libcomputer.beep(1000, 0.2)
 
   return coroutine.create(init), {n=0}
 end

@@ -71,7 +71,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     if (items.count(_.isDefined) == items.length) {
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
-        null: String, this, Settings.resourceDomain + ":hdd_access").
+        "raid", this, Settings.resourceDomain + ":hdd_access").
         asInstanceOf[FileSystem]
       val nbtToSetAddress = new NBTTagCompound()
       nbtToSetAddress.setString("address", id)
