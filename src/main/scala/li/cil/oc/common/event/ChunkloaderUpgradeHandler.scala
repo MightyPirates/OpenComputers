@@ -40,7 +40,9 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
     // so if the save is because the game is being quit the tickets aren't
     // actually being cleared. This will *usually* not be a problem, but it
     // has room for improvement.
-    restoredTickets.values.foreach(ForgeChunkManager.releaseTicket)
+    restoredTickets.values.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
+      case _: Throwable => // Ignored.
+    })
     restoredTickets.clear()
   }
 
