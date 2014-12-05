@@ -129,7 +129,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     val randomUUID = UUID.randomUUID()
     try UUID.fromString(format.
       replaceAllLiterally("$random$", randomUUID.toString).
-      replaceAllLiterally("$player$", playerUUID.map(_.toString).getOrElse(randomUUID.toString))) catch {
+      replaceAllLiterally("$player$", playerUUID.getOrElse(randomUUID).toString)) catch {
       case t: Throwable =>
         OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
         randomUUID
