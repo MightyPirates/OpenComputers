@@ -49,7 +49,7 @@ import scala.reflect._
 
 object Player {
   def profileFor(robot: tileentity.Robot) = {
-    val uuid = robot.ownerUuid.getOrElse(UUID.randomUUID())
+    val uuid = robot.ownerUuid.getOrElse(robot.determineUUID())
     val randomId = (robot.world.rand.nextInt(0xFFFFFF) + 1).toString
     val name = Settings.get.nameFormat.
       replace("$player$", robot.owner).

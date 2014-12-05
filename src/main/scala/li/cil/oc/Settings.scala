@@ -96,6 +96,7 @@ class Settings(val config: Config) {
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1
   val nameFormat = config.getString("robot.nameFormat")
+  val uuidFormat = config.getString("robot.uuidFormat")
 
   // robot.xp
   val baseXpToLevel = config.getDouble("robot.xp.baseValue") max 0

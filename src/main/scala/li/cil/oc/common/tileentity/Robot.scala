@@ -124,6 +124,18 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   private lazy val player_ = new robot.Player(this)
 
+  def determineUUID(playerUUID: Option[UUID] = None) = {
+    val format = Settings.get.uuidFormat
+    val randomUUID = UUID.randomUUID()
+    try UUID.fromString(format.
+      replaceAllLiterally("$random$", randomUUID.toString).
+      replaceAllLiterally("$player$", playerUUID.map(_.toString).getOrElse(randomUUID.toString))) catch {
+      case t: Throwable =>
+        OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
+        randomUUID
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   def name = info.name
