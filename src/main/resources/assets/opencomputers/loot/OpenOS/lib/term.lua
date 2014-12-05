@@ -108,9 +108,10 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak, hint)
+function term.read(history, dobreak, hint, pwchar)
   checkArg(1, history, "table", "nil")
   checkArg(3, hint, "function", "table", "nil")
+  checkArg(4, pwchar, "string", "nil")
   history = history or {}
   table.insert(history, "")
   local offset = term.getCursor() - 1
@@ -124,6 +125,14 @@ function term.read(history, dobreak, hint)
     end
   end
   local hintCache, hintIndex
+
+  if pwchar and unicode.len(pwchar) > 0 then
+    pwchar = unicode.sub(pwchar, 1, 1)
+  end
+
+  local function masktext(str)
+    return pwchar and pwchar:rep(unicode.len(str)) or str
+  end
 
   local function getCursor()
     return cursorX, 1 + scrollY
@@ -151,7 +160,7 @@ function term.read(history, dobreak, hint)
       local dx = math.abs(scrollX - sx)
       scrollX = sx
       component.gpu.copy(1 + offset + dx, cy, w - offset - dx, 1, -dx, 0)
-      local str = unicode.sub(history[nby], nbx - (dx - 1), nbx)
+      local str = masktext(unicode.sub(history[nby], nbx - (dx - 1), nbx))
       str = text.padRight(str, dx)
       component.gpu.set(1 + math.max(offset, w - dx), cy, unicode.sub(str, 1 + math.max(0, dx - (w - offset))))
     elseif ncx < 1 + offset then
@@ -159,7 +168,7 @@ function term.read(history, dobreak, hint)
       local dx = math.abs(scrollX - sx)
       scrollX = sx
       component.gpu.copy(1 + offset, cy, w - offset - dx, 1, dx, 0)
-      local str = unicode.sub(history[nby], nbx, nbx + dx)
+      local str = masktext(unicode.sub(history[nby], nbx, nbx + dx))
       --str = text.padRight(str, dx)
       component.gpu.set(1 + offset, cy, str)
     end
@@ -182,7 +191,7 @@ function term.read(history, dobreak, hint)
     local bx, by = 1 + scrollX, 1 + scrollY
     local w, h = component.gpu.getResolution()
     local l = w - offset
-    local str = unicode.sub(history[by], bx, bx + l)
+    local str = masktext(unicode.sub(history[by], bx, bx + l))
     str = text.padRight(str, l)
     component.gpu.set(1 + offset, cy, str)
   end
@@ -244,7 +253,7 @@ function term.read(history, dobreak, hint)
       local w, h = component.gpu.getResolution()
       component.gpu.copy(cx + cw, cy, w - cx, 1, -cw, 0)
       local br = cbx + (w - cx)
-      local char = unicode.sub(line(), br, br)
+      local char = masktext(unicode.sub(line(), br, br))
       if not char or unicode.wlen(char) == 0 then
         char = " "
       end
@@ -266,7 +275,7 @@ function term.read(history, dobreak, hint)
     if n > 0 then
       component.gpu.copy(cx, cy, n, 1, len, 0)
     end
-    component.gpu.set(cx, cy, value)
+    component.gpu.set(cx, cy, masktext(value))
     right(unicode.len(value))
   end
 

@@ -80,9 +80,9 @@ object ItemUtils {
       if (nbt.hasKey(Settings.namespace + "components")) {
         tier = nbt.getInteger(Settings.namespace + "tier")
         components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
-          map((list, index) => loadStack(list.getCompoundTagAt(index))).toArray
+          toArray[NBTTagCompound].map(loadStack)
         containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
-          map((list, index) => loadStack(list.getCompoundTagAt(index))).toArray
+          toArray[NBTTagCompound].map(loadStack)
       }
       else {
         // Old robot, upgrade to new modular model.
@@ -215,8 +215,7 @@ object ItemUtils {
     var maxEnergy = 0.0
 
     override def load(nbt: NBTTagCompound) {
-      nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((list, index) => {
-        val slotNbt = list.getCompoundTagAt(index)
+      nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
         val slot = slotNbt.getByte("slot")
         if (slot >= 0 && slot < items.length) {
           items(slot) = Option(loadStack(slotNbt.getCompoundTag("item")))

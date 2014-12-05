@@ -16,6 +16,10 @@
       "name": "French",
       "region": "France"
     },
+    "it_IT":{
+      "name": "Italian",
+      "region": "Italy"
+    },
     "pt_PT":{
       "name": "Português",
       "region": "Portugal"

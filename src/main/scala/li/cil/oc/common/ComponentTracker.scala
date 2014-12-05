@@ -1,7 +1,13 @@
 package li.cil.oc.common
 
+import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.network.ManagedEnvironment
+import net.minecraft.world.World
+import net.minecraftforge.event.world.WorldEvent
+
+import scala.collection.mutable
 
 /**
  * Keeps track of loaded components by ID. Used to send messages between
@@ -9,26 +15,39 @@ import li.cil.oc.api.network.ManagedEnvironment
  * containers. For now this is only used for screens / text buffer components.
  */
 abstract class ComponentTracker {
-  private val components = com.google.common.cache.CacheBuilder.newBuilder().
-    weakValues().
-    asInstanceOf[CacheBuilder[String, ManagedEnvironment]].
-    build[String, ManagedEnvironment]()
+  private val worlds = mutable.Map.empty[Int, Cache[String, ManagedEnvironment]]
 
-  def add(address: String, component: ManagedEnvironment) {
+  private def components(world: World) = {
+    worlds.getOrElseUpdate(world.provider.dimensionId,
+      com.google.common.cache.CacheBuilder.newBuilder().
+        weakValues().
+        asInstanceOf[CacheBuilder[String, ManagedEnvironment]].
+        build[String, ManagedEnvironment]())
+  }
+
+  def add(world: World, address: String, component: ManagedEnvironment) {
     this.synchronized {
-      components.put(address, component)
+      components(world).put(address, component)
     }
   }
 
-  def remove(address: String) {
+  def remove(world: World, address: String) {
     this.synchronized {
-      components.invalidate(address)
-      components.cleanUp()
+      components(world).invalidate(address)
+      components(world).cleanUp()
     }
   }
 
-  def get(address: String): Option[ManagedEnvironment] = this.synchronized {
-    components.cleanUp()
-    Option(components.getIfPresent(address))
+  def get(world: World, address: String): Option[ManagedEnvironment] = this.synchronized {
+    components(world).cleanUp()
+    Option(components(world).getIfPresent(address))
+  }
+
+  @SubscribeEvent
+  def onWorldUnload(e: WorldEvent.Unload): Unit = clear(e.world)
+
+  protected def clear(world: World): Unit = this.synchronized {
+    components(world).invalidateAll()
+    components(world).cleanUp()
   }
 }

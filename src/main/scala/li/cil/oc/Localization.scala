@@ -5,7 +5,11 @@ import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.util.StatCollector
 
+import scala.util.matching.Regex
+
 object Localization {
+  private val nl = Regex.quote("[nl]")
+
   private def resolveKey(key: String) = if (canLocalize(Settings.namespace + key)) Settings.namespace + key else key
 
   def canLocalize(key: String) = StatCollector.canTranslate(key)
@@ -14,9 +18,9 @@ object Localization {
 
   def localizeLater(key: String) = new ChatComponentTranslation(resolveKey(key))
 
-  def localizeImmediately(formatKey: String, values: AnyRef*) = StatCollector.translateToLocalFormatted(resolveKey(formatKey), values: _*)
+  def localizeImmediately(formatKey: String, values: AnyRef*) = StatCollector.translateToLocalFormatted(resolveKey(formatKey), values: _*).split(nl).map(_.trim).mkString("\n")
 
-  def localizeImmediately(key: String) = StatCollector.translateToLocal(resolveKey(key))
+  def localizeImmediately(key: String) = StatCollector.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
 
   object Analyzer {
     def Address(value: String) = localizeLater("gui.Analyzer.Address", value)
@@ -46,26 +50,6 @@ object Localization {
     def WirelessStrength(value: Double) = localizeLater("gui.Analyzer.WirelessStrength", value.toInt.toString)
   }
 
-  object Chat {
-    def WarningLuaFallback = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLuaFallback"))
-
-    def WarningProjectRed = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningProjectRed"))
-
-    def WarningPower = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningPower"))
-
-    def WarningFingerprint(event: FMLFingerprintViolationEvent) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", ")))
-
-    def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
-  }
-
-  object Robot {
-    def TurnOff = localizeImmediately("gui.Robot.TurnOff")
-
-    def TurnOn = localizeImmediately("gui.Robot.TurnOn")
-
-    def Power = localizeImmediately("gui.Robot.Power")
-  }
-
   object Assembler {
     def InsertTemplate = localizeImmediately("gui.Assembler.InsertCase")
 
@@ -88,6 +72,30 @@ object Localization {
     def Warning(name: String) = new ChatComponentText("§7- ").appendSibling(localizeLater("gui.Assembler.Warning." + name))
 
     def Warnings = localizeLater("gui.Assembler.Warnings")
+  }
+
+  object Chat {
+    def WarningLuaFallback = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLuaFallback"))
+
+    def WarningProjectRed = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningProjectRed"))
+
+    def WarningPower = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningPower"))
+
+    def WarningFingerprint(event: FMLFingerprintViolationEvent) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", ")))
+
+    def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
+  }
+
+  object Robot {
+    def TurnOff = localizeImmediately("gui.Robot.TurnOff")
+
+    def TurnOn = localizeImmediately("gui.Robot.TurnOn")
+
+    def Power = localizeImmediately("gui.Robot.Power")
+  }
+
+  object Raid {
+    def Warning = localizeImmediately("gui.Raid.Warning")
   }
 
   object ServerRack {

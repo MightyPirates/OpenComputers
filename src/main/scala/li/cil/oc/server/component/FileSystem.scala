@@ -223,18 +223,16 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   override def onMessage(message: Message) = fileSystem.synchronized {
     super.onMessage(message)
-    message.data match {
-      case Array() if message.name == "computer.stopped" || message.name == "computer.started" =>
-        owners.get(message.source.address) match {
-          case Some(set) =>
-            set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
-              case Some(file) => file.close()
-              case _ => // Invalid handle... huh.
-            })
-            set.clear()
-          case _ => // Computer had no open files.
-        }
-      case _ =>
+    if (message.name == "computer.stopped" || message.name == "computer.started") {
+      owners.get(message.source.address) match {
+        case Some(set) =>
+          set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
+            case Some(file) => file.close()
+            case _ => // Invalid handle... huh.
+          })
+          set.clear()
+        case _ => // Computer had no open files.
+      }
     }
   }
 
@@ -259,8 +257,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    nbt.getTagList("owners", NBT.TAG_COMPOUND).foreach((list, index) => {
-      val ownerNbt = list.getCompoundTagAt(index)
+    nbt.getTagList("owners", NBT.TAG_COMPOUND).foreach((ownerNbt: NBTTagCompound) => {
       val address = ownerNbt.getString("address")
       if (address != "") {
         owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]

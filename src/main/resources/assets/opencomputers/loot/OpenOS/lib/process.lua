@@ -69,13 +69,21 @@ function process.load(path, env, init, name)
     path = path,
     command = name,
     env = env,
+    data = setmetatable({}, {__index=process and process.data or nil}),
     parent = process,
     instances = setmetatable({}, {__mode="v"})
   }
   return thread
 end
 
-function process.running(level)
+function process.running(level) -- kept for backwards compat, prefer process.info
+  local info = process.info(level)
+  if info then
+    return info.path, info.env, info.command
+  end
+end
+
+function process.info(level)
   level = level or 1
   local process = findProcess()
   while level > 1 and process do
@@ -83,7 +91,7 @@ function process.running(level)
     level = level - 1
   end
   if process then
-    return process.path, process.env, process.command
+    return {path=process.path, env=process.env, command=process.command, data=process.data}
   end
 end
 
@@ -103,6 +111,7 @@ function process.install(path, name)
     path = path,
     command = name,
     env = _ENV,
+    data = {},
     instances = setmetatable({}, {__mode="v"})
   }
 end

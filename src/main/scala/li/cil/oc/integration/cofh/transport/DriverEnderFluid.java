@@ -25,12 +25,12 @@ public final class DriverEnderFluid extends DriverTileEntity {
             super(tileEntity, "ender_fluid");
         }
 
-        @Callback(doc = "function():boolean --  Returns whether the tileentity can receive fluids.")
+        @Callback(doc = "function():boolean --  Returns whether the tile entity can receive fluids.")
         public Object[] canReceiveFluid(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveFluid()};
         }
 
-        @Callback(doc = "function():boolean --  Returns whether the tileentity can send fluids.")
+        @Callback(doc = "function():boolean --  Returns whether the tile entity can send fluids.")
         public Object[] canSendFluid(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendFluid()};
         }

@@ -25,18 +25,20 @@ import java.util.Map;
 import java.util.Set;
 
 public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
-    private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
-
-    static {
-        for (String name : Settings.get().peripheralBlacklist()) {
-            final Class<?> clazz = Reflection.getClass(name);
-            if (clazz != null) {
-                blacklist.add(clazz);
-            }
-        }
-    }
+    private static Set<Class<?>> blacklist;
 
     private boolean isBlacklisted(final Object o) {
+        // Delayed initialization of the resolved classes to allow registering
+        // additional entries via IMC.
+        if (blacklist == null) {
+            blacklist = new HashSet<Class<?>>();
+            for (String name : Settings.get().peripheralBlacklist()) {
+                final Class<?> clazz = Reflection.getClass(name);
+                if (clazz != null) {
+                    blacklist.add(clazz);
+                }
+            }
+        }
         for (Class<?> clazz : blacklist) {
             if (clazz.isInstance(o))
                 return true;
@@ -46,7 +48,10 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
 
     private IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
         try {
-            return dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, -1);
+            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, -1);
+            if (!isBlacklisted(p)) {
+                return p;
+            }
         } catch (Exception e) {
             OpenComputers.log().warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
         }

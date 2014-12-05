@@ -197,7 +197,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
           val list = mutable.Set.empty ++ values
           list -= s1
           list -= s2
-          while (!list.isEmpty) {
+          while (list.nonEmpty) {
             if (m - r1.set.size >= list.size) {
               list.foreach(r1.add)
               list.clear()

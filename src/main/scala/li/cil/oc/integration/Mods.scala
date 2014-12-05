@@ -11,17 +11,22 @@ import scala.collection.mutable
 object Mods {
   private val handlers = mutable.Set.empty[ModProxy]
 
-  private val knownMods = mutable.ArrayBuffer.empty[Mod]
+  private val knownMods = mutable.ArrayBuffer.empty[ModBase]
 
   lazy val isPowerProvidingModPresent = knownMods.exists(mod => mod.providesPower && mod.isAvailable)
 
   // ----------------------------------------------------------------------- //
 
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2 + "@[rv1,)")
+  def All = knownMods.clone()
+
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
-  val BuildCraftPower = new SimpleMod(IDs.BuildCraftPower, providesPower = true)
+  val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
+  val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
+  val BuildCraftTransport = new SimpleMod(IDs.BuildCraftTransport)
   val CoFHEnergy = new SimpleMod(IDs.CoFHEnergy, providesPower = true)
+  val CoFHItem = new SimpleMod(IDs.CoFHItem)
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
@@ -73,11 +78,13 @@ object Mods {
 
   def init() {
     tryInit(integration.appeng.ModAppEng)
-    tryInit(integration.buildcraft.ModBuildCraft)
+    tryInit(integration.buildcraft.tools.ModBuildCraftAPITools)
+    tryInit(integration.buildcraft.tiles.ModBuildCraftAPITiles)
+    tryInit(integration.buildcraft.transport.ModBuildCraftAPITransport)
     tryInit(integration.cofh.energy.ModCoFHEnergy)
+    tryInit(integration.cofh.item.ModCoFHItem)
     tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
     tryInit(integration.cofh.transport.ModCoFHTransport)
-    tryInit(integration.enderio.ModEnderIO)
     tryInit(integration.enderstorage.ModEnderStorage)
     tryInit(integration.forestry.ModForestry)
     tryInit(integration.fmp.ModForgeMultipart)
@@ -87,6 +94,7 @@ object Mods {
     tryInit(integration.mystcraft.ModMystcraft)
     tryInit(integration.opencomputers.ModOpenComputers)
     tryInit(integration.railcraft.ModRailcraft)
+    tryInit(integration.stargatetech2.ModStargateTech2)
     tryInit(integration.thaumcraft.ModThaumcraft)
     tryInit(integration.thermalexpansion.ModThermalExpansion)
     tryInit(integration.tcon.ModTinkersConstruct)
@@ -99,8 +107,7 @@ object Mods {
     tryInit(integration.wrsve.ModWRSVE)
 
     // Register the general IPeripheral driver last, if at all, to avoid it
-    // being used rather than other more concrete implementations, such as
-    // is the case in the Redstone in Motion driver (replaces 'move').
+    // being used rather than other more concrete implementations.
     tryInit(integration.computercraft.ModComputerCraft)
   }
 
@@ -108,10 +115,10 @@ object Mods {
     val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
     val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
     if (!isBlacklisted && (alwaysEnabled || mod.getMod.isAvailable) && handlers.add(mod)) {
-      li.cil.oc.OpenComputers.log.info(String.format("Initializing mod integration for '%s'.", mod.getMod.id))
+      li.cil.oc.OpenComputers.log.info(s"Initializing mod integration for '${mod.getMod.id}'.")
       try mod.initialize() catch {
         case e: Throwable =>
-          li.cil.oc.OpenComputers.log.warn(String.format("Error initializing integration for '%s'", mod.getMod.id), e)
+          li.cil.oc.OpenComputers.log.warn(s"Error initializing integration for '${mod.getMod.id}'", e)
       }
     }
   }
@@ -123,7 +130,11 @@ object Mods {
     final val BattleGear2 = "battlegear2"
     final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftPower = "BuildCraftAPI|power"
+    final val BuildCraftTiles = "BuildCraftAPI|tiles"
+    final val BuildCraftTools = "BuildCraftAPI|tools"
+    final val BuildCraftTransport = "BuildCraftAPI|transport"
     final val CoFHEnergy = "CoFHAPI|energy"
+    final val CoFHItem = "CoFHAPI|item"
     final val CoFHTileEntity = "CoFHAPI|tileentity"
     final val CoFHTransport = "CoFHAPI|transport"
     final val ComputerCraft = "ComputerCraft"
@@ -183,9 +194,9 @@ object Mods {
     def disablePower() = powerDisabled = true
   }
 
-  class SimpleMod(val id: String, override val providesPower: Boolean = false) extends ModBase {
+  class SimpleMod(val id: String, override val providesPower: Boolean = false, version: String = "") extends ModBase {
     override protected lazy val isModAvailable = {
-      val version = VersionParser.parseVersionReference(id)
+      val version = VersionParser.parseVersionReference(id + this.version)
       if (Loader.isModLoaded(version.getLabel))
         version.containsVersion(Loader.instance.getIndexedModList.get(version.getLabel).getProcessedVersion)
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)

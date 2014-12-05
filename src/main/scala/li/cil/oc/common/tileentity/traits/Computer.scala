@@ -1,6 +1,5 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
@@ -26,13 +25,10 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
-import stargatetech2.api.bus.IBusDevice
 
 import scala.collection.mutable
 
-// See AbstractBusAware as to why we have to define the IBusDevice here.
-@Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = Mods.IDs.StargateTech2)
-trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with MachineHost {
+trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with MachineHost {
   private lazy val _machine = if (isServer) Machine.create(this) else null
 
   def machine = _machine
@@ -161,7 +157,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     super.readFromNBTForClient(nbt)
     _isRunning = nbt.getBoolean("isRunning")
     _users.clear()
-    _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((list, index) => list.getStringTagAt(index))
+    _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
     if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 1000 + world.rand.nextInt(2000))
   }
 

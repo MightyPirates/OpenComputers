@@ -33,7 +33,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   private def tryGetName(world: World, x: Int, y: Int, z: Int, environments: Seq[ManagedEnvironment]): String = {
     environments.collect {
       case named: NamedBlock => named
-    }.sortBy(_.priority).headOption match {
+    }.sortBy(_.priority).lastOption match {
       case Some(named) => return named.preferredName
       case _ => // No preferred name.
     }

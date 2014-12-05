@@ -1,0 +1,16 @@
+NAME
+  ifconfig - network information and configuration manager
+  
+SYNOPSIS
+  ifconfig [command] [command arguments]
+  
+DESCRIPTION
+  Displays information about current network status and configures its parts
+  
+EXAMPLES
+  ifconfig
+    Output network status information
+    
+  ifconfig bind [address]
+    Binds addnitional address to this device. Address should match [A-Za-z0-9%-]+ and be max 64 characters length
+

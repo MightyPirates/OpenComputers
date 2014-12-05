@@ -61,15 +61,15 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
     @Callback(doc = "function():table -- Get a list of known item recipes. These can be used to issue crafting requests.")
     def getCraftables(context: Context, args: Arguments): Array[AnyRef] =
       result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.
-        filter(_.isCraftable).map(new Craftable(tileEntity, _)))
+        filter(_.isCraftable).map(new Craftable(tileEntity, _)).toArray)
 
     @Callback(doc = "function():table -- Get a list of the stored items in the network.")
     def getItemsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-      result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.map(_.getItemStack))
+      result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.map(_.getItemStack).toArray)
 
     @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
     def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-      result(tileEntity.getProxy.getStorage.getFluidInventory.getStorageList.map(_.getFluidStack))
+      result(tileEntity.getProxy.getStorage.getFluidInventory.getStorageList.map(_.getFluidStack).toArray)
 
     @Callback(doc = "function():number -- Get the average power injection into the network.")
     def getAvgPowerInjection(context: Context, args: Arguments): Array[AnyRef] =
@@ -105,7 +105,8 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
       links -= link
     }
 
-    override def injectCratedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack
+    // rv1
+    def injectCratedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack
 
     // rv2
     def injectCraftedItems(link: ICraftingLink, stack: IAEItemStack, p3: Actionable) = stack
@@ -143,14 +144,19 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
           val job = future.get() // Make 100% sure we wait for this outside the scheduled closure.
           EventHandler.schedule(() => {
             val link = craftingGrid.submitJob(job, Craftable.this, null, true, source)
-            status.setLink(link)
-            links += link
+            if (link != null) {
+              status.setLink(link)
+              links += link
+            }
+            else {
+              status.fail("missing resources?")
+            }
           })
         }
         catch {
           case e: Exception =>
             OpenComputers.log.debug("Error submitting job to AE2.", e)
-            status.cancel()
+            status.fail(e.toString)
         }
       }
 
@@ -175,11 +181,8 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
           }
         })
       }
-      links ++= nbt.getTagList("links", NBT.TAG_LIST).map {
-        case (list, index) =>
-          val nbt = list.getCompoundTagAt(index)
-          Api.instance.storage.loadCraftingLink(nbt, this)
-      }
+      links ++= nbt.getTagList("links", NBT.TAG_LIST).map(
+        (nbt: NBTTagCompound) => Api.instance.storage.loadCraftingLink(nbt, this))
     }
 
     override def save(nbt: NBTTagCompound) {
@@ -198,31 +201,48 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
   class CraftingStatus extends AbstractValue {
     private var isComputing = true
     private var link: Option[ICraftingLink] = None
+    private var failed = false
+    private var reason = "no link"
 
     def setLink(value: ICraftingLink) {
-      link = Option(value)
       isComputing = false
+      link = Option(value)
     }
 
-    def cancel() {
+    def fail(reason: String) {
       isComputing = false
+      failed = true
+      this.reason = s"request failed ($reason)"
     }
 
     @Callback(doc = "function():boolean -- Get whether the crafting request has been canceled.")
     def isCanceled(context: Context, args: Arguments): Array[AnyRef] = {
       if (isComputing) return result(false, "computing")
-      link.fold(result(false, "no link"))(l => result(l.isCanceled))
+      link.fold(result(failed, reason))(l => result(l.isCanceled))
     }
 
     @Callback(doc = "function():boolean -- Get whether the crafting request is done.")
     def isDone(context: Context, args: Arguments): Array[AnyRef] = {
       if (isComputing) return result(false, "computing")
-      link.fold(result(true, "no link"))(l => result(l.isDone))
+      link.fold(result(!failed, reason))(l => result(l.isDone))
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
+      failed = link.fold(true)(!_.isDone)
+      nbt.setBoolean("failed", failed)
+      if (failed && reason != null) {
+        nbt.setString("reason", reason)
+      }
     }
 
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
       isComputing = false
+      failed = nbt.getBoolean("failed")
+      if (failed && nbt.hasKey("reason")) {
+        reason = nbt.getString("reason")
+      }
     }
   }
 

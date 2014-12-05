@@ -18,13 +18,13 @@ class ScalaClosure(val f: (Varargs) => Varargs) extends VarArgFunction {
 }
 
 object ScalaClosure {
-  implicit def wrapClosure(f: (Varargs) => LuaValue) = new ScalaClosure(args => f(args) match {
+  implicit def wrapClosure(f: (Varargs) => LuaValue): ScalaClosure = new ScalaClosure(args => f(args) match {
     case varargs: Varargs => varargs
     case LuaValue.NONE => LuaValue.NONE
     case result => LuaValue.varargsOf(Array(result))
   })
 
-  implicit def wrapVarArgClosure(f: (Varargs) => Varargs) = new ScalaClosure(f)
+  implicit def wrapVarArgClosure(f: (Varargs) => Varargs): ScalaClosure = new ScalaClosure(f)
 
   def toLuaValue(value: Any): LuaValue = {
     (value match {

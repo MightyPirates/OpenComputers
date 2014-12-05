@@ -32,8 +32,9 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    nbt.getTagList(Settings.namespace + "connector", NBT.TAG_COMPOUND).foreach {
-      case (list, index) => nodes(index).load(list.getCompoundTagAt(index))
+    nbt.getTagList(Settings.namespace + "connector", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) => nodes(index).load(tag)
     }
   }
 

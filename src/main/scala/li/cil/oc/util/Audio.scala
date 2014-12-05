@@ -31,26 +31,41 @@ object Audio {
 
   private var errored = false
 
-  def play(x: Float, y: Float, z: Float, frequencyInHz: Int, durationInMilliseconds: Int) {
+  def play(x: Float, y: Float, z: Float, frequencyInHz: Int, durationInMilliseconds: Int): Unit = {
+    play(x, y, z, ".", frequencyInHz, durationInMilliseconds)
+  }
+
+  def play(x: Float, y: Float, z: Float, pattern: String, frequencyInHz: Int = 1000, durationInMilliseconds: Int = 200) {
     val distanceBasedGain = math.max(0, 1 - Minecraft.getMinecraft.thePlayer.getDistance(x, y, z) / 12).toFloat
     val gain = distanceBasedGain * volume
     if (gain > 0 && AL.isCreated) {
-      val sampleCount = durationInMilliseconds * sampleRate / 1000
-      val data = BufferUtils.createByteBuffer(sampleCount)
+      val sampleCounts = pattern.toCharArray.
+        map(ch => if (ch == '.') durationInMilliseconds else 2 * durationInMilliseconds).
+        map(_ * sampleRate / 1000)
+      // 50ms pause between pattern parts.
+      val pauseSampleCount = 50 * sampleRate / 1000
+      val data = BufferUtils.createByteBuffer(sampleCounts.sum + (sampleCounts.length - 1) * pauseSampleCount)
       val step = frequencyInHz / sampleRate.toFloat
       var offset = 0f
-      for (sample <- 0 until sampleCount) {
-        val angle = 2 * math.Pi * offset
-        // We could sort of fake the square wave with a little less
-        // computational effort, but until somebody complains let's
-        // go with the fourier series! We leave out the  4 / Pi because
-        // it's just an approximation and we avoid clipping like this.
-        val value = (0 to 6).map(k => math.sin((1 + k * 2) * angle) / (1 + k * 2)).sum * Byte.MaxValue
-        // val tmp = math.sin(angle) * Byte.MaxValue
-        // val value = math.signum(tmp) * 0.99 + tmp * 0.01
-        offset += step
-        if (offset > 1) offset -= 1
-        data.put(value.toByte)
+      for (sampleCount <- sampleCounts) {
+        for (sample <- 0 until sampleCount) {
+          val angle = 2 * math.Pi * offset
+          // We could sort of fake the square wave with a little less
+          // computational effort, but until somebody complains let's
+          // go with the fourier series! We leave out the  4 / Pi because
+          // it's just an approximation and we avoid clipping like this.
+          val value = (0 to 6).map(k => math.sin((1 + k * 2) * angle) / (1 + k * 2)).sum * Byte.MaxValue
+          // val tmp = math.sin(angle) * Byte.MaxValue
+          // val value = math.signum(tmp) * 0.99 + tmp * 0.01
+          offset += step
+          if (offset > 1) offset -= 1
+          data.put(value.toByte)
+        }
+        if (data.hasRemaining) {
+          for (sample <- 0 until pauseSampleCount) {
+            data.put(127: Byte)
+          }
+        }
       }
       data.rewind()
 

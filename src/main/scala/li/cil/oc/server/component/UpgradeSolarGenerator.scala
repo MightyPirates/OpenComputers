@@ -5,8 +5,9 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import net.minecraft.world.World
+import li.cil.oc.util.BlockPosition
 import net.minecraft.world.biome.BiomeGenDesert
+import net.minecraftforge.common.util.ForgeDirection
 
 class UpgradeSolarGenerator(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
@@ -27,16 +28,18 @@ class UpgradeSolarGenerator(val host: EnvironmentHost) extends prefab.ManagedEnv
     ticksUntilCheck -= 1
     if (ticksUntilCheck <= 0) {
       ticksUntilCheck = 100
-      isSunShining = isSunVisible(host.world, math.floor(host.xPosition).toInt, math.floor(host.yPosition).toInt + 1, math.floor(host.zPosition).toInt)
+      isSunShining = isSunVisible
     }
     if (isSunShining) {
       node.changeBuffer(Settings.get.solarGeneratorEfficiency)
     }
   }
 
-  private def isSunVisible(world: World, x: Int, y: Int, z: Int): Boolean =
-    world.isDaytime &&
-      (!world.provider.hasNoSky) &&
-      world.canBlockSeeTheSky(x, y, z) &&
-      (world.getWorldChunkManager.getBiomeGenAt(x, z).isInstanceOf[BiomeGenDesert] || (!world.isRaining && !world.isThundering))
+  private def isSunVisible = {
+    val blockPos = BlockPosition(host).offset(ForgeDirection.UP)
+    host.world.isDaytime &&
+      (!host.world.provider.hasNoSky) &&
+      host.world.canBlockSeeTheSky(blockPos.x, blockPos.y, blockPos.z) &&
+      (host.world.getWorldChunkManager.getBiomeGenAt(blockPos.x, blockPos.z).isInstanceOf[BiomeGenDesert] || (!host.world.isRaining && !host.world.isThundering))
+  }
 }

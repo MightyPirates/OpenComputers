@@ -1,17 +1,15 @@
 package li.cil.oc
 
+import cpw.mods.fml.common.Mod
 import cpw.mods.fml.common.Mod.EventHandler
+import cpw.mods.fml.common.SidedProxy
 import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
-import cpw.mods.fml.common.Mod
-import cpw.mods.fml.common.SidedProxy
+import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
-import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.CommandHandler
 import org.apache.logging.log4j.LogManager
-
-import scala.collection.convert.WrapAsScala._
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
   version = OpenComputers.Version,
@@ -49,12 +47,5 @@ object OpenComputers {
   def serverStart(e: FMLServerStartingEvent) = CommandHandler.register(e)
 
   @EventHandler
-  def imc(e: IMCEvent) = {
-    for (message <- e.getMessages) {
-      if (message.key == "registerAssemblerTemplate" && message.isNBTMessage) {
-        log.info(s"Registering new assembler template from mod ${message.getSender}.")
-        AssemblerTemplates.add(message.getNBTValue)
-      }
-    }
-  }
+  def imc(e: IMCEvent) = IMC.handleEvent(e)
 }

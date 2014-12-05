@@ -19,8 +19,12 @@ object Textures {
   val guiButtonSide = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
   val guiButtonSwitch = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_switch.png")
   val guiComputer = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
+  val guiDatabase = new ResourceLocation(Settings.resourceDomain, "textures/gui/database.png")
+  val guiDatabase1 = new ResourceLocation(Settings.resourceDomain, "textures/gui/database1.png")
+  val guiDatabase2 = new ResourceLocation(Settings.resourceDomain, "textures/gui/database2.png")
   val guiDisassembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/disassembler.png")
   val guiKeyboardMissing = new ResourceLocation(Settings.resourceDomain, "textures/gui/keyboard_missing.png")
+  val guiRaid = new ResourceLocation(Settings.resourceDomain, "textures/gui/raid.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
   val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
   val guiRobotNoScreen = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_noscreen.png")
@@ -35,6 +39,8 @@ object Textures {
   val blockHologram = new ResourceLocation(Settings.resourceDomain, "textures/blocks/HologramEffect.png")
   val blockRackFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontOn.png")
   val blockRackFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontActivity.png")
+  val blockRaidFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontError.png")
+  val blockRaidFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontActivity.png")
   val blockRobot = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")
   val blockScreenUpIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
 
@@ -69,7 +75,7 @@ object Textures {
     val icons = Array.fill[IIcon](6)(null)
   }
 
-  object RobotAssembler {
+  object Assembler {
     var iconSideAssembling: IIcon = _
     var iconSideOn: IIcon = _
     var iconTopOn: IIcon = _

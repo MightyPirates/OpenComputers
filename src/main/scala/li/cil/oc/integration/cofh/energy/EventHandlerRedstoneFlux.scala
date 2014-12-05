@@ -3,6 +3,7 @@ package li.cil.oc.integration.cofh.energy
 import cofh.api.energy.IEnergyContainerItem
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
+import net.minecraft.item.ItemStack
 
 object EventHandlerRedstoneFlux {
   @SubscribeEvent
@@ -20,6 +21,13 @@ object EventHandlerRedstoneFlux {
           energyAfter.receiveEnergy(e.toolAfterUse, repairedDamage, false)
         }
       case _ =>
+    }
+  }
+
+  def getDurability(stack: ItemStack): Double = {
+    stack.getItem match {
+      case item: IEnergyContainerItem => item.getEnergyStored(stack).toDouble / item.getMaxEnergyStored(stack).toDouble
+      case _ => Double.NaN
     }
   }
 }

@@ -18,8 +18,9 @@ import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
 import scala.io.Codec
 import scala.io.Source
+import scala.util.matching.Regex
 
-class Settings(config: Config) {
+class Settings(val config: Config) {
   // ----------------------------------------------------------------------- //
   // client
   val screenTextFadeStartDistance = config.getDouble("client.screenTextFadeStartDistance")
@@ -95,6 +96,7 @@ class Settings(config: Config) {
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1
   val nameFormat = config.getString("robot.nameFormat")
+  val uuidFormat = config.getString("robot.uuidFormat")
 
   // robot.xp
   val baseXpToLevel = config.getDouble("robot.xp.baseValue") max 0
@@ -275,6 +277,7 @@ class Settings(config: Config) {
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
+  val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
 
   // ----------------------------------------------------------------------- //
   // integration
@@ -287,7 +290,7 @@ class Settings(config: Config) {
   // integration.vanilla
   val enableInventoryDriver = config.getBoolean("integration.vanilla.enableInventoryDriver")
   val enableTankDriver = config.getBoolean("integration.vanilla.enableTankDriver")
-  val allowCompressedNBTTags = config.getBoolean("integration.vanilla.allowCompressedNBTTags")
+  val allowItemStackNBTTags = config.getBoolean("integration.vanilla.allowItemStackNBTTags")
 
   // ----------------------------------------------------------------------- //
   // debug
@@ -307,6 +310,7 @@ class Settings(config: Config) {
   val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
   val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
   val enableDebugCard = config.getBoolean("debug.enableDebugCard")
+  val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
 }
 
 object Settings {
@@ -361,7 +365,7 @@ object Settings {
       val out = new PrintWriter(file)
       out.write(config.root.render(renderSettings).lines.
         // Indent two spaces instead of four.
-        map(line => """^(\s*)""".r.replaceAllIn(line, m => m.group(1).replace("  ", " "))).
+        map(line => """^(\s*)""".r.replaceAllIn(line, m => Regex.quoteReplacement(m.group(1).replace("  ", " ")))).
         // Finalize the string.
         filter(_ != "").mkString(nl).
         // Newline after values.

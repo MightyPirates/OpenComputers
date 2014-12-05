@@ -6,6 +6,7 @@ import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -113,7 +114,7 @@ object PacketSender {
               pb.writeDouble(event.getZ)
           }
 
-          pb.sendToPlayersNearHost(host, 64)
+          pb.sendToPlayersNearHost(host, Option(64))
         }
     }
   }
@@ -225,6 +226,17 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendRaidChange(t: tileentity.Raid) {
+    val pb = new SimplePacketBuilder(PacketType.RaidStateChange)
+
+    pb.writeTileEntity(t)
+    for (slot <- 0 until t.getSizeInventory) {
+      pb.writeBoolean(t.getStackInSlot(slot) != null)
+    }
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendRedstoneState(t: RedstoneAware) {
     val pb = new SimplePacketBuilder(PacketType.RedstoneState)
 
@@ -265,7 +277,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToPlayersNearTileEntity(t, 64)
+    pb.sendToPlayersNearTileEntity(t, Option(64))
   }
 
   def sendRobotAnimateTurn(t: tileentity.Robot) {
@@ -275,7 +287,7 @@ object PacketSender {
     pb.writeByte(t.turnAxis)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToPlayersNearTileEntity(t, 64)
+    pb.sendToPlayersNearTileEntity(t, Option(64))
   }
 
   def sendRobotInventory(t: tileentity.Robot, slot: Int, stack: ItemStack) {
@@ -294,7 +306,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
 
-    pb.sendToPlayersNearTileEntity(t, 16)
+    pb.sendToPlayersNearTileEntity(t, Option(16))
   }
 
   def sendRotatableState(t: Rotatable) {
@@ -312,7 +324,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
 
-    pb.sendToPlayersNearTileEntity(t, 64)
+    pb.sendToPlayersNearTileEntity(t, Option(64))
   }
 
   def appendTextBufferColorChange(pb: PacketBuilder, foreground: PackedColor.Color, background: PackedColor.Color) {
@@ -448,13 +460,27 @@ object PacketSender {
   def sendSound(world: World, x: Double, y: Double, z: Double, frequency: Int, duration: Int) {
     val pb = new SimplePacketBuilder(PacketType.Sound)
 
+    val blockPos = BlockPosition(x, y, z)
     pb.writeInt(world.provider.dimensionId)
-    pb.writeInt(math.floor(x).toInt)
-    pb.writeInt(math.floor(y).toInt)
-    pb.writeInt(math.floor(z).toInt)
+    pb.writeInt(blockPos.x)
+    pb.writeInt(blockPos.y)
+    pb.writeInt(blockPos.z)
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
 
-    pb.sendToNearbyPlayers(world, x, y, z, 16)
+    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+  }
+
+  def sendSound(world: World, x: Double, y: Double, z: Double, pattern: String) {
+    val pb = new SimplePacketBuilder(PacketType.SoundPattern)
+
+    val blockPos = BlockPosition(x, y, z)
+    pb.writeInt(world.provider.dimensionId)
+    pb.writeInt(blockPos.x)
+    pb.writeInt(blockPos.y)
+    pb.writeInt(blockPos.z)
+    pb.writeUTF(pattern)
+
+    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
   }
 }

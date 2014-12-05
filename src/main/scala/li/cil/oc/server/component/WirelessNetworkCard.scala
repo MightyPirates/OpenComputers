@@ -10,6 +10,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
+import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.language.implicitConversions
@@ -24,11 +25,11 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   // ----------------------------------------------------------------------- //
 
-  override def x = math.floor(host.xPosition).toInt
+  override def x = BlockPosition(host).x
 
-  override def y = math.floor(host.yPosition).toInt
+  override def y = BlockPosition(host).y
 
-  override def z = math.floor(host.zPosition).toInt
+  override def z = BlockPosition(host).z
 
   override def world = host.world
 

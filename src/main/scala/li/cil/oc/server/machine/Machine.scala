@@ -132,39 +132,39 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
-  override def start() = state.synchronized(state.top match {
+  override def start(): Boolean = state.synchronized(state.top match {
     case Machine.State.Stopped =>
       processAddedComponents()
       verifyComponents()
-      if (host.cpuArchitecture() == null) {
+      if (!Settings.get.ignorePower && node.globalBuffer < cost) {
+        // No beep! We have no energy after all :P
+        crash("gui.Error.NoEnergy")
+        false
+      }
+      else if (host.cpuArchitecture() == null || host.maxComponents == 0) {
+        beep("-")
         crash("gui.Error.NoCPU")
         false
       }
       else if (componentCount > host.maxComponents) {
+        beep("-..")
         crash("gui.Error.ComponentOverflow")
         false
       }
-      else if (host.maxComponents == 0) {
-        crash("gui.Error.NoCPU")
-        false
-      }
-      else if (host.installedMemory > 0) {
-        if (Settings.get.ignorePower || node.globalBuffer > cost) {
-          init() && {
-            switchTo(Machine.State.Starting)
-            uptime = 0
-            node.sendToReachable("computer.started")
-            true
-          }
-        }
-        else {
-          crash("gui.Error.NoEnergy")
-          false
-        }
-      }
-      else {
+      else if (host.installedMemory < 1) {
+        beep("-.")
         crash("gui.Error.NoRAM")
         false
+      }
+      else if (!init()) {
+        beep("--")
+        false
+      }
+      else {
+        switchTo(Machine.State.Starting)
+        uptime = 0
+        node.sendToReachable("computer.started")
+        true
       }
     case Machine.State.Paused if remainingPause > 0 =>
       remainingPause = 0
@@ -176,6 +176,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     case _ =>
       false
   })
+
+  private def beep(pattern: String) {
+    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, pattern)
+  }
 
   override def pause(seconds: Double): Boolean = {
     val ticksToPause = math.max((seconds * 20).toInt, 0)
@@ -585,15 +589,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     bootAddress = nbt.getString("bootAddress")
 
     state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
-    nbt.getTagList("users", NBT.TAG_STRING).foreach((list, index) => _users += list.getStringTagAt(index))
+    nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.func_150285_a_())
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
     }
 
-    _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((list, index) => {
-      val c = list.getCompoundTagAt(index)
-      c.getString("address") -> c.getString("name")
-    })
+    _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((tag: NBTTagCompound) =>
+      tag.getString("address") -> tag.getString("name"))
 
     tmp.foreach(fs => {
       if (nbt.hasKey("tmp")) fs.load(nbt.getCompoundTag("tmp"))
@@ -603,8 +605,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (state.size > 0 && isRunning && init()) try {
       architecture.load(nbt)
 
-      signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((list, index) => {
-        val signalNbt = list.getCompoundTagAt(index)
+      signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((signalNbt: NBTTagCompound) => {
         val argsNbt = signalNbt.getCompoundTag("args")
         val argsLength = argsNbt.getInteger("length")
         new Machine.Signal(signalNbt.getString("name"),
@@ -834,6 +835,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
                   switchTo(Machine.State.Stopping)
                 }
               case result: ExecutionResult.Error =>
+                beep("--")
                 crash(Option(result.message).getOrElse("unknown error"))
             }
           case Machine.State.Paused =>

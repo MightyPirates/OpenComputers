@@ -43,6 +43,7 @@ object TabletTemplate extends Template {
 
   def register() {
     val nbt = new NBTTagCompound()
+    nbt.setString("name", "Tablet")
     nbt.setString("select", "li.cil.oc.common.template.TabletTemplate.select")
     nbt.setString("validate", "li.cil.oc.common.template.TabletTemplate.validate")
     nbt.setString("assemble", "li.cil.oc.common.template.TabletTemplate.assemble")

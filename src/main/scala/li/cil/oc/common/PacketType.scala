@@ -20,6 +20,7 @@ object PacketType extends Enumeration {
   HologramTranslation,
   PetVisibility, // Goes both ways.
   PowerState,
+  RaidStateChange,
   RedstoneState,
   RobotAnimateSwing,
   RobotAnimateTurn,
@@ -42,6 +43,7 @@ object PacketType extends Enumeration {
   ScreenTouchMode,
   ServerPresence,
   Sound,
+  SoundPattern,
 
   // Client -> Server
   ComputerPower,

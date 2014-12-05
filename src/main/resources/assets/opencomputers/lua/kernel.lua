@@ -57,7 +57,7 @@ do
       return self
     end,
     head = function(self, len)
-      return string_sub(self.data, self.pos, self.pos + (len or self:len()) - 1)
+      return string.sub(self.data, self.pos, self.pos + (len or self:len()) - 1)
     end,
     len = function(self)
       return #self.data - (self.pos - 1)
@@ -67,7 +67,7 @@ do
       if pos == #self.data + 1 then
         return "\0"
       end
-      return string_sub(self.data, pos, pos)
+      return string.sub(self.data, pos, pos)
     end,
     copy = function(self, offset)
       return strptr(self.data, self.pos + (offset or 0))
@@ -577,7 +577,7 @@ do
     checkArg(3, repl, "number", "string", "function", "table")
     checkArg(4, n, "number", "nil")
 
-    if #s < SHORT_STRING then
+    if #s < SHORT_STRING or type(repl) == "function" then
       return string_gsub(s, pattern, repl, n)
     end
 
@@ -1241,7 +1241,7 @@ local libcomputer = {
   end,
 
   shutdown = function(reboot)
-    coroutine.yield(reboot ~= nil and reboot ~= false)
+    coroutine.yield(not not reboot)
   end,
   pushSignal = function(...)
     return spcall(computer.pushSignal, ...)
@@ -1351,6 +1351,7 @@ local function bootstrap()
   if not init then
     error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
   end
+  libcomputer.beep(1000, 0.2)
 
   return coroutine.create(init), {n=0}
 end

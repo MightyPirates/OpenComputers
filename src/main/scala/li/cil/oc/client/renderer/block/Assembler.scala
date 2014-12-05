@@ -57,11 +57,11 @@ object Assembler {
     RenderState.makeItBlend()
     RenderState.disableLighting()
 
-    renderer.setOverrideBlockTexture(Textures.RobotAssembler.iconTopOn)
+    renderer.setOverrideBlockTexture(Textures.Assembler.iconTopOn)
     renderer.setRenderBounds(0, 0, 0, 1, 1.05, 1)
     BlockRenderer.renderFaceYPos(block, metadata, renderer)
 
-    renderer.setOverrideBlockTexture(Textures.RobotAssembler.iconSideOn)
+    renderer.setOverrideBlockTexture(Textures.Assembler.iconSideOn)
     renderer.setRenderBounds(-0.005, 0, 0, 1.005, 1, 1)
     BlockRenderer.renderFaceXPos(block, metadata, renderer)
     BlockRenderer.renderFaceXNeg(block, metadata, renderer)

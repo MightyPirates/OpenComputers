@@ -25,7 +25,9 @@ trait Common extends TileEntity {
       val demand = math.min(budget, globalDemand(side)) / ratio
       if (demand > 1) {
         val energy = provider(demand, side) * ratio
-        budget -= tryChangeBuffer(side, energy)
+        if (energy > 0) {
+          budget -= tryChangeBuffer(side, energy)
+        }
       }
     }
   }
@@ -40,9 +42,9 @@ trait Common extends TileEntity {
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
-        val cappedAmount = math.max(-energyThroughput, math.min(energyThroughput, amount))
-        if (doReceive) amount - node.changeBuffer(cappedAmount)
-        else math.min(cappedAmount, globalDemand(side))
+        val cappedAmount = math.max(0, math.min(math.min(energyThroughput, amount), globalDemand(side)))
+        if (doReceive) cappedAmount - node.changeBuffer(cappedAmount)
+        else cappedAmount
       case _ => 0
     }
 

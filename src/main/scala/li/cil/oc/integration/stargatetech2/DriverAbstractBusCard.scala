@@ -9,7 +9,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
-import stargatetech2.api.bus.IBusDevice
+import lordfokas.stargatetech2.api.bus.IBusDevice
 
 object DriverAbstractBusCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =

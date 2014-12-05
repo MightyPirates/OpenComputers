@@ -9,6 +9,8 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.inventory.IInventory
@@ -29,7 +31,7 @@ class UpgradeInventoryControllerInAdapter(val host: EnvironmentHost with Adapter
   @Callback(doc = """function(side:number):number -- Get the number of slots in the inventory on the specified side of the adapter.""")
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
       case Some(inventory) if checkPermission(inventory) => result(inventory.getSizeInventory)
       case _ => result(Unit, "no inventory")
     }
@@ -38,7 +40,7 @@ class UpgradeInventoryControllerInAdapter(val host: EnvironmentHost with Adapter
   @Callback(doc = """function(side:number, slot:number):number -- Get number of items in the specified slot of the inventory on the specified side of the adapter.""")
   def getSlotStackSize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
       case Some(inventory) if checkPermission(inventory) =>
         result(Option(inventory.getStackInSlot(args.checkSlot(inventory, 1))).fold(0)(_.stackSize))
       case _ => result(Unit, "no inventory")
@@ -48,7 +50,7 @@ class UpgradeInventoryControllerInAdapter(val host: EnvironmentHost with Adapter
   @Callback(doc = """function(side:number, slot:number):number -- Get the maximum number of items in the specified slot of the inventory on the specified side of the adapter.""")
   def getSlotMaxStackSize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
       case Some(inventory) if checkPermission(inventory) =>
         result(Option(inventory.getStackInSlot(args.checkSlot(inventory, 1))).fold(0)(_.getMaxStackSize))
       case _ => result(Unit, "no inventory")
@@ -58,7 +60,7 @@ class UpgradeInventoryControllerInAdapter(val host: EnvironmentHost with Adapter
   @Callback(doc = """function(slotA:number, slotB:number):boolean -- Get whether the items in the two specified slots of the inventory on the specified side of the adapter are of the same type.""")
   def compareStacks(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
       case Some(inventory) if checkPermission(inventory) =>
         val stackA = inventory.getStackInSlot(args.checkSlot(inventory, 1))
         val stackB = inventory.getStackInSlot(args.checkSlot(inventory, 2))
@@ -70,13 +72,29 @@ class UpgradeInventoryControllerInAdapter(val host: EnvironmentHost with Adapter
   @Callback(doc = """function(side:number, slot:number):table -- Get a description of the stack in the specified slot of the inventory on the specified side of the adapter.""")
   def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val facing = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-    InventoryUtils.inventoryAt(host.world, math.floor(host.xPosition).toInt + facing.offsetX, math.floor(host.yPosition).toInt + facing.offsetY, math.floor(host.zPosition).toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
       case Some(inventory) if checkPermission(inventory) =>
         result(inventory.getStackInSlot(args.checkSlot(inventory, 1)))
       case _ => result(Unit, "no inventory")
     }
   }
   else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(side:number, slot:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack description in the specified slot of the database with the specified address. Returns true if something was overwritten.""")
+  def store(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
+      case Some(inventory) if checkPermission(inventory) =>
+        val stack = inventory.getStackInSlot(args.checkSlot(inventory, 1))
+        DatabaseAccess.withDatabase(node, args.checkString(2), database => {
+          val dbSlot = args.checkSlot(database.data, 3)
+          val nonEmpty = database.data.getStackInSlot(dbSlot) != null
+          database.data.setInventorySlotContents(dbSlot, stack.copy())
+          result(nonEmpty)
+        })
+      case _ => result(Unit, "no inventory")
+    }
+  }
 
   private def checkPermission(inventory: IInventory) = {
     fakePlayer synchronized {

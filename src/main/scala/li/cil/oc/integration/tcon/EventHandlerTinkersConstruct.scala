@@ -24,4 +24,17 @@ object EventHandlerTinkersConstruct {
       }
     }
   }
+
+  def getDurability(stack: ItemStack): Double = {
+    if (isTinkerTool(stack)) {
+      val nbt = stack.getTagCompound.getCompoundTag("InfiTool")
+      if (nbt.getBoolean("Broken")) 0.0
+      else {
+        val damage = nbt.getInteger("Damage")
+        val maxDamage = nbt.getInteger("TotalDurability")
+        1.0 - damage.toDouble / maxDamage.toDouble
+      }
+    }
+    else Double.NaN
+  }
 }

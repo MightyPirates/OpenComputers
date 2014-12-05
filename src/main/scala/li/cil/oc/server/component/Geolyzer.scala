@@ -3,13 +3,24 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.event.GeolyzerEvent
+import li.cil.oc.api.event.GeolyzerEvent.Analyze
+import li.cil.oc.api.internal.Rotatable
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import net.minecraft.block.Block
-import net.minecraftforge.fluids.FluidRegistry
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.DatabaseAccess
+import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.util.ForgeDirection
+
+import scala.collection.convert.WrapAsJava._
 
 class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -17,39 +28,69 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     withConnector().
     create()
 
-  @Callback(doc = """function(x:number, z:number[, ignoreReplaceable:boolean]):table -- Analyzes the density of the column at the specified relative coordinates.""")
+  @Callback(doc = """function(x:number, z:number[, ignoreReplaceable:boolean|options:table]):table -- Analyzes the density of the column at the specified relative coordinates.""")
   def scan(computer: Context, args: Arguments): Array[AnyRef] = {
     val rx = args.checkInteger(0)
     val rz = args.checkInteger(1)
-    val includeReplaceable = !args.optBoolean(2, false)
+    val options = if (args.isBoolean(2)) mapAsJavaMap(Map("includeReplaceable" -> !args.checkBoolean(2))) else args.optTable(2, Map.empty[AnyRef, AnyRef])
+
     if (math.abs(rx) > Settings.get.geolyzerRange || math.abs(rz) > Settings.get.geolyzerRange) {
       throw new IllegalArgumentException("location out of bounds")
     }
-    val (x, y, z) = (math.floor(host.xPosition).toInt, math.floor(host.yPosition).toInt, math.floor(host.zPosition).toInt)
-    val bx = x + rx
-    val bz = z + rz
 
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
-    val count = 64
-    val noise = new Array[Byte](count)
-    host.world.rand.nextBytes(noise)
-    // Map to [-1, 1). The additional /33f is for normalization below.
-    val values = noise.map(_ / 128f / 33f)
-    for (ry <- 0 until count) {
-      val by = y + ry - 32
-      if (!host.world.isAirBlock(bx, by, bz)) {
-        val block = host.world.getBlock(bx, by, bz)
-        if (block != null && (includeReplaceable || isFluid(block) || !block.isReplaceable(host.world, x, y, z))) {
-          values(ry) = values(ry) * (math.abs(ry - 32) + 1) * Settings.get.geolyzerNoise + block.getBlockHardness(host.world, bx, by, bz)
-        }
-      }
-      else values(ry) = 0
-    }
-
-    result(values)
+    val event = new GeolyzerEvent.Scan(host, options, rx, rz)
+    MinecraftForge.EVENT_BUS.post(event)
+    if (event.isCanceled) result(Unit, "scan was canceled")
+    else result(event.data)
   }
 
-  private def isFluid(block: Block) = FluidRegistry.lookupFluidForBlock(block) != null
+  @Callback(doc = """function(side:number[,options:table]):table -- Get some information on a directly adjacent block.""")
+  def analyze(computer: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
+    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val globalSide = host match {
+      case rotatable: Rotatable => rotatable.toGlobal(side)
+      case _ => side
+    }
+    val options = args.optTable(1, Map.empty[AnyRef, AnyRef])
+
+    if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+      return result(Unit, "not enough energy")
+
+    val event = new Analyze(host, options, globalSide)
+    MinecraftForge.EVENT_BUS.post(event)
+    if (event.isCanceled) result(Unit, "scan was canceled")
+    else result(event.data)
+  }
+  else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(side:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack representation of the block on the specified side in a database component.""")
+  def store(computer: Context, args: Arguments): Array[AnyRef] = {
+    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val globalSide = host match {
+      case rotatable: Rotatable => rotatable.toGlobal(side)
+      case _ => side
+    }
+
+    if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
+      return result(Unit, "not enough energy")
+
+    val blockPos = BlockPosition(host).offset(globalSide)
+    val block = host.world.getBlock(blockPos)
+    val item = Item.getItemFromBlock(block)
+    if (item == null) result(Unit, "block has no registered item representation")
+    else {
+      val metadata = host.world.getBlockMetadata(blockPos)
+      val damage = block.damageDropped(metadata)
+      val stack = new ItemStack(item, 1, damage)
+      DatabaseAccess.withDatabase(node, args.checkString(1), database => {
+        val toSlot = args.checkSlot(database.data, 2)
+        val nonEmpty = database.data.getStackInSlot(toSlot) != null
+        database.data.setInventorySlotContents(toSlot, stack)
+        result(nonEmpty)
+      })
+    }
+  }
 }

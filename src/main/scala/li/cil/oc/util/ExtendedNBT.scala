@@ -3,35 +3,42 @@ package li.cil.oc.util
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
 
+import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
+import scala.language.reflectiveCalls
+import scala.reflect.ClassTag
 
 object ExtendedNBT {
 
-  implicit def toNbt(value: Byte) = new NBTTagByte(value)
+  implicit def toNbt(value: Boolean): NBTTagByte = new NBTTagByte(if (value) 1 else 0)
 
-  implicit def toNbt(value: Short) = new NBTTagShort(value)
+  implicit def toNbt(value: Byte): NBTTagByte = new NBTTagByte(value)
 
-  implicit def toNbt(value: Int) = new NBTTagInt(value)
+  implicit def toNbt(value: Short): NBTTagShort = new NBTTagShort(value)
 
-  implicit def toNbt(value: Array[Int]) = new NBTTagIntArray(value)
+  implicit def toNbt(value: Int): NBTTagInt = new NBTTagInt(value)
 
-  implicit def toNbt(value: Long) = new NBTTagLong(value)
+  implicit def toNbt(value: Array[Int]): NBTTagIntArray = new NBTTagIntArray(value)
 
-  implicit def toNbt(value: Float) = new NBTTagFloat(value)
+  implicit def toNbt(value: Long): NBTTagLong = new NBTTagLong(value)
 
-  implicit def toNbt(value: Double) = new NBTTagDouble(value)
+  implicit def toNbt(value: Float): NBTTagFloat = new NBTTagFloat(value)
 
-  implicit def toNbt(value: Array[Byte]) = new NBTTagByteArray(value)
+  implicit def toNbt(value: Double): NBTTagDouble = new NBTTagDouble(value)
 
-  implicit def toNbt(value: String) = new NBTTagString(value)
+  implicit def toNbt(value: Array[Byte]): NBTTagByteArray = new NBTTagByteArray(value)
 
-  implicit def toNbt(value: {def writeToNBT(nbt: NBTTagCompound): Unit}) = {
+  implicit def toNbt(value: Array[Boolean]): NBTTagByteArray = new NBTTagByteArray(value.map(if (_) 1: Byte else 0: Byte))
+
+  implicit def toNbt(value: String): NBTTagString = new NBTTagString(value)
+
+  implicit def toNbt(value: {def writeToNBT(nbt: NBTTagCompound): Unit}): NBTTagCompound = {
     val nbt = new NBTTagCompound()
     value.writeToNBT(nbt)
     nbt
   }
 
-  implicit def toNbt(value: ItemStack) = {
+  implicit def toNbt(value: ItemStack): NBTTagCompound = {
     val nbt = new NBTTagCompound()
     if (value != null) {
       value.writeToNBT(nbt)
@@ -42,6 +49,7 @@ object ExtendedNBT {
   implicit def toNbt(value: Map[String, _]): NBTTagCompound = {
     val nbt = new NBTTagCompound()
     for ((key, value) <- value) value match {
+      case value: Boolean => nbt.setTag(key, value)
       case value: Byte => nbt.setTag(key, value)
       case value: Short => nbt.setTag(key, value)
       case value: Int => nbt.setTag(key, value)
@@ -57,31 +65,33 @@ object ExtendedNBT {
     nbt
   }
 
-  implicit def byteIterableToNbt(value: Iterable[Byte]) = value.map(toNbt)
+  implicit def booleanIterableToNbt(value: Iterable[Boolean]): Iterable[NBTTagByte] = value.map(toNbt)
 
-  implicit def shortIterableToNbt(value: Iterable[Short]) = value.map(toNbt)
+  implicit def byteIterableToNbt(value: Iterable[Byte]): Iterable[NBTTagByte] = value.map(toNbt)
 
-  implicit def intIterableToNbt(value: Iterable[Int]) = value.map(toNbt)
+  implicit def shortIterableToNbt(value: Iterable[Short]): Iterable[NBTTagShort] = value.map(toNbt)
 
-  implicit def intArrayIterableToNbt(value: Iterable[Array[Int]]) = value.map(toNbt)
+  implicit def intIterableToNbt(value: Iterable[Int]): Iterable[NBTTagInt] = value.map(toNbt)
 
-  implicit def longIterableToNbt(value: Iterable[Long]) = value.map(toNbt)
+  implicit def intArrayIterableToNbt(value: Iterable[Array[Int]]): Iterable[NBTTagIntArray] = value.map(toNbt)
 
-  implicit def floatIterableToNbt(value: Iterable[Float]) = value.map(toNbt)
+  implicit def longIterableToNbt(value: Iterable[Long]): Iterable[NBTTagLong] = value.map(toNbt)
 
-  implicit def doubleIterableToNbt(value: Iterable[Double]) = value.map(toNbt)
+  implicit def floatIterableToNbt(value: Iterable[Float]): Iterable[NBTTagFloat] = value.map(toNbt)
 
-  implicit def byteArrayIterableToNbt(value: Iterable[Array[Byte]]) = value.map(toNbt)
+  implicit def doubleIterableToNbt(value: Iterable[Double]): Iterable[NBTTagDouble] = value.map(toNbt)
 
-  implicit def stringIterableToNbt(value: Iterable[String]) = value.map(toNbt)
+  implicit def byteArrayIterableToNbt(value: Iterable[Array[Byte]]): Iterable[NBTTagByteArray] = value.map(toNbt)
 
-  implicit def writableIterableToNbt(value: Iterable[ {def writeToNBT(nbt: NBTTagCompound): Unit}]) = value.map(toNbt)
+  implicit def stringIterableToNbt(value: Iterable[String]): Iterable[NBTTagString] = value.map(toNbt)
 
-  implicit def itemStackIterableToNbt(value: Iterable[ItemStack]) = value.map(toNbt)
+  implicit def writableIterableToNbt(value: Iterable[ {def writeToNBT(nbt: NBTTagCompound): Unit}]): Iterable[NBTTagCompound] = value.map(toNbt)
 
-  implicit def extendNBTTagCompound(nbt: NBTTagCompound) = new ExtendedNBTTagCompound(nbt)
+  implicit def itemStackIterableToNbt(value: Iterable[ItemStack]): Iterable[NBTTagCompound] = value.map(toNbt)
 
-  implicit def extendNBTTagList(nbt: NBTTagList) = new ExtendedNBTTagList(nbt)
+  implicit def extendNBTTagCompound(nbt: NBTTagCompound): ExtendedNBTTagCompound = new ExtendedNBTTagCompound(nbt)
+
+  implicit def extendNBTTagList(nbt: NBTTagList): ExtendedNBTTagList = new ExtendedNBTTagList(nbt)
 
   class ExtendedNBTTagCompound(val nbt: NBTTagCompound) {
     def setNewCompoundTag(name: String, f: (NBTTagCompound) => Any) = {
@@ -116,9 +126,23 @@ object ExtendedNBT {
 
     def append(values: NBTBase*): Unit = append(values)
 
-    def foreach(f: (NBTTagList, Int) => Unit): Unit = (0 until nbt.tagCount).map(f(nbt, _))
+    def foreach[Tag <: NBTBase](f: Tag => Unit) {
+      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      while (iterable.tagCount > 0) {
+        f(iterable.removeTag(0).asInstanceOf[Tag])
+      }
+    }
 
-    def map[Value](f: (NBTTagList, Int) => Value) = (0 until nbt.tagCount).map(f(nbt, _))
+    def map[Tag <: NBTBase, Value](f: Tag => Value): IndexedSeq[Value] = {
+      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      val buffer = ArrayBuffer.empty[Value]
+      while (iterable.tagCount > 0) {
+        buffer += f(iterable.removeTag(0).asInstanceOf[Tag])
+      }
+      buffer
+    }
+
+    def toArray[Tag: ClassTag] = map((t: Tag) => t).toArray
   }
 
 }

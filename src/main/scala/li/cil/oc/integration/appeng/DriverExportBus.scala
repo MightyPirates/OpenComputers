@@ -10,9 +10,11 @@ import appeng.util.Platform
 import appeng.util.item.AEItemStack
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
+import li.cil.oc.api.internal.Database
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Component
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
@@ -51,14 +53,26 @@ object DriverExportBus extends driver.Block {
       }
     }
 
-    @Callback(doc = "function(side:number, stack:table,[ slot:number]):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
+    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
     def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
       host.getPart(side) match {
         case export: PartExportBus =>
-          val stack = if (args.optAny(1, null) == null) null else args.checkItemStack(1)
           val config = export.getInventoryByName("config")
-          val slot = args.optSlot(config, 2, 0)
+          val slot = if (args.count > 3 || args.count < 3) args.optSlot(config, 1, 0) else 0
+          val stack = if (args.count > 2) {
+            val (address, entry) =
+              if (args.count > 3) (args.checkString(2), args.checkInteger(3))
+              else (args.checkString(1), args.checkInteger(2))
+            node.network.node(address) match {
+              case component: Component => component.host match {
+                case database: Database => database.getStackInSlot(entry - 1)
+                case _ => throw new IllegalArgumentException("not a database")
+              }
+              case _ => throw new IllegalArgumentException("no such component")
+            }
+          }
+          else null
           config.setInventorySlotContents(slot, stack)
           context.pause(0.5)
           result(true)

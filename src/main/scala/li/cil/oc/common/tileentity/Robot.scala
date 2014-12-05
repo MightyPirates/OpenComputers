@@ -124,6 +124,18 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   private lazy val player_ = new robot.Player(this)
 
+  def determineUUID(playerUUID: Option[UUID] = None) = {
+    val format = Settings.get.uuidFormat
+    val randomUUID = UUID.randomUUID()
+    try UUID.fromString(format.
+      replaceAllLiterally("$random$", randomUUID.toString).
+      replaceAllLiterally("$player$", playerUUID.map(_.toString).getOrElse(randomUUID.toString))) catch {
+      case t: Throwable =>
+        OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
+        randomUUID
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   def name = info.name
@@ -486,7 +498,20 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def markDirty() {
     super.markDirty()
-    updateInventorySize()
+    // Avoid getting into a bad state on the client when updating before we
+    // got the descriptor packet from the server. If we manage to open the
+    // GUI before the descriptor packet arrived, close it again because it is
+    // invalid anyway.
+    if (inventorySize >= 0) {
+      updateInventorySize()
+    }
+    else if (isClient) {
+      Minecraft.getMinecraft.currentScreen match {
+        case robotGui: gui.Robot if robotGui.robot == this =>
+          Minecraft.getMinecraft.displayGuiScreen(null)
+        case _ =>
+      }
+    }
     renderingErrored = false
   }
 
@@ -592,8 +617,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         setInventorySlotContents(slot, null)
         if (stack != null) removed += stack
       }
-      Array.copy(components, getSizeInventory - componentCount, components, realSize, componentCount)
-      for (slot <- getSizeInventory - componentCount until getSizeInventory if slot < realSize || slot >= realSize + componentCount) {
+      val copyComponentCount = math.min(getSizeInventory, componentCount)
+      Array.copy(components, getSizeInventory - copyComponentCount, components, realSize, copyComponentCount)
+      for (slot <- math.max(0, getSizeInventory - componentCount) until getSizeInventory if slot < realSize || slot >= realSize + componentCount) {
         components(slot) = None
       }
       getSizeInventory = realSize + componentCount

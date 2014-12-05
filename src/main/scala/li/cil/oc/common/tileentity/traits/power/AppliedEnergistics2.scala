@@ -13,12 +13,14 @@ import appeng.api.util.DimensionalCoord
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
+@Injectable.Interface(value = "appeng.api.networking.IGridHost", modid = Mods.IDs.AppliedEnergistics2)
 trait AppliedEnergistics2 extends Common {
   private lazy val useAppliedEnergistics2Power = isServer && Mods.AppliedEnergistics2.isAvailable
 
@@ -36,16 +38,16 @@ trait AppliedEnergistics2 extends Common {
   private def updateEnergy() {
     tryAllSides((demand, side) => {
       val grid = getGridNode(side).getGrid
-    if (grid != null) {
-      val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
-      if (cache != null) {
+      if (grid != null) {
+        val cache = grid.getCache(classOf[IEnergyGrid]).asInstanceOf[IEnergyGrid]
+        if (cache != null) {
           cache.extractAEPower(demand, Actionable.MODULATE, PowerMultiplier.CONFIG)
-          }
-        else 0.0
         }
+        else 0.0
+      }
       else 0.0
     }, Settings.get.ratioAppliedEnergistics2)
-      }
+  }
 
   override def validate() {
     super.validate()
@@ -109,10 +111,11 @@ class AppliedEnergistics2GridBlock(val tileEntity: AppliedEnergistics2) extends 
 
   override def getFlags = util.EnumSet.noneOf(classOf[GridFlags])
 
+  // rv1
+  def isWorldAccessable = true
+
   // rv2
   def isWorldAccessible = true
-
-  override def isWorldAccessable = true
 
   override def getLocation = new DimensionalCoord(tileEntity)
 

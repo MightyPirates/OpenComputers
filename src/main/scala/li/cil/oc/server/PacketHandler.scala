@@ -81,28 +81,28 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onKeyDown(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: api.component.TextBuffer) => buffer.keyDown(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onKeyUp(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: api.component.TextBuffer) => buffer.keyUp(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onClipboard(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: api.component.TextBuffer) => buffer.clipboard(p.readUTF(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onMouseClick(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: api.component.TextBuffer) =>
         val x = p.readShort()
         val y = p.readShort()
@@ -115,14 +115,14 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onMouseUp(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: api.component.TextBuffer) => buffer.mouseUp(p.readShort(), p.readShort(), p.readByte(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onMouseScroll(p: PacketParser) {
-    ComponentTracker.get(p.readUTF()) match {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: api.component.TextBuffer) => buffer.mouseScroll(p.readShort(), p.readShort(), p.readByte(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
@@ -211,7 +211,7 @@ object PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     p.player match {
       case entity: EntityPlayerMP =>
-        ComponentTracker.get(address) match {
+        ComponentTracker.get(p.player.worldObj, address) match {
           case Some(buffer: TextBuffer) =>
             val nbt = new NBTTagCompound()
             buffer.data.save(nbt)

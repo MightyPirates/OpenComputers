@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Optional
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
@@ -13,6 +14,7 @@ import universalelectricity.api.core.grid.INodeProvider
 import universalelectricity.api.core.grid.electric.IEnergyNode
 import universalelectricity.core.grid.node.NodeEnergy
 
+@Injectable.Interface(value = "universalelectricity.api.core.grid.INodeProvider", modid = Mods.IDs.UniversalElectricity)
 trait UniversalElectricity extends Common {
   private var node: Option[AnyRef] = None
 

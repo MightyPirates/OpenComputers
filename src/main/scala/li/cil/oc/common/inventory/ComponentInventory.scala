@@ -1,6 +1,7 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.{Item => ItemDriver}
@@ -59,6 +60,8 @@ trait ComponentInventory extends Inventory with network.Environment {
         }
       }
     }
+    // Make sure our node is connected.
+    api.Network.joinNewNetwork(node)
     components collect {
       case Some(component) => connectItemNode(component.node)
     }

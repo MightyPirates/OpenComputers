@@ -1,14 +1,11 @@
 package li.cil.oc.integration.opencomputers
 
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{OpenComputers, Settings, api}
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine.Architecture
-import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
-import li.cil.oc.common.item
+import li.cil.oc.common.{Slot, Tier, item}
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsScala._
@@ -24,24 +21,25 @@ object DriverCPU extends Item with Processor {
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(cpu: item.CPU) => cpu.tier
-      case _ => 0
+      case _ => Tier.One
     }
 
   override def supportedComponents(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(cpu: item.CPU) => Settings.get.cpuComponentSupport(cpu.tier)
-      case _ => 0
+      case _ => Tier.One
     }
 
-  override def architecture(stack: ItemStack) = {
+  override def architecture(stack: ItemStack): Class[_ <: Architecture] = {
     if (stack.hasTagCompound) {
       val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass")
-      try Class.forName(archClass).asSubclass(classOf[Architecture]) catch {
+      try return Class.forName(archClass).asSubclass(classOf[Architecture]) catch {
         case t: Throwable =>
-          OpenComputers.log.warn("Failed getting class for CPU architecture.", t)
-          null
+          OpenComputers.log.warn("Failed getting class for CPU architecture. Resetting CPU to use the default.", t)
+          stack.getTagCompound.removeTag(Settings.namespace + "archClass")
+          stack.getTagCompound.removeTag(Settings.namespace + "archName")
       }
     }
-    else api.Machine.architectures.headOption.orNull
+    api.Machine.architectures.headOption.orNull
   }
 }

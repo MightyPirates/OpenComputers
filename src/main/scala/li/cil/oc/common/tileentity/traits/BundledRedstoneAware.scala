@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity.traits
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.ProjectRed
 import li.cil.oc.util.ExtendedNBT._
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
@@ -11,6 +10,7 @@ import mods.immibis.redlogic.api.wiring.IInsulatedRedstoneWire
 import mrtjp.projectred.api.IBundledTile
 import mrtjp.projectred.api.ProjectRedAPI
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagIntArray
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
@@ -97,24 +97,27 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
-    nbt.getTagList(Settings.namespace + "rs.bundledInput", NBT.TAG_INT_ARRAY).foreach {
-      case (list, index) if index < _bundledInput.length =>
-        val input = list.func_150306_c(index)
+    nbt.getTagList(Settings.namespace + "rs.bundledInput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+      map(_.func_150302_c()).zipWithIndex.foreach {
+      case (input, index) if index < _bundledInput.length =>
         val safeLength = input.length min _bundledInput(index).length
         input.copyToArray(_bundledInput(index), 0, safeLength)
+      case _ =>
     }
-    nbt.getTagList(Settings.namespace + "rs.bundledOutput", NBT.TAG_INT_ARRAY).foreach {
-      case (list, index) if index < _bundledOutput.length =>
-        val input = list.func_150306_c(index)
+    nbt.getTagList(Settings.namespace + "rs.bundledOutput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+      map(_.func_150302_c()).zipWithIndex.foreach {
+      case (input, index) if index < _bundledOutput.length =>
         val safeLength = input.length min _bundledOutput(index).length
         input.copyToArray(_bundledOutput(index), 0, safeLength)
+      case _ =>
     }
 
-    nbt.getTagList(Settings.namespace + "rs.rednetInput", NBT.TAG_INT_ARRAY).foreach {
-      case (list, index) if index < _rednetInput.length =>
-        val input = list.func_150306_c(index)
+    nbt.getTagList(Settings.namespace + "rs.rednetInput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+      map(_.func_150302_c()).zipWithIndex.foreach {
+      case (input, index) if index < _rednetInput.length =>
         val safeLength = input.length min _rednetInput(index).length
         input.copyToArray(_rednetInput(index), 0, safeLength)
+      case _ =>
     }
   }
 
@@ -131,10 +134,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   protected def computeBundledInput(side: ForgeDirection): Array[Int] = {
     val redLogic = if (Mods.RedLogic.isAvailable) {
-      world.getTileEntity(
-        x + side.offsetX,
-        y + side.offsetY,
-        z + side.offsetZ) match {
+      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
         case wire: IInsulatedRedstoneWire =>
           var strength: Array[Int] = null
           for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal()) && strength == null) {
@@ -150,10 +151,13 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
           strength
         case _ => null
       }
-    } else null
-    val projectRed = if (Mods.ProjectRedTransmission.isAvailable && ProjectRed.isAPIAvailable) {
+      else null
+    }
+    else null
+    val projectRed = if (Mods.ProjectRedTransmission.isAvailable) {
       Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
-    } else null
+    }
+    else null
     (redLogic, projectRed) match {
       case (a: Array[Int], b: Array[Int]) => (a, b).zipped.map((r1, r2) => math.max(r1, r2))
       case (a: Array[Int], _) => a

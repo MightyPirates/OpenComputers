@@ -25,12 +25,12 @@ public final class DriverEnderItem extends DriverTileEntity {
             super(tileEntity, "ender_item");
         }
 
-        @Callback(doc = "function():boolean --  Returns whether the tileentity can receive items.")
+        @Callback(doc = "function():boolean --  Returns whether the tile entity can receive items.")
         public Object[] canReceiveItems(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveItems()};
         }
 
-        @Callback(doc = "function():boolean --  Returns whether the tileentity can send items.")
+        @Callback(doc = "function():boolean --  Returns whether the tile entity can send items.")
         public Object[] canSendItems(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendItems()};
         }
