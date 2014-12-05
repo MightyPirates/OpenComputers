@@ -35,8 +35,10 @@ object Items extends ItemAPI {
   }
 
   def registerBlock[T <: Block](instance: T, id: String) = {
-    instance.setBlockName("oc." + id)
-    GameRegistry.registerBlock(instance, classOf[common.block.Item], id)
+    if (instance.getClass.getName.startsWith("li.cil.oc.")) {
+      instance.setBlockName("oc." + id)
+      GameRegistry.registerBlock(instance, classOf[common.block.Item], id)
+    }
     descriptors += id -> new ItemInfo {
       override def name = id
 
@@ -65,6 +67,10 @@ object Items extends ItemAPI {
   }
 
   def registerItem(instance: Item, id: String) = {
+    if (instance.getClass.getName.startsWith("li.cil.oc.")) {
+      instance.setUnlocalizedName("oc." + id.capitalize)
+      GameRegistry.registerItem(instance, id)
+    }
     descriptors += id -> new ItemInfo {
       override def name = id
 
@@ -256,5 +262,10 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradeDatabase(multi, Tier.Two), "databaseUpgrade2", "oc:databaseUpgrade2")
     Recipes.addItem(new item.UpgradeDatabase(multi, Tier.Three), "databaseUpgrade3", "oc:databaseUpgrade3")
     registerItem(new item.Debugger(multi), "debugger")
+
+    // 1.4.2
+    if (Mods.AppliedEnergistics2.isAvailable) {
+      Recipes.addItem(new item.AppliedEnergisticsP2PTunnel(), "appengTunnel")
+    }
   }
 }

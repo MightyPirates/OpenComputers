@@ -1,5 +1,6 @@
 package li.cil.oc.client
 
+import appeng.client.render.BusRenderer
 import cpw.mods.fml.client.registry.ClientRegistry
 import cpw.mods.fml.client.registry.RenderingRegistry
 import cpw.mods.fml.common.FMLCommonHandler
@@ -9,6 +10,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.client
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
@@ -21,6 +23,7 @@ import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{Proxy => CommonProxy}
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.Audio
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
@@ -61,6 +64,9 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 
     MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
+    if (Mods.AppliedEnergistics2.isAvailable) {
+      MinecraftForgeClient.registerItemRenderer(api.Items.get("appengTunnel").item(), BusRenderer.instance)
+    }
 
     ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)

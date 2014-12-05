@@ -37,6 +37,7 @@ item.oc.AbstractBusCard.name=Abstract Bus Card
 item.oc.Acid.name=Grog
 item.oc.ALU.name=Arithmetic Logic Unit (ALU)
 item.oc.Analyzer.name=Analyzer
+item.oc.AppengTunnel.name=P2P Tunnel - OpenComputers
 item.oc.ArrowKeys.name=Arrow Keys
 item.oc.ButtonGroup.name=Button Group
 item.oc.CardBase.name=Card Base

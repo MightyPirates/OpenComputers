@@ -10,10 +10,10 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
@@ -600,6 +600,8 @@ object Network extends api.detail.NetworkAPI {
       edges.foreach(edge => edge.other(this).edges -= edge)
       searchGraphs(edges.map(_.other(this)))
     }
+
+    override def toString = s"$data [${edges.length}]"
   }
 
   private case class Edge(left: Vertex, right: Vertex) {

@@ -496,3 +496,8 @@ screen3 {
           [yellowDust, "oc:circuitChip3", glass]
           [obsidian, yellowDust, obsidian]]
 }
+
+appengTunnel {
+  type: shapeless
+  input: [{item="appliedenergistics2:item.ItemMultiPart", subID=460}, "oc:adapter"]
+}
