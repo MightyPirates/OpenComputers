@@ -38,6 +38,10 @@ class Proxy {
       Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
     }
 
+    // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
+    // oredict entry, but not normal obsidian, breaking some recipes.
+    OreDictionary.registerOre("obsidian", net.minecraft.init.Blocks.obsidian)
+
     OpenComputers.log.info("Initializing OpenComputers API.")
 
     api.CreativeTab.instance = CreativeTab
