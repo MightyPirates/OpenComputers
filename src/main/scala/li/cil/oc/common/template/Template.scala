@@ -18,6 +18,7 @@ import scala.collection.mutable
 
 abstract class Template {
   protected val suggestedComponents = Array(
+    "BIOS" -> hasComponent("eeprom") _,
     "Screen" -> hasComponent("screen1") _,
     "Keyboard" -> hasComponent("keyboard") _,
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),

@@ -5,6 +5,7 @@ import java.util.Random
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
@@ -26,6 +27,7 @@ class Delegator extends Item {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
   setUnlocalizedName("oc.multi")
+  iconString = Settings.resourceDomain + ":Microchip0"
 
   // ----------------------------------------------------------------------- //
   // SubItem

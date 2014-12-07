@@ -58,11 +58,6 @@ object ExtendedRecipe {
       for (i <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(i)
         if (stack != null) {
-          Color.findDye(stack) match {
-            case Some(oreDictName) =>
-              nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf(oreDictName))
-            case _ =>
-          }
           if (api.Items.get(stack) == floppy && stack.hasTagCompound) {
             val oldData = stack.getTagCompound
             for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {

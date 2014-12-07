@@ -33,6 +33,8 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   protected val validRotations_ = Array(ForgeDirection.UP, ForgeDirection.DOWN)
 
+  def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
+
   // ----------------------------------------------------------------------- //
   // Rendering
   // ----------------------------------------------------------------------- //

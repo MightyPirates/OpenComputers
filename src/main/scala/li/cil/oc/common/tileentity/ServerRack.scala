@@ -12,6 +12,7 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
+import li.cil.oc.common.init.Items
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
@@ -294,7 +295,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.readFromNBT(nbt)
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
-        servers(slot) = Some(new component.Server(this, slot))
+        val server = new component.Server(this, slot)
+        servers(slot) = Option(server)
       }
     }
     nbt.getTagList(Settings.namespace + "servers", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
@@ -304,6 +306,12 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
           case Some(server) =>
             try server.load(tag) catch {
               case t: Throwable => OpenComputers.log.warn("Failed restoring server state. Please report this!", t)
+            }
+
+            // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
+            // TODO Remove in 1.5
+            if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
+              server.inventory.items(server.inventory.items.length - 1) = Option(Items.createLuaBios())
             }
           case _ =>
         }
@@ -347,6 +355,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }))
     nbt.setInteger(Settings.namespace + "range", range)
     nbt.setBoolean(Settings.namespace + "internalSwitch", internalSwitch)
+
+    // TODO Remove in 1.5
+    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   @SideOnly(Side.CLIENT)

@@ -54,6 +54,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverComponentBus)
     api.Driver.add(DriverCPU)
     api.Driver.add(DriverDebugCard)
+    api.Driver.add(DriverEEPROM)
     api.Driver.add(DriverFileSystem)
     api.Driver.add(DriverGeolyzer)
     api.Driver.add(DriverGraphicsCard)

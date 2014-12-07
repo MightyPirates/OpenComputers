@@ -1303,57 +1303,18 @@ sandbox.unicode = libunicode
 -------------------------------------------------------------------------------
 
 local function bootstrap()
-  function boot_invoke(address, method, ...)
-    local result = table.pack(pcall(libcomponent.invoke, address, method, ...))
-    if not result[1] then
-      return nil, result[2]
-    else
-      return table.unpack(result, 2, result.n)
-    end
-  end
-  do
-    local screen = libcomponent.list("screen")()
-    local gpu = libcomponent.list("gpu")()
-    if gpu and screen then
-      boot_invoke(gpu, "bind", screen)
-    end
-  end
-  local function tryLoadFrom(address)
-    local handle, reason = boot_invoke(address, "open", "/init.lua")
-    if not handle then
-      return nil, reason
-    end
-    local buffer = ""
-    repeat
-      local data, reason = boot_invoke(address, "read", handle, math.huge)
-      if not data and reason then
-        return nil, reason
+  local eeprom = libcomponent.list("eeprom")()
+  if eeprom then
+    local code = libcomponent.invoke(eeprom, "get")
+    if code and #code > 0 then
+      local bios, reason = load(code, "=bios", "t", sandbox)
+      if bios then
+        return coroutine.create(bios), {n=0}
       end
-      buffer = buffer .. (data or "")
-    until not data
-    boot_invoke(address, "close", handle)
-    return load(buffer, "=init", "t", sandbox)
-  end
-  local init, reason
-  if computer.getBootAddress() then
-    init, reason = tryLoadFrom(computer.getBootAddress())
-  end
-  if not init then
-    computer.setBootAddress()
-    for address in libcomponent.list("filesystem") do
-      init, reason = tryLoadFrom(address)
-      if init then
-        computer.setBootAddress(address)
-        break
-      end
+      error("failed loading bios: " .. reason, 0)
     end
   end
-  if not init then
-    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
-  end
-  libcomputer.beep(1000, 0.2)
-
-  return coroutine.create(init), {n=0}
+  error("no bios found; install a configured EEPROM", 0)
 end
 
 -------------------------------------------------------------------------------
@@ -1385,7 +1346,7 @@ local function main()
     if not result[1] then
       error(tostring(result[2]), 0)
     elseif coroutine.status(co) == "dead" then
-      error("computer stopped unexpectedly", 0)
+      error("computer halted", 0)
     else
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
       wrapUserdata(args)

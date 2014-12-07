@@ -58,6 +58,11 @@ ram6 {
           ["oc:circuitChip2", "oc:materialCircuitBoardPrinted", "oc:circuitChip2"]]
 }
 
+eeprom {
+  input: [[nuggetGold, "oc:materialTransistor", nuggetGold]
+          [paper, "oc:circuitChip1", paper]
+          [nuggetGold, torchRedstoneActive, nuggetGold]]
+}
 floppy {
   input: [[nuggetIron, lever, nuggetIron]
           [paper, "oc:materialDisk", paper]
@@ -81,6 +86,10 @@ hdd3 {
 openOS {
   type: shapeless
   input: ["oc:floppy", book]
+}
+luaBios {
+  type: shapeless
+  input: ["oc:eeprom", book]
 }
 
 abstractBusCard {

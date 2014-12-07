@@ -34,7 +34,7 @@ class Proxy {
     registerExclusive("nuggetIron", Items.ironNugget.createItemStack())
 
     if (OreDictionary.getOres("nuggetIron").exists(Items.ironNugget.createItemStack().isItemEqual)) {
-      Recipes.addItem(Items.ironNugget, "nuggetIron")
+      Recipes.addMultiItem(Items.ironNugget, "nuggetIron")
       Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
     }
 
@@ -100,7 +100,8 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
-    OpenComputers.ID + ":rack" -> "serverRack"
+    OpenComputers.ID + ":rack" -> "serverRack",
+    OpenComputers.ID + ":appengTunnel" -> "oc.appenTunnel"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {
@@ -108,16 +109,16 @@ class Proxy {
       if (missing.`type` == GameRegistry.Type.BLOCK) {
         blockRenames.get(missing.name) match {
           case Some(name) => missing.remap(GameRegistry.findBlock(OpenComputers.ID, name))
-          case _ => missing.fail()
+          case _ => missing.warn()
         }
       }
       else if (missing.`type` == GameRegistry.Type.ITEM) {
         itemRenames.get(missing.name) match {
           case Some(name) => missing.remap(GameRegistry.findItem(OpenComputers.ID, name))
-          case _ => missing.fail()
+          case _ => missing.warn()
         }
       }
-      else missing.fail()
+      else missing.warn()
     }
   }
 }
