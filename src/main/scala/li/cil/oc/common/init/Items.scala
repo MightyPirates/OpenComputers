@@ -107,6 +107,39 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
+  def createOpenOS(amount: Int = 1) = {
+    val data = new NBTTagCompound()
+    data.setString(Settings.namespace + "fs.label", "openos")
+
+    val nbt = new NBTTagCompound()
+    nbt.setTag(Settings.namespace + "data", data)
+    nbt.setString(Settings.namespace + "lootPath", "OpenOS")
+    nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
+
+    val stack = get("lootDisk").createItemStack(amount)
+    stack.setTagCompound(nbt)
+
+    stack
+  }
+
+  def createLuaBios(amount: Int = 1) = {
+    val data = new NBTTagCompound()
+    val code = new Array[Byte](4 * 1024)
+    val count = OpenComputers.getClass.getResourceAsStream(Settings.scriptPath + "bios.lua").read(code)
+    data.setByteArray(Settings.namespace + "eeprom", code.take(count))
+    data.setString(Settings.namespace + "label", "Lua BIOS")
+
+    val nbt = new NBTTagCompound()
+    nbt.setTag(Settings.namespace + "data", data)
+
+    val stack = get("eeprom").createItemStack(amount)
+    stack.setTagCompound(nbt)
+
+    stack
+  }
+
+  // ----------------------------------------------------------------------- //
+
   var multi: item.Delegator = _
 
   // ----------------------------------------------------------------------- //
@@ -278,36 +311,5 @@ object Items extends ItemAPI {
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, "eeprom", "oc:eeprom")
     Recipes.addRecipe(createLuaBios(), "luaBios")
-  }
-
-  def createOpenOS(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", "openos")
-
-    val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
-    nbt.setString(Settings.namespace + "lootPath", "OpenOS")
-    nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
-
-    val stack = get("lootDisk").createItemStack(amount)
-    stack.setTagCompound(nbt)
-
-    stack
-  }
-
-  def createLuaBios(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    val code = new Array[Byte](4 * 1024)
-    val count = OpenComputers.getClass.getResourceAsStream(Settings.scriptPath + "eeprom.lua").read(code)
-    data.setByteArray(Settings.namespace + "eeprom", code.take(count))
-    data.setString(Settings.namespace + "label", "Lua BIOS")
-
-    val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
-
-    val stack = get("eeprom").createItemStack(amount)
-    stack.setTagCompound(nbt)
-
-    stack
   }
 }
