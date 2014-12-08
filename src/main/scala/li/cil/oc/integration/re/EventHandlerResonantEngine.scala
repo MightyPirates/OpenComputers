@@ -1,11 +1,11 @@
-package li.cil.oc.integration.ue
+package li.cil.oc.integration.re
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraftforge.common.util.ForgeDirection
-import universalelectricity.compatibility.Compatibility
+import resonant.lib.grid.Compatibility
 
-object EventHandlerUniversalElectricity {
+object EventHandlerResonantEngine {
   @SubscribeEvent
   def onRobotApplyDamageRate(e: RobotUsedToolEvent.ApplyDamageRate) {
     if (Compatibility.isHandler(e.toolAfterUse, ForgeDirection.UNKNOWN)) {

@@ -48,8 +48,8 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
     if (Mods.CoFHEnergy.isAvailable) {
       addRatio(tooltip, "ThermalExpansion", Settings.get.ratioRedstoneFlux)
     }
-    if (Mods.UniversalElectricity.isAvailable) {
-      addRatio(tooltip, "UniversalElectricity", Settings.get.ratioUniversalElectricity)
+    if (Mods.ResonantEngine.isAvailable) {
+      addRatio(tooltip, "ResonantEngine", Settings.get.ratioResonantEngine)
     }
   }
 

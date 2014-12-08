@@ -25,7 +25,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
-import universalelectricity.api.core.grid.electric.IEnergyNode
+import resonant.api.electric.IEnergyNode
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -53,7 +53,7 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  @Optional.Method(modid = Mods.IDs.ResonantEngine)
   def scheduleAE2Add(tileEntity: power.AppliedEnergistics2) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.isInvalid) {
@@ -82,8 +82,8 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  def scheduleUEAdd(tileEntity: power.UniversalElectricity) {
+  @Optional.Method(modid = Mods.IDs.ResonantEngine)
+  def scheduleUEAdd(tileEntity: power.ResonantEngine) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.isInvalid) {
         tileEntity.getNode(classOf[IEnergyNode], ForgeDirection.UNKNOWN).reconstruct()

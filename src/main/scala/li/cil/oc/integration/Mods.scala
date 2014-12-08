@@ -56,6 +56,7 @@ object Mods {
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
+  val ResonantEngine = new SimpleMod(IDs.ResonantEngine, providesPower = true)
   val StargateTech2 = new ModBase {
     def id = IDs.StargateTech2
 
@@ -68,7 +69,6 @@ object Mods {
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
   val TMechWorks = new SimpleMod(IDs.TMechWorks)
-  val UniversalElectricity = new SimpleMod(IDs.UniversalElectricity, providesPower = true)
   val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
@@ -94,12 +94,12 @@ object Mods {
     tryInit(integration.mystcraft.ModMystcraft)
     tryInit(integration.opencomputers.ModOpenComputers)
     tryInit(integration.railcraft.ModRailcraft)
+    tryInit(integration.re.ModResonantEngine)
     tryInit(integration.stargatetech2.ModStargateTech2)
     tryInit(integration.thaumcraft.ModThaumcraft)
     tryInit(integration.thermalexpansion.ModThermalExpansion)
     tryInit(integration.tcon.ModTinkersConstruct)
     tryInit(integration.tmechworks.ModTMechworks)
-    tryInit(integration.ue.ModUniversalElectricity)
     tryInit(integration.vanilla.ModVanilla)
     tryInit(integration.versionchecker.ModVersionChecker)
     tryInit(integration.waila.ModWaila)
@@ -160,12 +160,12 @@ object Mods {
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val Railcraft = "Railcraft"
     final val RedLogic = "RedLogic"
+    final val ResonantEngine = "ResonantEngine"
     final val StargateTech2 = "StargateTech2"
     final val Thaumcraft = "Thaumcraft"
     final val ThermalExpansion = "ThermalExpansion"
     final val TinkersConstruct = "TConstruct"
     final val TMechWorks = "TMechworks"
-    final val UniversalElectricity = "UniversalElectricity"
     final val VersionChecker = "VersionChecker"
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"
