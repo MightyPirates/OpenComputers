@@ -8,6 +8,7 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.EntityLivingBase
@@ -18,6 +19,9 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Microcontroller extends RedstoneAware with traits.PowerAcceptor {
+  setCreativeTab(null)
+  NEI.hide(this)
+
   override protected def customTextures = Array(
     Some("MicrocontrollerTop"),
     Some("MicrocontrollerTop"),
