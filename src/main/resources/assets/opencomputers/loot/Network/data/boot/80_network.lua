@@ -103,6 +103,7 @@ local function start()
     print("Link Control initated")
     startNetwork()
     print("Network initated")
+    computer.pushSignal("network_ready")
 end
 
 ------------------------
