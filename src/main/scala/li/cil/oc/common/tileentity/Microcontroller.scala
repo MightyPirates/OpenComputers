@@ -12,10 +12,7 @@ import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Connector
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
@@ -24,7 +21,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Microcontroller extends traits.PowerAcceptor with traits.Computer with internal.Microcontroller {
+class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller {
   val info = new ItemUtils.MicrocontrollerData()
 
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -37,6 +34,11 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with int
   override protected def runSound = None // Microcontrollers are silent.
 
   // ----------------------------------------------------------------------- //
+
+  override def sidedNode(side: ForgeDirection) = if (side != facing) node else null
+
+  @SideOnly(Side.CLIENT)
+  override def canConnect(side: ForgeDirection) = side != facing
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
