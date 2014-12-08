@@ -100,8 +100,7 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
-    OpenComputers.ID + ":rack" -> "serverRack",
-    OpenComputers.ID + ":appengTunnel" -> "oc.appenTunnel"
+    OpenComputers.ID + ":rack" -> "serverRack"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {
@@ -118,7 +117,6 @@ class Proxy {
           case _ => missing.warn()
         }
       }
-      else missing.warn()
     }
   }
 }

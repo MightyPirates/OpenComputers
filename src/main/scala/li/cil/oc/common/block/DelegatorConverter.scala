@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 
+// TODO Remove in 1.5
 class DelegatorConverter extends Block(Material.rock) {
   NEI.hide(this)
 
