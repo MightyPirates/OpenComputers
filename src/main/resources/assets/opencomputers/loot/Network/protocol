@@ -63,7 +63,7 @@ MCNET
     Example cases:
         I. Network booted, nodes know hosts in them
             1. Host A sends message to host B
-                -Host A is hnown to host B, so host A sends to B direct message
+                -Host A is known to host B, so host A sends to B direct message
                 -Network data:
                     A -> B: "Dmessage"
             2. Host A sends message to G
