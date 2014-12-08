@@ -8,6 +8,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
@@ -20,6 +21,7 @@ import li.cil.oc.util.SideTracker
 import li.cil.oc.util.UpdateCheck
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
@@ -145,23 +147,36 @@ object EventHandler {
     ClientPacketSender.sendPetVisibility()
   }
 
+  lazy val eeprom = api.Items.get("eeprom")
+  lazy val mcu = api.Items.get("microcontroller")
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
-    if (api.Items.get(e.crafting) == navigationUpgrade) {
-      Option(api.Driver.driverFor(e.crafting)).foreach(driver =>
-        for (i <- 0 until e.craftMatrix.getSizeInventory) {
-          val stack = e.craftMatrix.getStackInSlot(i)
-          if (stack != null && api.Items.get(stack) == navigationUpgrade) {
-            // Restore the map currently used in the upgrade.
-            val nbt = driver.dataTag(stack)
-            val map = ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
-            if (map != null && !e.player.inventory.addItemStackToInventory(map)) {
-              e.player.dropPlayerItemWithRandomChoice(map, false)
-            }
-          }
-        })
+    recraft(e, navigationUpgrade, stack => {
+      // Restore the map currently used in the upgrade.
+      Option(api.Driver.driverFor(e.crafting)) match {
+        case Some(driver) => Option(ItemUtils.loadStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
+        case _ => None
+      }
+    })
+
+    recraft(e, mcu, stack => {
+      // Restore EEPROM currently used in microcontroller.
+      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+    })
+  }
+
+  private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Unit = {
+    if (api.Items.get(e.crafting) == item) {
+      for (slot <- 0 until e.craftMatrix.getSizeInventory) {
+        val stack = e.craftMatrix.getStackInSlot(slot)
+        if (api.Items.get(stack) == item) {
+          callback(stack).foreach(extra => if (!e.player.inventory.addItemStackToInventory(extra)) {
+            e.player.dropPlayerItemWithRandomChoice(extra, false)
+          })
+        }
+      }
     }
   }
 

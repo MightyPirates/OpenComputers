@@ -307,9 +307,9 @@ object Items extends ItemAPI {
     if (Mods.AppliedEnergistics2.isAvailable) {
       Recipes.addItem(new item.AppliedEnergisticsP2PTunnel(), "appengTunnel")
     }
-
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, "eeprom", "oc:eeprom")
     Recipes.addRecipe(createLuaBios(), "luaBios")
+    Recipes.addMultiItem(new item.MicrocontrollerCase(multi), "microcontrollerCase", "oc:microcontrollerCase")
   }
 }

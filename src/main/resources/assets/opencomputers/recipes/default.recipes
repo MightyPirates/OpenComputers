@@ -6,6 +6,11 @@ analyzer {
           ["oc:materialTransistor", nuggetGold, ""]
           ["oc:materialCircuitBoardPrinted", nuggetGold, ""]]
 }
+microcontrollerCase {
+  input: [[nuggetIron, "oc:circuitChip1", nuggetIron]
+          [redstone, chest, redstone]
+          [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
 terminal {
   input: [[nuggetIron, "oc:solarGeneratorUpgrade", nuggetIron]
           ["oc:circuitChip3", "oc:screen2", "oc:wlanCard"]

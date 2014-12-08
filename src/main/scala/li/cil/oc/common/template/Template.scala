@@ -93,7 +93,7 @@ abstract class Template {
       acc += (Option(api.Driver.driverFor(stack, hostClass)) match {
         case Some(driver: Processor) => 0 // CPUs are exempt, since they control the limit.
         case Some(driver: Container) => (1 + driver.tier(stack)) * 2
-        case Some(driver) => 1 + driver.tier(stack)
+        case Some(driver) if driver.slot(stack) != Slot.EEPROM => 1 + driver.tier(stack)
         case _ => 0
       })
     }

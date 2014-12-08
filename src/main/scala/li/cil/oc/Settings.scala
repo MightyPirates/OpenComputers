@@ -178,6 +178,10 @@ class Settings(val config: Config) {
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
+  val microcontrollerCost = config.getDouble("power.cost.microcontroller") max 0
+  val eepromWriteCost = config.getDouble("power.cost.eepromWrite") max 0
+  val microcontrollerBaseCost = config.getDouble("power.cost.microcontrollerAssemblyBase") max 0
+  val microcontrollerComplexityCost = config.getDouble("power.cost.microcontrollerAssemblyComplexity") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0

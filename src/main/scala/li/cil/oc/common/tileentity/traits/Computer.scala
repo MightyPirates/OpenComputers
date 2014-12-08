@@ -41,6 +41,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   private val _users = mutable.Set.empty[String]
 
+  protected def runSound = Option("computer_running")
+
   // ----------------------------------------------------------------------- //
 
   def canInteract(player: String) =
@@ -53,8 +55,10 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
     world.markBlockForUpdate(x, y, z)
-    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 50 + world.rand.nextInt(50))
-    else Sound.stopLoop(this)
+    runSound.foreach(sound =>
+      if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
+      else Sound.stopLoop(this)
+    )
   }
 
   @SideOnly(Side.CLIENT)
@@ -158,7 +162,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     _isRunning = nbt.getBoolean("isRunning")
     _users.clear()
     _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
-    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 1000 + world.rand.nextInt(2000))
+    if (_isRunning) runSound.foreach(sound => Sound.startLoop(this, sound, 0.5f, 1000 + world.rand.nextInt(2000)))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

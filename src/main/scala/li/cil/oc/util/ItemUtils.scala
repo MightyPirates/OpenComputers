@@ -10,7 +10,6 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.DelegatorConverter
 import li.cil.oc.common.init.Items
 import li.cil.oc.integration.opencomputers.DriverScreen
-import li.cil.oc.integration.opencomputers.DriverUpgradeExperience
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemMap
 import net.minecraft.item.ItemStack
@@ -46,6 +45,85 @@ object ItemUtils {
         stack.setTagCompound(new NBTTagCompound())
       }
       save(stack.getTagCompound)
+    }
+  }
+
+  class MicrocontrollerData extends ItemData {
+    def this(stack: ItemStack) {
+      this()
+      load(stack)
+    }
+
+    var components = Array.empty[ItemStack]
+
+    override def load(nbt: NBTTagCompound) {
+      components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
+        toArray[NBTTagCompound].map(loadStack)
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
+    }
+
+    def createItemStack() = {
+      val stack = api.Items.get("microcontroller").createItemStack(1)
+      save(stack)
+      stack
+    }
+
+    def copyItemStack() = {
+      val stack = createItemStack()
+      // Forget all node addresses and so on. This is used when 'picking' a
+      // microcontroller in creative mode.
+      val newInfo = new MicrocontrollerData(stack)
+      newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
+        case Some(driver) if driver == DriverScreen =>
+          val nbt = driver.dataTag(cs)
+          for (tagName <- nbt.func_150296_c().toArray) {
+            nbt.removeTag(tagName.asInstanceOf[String])
+          }
+        case _ =>
+      })
+      newInfo.save(stack)
+      stack
+    }
+  }
+
+  class NavigationUpgradeData extends ItemData {
+    def this(stack: ItemStack) {
+      this()
+      load(stack)
+    }
+
+    var map = new ItemStack(net.minecraft.init.Items.filled_map)
+
+    def mapData(world: World) = try map.getItem.asInstanceOf[ItemMap].getMapData(map, world) catch {
+      case _: Throwable => throw new Exception("invalid map")
+    }
+
+    override def load(stack: ItemStack) {
+      if (stack.hasTagCompound) {
+        load(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
+      }
+    }
+
+    override def save(stack: ItemStack) {
+      if (!stack.hasTagCompound) {
+        stack.setTagCompound(new NBTTagCompound())
+      }
+      save(stack.getCompoundTag(Settings.namespace + "data"))
+    }
+
+    override def load(nbt: NBTTagCompound) {
+      if (nbt.hasKey(Settings.namespace + "map")) {
+        map = loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
+      }
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      if (map != null) {
+        nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
+      }
     }
   }
 
@@ -149,44 +227,6 @@ object ItemUtils {
     }
 
     def randomName = if (names.length > 0) names((math.random * names.length).toInt) else "Robot"
-  }
-
-  class NavigationUpgradeData extends ItemData {
-    def this(stack: ItemStack) {
-      this()
-      load(stack)
-    }
-
-    var map = new ItemStack(net.minecraft.init.Items.filled_map)
-
-    def mapData(world: World) = try map.getItem.asInstanceOf[ItemMap].getMapData(map, world) catch {
-      case _: Throwable => throw new Exception("invalid map")
-    }
-
-    override def load(stack: ItemStack) {
-      if (stack.hasTagCompound) {
-        load(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
-      }
-    }
-
-    override def save(stack: ItemStack) {
-      if (!stack.hasTagCompound) {
-        stack.setTagCompound(new NBTTagCompound())
-      }
-      save(stack.getCompoundTag(Settings.namespace + "data"))
-    }
-
-    override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey(Settings.namespace + "map")) {
-        map = loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
-      }
-    }
-
-    override def save(nbt: NBTTagCompound) {
-      if (map != null) {
-        nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
-      }
-    }
   }
 
   class TabletData extends ItemData {

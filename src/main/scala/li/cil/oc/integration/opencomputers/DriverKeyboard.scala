@@ -12,7 +12,7 @@ object DriverKeyboard extends Item with HostAware {
     isOneOf(stack, api.Items.get("keyboard"))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && !isAdapter(host)
+    worksWith(stack) && !isAdapter(host) && !isMicrocontroller(host)
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.Keyboard(host)
 

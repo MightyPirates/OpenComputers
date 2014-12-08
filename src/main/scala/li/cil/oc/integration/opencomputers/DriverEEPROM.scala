@@ -14,7 +14,7 @@ object DriverEEPROM extends Item with HostAware with EnvironmentAware {
     isOneOf(stack, api.Items.get("eeprom"))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isComputer(host) || isRobot(host) || isServer(host) || isTablet(host))
+    worksWith(stack) && (isComputer(host) || isRobot(host) || isServer(host) || isTablet(host) || isMicrocontroller(host))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.EEPROM()
 

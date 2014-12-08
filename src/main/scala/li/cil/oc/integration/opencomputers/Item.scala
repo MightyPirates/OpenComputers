@@ -27,6 +27,8 @@ trait Item extends driver.Item {
   protected def isServer(host: Class[_ <: EnvironmentHost]) = classOf[internal.Server].isAssignableFrom(host)
 
   protected def isTablet(host: Class[_ <: EnvironmentHost]) = classOf[internal.Tablet].isAssignableFrom(host)
+
+  protected def isMicrocontroller(host: Class[_ <: EnvironmentHost]) = classOf[internal.Microcontroller].isAssignableFrom(host)
 }
 
 object Item {

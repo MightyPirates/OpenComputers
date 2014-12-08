@@ -7,6 +7,7 @@ import li.cil.oc.api
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.SideTracker
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.InventoryCrafting
@@ -16,6 +17,8 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
 object ExtendedRecipe {
+  private lazy val eeprom = api.Items.get("eeprom")
+  private lazy val mcu = api.Items.get("microcontroller")
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   private lazy val linkedCard = api.Items.get("linkedCard")
   private lazy val floppy = api.Items.get("floppy")
@@ -30,8 +33,8 @@ object ExtendedRecipe {
   def addNBTToResult(craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
     if (api.Items.get(craftedStack) == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
-        for (i <- 0 until inventory.getSizeInventory) {
-          val stack = inventory.getStackInSlot(i)
+        for (slot <- 0 until inventory.getSizeInventory) {
+          val stack = inventory.getStackInSlot(slot)
           if (stack != null && stack.getItem == net.minecraft.init.Items.filled_map) {
             // Store information of the map used for crafting in the result.
             val nbt = driver.dataTag(craftedStack)
@@ -55,8 +58,8 @@ object ExtendedRecipe {
         craftedStack.setTagCompound(new NBTTagCompound())
       }
       val nbt = craftedStack.getTagCompound
-      for (i <- 0 until inventory.getSizeInventory) {
-        val stack = inventory.getStackInSlot(i)
+      for (slot <- 0 until inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(slot)
         if (stack != null) {
           if (api.Items.get(stack) == floppy && stack.hasTagCompound) {
             val oldData = stack.getTagCompound
@@ -65,6 +68,29 @@ object ExtendedRecipe {
             }
           }
         }
+      }
+    }
+
+    if (api.Items.get(craftedStack) == mcu) {
+      // Find old Microcontroller.
+      (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).find(api.Items.get(_) == mcu) match {
+        case Some(oldMcu) =>
+          val data = new ItemUtils.MicrocontrollerData(oldMcu)
+
+          // Remove old EEPROM.
+          val oldRom = data.components.filter(api.Items.get(_) == eeprom)
+          data.components = data.components.diff(oldRom)
+
+          // Insert new EEPROM.
+          for (slot <- 0 until inventory.getSizeInventory) {
+            val stack = inventory.getStackInSlot(slot)
+            if (api.Items.get(stack) == eeprom) {
+              data.components :+= stack
+            }
+          }
+
+          data.save(craftedStack)
+        case _ =>
       }
     }
 

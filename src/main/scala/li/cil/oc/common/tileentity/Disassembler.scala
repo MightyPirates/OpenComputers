@@ -95,9 +95,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
       else if (api.Items.get(stack) == api.Items.get("server2")) enqueueServer(stack, 1)
       else if (api.Items.get(stack) == api.Items.get("server3")) enqueueServer(stack, 2)
       else if (api.Items.get(stack) == api.Items.get("tablet")) enqueueTablet(stack)
-      else if (api.Items.get(stack) == api.Items.get("navigationUpgrade")) {
-        enqueueNavigationUpgrade(stack)
-      }
+      else if (api.Items.get(stack) == api.Items.get("microcontroller")) enqueueMicrocontroller(stack)
+      else if (api.Items.get(stack) == api.Items.get("navigationUpgrade")) enqueueNavigationUpgrade(stack)
       else queue ++= getIngredients(stack)
       totalRequiredEnergy = queue.size * Settings.get.disassemblerItemCost
     }
@@ -134,6 +133,12 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
       case Some(stack) => stack
     }.drop(1) // Screen.
     node.changeBuffer(info.energy)
+  }
+
+  private def enqueueMicrocontroller(mcu: ItemStack) {
+    val info = new ItemUtils.MicrocontrollerData(mcu)
+    queue += api.Items.get("microcontrollerCase").createItemStack(1)
+    queue ++= info.components
   }
 
   private def enqueueNavigationUpgrade(stack: ItemStack) {
@@ -243,7 +248,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def getInventoryStackLimit = 64
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
-    api.Items.get(stack) == api.Items.get("robot") ||
+    ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && getIngredients(stack).nonEmpty) ||
+      api.Items.get(stack) == api.Items.get("robot") ||
       api.Items.get(stack) == api.Items.get("tablet") ||
-      ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && getIngredients(stack).nonEmpty)
+      api.Items.get(stack) == api.Items.get("microcontroller")
 }

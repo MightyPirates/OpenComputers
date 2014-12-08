@@ -21,6 +21,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
     GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
+    GameRegistry.registerTileEntity(classOf[tileentity.Microcontroller], Settings.namespace + "microcontroller")
     GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motion_sensor")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
@@ -33,6 +34,7 @@ object Blocks {
 
     // These are purely for converting existing blocks in delegator format to the new,
     // one block type per block format.
+    // TODO Remove in 1.5
     GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple")
     GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple_redstone")
     GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "special")
@@ -86,5 +88,6 @@ object Blocks {
 
     // v1.4.2
     Recipes.addBlock(new Raid(), "raid", "oc:raid")
+    Items.registerBlock(new Microcontroller(), "microcontroller")
   }
 }

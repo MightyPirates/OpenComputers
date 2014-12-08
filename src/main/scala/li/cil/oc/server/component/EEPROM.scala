@@ -26,6 +26,9 @@ class EEPROM extends prefab.ManagedEnvironment {
 
   @Callback(doc = """function(data:string) -- Overwrite the currently stored byte array.""")
   def set(context: Context, args: Arguments): Array[AnyRef] = {
+    if (!node.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
+      return result(Unit, "not enough energy")
+    }
     val newData = args.checkByteArray(0)
     if (newData.length > 4 * 1024) throw new IllegalArgumentException("not enough space")
     data = newData
