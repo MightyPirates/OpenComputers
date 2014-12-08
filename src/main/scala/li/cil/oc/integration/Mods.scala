@@ -56,7 +56,10 @@ object Mods {
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
-  val ResonantEngine = new SimpleMod(IDs.ResonantEngine, providesPower = true)
+  val ResonantEngine = new SimpleMod(IDs.ResonantEngine, providesPower = true) {
+    // TODO Re-enable once RE is stable.
+    override def isAvailable = false
+  }
   val StargateTech2 = new ModBase {
     def id = IDs.StargateTech2
 
@@ -94,7 +97,8 @@ object Mods {
     tryInit(integration.mystcraft.ModMystcraft)
     tryInit(integration.opencomputers.ModOpenComputers)
     tryInit(integration.railcraft.ModRailcraft)
-    tryInit(integration.re.ModResonantEngine)
+    // TODO Re-enable once RE is stable.
+//    tryInit(integration.re.ModResonantEngine)
     tryInit(integration.stargatetech2.ModStargateTech2)
     tryInit(integration.thaumcraft.ModThaumcraft)
     tryInit(integration.thermalexpansion.ModThermalExpansion)
