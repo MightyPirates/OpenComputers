@@ -41,7 +41,8 @@ class EEPROM extends prefab.ManagedEnvironment {
 
   @Callback(doc = """function(data:string) -- Set the label of the EEPROM.""")
   def setLabel(context: Context, args: Arguments): Array[AnyRef] = {
-    label = args.checkString(0).take(16)
+    label = args.optString(0, "EEPROM").trim.take(16)
+    if (label.length == 0) label = "EEPROM"
     null
   }
 
