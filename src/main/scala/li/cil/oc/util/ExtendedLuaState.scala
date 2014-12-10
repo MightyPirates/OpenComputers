@@ -25,6 +25,8 @@ object ExtendedLuaState {
     })
 
     def pushValue(value: Any, memo: util.IdentityHashMap[Any, Int] = new util.IdentityHashMap()) {
+      val recursive = memo.size > 0
+      val oldTop = lua.getTop
       if (memo.containsKey(value)) {
         lua.pushValue(memo.get(value))
       }
@@ -57,19 +59,28 @@ object ExtendedLuaState {
             OpenComputers.log.warn("Tried to push an unsupported value of type to Lua: " + value.getClass.getName + ".")
             lua.pushNil()
         }
+        // Remove values kept on the stack for memoization if this is the
+        // original call (not a recursive one, where we might need the memo
+        // info even after returning).
+        if (!recursive) {
+          lua.setTop(oldTop + 1)
+        }
       }
     }
 
     def pushList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[Any, Int]) {
       lua.newTable()
-      memo += obj -> lua.getTop
+      val tableIndex = lua.getTop
+      memo += obj -> tableIndex
       var count = 0
       list.foreach {
         case (value, index) =>
           pushValue(value, memo)
-          lua.rawSet(-2, index + 1)
+          lua.rawSet(tableIndex, index + 1)
           count = count + 1
       }
+      // Bring table back to top (in case memo values were pushed).
+      lua.pushValue(tableIndex)
       lua.pushString("n")
       lua.pushInteger(count)
       lua.rawSet(-3)
@@ -77,14 +88,22 @@ object ExtendedLuaState {
 
     def pushTable(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[Any, Int]) {
       lua.newTable(0, map.size)
-      memo += obj -> lua.getTop
+      val tableIndex = lua.getTop
+      memo += obj -> tableIndex
       for ((key: AnyRef, value: AnyRef) <- map) {
         if (key != null && key != Unit && !key.isInstanceOf[BoxedUnit]) {
           pushValue(key, memo)
+          val keyIndex = lua.getTop
           pushValue(value, memo)
-          lua.setTable(-3)
+          // Bring key to front, in case of memo from value push.
+          // Cannot actually move because that might shift memo info.
+          lua.pushValue(keyIndex)
+          lua.insert(-2)
+          lua.setTable(tableIndex)
         }
       }
+      // Bring table back to top (in case memo values were pushed).
+      lua.pushValue(tableIndex)
     }
 
     def toSimpleJavaObject(index: Int): AnyRef = lua.`type`(index) match {
