@@ -25,7 +25,7 @@ This mod is [licensed under the **MIT license**](https://github.com/MightyPirate
    Help with keeping the [wiki][] up to date would be *really* appreciated. If you notice anything amiss and know better, fix it. If you don't ask someone who does, then fix it. If you had a question answered, consider adding that information somewhere in the wiki where you would have expected to find that information.  
    There are also the [files containing the ingame help][manpages], which could probably be much better than they are right now. Improvements to them, and new ones (e.g. for the libraries, such as `text` or `sides`) would help a lot. Thanks!
 4. **Robot Names**  
-   Robots get a random name when placed (unless set with an Anvil). The list the names are chose from [can be found here][robot names]. Feel free to pull request additional names! I added the names of a few contributors so far - if your name is in the list and you don't want that, please let me know, or just pull-request the name's removal. Sorry in that case! If you contribute to the project and *would* like your name in the list, please feel free to add yourself to the list in a pull-request.
+   Robots get a random name when placed (unless set with an Anvil). The list the names are chose from [can be found here][robot names]. Feel free to pull request additional names! *However*: since the list has grown to a considerable length already, here are the two basic criteria for new names: it must either be a real or fictional robot, or an AI that at least *appears* to be self-aware.
 
 ###Bug fixes, features and scripts
 1. **Bugs**  
