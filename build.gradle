@@ -85,7 +85,7 @@ repositories {
     }
     ivy {
         name 'ProjectRed'
-        artifactPattern "http://ci.indiewikis.com:8080/job/Project%20Red/${config.projred.build}/artifact/build/libs/[module]-${config.minecraft.version}-[revision].${config.projred.build}.[ext]"
+        artifactPattern "http://projectredwiki.com/maven/mrtjp/[module]/${config.minecraft.version}-[revision]/[module]-${config.minecraft.version}-[revision]-dev.[ext]"
     }
     ivy {
         name 'immibis'
@@ -138,8 +138,7 @@ dependencies {
 
     provided name: 'GalacticraftCore', version: config.gc.version, ext: 'jar'
     provided name: 'Mekanism', version: config.mekanism.version, ext: 'jar'
-    provided name: 'ProjectRed-Base', version: config.projred.version, ext: 'jar'
-    provided name: 'ProjectRed-Integration', version: config.projred.version, ext: 'jar'
+    provided name: 'ProjectRed', version: config.projred.version, ext: 'jar'
     provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
 
     provided name: 'CoFHLib', version: URLEncoder.encode(config.cofhlib.version, "UTF-8"), ext: 'jar'
