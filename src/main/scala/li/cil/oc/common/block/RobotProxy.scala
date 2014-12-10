@@ -135,8 +135,14 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
         if (!world.isRemote) {
-          robot.node.remove()
-          robot.saveComponents()
+          // Update: even more special hack! As discussed here http://git.io/IcNAyg
+          // some mods call this even when they're not about to actually break the
+          // block... soooo we need a whitelist to know when to generate a *proper*
+          // drop (i.e. with file systems closed / open handles not saved, e.g.).
+          if (gettingDropsForActualDrop) {
+            robot.node.remove()
+            robot.saveComponents()
+          }
           list.add(robot.info.createItemStack())
         }
       case _ =>
@@ -144,6 +150,12 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
 
     list
   }
+
+  private val getDropForRealDropCallers = Set(
+    "appeng.parts.automation.PartAnnihilationPlane.EatBlock"
+  )
+
+  private def gettingDropsForActualDrop = new Exception().getStackTrace.exists(element => getDropForRealDropCallers.contains(element.getClassName + "." + element.getMethodName))
 
   override def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
     val bounds = getCollisionBoundingBoxFromPool(world, x, y, z)
