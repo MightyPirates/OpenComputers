@@ -1,12 +1,14 @@
 package li.cil.oc.integration.opencomputers
 
 import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.registry.EntityRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.recipe.Recipes
@@ -29,6 +31,8 @@ object ModOpenComputers extends ModProxy {
 
     Loot.init()
     Recipes.init()
+
+    EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 

@@ -96,7 +96,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
     }
   }
 
-  private def createLootDisk(name: String, path: String, color: Option[String] = None) = {
+  def createLootDisk(name: String, path: String, color: Option[String] = None) = {
     val data = new NBTTagCompound()
     data.setString(Settings.namespace + "fs.label", name)
 

@@ -8,7 +8,6 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -51,7 +50,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture: Class[_ <: Architecture] = info.components.map(stack => (stack, Driver.driverFor(stack, getClass))).collectFirst {
+  override def cpuArchitecture = info.components.map(stack => (stack, Driver.driverFor(stack, getClass))).collectFirst {
     case (stack, driver: Processor) if driver.slot(stack) == Slot.CPU => driver.architecture(stack)
   }.orNull
 
