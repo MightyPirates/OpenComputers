@@ -16,6 +16,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.server.component
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -171,7 +172,7 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
 
   private def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
 
-  private def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+  def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
 
   override def onEntityUpdate() {
     super.onEntityUpdate()
@@ -182,6 +183,7 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
       }
       machine.node.asInstanceOf[Connector].changeBuffer(100)
       machine.update()
+      updateComponents()
       setRunning(machine.isRunning)
     }
     else if (isRunning) {
@@ -277,9 +279,11 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
   // ----------------------------------------------------------------------- //
 
   override def readEntityFromNBT(nbt: NBTTagCompound): Unit = {
-    info.load(nbt)
+    info.load(nbt.getCompoundTag("info"))
     if (!world.isRemote) {
-      machine.load(nbt)
+      machine.load(nbt.getCompoundTag("machine"))
+      control.load(nbt.getCompoundTag("control"))
+
       api.Network.joinNewNetwork(machine.node)
       connectComponents()
       machine.node.connect(control.node)
@@ -291,9 +295,11 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound): Unit = {
-    info.save(nbt)
+    saveComponents()
+    nbt.setNewCompoundTag("info", info.save)
     if (!world.isRemote) {
-      machine.save(nbt)
+      nbt.setNewCompoundTag("machine", machine.save)
+      nbt.setNewCompoundTag("control", control.save)
     }
     nbt.setFloat("targetX", targetX)
     nbt.setFloat("targetY", targetY)
