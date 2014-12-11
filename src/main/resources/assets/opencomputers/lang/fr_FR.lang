@@ -1,4 +1,4 @@
-# Blocks and items only
+# Blocks, items and gui only
 #
 #
 
@@ -120,7 +120,10 @@ item.oc.WirelessNetworkCard.name=Carte de réseau sans-fils
 
 # GUI
 oc:gui.Analyzer.Address=§6Addresse§f: %s
+oc:gui.Analyzer.AddressCopied=Adresse copiée dans le presse-papier.
+oc:gui.Analyzer.ChargerSpeed=§6Vitesse de charge§f: %s
 oc:gui.Analyzer.ComponentName=§6Nom du composant§f: %s
+oc:gui.Analyzer.Components=§6Nombre de composants connectés§f: %s
 oc:gui.Analyzer.LastError=§6Dernière erreur§f: %s
 oc:gui.Analyzer.RobotName=§6Nom§f: %s
 oc:gui.Analyzer.RobotOwner=§6Propriétaire§f: %s
@@ -128,9 +131,50 @@ oc:gui.Analyzer.RobotXp=§6Expérience§f: %s
 oc:gui.Analyzer.StoredEnergy=§6Energie stockée§f: %s
 oc:gui.Analyzer.TotalEnergy=§6Energie totale§f: %s
 oc:gui.Analyzer.Users=§6Utilisateurs§f: %s
+oc:gui.Analyzer.WirelessStrength=§6Force du signal§f: %s
+oc:gui.Assembler.Collect=Collectez la sortie
+oc:gui.Assembler.Complexity=Complexité: %s/%s
+oc:gui.Assembler.InsertCase=Insérez une partie de base
+oc:gui.Assembler.InsertCPU=Insérez une UCP
+oc:gui.Assembler.InsertRAM=Insérez un peu de mémoire
+oc:gui.Assembler.Progress=Progression: %s%% (%s)
+oc:gui.Assembler.Run=Assemble
+oc:gui.Assembler.Warnings=§eALERTE§7: Les composants recommandés sont manquant.
+oc:gui.Assembler.Warning.BIOS=BIOS
+oc:gui.Assembler.Warning.GraphicsCard=Carte graphique
+oc:gui.Assembler.Warning.Inventory=Amélioration d'inventaire
+oc:gui.Assembler.Warning.Keyboard=Clavier
+oc:gui.Assembler.Warning.OS=Moyen de démarrage
+oc:gui.Assembler.Warning.Screen=Ecran
+oc:gui.Chat.NewVersion=une nouvelle version est disponible: %s
+oc:gui.Chat.WarningFingerprint=§cALERTE§f - Disparité d'empreinte digitale! Attendu '§a%s§f' mais eu '§e%s§f'. À moins que vous ne soyez un modder et que vous exécutiez la version deobfuscated du mod, Il est §lfortement§f recommendé de re-télécharger OpenComputers, parce que le JAR que vous utilisez peut avoir été falsifié.
+oc:gui.Chat.WarningLuaFallback=Les bibliothèques natives Lua ne sont pas disponibles, les ordinateurs ne pourront pas persister en leur état. Ils réamorceront sur la recharge des chunks.
+oc:gui.Chat.WarningPower=Aucun mod supporté produisant de la puissance. Les ordinateurs, écrans et autres composants §lne réclamerons pas§f d'énergie. Installez l'un de ses mods pour activer la puissance: BuildCraft, Electrical Age, IndustrialCraft2, Mekanism or Thermal Expansion. Mettez hors service la puissance dans la config pour supprimer cet avertissement.
+oc:gui.Chat.WarningProjectRed=Vous utilisez une version de Project: Red qui est incompatible avec OpenComputers. Essayez de mettre à jour votre version de Project: Red.
+oc:gui.Error.ComponentOverflow=Beaucoup trop de composants connectés à l'ordinateur.
+oc:gui.Error.InternalError=Erreur interne, Veuillez lire le fichier log. Ceci est probablement une erreur.
+oc:gui.Error.NoCPU=Pas d'UCP installé dans cet ordinateur.
+oc:gui.Error.NoEnergy=Pas assez d'énergie.
+oc:gui.Error.NoRAM=pas de mémoire installée dans cet ordinateur.
+oc:gui.Error.OutOfMemory=Mémoire saturée.
+oc:gui.Raid.Warning=§4L'ajout d'un disque le nettoie.[nl] L'enlèvement d'un disque nettoie le raid.
 oc:gui.Robot.Power=Energie
 oc:gui.Robot.TurnOff=Eteindre
 oc:gui.Robot.TurnOn=Allumer
+oc:gui.ServerRack.None=Aucun
+oc:gui.ServerRack.Back=Arrière
+oc:gui.ServerRack.Bottom=Bas
+oc:gui.ServerRack.Left=Gauche
+oc:gui.ServerRack.Right=Droite
+oc:gui.ServerRack.Top=Haut
+oc:gui.ServerRack.SwitchExternal=Externe
+oc:gui.ServerRack.SwitchInternal=Interne
+oc:gui.ServerRack.WirelessRange=Portée
+oc:gui.Switch.TransferRate=Vitesse du cycle
+oc:gui.Switch.PacketsPerCycle=paquets / cycle
+oc:gui.Switch.QueueSize=Taille de la file
+oc:gui.Terminal.InvalidKey=Clef invalide, très probablement qu'un autre terminal a dû nécessité le serveur.
+oc:gui.Terminal.OutOfRange=Pas de signal.
 
 # Containers
 oc:container.Case=Ordinateur
