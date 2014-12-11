@@ -63,7 +63,12 @@ final class ModelQuadcopter extends ModelBase {
   private val scale = 1 / 16f
   private val up = Vec3.createVectorHelper(0, 1, 0)
 
-  private def doRender(drone: Drone) {
+  private def doRender(drone: Drone, dt: Float) {
+    if (drone.isRunning) {
+      val timeJitter = drone.hashCode() ^ 0xFF
+      GL11.glTranslatef(0, (math.sin(timeJitter + (drone.worldObj.getTotalWorldTime + dt) / 20.0) * (1 / 16f)).toFloat, 0)
+    }
+
     val velocity = Vec3.createVectorHelper(drone.motionX, drone.motionY, drone.motionZ)
     val direction = velocity.normalize()
     if (direction.dotProduct(up) < 0.99) {
@@ -112,6 +117,6 @@ final class ModelQuadcopter extends ModelBase {
   }
 
   override def render(entity: Entity, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float, f6: Float): Unit = {
-    doRender(entity.asInstanceOf[Drone])
+    doRender(entity.asInstanceOf[Drone], f6)
   }
 }

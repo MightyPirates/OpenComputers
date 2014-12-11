@@ -14,7 +14,7 @@ object DroneRenderer extends Render {
 
     GL11.glTranslated(x, y + 2 / 16f, z)
 
-    model.render(entity, 0, 0, 0, 0, 0, 0)
+    model.render(entity, 0, 0, 0, 0, 0, dt)
 
     GL11.glPopAttrib()
     GL11.glPopMatrix()
