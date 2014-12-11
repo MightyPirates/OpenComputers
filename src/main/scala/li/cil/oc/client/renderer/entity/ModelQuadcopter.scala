@@ -7,6 +7,7 @@ import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelRenderer
 import net.minecraft.entity.Entity
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Vec3
 import org.lwjgl.opengl.GL11
 
 final class ModelQuadcopter extends ModelBase {
@@ -60,8 +61,18 @@ final class ModelQuadcopter extends ModelBase {
   light3.addBox("flap3", -7, 0, -7, 6, 1, 6)
 
   private val scale = 1 / 16f
+  private val up = Vec3.createVectorHelper(0, 1, 0)
 
   private def doRender(drone: Drone) {
+    val velocity = Vec3.createVectorHelper(drone.motionX, drone.motionY, drone.motionZ)
+    val direction = velocity.normalize()
+    if (direction.dotProduct(up) < 0.99) {
+      // Flying sideways.
+      val rotationAxis = direction.crossProduct(up)
+      val relativeSpeed = velocity.lengthVector() / drone.maxVelocity
+      GL11.glRotated(relativeSpeed * -20, rotationAxis.xCoord, rotationAxis.yCoord, rotationAxis.zCoord)
+    }
+
     GL11.glRotatef(drone.bodyAngle, 0, 1, 0)
 
     body.render(scale)
