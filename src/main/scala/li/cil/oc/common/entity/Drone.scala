@@ -23,15 +23,16 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.Vec3
 import net.minecraft.world.World
 
 class Drone(val world: World) extends Entity(world) with ComponentInventory with Environment with EnvironmentHost with MachineHost {
   // Some basic constants.
-  val gravity = 0.04f
+  val gravity = 0.05f // low for slow fall (float down)
   val drag = 0.8f
   val bounds = AxisAlignedBB.getBoundingBox(-8, -3, -8, 8, 3, 8)
   val maxAcceleration = 0.1f
-  val maxVelocity = 1
+  val maxVelocity = 0.4f
 
   // Rendering stuff, purely eyecandy.
   val targetFlapAngles = Array.fill(4, 2)(0f)
@@ -144,12 +145,17 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
 
   @SideOnly(Side.CLIENT)
   override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
-    // Snap to rounded positions to avoid jitter on the client.
-    super.setPositionAndRotation(
-      math.round(x * 10) / 10.0,
-      math.round(y * 10) / 10.0,
-      math.round(z * 10) / 10.0,
-      0, 0)
+    // Only set exact position if we're too far away from the server's
+    // position, otherwise keep interpolating. This removes jitter and
+    // is good enough for drones.
+    if (!isRunning || getDistanceSq(x, y, z) > 1) {
+      super.setPositionAndRotation(x, y, z, yaw, pitch)
+    }
+    else {
+      targetX = x.toFloat
+      targetY = y.toFloat
+      targetZ = z.toFloat
+    }
   }
 
   override def setDead() {
@@ -224,15 +230,15 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
     }
 
     if (isRunning) {
-      val dx = targetX - posX
-      val dy = targetY - posY
-      val dz = targetZ - posZ
-      val ax = math.max(-targetAcceleration, math.min(targetAcceleration, dx))
-      val ay = math.max(-targetAcceleration, math.min(targetAcceleration, dy))
-      val az = math.max(-targetAcceleration, math.min(targetAcceleration, dz))
-      motionX = math.max(-maxVelocity, math.min(maxVelocity, motionX + ax))
-      motionY = math.max(-maxVelocity, math.min(maxVelocity, motionY + ay))
-      motionZ = math.max(-maxVelocity, math.min(maxVelocity, motionZ + az))
+      val delta = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
+      val acceleration = math.min(targetAcceleration, delta.lengthVector())
+      val velocity = delta.normalize()
+      velocity.xCoord = motionX + velocity.xCoord * acceleration
+      velocity.yCoord = motionY + velocity.yCoord * acceleration
+      velocity.zCoord = motionZ + velocity.zCoord * acceleration
+      motionX = math.max(-maxVelocity, math.min(maxVelocity, velocity.xCoord))
+      motionY = math.max(-maxVelocity, math.min(maxVelocity, velocity.yCoord))
+      motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocity.zCoord))
     }
     else {
       // No power, free fall: engage!
