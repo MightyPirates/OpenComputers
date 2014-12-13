@@ -12,6 +12,7 @@ import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.common.template.DroneTemplate
 import li.cil.oc.common.template.MicrocontrollerTemplate
 import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
@@ -25,6 +26,7 @@ object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
 
   override def initialize() {
+    DroneTemplate.register()
     MicrocontrollerTemplate.register()
     RobotTemplate.register()
     TabletTemplate.register()

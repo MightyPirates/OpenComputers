@@ -147,6 +147,7 @@ object EventHandler {
     ClientPacketSender.sendPetVisibility()
   }
 
+  lazy val drone = api.Items.get("drone")
   lazy val eeprom = api.Items.get("eeprom")
   lazy val mcu = api.Items.get("microcontroller")
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
@@ -163,6 +164,11 @@ object EventHandler {
 
     recraft(e, mcu, stack => {
       // Restore EEPROM currently used in microcontroller.
+      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+    })
+
+    recraft(e, drone, stack => {
+      // Restore EEPROM currently used in drone.
       new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
     })
   }

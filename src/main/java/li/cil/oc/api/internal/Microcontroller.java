@@ -19,7 +19,7 @@ import li.cil.oc.api.network.Environment;
  */
 public interface Microcontroller extends Environment, EnvironmentHost, Rotatable {
     /**
-     * The machine currently hosted by this computer case.
+     * The machine currently hosted by this microcontroller.
      */
     Machine machine();
 }

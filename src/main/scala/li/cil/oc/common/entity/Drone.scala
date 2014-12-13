@@ -9,6 +9,7 @@ import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
@@ -26,7 +27,7 @@ import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
 
-class Drone(val world: World) extends Entity(world) with ComponentInventory with Environment with EnvironmentHost with MachineHost {
+class Drone(val world: World) extends Entity(world) with ComponentInventory with Environment with EnvironmentHost with MachineHost with internal.Drone {
   // Some basic constants.
   val gravity = 0.05f // low for slow fall (float down)
   val drag = 0.8f

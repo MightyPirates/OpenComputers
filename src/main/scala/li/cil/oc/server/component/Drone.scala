@@ -13,7 +13,7 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment {
     withComponent("drone").
     create()
 
-  @Callback
+  @Callback(doc = "function(dx:number, dy:number, dz:number) -- Change the target position by the specified offset.")
   def move(context: Context, args: Arguments): Array[AnyRef] = {
     val dx = args.checkDouble(0).toFloat
     val dy = args.checkDouble(1).toFloat
@@ -24,17 +24,21 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment {
     null
   }
 
-  @Callback
-  def velocity(context: Context, args: Arguments): Array[AnyRef] =
+  @Callback(doc = "function():number -- Get the current distance to the target position.")
+  def getOffset(context: Context, args: Arguments): Array[AnyRef] =
+    result(host.getDistance(host.targetX, host.targetY, host.targetZ))
+
+  @Callback(doc = "function():number -- Get the current velocity.")
+  def getVelocity(context: Context, args: Arguments): Array[AnyRef] =
     result(math.sqrt(host.motionX * host.motionX + host.motionY * host.motionY + host.motionZ * host.motionZ) * 20) // per second
 
-  @Callback
-  def getMaxAcceleration(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(doc = "function():number -- Get the currently set acceleration.")
+  def getAcceleration(context: Context, args: Arguments): Array[AnyRef] = {
     result(host.targetAcceleration * 20) // per second
   }
 
-  @Callback
-  def setMaxAcceleration(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(doc = "function(value:number):number -- Try to set the acceleration to the specified value and return the new acceleration.")
+  def setAcceleration(context: Context, args: Arguments): Array[AnyRef] = {
     host.targetAcceleration = (args.checkDouble(0) / 20.0).toFloat
     result(host.targetAcceleration * 20)
   }

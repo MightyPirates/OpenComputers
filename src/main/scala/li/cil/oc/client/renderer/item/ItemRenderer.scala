@@ -148,7 +148,6 @@ object ItemRenderer extends IItemRenderer {
 
       RenderState.checkError("ItemRenderer.renderItem: drone")
     }
-    
 
     RenderState.checkError("ItemRenderer.renderItem: leaving")
   }

@@ -136,6 +136,10 @@ object Recipes {
       // Microcontroller recrafting.
       val mcu = api.Items.get("microcontroller").createItemStack(1)
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(mcu, mcu, api.Items.get("eeprom").createItemStack(1)))
+
+      // Drone recrafting.
+      val drone = api.Items.get("drone").createItemStack(1)
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(drone, drone, api.Items.get("eeprom").createItemStack(1)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)
