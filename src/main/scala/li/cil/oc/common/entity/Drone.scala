@@ -11,18 +11,18 @@ import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
-import li.cil.oc.common.Loot
 import li.cil.oc.common.Slot
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.Entity
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
 
@@ -46,15 +46,6 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
   val info = new ItemUtils.MicrocontrollerData()
   val machine = if (!world.isRemote) Machine.create(this) else null
   val control = if (!world.isRemote) new component.Drone(this) else null
-
-  if (!world.isRemote) {
-    info.components = Array(
-      api.Items.get("cpu1").createItemStack(1),
-      api.Items.get("ram2").createItemStack(1),
-      Items.createLuaBios(),
-      Loot.createLootDisk("drone", "drone")
-    )
-  }
 
   override def node = Option(machine).map(_.node).orNull
 
@@ -162,6 +153,13 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
     super.setDead()
     if (!world.isRemote) {
       machine.stop()
+      machine.node.remove()
+      saveComponents()
+      val stack = api.Items.get("drone").createItemStack(1)
+      info.save(stack)
+      val entity = new EntityItem(world, posX, posY, posZ, stack)
+      entity.delayBeforeCanPickup = 15
+      world.spawnEntityInWorld(entity)
     }
   }
 
@@ -252,18 +250,37 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
     motionZ *= drag
   }
 
+  override def hitByEntity(entity: Entity) = {
+    if (isRunning) {
+      val direction = Vec3.createVectorHelper(entity.posX - posX, entity.posY - posY, entity.posZ - posZ).normalize()
+      if (!world.isRemote) {
+        if (Settings.get.inputUsername)
+          machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord), entity.getCommandSenderName)
+        else
+          machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord))
+      }
+      motionX -= direction.xCoord
+      motionY -= direction.yCoord
+      motionZ -= direction.zCoord
+    }
+    super.hitByEntity(entity)
+  }
+
+  override def getPickedResult(target: MovingObjectPosition) = {
+    val stack = api.Items.get("drone").createItemStack(1)
+    info.save(stack)
+    stack
+  }
+
   override def interactFirst(player: EntityPlayer) = {
     if (player.isSneaking) {
       kill()
     }
     else if (!world.isRemote) {
-      targetX = posX.toFloat
-      targetY = posY.toFloat
-      targetZ = posZ.toFloat
+      targetX = math.floor(posX).toFloat + 0.5f
+      targetY = math.floor(posY).toFloat + 0.5f
+      targetZ = math.floor(posZ).toFloat + 0.5f
       targetAcceleration = maxAcceleration
-      if (onGround) {
-        targetY += 1.6f
-      }
 
       api.Network.joinNewNetwork(machine.node)
       connectComponents()

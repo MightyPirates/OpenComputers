@@ -311,5 +311,9 @@ object Items extends ItemAPI {
     Recipes.addItem(eeprom, "eeprom", "oc:eeprom")
     Recipes.addRecipe(createLuaBios(), "luaBios")
     Recipes.addMultiItem(new item.MicrocontrollerCase(multi), "microcontrollerCase", "oc:microcontrollerCase")
+
+    // 1.4.3
+    Recipes.addMultiItem(new item.DroneCase(multi), "droneCase", "oc:droneCase")
+    registerItem(new item.Drone(multi), "drone")
   }
 }

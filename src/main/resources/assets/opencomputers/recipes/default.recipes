@@ -6,6 +6,11 @@ analyzer {
           ["oc:materialTransistor", nuggetGold, ""]
           ["oc:materialCircuitBoardPrinted", nuggetGold, ""]]
 }
+droneCase {
+  input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
+          ["oc:circuitChip2", "oc:microcontrollerCase", "oc:circuitChip2"]
+          [{block="minecraft:end_stone"}, "oc:componentBus3", {block="minecraft:end_stone"}]]
+}
 microcontrollerCase {
   input: [[nuggetIron, "oc:circuitChip1", nuggetIron]
           [redstone, chest, redstone]

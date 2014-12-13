@@ -116,6 +116,43 @@ final class ModelQuadcopter extends ModelBase {
     }
   }
 
+  // For inventory rendering.
+  def render() {
+    body.render(scale)
+
+    val tilt = math.toRadians(2).toFloat
+    wing0.rotateAngleX = tilt
+    wing0.rotateAngleZ = tilt
+    wing1.rotateAngleX = -tilt
+    wing1.rotateAngleZ = tilt
+    wing2.rotateAngleX = -tilt
+    wing2.rotateAngleZ = -tilt
+    wing3.rotateAngleX = tilt
+    wing3.rotateAngleZ = -tilt
+
+    wing0.render(scale)
+    wing1.render(scale)
+    wing2.render(scale)
+    wing3.render(scale)
+
+    RenderState.disableLighting()
+    GL11.glDepthFunc(GL11.GL_LEQUAL)
+
+    light0.rotateAngleX = tilt
+    light0.rotateAngleZ = tilt
+    light1.rotateAngleX = -tilt
+    light1.rotateAngleZ = tilt
+    light2.rotateAngleX = -tilt
+    light2.rotateAngleZ = -tilt
+    light3.rotateAngleX = tilt
+    light3.rotateAngleZ = -tilt
+
+    light0.render(scale)
+    light1.render(scale)
+    light2.render(scale)
+    light3.render(scale)
+  }
+
   override def render(entity: Entity, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float, f6: Float): Unit = {
     doRender(entity.asInstanceOf[Drone], f6)
   }
