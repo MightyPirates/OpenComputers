@@ -130,7 +130,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
 
     for (i <- 0 to 3 if powerButtons(i).func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (rack.isRunning(i)) Localization.Robot.TurnOff else Localization.Robot.TurnOn)
+      tooltip.add(if (rack.isRunning(i)) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 

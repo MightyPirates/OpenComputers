@@ -86,7 +86,7 @@ object Localization {
     def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
   }
 
-  object Robot {
+  object Computer {
     def TurnOff = localizeImmediately("gui.Robot.TurnOff")
 
     def TurnOn = localizeImmediately("gui.Robot.TurnOn")

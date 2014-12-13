@@ -17,7 +17,7 @@ import li.cil.oc.api.network.Environment;
  * i.e. without having to link against internal classes. This also means
  * that <em>you should not implement this</em>.
  */
-public interface Drone extends Environment, EnvironmentHost {
+public interface Drone extends EnvironmentHost {
     /**
      * The machine currently hosted by this drone.
      */

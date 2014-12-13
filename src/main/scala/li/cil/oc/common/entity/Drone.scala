@@ -6,7 +6,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
@@ -14,6 +13,7 @@ import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
@@ -27,7 +27,7 @@ import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
 
-class Drone(val world: World) extends Entity(world) with ComponentInventory with Environment with EnvironmentHost with MachineHost with internal.Drone {
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
   // Some basic constants.
   val gravity = 0.05f // low for slow fall (float down)
   val drag = 0.8f
@@ -44,11 +44,44 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
   var nextAngularVelocityChange = 0
 
   // Logic stuff, components, machine and such.
+  var selectedSlot = 0
   val info = new ItemUtils.MicrocontrollerData()
   val machine = if (!world.isRemote) Machine.create(this) else null
   val control = if (!world.isRemote) new component.Drone(this) else null
+  val components = new ComponentInventory {
+    override def host = Drone.this
 
-  override def node = Option(machine).map(_.node).orNull
+    override def items = info.components.map(Option(_))
+
+    override def getSizeInventory = info.components.length
+
+    override def markDirty() {}
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
+
+    override def isUseableByPlayer(player: EntityPlayer) = true
+
+    override def node = Option(machine).map(_.node).orNull
+
+    override def onConnect(node: Node) {}
+
+    override def onDisconnect(node: Node) {}
+
+    override def onMessage(message: Message) {}
+  }
+  val inventory = new Inventory {
+    var items = Array.fill[Option[ItemStack]](8)(None)
+
+    override def getSizeInventory = items.length
+
+    override def getInventoryStackLimit = 64
+
+    override def markDirty() {} // TODO update client GUI?
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = slot >= 0 && slot < getSizeInventory
+
+    override def isUseableByPlayer(player: EntityPlayer) = player.getDistanceSqToEntity(Drone.this) < 64
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -106,26 +139,6 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
 
   // ----------------------------------------------------------------------- //
 
-  override def host = this
-
-  override def items = info.components.map(Option(_))
-
-  override def getSizeInventory = info.components.length
-
-  override def markDirty() {}
-
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = false
-
-  override def isUseableByPlayer(player: EntityPlayer) = false
-
-  // Nope.
-  override def setInventorySlotContents(slot: Int, stack: ItemStack) {}
-
-  // Nope.
-  override def decrStackSize(slot: Int, amount: Int) = null
-
-  // ----------------------------------------------------------------------- //
-
   override def entityInit() {
     // Running, target x y z and acceleration.
     dataWatcher.addObject(2, byte2Byte(0: Byte))
@@ -155,7 +168,7 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
     if (!world.isRemote) {
       machine.stop()
       machine.node.remove()
-      saveComponents()
+      components.saveComponents()
       val stack = api.Items.get("drone").createItemStack(1)
       info.save(stack)
       val entity = new EntityItem(world, posX, posY, posZ, stack)
@@ -188,7 +201,7 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
       }
       machine.node.asInstanceOf[Connector].changeBuffer(100)
       machine.update()
-      updateComponents()
+      components.updateComponents()
       setRunning(machine.isRunning)
     }
     else if (isRunning) {
@@ -284,7 +297,7 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
       targetAcceleration = maxAcceleration
 
       api.Network.joinNewNetwork(machine.node)
-      connectComponents()
+      components.connectComponents()
       machine.node.connect(control.node)
       if (machine.isRunning) machine.stop()
       else machine.start()
@@ -294,22 +307,16 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {}
-
-  override def onDisconnect(node: Node) {}
-
-  override def onMessage(message: Message) {}
-
-  // ----------------------------------------------------------------------- //
-
   override def readEntityFromNBT(nbt: NBTTagCompound): Unit = {
     info.load(nbt.getCompoundTag("info"))
     if (!world.isRemote) {
       machine.load(nbt.getCompoundTag("machine"))
       control.load(nbt.getCompoundTag("control"))
+      components.load(nbt.getCompoundTag("components"))
+      inventory.load(nbt.getCompoundTag("inventory"))
 
       api.Network.joinNewNetwork(machine.node)
-      connectComponents()
+      components.connectComponents()
       machine.node.connect(control.node)
     }
     targetX = nbt.getFloat("targetX")
@@ -319,11 +326,13 @@ class Drone(val world: World) extends Entity(world) with ComponentInventory with
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound): Unit = {
-    saveComponents()
+    components.saveComponents()
     nbt.setNewCompoundTag("info", info.save)
     if (!world.isRemote) {
       nbt.setNewCompoundTag("machine", machine.save)
       nbt.setNewCompoundTag("control", control.save)
+      nbt.setNewCompoundTag("components", components.save)
+      nbt.setNewCompoundTag("inventory", inventory.save)
     }
     nbt.setFloat("targetX", targetX)
     nbt.setFloat("targetY", targetY)
