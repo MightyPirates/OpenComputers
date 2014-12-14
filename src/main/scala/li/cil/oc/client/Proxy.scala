@@ -68,9 +68,6 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 
     MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
-    if (Mods.AppliedEnergistics2.isAvailable) {
-      MinecraftForgeClient.registerItemRenderer(api.Items.get("appengTunnel").item(), BusRenderer.instance)
-    }
 
     ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)

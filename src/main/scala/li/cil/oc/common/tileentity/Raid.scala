@@ -7,6 +7,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.fs.Label
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
@@ -21,6 +22,8 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
   val node = api.Network.newNode(this, Visibility.None).create()
 
   var filesystem: Option[FileSystem] = None
+
+  val label = new RaidLabel()
 
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
@@ -71,7 +74,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     if (items.count(_.isDefined) == items.length) {
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
-        "raid", this, Settings.resourceDomain + ":hdd_access").
+        label, this, Settings.resourceDomain + ":hdd_access").
         asInstanceOf[FileSystem]
       val nbtToSetAddress = new NBTTagCompound()
       nbtToSetAddress.setString("address", id)
@@ -110,11 +113,13 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
       tryCreateRaid(tag.getCompoundTag("node").getString("address"))
       filesystem.foreach(fs => fs.load(tag))
     }
+    label.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     filesystem.foreach(fs => nbt.setNewCompoundTag(Settings.namespace + "fs", fs.save))
+    label.save(nbt)
   }
 
   @SideOnly(Side.CLIENT) override
@@ -123,10 +128,33 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     nbt.getByteArray("presence").
       map(_ != 0).
       copyToArray(presence)
+    label.setLabel(nbt.getString("label"))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setTag("presence", items.map(_.isDefined))
+    if (label.getLabel != null)
+      nbt.setString("label", label.getLabel)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  class RaidLabel extends Label {
+    var label = "raid"
+
+    override def getLabel = label
+
+    override def setLabel(value: String) = label = Option(value).map(_.take(16)).orNull
+
+    override def load(nbt: NBTTagCompound) {
+      if (nbt.hasKey(Settings.namespace + "label")) {
+        label = nbt.getString(Settings.namespace + "label")
+      }
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      nbt.setString(Settings.namespace + "label", label)
+    }
   }
 }

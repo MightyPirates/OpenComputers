@@ -304,9 +304,6 @@ object Items extends ItemAPI {
     registerItem(new item.Debugger(multi), "debugger")
 
     // 1.4.2
-    if (Mods.AppliedEnergistics2.isAvailable) {
-      Recipes.addItem(new item.AppliedEnergisticsP2PTunnel(), "appengTunnel")
-    }
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, "eeprom", "oc:eeprom")
     Recipes.addRecipe(createLuaBios(), "luaBios")
