@@ -13,6 +13,7 @@ import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.ForgeDirection
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
@@ -74,7 +75,7 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
       wirelessInput = on
-      // TODO signal to computer
+      node.sendToReachable("computer.signal", "redstone_changed", "wireless")
     }
   }
 

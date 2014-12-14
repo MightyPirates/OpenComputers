@@ -129,4 +129,6 @@ trait Component extends network.Component with Node {
     super.save(nbt)
     nbt.setInteger("visibility", _visibility.ordinal())
   }
+
+  override def toString = super.toString + s"@$name"
 }

@@ -8,7 +8,8 @@ object InventorySlots {
       InventorySlot(Slot.Memory, Tier.One),
       InventorySlot(Slot.HDD, Tier.One),
       InventorySlot(Slot.CPU, Tier.One),
-      InventorySlot(Slot.Memory, Tier.One)
+      InventorySlot(Slot.Memory, Tier.One),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     ),
 
     Array(
@@ -18,7 +19,8 @@ object InventorySlots {
       InventorySlot(Slot.Memory, Tier.Two),
       InventorySlot(Slot.HDD, Tier.Two),
       InventorySlot(Slot.HDD, Tier.One),
-      InventorySlot(Slot.CPU, Tier.Two)
+      InventorySlot(Slot.CPU, Tier.Two),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     ),
 
     Array(
@@ -30,7 +32,8 @@ object InventorySlots {
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.HDD, Tier.Two),
       InventorySlot(Slot.Floppy, Tier.One),
-      InventorySlot(Slot.CPU, Tier.Three)
+      InventorySlot(Slot.CPU, Tier.Three),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     ),
 
     Array(
@@ -42,7 +45,8 @@ object InventorySlots {
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.Floppy, Tier.One),
-      InventorySlot(Slot.CPU, Tier.Three)
+      InventorySlot(Slot.CPU, Tier.Three),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     )
   )
 
@@ -55,7 +59,8 @@ object InventorySlots {
       InventorySlot(Slot.Memory, Tier.Two),
       InventorySlot(Slot.Memory, Tier.Two),
       InventorySlot(Slot.HDD, Tier.Two),
-      InventorySlot(Slot.HDD, Tier.Two)
+      InventorySlot(Slot.HDD, Tier.Two),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     ),
 
     Array(
@@ -70,7 +75,8 @@ object InventorySlots {
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.HDD, Tier.Three),
-      InventorySlot(Slot.Card, Tier.Two)
+      InventorySlot(Slot.Card, Tier.Two),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     ),
 
     Array(
@@ -89,7 +95,8 @@ object InventorySlots {
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.Card, Tier.Two),
-      InventorySlot(Slot.Card, Tier.Two)
+      InventorySlot(Slot.Card, Tier.Two),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     ),
 
     Array(
@@ -108,7 +115,8 @@ object InventorySlots {
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.HDD, Tier.Three),
       InventorySlot(Slot.Card, Tier.Three),
-      InventorySlot(Slot.Card, Tier.Three)
+      InventorySlot(Slot.Card, Tier.Three),
+      InventorySlot(Slot.EEPROM, Tier.Any)
     )
   )
 

@@ -226,6 +226,17 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendRaidChange(t: tileentity.Raid) {
+    val pb = new SimplePacketBuilder(PacketType.RaidStateChange)
+
+    pb.writeTileEntity(t)
+    for (slot <- 0 until t.getSizeInventory) {
+      pb.writeBoolean(t.getStackInSlot(slot) != null)
+    }
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendRedstoneState(t: RedstoneAware) {
     val pb = new SimplePacketBuilder(PacketType.RedstoneState)
 
@@ -456,6 +467,19 @@ object PacketSender {
     pb.writeInt(blockPos.z)
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
+
+    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+  }
+
+  def sendSound(world: World, x: Double, y: Double, z: Double, pattern: String) {
+    val pb = new SimplePacketBuilder(PacketType.SoundPattern)
+
+    val blockPos = BlockPosition(x, y, z)
+    pb.writeInt(world.provider.dimensionId)
+    pb.writeInt(blockPos.x)
+    pb.writeInt(blockPos.y)
+    pb.writeInt(blockPos.z)
+    pb.writeUTF(pattern)
 
     pb.sendToNearbyPlayers(world, x, y, z, Option(16))
   }

@@ -12,6 +12,7 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
+import li.cil.oc.common.init.Items
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
@@ -294,22 +295,38 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.readFromNBT(nbt)
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
-        servers(slot) = Some(new component.Server(this, slot))
+        val server = new component.Server(this, slot)
+        servers(slot) = Option(server)
       }
     }
-    nbt.getTagList(Settings.namespace + "servers", NBT.TAG_COMPOUND).foreach((list, index) =>
-      if (index < servers.length) servers(index) match {
-        case Some(server) => try server.load(list.getCompoundTagAt(index)) catch {
-          case t: Throwable => OpenComputers.log.warn("Failed restoring server state. Please report this!", t)
+    nbt.getTagList(Settings.namespace + "servers", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) if index < servers.length =>
+        servers(index) match {
+          case Some(server) =>
+            try server.load(tag) catch {
+              case t: Throwable => OpenComputers.log.warn("Failed restoring server state. Please report this!", t)
+            }
+
+            // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
+            // TODO Remove in 1.5
+            if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
+              server.inventory.items(server.inventory.items.length - 1) = Option(Items.createLuaBios())
+            }
+          case _ =>
         }
-        case _ =>
-      })
+      case _ =>
+    }
     val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").map(ForgeDirection.getOrientation(_))
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
-    nbt.getTagList(Settings.namespace + "terminals", NBT.TAG_COMPOUND).
-      foreach((list, index) => if (index < terminals.length) try terminals(index).load(list.getCompoundTagAt(index)) catch {
-      case t: Throwable => OpenComputers.log.warn("Failed restoring terminal state. Please report this!", t)
-    })
+    nbt.getTagList(Settings.namespace + "terminals", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) if index < terminals.length =>
+        try terminals(index).load(tag) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed restoring terminal state. Please report this!", t)
+        }
+      case _ =>
+    }
     range = nbt.getInteger(Settings.namespace + "range")
     internalSwitch = nbt.getBoolean(Settings.namespace + "internalSwitch")
   }
@@ -338,6 +355,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }))
     nbt.setInteger(Settings.namespace + "range", range)
     nbt.setBoolean(Settings.namespace + "internalSwitch", internalSwitch)
+
+    // TODO Remove in 1.5
+    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   @SideOnly(Side.CLIENT)
@@ -345,15 +365,18 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.readFromNBTForClient(nbt)
     val isRunningNbt = nbt.getByteArray("isServerRunning").map(_ == 1)
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
-    val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((list, index) => {
-      val value = list.getStringTagAt(index)
+    val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((tag: NBTTagString) => {
+      val value = tag.func_150285_a_()
       if (Strings.isNullOrEmpty(value)) None else Some(value)
     }).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
     val sidesNbt = nbt.getByteArray("sides").map(ForgeDirection.getOrientation(_))
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
-    nbt.getTagList("terminals", NBT.TAG_COMPOUND).
-      foreach((list, index) => if (index < terminals.length) terminals(index).readFromNBTForClient(list.getCompoundTagAt(index)))
+    nbt.getTagList("terminals", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) if index < terminals.length => terminals(index).readFromNBTForClient(tag)
+      case _ =>
+    }
     range = nbt.getInteger("range")
     if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f, 1000 + world.rand.nextInt(2000))
   }

@@ -99,16 +99,16 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    nbt.getTagList(Settings.namespace + "plugs", NBT.TAG_COMPOUND).foreach {
-      case (list, index) => plugs(index).node.load(list.getCompoundTagAt(index))
+    nbt.getTagList(Settings.namespace + "plugs", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) => plugs(index).node.load(tag)
     }
-    nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).foreach {
-      case (list, index) =>
-        val tag = list.getCompoundTagAt(index)
+    nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).foreach(
+      (tag: NBTTagCompound) => {
         val side = ForgeDirection.getOrientation(tag.getInteger("side"))
         val packet = api.Network.newPacket(tag)
         queue += side -> packet
-    }
+      })
     if (nbt.hasKey(Settings.namespace + "relayCooldown")) {
       relayCooldown = nbt.getInteger(Settings.namespace + "relayCooldown")
     }

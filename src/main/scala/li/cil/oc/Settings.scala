@@ -96,6 +96,7 @@ class Settings(val config: Config) {
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1
   val nameFormat = config.getString("robot.nameFormat")
+  val uuidFormat = config.getString("robot.uuidFormat")
 
   // robot.xp
   val baseXpToLevel = config.getDouble("robot.xp.baseValue") max 0
@@ -177,6 +178,10 @@ class Settings(val config: Config) {
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
+  val microcontrollerCost = config.getDouble("power.cost.microcontroller") max 0
+  val eepromWriteCost = config.getDouble("power.cost.eepromWrite") max 0
+  val microcontrollerBaseCost = config.getDouble("power.cost.microcontrollerAssemblyBase") max 0
+  val microcontrollerComplexityCost = config.getDouble("power.cost.microcontrollerAssemblyComplexity") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -202,7 +207,7 @@ class Settings(val config: Config) {
   private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
   private val valueMekanism = config.getDouble("power.value.Mekanism")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
-  private val valueUniversalElectricity = config.getDouble("power.value.UniversalElectricity")
+  private val valueResonantEngine = config.getDouble("power.value.ResonantEngine")
 
   private val valueInternal = valueBuildCraft
 
@@ -213,7 +218,7 @@ class Settings(val config: Config) {
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
-  val ratioUniversalElectricity = valueUniversalElectricity / valueInternal
+  val ratioResonantEngine = valueResonantEngine / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem

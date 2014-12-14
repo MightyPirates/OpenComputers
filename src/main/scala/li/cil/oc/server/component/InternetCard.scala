@@ -64,7 +64,7 @@ class InternetCard extends prefab.ManagedEnvironment {
   }
 
   @Callback(direct = true, doc = """function():boolean -- Returns whether TCP connections can be made (config setting).""")
-  def isTcpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
+  def isTcpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.tcpEnabled)
 
   @Callback(doc = """function(address:string[, port:number]):number -- Opens a new TCP connection. Returns the handle of the connection.""")
   def connect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {

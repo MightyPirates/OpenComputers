@@ -49,7 +49,7 @@ import scala.reflect._
 
 object Player {
   def profileFor(robot: tileentity.Robot) = {
-    val uuid = robot.ownerUuid.getOrElse(UUID.randomUUID())
+    val uuid = robot.ownerUuid.getOrElse(robot.determineUUID())
     val randomId = (robot.world.rand.nextInt(0xFFFFFF) + 1).toString
     val name = Settings.get.nameFormat.
       replace("$player$", robot.owner).
@@ -400,7 +400,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
     // Only if the underlying type didn't change.
-    if (stack.getItem == oldStack.getItem) {
+    if (stack != null && oldStack != null && stack.getItem == oldStack.getItem) {
       val damageRate = new RobotUsedToolEvent.ComputeDamageRate(robot, oldStack, stack, Settings.get.itemDamageRate)
       MinecraftForge.EVENT_BUS.post(damageRate)
       if (damageRate.getDamageRate < 1) {

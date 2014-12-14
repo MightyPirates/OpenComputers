@@ -124,6 +124,18 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   private lazy val player_ = new robot.Player(this)
 
+  def determineUUID(playerUUID: Option[UUID] = None) = {
+    val format = Settings.get.uuidFormat
+    val randomUUID = UUID.randomUUID()
+    try UUID.fromString(format.
+      replaceAllLiterally("$random$", randomUUID.toString).
+      replaceAllLiterally("$player$", playerUUID.getOrElse(randomUUID).toString)) catch {
+      case t: Throwable =>
+        OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
+        randomUUID
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   def name = info.name
@@ -639,7 +651,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
-    if (slot < getSizeInventory - componentCount) {
+    if (slot < getSizeInventory - componentCount && isItemValidForSlot(slot, stack)) {
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
@@ -649,6 +661,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       }
       else super.setInventorySlotContents(slot, stack)
     }
+    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, ForgeDirection.UP)
   }
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {

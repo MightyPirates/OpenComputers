@@ -8,8 +8,8 @@ import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.DelegatorConverter
+import li.cil.oc.common.init.Items
 import li.cil.oc.integration.opencomputers.DriverScreen
-import li.cil.oc.integration.opencomputers.DriverUpgradeExperience
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemMap
 import net.minecraft.item.ItemStack
@@ -48,6 +48,85 @@ object ItemUtils {
     }
   }
 
+  class MicrocontrollerData extends ItemData {
+    def this(stack: ItemStack) {
+      this()
+      load(stack)
+    }
+
+    var components = Array.empty[ItemStack]
+
+    override def load(nbt: NBTTagCompound) {
+      components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
+        toArray[NBTTagCompound].map(loadStack)
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
+    }
+
+    def createItemStack() = {
+      val stack = api.Items.get("microcontroller").createItemStack(1)
+      save(stack)
+      stack
+    }
+
+    def copyItemStack() = {
+      val stack = createItemStack()
+      // Forget all node addresses and so on. This is used when 'picking' a
+      // microcontroller in creative mode.
+      val newInfo = new MicrocontrollerData(stack)
+      newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
+        case Some(driver) if driver == DriverScreen =>
+          val nbt = driver.dataTag(cs)
+          for (tagName <- nbt.func_150296_c().toArray) {
+            nbt.removeTag(tagName.asInstanceOf[String])
+          }
+        case _ =>
+      })
+      newInfo.save(stack)
+      stack
+    }
+  }
+
+  class NavigationUpgradeData extends ItemData {
+    def this(stack: ItemStack) {
+      this()
+      load(stack)
+    }
+
+    var map = new ItemStack(net.minecraft.init.Items.filled_map)
+
+    def mapData(world: World) = try map.getItem.asInstanceOf[ItemMap].getMapData(map, world) catch {
+      case _: Throwable => throw new Exception("invalid map")
+    }
+
+    override def load(stack: ItemStack) {
+      if (stack.hasTagCompound) {
+        load(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
+      }
+    }
+
+    override def save(stack: ItemStack) {
+      if (!stack.hasTagCompound) {
+        stack.setTagCompound(new NBTTagCompound())
+      }
+      save(stack.getCompoundTag(Settings.namespace + "data"))
+    }
+
+    override def load(nbt: NBTTagCompound) {
+      if (nbt.hasKey(Settings.namespace + "map")) {
+        map = loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
+      }
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      if (map != null) {
+        nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
+      }
+    }
+  }
+
   class RobotData extends ItemData {
     def this(stack: ItemStack) {
       this()
@@ -77,34 +156,16 @@ object ItemUtils {
       }
       totalEnergy = nbt.getInteger(Settings.namespace + "storedEnergy")
       robotEnergy = nbt.getInteger(Settings.namespace + "robotEnergy")
-      if (nbt.hasKey(Settings.namespace + "components")) {
-        tier = nbt.getInteger(Settings.namespace + "tier")
-        components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
-          map((list, index) => loadStack(list.getCompoundTagAt(index))).toArray
-        containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
-          map((list, index) => loadStack(list.getCompoundTagAt(index))).toArray
-      }
-      else {
-        // Old robot, upgrade to new modular model.
-        tier = 0
-        val experienceUpgrade = api.Items.get("experienceUpgrade").createItemStack(1)
-        DriverUpgradeExperience.dataTag(experienceUpgrade).setDouble(Settings.namespace + "xp", nbt.getDouble(Settings.namespace + "xp"))
-        components = Array(
-          api.Items.get("screen1").createItemStack(1),
-          api.Items.get("keyboard").createItemStack(1),
-          api.Items.get("inventoryUpgrade").createItemStack(1),
-          experienceUpgrade,
-          api.Items.get("openOS").createItemStack(1),
-          api.Items.get("graphicsCard1").createItemStack(1),
-          api.Items.get("cpu1").createItemStack(1),
-          api.Items.get("ram2").createItemStack(1)
-        )
-        containers = Array(
-          api.Items.get("cardContainer2").createItemStack(1),
-          api.Items.get("diskDrive").createItemStack(1),
-          api.Items.get("upgradeContainer3").createItemStack(1)
-        )
-        robotEnergy = totalEnergy
+      tier = nbt.getInteger(Settings.namespace + "tier")
+      components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
+        toArray[NBTTagCompound].map(loadStack)
+      containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
+        toArray[NBTTagCompound].map(loadStack)
+
+      // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
+      // TODO Remove in 1.5
+      if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
+        components :+= Items.createLuaBios()
       }
     }
 
@@ -120,6 +181,9 @@ object ItemUtils {
       nbt.setInteger(Settings.namespace + "tier", tier)
       nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
       nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
+
+      // TODO Remove in 1.5
+      nbt.setBoolean(Settings.namespace + "biosFlag", true)
     }
 
     def createItemStack() = {
@@ -165,44 +229,6 @@ object ItemUtils {
     def randomName = if (names.length > 0) names((math.random * names.length).toInt) else "Robot"
   }
 
-  class NavigationUpgradeData extends ItemData {
-    def this(stack: ItemStack) {
-      this()
-      load(stack)
-    }
-
-    var map = new ItemStack(net.minecraft.init.Items.filled_map)
-
-    def mapData(world: World) = try map.getItem.asInstanceOf[ItemMap].getMapData(map, world) catch {
-      case _: Throwable => throw new Exception("invalid map")
-    }
-
-    override def load(stack: ItemStack) {
-      if (stack.hasTagCompound) {
-        load(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
-      }
-    }
-
-    override def save(stack: ItemStack) {
-      if (!stack.hasTagCompound) {
-        stack.setTagCompound(new NBTTagCompound())
-      }
-      save(stack.getCompoundTag(Settings.namespace + "data"))
-    }
-
-    override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey(Settings.namespace + "map")) {
-        map = loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
-      }
-    }
-
-    override def save(nbt: NBTTagCompound) {
-      if (map != null) {
-        nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
-      }
-    }
-  }
-
   class TabletData extends ItemData {
     def this(stack: ItemStack) {
       this()
@@ -215,8 +241,7 @@ object ItemUtils {
     var maxEnergy = 0.0
 
     override def load(nbt: NBTTagCompound) {
-      nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((list, index) => {
-        val slotNbt = list.getCompoundTagAt(index)
+      nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
         val slot = slotNbt.getByte("slot")
         if (slot >= 0 && slot < items.length) {
           items(slot) = Option(loadStack(slotNbt.getCompoundTag("item")))
@@ -225,6 +250,13 @@ object ItemUtils {
       isRunning = nbt.getBoolean(Settings.namespace + "isRunning")
       energy = nbt.getDouble(Settings.namespace + "energy")
       maxEnergy = nbt.getDouble(Settings.namespace + "maxEnergy")
+
+      // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
+      // TODO Remove in 1.5
+      if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
+        val firstEmpty = items.indexWhere(_.isEmpty)
+        items(firstEmpty) = Option(Items.createLuaBios())
+      }
     }
 
     override def save(nbt: NBTTagCompound) {
@@ -240,6 +272,9 @@ object ItemUtils {
       nbt.setBoolean(Settings.namespace + "isRunning", isRunning)
       nbt.setDouble(Settings.namespace + "energy", energy)
       nbt.setDouble(Settings.namespace + "maxEnergy", maxEnergy)
+
+      // TODO Remove in 1.5
+      nbt.setBoolean(Settings.namespace + "biosFlag", true)
     }
   }
 

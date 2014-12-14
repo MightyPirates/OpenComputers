@@ -80,6 +80,8 @@ trait Node extends ImmutableNode {
       nbt.setString("address", address)
     }
   }
+
+  override def toString = s"Node($address, $host)"
 }
 
 // We have to mixin the vararg methods individually in the actual

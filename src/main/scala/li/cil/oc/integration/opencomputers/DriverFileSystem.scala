@@ -62,7 +62,7 @@ object DriverFileSystem extends Item {
     override def getLabel = label.orNull
 
     override def setLabel(value: String) {
-      label = Option(if (value != null && value.length > 16) value.substring(0, 16) else value)
+      label = Option(value).map(_.take(16))
     }
 
     override def load(nbt: NBTTagCompound) {

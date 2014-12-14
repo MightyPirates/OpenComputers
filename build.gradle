@@ -85,7 +85,7 @@ repositories {
     }
     ivy {
         name 'ProjectRed'
-        artifactPattern "http://ci.indiewikis.com:8080/job/Project%20Red/${config.projred.build}/artifact/build/libs/[module]-${config.minecraft.version}-[revision].${config.projred.build}.[ext]"
+        artifactPattern "http://projectredwiki.com/maven/mrtjp/[module]/${config.minecraft.version}-[revision]/[module]-${config.minecraft.version}-[revision]-dev.[ext]"
     }
     ivy {
         name 'immibis'
@@ -130,7 +130,7 @@ dependencies {
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
-    provided "dev.calclavia.universalelectricity:universal-electricity:${config.ue.version}:dev"
+    provided "dev.calclavia.resonantengine:resonant-engine:${config.re.version}:dev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
@@ -138,8 +138,7 @@ dependencies {
 
     provided name: 'GalacticraftCore', version: config.gc.version, ext: 'jar'
     provided name: 'Mekanism', version: config.mekanism.version, ext: 'jar'
-    provided name: 'ProjectRed-Base', version: config.projred.version, ext: 'jar'
-    provided name: 'ProjectRed-Integration', version: config.projred.version, ext: 'jar'
+    provided name: 'ProjectRed', version: config.projred.version, ext: 'jar'
     provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
 
     provided name: 'CoFHLib', version: URLEncoder.encode(config.cofhlib.version, "UTF-8"), ext: 'jar'

@@ -24,7 +24,7 @@ class UpgradePiston(val host: Rotatable with EnvironmentHost) extends prefab.Man
 
   private lazy val tryExtend = ReflectionHelper.findMethod(classOf[BlockPistonBase], null, Array("tryExtend", "func_150079_i", "i"), classOf[World], classOf[Int], classOf[Int], classOf[Int], classOf[Int])
 
-  @Callback(doc = """function(side:number):boolean -- Tries to push the block in front of the container of the upgrade.""")
+  @Callback(doc = """function():boolean -- Tries to push the block in front of the container of the upgrade.""")
   def push(context: Context, args: Arguments): Array[AnyRef] = {
     val hostPos = BlockPosition(host)
     val blockPos = hostPos.offset(host.facing)

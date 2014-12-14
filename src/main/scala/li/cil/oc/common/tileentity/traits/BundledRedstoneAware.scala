@@ -10,6 +10,7 @@ import mods.immibis.redlogic.api.wiring.IInsulatedRedstoneWire
 import mrtjp.projectred.api.IBundledTile
 import mrtjp.projectred.api.ProjectRedAPI
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagIntArray
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
@@ -96,24 +97,27 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
-    nbt.getTagList(Settings.namespace + "rs.bundledInput", NBT.TAG_INT_ARRAY).foreach {
-      case (list, index) if index < _bundledInput.length =>
-        val input = list.func_150306_c(index)
+    nbt.getTagList(Settings.namespace + "rs.bundledInput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+      map(_.func_150302_c()).zipWithIndex.foreach {
+      case (input, index) if index < _bundledInput.length =>
         val safeLength = input.length min _bundledInput(index).length
         input.copyToArray(_bundledInput(index), 0, safeLength)
+      case _ =>
     }
-    nbt.getTagList(Settings.namespace + "rs.bundledOutput", NBT.TAG_INT_ARRAY).foreach {
-      case (list, index) if index < _bundledOutput.length =>
-        val input = list.func_150306_c(index)
+    nbt.getTagList(Settings.namespace + "rs.bundledOutput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+      map(_.func_150302_c()).zipWithIndex.foreach {
+      case (input, index) if index < _bundledOutput.length =>
         val safeLength = input.length min _bundledOutput(index).length
         input.copyToArray(_bundledOutput(index), 0, safeLength)
+      case _ =>
     }
 
-    nbt.getTagList(Settings.namespace + "rs.rednetInput", NBT.TAG_INT_ARRAY).foreach {
-      case (list, index) if index < _rednetInput.length =>
-        val input = list.func_150306_c(index)
+    nbt.getTagList(Settings.namespace + "rs.rednetInput", NBT.TAG_INT_ARRAY).toArray[NBTTagIntArray].
+      map(_.func_150302_c()).zipWithIndex.foreach {
+      case (input, index) if index < _rednetInput.length =>
         val safeLength = input.length min _rednetInput(index).length
         input.copyToArray(_rednetInput(index), 0, safeLength)
+      case _ =>
     }
   }
 

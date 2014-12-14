@@ -60,7 +60,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     addSlotToContainer(126, 30 + i * slotSize, slotInfo _)
   }
 
-  // Floppy + HDDs.
+  // Floppy/EEPROM + HDDs.
   for (i <- 0 until 3) {
     addSlotToContainer(148, 12 + i * slotSize, slotInfo _)
   }

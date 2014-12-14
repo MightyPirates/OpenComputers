@@ -16,7 +16,7 @@ object DriverAbstractBusCard extends Item with HostAware with EnvironmentAware {
     isOneOf(stack, api.Items.get("abstractBusCard"))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isComputer(host) || isRobot(host) || isServer(host))
+    worksWith(stack) && (isComputer(host) || isRobot(host) || isServer(host) || isMicrocontroller(host))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = if (Mods.StargateTech2.isAvailable) host match {
     case device: IBusDevice => new component.AbstractBusCard(device)

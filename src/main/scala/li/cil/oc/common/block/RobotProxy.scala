@@ -117,7 +117,45 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
 
   override def getExplosionResistance(entity: Entity) = 10f
 
-  override def getDrops(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) = new java.util.ArrayList[ItemStack]()
+  override def getDrops(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) = {
+    val list = new java.util.ArrayList[ItemStack]()
+
+    // Superspecial hack... usually this will not work, because Minecraft calls
+    // this method *after* the block has already been destroyed. Meaning we
+    // won't have access to the tile entity.
+    // However! Some mods with block breakers, specifically AE2's annihilation
+    // plane, will call *only* this method (don't use a fake player to call
+    // removedByPlayer), but call it *before* the block was destroyed. So in
+    // general it *should* be safe to generate the item here if the tile entity
+    // still exists, and always spawn the stack in removedByPlayer... if some
+    // mod calls this before the block is broken *and* calls removedByPlayer
+    // this will lead to dupes, but in some initial testing this wasn't the
+    // case anywhere (TE autonomous activator, CC turtles).
+    world.getTileEntity(x, y, z) match {
+      case proxy: tileentity.RobotProxy =>
+        val robot = proxy.robot
+        if (!world.isRemote) {
+          // Update: even more special hack! As discussed here http://git.io/IcNAyg
+          // some mods call this even when they're not about to actually break the
+          // block... soooo we need a whitelist to know when to generate a *proper*
+          // drop (i.e. with file systems closed / open handles not saved, e.g.).
+          if (gettingDropsForActualDrop) {
+            robot.node.remove()
+            robot.saveComponents()
+          }
+          list.add(robot.info.createItemStack())
+        }
+      case _ =>
+    }
+
+    list
+  }
+
+  private val getDropForRealDropCallers = Set(
+    "appeng.parts.automation.PartAnnihilationPlane.EatBlock"
+  )
+
+  private def gettingDropsForActualDrop = new Exception().getStackTrace.exists(element => getDropForRealDropCallers.contains(element.getClassName + "." + element.getMethodName))
 
   override def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
     val bounds = getCollisionBoundingBoxFromPool(world, x, y, z)
@@ -185,7 +223,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
     }) match {
       case Some((robot, owner, uuid)) =>
         robot.owner = owner
-        robot.ownerUuid = uuid
+        robot.ownerUuid = Option(robot.determineUUID(uuid))
         robot.info.load(stack)
         robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
         robot.updateInventorySize()

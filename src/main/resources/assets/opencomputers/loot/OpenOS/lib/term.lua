@@ -13,7 +13,7 @@ local function toggleBlink()
   if term.isAvailable() then
     cursorBlink.state = not cursorBlink.state
     if cursorBlink.state then
-      cursorBlink.alt = component.gpu.get(cursorX, cursorY)
+      cursorBlink.alt = component.gpu.get(cursorX, cursorY) or cursorBlink.alt
       component.gpu.set(cursorX, cursorY, string.rep(unicode.char(0x2588), unicode.charWidth(cursorBlink.alt))) -- solid block
     else
       component.gpu.set(cursorX, cursorY, cursorBlink.alt)

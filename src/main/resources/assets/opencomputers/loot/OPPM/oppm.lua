@@ -553,7 +553,7 @@ if not result then
   error(reason, 0)
 end
 
-print("All done! Reboot now? [Y/n]")
+print("All done! Please remove the Floppy Disk used for installation! Reboot now? [Y/n]")
 local result = io.read()
 if not result or result == "" or result:sub(1, 1):lower() == "y" then
   print("\nRebooting now!")

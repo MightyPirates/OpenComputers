@@ -4,20 +4,23 @@ local fs = require("filesystem")
 local shell = require("shell")
 local unicode = require("unicode")
 
-local env = {
-  EDITOR="/bin/edit",
-  HISTSIZE="10",
-  HOME="/home",
-  IFS=" ",
-  MANPATH="/usr/man:.",
-  PAGER="/bin/more",
-  PATH="/bin:/usr/bin:/home/bin:.",
-  PS1="$PWD# ",
-  PWD="/",
-  SHELL="/bin/sh",
-  TMP="/tmp", -- Deprecated
-  TMPDIR="/tmp"
-}
+local function env()
+  -- copy parent env when first requested; easiest way to keep things
+  -- like number of env vars trivial (#vars).
+  local data = require("process").info().data
+  --[[ TODO breaking change; will require set to be a shell built-in and
+            may break other programs relying on setenv being global.
+  if not rawget(data, "vars") then
+    local vars = {}
+    for k, v in pairs(data.vars or {}) do
+      vars[k] = v
+    end
+    data.vars = vars
+  end
+  --]]
+  data.vars = data.vars or {}
+  return data.vars
+end
 
 os.execute = function(command)
   if not command then
@@ -32,23 +35,23 @@ end
 
 function os.getenv(varname)
   if varname == '#' then
-    return #env
+    return #env()
   elseif varname ~= nil then
-    return env[varname]
+    return env()[varname]
   else
-    return env
+    return env()
   end
 end
 
 function os.setenv(varname, value)
   checkArg(1, varname, "string", "number")
   if value == nil then
-    env[varname] = nil
+    env()[varname] = nil
   else
     local success, val = pcall(tostring, value)
     if success then
-      env[varname] = val
-      return env[varname]
+      env()[varname] = val
+      return env()[varname]
     else
       return nil, val
     end
@@ -82,6 +85,19 @@ function os.tmpname()
     end
   end
 end
+
+os.setenv("EDITOR", "/bin/edit")
+os.setenv("HISTSIZE", "10")
+os.setenv("HOME", "/home")
+os.setenv("IFS", " ")
+os.setenv("MANPATH", "/usr/man:.")
+os.setenv("PAGER", "/bin/more")
+os.setenv("PATH", "/bin:/usr/bin:/home/bin:.")
+os.setenv("PS1", "$PWD# ")
+os.setenv("PWD", "/")
+os.setenv("SHELL", "/bin/sh")
+os.setenv("TMP", "/tmp") -- Deprecated
+os.setenv("TMPDIR", "/tmp")
 
 if computer.tmpAddress() then
   fs.mount(computer.tmpAddress(), os.getenv("TMPDIR") or "/tmp")

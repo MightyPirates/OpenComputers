@@ -27,7 +27,9 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
     super.update()
     if (host.world.getTotalWorldTime % Settings.get.tickFrequency == 0 && ticket.isDefined) {
       if (!node.tryChangeBuffer(-Settings.get.chunkloaderCost * Settings.get.tickFrequency)) {
-        ticket.foreach(ForgeChunkManager.releaseTicket)
+        ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
+          case _: Throwable => // Ignored.
+        })
         ticket = None
       }
     }
@@ -54,7 +56,9 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      ticket.foreach(ForgeChunkManager.releaseTicket)
+      ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
+        case _: Throwable => // Ignored.
+      })
       ticket = None
     }
   }
@@ -75,7 +79,9 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
       ChunkloaderUpgradeHandler.updateLoadedChunk(this)
     }
     else if (!enabled && ticket.isDefined) {
-      ticket.foreach(ForgeChunkManager.releaseTicket)
+      ticket.foreach(ticket => try ForgeChunkManager.releaseTicket(ticket) catch {
+        case _: Throwable => // Ignored.
+      })
       ticket = None
     }
     ticket.isDefined

@@ -3,8 +3,10 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Container
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.init.Items
-import li.cil.oc.common.{Slot, Tier, item}
+import li.cil.oc.common.item
 import net.minecraft.item.ItemStack
 
 object DriverContainerCard extends Item with Container {

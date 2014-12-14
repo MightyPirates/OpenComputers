@@ -143,9 +143,6 @@ do
     dofile(scripts[i])
   end
 
-  -- Initialize process module.
-  require("process").install("/init.lua", "init")
-
   status("Initializing components...")
 
   local primaries = {}

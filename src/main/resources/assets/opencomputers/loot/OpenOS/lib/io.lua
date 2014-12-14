@@ -1,45 +1,4 @@
-local io, file = {}, {}
-
-local input, output
-local programs = setmetatable({}, {__mode="k"}) -- maps program envs to i/o
-
-local function findOverride(filter)
-  local override
-  pcall(function()
-    for level = 1, math.huge do
-      local path, env = require("process").running(level)
-      if not path or override then
-        return
-      end
-      if programs[env] then
-        override = filter(programs[env])
-      end
-    end
-  end)
-  return override
-end
-
-local function setInput(value)
-  if not pcall(function()
-    local path, env = require("process").running()
-    programs[env] = programs[env] or {}
-    programs[env].input = value
-  end)
-  then
-    input = value
-  end
-end
-
-local function setOutput(value)
-  if not pcall(function()
-    local path, env = require("process").running()
-    programs[env] = programs[env] or {}
-    programs[env].output = value
-  end)
-  then
-    output = value
-  end
-end
+local io = {}
 
 -------------------------------------------------------------------------------
 
@@ -58,14 +17,13 @@ function io.input(file)
       if not result then
         error(reason, 2)
       end
-      setInput(result)
-    elseif io.type(file) then
-      setInput(file)
-    else
+      file = result
+    elseif not io.type(file) then
       error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
+    require("process").info().data.io_input = file
   end
-  return findOverride(function(env) return env.input end) or input
+  return require("process").info().data.io_input
 end
 
 function io.lines(filename, ...)
@@ -109,14 +67,13 @@ function io.output(file)
       if not result then
         error(reason, 2)
       end
-      setOutput(result)
-    elseif io.type(file) then
-      setOutput(file)
-    else
+      file = result
+    elseif not io.type(file) then
       error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
+    require("process").info().data.io_output = file
   end
-  return findOverride(function(env) return env.output end) or output
+  return require("process").info().data.io_output
 end
 
 -- TODO io.popen = function(prog, mode) end

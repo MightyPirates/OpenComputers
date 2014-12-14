@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import net.minecraft.client.Minecraft
 import org.lwjgl.input.Keyboard
@@ -11,11 +12,10 @@ import scala.collection.convert.WrapAsScala._
 object Tooltip {
   private val maxWidth = 220
 
-  private val nl = """\[nl\]"""
-
   private def font = Minecraft.getMinecraft.fontRenderer
 
   def get(name: String, args: Any*): java.util.List[String] = {
+    if (!Localization.canLocalize(Settings.namespace + "tooltip." + name)) return Seq.empty[String]
     val tooltip = Localization.localizeImmediately("tooltip." + name).
       format(args.map(_.toString): _*)
     val isSubTooltip = name.contains(".")
@@ -25,7 +25,7 @@ object Tooltip {
       else Seq(Localization.localizeImmediately("tooltip.TooLong", Keyboard.getKeyName(KeyBindings.extendedTooltip.getKeyCode)))
     }
     else tooltip.
-      split(nl).
+      lines.
       map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
       flatten.
       toList
@@ -35,7 +35,7 @@ object Tooltip {
     if (KeyBindings.showExtendedTooltips) {
       Localization.localizeImmediately("tooltip." + name).
         format(args.map(_.toString): _*).
-        split(nl).
+        lines.
         map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
         flatten.
         toList

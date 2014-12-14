@@ -9,6 +9,7 @@ import li.cil.oc.common.tileentity
 
 object Blocks {
   def init() {
+    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "access_point")
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
     GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Assembler], Settings.namespace + "assembler", Settings.namespace + "robotAssembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
@@ -20,18 +21,20 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
     GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
+    GameRegistry.registerTileEntity(classOf[tileentity.Microcontroller], Settings.namespace + "microcontroller")
     GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motion_sensor")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
+    GameRegistry.registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
-    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "access_point")
 
     // These are purely for converting existing blocks in delegator format to the new,
     // one block type per block format.
+    // TODO Remove in 1.5
     GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple")
     GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple_redstone")
     GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "special")
@@ -82,5 +85,9 @@ object Blocks {
 
     // v1.3.2
     Recipes.addBlock(new MotionSensor(), "motionSensor", "oc:motionSensor")
+
+    // v1.4.2
+    Recipes.addBlock(new Raid(), "raid", "oc:raid")
+    Items.registerBlock(new Microcontroller(), "microcontroller")
   }
 }

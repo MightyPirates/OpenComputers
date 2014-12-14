@@ -52,6 +52,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
+      case PacketType.RaidStateChange => onRaidStateChange(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
@@ -74,6 +75,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenTouchMode => onScreenTouchMode(p)
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
+      case PacketType.SoundPattern => onSoundPattern(p)
       case _ => // Invalid packet.
     }
   }
@@ -243,6 +245,15 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.globalBuffer = p.readDouble()
         t.globalBufferSize = p.readDouble()
+      case _ => // Invalid packet.
+    }
+
+  def onRaidStateChange(p: PacketParser) =
+    p.readTileEntity[Raid]() match {
+      case Some(t) =>
+        for (slot <- 0 until t.getSizeInventory) {
+          t.presence(slot) = p.readBoolean()
+        }
       case _ => // Invalid packet.
     }
 
@@ -466,6 +477,17 @@ object PacketHandler extends CommonPacketHandler {
       val frequency = p.readShort()
       val duration = p.readShort()
       Audio.play(x + 0.5f, y + 0.5f, z + 0.5f, frequency, duration)
+    }
+  }
+
+  def onSoundPattern(p: PacketParser) {
+    val dimension = p.readInt()
+    if (world(p.player, dimension).isDefined) {
+      val x = p.readInt()
+      val y = p.readInt()
+      val z = p.readInt()
+      val pattern = p.readUTF()
+      Audio.play(x + 0.5f, y + 0.5f, z + 0.5f, pattern)
     }
   }
 }

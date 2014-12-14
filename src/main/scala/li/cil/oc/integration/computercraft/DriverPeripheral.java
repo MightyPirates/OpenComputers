@@ -48,7 +48,10 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
 
     private IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
         try {
-            return dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, -1);
+            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, -1);
+            if (!isBlacklisted(p)) {
+                return p;
+            }
         } catch (Exception e) {
             OpenComputers.log().warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
         }

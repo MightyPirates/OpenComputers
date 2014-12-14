@@ -17,6 +17,7 @@ import scala.collection.mutable
 
 object TabletTemplate extends Template {
   override protected val suggestedComponents = Array(
+    "BIOS" -> hasComponent("eeprom") _,
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
@@ -62,6 +63,7 @@ object TabletTemplate extends Template {
     componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Two))
     componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
     componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
+    componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
     componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Two))
     nbt.setTag("componentSlots", componentSlots)
 

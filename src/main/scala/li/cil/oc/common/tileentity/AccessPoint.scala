@@ -113,8 +113,9 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
     if (nbt.hasKey(Settings.namespace + "strength")) {
       strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange
     }
-    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).foreach {
-      case (list, index) => componentNodes(index).load(list.getCompoundTagAt(index))
+    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) => componentNodes(index).load(tag)
     }
   }
 

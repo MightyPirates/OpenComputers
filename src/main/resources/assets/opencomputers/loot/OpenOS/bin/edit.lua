@@ -544,12 +544,15 @@ local function onKeyDown(char, code)
 end
 
 local function onClipboard(value)
+  value = value:gsub("\r\n", "\n")
   local cbx, cby = getCursor()
   local start = 1
   local l = value:find("\n", 1, true)
   if l then
     repeat
-      insert(string.sub(value, start, l - 1))
+      local line = string.sub(value, start, l - 1)
+      line = text.detab(line, 2)
+      insert(line)
       enter()
       start = l + 1
       l = value:find("\n", start, true)

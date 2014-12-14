@@ -45,7 +45,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
     parseLootDisks(list, builtInDisks)
 
     for ((name, (stack, _)) <- builtInDisks if name == "OpenOS") {
-      Recipes.list += stack -> "openOS"
+      Recipes.addRecipe(stack, "openOS")
     }
   }
 

@@ -43,7 +43,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileController])
 
   override def providedEnvironment(stack: ItemStack) =
-    if (stack != null && Block.getBlockFromItem(stack.getItem) == Block.getBlockFromName("appliedenergistics2:tile.BlockController")) classOf[Environment] else null
+    if (stack != null && Block.getBlockFromItem(stack.getItem) == Api.instance.blocks.blockController.block) classOf[Environment] else null
 
   class Environment(tileEntity: TileController) extends ManagedTileEntityEnvironment[TileController](tileEntity, "me_controller") with NamedBlock {
     override def preferredName = "me_controller"
@@ -181,11 +181,8 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
           }
         })
       }
-      links ++= nbt.getTagList("links", NBT.TAG_LIST).map {
-        case (list, index) =>
-          val nbt = list.getCompoundTagAt(index)
-          Api.instance.storage.loadCraftingLink(nbt, this)
-      }
+      links ++= nbt.getTagList("links", NBT.TAG_LIST).map(
+        (nbt: NBTTagCompound) => Api.instance.storage.loadCraftingLink(nbt, this))
     }
 
     override def save(nbt: NBTTagCompound) {

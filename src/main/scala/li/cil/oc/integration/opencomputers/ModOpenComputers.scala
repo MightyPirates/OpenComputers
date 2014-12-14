@@ -10,6 +10,7 @@ import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.common.template.MicrocontrollerTemplate
 import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
 import li.cil.oc.integration.ModProxy
@@ -22,6 +23,7 @@ object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
 
   override def initialize() {
+    MicrocontrollerTemplate.register()
     RobotTemplate.register()
     TabletTemplate.register()
 
@@ -54,6 +56,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverComponentBus)
     api.Driver.add(DriverCPU)
     api.Driver.add(DriverDebugCard)
+    api.Driver.add(DriverEEPROM)
     api.Driver.add(DriverFileSystem)
     api.Driver.add(DriverGeolyzer)
     api.Driver.add(DriverGraphicsCard)

@@ -3,9 +3,14 @@ package li.cil.oc.util
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
 
-import scala.language.{implicitConversions, reflectiveCalls}
+import scala.collection.mutable.ArrayBuffer
+import scala.language.implicitConversions
+import scala.language.reflectiveCalls
+import scala.reflect.ClassTag
 
 object ExtendedNBT {
+
+  implicit def toNbt(value: Boolean): NBTTagByte = new NBTTagByte(if (value) 1 else 0)
 
   implicit def toNbt(value: Byte): NBTTagByte = new NBTTagByte(value)
 
@@ -22,6 +27,8 @@ object ExtendedNBT {
   implicit def toNbt(value: Double): NBTTagDouble = new NBTTagDouble(value)
 
   implicit def toNbt(value: Array[Byte]): NBTTagByteArray = new NBTTagByteArray(value)
+
+  implicit def toNbt(value: Array[Boolean]): NBTTagByteArray = new NBTTagByteArray(value.map(if (_) 1: Byte else 0: Byte))
 
   implicit def toNbt(value: String): NBTTagString = new NBTTagString(value)
 
@@ -42,6 +49,7 @@ object ExtendedNBT {
   implicit def toNbt(value: Map[String, _]): NBTTagCompound = {
     val nbt = new NBTTagCompound()
     for ((key, value) <- value) value match {
+      case value: Boolean => nbt.setTag(key, value)
       case value: Byte => nbt.setTag(key, value)
       case value: Short => nbt.setTag(key, value)
       case value: Int => nbt.setTag(key, value)
@@ -56,6 +64,8 @@ object ExtendedNBT {
     }
     nbt
   }
+
+  implicit def booleanIterableToNbt(value: Iterable[Boolean]): Iterable[NBTTagByte] = value.map(toNbt)
 
   implicit def byteIterableToNbt(value: Iterable[Byte]): Iterable[NBTTagByte] = value.map(toNbt)
 
@@ -116,9 +126,23 @@ object ExtendedNBT {
 
     def append(values: NBTBase*): Unit = append(values)
 
-    def foreach(f: (NBTTagList, Int) => Unit): Unit = (0 until nbt.tagCount).map(f(nbt, _))
+    def foreach[Tag <: NBTBase](f: Tag => Unit) {
+      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      while (iterable.tagCount > 0) {
+        f(iterable.removeTag(0).asInstanceOf[Tag])
+      }
+    }
 
-    def map[Value](f: (NBTTagList, Int) => Value) = (0 until nbt.tagCount).map(f(nbt, _))
+    def map[Tag <: NBTBase, Value](f: Tag => Value): IndexedSeq[Value] = {
+      val iterable = nbt.copy.asInstanceOf[NBTTagList]
+      val buffer = ArrayBuffer.empty[Value]
+      while (iterable.tagCount > 0) {
+        buffer += f(iterable.removeTag(0).asInstanceOf[Tag])
+      }
+      buffer
+    }
+
+    def toArray[Tag: ClassTag] = map((t: Tag) => t).toArray
   }
 
 }
