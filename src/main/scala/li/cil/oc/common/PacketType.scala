@@ -47,6 +47,7 @@ object PacketType extends Enumeration {
 
   // Client -> Server
   ComputerPower,
+  DronePower,
   KeyDown,
   KeyUp,
   Clipboard,

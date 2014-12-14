@@ -2,6 +2,7 @@ package li.cil.oc.common.entity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
@@ -11,6 +12,7 @@ import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
+import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
@@ -286,21 +288,23 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     stack
   }
 
+  def preparePowerUp() {
+    targetX = math.floor(posX).toFloat + 0.5f
+    targetY = math.floor(posY).toFloat + 0.5f
+    targetZ = math.floor(posZ).toFloat + 0.5f
+    targetAcceleration = maxAcceleration
+
+    api.Network.joinNewNetwork(machine.node)
+    components.connectComponents()
+    machine.node.connect(control.node)
+  }
+
   override def interactFirst(player: EntityPlayer) = {
     if (player.isSneaking) {
       kill()
     }
     else if (!world.isRemote) {
-      targetX = math.floor(posX).toFloat + 0.5f
-      targetY = math.floor(posY).toFloat + 0.5f
-      targetZ = math.floor(posZ).toFloat + 0.5f
-      targetAcceleration = maxAcceleration
-
-      api.Network.joinNewNetwork(machine.node)
-      components.connectComponents()
-      machine.node.connect(control.node)
-      if (machine.isRunning) machine.stop()
-      else machine.start()
+      player.openGui(OpenComputers, GuiType.Drone.id, world, getEntityId, 0, 0)
     }
     true
   }

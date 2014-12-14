@@ -51,7 +51,6 @@ abstract class PacketHandler {
 
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
       world(player, dimension) match {
-        case None => // Invalid dimension.
         case Some(world) if world.blockExists(x, y, z) =>
           val t = world.getTileEntity(x, y, z)
           if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass)) {
@@ -68,6 +67,19 @@ abstract class PacketHandler {
             }
             case _ =>
           }
+        case _ => // Invalid dimension.
+      }
+      None
+    }
+
+    def getEntity[T: ClassTag](dimension: Int, id: Int): Option[T] = {
+      world(player, dimension) match {
+        case Some(world) =>
+          val e = world.getEntityByID(id)
+          if (e != null && classTag[T].runtimeClass.isAssignableFrom(e.getClass)) {
+            return Some(e.asInstanceOf[T])
+          }
+        case _ =>
       }
       None
     }
@@ -78,6 +90,12 @@ abstract class PacketHandler {
       val y = readInt()
       val z = readInt()
       getTileEntity(dimension, x, y, z)
+    }
+
+    def readEntity[T: ClassTag](): Option[T] = {
+      val dimension = readInt()
+      val id = readInt()
+      getEntity[T](dimension, id)
     }
 
     def readDirection() = ForgeDirection.getOrientation(readInt())

@@ -12,14 +12,14 @@ class Drone(playerInventory: InventoryPlayer, drone: entity.Drone) extends Playe
   val deltaY = 0
 
   for (i <- 0 to 1) {
-    val y = 6 + i * slotSize - deltaY
+    val y = 8 + i * slotSize - deltaY
     for (j <- 0 to 3) {
-      val x = 96 + j * slotSize
+      val x = 98 + j * slotSize
       addSlotToContainer(new InventorySlot(this, otherInventory, inventorySlots.size, x, y))
     }
   }
 
-  addPlayerInventorySlots(6, 64)
+  addPlayerInventorySlots(8, 66)
 
   class InventorySlot(container: Player, inventory: IInventory, index: Int, x: Int, y: Int) extends StaticComponentSlot(container, inventory, index, x, y, common.Slot.Any, common.Tier.Any) {
     def isValid = (0 until drone.inventory.getSizeInventory).contains(getSlotIndex)

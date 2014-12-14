@@ -18,7 +18,7 @@ import org.lwjgl.opengl.GL11
 
 class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends DynamicGuiContainer(new container.Drone(playerInventory, drone)) {
   xSize = 176
-  ySize = 146
+  ySize = 148
 
   protected var powerButton: ImageButton = _
 
@@ -27,10 +27,10 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
   private val bufferX = 10
   private val bufferY = 10
 
-  private val inventoryX = 95
-  private val inventoryY = 5
+  private val inventoryX = 97
+  private val inventoryY = 7
 
-  private val power = addWidget(new ProgressBar(26, 48))
+  private val power = addWidget(new ProgressBar(28, 48))
 
   private val selectionSize = 20
   private val selectionsStates = 17
@@ -40,7 +40,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   protected override def actionPerformed(button: GuiButton) {
     if (button.id == 0) {
-//      ClientPacketSender.sendComputerPower(drone, !drone.isRunning)
+      ClientPacketSender.sendDronePower(drone, !drone.isRunning)
     }
   }
 
@@ -51,7 +51,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 43, 18, 18, Textures.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 45, 18, 18, Textures.guiButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
@@ -79,6 +79,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     mc.renderEngine.bindTexture(Textures.guiDrone)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
 //    power.level = robot.globalBuffer / robot.globalBufferSize
+    power.level = 0.5
     drawWidgets()
     if (drone.inventory.getSizeInventory > 0) {
       drawSelection()
