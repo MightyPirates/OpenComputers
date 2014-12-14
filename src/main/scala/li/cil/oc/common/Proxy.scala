@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import com.google.common.base.Strings
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.GameRegistry
@@ -100,20 +101,25 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
-    OpenComputers.ID + ":rack" -> "serverRack"
+    OpenComputers.ID + ":rack" -> "serverRack",
+    "appengTunnel" -> "" // Avoid breaking worlds for people that used the dev builds.
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {
     for (missing <- e.get()) {
       if (missing.`type` == GameRegistry.Type.BLOCK) {
         blockRenames.get(missing.name) match {
-          case Some(name) => missing.remap(GameRegistry.findBlock(OpenComputers.ID, name))
+          case Some(name) =>
+            if (Strings.isNullOrEmpty(name)) missing.ignore()
+            else missing.remap(GameRegistry.findBlock(OpenComputers.ID, name))
           case _ => missing.warn()
         }
       }
       else if (missing.`type` == GameRegistry.Type.ITEM) {
         itemRenames.get(missing.name) match {
-          case Some(name) => missing.remap(GameRegistry.findItem(OpenComputers.ID, name))
+          case Some(name) =>
+            if (Strings.isNullOrEmpty(name)) missing.ignore()
+            else missing.remap(GameRegistry.findItem(OpenComputers.ID, name))
           case _ => missing.warn()
         }
       }
