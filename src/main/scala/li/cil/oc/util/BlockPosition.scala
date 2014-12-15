@@ -3,6 +3,7 @@ package li.cil.oc.util
 import li.cil.oc.api.driver.EnvironmentHost
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.ChunkCoordinates
+import net.minecraft.util.Vec3
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -26,6 +27,8 @@ case class BlockPosition(x: Int, y: Int, z: Int, world: Option[World]) {
     z + direction.offsetZ,
     world
   )
+
+  def offset(x: Double, y: Double, z: Double) = Vec3.createVectorHelper(this.x + x, this.y + y, this.z + z)
 
   def bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
 

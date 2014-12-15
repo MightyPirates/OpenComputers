@@ -10,7 +10,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.entity
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.item.ItemStack
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
@@ -42,7 +42,13 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
     player
   }
 
-  override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+  override protected def checkSideForAction(args: Arguments, n: Int) =
+    args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+
+  override protected def onSuckCollect(entity: EntityItem) = {
+    world.playSoundAtEntity(host, "random.pop", 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
+    InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))
+  }
 
   // ----------------------------------------------------------------------- //
 

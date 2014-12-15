@@ -17,7 +17,9 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.server.component
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
@@ -202,6 +204,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       val entity = new EntityItem(world, posX, posY, posZ, stack)
       entity.delayBeforeCanPickup = 15
       world.spawnEntityInWorld(entity)
+      InventoryUtils.dropAllSlots(BlockPosition(this), inventory)
     }
   }
 

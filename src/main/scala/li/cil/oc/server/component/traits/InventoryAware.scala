@@ -10,6 +10,11 @@ trait InventoryAware {
 
   def selectedSlot_=(value: Int): Unit
 
+  def insertionSlots = {
+    val slots = (0 until inventory.getSizeInventory).toIterable
+    slots.drop(selectedSlot) ++ slots.take(selectedSlot)
+  }
+
   // ----------------------------------------------------------------------- //
 
   protected def stackInSlot(slot: Int) = Option(inventory.getStackInSlot(slot))

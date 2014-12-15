@@ -1,5 +1,6 @@
 package li.cil.oc.util
 
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.item.EntityMinecartContainer
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.ISidedInventory
@@ -207,4 +208,51 @@ object InventoryUtils {
    */
   def extractFromInventoryAt(consumer: (ItemStack) => Unit, world: World, x: Int, y: Int, z: Int, side: ForgeDirection, limit: Int = 64) =
     inventoryAt(world, x, y, z).exists(extractFromInventory(consumer, _, side, limit))
+
+  /**
+   * Utility method for dropping contents from a single inventory slot into
+   * the world.
+   */
+  def dropSlot(position: BlockPosition, inventory: IInventory, slot: Int, count: Int, direction: ForgeDirection = ForgeDirection.UNKNOWN) = {
+    Option(inventory.decrStackSize(slot, count)) match {
+      case Some(stack) if stack.stackSize > 0 => spawnStackInWorld(position, stack, direction); true
+      case _ => false
+    }
+  }
+
+  /**
+   * Utility method for dumping all inventory contents into the world.
+   */
+  def dropAllSlots(position: BlockPosition, inventory: IInventory) {
+    for (slot <- 0 until inventory.getSizeInventory) {
+      Option(inventory.getStackInSlot(slot)) match {
+        case Some(stack) if stack.stackSize > 0 =>
+          inventory.setInventorySlotContents(slot, null)
+          spawnStackInWorld(position, stack, ForgeDirection.UNKNOWN)
+        case _ => // Nothing.
+      }
+    }
+  }
+
+  /**
+   * Utility method for spawning an item stack in the world.
+   */
+  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: ForgeDirection): EntityItem = position.world match {
+    case Some(world) =>
+      val rng = world.rand
+      val (tx, ty, tz) = (
+        0.1 * (rng.nextDouble - 0.5) + direction.offsetX * 0.65,
+        0.1 * (rng.nextDouble - 0.5) + direction.offsetY * 0.75 + (direction.offsetX + direction.offsetZ) * 0.25,
+        0.1 * (rng.nextDouble - 0.5) + direction.offsetZ * 0.65)
+      val dropPos = position.offset(0.5 + tx, 0.5 + ty, 0.5 + tz)
+      val entity = new EntityItem(world, dropPos.xCoord, dropPos.yCoord, dropPos.zCoord, stack.copy())
+      entity.motionX = 0.0125 * (rng.nextDouble - 0.5) + direction.offsetX * 0.03
+      entity.motionY = 0.0125 * (rng.nextDouble - 0.5) + direction.offsetY * 0.08 + (direction.offsetX + direction.offsetZ) * 0.03
+      entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + direction.offsetZ * 0.03
+      entity.delayBeforeCanPickup = 15
+      world.spawnEntityInWorld(entity)
+      entity
+    case _ => null
+  }
+
 }
