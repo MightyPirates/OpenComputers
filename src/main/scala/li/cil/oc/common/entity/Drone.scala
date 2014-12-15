@@ -44,6 +44,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   var bodyAngle = math.random.toFloat * 90
   var angularVelocity = 0f
   var nextAngularVelocityChange = 0
+  var lastEnergyUpdate = 0
 
   // Logic stuff, components, machine and such.
   val info = new ItemUtils.MicrocontrollerData()
@@ -141,12 +142,21 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   // ----------------------------------------------------------------------- //
 
   override def entityInit() {
+    // Running or not.
     dataWatcher.addObject(2, byte2Byte(0: Byte))
+    // Target position.
     dataWatcher.addObject(3, float2Float(0f))
     dataWatcher.addObject(4, float2Float(0f))
     dataWatcher.addObject(5, float2Float(0f))
+    // Max acceleration.
     dataWatcher.addObject(6, float2Float(0f))
+    // Selected inventory slot.
     dataWatcher.addObject(7, byte2Byte(0: Byte))
+    // Current and maximum energy.
+    dataWatcher.addObject(8, int2Integer(0))
+    dataWatcher.addObject(9, int2Integer(100))
+    // Status text.
+    dataWatcher.addObject(10, "Hello\nWorld!")
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
@@ -155,6 +165,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def targetZ = dataWatcher.getWatchableObjectFloat(5)
   def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
   def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+  def globalBuffer = dataWatcher.getWatchableObjectInt(8)
+  def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
+  def statusText = dataWatcher.getWatchableObjectString(10)
 
   private def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
   // Round target values to low accuracy to avoid floating point errors accumulating.
@@ -163,6 +176,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 5) / 5f))
   def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
   def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+  private def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
+  private def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
+  def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
 
   @SideOnly(Side.CLIENT)
   override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
@@ -204,6 +220,11 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       machine.update()
       components.updateComponents()
       setRunning(machine.isRunning)
+
+      if (math.abs(lastEnergyUpdate - globalBuffer) > 100) {
+        globalBuffer = machine.node.asInstanceOf[Connector].globalBuffer.toInt
+        globalBufferSize = machine.node.asInstanceOf[Connector].globalBufferSize.toInt
+      }
     }
     else if (isRunning) {
       // Client side update; occasionally update wing pitch and rotation to
@@ -326,6 +347,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     targetY = nbt.getFloat("targetY")
     targetZ = nbt.getFloat("targetZ")
     targetAcceleration = nbt.getFloat("targetAcceleration")
+    selectedSlot = nbt.getByte("selectedSlot") & 0xFF
+    statusText = nbt.getString("statusText")
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound): Unit = {
@@ -341,5 +364,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     nbt.setFloat("targetY", targetY)
     nbt.setFloat("targetZ", targetZ)
     nbt.setFloat("targetAcceleration", targetAcceleration)
+    nbt.setByte("selectedSlot", selectedSlot.toByte)
+    nbt.setString("statusText", statusText)
   }
 }

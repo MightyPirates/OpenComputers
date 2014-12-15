@@ -5,10 +5,14 @@ import java.util
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
+import li.cil.oc.client.renderer.TextBufferRenderCache
+import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.entity
+import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
+import li.cil.oc.util.TextBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
@@ -16,16 +20,27 @@ import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import org.lwjgl.opengl.GL11
 
-class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends DynamicGuiContainer(new container.Drone(playerInventory, drone)) {
+class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends DynamicGuiContainer(new container.Drone(playerInventory, drone)) with traits.DisplayBuffer {
   xSize = 176
   ySize = 148
 
   protected var powerButton: ImageButton = _
 
-  private val bufferWidth = 80
-  private val bufferHeight = 32
-  private val bufferX = 10
-  private val bufferY = 10
+  private val buffer = new TextBuffer(20, 2, PackedColor.SingleBitFormat)
+  private val bufferRenderer = new TextBufferRenderData {
+    private var _dirty = true
+
+    override def dirty = _dirty
+
+    override def dirty_=(value: Boolean) = _dirty = value
+
+    override def data = buffer
+  }
+
+  override protected val bufferX = 9
+  override protected val bufferY = 9
+  override protected val bufferColumns = 80
+  override protected val bufferRows = 16
 
   private val inventoryX = 97
   private val inventoryY = 7
@@ -46,6 +61,9 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
     powerButton.toggled = drone.isRunning
+    bufferRenderer.dirty = drone.statusText.lines.zipWithIndex.map {
+      case (line, i) => buffer.set(0, i, line, vertical = false)
+    }.contains(true)
     super.drawScreen(mouseX, mouseY, dt)
   }
 
@@ -55,15 +73,30 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     add(buttonList, powerButton)
   }
 
+  override protected def drawBuffer() {
+    GL11.glTranslatef(bufferX, bufferY, 0)
+    RenderState.disableLighting()
+    RenderState.makeItBlend()
+    GL11.glScaled(scale, scale, 1)
+    GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
+    GL11.glDepthMask(false)
+    GL11.glColor3f(0.5f, 0.5f, 1f)
+    TextBufferRenderCache.render(bufferRenderer)
+    GL11.glPopAttrib()
+  }
+
+  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
+
   override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+    drawBufferLayer()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (func_146978_c(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
-//      tooltip.add(format.format(
-//        ((drone.globalBuffer / drone.globalBufferSize) * 100).toInt,
-//        drone.globalBuffer.toInt,
-//        drone.globalBufferSize.toInt))
+      tooltip.add(format.format(
+        drone.globalBuffer * 100 / math.max(drone.globalBufferSize, 1),
+        drone.globalBuffer,
+        drone.globalBufferSize))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     if (powerButton.func_146115_a) {
@@ -78,8 +111,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     mc.renderEngine.bindTexture(Textures.guiDrone)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
-//    power.level = robot.globalBuffer / robot.globalBufferSize
-    power.level = 0.5
+    power.level = drone.globalBuffer.toDouble / math.max(drone.globalBufferSize.toDouble, 1.0)
     drawWidgets()
     if (drone.inventory.getSizeInventory > 0) {
       drawSelection()

@@ -1,7 +1,5 @@
 package li.cil.oc.server.component.robot
 
-import java.util.UUID
-
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event

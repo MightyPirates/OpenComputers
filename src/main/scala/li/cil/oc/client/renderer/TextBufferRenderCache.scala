@@ -9,6 +9,7 @@ import com.google.common.cache.RemovalNotification
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.Settings
+import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
@@ -23,23 +24,23 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
   private val cache = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(2, TimeUnit.SECONDS).
     removalListener(this).
-    asInstanceOf[CacheBuilder[TextBuffer, Int]].
-    build[TextBuffer, Int]()
+    asInstanceOf[CacheBuilder[TextBufferRenderData, Int]].
+    build[TextBufferRenderData, Int]()
 
   // To allow access in cache entry init.
-  private var currentBuffer: TextBuffer = _
+  private var currentBuffer: TextBufferRenderData = _
 
   // ----------------------------------------------------------------------- //
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  def render(buffer: TextBuffer) {
+  def render(buffer: TextBufferRenderData) {
     currentBuffer = buffer
     compileOrDraw(cache.get(currentBuffer, this))
   }
 
   private def compileOrDraw(list: Int) = {
-    if (currentBuffer.proxy.dirty) {
+    if (currentBuffer.dirty) {
       RenderState.checkError(getClass.getName + ".compileOrDraw: entering (aka: wasntme)")
 
       for (line <- currentBuffer.data.buffer) {
@@ -48,7 +49,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
 
       val doCompile = !RenderState.compilingDisplayList
       if (doCompile) {
-        currentBuffer.proxy.dirty = false
+        currentBuffer.dirty = false
         GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
 
         RenderState.checkError(getClass.getName + ".compileOrDraw: glNewList")
@@ -84,7 +85,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
     RenderState.checkError(getClass.getName + ".call: entering (aka: wasntme)")
 
     val list = GLAllocation.generateDisplayLists(1)
-    currentBuffer.proxy.dirty = true // Force compilation.
+    currentBuffer.dirty = true // Force compilation.
 
     RenderState.checkError(getClass.getName + ".call: leaving")
 
