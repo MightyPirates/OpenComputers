@@ -11,6 +11,7 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
+import net.minecraftforge.common.util.ForgeDirection
 
 trait InventoryWorldInterop extends InventoryAware with WorldAware with SideRestricted {
   @Callback
@@ -74,7 +75,7 @@ trait InventoryWorldInterop extends InventoryAware with WorldAware with SideRest
       result(true)
     }
     else {
-      for (entity <- entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+      for (entity <- suckableItems(facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
         val stack = entity.getEntityItem
         val size = stack.stackSize
         onSuckCollect(entity)
@@ -86,6 +87,8 @@ trait InventoryWorldInterop extends InventoryAware with WorldAware with SideRest
       result(false)
     }
   }
+
+  protected def suckableItems(side: ForgeDirection) = entitiesOnSide[EntityItem](side)
 
   protected def onSuckCollect(entity: EntityItem): Unit = entity.onCollideWithPlayer(fakePlayer)
 }

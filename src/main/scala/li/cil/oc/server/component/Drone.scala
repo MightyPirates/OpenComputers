@@ -8,6 +8,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.common.entity
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
@@ -45,10 +46,14 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
   override protected def checkSideForAction(args: Arguments, n: Int) =
     args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
 
+  override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(BlockPosition(host)) ++ super.suckableItems(side)
+
   override protected def onSuckCollect(entity: EntityItem) = {
     world.playSoundAtEntity(host, "random.pop", 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
     InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))
   }
+
+  // ----------------------------------------------------------------------- //
 
   // ----------------------------------------------------------------------- //
 
@@ -67,9 +72,14 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
   def getOffset(context: Context, args: Arguments): Array[AnyRef] =
     result(host.getDistance(host.targetX, host.targetY, host.targetZ))
 
-  @Callback(doc = "function():number -- Get the current velocity.")
+  @Callback(doc = "function():number -- Get the current velocity in m/s.")
   def getVelocity(context: Context, args: Arguments): Array[AnyRef] =
     result(math.sqrt(host.motionX * host.motionX + host.motionY * host.motionY + host.motionZ * host.motionZ) * 20) // per second
+
+  @Callback(doc = "function():number -- Get the maximum velocity, in m/s.")
+  def getMaxVelocity(context: Context, args: Arguments): Array[AnyRef] = {
+    result(host.maxVelocity * 20) // per second
+  }
 
   @Callback(doc = "function():number -- Get the currently set acceleration.")
   def getAcceleration(context: Context, args: Arguments): Array[AnyRef] = {
