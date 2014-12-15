@@ -20,8 +20,10 @@ import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
+import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
@@ -30,6 +32,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
 class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
   // Some basic constants.
@@ -39,7 +42,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   val maxAcceleration = 0.1f
   val maxVelocity = 0.4f
   val maxInventorySize = 8
-  setSize(1, 6 / 16f)
+  setSize(12 / 16f, 6 / 16f)
+  isImmuneToFire = true
 
   // Rendering stuff, purely eyecandy.
   val targetFlapAngles = Array.fill(4, 2)(0f)
@@ -187,44 +191,26 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
-
   def targetX = dataWatcher.getWatchableObjectFloat(3)
-
   def targetY = dataWatcher.getWatchableObjectFloat(4)
-
   def targetZ = dataWatcher.getWatchableObjectFloat(5)
-
   def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
-
   def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
-
   def globalBuffer = dataWatcher.getWatchableObjectInt(8)
-
   def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
-
   def statusText = dataWatcher.getWatchableObjectString(10)
-
   def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
 
   def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
-
   // Round target values to low accuracy to avoid floating point errors accumulating.
-  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 5) / 5f))
-
-  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 5) / 5f))
-
-  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 5) / 5f))
-
+  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 4) / 4f))
+  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 4) / 4f))
+  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 4) / 4f))
   def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
-
   def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
-
   def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
-
   def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
-
   def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
-
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
 
   @SideOnly(Side.CLIENT)
@@ -257,11 +243,11 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     }
   }
 
-  override def onEntityUpdate() {
-    super.onEntityUpdate()
+  override def onUpdate() {
+    super.onUpdate()
 
     if (!world.isRemote) {
-      if (isInWater) {
+      if (isInsideOfMaterial(Material.water) || isInsideOfMaterial(Material.lava)) {
         // We're not water-proof!
         machine.stop()
       }
@@ -330,12 +316,28 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       // No power, free fall: engage!
       motionY -= gravity
     }
+
+    prevPosX = posX
+    prevPosY = posY
+    prevPosZ = posZ
+    noClip = func_145771_j(posX, (boundingBox.minY + boundingBox.maxY) / 2, posZ)
     moveEntity(motionX, motionY, motionZ)
 
     // Make sure we don't get infinitely faster.
-    motionX *= drag
-    motionY *= drag
-    motionZ *= drag
+    if (isRunning) {
+      motionX *= drag
+      motionY *= drag
+      motionZ *= drag
+    }
+    else {
+      val groundDrag = worldObj.getBlock(BlockPosition(this).offset(ForgeDirection.DOWN)).slipperiness * drag
+      motionX *= groundDrag
+      motionY *= drag
+      motionZ *= groundDrag
+      if (onGround) {
+        motionY *= -0.5
+      }
+    }
   }
 
   override def hitByEntity(entity: Entity) = {
@@ -347,9 +349,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
         else
           machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord))
       }
-      motionX -= direction.xCoord
-      motionY -= direction.yCoord
-      motionZ -= direction.zCoord
+      motionX -= direction.xCoord * 0.5f
+      motionY -= direction.yCoord * 0.5f
+      motionZ -= direction.zCoord * 0.5f
     }
     super.hitByEntity(entity)
   }
@@ -371,6 +373,11 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def handleWaterMovement() = {
+    inWater = worldObj.handleMaterialAcceleration(boundingBox, Material.water, this)
+    inWater
+  }
 
   override def readEntityFromNBT(nbt: NBTTagCompound) {
     info.load(nbt.getCompoundTag("info"))
