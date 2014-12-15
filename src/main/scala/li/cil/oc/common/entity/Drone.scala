@@ -169,10 +169,10 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     dataWatcher.addObject(11, byte2Byte(0: Byte))
   }
 
-  def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, x: Int, y: Int, z: Int, hitX: Float, hitY: Float, hitZ: Float) {
+  def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3) {
     info.load(stack)
     inventorySize = computeInventorySize()
-    setPosition(x + hitX * 1.1f, y + hitY * 1.1f, z + hitZ * 1.1f)
+    setPosition(position.xCoord, position.yCoord, position.zCoord)
   }
 
   def preparePowerUp() {

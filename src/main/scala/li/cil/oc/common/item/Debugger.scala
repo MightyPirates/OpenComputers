@@ -3,17 +3,19 @@ package li.cil.oc.common.item
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.network._
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Debugger(val parent: Delegator) extends Delegate {
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    val world = position.world.get
     player match {
       case realPlayer: EntityPlayerMP =>
-        world.getTileEntity(x, y, z) match {
+        world.getTileEntity(position) match {
           case host: SidedEnvironment =>
             if (!world.isRemote) {
               Debugger.reconnect(Array(host.sidedNode(ForgeDirection.getOrientation(side))))

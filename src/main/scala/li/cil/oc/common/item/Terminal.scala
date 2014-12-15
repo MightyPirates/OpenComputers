@@ -5,12 +5,14 @@ import java.util.UUID
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -45,8 +47,9 @@ class Terminal(val parent: Delegator) extends Delegate {
     iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOff"))
   }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    world.getTileEntity(x, y, z) match {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    val world = position.world.get
+    world.getTileEntity(position) match {
       case rack: tileentity.ServerRack if side == rack.facing.ordinal() =>
         val l = 2 / 16.0
         val h = 14 / 16.0
@@ -80,7 +83,7 @@ class Terminal(val parent: Delegator) extends Delegate {
           true
         }
         else false
-      case _ => super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case _ => super.onItemUse(stack, player, position, side, hitX, hitY, hitZ)
     }
   }
 

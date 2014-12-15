@@ -5,6 +5,7 @@ import java.util
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
@@ -41,9 +42,9 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
   def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (player.isSneaking) {
