@@ -5,7 +5,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ResultWrapper.result
 
-trait WorldInspectable extends WorldAware with SideRestricted {
+trait WorldControl extends WorldAware with SideRestricted {
   @Callback
   def detect(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)

@@ -6,11 +6,11 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
 
-trait InventoryInspectable extends InventoryAware {
-  @Callback
+trait InventoryControl extends InventoryAware {
+  @Callback(doc = "function():number -- The size of this device's internal inventory.")
   def inventorySize(context: Context, args: Arguments): Array[AnyRef] = result(inventory.getSizeInventory)
 
-  @Callback
+  @Callback(doc = "function([slot:number]):number -- Get the currently selected slot; set the selected slot if specified.")
   def select(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count > 0 && args.checkAny(0) != null) {
       val slot = args.checkSlot(inventory, 0)
@@ -21,7 +21,7 @@ trait InventoryInspectable extends InventoryAware {
     result(selectedSlot + 1)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = "function([slot:number]):number -- Get the number of items in the specified slot, otherwise in the selected slot.")
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     val slot =
       if (args.count > 0 && args.checkAny(0) != null) args.checkSlot(inventory, 0)
@@ -32,7 +32,7 @@ trait InventoryInspectable extends InventoryAware {
     })
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = "function([slot:number]):number -- Get the remaining space in the specified slot, otherwise in the selected slot.")
   def space(context: Context, args: Arguments): Array[AnyRef] = {
     val slot =
       if (args.count > 0 && args.checkAny(0) != null) args.checkSlot(inventory, 0)
@@ -43,7 +43,7 @@ trait InventoryInspectable extends InventoryAware {
     })
   }
 
-  @Callback
+  @Callback(doc = "function(otherSlot:number):boolean -- Compare the contents of the selected slot to the contents of the specified slot.")
   def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
     result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
@@ -53,7 +53,7 @@ trait InventoryInspectable extends InventoryAware {
     })
   }
 
-  @Callback
+  @Callback(doc = "function(toSlot:number[, amount:number]):boolean -- Move up to the specified amount of items from the selected slot into the specified slot.")
   def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
     val count = args.optionalItemCount(1)

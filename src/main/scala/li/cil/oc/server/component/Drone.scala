@@ -16,7 +16,7 @@ import net.minecraft.world.WorldServer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 
-class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldInspectable with traits.InventoryInspectable with traits.InventoryWorldInterop {
+class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drone").
     create()

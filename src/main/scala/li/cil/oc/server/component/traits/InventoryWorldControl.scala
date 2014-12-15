@@ -13,7 +13,7 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
 import net.minecraftforge.common.util.ForgeDirection
 
-trait InventoryWorldInterop extends InventoryAware with WorldAware with SideRestricted {
+trait InventoryWorldControl extends InventoryAware with WorldAware with SideRestricted {
   @Callback
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)

@@ -118,8 +118,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
       if (_isRunning != machine.isRunning) {
         _isRunning = machine.isRunning
-        isOutputEnabled = hasRedstoneCard
-        isAbstractBusAvailable = hasAbstractBusCard
+        markDirty()
         ServerPacketSender.sendComputerState(this)
       }
 
