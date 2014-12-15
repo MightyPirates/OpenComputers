@@ -9,6 +9,8 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.common.entity
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.InventoryUtils
+import net.minecraft.item.ItemStack
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
@@ -32,7 +34,13 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
 
   override def selectedSlot_=(value: Int) = host.selectedSlot = value
 
-  override protected def fakePlayer = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+  override protected def fakePlayer = {
+    val player = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+    player.posX = host.posX
+    player.posY = host.posY
+    player.posZ = host.posZ
+    player
+  }
 
   override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
 

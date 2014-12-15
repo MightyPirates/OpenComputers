@@ -111,14 +111,14 @@ object DriverExportBus extends driver.Block {
                 for (ais <- stacks if count > 0 && ais != null) {
                   val is = ais.getItemStack
                   is.stackSize = count
-                  if (InventoryUtils.insertIntoInventorySlot(is, inventory, side.getOpposite, targetSlot, count, simulate = true)) {
+                  if (InventoryUtils.insertIntoInventorySlot(is, inventory, Option(side.getOpposite), targetSlot, count, simulate = true)) {
                     ais.setStackSize(count - is.stackSize)
                     val eais = Platform.poweredExtraction(export.getProxy.getEnergy, itemStorage, ais, source)
                     if (eais != null) {
                       val eis = eais.getItemStack
                       count -= eis.stackSize
                       didSomething = true
-                      InventoryUtils.insertIntoInventorySlot(eis, inventory, side.getOpposite, targetSlot)
+                      InventoryUtils.insertIntoInventorySlot(eis, inventory, Option(side.getOpposite), targetSlot)
                       if (eis.stackSize > 0) {
                         eais.setStackSize(eis.stackSize)
                         itemStorage.injectItems(ais, Actionable.MODULATE, source)

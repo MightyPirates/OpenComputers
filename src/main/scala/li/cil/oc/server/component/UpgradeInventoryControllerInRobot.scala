@@ -121,7 +121,7 @@ class UpgradeInventoryControllerInRobot(val host: EnvironmentHost with Robot) ex
       InventoryUtils.inventoryAt(BlockPosition(host).offset(facing)) match {
         case Some(inventory) if inventory.isUseableByPlayer(host.player) =>
           val slot = args.checkSlot(inventory, 1)
-          if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, facing.getOpposite, slot, count)) {
+          if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, Option(facing.getOpposite), slot, count)) {
             // Cannot drop into that inventory.
             return result(false, "inventory full/invalid slot")
           }

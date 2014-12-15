@@ -11,6 +11,8 @@ import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
+import net.minecraftforge.common.util.ForgeDirection
 
 trait InventoryWorldInterop extends InventoryAware with WorldAware with SideRestricted {
   @Callback
@@ -38,7 +40,7 @@ trait InventoryWorldInterop extends InventoryAware with WorldAware with SideRest
     if (stack != null && stack.stackSize > 0) {
       InventoryUtils.inventoryAt(world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
         case Some(inv) if inv.isUseableByPlayer(fakePlayer) =>
-          if (!InventoryUtils.insertIntoInventory(stack, inv, facing.getOpposite, count)) {
+          if (!InventoryUtils.insertIntoInventory(stack, inv, Option(facing.getOpposite), count)) {
             // Cannot drop into that inventory.
             return result(false, "inventory full")
           }
@@ -66,9 +68,13 @@ trait InventoryWorldInterop extends InventoryAware with WorldAware with SideRest
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(1)
+    val range = {
+      val tmp = (0 until inventory.getSizeInventory).toIterable
+      tmp.drop(selectedSlot) ++ tmp.take(selectedSlot)
+    }
 
     if (InventoryUtils.inventoryAt(world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ).exists(inventory => {
-      inventory.isUseableByPlayer(fakePlayer) && InventoryUtils.extractFromInventory(fakePlayer.inventory.addItemStackToInventory, inventory, facing.getOpposite, count)
+      inventory.isUseableByPlayer(fakePlayer) && InventoryUtils.extractFromInventory(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(range)), inventory, facing.getOpposite, count)
     })) {
       context.pause(Settings.get.suckDelay)
       result(true)

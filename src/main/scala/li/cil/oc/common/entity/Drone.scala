@@ -33,9 +33,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   // Some basic constants.
   val gravity = 0.05f // low for slow fall (float down)
   val drag = 0.8f
-  val bounds = AxisAlignedBB.getBoundingBox(-8, -3, -8, 8, 3, 8)
   val maxAcceleration = 0.1f
   val maxVelocity = 0.4f
+  setSize(1, 6/16f)
 
   // Rendering stuff, purely eyecandy.
   val targetFlapAngles = Array.fill(4, 2)(0f)
@@ -86,10 +86,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def getBoundingBox = bounds.copy()
-
-  override def getCollisionBox(entity: Entity) = bounds.copy()
 
   override def canBeCollidedWith = true
 
@@ -156,7 +152,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     dataWatcher.addObject(8, int2Integer(0))
     dataWatcher.addObject(9, int2Integer(100))
     // Status text.
-    dataWatcher.addObject(10, "Hello\nWorld!")
+    dataWatcher.addObject(10, "")
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
@@ -221,7 +217,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       components.updateComponents()
       setRunning(machine.isRunning)
 
-      if (math.abs(lastEnergyUpdate - globalBuffer) > 100) {
+      if (math.abs(lastEnergyUpdate - globalBuffer) > 100 || world.getTotalWorldTime % 200 == 0) {
         globalBuffer = machine.node.asInstanceOf[Connector].globalBuffer.toInt
         globalBufferSize = machine.node.asInstanceOf[Connector].globalBufferSize.toInt
       }
