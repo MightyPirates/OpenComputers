@@ -46,7 +46,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   var nextAngularVelocityChange = 0
 
   // Logic stuff, components, machine and such.
-  var selectedSlot = 0
   val info = new ItemUtils.MicrocontrollerData()
   val machine = if (!world.isRemote) Machine.create(this) else null
   val control = if (!world.isRemote) new component.Drone(this) else null
@@ -142,13 +141,28 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   // ----------------------------------------------------------------------- //
 
   override def entityInit() {
-    // Running, target x y z and acceleration.
     dataWatcher.addObject(2, byte2Byte(0: Byte))
     dataWatcher.addObject(3, float2Float(0f))
     dataWatcher.addObject(4, float2Float(0f))
     dataWatcher.addObject(5, float2Float(0f))
     dataWatcher.addObject(6, float2Float(0f))
+    dataWatcher.addObject(7, byte2Byte(0: Byte))
   }
+
+  def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+  def targetX = dataWatcher.getWatchableObjectFloat(3)
+  def targetY = dataWatcher.getWatchableObjectFloat(4)
+  def targetZ = dataWatcher.getWatchableObjectFloat(5)
+  def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
+  def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+
+  private def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+  // Round target values to low accuracy to avoid floating point errors accumulating.
+  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 5) / 5f))
+  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 5) / 5f))
+  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 5) / 5f))
+  def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
+  def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
 
   @SideOnly(Side.CLIENT)
   override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
@@ -178,21 +192,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       world.spawnEntityInWorld(entity)
     }
   }
-
-  def targetX = dataWatcher.getWatchableObjectFloat(3)
-  def targetY = dataWatcher.getWatchableObjectFloat(4)
-  def targetZ = dataWatcher.getWatchableObjectFloat(5)
-  def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
-
-  // Round target values to low accuracy to avoid floating point errors accumulating.
-  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 5) / 5f))
-  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 5) / 5f))
-  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 5) / 5f))
-  def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
-
-  private def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
-
-  def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
 
   override def onEntityUpdate() {
     super.onEntityUpdate()

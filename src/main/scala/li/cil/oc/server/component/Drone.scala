@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -7,11 +8,35 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.common.entity
+import li.cil.oc.util.ExtendedArguments._
+import net.minecraft.world.WorldServer
+import net.minecraftforge.common.util.FakePlayerFactory
+import net.minecraftforge.common.util.ForgeDirection
 
-class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment {
+class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldInspectable with traits.InventoryInspectable with traits.InventoryWorldInterop {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drone").
     create()
+
+  def world = host.world
+
+  def x = math.floor(host.posX).toInt
+
+  def y = math.floor(host.posY).toInt
+
+  def z = math.floor(host.posZ).toInt
+
+  override def inventory = host.inventory
+
+  override def selectedSlot = host.selectedSlot
+
+  override def selectedSlot_=(value: Int) = host.selectedSlot = value
+
+  override protected def fakePlayer = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+
+  override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+
+  // ----------------------------------------------------------------------- //
 
   @Callback(doc = "function(dx:number, dy:number, dz:number) -- Change the target position by the specified offset.")
   def move(context: Context, args: Arguments): Array[AnyRef] = {

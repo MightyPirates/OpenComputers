@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.api.driver.EnvironmentHost
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.ChunkCoordinates
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -25,6 +26,8 @@ case class BlockPosition(x: Int, y: Int, z: Int, world: Option[World]) {
     z + direction.offsetZ,
     world
   )
+
+  def bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
 
   def toChunkCoordinates = new ChunkCoordinates(x, y, z)
 }
