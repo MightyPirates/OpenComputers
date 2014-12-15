@@ -16,6 +16,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Component
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper._
@@ -85,8 +86,7 @@ object DriverExportBus extends driver.Block {
       val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
       host.getPart(side) match {
         case export: PartExportBus =>
-          val location = host.getLocation
-          InventoryUtils.inventoryAt(location.getWorld, location.x + side.offsetX, location.y + side.offsetY, location.z + side.offsetZ) match {
+          InventoryUtils.inventoryAt(BlockPosition(host.getLocation).offset(side)) match {
             case Some(inventory) =>
               val targetSlot = args.checkSlot(inventory, 1)
               val config = export.getInventoryByName("config")

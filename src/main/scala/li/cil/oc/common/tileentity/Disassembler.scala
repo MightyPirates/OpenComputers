@@ -9,6 +9,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
@@ -203,7 +204,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   private def drop(stack: ItemStack) {
     if (stack != null) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
-        InventoryUtils.insertIntoInventoryAt(stack, world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite)
+        InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), side.getOpposite)
       }
       if (stack.stackSize > 0) {
         spawnStackInWorld(stack, ForgeDirection.UP)

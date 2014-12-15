@@ -1,6 +1,9 @@
 package li.cil.oc.util
 
+import appeng.api.util.DimensionalCoord
+import cpw.mods.fml.common.Optional
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.integration.Mods
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.ChunkCoordinates
 import net.minecraft.util.Vec3
@@ -45,4 +48,7 @@ object BlockPosition {
   def apply(x: Double, y: Double, z: Double) = new BlockPosition(x, y, z, None)
 
   def apply(host: EnvironmentHost) = new BlockPosition(host)
+
+  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
+  def apply(coord: DimensionalCoord) = new BlockPosition(coord.x, coord.y, coord.z, Option(coord.getWorld))
 }

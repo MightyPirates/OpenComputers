@@ -1,13 +1,12 @@
 package li.cil.oc.util
 
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.item.EntityMinecartContainer
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
@@ -19,19 +18,16 @@ object InventoryUtils {
    * This performs special handling for (double-)chests and also checks for
    * mine carts with chests.
    */
-  def inventoryAt(world: World, x: Int, y: Int, z: Int): Option[IInventory] = {
-    if (world.blockExists(x, y, z)) world.getTileEntity(x, y, z) match {
+  def inventoryAt(position: BlockPosition): Option[IInventory] = position.world match {
+    case Some(world) if world.blockExists(position) => world.getTileEntity(position) match {
       case chest: TileEntityChest => Option(net.minecraft.init.Blocks.chest.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord))
       case inventory: IInventory => Some(inventory)
-      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer],
-        AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)).
+      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).
         map(_.asInstanceOf[EntityMinecartContainer]).
         find(!_.isDead)
     }
-    else None
+    case _ => None
   }
-
-  def inventoryAt(blockPos: BlockPosition): Option[IInventory] = inventoryAt(blockPos.world.get, blockPos.x, blockPos.y, blockPos.z)
 
   /**
    * Inserts a stack into an inventory.
@@ -199,15 +195,15 @@ object InventoryUtils {
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
    * in the world.
    */
-  def insertIntoInventoryAt(stack: ItemStack, world: World, x: Int, y: Int, z: Int, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false): Boolean =
-    inventoryAt(world, x, y, z).exists(insertIntoInventory(stack, _, Option(side), limit, simulate))
+  def insertIntoInventoryAt(stack: ItemStack, position: BlockPosition, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false): Boolean =
+    inventoryAt(position).exists(insertIntoInventory(stack, _, Option(side), limit, simulate))
 
   /**
    * Utility method for calling <tt>extractFromInventory</tt> on an inventory
    * in the world.
    */
-  def extractFromInventoryAt(consumer: (ItemStack) => Unit, world: World, x: Int, y: Int, z: Int, side: ForgeDirection, limit: Int = 64) =
-    inventoryAt(world, x, y, z).exists(extractFromInventory(consumer, _, side, limit))
+  def extractFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: ForgeDirection, limit: Int = 64) =
+    inventoryAt(position).exists(extractFromInventory(consumer, _, side, limit))
 
   /**
    * Utility method for dropping contents from a single inventory slot into
