@@ -1,9 +1,11 @@
 package li.cil.oc.integration.opencomputers
 
 import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.event.FMLInterModComms
 import cpw.mods.fml.common.registry.EntityRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
+import li.cil.oc.api.internal
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
@@ -18,7 +20,10 @@ import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.WirelessNetwork
+import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
 
@@ -97,5 +102,25 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTank)
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
+
+    blacklistHost(classOf[internal.Adapter], "geolyzer", "keyboard", "screen1", "angelUpgrade", "batteryUpgrade1", "batteryUpgrade2", "batteryUpgrade3", "chunkloaderUpgrade", "craftingUpgrade", "experienceUpgrade", "generatorUpgrade", "inventoryUpgrade", "navigationUpgrade", "pistonUpgrade", "solarGeneratorUpgrade", "tankUpgrade", "tractorBeamUpgrade")
+    blacklistHost(classOf[internal.Microcontroller], "graphicsCard1", "graphicsCard2", "graphicsCard3", "keyboard", "screen1", "angelUpgrade", "chunkloaderUpgrade", "craftingUpgrade", "databaseUpgrade1", "databaseUpgrade2", "databaseUpgrade3", "experienceUpgrade", "generatorUpgrade", "inventoryUpgrade", "inventoryControllerUpgrade", "navigationUpgrade", "tankUpgrade", "tankControllerUpgrade", "tractorBeamUpgrade")
+    blacklistHost(classOf[internal.Drone], "graphicsCard1", "graphicsCard2", "graphicsCard3", "keyboard", "lanCard", "redstoneCard1", "screen1", "angelUpgrade", "craftingUpgrade", "experienceUpgrade", "generatorUpgrade", "tankUpgrade", "tankControllerUpgrade")
+    blacklistHost(classOf[internal.Tablet], "lanCard", "redstoneCard1", "screen1", "angelUpgrade", "chunkloaderUpgrade", "craftingUpgrade", "databaseUpgrade1", "databaseUpgrade2", "databaseUpgrade3", "experienceUpgrade", "generatorUpgrade", "inventoryUpgrade", "inventoryControllerUpgrade", "tankUpgrade", "tankControllerUpgrade")
+
+    if (!WirelessRedstone.isAvailable) {
+      blacklistHost(classOf[internal.Drone], "redstoneCard2")
+      blacklistHost(classOf[internal.Tablet], "redstoneCard2")
+    }
+  }
+
+  private def blacklistHost(host: Class[_], itemNames: String*) {
+    for (itemName <- itemNames) {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", itemName)
+      nbt.setString("host", host.getName)
+      nbt.setNewCompoundTag("item", api.Items.get(itemName).createItemStack(1).writeToNBT)
+      FMLInterModComms.sendMessage("OpenComputers", "blacklistHost", nbt)
+    }
   }
 }

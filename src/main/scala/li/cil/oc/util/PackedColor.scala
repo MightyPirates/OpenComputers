@@ -52,15 +52,17 @@ object PackedColor {
     override def save(nbt: NBTTagCompound) {}
   }
 
-  object SingleBitFormat extends ColorFormat {
+  class SingleBitFormat(val color: Int) extends ColorFormat {
     override def depth = ColorDepth.OneBit
 
-    override def inflate(value: Int) = if (value == 0) 0x000000 else Settings.get.monochromeColor
+    override def inflate(value: Int) = if (value == 0) 0x000000 else color
 
     override def deflate(value: Color) = {
       (if (value.value == 0) 0 else 1).toByte
     }
   }
+
+  object SingleBitFormat extends SingleBitFormat(Settings.get.monochromeColor)
 
   abstract class PaletteFormat extends ColorFormat {
     override def inflate(value: Int) = palette(math.max(0, math.min(palette.length - 1, value)))

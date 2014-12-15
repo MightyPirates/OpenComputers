@@ -15,9 +15,6 @@ object DriverUpgradeInventoryController extends Item with HostAware with Environ
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("inventoryControllerUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isRobot(host) || isAdapter(host))
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
     case robot: EnvironmentHost with Robot => new component.UpgradeInventoryControllerInRobot(robot)
     case adapter: EnvironmentHost with Adapter => new component.UpgradeInventoryControllerInAdapter(adapter)

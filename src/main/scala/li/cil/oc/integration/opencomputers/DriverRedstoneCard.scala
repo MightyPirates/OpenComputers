@@ -19,9 +19,6 @@ import net.minecraft.item.ItemStack
 object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("redstoneCard1"), api.Items.get("redstoneCard2"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isComputer(host) || isRobot(host) || isServer(host) || isMicrocontroller(host))
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
       case redstone: BundledRedstoneAware if BundledRedstone.isAvailable && tier(stack) == Tier.Two =>

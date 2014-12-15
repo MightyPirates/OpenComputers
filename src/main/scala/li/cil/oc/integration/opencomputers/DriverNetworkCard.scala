@@ -12,9 +12,6 @@ object DriverNetworkCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("lanCard"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && !isTablet(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.NetworkCard(host)
 
   override def slot(stack: ItemStack) = Slot.Card

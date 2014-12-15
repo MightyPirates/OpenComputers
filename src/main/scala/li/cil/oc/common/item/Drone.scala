@@ -9,8 +9,7 @@ class Drone(val parent: Delegator) extends Delegate {
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!world.isRemote) {
       val drone = new entity.Drone(world)
-      drone.info.load(stack)
-      drone.setPosition(x + hitX, y + hitY, z + hitZ)
+      drone.initializeAfterPlacement(stack, player, x, y, z, hitX, hitY, hitZ)
       world.spawnEntityInWorld(drone)
     }
     stack.stackSize -= 1

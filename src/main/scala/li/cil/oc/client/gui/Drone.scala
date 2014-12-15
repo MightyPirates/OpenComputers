@@ -26,7 +26,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   protected var powerButton: ImageButton = _
 
-  private val buffer = new TextBuffer(20, 2, PackedColor.SingleBitFormat)
+  private val buffer = new TextBuffer(20, 2, new PackedColor.SingleBitFormat(0x33FF33))
   private val bufferRenderer = new TextBufferRenderData {
     private var _dirty = true
 

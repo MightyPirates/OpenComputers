@@ -49,11 +49,22 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
   override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(BlockPosition(host)) ++ super.suckableItems(side)
 
   override protected def onSuckCollect(entity: EntityItem) = {
-    world.playSoundAtEntity(host, "random.pop", 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
-    InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))
+    if (InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))) {
+      world.playSoundAtEntity(host, "random.pop", 0.2f, ((world.rand.nextFloat - world.rand.nextFloat) * 0.7f + 1) * 2)
+    }
   }
 
   // ----------------------------------------------------------------------- //
+
+  @Callback(doc = "function():string -- Get the status text currently being displayed in the GUI.")
+  def getStatusText(context: Context, args: Arguments): Array[AnyRef] = result(host.statusText)
+
+  @Callback(doc = "function(value:string):string -- Set the status text to display in the GUI, returns new value.")
+  def setStatusText(context: Context, args: Arguments): Array[AnyRef] = {
+    host.statusText = args.checkString(0)
+    context.pause(0.1)
+    result(host.statusText)
+  }
 
   // ----------------------------------------------------------------------- //
 

@@ -19,6 +19,8 @@ trait ComponentSlot extends Slot {
 
   def tierIcon: IIcon
 
+  var changeListener: Option[Slot => Unit] = None
+
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
@@ -40,6 +42,7 @@ trait ComponentSlot extends Slot {
       case dynamic: ComponentSlot => dynamic.clearIfInvalid(container.playerInventory.player)
       case _ =>
     }
+    changeListener.foreach(_(this))
   }
 
   protected def clearIfInvalid(player: EntityPlayer) {}

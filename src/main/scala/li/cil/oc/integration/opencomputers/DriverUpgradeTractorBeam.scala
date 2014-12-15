@@ -15,9 +15,6 @@ object DriverUpgradeTractorBeam extends Item with HostAware with EnvironmentAwar
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("tractorBeamUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isRobot(host) || isTablet(host))
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
     case robot: Robot => new component.UpgradeTractorBeam(host, robot.player)
     case tablet: TabletWrapper => new component.UpgradeTractorBeam(host, () => tablet.player)

@@ -9,6 +9,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.integration.util.Wrench
+import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.Constants.NBT
@@ -49,6 +50,12 @@ object IMC {
         OpenComputers.log.info(s"Blacklisting CC peripheral '${message.getStringValue}' as requested by mod ${message.getSender}.")
         if (!Settings.get.peripheralBlacklist.contains(message.getStringValue)) {
           Settings.get.peripheralBlacklist.add(message.getStringValue)
+        }
+      }
+      else if (message.key == "blacklistHost" && message.isNBTMessage) {
+        OpenComputers.log.info(s"Blacklisting component '${message.getNBTValue.getString("name")}' for host '${message.getNBTValue.getString("host")}' as requested by mod ${message.getSender}.")
+        try Registry.blacklistHost(message.getNBTValue.getCompoundTag("item"), Class.forName(message.getNBTValue.getString("host"))) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed blacklisting component.", t)
         }
       }
     }

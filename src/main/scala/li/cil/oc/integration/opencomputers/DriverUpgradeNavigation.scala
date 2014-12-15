@@ -14,9 +14,6 @@ object DriverUpgradeNavigation extends Item with HostAware with EnvironmentAware
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("navigationUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isRotatable(host) && !isMicrocontroller(host))
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
       case rotatable: EnvironmentHost with Rotatable => new component.UpgradeNavigation(rotatable)

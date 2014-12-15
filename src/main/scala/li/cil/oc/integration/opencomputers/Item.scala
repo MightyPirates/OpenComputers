@@ -6,10 +6,23 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.common.Tier
+import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 trait Item extends driver.Item {
+  def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Boolean =
+    worksWith(stack) && {
+      val nbt = new NBTTagCompound()
+      val copy = stack.copy()
+      copy.stackSize = 1
+      copy.writeToNBT(nbt)
+      Registry.blacklist.get(nbt) match {
+        case Some(hosts) => !hosts.exists(_.isAssignableFrom(host))
+        case _ => true
+      }
+    }
+
   override def tier(stack: ItemStack) = Tier.One
 
   override def dataTag(stack: ItemStack) = Item.dataTag(stack)
@@ -29,6 +42,8 @@ trait Item extends driver.Item {
   protected def isTablet(host: Class[_ <: EnvironmentHost]) = classOf[internal.Tablet].isAssignableFrom(host)
 
   protected def isMicrocontroller(host: Class[_ <: EnvironmentHost]) = classOf[internal.Microcontroller].isAssignableFrom(host)
+
+  protected def isDrone(host: Class[_ <: EnvironmentHost]) = classOf[internal.Drone].isAssignableFrom(host)
 }
 
 object Item {

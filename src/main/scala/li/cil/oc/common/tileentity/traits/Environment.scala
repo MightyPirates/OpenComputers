@@ -35,7 +35,7 @@ trait Environment extends TileEntity with network.Environment with driver.Enviro
   override def updateEntity() {
     super.updateEntity()
     if (isChangeScheduled) {
-      markDirty()
+      world.markTileEntityChunkModified(x, y, z, this)
       isChangeScheduled = false
     }
   }

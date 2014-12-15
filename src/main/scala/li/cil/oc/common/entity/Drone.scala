@@ -7,6 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
+import li.cil.oc.api.driver.item
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
@@ -32,11 +33,13 @@ import net.minecraft.world.World
 
 class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
   // Some basic constants.
-  val gravity = 0.05f // low for slow fall (float down)
+  val gravity = 0.05f
+  // low for slow fall (float down)
   val drag = 0.8f
   val maxAcceleration = 0.1f
   val maxVelocity = 0.4f
-  setSize(1, 6/16f)
+  val maxInventorySize = 8
+  setSize(1, 6 / 16f)
 
   // Rendering stuff, purely eyecandy.
   val targetFlapAngles = Array.fill(4, 2)(0f)
@@ -73,9 +76,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     override def onMessage(message: Message) {}
   }
   val inventory = new Inventory {
-    var items = Array.fill[Option[ItemStack]](8)(None)
+    val items = Array.fill[Option[ItemStack]](8)(None)
 
-    override def getSizeInventory = items.length
+    override def getSizeInventory = inventorySize
 
     override def getInventoryStackLimit = 64
 
@@ -136,6 +139,14 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def onMachineDisconnect(node: Node) {}
 
+  def computeInventorySize() = math.min(maxInventorySize, info.components.foldLeft(0)((acc, component) => acc + (Option(component) match {
+    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: item.Inventory) => math.max(1, driver.inventoryCapacity(stack) / 4)
+      case _ => 0
+    }
+    case _ => 0
+  })))
+
   // ----------------------------------------------------------------------- //
 
   override def entityInit() {
@@ -154,28 +165,67 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     dataWatcher.addObject(9, int2Integer(100))
     // Status text.
     dataWatcher.addObject(10, "")
+    // Inventory size for client.
+    dataWatcher.addObject(11, byte2Byte(0: Byte))
+  }
+
+  def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, x: Int, y: Int, z: Int, hitX: Float, hitY: Float, hitZ: Float) {
+    info.load(stack)
+    inventorySize = computeInventorySize()
+    setPosition(x + hitX * 1.1f, y + hitY * 1.1f, z + hitZ * 1.1f)
+  }
+
+  def preparePowerUp() {
+    targetX = math.floor(posX).toFloat + 0.5f
+    targetY = math.floor(posY).toFloat + 0.5f
+    targetZ = math.floor(posZ).toFloat + 0.5f
+    targetAcceleration = maxAcceleration
+
+    api.Network.joinNewNetwork(machine.node)
+    components.connectComponents()
+    machine.node.connect(control.node)
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+
   def targetX = dataWatcher.getWatchableObjectFloat(3)
+
   def targetY = dataWatcher.getWatchableObjectFloat(4)
+
   def targetZ = dataWatcher.getWatchableObjectFloat(5)
+
   def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
+
   def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+
   def globalBuffer = dataWatcher.getWatchableObjectInt(8)
+
   def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
+
   def statusText = dataWatcher.getWatchableObjectString(10)
 
-  private def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+  def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+
+  def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+
   // Round target values to low accuracy to avoid floating point errors accumulating.
   def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 5) / 5f))
+
   def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 5) / 5f))
+
   def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 5) / 5f))
+
   def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
+
   def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
-  private def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
-  private def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
+
+  def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
+
+  def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
+
   def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
+
+  def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
 
   @SideOnly(Side.CLIENT)
   override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
@@ -211,7 +261,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     super.onEntityUpdate()
 
     if (!world.isRemote) {
-      if (isInWater) { // We're not water-proof!
+      if (isInWater) {
+        // We're not water-proof!
         machine.stop()
       }
       machine.node.asInstanceOf[Connector].changeBuffer(100)
@@ -219,46 +270,49 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       components.updateComponents()
       setRunning(machine.isRunning)
 
-      if (math.abs(lastEnergyUpdate - globalBuffer) > 100 || world.getTotalWorldTime % 200 == 0) {
-        globalBuffer = machine.node.asInstanceOf[Connector].globalBuffer.toInt
+      if (math.abs(lastEnergyUpdate - globalBuffer) > 50 || world.getTotalWorldTime % 200 == 0) {
+        globalBuffer = math.round(machine.node.asInstanceOf[Connector].globalBuffer / 50f).toInt * 50
         globalBufferSize = machine.node.asInstanceOf[Connector].globalBufferSize.toInt
+        lastEnergyUpdate = globalBuffer
       }
     }
-    else if (isRunning) {
-      // Client side update; occasionally update wing pitch and rotation to
-      // make the drones look a bit more dynamic.
-      val rng = world.rand
-      nextFlapChange -= 1
-      nextAngularVelocityChange -= 1
+    else {
+      if (isRunning) {
+        // Client side update; occasionally update wing pitch and rotation to
+        // make the drones look a bit more dynamic.
+        val rng = world.rand
+        nextFlapChange -= 1
+        nextAngularVelocityChange -= 1
 
-      if (nextFlapChange < 0) {
-        nextFlapChange = 5 + rng.nextInt(10)
-        for (i <- 0 until 2) {
-          val flap = rng.nextInt(targetFlapAngles.length)
-          targetFlapAngles(flap)(0) = math.toRadians(rng.nextFloat() * 4 - 2).toFloat
-          targetFlapAngles(flap)(1) = math.toRadians(rng.nextFloat() * 4 - 2).toFloat
+        if (nextFlapChange < 0) {
+          nextFlapChange = 5 + rng.nextInt(10)
+          for (i <- 0 until 2) {
+            val flap = rng.nextInt(targetFlapAngles.length)
+            targetFlapAngles(flap)(0) = math.toRadians(rng.nextFloat() * 4 - 2).toFloat
+            targetFlapAngles(flap)(1) = math.toRadians(rng.nextFloat() * 4 - 2).toFloat
+          }
         }
+
+        if (nextAngularVelocityChange < 0) {
+          if (angularVelocity != 0) {
+            angularVelocity = 0
+            nextAngularVelocityChange = 20
+          }
+          else {
+            angularVelocity = if (rng.nextBoolean()) 0.1f else -0.1f
+            nextAngularVelocityChange = 100
+          }
+        }
+
+        // Interpolate wing rotations.
+        (flapAngles, targetFlapAngles).zipped.foreach((f, t) => {
+          f(0) = f(0) * 0.7f + t(0) * 0.3f
+          f(1) = f(1) * 0.7f + t(1) * 0.3f
+        })
+
+        // Update body rotation.
+        bodyAngle += angularVelocity
       }
-
-      if (nextAngularVelocityChange < 0) {
-        if (angularVelocity != 0) {
-          angularVelocity = 0
-          nextAngularVelocityChange = 20
-        }
-        else {
-          angularVelocity = if (rng.nextBoolean()) 0.1f else -0.1f
-          nextAngularVelocityChange = 100
-        }
-      }
-
-      // Interpolate wing rotations.
-      (flapAngles, targetFlapAngles).zipped.foreach((f, t) => {
-        f(0) = f(0) * 0.7f + t(0) * 0.3f
-        f(1) = f(1) * 0.7f + t(1) * 0.3f
-      })
-
-      // Update body rotation.
-      bodyAngle += angularVelocity
     }
 
     if (isRunning) {
@@ -306,17 +360,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     stack
   }
 
-  def preparePowerUp() {
-    targetX = math.floor(posX).toFloat + 0.5f
-    targetY = math.floor(posY).toFloat + 0.5f
-    targetZ = math.floor(posZ).toFloat + 0.5f
-    targetAcceleration = maxAcceleration
-
-    api.Network.joinNewNetwork(machine.node)
-    components.connectComponents()
-    machine.node.connect(control.node)
-  }
-
   override def interactFirst(player: EntityPlayer) = {
     if (player.isSneaking) {
       kill()
@@ -329,8 +372,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def readEntityFromNBT(nbt: NBTTagCompound): Unit = {
+  override def readEntityFromNBT(nbt: NBTTagCompound) {
     info.load(nbt.getCompoundTag("info"))
+    inventorySize = computeInventorySize()
     if (!world.isRemote) {
       machine.load(nbt.getCompoundTag("machine"))
       control.load(nbt.getCompoundTag("control"))
@@ -349,7 +393,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     statusText = nbt.getString("statusText")
   }
 
-  override def writeEntityToNBT(nbt: NBTTagCompound): Unit = {
+  override def writeEntityToNBT(nbt: NBTTagCompound) {
     components.saveComponents()
     nbt.setNewCompoundTag("info", info.save)
     if (!world.isRemote) {
