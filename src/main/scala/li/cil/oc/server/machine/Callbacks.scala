@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.MethodWhitelist
+import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Context
@@ -24,74 +25,77 @@ object Callbacks {
     case _ => cache.getOrElseUpdate(host.getClass, dynamicAnalyze(host))
   }
 
-  def fromClass(environment: Class[_]) = staticAnalyze(Seq(environment))
+  def fromClass(environment: Class[_]) = staticAnalyze(environment)
 
   private def dynamicAnalyze(host: Any) = {
     val whitelists = mutable.Buffer.empty[Set[String]]
-    val seeds = host match {
-      case multi: CompoundBlockEnvironment => multi.environments.map {
-        case (_, environment) =>
-          environment match {
-            case list: MethodWhitelist => whitelists += Option(list.whitelistedMethods).fold(Set.empty[String])(_.toSet)
-            case _ =>
-          }
-          environment.getClass: Class[_]
-      }
-      case single => Seq(host.getClass: Class[_])
-    }
-    val whitelist = whitelists.reduceOption(_.intersect(_)).getOrElse(Set.empty)
-    val callbacks = staticAnalyze(seeds, whitelist)
+    val callbacks = mutable.Map.empty[String, Callback]
+
+    // Lazy val to allow referencing it in closures before it's actually
+    // initialized after the base whitelist has been compiled.
+    lazy val whitelist = whitelists.reduceOption(_.intersect(_)).getOrElse(Set.empty)
     def shouldAdd(name: String) = !callbacks.contains(name) && (whitelist.isEmpty || whitelist.contains(name))
-    host match {
-      case multi: CompoundBlockEnvironment => multi.environments.map {
-        case (_, environment) => environment match {
-          case peripheral: ManagedPeripheral =>
+
+    def process(environment: Any) = {
+      environment match {
+        case list: MethodWhitelist => whitelists += Option(list.whitelistedMethods).fold(Set.empty[String])(_.toSet)
+        case _ =>
+      }
+      val priority = environment match {
+        case named: NamedBlock => named.priority
+        case _ => 0
+      }
+      environment match {
+        case peripheral: ManagedPeripheral =>
+          (priority, () => {
             for (name <- peripheral.methods() if shouldAdd(name)) {
               callbacks += name -> new PeripheralCallback(name)
             }
-          case _ =>
-        }
+            staticAnalyze(environment.getClass, Option(shouldAdd), Option(callbacks))
+          })
+        case _ =>
+          (priority, () => staticAnalyze(environment.getClass, Option(shouldAdd), Option(callbacks)))
       }
-      case peripheral: ManagedPeripheral =>
-        for (name <- peripheral.methods() if shouldAdd(name)) {
-          callbacks += name -> new PeripheralCallback(name)
-        }
-      case _ =>
     }
+
+    // First collect whitelist and priority information, then sort and
+    // fetch callbacks.
+    (host match {
+      case multi: CompoundBlockEnvironment => multi.environments.map(env => process(env._2))
+      case single => Seq(process(single))
+    }).sortBy(-_._1).map(_._2).foreach(_())
+
     callbacks.toMap
   }
 
-  private def staticAnalyze(seeds: Seq[Class[_]], whitelist: Set[String] = Set.empty) = {
-    val callbacks = mutable.Map.empty[String, Callback]
-    def shouldAdd(name: String) = !callbacks.contains(name) && (whitelist.isEmpty || whitelist.contains(name))
-    for (seed <- seeds) {
-      var c: Class[_] = seed
-      while (c != null && c != classOf[Object]) {
-        val ms = c.getDeclaredMethods
+  private def staticAnalyze(seed: Class[_], shouldAdd: Option[String => Boolean] = None, optCallbacks: Option[mutable.Map[String, Callback]] = None) = {
+    val callbacks = optCallbacks.getOrElse(mutable.Map.empty[String, Callback])
+    var c: Class[_] = seed
+    while (c != null && c != classOf[Object]) {
+      val ms = c.getDeclaredMethods
 
-        ms.filter(_.isAnnotationPresent(classOf[machine.Callback])).foreach(m =>
-          if (m.getParameterTypes.size != 2 ||
-            m.getParameterTypes()(0) != classOf[Context] ||
-            m.getParameterTypes()(1) != classOf[Arguments]) {
-            OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
+      ms.filter(_.isAnnotationPresent(classOf[machine.Callback])).foreach(m =>
+        if (m.getParameterTypes.size != 2 ||
+          m.getParameterTypes()(0) != classOf[Context] ||
+          m.getParameterTypes()(1) != classOf[Arguments]) {
+          OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
+        }
+        else if (m.getReturnType != classOf[Array[AnyRef]]) {
+          OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
+        }
+        else if (!Modifier.isPublic(m.getModifiers)) {
+          OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
+        }
+        else {
+          val a = m.getAnnotation[machine.Callback](classOf[machine.Callback])
+          val name = if (a.value != null && a.value.trim != "") a.value else m.getName
+          if (shouldAdd.fold(true)(_(name))) {
+            callbacks += name -> new ComponentCallback(m, a)
           }
-          else if (m.getReturnType != classOf[Array[AnyRef]]) {
-            OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
-          }
-          else if (!Modifier.isPublic(m.getModifiers)) {
-            OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
-          }
-          else {
-            val a = m.getAnnotation[machine.Callback](classOf[machine.Callback])
-            val name = if (a.value != null && a.value.trim != "") a.value else m.getName
-            if (shouldAdd(name)) {
-              callbacks += name -> new ComponentCallback(m, a)
-            }
-          }
-        )
+        }
+      )
 
-        c = c.getSuperclass
-      }
+      c = c.getSuperclass
     }
     callbacks
   }

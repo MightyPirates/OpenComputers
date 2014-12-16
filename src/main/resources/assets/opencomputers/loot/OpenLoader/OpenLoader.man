@@ -10,6 +10,8 @@ DESCRIPTION
 	for /boot/kernel, the label is file name
 	for /init.lua label is contained in /.osprop file, which is
 	simple lua script returning table with properties.
+	
+	The program can be flashed to EEPROM using opl-flash program
 
 EXAMPLE .osprop file:
 	return {name = "OpenOS"}

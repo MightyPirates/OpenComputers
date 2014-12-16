@@ -55,6 +55,7 @@ class Settings(val config: Config) {
   val threads = config.getInt("computer.threads") max 1
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
+  val eepromSize = config.getInt("computer.eepromSize") max 0
   val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
     case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
       Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
