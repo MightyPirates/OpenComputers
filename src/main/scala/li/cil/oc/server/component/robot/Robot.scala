@@ -53,33 +53,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   def actualSlot(n: Int) = robot.actualSlot(n)
 
-  val inventory = new IInventory {
-    override def getSizeInventory = robot.inventorySize
-
-    override def getInventoryStackLimit = robot.getInventoryStackLimit
-
-    override def markDirty() = robot.markDirty()
-
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) = robot.isItemValidForSlot(actualSlot(slot), stack)
-
-    override def getStackInSlot(slot: Int) = robot.getStackInSlot(actualSlot(slot))
-
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) = robot.setInventorySlotContents(actualSlot(slot), stack)
-
-    override def decrStackSize(slot: Int, amount: Int) = robot.decrStackSize(actualSlot(slot), amount)
-
-    override def getInventoryName = robot.getInventoryName
-
-    override def hasCustomInventoryName = robot.hasCustomInventoryName
-
-    override def openInventory() = robot.openInventory()
-
-    override def closeInventory() = robot.closeInventory()
-
-    override def getStackInSlotOnClosing(slot: Int) = robot.getStackInSlotOnClosing(actualSlot(slot))
-
-    override def isUseableByPlayer(player: EntityPlayer) = robot.isUseableByPlayer(player)
-  }
+  val inventory = robot.dynamicInventory
 
   override def selectedSlot = robot.selectedSlot - actualSlot(0)
 

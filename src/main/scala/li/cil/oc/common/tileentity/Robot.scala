@@ -24,12 +24,15 @@ import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
@@ -58,6 +61,35 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   // ----------------------------------------------------------------------- //
+
+  // Wrapper for the part of the inventory that is mutable.
+  val dynamicInventory = new IInventory {
+    override def getSizeInventory = Robot.this.inventorySize
+
+    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
+
+    override def markDirty() = Robot.this.markDirty()
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(actualSlot(slot), stack)
+
+    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(actualSlot(slot))
+
+    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(actualSlot(slot), stack)
+
+    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(actualSlot(slot), amount)
+
+    override def getInventoryName = Robot.this.getInventoryName
+
+    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
+
+    override def openInventory() = Robot.this.openInventory()
+
+    override def closeInventory() = Robot.this.closeInventory()
+
+    override def getStackInSlotOnClosing(slot: Int) = Robot.this.getStackInSlotOnClosing(actualSlot(slot))
+
+    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
+  }
 
   val actualInventorySize = 86
 
@@ -682,6 +714,14 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     case (i, _) if isInventorySlot(i) => true // Normal inventory.
     case _ => false // Invalid slot.
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def dropSlot(slot: Int, count: Int, direction: ForgeDirection) =
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, Option(world)), dynamicInventory, slot, count, direction)
+
+  override def dropAllSlots() =
+    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, Option(world)), dynamicInventory)
 
   // ----------------------------------------------------------------------- //
 

@@ -36,6 +36,8 @@ case class BlockPosition(x: Int, y: Int, z: Int, world: Option[World]) {
   def bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
 
   def toChunkCoordinates = new ChunkCoordinates(x, y, z)
+
+  def toVec3 = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
 }
 
 object BlockPosition {
