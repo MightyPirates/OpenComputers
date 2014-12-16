@@ -30,7 +30,7 @@ class EEPROM extends prefab.ManagedEnvironment {
       return result(Unit, "not enough energy")
     }
     val newData = args.checkByteArray(0)
-    if (newData.length > 4 * 1024) throw new IllegalArgumentException("not enough space")
+    if (newData.length > Settings.get.eepromSize) throw new IllegalArgumentException("not enough space")
     data = newData
     context.pause(2) // deliberately slow to discourage use as normal storage medium
     null
