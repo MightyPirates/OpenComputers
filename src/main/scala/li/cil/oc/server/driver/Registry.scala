@@ -9,7 +9,6 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
 import scala.collection.convert.WrapAsJava._
@@ -38,8 +37,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
 
-  // Index using NBT representation of stacks because they can be hashed properly.
-  val blacklist = mutable.Map.empty[NBTTagCompound, mutable.Set[Class[_]]]
+  val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
 
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
@@ -85,8 +83,11 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   override def itemDrivers = items.toSeq
 
-  def blacklistHost(item: NBTTagCompound, host: Class[_]) {
-    blacklist.getOrElseUpdate(item, mutable.Set.empty) += host
+  def blacklistHost(stack: ItemStack, host: Class[_]) {
+    blacklist.find(_._1.isItemEqual(stack)) match {
+      case Some((_, hosts)) => hosts += host
+      case _ => blacklist.append((stack, mutable.Set(host)))
+    }
   }
 
   def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null

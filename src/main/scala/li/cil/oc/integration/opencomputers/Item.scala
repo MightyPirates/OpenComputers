@@ -12,15 +12,10 @@ import net.minecraft.nbt.NBTTagCompound
 
 trait Item extends driver.Item {
   def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]): Boolean =
-    worksWith(stack) && {
-      val nbt = new NBTTagCompound()
-      val copy = stack.copy()
-      copy.stackSize = 1
-      copy.writeToNBT(nbt)
-      Registry.blacklist.get(nbt) match {
-        case Some(hosts) => !hosts.exists(_.isAssignableFrom(host))
-        case _ => true
-      }
+    worksWith(stack) && !Registry.blacklist.exists {
+      case (blacklistedStack, blacklistedHost) =>
+        stack.isItemEqual(blacklistedStack) &&
+          blacklistedHost.exists(_.isAssignableFrom(host))
     }
 
   override def tier(stack: ItemStack) = Tier.One
