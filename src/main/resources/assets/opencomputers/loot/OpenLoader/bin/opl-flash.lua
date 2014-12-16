@@ -1,4 +1,5 @@
-_G._OSVERSION = "OpenLoader 0.1"
+local eeprom = [[
+_G._OSVERSION = "OpenLoader 0.1EE"
 local component = component or require('component')
 local computer = computer or require('computer')
 local unicode = unicode or require('unicode')
@@ -88,7 +89,7 @@ for fs in component.list("filesystem") do
             status(tostring(#osList).."."..file.." from "..(fs:sub(1,3)))
         end
     end
-    if fs ~= computer.getBootAddress() and component.invoke(fs, "exists", "init.lua") then
+    if component.invoke(fs, "exists", "init.lua") then
         local osName = "init.lua"
         if component.invoke(fs, "exists", ".osprop") then
             pcall(function()
@@ -122,4 +123,34 @@ while true do
 end
 error("System crashed")
 while true do computer.pullSignal() end
+]]
+
+local component = require "component"
+local computer = require "computer"
+local shell = require "shell"
+local term = require "term"
+
+local args, options = shell.parse(...)
+
+if options.h or options.help then
+	print("opl-flash [-hq]")
+	print("    -q  --quiet   Do not output anything, and don't ask if sure")
+	print("    -r  --reboot  Reboot after installing")
+	print("    -h  --help    Display this help")
+	return
+end
+
+local say = not (options.q or options.quiet) and print or function()end
+say ("Do you really want to flash openloader to EEPROM("..tostring(#eeprom).." bytes)[Y/n]")
+
+if io.read():lower() == "y" or options.h or options.help then
+	say("Flashing... Do not reboot now!")
+	component.eeprom.set(eeprom)
+	component.eeprom.setLabel("OpenLoader")
+	if options.r or options.reboot then
+		computer.shutdown(true)
+	else
+		say("Done. you can reboot now")
+	end
+end
 
