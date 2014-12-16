@@ -57,7 +57,11 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // Logic stuff, components, machine and such.
   val info = new ItemUtils.MicrocontrollerData()
-  val machine = if (!world.isRemote) Machine.create(this) else null
+  val machine = if (!world.isRemote) {
+    val m = Machine.create(this)
+    m.node.asInstanceOf[Connector].setLocalBufferSize(0)
+    m
+  } else null
   val control = if (!world.isRemote) new component.Drone(this) else null
   val components = new ComponentInventory {
     override def host = Drone.this
@@ -110,8 +114,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def canBeCollidedWith = true
 
   override def canBePushed = true
-
-  override def isEntityInvulnerable = super.isEntityInvulnerable
 
   // ----------------------------------------------------------------------- //
 
@@ -200,6 +202,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     api.Network.joinNewNetwork(machine.node)
     components.connectComponents()
     machine.node.connect(control.node)
+    machine.setCostPerTick(Settings.get.droneCost)
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
@@ -263,15 +266,15 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
         // We're not water-proof!
         machine.stop()
       }
-      machine.node.asInstanceOf[Connector].changeBuffer(100)
       machine.update()
       components.updateComponents()
       setRunning(machine.isRunning)
 
-      if (math.abs(lastEnergyUpdate - globalBuffer) > 50 || world.getTotalWorldTime % 200 == 0) {
-        globalBuffer = math.round(machine.node.asInstanceOf[Connector].globalBuffer / 50f).toInt * 50
+      val buffer = math.round(machine.node.asInstanceOf[Connector].globalBuffer).toInt
+      if (math.abs(lastEnergyUpdate - buffer) > 1 || world.getTotalWorldTime % 200 == 0) {
+        lastEnergyUpdate = buffer
+        globalBuffer = buffer
         globalBufferSize = machine.node.asInstanceOf[Connector].globalBufferSize.toInt
-        lastEnergyUpdate = globalBuffer
       }
     }
     else {
@@ -313,26 +316,38 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       }
     }
 
+    prevPosX = posX
+    prevPosY = posY
+    prevPosZ = posZ
+    noClip = func_145771_j(posX, (boundingBox.minY + boundingBox.maxY) / 2, posZ)
+
     if (isRunning) {
-      val delta = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
-      val acceleration = math.min(targetAcceleration, delta.lengthVector())
-      val velocity = delta.normalize()
-      velocity.xCoord = motionX + velocity.xCoord * acceleration
-      velocity.yCoord = motionY + velocity.yCoord * acceleration
-      velocity.zCoord = motionZ + velocity.zCoord * acceleration
-      motionX = math.max(-maxVelocity, math.min(maxVelocity, velocity.xCoord))
-      motionY = math.max(-maxVelocity, math.min(maxVelocity, velocity.yCoord))
-      motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocity.zCoord))
+      val toTarget = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
+      val distance = toTarget.lengthVector()
+      val velocity = Vec3.createVectorHelper(motionX, motionY, motionZ)
+      if (distance > 0 && (distance > 0.005f || velocity.dotProduct(velocity) > 0.005f)) {
+        val acceleration = math.min(targetAcceleration, distance) / distance
+        velocity.xCoord += toTarget.xCoord * acceleration
+        velocity.yCoord += toTarget.yCoord * acceleration
+        velocity.zCoord += toTarget.zCoord * acceleration
+        motionX = math.max(-maxVelocity, math.min(maxVelocity, velocity.xCoord))
+        motionY = math.max(-maxVelocity, math.min(maxVelocity, velocity.yCoord))
+        motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocity.zCoord))
+      }
+      else {
+        motionX = 0
+        motionY = 0
+        motionZ = 0
+        posX = targetX
+        posY = targetY
+        posZ = targetZ
+      }
     }
     else {
       // No power, free fall: engage!
       motionY -= gravity
     }
 
-    prevPosX = posX
-    prevPosY = posY
-    prevPosZ = posZ
-    noClip = func_145771_j(posX, (boundingBox.minY + boundingBox.maxY) / 2, posZ)
     moveEntity(motionX, motionY, motionZ)
 
     // Make sure we don't get infinitely faster.
@@ -354,16 +369,16 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def hitByEntity(entity: Entity) = {
     if (isRunning) {
-      val direction = Vec3.createVectorHelper(entity.posX - posX, entity.posY - posY, entity.posZ - posZ).normalize()
+      val direction = Vec3.createVectorHelper(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
       if (!world.isRemote) {
         if (Settings.get.inputUsername)
           machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord), entity.getCommandSenderName)
         else
           machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord))
       }
-      motionX -= direction.xCoord * 0.5f
-      motionY -= direction.yCoord * 0.5f
-      motionZ -= direction.zCoord * 0.5f
+      motionX = (motionX - direction.xCoord) * 0.5f
+      motionY = (motionY - direction.yCoord) * 0.5f
+      motionZ = (motionZ - direction.zCoord) * 0.5f
     }
     super.hitByEntity(entity)
   }

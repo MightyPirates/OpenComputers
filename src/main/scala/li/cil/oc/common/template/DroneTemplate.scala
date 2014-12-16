@@ -29,7 +29,7 @@ object DroneTemplate extends Template {
     data.components = items.drop(1).filter(_ != null).toArray
     val stack = api.Items.get("drone").createItemStack(1)
     data.save(stack)
-    val energy = Settings.get.microcontrollerBaseCost + complexity(inventory) * Settings.get.microcontrollerComplexityCost
+    val energy = Settings.get.droneBaseCost + complexity(inventory) * Settings.get.droneComplexityCost
 
     Array(stack, double2Double(energy))
   }

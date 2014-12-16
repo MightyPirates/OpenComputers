@@ -63,7 +63,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
-      val charge = Settings.get.chargeRateRobot * chargeSpeed * Settings.get.tickFrequency
+      val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
       val canCharge = charge > 0 && node.globalBuffer >= charge
       if (hasPower && !canCharge) {
         hasPower = false

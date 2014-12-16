@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -16,6 +17,7 @@ import net.minecraftforge.common.util.ForgeDirection
 class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl with traits.TankAware with traits.TankControl with traits.TankWorldControl {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drone").
+    withConnector(Settings.get.bufferDrone).
     create()
 
   override protected def position = BlockPosition(host)

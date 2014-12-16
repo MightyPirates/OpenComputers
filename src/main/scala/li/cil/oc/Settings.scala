@@ -129,7 +129,7 @@ class Settings(val config: Config) {
   val pureIgnorePower = config.getBoolean("power.ignorePower")
   lazy val ignorePower = pureIgnorePower || !Mods.isPowerProvidingModPresent
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
-  val chargeRateRobot = config.getDouble("power.chargerChargeRate")
+  val chargeRateExternal = config.getDouble("power.chargerChargeRate")
   val chargeRateTablet = config.getDouble("power.chargerChargeRateTablet")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
@@ -153,10 +153,13 @@ class Settings(val config: Config) {
   }
   val bufferTablet = config.getDouble("power.buffer.tablet") max 0
   val bufferAccessPoint = config.getDouble("power.buffer.accessPoint") max 0
+  val bufferDrone = config.getDouble("power.buffer.drone") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
+  val microcontrollerCost = config.getDouble("power.cost.microcontroller") max 0
   val robotCost = config.getDouble("power.cost.robot") max 0
+  val droneCost = config.getDouble("power.cost.drone") max 0
   val sleepCostFactor = config.getDouble("power.cost.sleepFactor") max 0
   val screenCost = config.getDouble("power.cost.screen") max 0
   val hologramCost = config.getDouble("power.cost.hologram") max 0
@@ -174,15 +177,16 @@ class Settings(val config: Config) {
   val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
   val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
+  val microcontrollerBaseCost = config.getDouble("power.cost.microcontrollerAssemblyBase") max 0
+  val microcontrollerComplexityCost = config.getDouble("power.cost.microcontrollerAssemblyComplexity") max 0
   val tabletBaseCost = config.getDouble("power.cost.tabletAssemblyBase") max 0
   val tabletComplexityCost = config.getDouble("power.cost.tabletAssemblyComplexity") max 0
+  val droneBaseCost = config.getDouble("power.cost.droneAssemblyBase") max 0
+  val droneComplexityCost = config.getDouble("power.cost.droneAssemblyComplexity") max 0
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
-  val microcontrollerCost = config.getDouble("power.cost.microcontroller") max 0
   val eepromWriteCost = config.getDouble("power.cost.eepromWrite") max 0
-  val microcontrollerBaseCost = config.getDouble("power.cost.microcontrollerAssemblyBase") max 0
-  val microcontrollerComplexityCost = config.getDouble("power.cost.microcontrollerAssemblyComplexity") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
