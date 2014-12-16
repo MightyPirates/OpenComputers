@@ -88,7 +88,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
         if (count > 0 && amount == 0) {
           result(Unit, "tank is empty")
         }
-        val blockPos = BlockPosition(x, y, z).offset(facing)
+        val blockPos = BlockPosition(x, y, z, Option(world)).offset(facing)
         if (world.blockExists(blockPos)) world.getTileEntity(blockPos) match {
           case handler: IFluidHandler =>
             tank.getFluid match {

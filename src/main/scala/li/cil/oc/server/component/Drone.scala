@@ -16,7 +16,7 @@ import net.minecraft.world.WorldServer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 
-class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl {
+class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl with traits.TankAware with traits.TankControl with traits.TankWorldControl {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drone").
     create()
@@ -34,6 +34,12 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
   override def selectedSlot = host.selectedSlot
 
   override def selectedSlot_=(value: Int) = host.selectedSlot = value
+
+  override def tank = host.tank
+
+  override def selectedTank = host.selectedTank
+
+  override def selectedTank_=(value: Int) = host.selectedTank = value
 
   override protected def fakePlayer = {
     val player = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)

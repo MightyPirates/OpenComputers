@@ -17,6 +17,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
+import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -33,6 +34,7 @@ import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fluids.IFluidTank
 
 class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
   // Some basic constants.
@@ -92,6 +94,17 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
     override def isUseableByPlayer(player: EntityPlayer) = player.getDistanceSqToEntity(Drone.this) < 64
   }
+  val tank = new MultiTank {
+    override def tankCount = components.components.count {
+      case Some(tank: IFluidTank) => true
+      case _ => false
+    }
+
+    override def getFluidTank(index: Int): IFluidTank = components.components.collect {
+      case Some(tank: IFluidTank) => tank
+    }.apply(index)
+  }
+  var selectedTank = 0
 
   // ----------------------------------------------------------------------- //
 
@@ -397,6 +410,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     targetZ = nbt.getFloat("targetZ")
     targetAcceleration = nbt.getFloat("targetAcceleration")
     selectedSlot = nbt.getByte("selectedSlot") & 0xFF
+    selectedTank = nbt.getByte("selectedTank") & 0xFF
     statusText = nbt.getString("statusText")
   }
 
@@ -414,6 +428,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     nbt.setFloat("targetZ", targetZ)
     nbt.setFloat("targetAcceleration", targetAcceleration)
     nbt.setByte("selectedSlot", selectedSlot.toByte)
+    nbt.setByte("selectedTank", selectedTank.toByte)
     nbt.setString("statusText", statusText)
   }
 }
