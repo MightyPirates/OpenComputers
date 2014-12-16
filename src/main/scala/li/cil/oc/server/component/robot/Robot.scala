@@ -10,19 +10,17 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.ToolDurabilityProviders
-import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.traits
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
@@ -41,13 +39,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
 
-  def world = robot.world
-
-  def x = robot.x
-
-  def y = robot.y
-
-  def z = robot.z
+  override protected def position = BlockPosition(robot)
 
   // ----------------------------------------------------------------------- //
 
@@ -64,11 +56,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
-  val tank = new MultiTank {
-    override def tankCount = robot.tankCount
-
-    override def getFluidTank(index: Int) = robot.getFluidTank(index)
-  }
+  override def tank = robot.tank
 
   def selectedTank = robot.selectedTank
 
@@ -205,7 +193,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
               case Some(entity) =>
                 attack(player, entity)
               case _ =>
-                if (world.extinguishFire(player, x, y, z, facing.ordinal)) {
+                if (world.extinguishFire(player, position, facing)) {
                   triggerDelay()
                   (true, "fire")
                 }
@@ -435,16 +423,15 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
   }
 
   private def clickParamsForPlace(facing: ForgeDirection) = {
-    (x, y, z,
+    (position.x, position.y, position.z,
       0.5f + facing.offsetX * 0.5f,
       0.5f + facing.offsetY * 0.5f,
       0.5f + facing.offsetZ * 0.5f)
   }
 
   private def clickParamsForItemUse(facing: ForgeDirection, side: ForgeDirection) = {
-    (x + facing.offsetX + side.offsetX,
-      y + facing.offsetY + side.offsetY,
-      z + facing.offsetZ + side.offsetZ,
+    val blockPos = position.offset(facing).offset(side)
+    (blockPos.x, blockPos.y, blockPos.z,
       0.5f - side.offsetX * 0.5f,
       0.5f - side.offsetY * 0.5f,
       0.5f - side.offsetZ * 0.5f)

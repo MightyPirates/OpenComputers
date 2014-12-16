@@ -12,20 +12,16 @@ trait InventoryControl extends InventoryAware {
 
   @Callback(doc = "function([slot:number]):number -- Get the currently selected slot; set the selected slot if specified.")
   def select(context: Context, args: Arguments): Array[AnyRef] = {
-    if (args.count > 0 && args.checkAny(0) != null) {
-      val slot = args.checkSlot(inventory, 0)
-      if (slot != selectedSlot) {
-        selectedSlot = slot
-      }
+    val slot = optSlot(args, 0)
+    if (slot != selectedSlot) {
+      selectedSlot = slot
     }
     result(selectedSlot + 1)
   }
 
   @Callback(direct = true, doc = "function([slot:number]):number -- Get the number of items in the specified slot, otherwise in the selected slot.")
   def count(context: Context, args: Arguments): Array[AnyRef] = {
-    val slot =
-      if (args.count > 0 && args.checkAny(0) != null) args.checkSlot(inventory, 0)
-      else selectedSlot
+    val slot = optSlot(args, 0)
     result(stackInSlot(slot) match {
       case Some(stack) => stack.stackSize
       case _ => 0
@@ -34,9 +30,7 @@ trait InventoryControl extends InventoryAware {
 
   @Callback(direct = true, doc = "function([slot:number]):number -- Get the remaining space in the specified slot, otherwise in the selected slot.")
   def space(context: Context, args: Arguments): Array[AnyRef] = {
-    val slot =
-      if (args.count > 0 && args.checkAny(0) != null) args.checkSlot(inventory, 0)
-      else selectedSlot
+    val slot = optSlot(args, 0)
     result(stackInSlot(slot) match {
       case Some(stack) => math.min(inventory.getInventoryStackLimit, stack.getMaxStackSize) - stack.stackSize
       case _ => inventory.getInventoryStackLimit

@@ -4,7 +4,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
@@ -20,7 +19,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     stackInSlot(selectedSlot) match {
       case Some(stack) => Option(stack.getItem) match {
         case Some(item: ItemBlock) =>
-          val blockPos = BlockPosition(x, y, z, Option(world)).offset(side)
+          val blockPos = position.offset(side)
           val idMatches = item.field_150939_a == world.getBlock(blockPos)
           val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(blockPos)
           return result(idMatches && subTypeMatches)
@@ -37,7 +36,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     val count = args.optionalItemCount(1)
     val stack = inventory.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
-      InventoryUtils.inventoryAt(BlockPosition(x, y, z, Option(world)).offset(facing)) match {
+      InventoryUtils.inventoryAt(position.offset(facing)) match {
         case Some(inv) if inv.isUseableByPlayer(fakePlayer) =>
           if (!InventoryUtils.insertIntoInventory(stack, inv, Option(facing.getOpposite), count)) {
             // Cannot drop into that inventory.
@@ -68,7 +67,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(1)
 
-    if (InventoryUtils.inventoryAt(BlockPosition(x, y, z, Option(world)).offset(facing)).exists(inventory => {
+    if (InventoryUtils.inventoryAt(position.offset(facing)).exists(inventory => {
       inventory.isUseableByPlayer(fakePlayer) && InventoryUtils.extractFromInventory(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, facing.getOpposite, count)
     })) {
       context.pause(Settings.get.suckDelay)

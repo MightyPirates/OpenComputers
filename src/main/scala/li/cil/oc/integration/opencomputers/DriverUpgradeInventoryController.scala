@@ -5,9 +5,10 @@ import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.internal.Adapter
-import li.cil.oc.api.internal.Robot
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.entity.Drone
+import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -16,8 +17,9 @@ object DriverUpgradeInventoryController extends Item with HostAware with Environ
     isOneOf(stack, api.Items.get("inventoryControllerUpgrade"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
-    case robot: EnvironmentHost with Robot => new component.UpgradeInventoryControllerInRobot(robot)
-    case adapter: EnvironmentHost with Adapter => new component.UpgradeInventoryControllerInAdapter(adapter)
+    case host: EnvironmentHost with Adapter => new component.UpgradeInventoryController.Adapter(host)
+    case host: EnvironmentHost with Drone => new component.UpgradeInventoryController.Drone(host)
+    case host: EnvironmentHost with Robot => new component.UpgradeInventoryController.Robot(host)
     case _ => null
   }
 
@@ -25,5 +27,5 @@ object DriverUpgradeInventoryController extends Item with HostAware with Environ
 
   override def tier(stack: ItemStack) = Tier.Two
 
-  override def providedEnvironment(stack: ItemStack) = classOf[component.UpgradeInventoryControllerInRobot]
+  override def providedEnvironment(stack: ItemStack) = classOf[component.UpgradeInventoryController.Robot]
 }

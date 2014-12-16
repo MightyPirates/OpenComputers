@@ -3,10 +3,9 @@ package li.cil.oc.server.component.traits
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
-import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
@@ -18,7 +17,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
     val side = checkSideForAction(args, 0)
     fluidInTank(selectedTank) match {
       case Some(stack) =>
-        val blockPos = BlockPosition(x, y, z).offset(side)
+        val blockPos = position.offset(side)
         if (world.blockExists(blockPos)) world.getTileEntity(blockPos) match {
           case handler: IFluidHandler =>
             result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
@@ -44,7 +43,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
           result(Unit, "tank is full")
         }
         else {
-          val blockPos = BlockPosition(x, y, z).offset(facing)
+          val blockPos = position.offset(facing)
           if (world.blockExists(blockPos)) world.getTileEntity(blockPos) match {
             case handler: IFluidHandler =>
               tank.getFluid match {
@@ -88,7 +87,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
         if (count > 0 && amount == 0) {
           result(Unit, "tank is empty")
         }
-        val blockPos = BlockPosition(x, y, z, Option(world)).offset(facing)
+        val blockPos = position.offset(facing)
         if (world.blockExists(blockPos)) world.getTileEntity(blockPos) match {
           case handler: IFluidHandler =>
             tank.getFluid match {
@@ -119,7 +118,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
               world.breakBlock(blockPos)
               world.setBlock(blockPos, fluidBlock)
               // This fake neighbor update is required to get stills to start flowing.
-              world.notifyBlockOfNeighborChange(blockPos, world.getBlock(x, y, z))
+              world.notifyBlockOfNeighborChange(blockPos, world.getBlock(position))
               result(true)
             }
         }

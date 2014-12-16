@@ -17,7 +17,7 @@ object DroneTemplate extends Template {
   override protected val suggestedComponents = Array(
     "BIOS" -> hasComponent("eeprom") _)
 
-  override protected def hostClass = classOf[internal.Microcontroller]
+  override protected def hostClass = classOf[internal.Drone]
 
   def select(stack: ItemStack) = api.Items.get(stack) == api.Items.get("droneCase")
 
@@ -45,6 +45,7 @@ object DroneTemplate extends Template {
     val upgradeSlots = new NBTTagList()
     upgradeSlots.appendTag(Map("tier" -> Tier.Three))
     upgradeSlots.appendTag(Map("tier" -> Tier.Two))
+    upgradeSlots.appendTag(Map("tier" -> Tier.One))
     nbt.setTag("upgradeSlots", upgradeSlots)
 
     val componentSlots = new NBTTagList()
@@ -60,7 +61,7 @@ object DroneTemplate extends Template {
     FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
   }
 
-  override protected def maxComplexity(inventory: IInventory) = 6
+  override protected def maxComplexity(inventory: IInventory) = 8
 
   override protected def caseTier(inventory: IInventory) = if (select(inventory.getStackInSlot(0))) Tier.One else Tier.None
 }

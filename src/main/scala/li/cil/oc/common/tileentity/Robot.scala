@@ -17,7 +17,9 @@ import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.MultiTank
+import li.cil.oc.common.inventory.TankSelection
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
@@ -47,7 +49,7 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with MultiTank {
+class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with MultiTank with InventorySelection with TankSelection {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
@@ -98,6 +100,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   var inventorySize = -1
 
   var selectedSlot = actualSlot(0)
+
+  val tank = new MultiTank {
+    override def tankCount = Robot.this.tankCount
+
+    override def getFluidTank(index: Int) = Robot.this.getFluidTank(index)
+  }
 
   var selectedTank = 0
 
@@ -760,42 +768,42 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) =
     tryGetTank(selectedTank) match {
-      case Some(tank) =>
-        tank.fill(resource, doFill)
+      case Some(t) =>
+        t.fill(resource, doFill)
       case _ => 0
     }
 
   override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) =
     tryGetTank(selectedTank) match {
-      case Some(tank) if tank.getFluid != null && tank.getFluid.isFluidEqual(resource) =>
-        tank.drain(resource.amount, doDrain)
+      case Some(t) if t.getFluid != null && t.getFluid.isFluidEqual(resource) =>
+        t.drain(resource.amount, doDrain)
       case _ => null
     }
 
   override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = {
     tryGetTank(selectedTank) match {
-      case Some(tank) =>
-        tank.drain(maxDrain, doDrain)
+      case Some(t) =>
+        t.drain(maxDrain, doDrain)
       case _ => null
     }
   }
 
   override def canFill(from: ForgeDirection, fluid: Fluid) = {
     tryGetTank(selectedTank) match {
-      case Some(tank) => tank.getFluid == null || tank.getFluid.getFluid == fluid
+      case Some(t) => t.getFluid == null || t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
   override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
     tryGetTank(selectedTank) match {
-      case Some(tank) => tank.getFluid != null && tank.getFluid.getFluid == fluid
+      case Some(t) => t.getFluid != null && t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
   override def getTankInfo(from: ForgeDirection) =
     components.collect {
-      case Some(tank: IFluidTank) => tank.getInfo
+      case Some(t: IFluidTank) => t.getInfo
     }.toArray
 }

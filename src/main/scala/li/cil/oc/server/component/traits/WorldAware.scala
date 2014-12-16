@@ -1,14 +1,16 @@
 package li.cil.oc.server.component.traits
 
+import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
-import net.minecraft.world.World
+import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
+import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
@@ -18,26 +20,28 @@ import scala.reflect.ClassTag
 import scala.reflect.classTag
 
 trait WorldAware {
-  protected def world: World
+  protected def position: BlockPosition
 
-  protected def x: Int
+  protected def world = position.world.get
 
-  protected def y: Int
-
-  protected def z: Int
-
-  protected def fakePlayer: FakePlayer
+  protected def fakePlayer: FakePlayer = {
+    val player = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+    player.posX = position.x + 0.5
+    player.posY = position.y + 0.5
+    player.posZ = position.z + 0.5
+    player
+  }
 
   protected def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
     world.getEntitiesWithinAABB(classTag[Type].runtimeClass, blockPos.bounds).map(_.asInstanceOf[Type])
   }
 
   protected def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    entitiesInBlock[Type](BlockPosition(x, y, z, Option(world)).offset(side))
+    entitiesInBlock[Type](position.offset(side))
   }
 
   protected def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    val blockPos = BlockPosition(x, y, z, Option(world)).offset(side)
+    val blockPos = position.offset(side)
     Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, blockPos.bounds, fakePlayer)).map(_.asInstanceOf[Type])
   }
 
@@ -46,7 +50,7 @@ trait WorldAware {
       case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
         (true, "entity")
       case _ =>
-        val blockPos = BlockPosition(x, y, z, Option(world)).offset(side)
+        val blockPos = position.offset(side)
         val block = world.getBlock(blockPos)
         val metadata = world.getBlockMetadata(blockPos)
         if (block.isAir(blockPos)) {

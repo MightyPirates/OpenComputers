@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -12,8 +11,6 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.world.WorldServer
-import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 
 class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl with traits.TankAware with traits.TankControl with traits.TankWorldControl {
@@ -21,13 +18,7 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
     withComponent("drone").
     create()
 
-  def world = host.world
-
-  def x = math.floor(host.posX).toInt
-
-  def y = math.floor(host.posY).toInt
-
-  def z = math.floor(host.posZ).toInt
+  override protected def position = BlockPosition(host)
 
   override def inventory = host.inventory
 
@@ -40,14 +31,6 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
   override def selectedTank = host.selectedTank
 
   override def selectedTank_=(value: Int) = host.selectedTank = value
-
-  override protected def fakePlayer = {
-    val player = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
-    player.posX = host.posX
-    player.posY = host.posY
-    player.posZ = host.posZ
-    player
-  }
 
   override protected def checkSideForAction(args: Arguments, n: Int) =
     args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
