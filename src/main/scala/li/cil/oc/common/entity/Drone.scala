@@ -30,7 +30,6 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -367,12 +366,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       motionZ -= direction.zCoord * 0.5f
     }
     super.hitByEntity(entity)
-  }
-
-  override def getPickedResult(target: MovingObjectPosition) = {
-    val stack = api.Items.get("drone").createItemStack(1)
-    info.save(stack)
-    stack
   }
 
   override def interactFirst(player: EntityPlayer) = {
