@@ -34,7 +34,10 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     writeInt(e.getEntityId)
   }
 
-  def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)
+  def writeDirection(d: Option[ForgeDirection]) = d match {
+    case Some(side) => writeByte(side.ordinal.toByte)
+    case _ => writeByte(-1: Byte)
+  }
 
   def writeItemStack(stack: ItemStack) = {
     val haveStack = stack != null && stack.stackSize > 0

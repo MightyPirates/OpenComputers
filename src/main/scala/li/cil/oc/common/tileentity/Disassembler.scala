@@ -207,7 +207,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
         InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), side.getOpposite)
       }
       if (stack.stackSize > 0) {
-        spawnStackInWorld(stack, ForgeDirection.UP)
+        spawnStackInWorld(stack, Option(ForgeDirection.UP))
       }
     }
   }

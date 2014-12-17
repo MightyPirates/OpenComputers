@@ -28,6 +28,7 @@ import li.cil.oc.server.component.robot.Inventory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
@@ -196,9 +197,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   def actualSlot(n: Int) = n + 1 + containerCount
 
   def move(direction: ForgeDirection): Boolean = {
-    val (ox, oy, oz) = (x, y, z)
-    val (nx, ny, nz) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
-    if (!world.blockExists(nx, ny, nz)) {
+    val oldPosition = BlockPosition(this)
+    val newPosition = oldPosition.offset(direction)
+    if (!world.blockExists(newPosition)) {
       return false // Don't fall off the earth.
     }
 
@@ -210,9 +211,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
     val blockRobotProxy = api.Items.get("robot").block.asInstanceOf[common.block.RobotProxy]
     val blockRobotAfterImage = api.Items.get("robotAfterimage").block.asInstanceOf[common.block.RobotAfterimage]
-    val wasAir = world.isAirBlock(nx, ny, nz)
-    val block = world.getBlock(nx, ny, nz)
-    val metadata = world.getBlockMetadata(nx, ny, nz)
+    val wasAir = world.isAirBlock(newPosition)
+    val block = world.getBlock(newPosition)
+    val metadata = world.getBlockMetadata(newPosition)
     try {
       // Setting this will make the tile entity created via the following call
       // to setBlock to re-use our "real" instance as the inner object, instead
@@ -222,21 +223,21 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
-      world.setBlockToAir(nx, ny, nz)
+      world.setBlockToAir(newPosition)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = world.setBlock(nx, ny, nz, blockRobotProxy, 0, 1) &&
-        world.getTileEntity(nx, ny, nz) == proxy
+      val created = world.setBlock(newPosition, blockRobotProxy, 0, 1) &&
+        world.getTileEntity(newPosition) == proxy
       if (created) {
-        assert(x == nx && y == ny && z == nz)
-        world.setBlock(ox, oy, oz, net.minecraft.init.Blocks.air, 0, 1)
-        world.setBlock(ox, oy, oz, blockRobotAfterImage, 0, 1)
-        assert(world.getBlock(ox, oy, oz) == blockRobotAfterImage)
+        assert(BlockPosition(this) == newPosition)
+        world.setBlock(oldPosition, net.minecraft.init.Blocks.air, 0, 1)
+        world.setBlock(oldPosition, blockRobotAfterImage, 0, 1)
+        assert(world.getBlock(oldPosition) == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
-        setAnimateMove(ox, oy, oz, moveTicks)
+        setAnimateMove(oldPosition, moveTicks)
         if (isServer) {
-          ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
+          ServerPacketSender.sendRobotMove(this, oldPosition, direction)
           checkRedstoneInputChanged()
           MinecraftForge.EVENT_BUS.post(new RobotMoveEvent.Post(this, direction))
         }
@@ -247,21 +248,22 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
-                world.playAuxSFX(2001, nx, ny, nz, Block.getIdFromBlock(block) + (metadata << 12))
+                world.playAuxSFX(2001, newPosition, Block.getIdFromBlock(block) + (metadata << 12))
               }
               else {
-                world.playSound(nx + 0.5, ny + 0.5, nz + 0.5, "liquid.water",
+                val soundPos = newPosition.toVec3
+                world.playSound(soundPos.xCoord, soundPos.yCoord, soundPos.zCoord, "liquid.water",
                   world.rand.nextFloat * 0.25f + 0.75f, world.rand.nextFloat * 1.0f + 0.5f, false)
               }
             }
           }
-          world.markBlockForUpdate(ox, oy, oz)
-          world.markBlockForUpdate(nx, ny, nz)
+          world.markBlockForUpdate(oldPosition)
+          world.markBlockForUpdate(newPosition)
         }
         assert(!isInvalid)
       }
       else {
-        world.setBlockToAir(nx, ny, nz)
+        world.setBlockToAir(newPosition)
       }
       created
     }
@@ -288,12 +290,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     ServerPacketSender.sendRobotAnimateTurn(this)
   }
 
-  def setAnimateMove(fromX: Int, fromY: Int, fromZ: Int, ticks: Int) {
+  def setAnimateMove(fromPosition: BlockPosition, ticks: Int) {
     animationTicksTotal = ticks
     prepareForAnimation()
-    moveFromX = fromX
-    moveFromY = fromY
-    moveFromZ = fromZ
+    moveFromX = fromPosition.x
+    moveFromY = fromPosition.y
+    moveFromZ = fromPosition.z
   }
 
   def setAnimateSwing(ticks: Int) {
@@ -667,7 +669,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (world != null && isServer) {
         for (stack <- removed) {
           inventory.addItemStackToInventory(stack)
-          spawnStackInWorld(stack, facing)
+          spawnStackInWorld(stack, Option(facing))
         }
       } // else: save is screwed and we potentially lose items. Life is hard.
       selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
@@ -697,12 +699,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
           inventory.addItemStackToInventory(stack)
-          spawnStackInWorld(stack, facing)
+          spawnStackInWorld(stack, Option(facing))
         }
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, ForgeDirection.UP)
+    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(ForgeDirection.UP))
   }
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
@@ -725,7 +727,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  override def dropSlot(slot: Int, count: Int, direction: ForgeDirection) =
+  override def dropSlot(slot: Int, count: Int, direction: Option[ForgeDirection]) =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, Option(world)), dynamicInventory, slot, count, direction)
 
   override def dropAllSlots() =

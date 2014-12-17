@@ -14,6 +14,7 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
@@ -99,7 +100,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
         t.hasPower = p.readBoolean()
-        t.world.markBlockForUpdate(t.x, t.y, t.z)
+        t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -107,7 +108,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Colored]() match {
       case Some(t) =>
         t.color = p.readInt()
-        t.world.markBlockForUpdate(t.x, t.y, t.z)
+        t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -306,11 +307,12 @@ object PacketHandler extends CommonPacketHandler {
     val y = p.readInt()
     val z = p.readInt()
     val direction = p.readDirection()
-    p.getTileEntity[RobotProxy](dimension, x, y, z) match {
-      case Some(t) => t.robot.move(direction)
-      case _ =>
+    (p.getTileEntity[RobotProxy](dimension, x, y, z), direction) match {
+      case (Some(t), Some(d)) => t.robot.move(d)
+      case (_, Some(d)) =>
         // Invalid packet, robot may be coming from outside our loaded area.
-        PacketSender.sendRobotStateRequest(dimension, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
+        PacketSender.sendRobotStateRequest(dimension, x + d.offsetX, y + d.offsetY, z + d.offsetZ)
+      case _ => // Invalid packet.
     }
   }
 
@@ -323,8 +325,8 @@ object PacketHandler extends CommonPacketHandler {
   def onRotatableState(p: PacketParser) =
     p.readTileEntity[Rotatable]() match {
       case Some(t) =>
-        t.pitch = p.readDirection()
-        t.yaw = p.readDirection()
+        t.pitch = p.readDirection().get
+        t.yaw = p.readDirection().get
       case _ => // Invalid packet.
     }
 

@@ -33,8 +33,8 @@ import scala.collection.mutable
 class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.ServerRack {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
-  val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
-    padTo(servers.length, ForgeDirection.UNKNOWN).toArray
+  val sides = Seq(Option(ForgeDirection.UP), Option(ForgeDirection.EAST), Option(ForgeDirection.WEST), Option(ForgeDirection.DOWN)).
+    padTo(servers.length, None).toArray
 
   val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
 
@@ -119,18 +119,24 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   }
 
   def reconnectServer(number: Int, server: component.Server) {
-    val serverSide = sides(number)
-    val serverNode = server.machine.node
-    for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      if (toGlobal(serverSide) == side) sidedNode(side).connect(serverNode)
-      else sidedNode(side).disconnect(serverNode)
+    sides(number) match {
+      case Some(serverSide) =>
+        val serverNode = server.machine.node
+        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          if (toLocal(side) == serverSide) sidedNode(side).connect(serverNode)
+          else sidedNode(side).disconnect(serverNode)
+        }
+      case _ =>
     }
   }
 
   // ----------------------------------------------------------------------- //
 
   override protected def distribute() = {
-    def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector]) else null
+    def node(side: Int) = sides(side) match {
+      case None => servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector])
+      case _ => null
+    }
     val nodes = (0 to 3).map(node)
     def network(connector: Connector) = if (connector != null && connector.network != null) connector.network else this
     val (sumBuffer, sumSize) = super.distribute()
@@ -158,10 +164,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // ----------------------------------------------------------------------- //
 
-  override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
+  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
     if (internalSwitch) {
       for (slot <- 0 until servers.length) {
-        val side = toGlobal(sides(slot))
+        val side = sides(slot).map(toGlobal)
         if (side != sourceSide) {
           servers(slot) match {
             case Some(server) => server.machine.node.sendToNeighbors("network.message", packet)
@@ -317,7 +323,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         }
       case _ =>
     }
-    val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").map(ForgeDirection.getOrientation(_))
+    val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").map {
+      case side if side >= 0 => Option(ForgeDirection.getOrientation(side))
+      case _ => None
+    }
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     nbt.getTagList(Settings.namespace + "terminals", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
@@ -345,7 +354,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       })
     }
     super.writeToNBT(nbt)
-    nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
+    nbt.setByteArray(Settings.namespace + "sides", sides.map {
+      case Some(side) => side.ordinal.toByte
+      case _ => -1: Byte
+    })
     nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
       try t.save(terminalNbt) catch {
@@ -370,7 +382,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       if (Strings.isNullOrEmpty(value)) None else Some(value)
     }).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
-    val sidesNbt = nbt.getByteArray("sides").map(ForgeDirection.getOrientation(_))
+    val sidesNbt = nbt.getByteArray("sides").map {
+      case side if side >= 0 => Option(ForgeDirection.getOrientation(side))
+      case _ => None
+    }
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     nbt.getTagList("terminals", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
@@ -385,7 +400,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.writeToNBTForClient(nbt)
     nbt.setByteArray("isServerRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
     nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value.fold("")(_.machine.node.address))))
-    nbt.setByteArray("sides", sides.map(_.ordinal.toByte))
+    nbt.setByteArray("sides", sides.map {
+      case Some(side) => side.ordinal.toByte
+      case _ => -1: Byte
+    })
     nbt.setNewTagList("terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
       t.writeToNBTForClient(terminalNbt)
@@ -399,10 +417,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override protected def onPlugConnect(plug: Plug, node: Node) {
     if (node == plug.node) {
       for (number <- 0 until servers.length) {
-        val serverSide = sides(number)
+        val serverSide = sides(number).map(toGlobal)
         servers(number) match {
           case Some(server) =>
-            if (toGlobal(serverSide) == plug.side) plug.node.connect(server.machine.node)
+            if (serverSide == Option(plug.side)) plug.node.connect(server.machine.node)
             else api.Network.joinNewNetwork(server.machine.node)
             terminals(number).connect(server.machine.node)
           case _ =>

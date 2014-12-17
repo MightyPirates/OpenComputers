@@ -9,5 +9,3 @@ trait PowerAcceptor
   with power.IndustrialCraft2Classic
   with power.Mekanism
   with power.RedstoneFlux
-// TODO Re-enable once RE is stable.
-//  with power.ResonantEngine

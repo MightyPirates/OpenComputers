@@ -3,13 +3,15 @@ package li.cil.oc.common.block
 import cpw.mods.fml.common.Optional
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectionType
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode
+import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectionType
 
 @Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode", modid = Mods.IDs.MineFactoryReloaded)
 abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
@@ -38,9 +40,10 @@ abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
     if (Mods.MineFactoryReloaded.isAvailable) {
-      world.getTileEntity(x, y, z) match {
+      val position = BlockPosition(x, y, z)
+      world.getTileEntity(position) match {
         case t: tileentity.traits.BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          world.getBlock(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+          world.getBlock(position.offset(side)) match {
             case block: IRedNetNetworkContainer =>
             case _ => for (color <- 0 until 16) {
               t.rednetInput(side, color, 0)

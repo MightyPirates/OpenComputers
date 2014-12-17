@@ -2,14 +2,13 @@ package li.cil.oc.common.block
 
 import java.util
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.common.GuiType
 import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.Wrench
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -66,7 +65,7 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor {
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, x, y, z)) {
+    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
       if (!world.isRemote) {
         world.getTileEntity(x, y, z) match {
           case mcu: tileentity.Microcontroller =>

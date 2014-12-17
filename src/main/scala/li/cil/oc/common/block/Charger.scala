@@ -7,6 +7,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.PacketSender
+import li.cil.oc.util.BlockPosition
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -45,12 +46,12 @@ class Charger extends RedstoneAware with traits.PowerAcceptor {
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     world.getTileEntity(x, y, z) match {
       case charger: tileentity.Charger =>
-        if (Wrench.holdsApplicableWrench(player, x, y, z)) {
+        if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
           if (!world.isRemote) {
             charger.invertSignal = !charger.invertSignal
             charger.chargeSpeed = 1.0 - charger.chargeSpeed
             PacketSender.sendChargerState(charger)
-            Wrench.wrenchUsed(player, x, y, z)
+            Wrench.wrenchUsed(player, BlockPosition(x, y, z))
           }
           true
         }

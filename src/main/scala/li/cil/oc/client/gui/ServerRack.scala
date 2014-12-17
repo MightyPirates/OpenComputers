@@ -25,11 +25,11 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
   protected var rangeButtons = new Array[GuiButton](2)
 
   def sideName(number: Int) = rack.sides(number) match {
-    case ForgeDirection.UP => Localization.ServerRack.Top
-    case ForgeDirection.DOWN => Localization.ServerRack.Bottom
-    case ForgeDirection.EAST => Localization.ServerRack.Left
-    case ForgeDirection.WEST => Localization.ServerRack.Right
-    case ForgeDirection.NORTH => Localization.ServerRack.Back
+    case Some(ForgeDirection.UP) => Localization.ServerRack.Top
+    case Some(ForgeDirection.DOWN) => Localization.ServerRack.Bottom
+    case Some(ForgeDirection.EAST) => Localization.ServerRack.Left
+    case Some(ForgeDirection.WEST) => Localization.ServerRack.Right
+    case Some(ForgeDirection.NORTH) => Localization.ServerRack.Back
     case _ => Localization.ServerRack.None
   }
 
@@ -41,12 +41,12 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
     }
     if (button.id >= 4 && button.id <= 7) {
       val number = button.id - 4
-      val sides = ForgeDirection.values
-      val currentSide = rack.sides(number)
-      val searchSides = sides.drop(currentSide.ordinal() + 1) ++ sides.take(currentSide.ordinal() + 1)
-      val nextSide = searchSides.find(side => side != ForgeDirection.SOUTH && (!rack.sides.contains(side) || side == ForgeDirection.UNKNOWN)) match {
+      val sides = ForgeDirection.VALID_DIRECTIONS.map(Option(_)) ++ Seq(None)
+      val currentSide = sides.indexOf(rack.sides(number))
+      val searchSides = sides.drop(currentSide + 1) ++ sides.take(currentSide + 1)
+      val nextSide = searchSides.find(side => side != Option(ForgeDirection.SOUTH) && (!rack.sides.contains(side) || side == None)) match {
         case Some(side) => side
-        case _ => ForgeDirection.UNKNOWN
+        case _ => None
       }
       ClientPacketSender.sendServerSide(rack, number, nextSide)
     }

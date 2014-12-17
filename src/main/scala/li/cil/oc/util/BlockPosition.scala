@@ -4,6 +4,7 @@ import appeng.api.util.DimensionalCoord
 import cpw.mods.fml.common.Optional
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.integration.Mods
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.ChunkCoordinates
 import net.minecraft.util.Vec3
@@ -38,6 +39,11 @@ case class BlockPosition(x: Int, y: Int, z: Int, world: Option[World]) {
   def toChunkCoordinates = new ChunkCoordinates(x, y, z)
 
   def toVec3 = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
+
+  override def equals(obj: scala.Any) = obj match {
+    case position: BlockPosition => position.x == x && position.y == y && position.z == z && position.world == world
+    case _ => super.equals(obj)
+  }
 }
 
 object BlockPosition {

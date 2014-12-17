@@ -43,9 +43,21 @@ object ExtendedWorld {
 
     def getBlockHarvestTool(position: BlockPosition) = getBlock(position).getHarvestTool(getBlockMetadata(position))
 
+    def getIndirectPowerLevelTo(position: BlockPosition, side: ForgeDirection) = world.getIndirectPowerLevelTo(position.x, position.y, position.z, side.ordinal)
+
+    def markBlockForUpdate(position: BlockPosition) = world.markBlockForUpdate(position.x, position.y, position.z)
+
     def notifyBlockOfNeighborChange(position: BlockPosition, block: Block) = world.notifyBlockOfNeighborChange(position.x, position.y, position.z, block)
 
+    def notifyBlocksOfNeighborChange(position: BlockPosition, block: Block) = world.notifyBlocksOfNeighborChange(position.x, position.y, position.z, block)
+
+    def notifyBlocksOfNeighborChange(position: BlockPosition, block: Block, side: ForgeDirection) = world.notifyBlocksOfNeighborChange(position.x, position.y, position.z, block, side.ordinal)
+
+    def playAuxSFX(id: Int, position: BlockPosition, data: Int) = world.playAuxSFX(id, position.x, position.y, position.z, data)
+
     def setBlock(position: BlockPosition, block: Block) = world.setBlock(position.x, position.y, position.z, block)
+
+    def setBlock(position: BlockPosition, block: Block, metadata: Int, flag: Int) = world.setBlock(position.x, position.y, position.z, block, metadata, flag)
 
     def setBlockToAir(position: BlockPosition) = world.setBlockToAir(position.x, position.y, position.z)
   }

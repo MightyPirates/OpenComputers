@@ -49,7 +49,7 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
       val answerPort = checkPort(arguments, 1)
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
       val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
-      result(switch.tryEnqueuePacket(ForgeDirection.UNKNOWN, packet))
+      result(switch.tryEnqueuePacket(None, packet))
     case "isWireless" => result(switch.isInstanceOf[AccessPoint])
     case _ => null
   }

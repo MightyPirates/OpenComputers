@@ -41,7 +41,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentI
 
   // ----------------------------------------------------------------------- //
 
-  override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
+  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
     super.relayPacket(sourceSide, packet)
     val now = System.currentTimeMillis()
     if (now - lastMessage >= (relayDelay - 1) * 50) {

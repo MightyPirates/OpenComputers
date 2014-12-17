@@ -199,7 +199,7 @@ object PacketHandler extends CommonPacketHandler {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           val number = p.readInt()
           val side = p.readDirection()
-          if (rack.sides(number) != side && side != ForgeDirection.SOUTH && (!rack.sides.contains(side) || side == ForgeDirection.UNKNOWN)) {
+          if (rack.sides(number) != side && side != Option(ForgeDirection.SOUTH) && (!rack.sides.contains(side) || side == None)) {
             rack.sides(number) = side
             rack.servers(number) match {
               case Some(server) => rack.reconnectServer(number, server)

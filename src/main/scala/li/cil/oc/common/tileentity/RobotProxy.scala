@@ -231,7 +231,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def isUseableByPlayer(player: EntityPlayer) = robot.isUseableByPlayer(player)
 
-  override def dropSlot(slot: Int, count: Int, direction: ForgeDirection) = robot.dropSlot(slot, count, direction)
+  override def dropSlot(slot: Int, count: Int, direction: Option[ForgeDirection]) = robot.dropSlot(slot, count, direction)
 
   override def dropAllSlots() = robot.dropAllSlots()
 

@@ -53,7 +53,7 @@ class DiskDrive extends SimpleBlock {
           val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
           if (isDiskInDrive) {
             if (!world.isRemote) {
-              drive.dropSlot(0, 1, drive.facing)
+              drive.dropSlot(0, 1, Option(drive.facing))
             }
           }
           if (isHoldingDisk) {

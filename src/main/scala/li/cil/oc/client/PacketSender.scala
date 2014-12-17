@@ -161,7 +161,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerSide(t: ServerRack, number: Int, side: ForgeDirection) {
+  def sendServerSide(t: ServerRack, number: Int, side: Option[ForgeDirection]) {
     val pb = new SimplePacketBuilder(PacketType.ServerSide)
 
     pb.writeTileEntity(t)
