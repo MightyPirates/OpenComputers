@@ -11,6 +11,7 @@ import li.cil.oc.common.entity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
+import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -20,7 +21,7 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
     withConnector(Settings.get.bufferDrone).
     create()
 
-  override protected def position = BlockPosition(host)
+  override protected def position = BlockPosition(host: Entity)
 
   override def inventory = host.inventory
 
@@ -37,7 +38,7 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
   override protected def checkSideForAction(args: Arguments, n: Int) =
     args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
 
-  override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(BlockPosition(host)) ++ super.suckableItems(side)
+  override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(position) ++ super.suckableItems(side)
 
   override protected def onSuckCollect(entity: EntityItem) = {
     if (InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))) {

@@ -9,7 +9,7 @@ analyzer {
 droneCase {
   input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
           ["oc:circuitChip2", "oc:microcontrollerCase", "oc:circuitChip2"]
-          [{block="minecraft:end_stone"}, "oc:componentBus3", {block="minecraft:end_stone"}]]
+          [{block="minecraft:end_stone"}, "oc:componentBus2", {block="minecraft:end_stone"}]]
 }
 microcontrollerCase {
   input: [[nuggetIron, "oc:circuitChip1", nuggetIron]
@@ -209,6 +209,11 @@ inventoryControllerUpgrade {
   input: [[ingotGold, "oc:analyzer", ingotGold]
           [dispenser, "oc:circuitChip2", craftingPiston]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
+}
+leashUpgrade {
+  input: [[ingotIron, lead, ingotIron]
+          [lead, "oc:materialCU", lead]
+          [ingotIron, lead, ingotIron]]
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]

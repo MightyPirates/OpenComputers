@@ -11,6 +11,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.SimpleItem
+import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
@@ -312,5 +313,6 @@ object Items extends ItemAPI {
     // 1.4.3
     Recipes.addMultiItem(new item.DroneCase(multi), "droneCase", "oc:droneCase")
     registerItem(new item.Drone(multi), "drone")
+    Recipes.addMultiItem(new UpgradeLeash(multi), "leashUpgrade", "oc:leashUpgrade")
   }
 }

@@ -106,13 +106,13 @@ class Delegator extends Item {
 
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     subItem(stack) match {
-      case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(x, y, z, Option(world)), side, hitX, hitY, hitZ)
+      case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(x, y, z, world), side, hitX, hitY, hitZ)
       case _ => super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     subItem(stack) match {
-      case Some(subItem) => subItem.onItemUse(stack, player, BlockPosition(x, y, z, Option(world)), side, hitX, hitY, hitZ)
+      case Some(subItem) => subItem.onItemUse(stack, player, BlockPosition(x, y, z, world), side, hitX, hitY, hitZ)
       case _ => super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 

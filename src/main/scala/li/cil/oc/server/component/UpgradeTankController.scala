@@ -9,6 +9,7 @@ import li.cil.oc.common.entity
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
+import net.minecraft.entity.Entity
 import net.minecraftforge.common.util.ForgeDirection
 
 object UpgradeTankController {
@@ -30,7 +31,7 @@ object UpgradeTankController {
       withComponent("tank_controller", Visibility.Neighbors).
       create()
 
-    override protected def position = BlockPosition(host)
+    override protected def position = BlockPosition(host: Entity)
 
     override def inventory = host.inventory
 

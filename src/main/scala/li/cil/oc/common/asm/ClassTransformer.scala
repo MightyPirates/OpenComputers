@@ -25,6 +25,7 @@ class ClassTransformer extends IClassTransformer {
       if (name == "li.cil.oc.common.tileentity.traits.Computer" || name == "li.cil.oc.common.tileentity.Rack") {
         transformedClass = ensureStargateTechCompatibility(transformedClass)
       }
+
       if (transformedClass != null
         && !name.startsWith("net.minecraft.")
         && !name.startsWith("net.minecraftforge.")
@@ -123,12 +124,99 @@ class ClassTransformer extends IClassTransformer {
           }
         }
       }
+
+      // Inject some code into the EntityLiving classes recreateLeash method to allow
+      // proper loading of leashes tied to entities using the leash upgrade. This is
+      // necessary because entities only save the entity they are leashed to if that
+      // entity is an EntityLivingBase - which drones, for example, are not, for good
+      // reason. We work around this by re-leashing them in the load method of the
+      // leash upgrade. The leashed entity would then still unleash itself and, more
+      // problematically drop a leash item. To avoid this, we extend the
+      //    if (this.isLeashed && this.field_110170_bx != null)
+      // check to read
+      //    if (this.isLeashed && this.field_110170_bx != null && this.leashedToEntity == null)
+      // which should not interfere with any existing logic, but avoid leashing
+      // restored manually in the load phase to not be broken again.
+      if (transformedClass != null && name == "net.minecraft.entity.EntityLiving") {
+        insertInto(transformedClass, "recreateLeash", instructions => instructions.toArray.sliding(3, 1).exists {
+          case Array(varNode: VarInsnNode, fieldNode: FieldInsnNode, jumpNode: JumpInsnNode)
+            if varNode.getOpcode == Opcodes.ALOAD && varNode.`var` == 0 &&
+              fieldNode.getOpcode == Opcodes.GETFIELD && fieldNode.name == "field_110170_bx" &&
+              jumpNode.getOpcode == Opcodes.IFNULL =>
+            val toInject = new InsnList()
+            toInject.add(new VarInsnNode(Opcodes.ALOAD, 0))
+            toInject.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/entity/EntityLiving", "leashedToEntity", "Lnet/minecraft/entity/Entity;"))
+            toInject.add(new JumpInsnNode(Opcodes.IFNONNULL, jumpNode.label))
+            instructions.insert(jumpNode, toInject)
+            true
+          case _ =>
+            false
+        }) match {
+          case Some(data) => transformedClass = data
+          case _ =>
+        }
+      }
+
+      // Little change to the renderer used to render leashes to center it on drones.
+      // This injects the code
+      //   if (entity instanceof Drone) {
+      //     d5 = 0.0;
+      //     d6 = 0.0;
+      //     d7 = -0.75;
+      //   }
+      // before the `instanceof EntityHanging` check in func_110827_b.
+      if (transformedClass != null && name == "net.minecraft.client.renderer.entity.RenderLiving") {
+        insertInto(transformedClass, "func_110827_b", instructions => instructions.toArray.sliding(3, 1).exists {
+          case Array(varNode: VarInsnNode, typeNode: TypeInsnNode, jumpNode: JumpInsnNode)
+            if varNode.getOpcode == Opcodes.ALOAD && varNode.`var` == 10 &&
+              typeNode.getOpcode == Opcodes.INSTANCEOF && typeNode.desc == "net/minecraft/entity/EntityHanging" &&
+              jumpNode.getOpcode == Opcodes.IFEQ =>
+            val toInject = new InsnList()
+            toInject.add(new VarInsnNode(Opcodes.ALOAD, 10))
+            toInject.add(new TypeInsnNode(Opcodes.INSTANCEOF, "li/cil/oc/common/entity/Drone"))
+            val skip = new LabelNode()
+            toInject.add(new JumpInsnNode(Opcodes.IFEQ, skip))
+            toInject.add(new LdcInsnNode(double2Double(0.0)))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 16))
+            toInject.add(new LdcInsnNode(double2Double(0.0)))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 18))
+            toInject.add(new LdcInsnNode(double2Double(-0.75)))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 20))
+            toInject.add(skip)
+            instructions.insertBefore(varNode, toInject)
+            true
+          case _ =>
+            false
+        }) match {
+          case Some(data) => transformedClass = data
+          case _ =>
+        }
+      }
+
       transformedClass
     }
     catch {
       case t: Throwable =>
         log.warn("Something went wrong!", t)
         basicClass
+    }
+  }
+
+  private def insertInto(classData: Array[Byte], method: String, inserter: (InsnList) => Boolean): Option[Array[Byte]] = {
+    val classNode = newClassNode(classData)
+    classNode.methods.find(_.name == method) match {
+      case Some(methodNode) =>
+        if (inserter(methodNode.instructions)) {
+          log.warn(s"Successfully patched ${classNode.name}.$method.")
+          Option(writeClass(classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES))
+        }
+        else {
+          log.warn(s"Failed patching ${classNode.name}.$method}, injection point not found.")
+          None
+        }
+      case _ =>
+        log.warn(s"Failed patching ${classNode.name}.$method, method not found.")
+        None
     }
   }
 

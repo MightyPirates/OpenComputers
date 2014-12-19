@@ -7,6 +7,7 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
@@ -32,8 +33,12 @@ trait WorldAware {
     player
   }
 
+  protected def entitiesInBounds[Type <: Entity : ClassTag](bounds: AxisAlignedBB) = {
+    world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
+  }
+
   protected def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
-    world.getEntitiesWithinAABB(classTag[Type].runtimeClass, blockPos.bounds).map(_.asInstanceOf[Type])
+    entitiesInBounds[Type](blockPos.bounds)
   }
 
   protected def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {

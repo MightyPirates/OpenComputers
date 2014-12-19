@@ -95,6 +95,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeGenerator)
     api.Driver.add(DriverUpgradeInventory)
     api.Driver.add(DriverUpgradeInventoryController)
+    api.Driver.add(DriverUpgradeLeash)
     api.Driver.add(DriverUpgradeNavigation)
     api.Driver.add(DriverUpgradePiston)
     api.Driver.add(DriverUpgradeSign)
@@ -103,10 +104,76 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
 
-    blacklistHost(classOf[internal.Adapter], "geolyzer", "keyboard", "screen1", "angelUpgrade", "batteryUpgrade1", "batteryUpgrade2", "batteryUpgrade3", "chunkloaderUpgrade", "craftingUpgrade", "experienceUpgrade", "generatorUpgrade", "inventoryUpgrade", "navigationUpgrade", "pistonUpgrade", "solarGeneratorUpgrade", "tankUpgrade", "tractorBeamUpgrade")
-    blacklistHost(classOf[internal.Microcontroller], "graphicsCard1", "graphicsCard2", "graphicsCard3", "keyboard", "screen1", "angelUpgrade", "chunkloaderUpgrade", "craftingUpgrade", "databaseUpgrade1", "databaseUpgrade2", "databaseUpgrade3", "experienceUpgrade", "generatorUpgrade", "inventoryUpgrade", "inventoryControllerUpgrade", "navigationUpgrade", "tankUpgrade", "tankControllerUpgrade", "tractorBeamUpgrade")
-    blacklistHost(classOf[internal.Drone], "graphicsCard1", "graphicsCard2", "graphicsCard3", "keyboard", "lanCard", "redstoneCard1", "screen1", "angelUpgrade", "craftingUpgrade", "experienceUpgrade")
-    blacklistHost(classOf[internal.Tablet], "lanCard", "redstoneCard1", "screen1", "angelUpgrade", "chunkloaderUpgrade", "craftingUpgrade", "databaseUpgrade1", "databaseUpgrade2", "databaseUpgrade3", "experienceUpgrade", "generatorUpgrade", "inventoryUpgrade", "inventoryControllerUpgrade", "tankUpgrade", "tankControllerUpgrade")
+    blacklistHost(classOf[internal.Adapter],
+      "geolyzer",
+      "keyboard",
+      "screen1",
+      "angelUpgrade",
+      "batteryUpgrade1",
+      "batteryUpgrade2",
+      "batteryUpgrade3",
+      "chunkloaderUpgrade",
+      "craftingUpgrade",
+      "experienceUpgrade",
+      "generatorUpgrade",
+      "inventoryUpgrade",
+      "navigationUpgrade",
+      "pistonUpgrade",
+      "solarGeneratorUpgrade",
+      "tankUpgrade",
+      "tractorBeamUpgrade",
+      "leashUpgrade")
+    blacklistHost(classOf[internal.Drone],
+      "graphicsCard1",
+      "graphicsCard2",
+      "graphicsCard3",
+      "keyboard",
+      "lanCard",
+      "redstoneCard1",
+      "screen1",
+      "angelUpgrade",
+      "craftingUpgrade",
+      "experienceUpgrade")
+    blacklistHost(classOf[internal.Microcontroller],
+      "graphicsCard1",
+      "graphicsCard2",
+      "graphicsCard3",
+      "keyboard",
+      "screen1",
+      "angelUpgrade",
+      "chunkloaderUpgrade",
+      "craftingUpgrade",
+      "databaseUpgrade1",
+      "databaseUpgrade2",
+      "databaseUpgrade3",
+      "experienceUpgrade",
+      "generatorUpgrade",
+      "inventoryUpgrade",
+      "inventoryControllerUpgrade",
+      "navigationUpgrade",
+      "tankUpgrade",
+      "tankControllerUpgrade",
+      "tractorBeamUpgrade",
+      "leashUpgrade")
+    blacklistHost(classOf[internal.Robot],
+      "leashUpgrade")
+    blacklistHost(classOf[internal.Tablet],
+      "lanCard",
+      "redstoneCard1",
+      "screen1",
+      "angelUpgrade",
+      "chunkloaderUpgrade",
+      "craftingUpgrade",
+      "databaseUpgrade1",
+      "databaseUpgrade2",
+      "databaseUpgrade3",
+      "experienceUpgrade",
+      "generatorUpgrade",
+      "inventoryUpgrade",
+      "inventoryControllerUpgrade",
+      "tankUpgrade",
+      "tankControllerUpgrade",
+      "leashUpgrade")
 
     if (!WirelessRedstone.isAvailable) {
       blacklistHost(classOf[internal.Drone], "redstoneCard2")

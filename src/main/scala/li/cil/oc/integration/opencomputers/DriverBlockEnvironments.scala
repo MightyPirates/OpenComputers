@@ -4,6 +4,7 @@ import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.common
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.BundledRedstone
@@ -29,11 +30,14 @@ object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
     case block: ItemBlock if block.field_150939_a != null =>
       if (isOneOf(block.field_150939_a, "accessPoint")) classOf[tileentity.AccessPoint]
       else if (isOneOf(block.field_150939_a, "assembler")) classOf[tileentity.Assembler]
-      else if (isOneOf(block.field_150939_a, "case1", "case2", "case3", "caseCreative")) classOf[Machine]
+      else if (isOneOf(block.field_150939_a, "case1", "case2", "case3", "caseCreative", "microcontroller")) classOf[Machine]
       else if (isOneOf(block.field_150939_a, "hologram1", "hologram2")) classOf[tileentity.Hologram]
       else if (isOneOf(block.field_150939_a, "motionSensor")) classOf[tileentity.MotionSensor]
       else if (isOneOf(block.field_150939_a, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Simple]
+      else if (isOneOf(block.field_150939_a, "screen1")) classOf[common.component.TextBuffer].asInstanceOf[Class[_ <: Environment]]
       else if (isOneOf(block.field_150939_a, "screen2", "screen3")) classOf[common.component.Screen]
+      else if (isOneOf(block.field_150939_a, "robot")) classOf[component.robot.Robot].asInstanceOf[Class[_ <: Environment]]
+      else if (isOneOf(block.field_150939_a, "drone")) classOf[component.Drone].asInstanceOf[Class[_ <: Environment]]
       else null
     case _ => null
   }

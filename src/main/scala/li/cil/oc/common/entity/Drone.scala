@@ -254,7 +254,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       val entity = new EntityItem(world, posX, posY, posZ, stack)
       entity.delayBeforeCanPickup = 15
       world.spawnEntityInWorld(entity)
-      InventoryUtils.dropAllSlots(BlockPosition(this), inventory)
+      InventoryUtils.dropAllSlots(BlockPosition(this: Entity), inventory)
     }
   }
 
@@ -357,7 +357,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       motionZ *= drag
     }
     else {
-      val groundDrag = worldObj.getBlock(BlockPosition(this).offset(ForgeDirection.DOWN)).slipperiness * drag
+      val groundDrag = worldObj.getBlock(BlockPosition(this: Entity).offset(ForgeDirection.DOWN)).slipperiness * drag
       motionX *= groundDrag
       motionY *= drag
       motionZ *= groundDrag
