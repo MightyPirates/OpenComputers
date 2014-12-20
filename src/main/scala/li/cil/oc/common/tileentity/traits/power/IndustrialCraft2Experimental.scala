@@ -11,11 +11,11 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
-@Injectable.Interface(value = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2API)
+@Injectable.Interface(value = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
 trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   private var conversionBuffer = 0.0
 
-  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2API.isAvailable
+  private lazy val useIndustrialCraft2Power = isServer && Mods.IndustrialCraft2.isAvailable
 
   // ----------------------------------------------------------------------- //
 
@@ -26,7 +26,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   private def updateEnergy() {
     tryAllSides((demand, _) => {
       val result = math.min(demand, conversionBuffer)
@@ -71,19 +71,19 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
 
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def getSinkTier: Int = Int.MaxValue
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection): Boolean = useIndustrialCraft2Power && canConnectPower(direction)
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
     conversionBuffer += amount
     0.0
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def getDemandedEnergy: Double = {
     if (!useIndustrialCraft2Power) 0.0
     else if (conversionBuffer < energyThroughput * Settings.get.tickFrequency)
