@@ -14,10 +14,7 @@ import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.common.template.DroneTemplate
-import li.cil.oc.common.template.MicrocontrollerTemplate
-import li.cil.oc.common.template.RobotTemplate
-import li.cil.oc.common.template.TabletTemplate
+import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.WirelessRedstone
@@ -33,7 +30,9 @@ object ModOpenComputers extends ModProxy {
   override def initialize() {
     DroneTemplate.register()
     MicrocontrollerTemplate.register()
+    NavigationUpgradeTemplate.register()
     RobotTemplate.register()
+    ServerTemplate.register()
     TabletTemplate.register()
 
     Loot.init()

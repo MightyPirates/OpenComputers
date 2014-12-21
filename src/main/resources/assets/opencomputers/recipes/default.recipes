@@ -22,7 +22,7 @@ microcontrollerCase1 {
           [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
 }
 microcontrollerCase2 {
-  input: [[nuggetGold, "oc:circuitChip2", nuggetGold]
+  input: [[nuggetGold, "oc:circuitChip3", nuggetGold]
           [blockRedstone, chest, blockRedstone]
           [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
 }

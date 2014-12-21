@@ -6,8 +6,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.Tier
-import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -91,63 +90,14 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   def disassemble(stack: ItemStack) {
     // Validate the item, never trust Minecraft / other Mods on anything!
     if (stack != null && isItemValidForSlot(0, stack)) {
-      if (api.Items.get(stack) == api.Items.get("robot")) enqueueRobot(stack)
-      else if (api.Items.get(stack) == api.Items.get("server1")) enqueueServer(stack, 0)
-      else if (api.Items.get(stack) == api.Items.get("server2")) enqueueServer(stack, 1)
-      else if (api.Items.get(stack) == api.Items.get("server3")) enqueueServer(stack, 2)
-      else if (api.Items.get(stack) == api.Items.get("tablet")) enqueueTablet(stack)
-      else if (api.Items.get(stack) == api.Items.get("microcontroller")) enqueueMicrocontroller(stack)
-      else if (api.Items.get(stack) == api.Items.get("navigationUpgrade")) enqueueNavigationUpgrade(stack)
-      else queue ++= getIngredients(stack)
+      DisassemblerTemplates.select(stack) match {
+        case Some(template) =>
+          val (stacks, drops) = template.disassemble(stack, getIngredients(stack).toArray)
+          stacks.foreach(queue ++= _)
+          drops.foreach(_.foreach(drop))
+        case _ => queue ++= getIngredients(stack)
+      }
       totalRequiredEnergy = queue.size * Settings.get.disassemblerItemCost
-    }
-  }
-
-  private def enqueueRobot(robot: ItemStack) {
-    val info = new ItemUtils.RobotData(robot)
-    val itemName =
-      if (info.tier == Tier.Four) "caseCreative"
-      else "case" + (info.tier + 1)
-    queue += api.Items.get(itemName).createItemStack(1)
-    queue ++= info.containers
-    queue ++= info.components
-    node.changeBuffer(info.robotEnergy)
-  }
-
-  private def enqueueServer(server: ItemStack, serverTier: Int) {
-    val info = new ServerInventory {
-      override def tier = serverTier
-
-      override def container = server
-    }
-    for (slot <- 0 until info.getSizeInventory) {
-      val stack = info.getStackInSlot(slot)
-      drop(stack)
-    }
-    queue ++= getIngredients(server)
-  }
-
-  private def enqueueTablet(tablet: ItemStack) {
-    val info = new ItemUtils.TabletData(tablet)
-    queue += api.Items.get("tabletCase").createItemStack(1)
-    queue ++= info.items.collect {
-      case Some(stack) => stack
-    }.drop(1) // Screen.
-    node.changeBuffer(info.energy)
-  }
-
-  private def enqueueMicrocontroller(mcu: ItemStack) {
-    val info = new ItemUtils.MicrocontrollerData(mcu)
-    queue += api.Items.get("microcontrollerCase").createItemStack(1)
-    queue ++= info.components
-  }
-
-  private def enqueueNavigationUpgrade(stack: ItemStack) {
-    val info = new ItemUtils.NavigationUpgradeData(stack)
-    val parts = getIngredients(stack)
-    queue ++= parts.map {
-      case part if part.getItem == net.minecraft.init.Items.filled_map => info.map
-      case part => part
     }
   }
 
@@ -250,7 +200,5 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && getIngredients(stack).nonEmpty) ||
-      api.Items.get(stack) == api.Items.get("robot") ||
-      api.Items.get(stack) == api.Items.get("tablet") ||
-      api.Items.get(stack) == api.Items.get("microcontroller")
+      DisassemblerTemplates.select(stack) != null
 }

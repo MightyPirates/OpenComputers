@@ -28,6 +28,7 @@ object DroneTemplate extends Template {
   def assemble(inventory: IInventory) = {
     val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
     val data = new ItemUtils.MicrocontrollerData()
+    data.tier = caseTier(inventory)
     data.components = items.drop(1).filter(_ != null).toArray
     data.storedEnergy = Settings.get.bufferDrone.toInt
     val stack = api.Items.get("drone").createItemStack(1)
@@ -35,6 +36,13 @@ object DroneTemplate extends Template {
     val energy = Settings.get.droneBaseCost + complexity(inventory) * Settings.get.droneComplexityCost
 
     Array(stack, double2Double(energy))
+  }
+
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("drone")
+
+  def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
+    val info = new ItemUtils.MicrocontrollerData(stack)
+    Array(api.Items.get("droneCase" + (info.tier + 1)).createItemStack(1)) ++ info.components
   }
 
   def register() {
@@ -91,6 +99,16 @@ object DroneTemplate extends Template {
       nbt.setTag("componentSlots", componentSlots)
 
       FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+    }
+
+    // Disassembler
+    {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", "Drone")
+      nbt.setString("select", "li.cil.oc.common.template.DroneTemplate.selectDisassembler")
+      nbt.setString("disassemble", "li.cil.oc.common.template.DroneTemplate.disassemble")
+
+      FMLInterModComms.sendMessage("OpenComputers", "registerDisassemblerTemplate", nbt)
     }
   }
 

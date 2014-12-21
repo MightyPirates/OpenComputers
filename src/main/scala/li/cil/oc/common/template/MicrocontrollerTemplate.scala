@@ -28,6 +28,7 @@ object MicrocontrollerTemplate extends Template {
   def assemble(inventory: IInventory) = {
     val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
     val data = new ItemUtils.MicrocontrollerData()
+    data.tier = caseTier(inventory)
     data.components = items.drop(1).filter(_ != null).toArray
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
     val stack = api.Items.get("microcontroller").createItemStack(1)
@@ -35,6 +36,13 @@ object MicrocontrollerTemplate extends Template {
     val energy = Settings.get.microcontrollerBaseCost + complexity(inventory) * Settings.get.microcontrollerComplexityCost
 
     Array(stack, double2Double(energy))
+  }
+
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontroller")
+
+  def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
+    val info = new ItemUtils.MicrocontrollerData(stack)
+    Array(api.Items.get("microcontrollerCase" + (info.tier + 1)).createItemStack(1)) ++ info.components
   }
 
   def register() {
@@ -88,6 +96,16 @@ object MicrocontrollerTemplate extends Template {
       nbt.setTag("componentSlots", componentSlots)
 
       FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+    }
+
+    // Disassembler
+    {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", "Microcontroller")
+      nbt.setString("select", "li.cil.oc.common.template.MicrocontrollerTemplate.selectDisassembler")
+      nbt.setString("disassemble", "li.cil.oc.common.template.MicrocontrollerTemplate.disassemble")
+
+      FMLInterModComms.sendMessage("OpenComputers", "registerDisassemblerTemplate", nbt)
     }
   }
 
