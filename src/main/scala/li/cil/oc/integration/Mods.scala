@@ -40,11 +40,6 @@ object Mods {
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new SimpleMod(IDs.GregTech)
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
-  val IndustrialCraft2API = new ClassBasedMod(IDs.IndustrialCraft2API,
-    "ic2.api.energy.tile.IEnergySink",
-    "ic2.api.energy.tile.IEnergyTile",
-    "ic2.api.energy.event.EnergyTileLoadEvent",
-    "ic2.api.energy.event.EnergyTileUnloadEvent")(providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val Minecraft = new SimpleMod(IDs.Minecraft)
@@ -146,7 +141,6 @@ object Mods {
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
-    final val IndustrialCraft2API = "IC2API"
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val Mekanism = "Mekanism"
     final val Minecraft = "Minecraft"

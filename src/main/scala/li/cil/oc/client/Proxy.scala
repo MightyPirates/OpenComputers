@@ -1,6 +1,5 @@
 package li.cil.oc.client
 
-import appeng.client.render.BusRenderer
 import cpw.mods.fml.client.registry.ClientRegistry
 import cpw.mods.fml.client.registry.RenderingRegistry
 import cpw.mods.fml.common.FMLCommonHandler
@@ -10,7 +9,6 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.client
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
@@ -25,10 +23,10 @@ import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{Proxy => CommonProxy}
-import li.cil.oc.integration.Mods
 import li.cil.oc.util.Audio
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
+import org.lwjgl.opengl.GLContext
 
 private[oc] class Proxy extends CommonProxy {
   override def preInit(e: FMLPreInitializationEvent) {
@@ -57,7 +55,10 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.DiskDrive], DiskDriveRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Geolyzer], GeolyzerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
+    if (GLContext.getCapabilities.OpenGL15)
+      ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
+    else
+      ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRendererFallback)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Microcontroller], MicrocontrollerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], RaidRenderer)

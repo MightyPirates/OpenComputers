@@ -39,7 +39,7 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
     if (Mods.Factorization.isAvailable) {
       addRatio(tooltip, "Factorization", Settings.get.ratioFactorization)
     }
-    if (Mods.IndustrialCraft2API.isAvailable || Mods.IndustrialCraft2Classic.isAvailable) {
+    if (Mods.IndustrialCraft2.isAvailable || Mods.IndustrialCraft2Classic.isAvailable) {
       addRatio(tooltip, "IndustrialCraft2", Settings.get.ratioIndustrialCraft2)
     }
     if (Mods.Mekanism.isAvailable) {
