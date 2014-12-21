@@ -39,7 +39,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
 
-  override protected def position = BlockPosition(robot)
+  override def position = BlockPosition(robot)
 
   // ----------------------------------------------------------------------- //
 
@@ -64,7 +64,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
-  override protected def fakePlayer = robot.player()
+  override def fakePlayer = robot.player()
 
   override protected def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
 

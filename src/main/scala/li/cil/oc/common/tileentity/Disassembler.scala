@@ -2,7 +2,6 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
@@ -12,19 +11,11 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
-import net.minecraft.item.ItemBucket
 import net.minecraft.item.ItemStack
-import net.minecraft.item.crafting.CraftingManager
-import net.minecraft.item.crafting.IRecipe
-import net.minecraft.item.crafting.ShapedRecipes
-import net.minecraft.item.crafting.ShapelessRecipes
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.oredict.ShapedOreRecipe
-import net.minecraftforge.oredict.ShapelessOreRecipe
 
-import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
@@ -90,65 +81,16 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   def disassemble(stack: ItemStack) {
     // Validate the item, never trust Minecraft / other Mods on anything!
     if (stack != null && isItemValidForSlot(0, stack)) {
+      val ingredients = ItemUtils.getIngredients(stack)
       DisassemblerTemplates.select(stack) match {
         case Some(template) =>
-          val (stacks, drops) = template.disassemble(stack, getIngredients(stack).toArray)
+          val (stacks, drops) = template.disassemble(stack, ingredients)
           stacks.foreach(queue ++= _)
           drops.foreach(_.foreach(drop))
-        case _ => queue ++= getIngredients(stack)
+        case _ => queue ++= ingredients
       }
       totalRequiredEnergy = queue.size * Settings.get.disassemblerItemCost
     }
-  }
-
-  private def getIngredients(stack: ItemStack): Iterable[ItemStack] = try {
-    val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
-    val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack))
-    val count = recipe.fold(0)(_.getRecipeOutput.stackSize)
-    val ingredients = (recipe match {
-      case Some(recipe: ShapedRecipes) => recipe.recipeItems.toIterable
-      case Some(recipe: ShapelessRecipes) => recipe.recipeItems.map(_.asInstanceOf[ItemStack])
-      case Some(recipe: ShapedOreRecipe) => resolveOreDictEntries(recipe.getInput)
-      case Some(recipe: ShapelessOreRecipe) => resolveOreDictEntries(recipe.getInput)
-      case _ => Iterable.empty
-    }).filter(ingredient => ingredient != null &&
-      // Strip out buckets, because those are returned when crafting, and
-      // we have no way of returning the fluid only (and I can't be arsed
-      // to make it output fluids into fluiducts or such, sorry).
-      !ingredient.getItem.isInstanceOf[ItemBucket]).toArray
-    // Avoid positive feedback loops.
-    if (ingredients.exists(ingredient => ingredient.isItemEqual(stack))) {
-      return Iterable.empty
-    }
-    // Merge equal items for size division by output size.
-    val merged = mutable.ArrayBuffer.empty[ItemStack]
-    for (ingredient <- ingredients) {
-      merged.find(_.isItemEqual(ingredient)) match {
-        case Some(entry) => entry.stackSize += ingredient.stackSize
-        case _ => merged += ingredient.copy()
-      }
-    }
-    merged.foreach(_.stackSize /= count)
-    // Split items up again to 'disassemble them individually'.
-    val distinct = mutable.ArrayBuffer.empty[ItemStack]
-    for (ingredient <- merged) {
-      val size = ingredient.stackSize
-      ingredient.stackSize = 1
-      for (i <- 0 until size) {
-        distinct += ingredient.copy()
-      }
-    }
-    distinct
-  }
-  catch {
-    case t: Throwable =>
-      OpenComputers.log.warn("Whoops, something went wrong when trying to figure out an item's parts.", t)
-      Iterable.empty
-  }
-
-  private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
-    case stack: ItemStack => stack
-    case list: java.util.ArrayList[ItemStack]@unchecked if !list.isEmpty => list.get(world.rand.nextInt(list.size))
   }
 
   private def drop(stack: ItemStack) {
@@ -199,6 +141,6 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def getInventoryStackLimit = 64
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
-    ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && getIngredients(stack).nonEmpty) ||
+    ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
       DisassemblerTemplates.select(stack) != null
 }

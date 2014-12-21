@@ -1,7 +1,6 @@
 package li.cil.oc.common.template
 
 import java.lang.reflect.Method
-import java.lang.reflect.Modifier
 
 import com.google.common.base.Strings
 import li.cil.oc.OpenComputers

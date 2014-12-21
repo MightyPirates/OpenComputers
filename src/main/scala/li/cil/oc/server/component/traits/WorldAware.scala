@@ -21,11 +21,11 @@ import scala.reflect.ClassTag
 import scala.reflect.classTag
 
 trait WorldAware {
-  protected def position: BlockPosition
+  def position: BlockPosition
 
-  protected def world = position.world.get
+  def world = position.world.get
 
-  protected def fakePlayer: FakePlayer = {
+  def fakePlayer: FakePlayer = {
     val player = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
     player.posX = position.x + 0.5
     player.posY = position.y + 0.5
@@ -33,24 +33,24 @@ trait WorldAware {
     player
   }
 
-  protected def entitiesInBounds[Type <: Entity : ClassTag](bounds: AxisAlignedBB) = {
+  def entitiesInBounds[Type <: Entity : ClassTag](bounds: AxisAlignedBB) = {
     world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
   }
 
-  protected def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
+  def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
     entitiesInBounds[Type](blockPos.bounds)
   }
 
-  protected def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
+  def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
     entitiesInBlock[Type](position.offset(side))
   }
 
-  protected def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection) = {
+  def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection) = {
     val blockPos = position.offset(side)
     Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, blockPos.bounds, fakePlayer)).map(_.asInstanceOf[Type])
   }
 
-  protected def blockContent(side: ForgeDirection) = {
+  def blockContent(side: ForgeDirection) = {
     closestEntity[Entity](side) match {
       case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
         (true, "entity")

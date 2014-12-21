@@ -21,7 +21,7 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
     withConnector(Settings.get.bufferDrone).
     create()
 
-  override protected def position = BlockPosition(host: Entity)
+  override def position = BlockPosition(host: Entity)
 
   override def inventory = host.inventory
 

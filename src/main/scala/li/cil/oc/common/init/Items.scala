@@ -316,5 +316,6 @@ object Items extends ItemAPI {
     Recipes.addMultiItem(new UpgradeLeash(multi), "leashUpgrade", "oc:leashUpgrade")
     Recipes.addMultiItem(new item.MicrocontrollerCase(multi, Tier.Two), "microcontrollerCase2", "oc:microcontrollerCase2")
     Recipes.addMultiItem(new item.DroneCase(multi, Tier.Two), "droneCase2", "oc:droneCase2")
+    registerItem(new item.Present(multi), "present")
   }
 }

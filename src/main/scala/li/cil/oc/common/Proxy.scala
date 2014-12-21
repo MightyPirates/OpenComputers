@@ -38,6 +38,9 @@ class Proxy {
       Recipes.addMultiItem(Items.ironNugget, "nuggetIron")
       Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
     }
+    else {
+      Items.ironNugget.showInItemList = false
+    }
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
     // oredict entry, but not normal obsidian, breaking some recipes.
