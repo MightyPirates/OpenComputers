@@ -189,6 +189,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3) {
     info.load(stack)
+    control.node.changeBuffer(info.storedEnergy - control.node.localBuffer)
+    wireThingsTogether()
     inventorySize = computeInventorySize()
     setPosition(position.xCoord, position.yCoord, position.zCoord)
   }
@@ -199,10 +201,14 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     targetZ = math.floor(posZ).toFloat + 0.5f
     targetAcceleration = maxAcceleration
 
+    wireThingsTogether()
+  }
+
+  private def wireThingsTogether(): Unit = {
     api.Network.joinNewNetwork(machine.node)
-    components.connectComponents()
     machine.node.connect(control.node)
     machine.setCostPerTick(Settings.get.droneCost)
+    components.connectComponents()
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
@@ -250,6 +256,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       machine.node.remove()
       components.saveComponents()
       val stack = api.Items.get("drone").createItemStack(1)
+      info.storedEnergy = control.node.localBuffer.toInt
       info.save(stack)
       val entity = new EntityItem(world, posX, posY, posZ, stack)
       entity.delayBeforeCanPickup = 15
@@ -409,9 +416,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       components.load(nbt.getCompoundTag("components"))
       inventory.load(nbt.getCompoundTag("inventory"))
 
-      api.Network.joinNewNetwork(machine.node)
-      components.connectComponents()
-      machine.node.connect(control.node)
+      wireThingsTogether()
     }
     targetX = nbt.getFloat("targetX")
     targetY = nbt.getFloat("targetY")
@@ -424,6 +429,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
     components.saveComponents()
+    info.storedEnergy = control.node.localBuffer.toInt
     nbt.setNewCompoundTag("info", info.save)
     if (!world.isRemote) {
       nbt.setNewCompoundTag("machine", machine.save)

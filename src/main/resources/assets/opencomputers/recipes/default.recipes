@@ -6,15 +6,25 @@ analyzer {
           ["oc:materialTransistor", nuggetGold, ""]
           ["oc:materialCircuitBoardPrinted", nuggetGold, ""]]
 }
-droneCase {
+droneCase1 {
   input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
-          ["oc:circuitChip2", "oc:microcontrollerCase", "oc:circuitChip2"]
+          ["oc:circuitChip1", "oc:microcontrollerCase1", "oc:circuitChip1"]
           [{block="minecraft:end_stone"}, "oc:componentBus2", {block="minecraft:end_stone"}]]
 }
-microcontrollerCase {
+droneCase2 {
+  input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
+          ["oc:circuitChip2", "oc:microcontrollerCase2", "oc:circuitChip2"]
+          [{block="minecraft:end_stone"}, "oc:componentBus3", {block="minecraft:end_stone"}]]
+}
+microcontrollerCase1 {
   input: [[nuggetIron, "oc:circuitChip1", nuggetIron]
           [redstone, chest, redstone]
           [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
+microcontrollerCase2 {
+  input: [[nuggetGold, "oc:circuitChip2", nuggetGold]
+          [blockRedstone, chest, blockRedstone]
+          [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
 }
 terminal {
   input: [[nuggetIron, "oc:solarGeneratorUpgrade", nuggetIron]

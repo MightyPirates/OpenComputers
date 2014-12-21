@@ -102,7 +102,9 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
     OpenComputers.ID + ":rack" -> "serverRack",
-    "appengTunnel" -> "" // Avoid breaking worlds for people that used the dev builds.
+    OpenComputers.ID + ":appengTunnel" -> "", // Avoid breaking worlds for people that used the dev builds.
+    OpenComputers.ID + ":microcontrollerCase" -> "microcontrollerCase1",
+    OpenComputers.ID + ":droneCase" -> "droneCase1"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

@@ -154,6 +154,7 @@ class Settings(val config: Config) {
   val bufferTablet = config.getDouble("power.buffer.tablet") max 0
   val bufferAccessPoint = config.getDouble("power.buffer.accessPoint") max 0
   val bufferDrone = config.getDouble("power.buffer.drone") max 0
+  val bufferMicrocontroller = config.getDouble("power.buffer.mcu") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0

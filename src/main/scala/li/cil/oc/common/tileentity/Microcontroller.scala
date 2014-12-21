@@ -28,7 +28,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
     withConnector().
     create()
 
-  private val snooperNode = api.Network.newNode(this, Visibility.Network).create()
+  val snooperNode = api.Network.newNode(this, Visibility.Network).
+    withConnector(Settings.get.bufferMicrocontroller).
+    create()
+
+  if (machine != null) {
+    machine.node.asInstanceOf[Connector].setLocalBufferSize(0)
+  }
 
   override protected def runSound = None // Microcontrollers are silent.
 

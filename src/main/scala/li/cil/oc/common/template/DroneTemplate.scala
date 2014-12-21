@@ -19,7 +19,9 @@ object DroneTemplate extends Template {
 
   override protected def hostClass = classOf[internal.Drone]
 
-  def select(stack: ItemStack) = api.Items.get(stack) == api.Items.get("droneCase")
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("droneCase1")
+
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("droneCase2")
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
@@ -27,6 +29,7 @@ object DroneTemplate extends Template {
     val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
     val data = new ItemUtils.MicrocontrollerData()
     data.components = items.drop(1).filter(_ != null).toArray
+    data.storedEnergy = Settings.get.bufferDrone.toInt
     val stack = api.Items.get("drone").createItemStack(1)
     data.save(stack)
     val energy = Settings.get.droneBaseCost + complexity(inventory) * Settings.get.droneComplexityCost
@@ -35,33 +38,63 @@ object DroneTemplate extends Template {
   }
 
   def register() {
-    val nbt = new NBTTagCompound()
-    nbt.setString("name", "Drone")
-    nbt.setString("select", "li.cil.oc.common.template.DroneTemplate.select")
-    nbt.setString("validate", "li.cil.oc.common.template.DroneTemplate.validate")
-    nbt.setString("assemble", "li.cil.oc.common.template.DroneTemplate.assemble")
-    nbt.setString("hostClass", "li.cil.oc.api.internal.Drone")
+    // Tier 1
+    {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", "Drone (Tier 1)")
+      nbt.setString("select", "li.cil.oc.common.template.DroneTemplate.selectTier1")
+      nbt.setString("validate", "li.cil.oc.common.template.DroneTemplate.validate")
+      nbt.setString("assemble", "li.cil.oc.common.template.DroneTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.internal.Drone")
 
-    val upgradeSlots = new NBTTagList()
-    upgradeSlots.appendTag(Map("tier" -> Tier.Three))
-    upgradeSlots.appendTag(Map("tier" -> Tier.Two))
-    upgradeSlots.appendTag(Map("tier" -> Tier.One))
-    nbt.setTag("upgradeSlots", upgradeSlots)
+      val upgradeSlots = new NBTTagList()
+      upgradeSlots.appendTag(Map("tier" -> Tier.Two))
+      upgradeSlots.appendTag(Map("tier" -> Tier.One))
+      nbt.setTag("upgradeSlots", upgradeSlots)
 
-    val componentSlots = new NBTTagList()
-    componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
-    componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
-    componentSlots.appendTag(new NBTTagCompound())
-    componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.One))
-    componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.One))
-    componentSlots.appendTag(new NBTTagCompound())
-    componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
-    nbt.setTag("componentSlots", componentSlots)
+      val componentSlots = new NBTTagList()
+      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
+      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.One))
+      componentSlots.appendTag(new NBTTagCompound())
+      componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.One))
+      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.One))
+      componentSlots.appendTag(new NBTTagCompound())
+      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
+      nbt.setTag("componentSlots", componentSlots)
 
-    FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+      FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+    }
+
+    // Tier 2
+    {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", "Drone (Tier 2)")
+      nbt.setString("select", "li.cil.oc.common.template.DroneTemplate.selectTier2")
+      nbt.setString("validate", "li.cil.oc.common.template.DroneTemplate.validate")
+      nbt.setString("assemble", "li.cil.oc.common.template.DroneTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.internal.Drone")
+
+      val upgradeSlots = new NBTTagList()
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Two))
+      upgradeSlots.appendTag(Map("tier" -> Tier.One))
+      nbt.setTag("upgradeSlots", upgradeSlots)
+
+      val componentSlots = new NBTTagList()
+      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
+      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Two))
+      componentSlots.appendTag(new NBTTagCompound())
+      componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.One))
+      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.One))
+      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.One))
+      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
+      nbt.setTag("componentSlots", componentSlots)
+
+      FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+    }
   }
 
-  override protected def maxComplexity(inventory: IInventory) = 8
+  override protected def maxComplexity(inventory: IInventory) = if (caseTier(inventory) == Tier.Two) 8 else 5
 
-  override protected def caseTier(inventory: IInventory) = if (select(inventory.getStackInSlot(0))) Tier.One else Tier.None
+  override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getStackInSlot(0))
 }

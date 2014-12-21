@@ -26,6 +26,10 @@ object ItemUtils {
     else if (descriptor == api.Items.get("case2")) Tier.Two
     else if (descriptor == api.Items.get("case3")) Tier.Three
     else if (descriptor == api.Items.get("caseCreative")) Tier.Four
+    else if (descriptor == api.Items.get("microcontrollerCase1")) Tier.One
+    else if (descriptor == api.Items.get("microcontrollerCase2")) Tier.Two
+    else if (descriptor == api.Items.get("droneCase1")) Tier.One
+    else if (descriptor == api.Items.get("droneCase2")) Tier.Two
     else Tier.None
   }
 
@@ -56,13 +60,17 @@ object ItemUtils {
 
     var components = Array.empty[ItemStack]
 
+    var storedEnergy = 0
+
     override def load(nbt: NBTTagCompound) {
       components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
         toArray[NBTTagCompound].map(loadStack)
+      storedEnergy = nbt.getInteger(Settings.namespace + "storedEnergy")
     }
 
     override def save(nbt: NBTTagCompound) {
       nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
+      nbt.setInteger(Settings.namespace + "storedEnergy", storedEnergy)
     }
 
     def createItemStack() = {

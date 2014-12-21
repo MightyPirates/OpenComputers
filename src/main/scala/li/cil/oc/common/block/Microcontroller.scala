@@ -84,6 +84,7 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor {
     if (!world.isRemote) world.getTileEntity(x, y, z) match {
       case mcu: tileentity.Microcontroller =>
         mcu.info.load(stack)
+        mcu.snooperNode.changeBuffer(mcu.info.storedEnergy - mcu.snooperNode.localBuffer)
       case _ =>
     }
   }
@@ -93,6 +94,7 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor {
       world.getTileEntity(x, y, z) match {
         case mcu: tileentity.Microcontroller =>
           mcu.saveComponents()
+          mcu.info.storedEnergy = mcu.snooperNode.localBuffer.toInt
           dropBlockAsItem(world, x, y, z, mcu.info.createItemStack())
         case _ =>
       }
