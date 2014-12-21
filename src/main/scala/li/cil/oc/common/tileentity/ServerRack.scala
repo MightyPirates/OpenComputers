@@ -134,7 +134,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override protected def distribute() = {
     def node(side: Int) = sides(side) match {
-      case None => servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector])
+      case None | Some(ForgeDirection.UNKNOWN) => servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector])
       case _ => null
     }
     val nodes = (0 to 3).map(node)
@@ -236,23 +236,26 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override def updateEntity() {
     super.updateEntity()
     if (isServer && isConnected) {
-      if (range > 0 && !Settings.get.ignorePower && anyRunning) {
-        val running = servers.count {
+      val shouldUpdatePower = world.getTotalWorldTime % Settings.get.tickFrequency == 0
+      if (shouldUpdatePower && range > 0 && !Settings.get.ignorePower) {
+        val countRunning = servers.count {
           case Some(server) => server.machine.isRunning
           case _ => false
         }
-        var cost = -(running * range * Settings.get.wirelessCostPerRange)
-        for (side <- ForgeDirection.VALID_DIRECTIONS if cost < 0) {
-          sidedNode(side) match {
-            case connector: Connector => cost = connector.changeBuffer(cost)
-            case _ =>
+        if (countRunning > 0) {
+          var cost = -(countRunning * range * Settings.get.wirelessCostPerRange * Settings.get.tickFrequency)
+          for (side <- ForgeDirection.VALID_DIRECTIONS if cost < 0) {
+            sidedNode(side) match {
+              case connector: Connector => cost = connector.changeBuffer(cost)
+              case _ =>
+            }
           }
         }
       }
 
       servers collect {
         case Some(server) =>
-          if (server.tier == Tier.Four && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+          if (shouldUpdatePower && server.tier == Tier.Four) {
             server.machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
           }
           server.machine.update()
