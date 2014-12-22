@@ -48,6 +48,8 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
+  def timeRemaining = (requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+
   // ----------------------------------------------------------------------- //
 
   def start(finishImmediately: Boolean = false): Boolean = this.synchronized {

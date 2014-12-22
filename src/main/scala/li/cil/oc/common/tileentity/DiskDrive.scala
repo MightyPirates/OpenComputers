@@ -6,6 +6,7 @@ import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
@@ -22,13 +23,14 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = 0L
 
+  def filesystemNode = components(0) match {
+    case Some(environment) => Option(environment.node)
+    case _ => None
+  }
+
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =
-    components(0) match {
-      case Some(environment) => Array(environment.node)
-      case _ => null
-    }
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = filesystemNode.fold(null: Array[Node])(Array(_))
 
   override def canUpdate = false
 
