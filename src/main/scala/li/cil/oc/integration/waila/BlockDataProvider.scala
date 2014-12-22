@@ -16,6 +16,7 @@ import mcp.mobius.waila.api.IWailaDataProvider
 import mcp.mobius.waila.api.IWailaRegistrar
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagString
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
@@ -90,6 +91,10 @@ object BlockDataProvider extends IWailaDataProvider {
       case te: tileentity.Hologram => ignoreSidedness(te.node)
       case te: tileentity.Keyboard => ignoreSidedness(te.node)
       case te: tileentity.Screen => ignoreSidedness(te.node)
+      case te: tileentity.ServerRack =>
+        tag.removeTag("nodes")
+        tag.setNewTagList("servers", stringIterableToNbt(te.servers.map(_.fold("")(_.node.address))))
+        tag.setByteArray("sideIndexes", ForgeDirection.VALID_DIRECTIONS.map(te.sides.indexOf).map(_.toByte))
       case _ =>
     }
 
@@ -117,6 +122,16 @@ object BlockDataProvider extends IWailaDataProvider {
       case _: tileentity.Charger =>
         val chargeSpeed = tag.getDouble("chargeSpeed")
         tooltip.add(Localization.Analyzer.ChargerSpeed(chargeSpeed).getUnformattedText)
+      case te: tileentity.ServerRack =>
+        val servers = tag.getTagList("servers", NBT.TAG_STRING).map((t: NBTTagString) => t.func_150285_a_()).toArray
+        val hitPos = accessor.getPosition.hitVec
+        val address = te.slotAt(accessor.getSide, (hitPos.xCoord - accessor.getPosition.blockX).toFloat, (hitPos.yCoord - accessor.getPosition.blockY).toFloat, (hitPos.zCoord - accessor.getPosition.blockZ).toFloat) match {
+          case Some(slot) => servers(slot)
+          case _ => tag.getByteArray("sideIndexes").map(index => if (index >= 0) servers(index) else "").apply(te.toLocal(accessor.getSide).ordinal)
+        }
+        if (address.nonEmpty) {
+          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+        }
       case _ =>
     }
 

@@ -200,27 +200,35 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (side == facing.ordinal) {
+    slotAt(ForgeDirection.getOrientation(side), hitX, hitY, hitZ) match {
+      case Some(slot) => servers(slot) match {
+        case Some(server) =>
+          val computer = server.machine
+          computer.lastError match {
+            case value if value != null =>
+              player.addChatMessage(Localization.Analyzer.LastError(value))
+            case _ =>
+          }
+          player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, servers(slot).get.maxComponents))
+          val list = computer.users
+          if (list.size > 0) {
+            player.addChatMessage(Localization.Analyzer.Users(list))
+          }
+          Array(computer.node)
+        case _ => null
+      }
+      case _ => Array(sidedNode(ForgeDirection.getOrientation(side)))
+    }
+  }
+
+  def slotAt(side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (side == facing) {
       val l = 2 / 16.0
       val h = 14 / 16.0
       val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
-      if (slot >= 0 && slot <= 3 && servers(slot).isDefined) {
-        val computer = servers(slot).get.machine
-        computer.lastError match {
-          case value if value != null =>
-            player.addChatMessage(Localization.Analyzer.LastError(value))
-          case _ =>
-        }
-        player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, servers(slot).get.maxComponents))
-        val list = computer.users
-        if (list.size > 0) {
-          player.addChatMessage(Localization.Analyzer.Users(list))
-        }
-        Array(computer.node)
-      }
-      else null
+      Some(math.max(0, math.min(servers.length, slot)))
     }
-    else Array(sidedNode(ForgeDirection.getOrientation(side)))
+    else None
   }
 
   // ----------------------------------------------------------------------- //
