@@ -21,7 +21,7 @@ object UpgradeTankController {
 
     // ----------------------------------------------------------------------- //
 
-    override protected def position = BlockPosition(host)
+    override def position = BlockPosition(host)
 
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
   }
@@ -31,7 +31,7 @@ object UpgradeTankController {
       withComponent("tank_controller", Visibility.Neighbors).
       create()
 
-    override protected def position = BlockPosition(host: Entity)
+    override def position = BlockPosition(host: Entity)
 
     override def inventory = host.inventory
 
@@ -53,7 +53,7 @@ object UpgradeTankController {
       withComponent("tank_controller", Visibility.Neighbors).
       create()
 
-    override protected def position = BlockPosition(host)
+    override def position = BlockPosition(host)
 
     override def inventory = host.dynamicInventory
 

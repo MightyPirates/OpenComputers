@@ -95,7 +95,7 @@ object BlockDataProvider extends IWailaDataProvider {
       case te: tileentity.ServerRack =>
         tag.removeTag("nodes")
         tag.setNewTagList("servers", stringIterableToNbt(te.servers.map(_.fold("")(_.node.address))))
-        tag.setByteArray("sideIndexes", ForgeDirection.VALID_DIRECTIONS.map(te.sides.indexOf).map(_.toByte))
+        tag.setByteArray("sideIndexes", ForgeDirection.VALID_DIRECTIONS.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
       case _ =>
     }
 

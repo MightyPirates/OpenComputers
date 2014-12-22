@@ -32,7 +32,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
 
   val leashedEntities = mutable.Set.empty[UUID]
 
-  override protected def position = BlockPosition(host)
+  override def position = BlockPosition(host)
 
   @Callback(doc = """function(side:number):boolean -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {

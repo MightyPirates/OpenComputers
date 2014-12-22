@@ -23,7 +23,7 @@ object UpgradeInventoryController {
 
     // ----------------------------------------------------------------------- //
 
-    override protected def position = BlockPosition(host)
+    override def position = BlockPosition(host)
 
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
   }
@@ -35,7 +35,7 @@ object UpgradeInventoryController {
 
     // ----------------------------------------------------------------------- //
 
-    override protected def position = BlockPosition(host: Entity)
+    override def position = BlockPosition(host: Entity)
 
     override def inventory = host.inventory
 
@@ -53,7 +53,7 @@ object UpgradeInventoryController {
 
     // ----------------------------------------------------------------------- //
 
-    override protected def position = BlockPosition(host)
+    override def position = BlockPosition(host)
 
     override def inventory = host.dynamicInventory
 
