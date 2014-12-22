@@ -51,6 +51,12 @@ object IMC {
           Settings.get.peripheralBlacklist.add(message.getStringValue)
         }
       }
+      else if (message.key == "registerAssemblerFilter" && message.isStringMessage) {
+        OpenComputers.log.info(s"Registering new assembler template filter '${message.getStringValue}' from mod ${message.getSender}.")
+        try AssemblerTemplates.addFilter(message.getStringValue) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering assembler template filter.", t)
+        }
+      }
     }
   }
 

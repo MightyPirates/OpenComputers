@@ -283,6 +283,7 @@ class Settings(val config: Config) {
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
   val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
+  val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
 
   // ----------------------------------------------------------------------- //
   // integration

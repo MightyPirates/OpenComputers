@@ -13,6 +13,7 @@ import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template.MicrocontrollerTemplate
 import li.cil.oc.common.template.RobotTemplate
 import li.cil.oc.common.template.TabletTemplate
+import li.cil.oc.common.template.TemplateBlacklist
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.server.network.WirelessNetwork
@@ -26,6 +27,7 @@ object ModOpenComputers extends ModProxy {
     MicrocontrollerTemplate.register()
     RobotTemplate.register()
     TabletTemplate.register()
+    TemplateBlacklist.register()
 
     Loot.init()
     Recipes.init()
