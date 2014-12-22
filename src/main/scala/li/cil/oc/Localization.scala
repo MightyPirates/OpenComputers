@@ -39,7 +39,7 @@ object Localization {
 
     def RobotName(name: String) = localizeLater("gui.Analyzer.RobotName", name)
 
-    def RobotXp(experience: Double, level: Int) = localizeLater("gui.Analyzer.RobotXp", "%.2f".format(experience), level.toString)
+    def RobotXp(experience: Double, level: Int) = localizeLater("gui.Analyzer.RobotXp", f"$experience%.2f", level.toString)
 
     def StoredEnergy(value: String) = localizeLater("gui.Analyzer.StoredEnergy", value)
 

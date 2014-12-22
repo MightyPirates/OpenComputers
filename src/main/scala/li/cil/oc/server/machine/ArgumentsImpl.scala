@@ -197,13 +197,11 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   private def checkIndex(index: Int, name: String) =
     if (index < 0) throw new IndexOutOfBoundsException()
     else if (args.length <= index) throw new IllegalArgumentException(
-      "bad arguments #%d (%s expected, got no value)".
-        format(index + 1, name))
+      s"bad arguments #${index + 1} ($name expected, got no value)")
 
   private def typeError(index: Int, have: AnyRef, want: String) =
     new IllegalArgumentException(
-      "bad argument #%d (%s expected, got %s)".
-        format(index + 1, want, typeName(have)))
+      s"bad argument #${index + 1} ($want expected, got ${typeName(have)})")
 
   private def typeName(value: AnyRef): String = value match {
     case null | Unit | None => "nil"

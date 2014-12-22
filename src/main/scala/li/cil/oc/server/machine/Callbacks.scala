@@ -78,13 +78,13 @@ object Callbacks {
         if (m.getParameterTypes.size != 2 ||
           m.getParameterTypes()(0) != classOf[Context] ||
           m.getParameterTypes()(1) != classOf[Arguments]) {
-          OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
+          OpenComputers.log.error(s"Invalid use of Callback annotation on ${m.getDeclaringClass.getName}.${m.getName}: invalid argument types or count.")
         }
         else if (m.getReturnType != classOf[Array[AnyRef]]) {
-          OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
+          OpenComputers.log.error(s"Invalid use of Callback annotation on ${m.getDeclaringClass.getName}.${m.getName}: invalid return type.")
         }
         else if (!Modifier.isPublic(m.getModifiers)) {
-          OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
+          OpenComputers.log.error(s"Invalid use of Callback annotation on ${m.getDeclaringClass.getName}.${m.getName}: method must be public.")
         }
         else {
           val a = m.getAnnotation[machine.Callback](classOf[machine.Callback])

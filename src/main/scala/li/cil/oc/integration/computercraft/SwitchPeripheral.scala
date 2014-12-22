@@ -61,10 +61,10 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
 
   private def checkPort(args: Array[AnyRef], index: Int) = {
     if (args.length < index - 1 || !args(index).isInstanceOf[Double])
-      throw new IllegalArgumentException("bad argument #%d (number expected)".format(index + 1))
+      throw new IllegalArgumentException(s"bad argument #${index + 1} (number expected)")
     val port = args(index).asInstanceOf[Double].toInt
     if (port < 1 || port > 0xFFFF)
-      throw new IllegalArgumentException("bad argument #%d (number in [1, 65535] expected)".format(index + 1))
+      throw new IllegalArgumentException(s"bad argument #${index + 1} (number in [1, 65535] expected)")
     port
   }
 }

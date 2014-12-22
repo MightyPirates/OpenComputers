@@ -63,7 +63,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
         try {
           environment.load(nbt.getCompoundTag(name))
         } catch {
-          case e: Throwable => OpenComputers.log.warn("A block component of type '%s' (provided by driver '%s') threw an error while loading.".format(environment.getClass.getName, name), e)
+          case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$name') threw an error while loading.", e)
         }
       }
     }
@@ -77,7 +77,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
       try {
         nbt.setNewCompoundTag(name, environment.save)
       } catch {
-        case e: Throwable => OpenComputers.log.warn("A block component of type '%s' (provided by driver '%s') threw an error while saving.".format(environment.getClass.getName, name), e)
+        case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$name') threw an error while saving.", e)
       }
     }
   }

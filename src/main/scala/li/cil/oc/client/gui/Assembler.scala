@@ -95,8 +95,8 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   private def formatTime(seconds: Int) = {
     // Assembly times should not / rarely exceed one hour, so this is good enough.
-    if (seconds < 60) "0:%02d".format(seconds)
-    else "%d:%02d".format(seconds / 60, seconds % 60)
+    if (seconds < 60) f"0:$seconds%02d"
+    else f"${seconds / 60}:${seconds % 60}%02d"
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

@@ -42,9 +42,9 @@ class Analyzer(val parent: Delegator) extends Delegate {
     node match {
       case connector: Connector =>
         if (connector.localBufferSize > 0) {
-          player.addChatMessage(Localization.Analyzer.StoredEnergy("%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize)))
+          player.addChatMessage(Localization.Analyzer.StoredEnergy(f"${connector.localBuffer}%.2f/${connector.localBufferSize}%.2f"))
         }
-        player.addChatMessage(Localization.Analyzer.TotalEnergy("%.2f/%.2f".format(connector.globalBuffer, connector.globalBufferSize)))
+        player.addChatMessage(Localization.Analyzer.TotalEnergy(f"${connector.globalBuffer}%.2f/${connector.globalBufferSize}%.2f"))
       case _ =>
     }
     node match {

@@ -24,7 +24,7 @@ class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate with 
           val fsNbt = data.getCompoundTag("fs")
           if (fsNbt.hasKey("capacity.used")) {
             val used = fsNbt.getLong("capacity.used")
-            tooltip.add("Disk usage: %d/%d Byte".format(used, kiloBytes * 1024))
+            tooltip.add(s"Disk usage: $used/${kiloBytes * 1024} Byte")
           }
         }
       }
@@ -35,10 +35,10 @@ class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate with 
   override def displayName(stack: ItemStack) = {
     val localizedName = parent.internalGetItemStackDisplayName(stack)
     Some(if (kiloBytes >= 1024) {
-      localizedName + " (%dMB)".format(kiloBytes / 1024)
+      localizedName + s" (${kiloBytes / 1024}MB)"
     }
     else {
-      localizedName + " (%dKB)".format(kiloBytes)
+      localizedName + s" (${kiloBytes}KB)"
     })
   }
 }

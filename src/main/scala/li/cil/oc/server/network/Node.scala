@@ -50,7 +50,7 @@ trait Node extends ImmutableNode {
     try {
       host.onConnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.warn("A component of type '%s' threw an error while being connected to the component network.".format(host.getClass.getName), e)
+      case e: Throwable => OpenComputers.log.warn(s"A component of type '${host.getClass.getName}' threw an error while being connected to the component network.", e)
     }
   }
 
@@ -58,7 +58,7 @@ trait Node extends ImmutableNode {
     try {
       host.onDisconnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.warn("A component of type '%s' threw an error while being disconnected from the component network.".format(host.getClass.getName), e)
+      case e: Throwable => OpenComputers.log.warn(s"A component of type '${host.getClass.getName}' threw an error while being disconnected from the component network.", e)
     }
   }
 
