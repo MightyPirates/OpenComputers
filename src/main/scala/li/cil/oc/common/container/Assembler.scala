@@ -95,7 +95,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
         isAssembling = assembler.isAssembling
         sendProgressBarUpdate(0, if (isAssembling) 1 else 0)
       }
-      val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+      val timeRemaining = assembler.timeRemaining
       if (math.abs(assembler.progress - assemblyProgress) > 0.2 || assemblyRemainingTime != timeRemaining) {
         assemblyProgress = assembler.progress
         assemblyRemainingTime = timeRemaining
