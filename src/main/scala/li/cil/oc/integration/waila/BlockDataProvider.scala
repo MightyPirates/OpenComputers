@@ -14,6 +14,7 @@ import mcp.mobius.waila.api.IWailaConfigHandler
 import mcp.mobius.waila.api.IWailaDataAccessor
 import mcp.mobius.waila.api.IWailaDataProvider
 import mcp.mobius.waila.api.IWailaRegistrar
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
@@ -30,7 +31,7 @@ object BlockDataProvider extends IWailaDataProvider {
     registrar.registerNBTProvider(this, classOf[li.cil.oc.api.network.SidedEnvironment])
   }
 
-  override def getNBTData(tileEntity: TileEntity, tag: NBTTagCompound, world: World, x: Int, y: Int, z: Int) = {
+  override def getNBTData(player: EntityPlayerMP, tileEntity: TileEntity, tag: NBTTagCompound, world: World, x: Int, y: Int, z: Int) = {
     def writeNode(node: Node, tag: NBTTagCompound) = {
       if (node != null && node.reachability != Visibility.None) {
         if (node.address != null) {
