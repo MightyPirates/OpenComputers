@@ -359,10 +359,10 @@ object DebugCard {
       val profile = fakePlayer.getGameProfile
       val server = fakePlayer.mcServer
       val config = server.getConfigurationManager
-      config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
+      server.isSinglePlayer || (config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
         case entry: UserListOpsEntry => entry.func_152644_a >= level
         case _ => server.getOpPermissionLevel >= level
-      })
+      }))
     }
 
     override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates
