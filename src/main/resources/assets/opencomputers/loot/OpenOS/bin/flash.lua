@@ -23,13 +23,13 @@ if not options.q then
   repeat
     local response = io.read()
   until response and response:lower():sub(1, 1) == "y"
-  io.write("Beginning to flash EEPROM.")
+  io.write("Beginning to flash EEPROM.\n")
 end
 
 local eeprom = component.eeprom
 
 if not options.q then
-  io.write("Beginning to flash EEPROM " .. eeprom.address .. ".\n")
+  io.write("Flashing EEPROM " .. eeprom.address .. ".\n")
   io.write("Please do NOT power down or restart your computer during this operation!\n")
 end
 
@@ -43,7 +43,7 @@ if not options.q and not label then
   io.write("Enter new label for this EEPROM. Leave input blank to leave the label unchanged.\n")
   label = io.read()
 end
-if label then
+if label and #label > 0 then then
   eeprom.setLabel(label)
   if not options.q then
     io.write("Set label to '" .. eeprom.getLabel() .. "'.\n")
