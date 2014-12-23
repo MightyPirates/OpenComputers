@@ -114,15 +114,15 @@ function buffer:read(...)
     end
     local buffer = ""
     local first = true
+    local decimal = false
     local last = false
     local hex = false
     local pat = "^[0-9]+"
     local minbuf = 3 -- "+0x" (sign + hexadecimal tag)
     -- this function is used to read trailing numbers (1e2, 0x1p2, etc)
-    local function readnum()
+    local function readnum(checksign)
       local _buffer = ""
       local sign = ""
-      local checksign = true
       while true do
         if len(self.bufferRead) == 0 then
           local result, reason = readChunk()
@@ -183,19 +183,33 @@ function buffer:read(...)
         end
         minbuf = 0
         first = false
+      elseif decimal then
+        local sep = sub(self.bufferRead, 1, 1)
+        if sep == "." then
+          buffer = buffer .. sep
+          self.bufferRead = sub(self.bufferRead, 2)
+          local temp = readnum(false) -- no sign
+          if temp then
+            buffer = buffer .. temp
+          end
+        end
+        if not tonumber(buffer) then break end
+        decimal = false
+        last = true
+        minbuf = 1
       elseif last then
         local tag = sub(self.bufferRead, 1, 1)
         if hex and (tag == "p" or tag == "P") then
           local temp = sub(self.bufferRead, 1, 1)
           self.bufferRead = sub(self.bufferRead, 2)
-          local temp2 = readnum() -- this eats the next sign if any
+          local temp2 = readnum(true) -- this eats the next sign if any
           if temp2 then
             buffer = buffer .. temp .. temp2
           end
         elseif tag == "e" or tag == "E" then
           local temp = sub(self.bufferRead, 1, 1)
           self.bufferRead = sub(self.bufferRead, 2)
-          local temp2 = readnum() -- this eats the next sign if any
+          local temp2 = readnum(true) -- this eats the next sign if any
           if temp2 then
             buffer = buffer .. temp .. temp2
           end
@@ -204,9 +218,8 @@ function buffer:read(...)
       else
         local x,y = string.find(self.bufferRead, pat)
         if not x then
-          if not tonumber(buffer) then break end
-          minbuf = 3
-          last = true
+          minbuf = 1
+          decimal = true
         else
           buffer = buffer .. sub(self.bufferRead, 1, y)
           self.bufferRead = sub(self.bufferRead, y + 1)
