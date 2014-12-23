@@ -21,6 +21,8 @@ import scala.collection.convert.WrapAsScala._
 class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor {
   var strength = Settings.get.maxWirelessRange
 
+  var isRepeater = true
+
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withComponent("access_point").
     create())
@@ -55,6 +57,15 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
     result(strength)
   }
 
+  @Callback(direct = true, doc = """function():boolean -- Get whether the access point currently acts as a repeater (resend received wireless packets wirelessly).""")
+  def isRepeater(context: Context, args: Arguments): Array[AnyRef] = synchronized(result(isRepeater))
+
+  @Callback(doc = """function(enabled:boolean):boolean -- Set whether the access point should act as a repeater.""")
+  def setRepeater(context: Context, args: Arguments): Array[AnyRef] = synchronized {
+    isRepeater = args.checkBoolean(0)
+    result(isRepeater)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def receivePacket(packet: Packet, source: WirelessEndpoint) {
@@ -69,7 +80,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
     super.relayPacket(sourceSide, packet)
-    if (strength > 0) {
+    if (strength > 0 && (sourceSide != ForgeDirection.UNKNOWN || isRepeater)) {
       val cost = Settings.get.wirelessCostPerRange
       val tryChangeBuffer =
         if (sourceSide == ForgeDirection.UNKNOWN)
@@ -113,6 +124,9 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
     if (nbt.hasKey(Settings.namespace + "strength")) {
       strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange
     }
+    if (nbt.hasKey(Settings.namespace + "isRepeater")) {
+      isRepeater = nbt.getBoolean(Settings.namespace + "isRepeater")
+    }
     nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => componentNodes(index).load(tag)
@@ -122,6 +136,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
     nbt.setDouble(Settings.namespace + "strength", strength)
+    nbt.setBoolean(Settings.namespace + "isRepeater", isRepeater)
     nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
       case node: Node =>
         val tag = new NBTTagCompound()
