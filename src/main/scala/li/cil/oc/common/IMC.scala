@@ -68,6 +68,12 @@ object IMC {
           case t: Throwable => OpenComputers.log.warn("Failed blacklisting component.", t)
         }
       }
+      else if (message.key == "registerAssemblerFilter" && message.isStringMessage) {
+        OpenComputers.log.info(s"Registering new assembler template filter '${message.getStringValue}' from mod ${message.getSender}.")
+        try AssemblerTemplates.addFilter(message.getStringValue) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering assembler template filter.", t)
+        }
+      }
       else {
         OpenComputers.log.warn(s"Got an unrecognized or invalid IMC message '${message.key}' from mod ${message.getSender}.")
       }

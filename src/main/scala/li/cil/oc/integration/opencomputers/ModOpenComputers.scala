@@ -34,6 +34,7 @@ object ModOpenComputers extends ModProxy {
     RobotTemplate.register()
     ServerTemplate.register()
     TabletTemplate.register()
+    TemplateBlacklist.register()
 
     Loot.init()
     Recipes.init()

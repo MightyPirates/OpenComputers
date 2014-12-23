@@ -289,6 +289,7 @@ class Settings(val config: Config) {
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
   val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
+  val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
 
   // ----------------------------------------------------------------------- //
   // integration
