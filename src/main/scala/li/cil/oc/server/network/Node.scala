@@ -1,10 +1,10 @@
 package li.cil.oc.server.network
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.OpenComputers
-import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._

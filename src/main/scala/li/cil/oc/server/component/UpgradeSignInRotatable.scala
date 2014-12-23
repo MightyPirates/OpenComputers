@@ -3,7 +3,9 @@ package li.cil.oc.server.component
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.internal.Rotatable
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 
 class UpgradeSignInRotatable(val host: EnvironmentHost with Rotatable) extends UpgradeSign {

@@ -18,8 +18,6 @@ import net.minecraftforge.client.IItemRenderer
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.IItemRenderer.ItemRendererHelper
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11
-import org.lwjgl.util.glu.GLU
 
 import scala.collection.convert.WrapAsScala._
 

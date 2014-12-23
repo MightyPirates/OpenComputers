@@ -1,8 +1,9 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.{Tier, container}
 import li.cil.oc.common.inventory.DatabaseInventory
+import li.cil.oc.common.Tier
+import li.cil.oc.common.container
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import org.lwjgl.opengl.GL11

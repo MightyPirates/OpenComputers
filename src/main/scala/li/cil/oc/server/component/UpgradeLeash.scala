@@ -18,8 +18,6 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
-import net.minecraft.network.play.server.S1BPacketEntityAttach
-import net.minecraft.world.WorldServer
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 

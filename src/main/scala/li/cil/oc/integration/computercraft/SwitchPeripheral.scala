@@ -8,7 +8,6 @@ import li.cil.oc.api
 import li.cil.oc.common.tileentity.AccessPoint
 import li.cil.oc.common.tileentity.Switch
 import li.cil.oc.util.ResultWrapper._
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 

@@ -7,9 +7,9 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import net.minecraft.nbt.NBTTagCompound
 import lordfokas.stargatetech2.api.StargateTechAPI
 import lordfokas.stargatetech2.api.bus._
+import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
 

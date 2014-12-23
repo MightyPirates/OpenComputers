@@ -4,7 +4,6 @@ import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.common
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.BundledRedstone

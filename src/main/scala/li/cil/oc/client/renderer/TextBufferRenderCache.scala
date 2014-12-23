@@ -10,7 +10,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.TextBufferRenderData
-import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.tileentity.TileEntity

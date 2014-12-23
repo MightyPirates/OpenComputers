@@ -11,7 +11,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntitySign
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.{FakePlayerFactory, ForgeDirection}
+import net.minecraftforge.common.util.FakePlayerFactory
+import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
 
 abstract class UpgradeSign extends prefab.ManagedEnvironment {

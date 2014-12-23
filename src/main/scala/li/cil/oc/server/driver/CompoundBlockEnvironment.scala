@@ -3,11 +3,11 @@ package li.cil.oc.server.driver
 import java.nio.charset.Charset
 
 import com.google.common.hash.Hashing
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.OpenComputers
-import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 
 class CompoundBlockEnvironment(val name: String, val environments: (driver.Block, ManagedEnvironment)*) extends ManagedEnvironment {

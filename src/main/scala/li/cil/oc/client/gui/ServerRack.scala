@@ -2,12 +2,12 @@ package li.cil.oc.client.gui
 
 import java.util
 
+import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
-import li.cil.oc.Localization
-import li.cil.oc.Settings
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.Tessellator
