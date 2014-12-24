@@ -43,7 +43,7 @@ if not options.q and not label then
   io.write("Enter new label for this EEPROM. Leave input blank to leave the label unchanged.\n")
   label = io.read()
 end
-if label and #label > 0 then then
+if label and #label > 0 then
   eeprom.setLabel(label)
   if not options.q then
     io.write("Set label to '" .. eeprom.getLabel() .. "'.\n")
