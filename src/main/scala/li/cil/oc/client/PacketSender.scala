@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.CompressedPacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.SimplePacketBuilder
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import net.minecraft.client.Minecraft
@@ -20,6 +21,15 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.ComputerPower)
 
     pb.writeTileEntity(t)
+    pb.writeBoolean(power)
+
+    pb.sendToServer()
+  }
+
+  def sendDronePower(e: Drone, power: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.DronePower)
+
+    pb.writeEntity(e)
     pb.writeBoolean(power)
 
     pb.sendToServer()
@@ -151,7 +161,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerSide(t: ServerRack, number: Int, side: ForgeDirection) {
+  def sendServerSide(t: ServerRack, number: Int, side: Option[ForgeDirection]) {
     val pb = new SimplePacketBuilder(PacketType.ServerSide)
 
     pb.writeTileEntity(t)

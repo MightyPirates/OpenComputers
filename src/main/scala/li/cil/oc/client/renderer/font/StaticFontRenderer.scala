@@ -1,9 +1,9 @@
 package li.cil.oc.client.renderer.font
 
 import com.google.common.base.Charsets
-import li.cil.oc.client.Textures
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11

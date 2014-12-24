@@ -181,7 +181,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
           }
         })
       }
-      links ++= nbt.getTagList("links", NBT.TAG_LIST).map(
+      links ++= nbt.getTagList("links", NBT.TAG_COMPOUND).map(
         (nbt: NBTTagCompound) => Api.instance.storage.loadCraftingLink(nbt, this))
     }
 

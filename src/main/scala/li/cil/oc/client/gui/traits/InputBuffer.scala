@@ -1,9 +1,8 @@
-package li.cil.oc.client.gui
+package li.cil.oc.client.gui.traits
 
-import li.cil.oc.api
+import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
-import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
@@ -14,64 +13,28 @@ import org.lwjgl.opengl.GL11
 
 import scala.collection.mutable
 
-trait TextBuffer extends GuiScreen {
-  protected def buffer: api.component.TextBuffer
+trait InputBuffer extends DisplayBuffer {
+  protected def buffer: TextBuffer
+
+  override protected def bufferColumns = if (buffer == null) 0 else buffer.getWidth
+
+  override protected def bufferRows = if (buffer == null) 0 else buffer.getHeight
 
   protected def hasKeyboard: Boolean
 
   private val pressedKeys = mutable.Map.empty[Int, Char]
 
-  protected def bufferX: Int
-
-  protected def bufferY: Int
-
-  protected var guiSizeChanged = false
-
-  protected var currentWidth, currentHeight = -1
-
   private var showKeyboardMissing = 0L
-
-  protected var scale = 0.0
 
   override def doesGuiPauseGame = false
 
   override def initGui() = {
     super.initGui()
-    BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
-    guiSizeChanged = true
   }
 
-  override def onGuiClosed() = {
-    super.onGuiClosed()
-    if (buffer != null) for ((code, char) <- pressedKeys) {
-      buffer.keyUp(char, code, null)
-    }
-    Keyboard.enableRepeatEvents(false)
-  }
-
-  protected def drawBufferLayer() {
-    if (buffer == null) return
-    val oldWidth = currentWidth
-    val oldHeight = currentHeight
-    if (buffer != null) {
-      currentWidth = buffer.getWidth
-      currentHeight = buffer.getHeight
-    }
-    else {
-      currentWidth = 0
-      currentHeight = 0
-    }
-    scale = changeSize(currentWidth, currentHeight, guiSizeChanged || oldWidth != currentWidth || oldHeight != currentHeight)
-
-    RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme)")
-
-    GL11.glPushMatrix()
-    RenderState.disableLighting()
-    drawBuffer()
-    GL11.glPopMatrix()
-
-    RenderState.checkError(getClass.getName + ".drawBufferLayer: buffer layer")
+  override protected def drawBufferLayer() {
+    super.drawBufferLayer()
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
       Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.guiKeyboardMissing)
@@ -86,12 +49,18 @@ trait TextBuffer extends GuiScreen {
       t.addVertexWithUV(x, y, 0, 0, 0)
       t.draw()
       GL11.glEnable(GL11.GL_DEPTH_TEST)
-    }
 
-    RenderState.checkError(getClass.getName + ".drawBufferLayer: leaving")
+      RenderState.checkError(getClass.getName + ".drawBufferLayer: keyboard icon")
+    }
   }
 
-  protected def drawBuffer()
+  override def onGuiClosed() = {
+    super.onGuiClosed()
+    if (buffer != null) for ((code, char) <- pressedKeys) {
+      buffer.keyUp(char, code, null)
+    }
+    Keyboard.enableRepeatEvents(false)
+  }
 
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
@@ -134,8 +103,6 @@ trait TextBuffer extends GuiScreen {
       }
     }
   }
-
-  protected def changeSize(w: Double, h: Double, recompile: Boolean): Double
 
   private def ignoreRepeat(char: Char, code: Int) = {
     code == Keyboard.KEY_LCONTROL ||

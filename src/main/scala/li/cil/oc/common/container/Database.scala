@@ -1,7 +1,8 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.common.inventory.DatabaseInventory
-import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.InventoryPlayer
 
 class Database(playerInventory: InventoryPlayer, databaseInventory: DatabaseInventory) extends Player(playerInventory, databaseInventory) {
   val rows = math.sqrt(databaseInventory.getSizeInventory).ceil.toInt

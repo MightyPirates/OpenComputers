@@ -7,6 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Sound
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.block.DelegatorConverter
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
@@ -20,6 +21,8 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   def y = yCoord
 
   def z = zCoord
+
+  def position = BlockPosition(x, y, z)
 
   def block = getBlockType
 

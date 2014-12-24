@@ -11,6 +11,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.SimpleItem
+import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
@@ -307,6 +308,14 @@ object Items extends ItemAPI {
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, "eeprom", "oc:eeprom")
     Recipes.addRecipe(createLuaBios(), "luaBios")
-    Recipes.addMultiItem(new item.MicrocontrollerCase(multi), "microcontrollerCase", "oc:microcontrollerCase")
+    Recipes.addMultiItem(new item.MicrocontrollerCase(multi, Tier.One), "microcontrollerCase1", "oc:microcontrollerCase1")
+
+    // 1.4.3
+    Recipes.addMultiItem(new item.DroneCase(multi, Tier.One), "droneCase1", "oc:droneCase1")
+    registerItem(new item.Drone(multi), "drone")
+    Recipes.addMultiItem(new UpgradeLeash(multi), "leashUpgrade", "oc:leashUpgrade")
+    Recipes.addMultiItem(new item.MicrocontrollerCase(multi, Tier.Two), "microcontrollerCase2", "oc:microcontrollerCase2")
+    Recipes.addMultiItem(new item.DroneCase(multi, Tier.Two), "droneCase2", "oc:droneCase2")
+    registerItem(new item.Present(multi), "present")
   }
 }

@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import com.google.common.base.Strings
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
@@ -10,9 +11,14 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.command.ICommandSender
 import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.JsonToNBT
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
@@ -22,6 +28,7 @@ import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.FakePlayerFactory
+import net.minecraftforge.common.util.ForgeDirection
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
@@ -300,6 +307,30 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
+    @Callback(doc = """function(id:string, count:number, damage:number, nbt:string, x:number, y:number, z:number, side:number):boolean - Insert an item stack into the inventory at the specified location. NBT tag is expected in JSON format.""")
+    def insertItem(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val item = Item.itemRegistry.getObject(args.checkString(0)).asInstanceOf[Item]
+      if (item == null) {
+        throw new IllegalArgumentException("invalid item id")
+      }
+      val count = args.checkInteger(1)
+      val damage = args.checkInteger(2)
+      val tagJson = args.checkString(3)
+      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_150315_a(tagJson).asInstanceOf[NBTTagCompound]
+      val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
+      val side = args.checkSide(7, ForgeDirection.VALID_DIRECTIONS: _*)
+      InventoryUtils.inventoryAt(position) match {
+        case Some(inventory) =>
+          val stack = new ItemStack(item, count, damage)
+          stack.setTagCompound(tag)
+          result(InventoryUtils.insertIntoInventory(stack, inventory, Option(side)))
+        case _ => result(Unit, "no inventory")
+      }
+    }
+
+    // ----------------------------------------------------------------------- //
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
       world = DimensionManager.getWorld(nbt.getInteger("dimension"))
@@ -328,10 +359,10 @@ object DebugCard {
       val profile = fakePlayer.getGameProfile
       val server = fakePlayer.mcServer
       val config = server.getConfigurationManager
-      config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
+      server.isSinglePlayer || (config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
         case entry: UserListOpsEntry => entry.func_152644_a >= level
         case _ => server.getOpPermissionLevel >= level
-      })
+      }))
     }
 
     override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates

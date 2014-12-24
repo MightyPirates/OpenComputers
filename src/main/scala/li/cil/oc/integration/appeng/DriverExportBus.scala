@@ -16,6 +16,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Component
 import li.cil.oc.integration.ManagedTileEntityEnvironment
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper._
@@ -85,8 +86,7 @@ object DriverExportBus extends driver.Block {
       val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
       host.getPart(side) match {
         case export: PartExportBus =>
-          val location = host.getLocation
-          InventoryUtils.inventoryAt(location.getWorld, location.x + side.offsetX, location.y + side.offsetY, location.z + side.offsetZ) match {
+          InventoryUtils.inventoryAt(BlockPosition(host.getLocation).offset(side)) match {
             case Some(inventory) =>
               val targetSlot = args.checkSlot(inventory, 1)
               val config = export.getInventoryByName("config")
@@ -111,14 +111,14 @@ object DriverExportBus extends driver.Block {
                 for (ais <- stacks if count > 0 && ais != null) {
                   val is = ais.getItemStack
                   is.stackSize = count
-                  if (InventoryUtils.insertIntoInventorySlot(is, inventory, side.getOpposite, targetSlot, count, simulate = true)) {
+                  if (InventoryUtils.insertIntoInventorySlot(is, inventory, Option(side.getOpposite), targetSlot, count, simulate = true)) {
                     ais.setStackSize(count - is.stackSize)
                     val eais = Platform.poweredExtraction(export.getProxy.getEnergy, itemStorage, ais, source)
                     if (eais != null) {
                       val eis = eais.getItemStack
                       count -= eis.stackSize
                       didSomething = true
-                      InventoryUtils.insertIntoInventorySlot(eis, inventory, side.getOpposite, targetSlot)
+                      InventoryUtils.insertIntoInventorySlot(eis, inventory, Option(side.getOpposite), targetSlot)
                       if (eis.stackSize > 0) {
                         eais.setStackSize(eis.stackSize)
                         itemStorage.injectItems(ais, Actionable.MODULATE, source)

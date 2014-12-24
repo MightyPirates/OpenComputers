@@ -258,15 +258,15 @@ object PacketSender {
     pb.sendToPlayersNearHost(t)
   }
 
-  def sendRobotMove(t: tileentity.Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
+  def sendRobotMove(t: tileentity.Robot, position: BlockPosition, direction: ForgeDirection) {
     val pb = new SimplePacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
     pb.writeInt(t.proxy.world.provider.dimensionId)
-    pb.writeInt(ox)
-    pb.writeInt(oy)
-    pb.writeInt(oz)
-    pb.writeDirection(direction)
+    pb.writeInt(position.x)
+    pb.writeInt(position.y)
+    pb.writeInt(position.z)
+    pb.writeDirection(Option(direction))
 
     pb.sendToPlayersNearTileEntity(t)
   }
@@ -313,8 +313,8 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.RotatableState)
 
     pb.writeTileEntity(t)
-    pb.writeDirection(t.pitch)
-    pb.writeDirection(t.yaw)
+    pb.writeDirection(Option(t.pitch))
+    pb.writeDirection(Option(t.yaw))
 
     pb.sendToPlayersNearTileEntity(t)
   }

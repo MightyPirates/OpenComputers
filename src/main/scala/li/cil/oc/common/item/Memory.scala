@@ -10,5 +10,5 @@ class Memory(val parent: Delegator, val tier: Int) extends Delegate with ItemTie
   override protected def tooltipName = Option(super.unlocalizedName)
 
   override def displayName(stack: ItemStack) =
-    Some(parent.internalGetItemStackDisplayName(stack) + " (%dKB)".format(kiloBytes))
+    Some(parent.internalGetItemStackDisplayName(stack) + s" (${kiloBytes}KB)")
 }

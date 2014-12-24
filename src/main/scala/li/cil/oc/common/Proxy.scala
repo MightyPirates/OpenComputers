@@ -38,6 +38,9 @@ class Proxy {
       Recipes.addMultiItem(Items.ironNugget, "nuggetIron")
       Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
     }
+    else {
+      Items.ironNugget.showInItemList = false
+    }
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
     // oredict entry, but not normal obsidian, breaking some recipes.
@@ -102,7 +105,9 @@ class Proxy {
     OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
     OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
     OpenComputers.ID + ":rack" -> "serverRack",
-    "appengTunnel" -> "" // Avoid breaking worlds for people that used the dev builds.
+    OpenComputers.ID + ":appengTunnel" -> "", // Avoid breaking worlds for people that used the dev builds.
+    OpenComputers.ID + ":microcontrollerCase" -> "microcontrollerCase1",
+    OpenComputers.ID + ":droneCase" -> "droneCase1"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

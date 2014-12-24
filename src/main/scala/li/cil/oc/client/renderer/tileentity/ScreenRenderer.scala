@@ -106,7 +106,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     // Show up vector overlay when holding same screen block.
     val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
     if (stack != null) {
-      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.x, screen.y, screen.z) || screens.contains(api.Items.get(stack))) {
+      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.position) || screens.contains(api.Items.get(stack))) {
         GL11.glPushMatrix()
         transform()
         bindTexture(Textures.blockScreenUpIndicator)

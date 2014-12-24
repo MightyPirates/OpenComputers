@@ -4,11 +4,11 @@ import java.io
 import java.util.Random
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.util.Color
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.util.Color
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -96,7 +96,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
     }
   }
 
-  private def createLootDisk(name: String, path: String, color: Option[String] = None) = {
+  def createLootDisk(name: String, path: String, color: Option[String] = None) = {
     val data = new NBTTagCompound()
     data.setString(Settings.namespace + "fs.label", name)
 

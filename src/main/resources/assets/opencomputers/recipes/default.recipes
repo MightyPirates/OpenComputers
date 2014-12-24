@@ -6,10 +6,25 @@ analyzer {
           ["oc:materialTransistor", nuggetGold, ""]
           ["oc:materialCircuitBoardPrinted", nuggetGold, ""]]
 }
-microcontrollerCase {
+droneCase1 {
+  input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
+          ["oc:circuitChip1", "oc:microcontrollerCase1", "oc:circuitChip1"]
+          [{block="minecraft:end_stone"}, "oc:componentBus2", {block="minecraft:end_stone"}]]
+}
+droneCase2 {
+  input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
+          ["oc:circuitChip2", "oc:microcontrollerCase2", "oc:circuitChip2"]
+          [{block="minecraft:end_stone"}, "oc:componentBus3", {block="minecraft:end_stone"}]]
+}
+microcontrollerCase1 {
   input: [[nuggetIron, "oc:circuitChip1", nuggetIron]
           [redstone, chest, redstone]
           [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
+microcontrollerCase2 {
+  input: [[nuggetGold, "oc:circuitChip3", nuggetGold]
+          [blockRedstone, chest, blockRedstone]
+          [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
 }
 terminal {
   input: [[nuggetIron, "oc:solarGeneratorUpgrade", nuggetIron]
@@ -204,6 +219,11 @@ inventoryControllerUpgrade {
   input: [[ingotGold, "oc:analyzer", ingotGold]
           [dispenser, "oc:circuitChip2", craftingPiston]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
+}
+leashUpgrade {
+  input: [[ingotIron, lead, ingotIron]
+          [lead, "oc:materialCU", lead]
+          [ingotIron, lead, ingotIron]]
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]

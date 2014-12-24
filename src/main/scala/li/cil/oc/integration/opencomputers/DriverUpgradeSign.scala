@@ -16,9 +16,6 @@ object DriverUpgradeSign extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("signUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isAdapter(host) || isRotatable(host))
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
       case rotatable: EnvironmentHost with Rotatable => new UpgradeSignInRotatable(rotatable)

@@ -2,9 +2,9 @@ package li.cil.oc.util
 
 import java.util
 
-import li.cil.oc.api.machine.Value
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api.machine.Value
 import li.cil.repack.com.naef.jnlua.JavaFunction
 import li.cil.repack.com.naef.jnlua.LuaState
 import li.cil.repack.com.naef.jnlua.LuaType

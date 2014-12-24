@@ -9,6 +9,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -78,7 +79,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, x, y, z)) {
+    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
       }

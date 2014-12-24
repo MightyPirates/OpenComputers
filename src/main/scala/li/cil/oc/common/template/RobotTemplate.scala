@@ -42,6 +42,16 @@ object RobotTemplate extends Template {
     Array(stack, double2Double(energy))
   }
 
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontroller")
+
+  def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
+    val info = new ItemUtils.RobotData(stack)
+    val itemName =
+      if (info.tier == Tier.Four) "caseCreative"
+      else "case" + (info.tier + 1)
+    Array(api.Items.get(itemName).createItemStack(1)) ++ info.containers ++ info.components
+  }
+
   def register() {
     // Tier 1
     {
@@ -198,6 +208,16 @@ object RobotTemplate extends Template {
       nbt.setTag("componentSlots", componentSlots)
 
       FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+    }
+
+    // Disassembler
+    {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", "Robot")
+      nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectDisassembler")
+      nbt.setString("disassemble", "li.cil.oc.common.template.RobotTemplate.disassemble")
+
+      FMLInterModComms.sendMessage("OpenComputers", "registerDisassemblerTemplate", nbt)
     }
   }
 

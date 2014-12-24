@@ -29,8 +29,23 @@ version = "${config.oc.version}"
 group = "li.cil.oc"
 archivesBaseName = "OpenComputers"
 
+def getGitRef() {
+  try {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+      commandLine 'git', 'rev-parse', '--short', 'HEAD'
+      standardOutput = stdout
+    }
+    return stdout.toString().trim()
+  } catch (Throwable e) {
+    return "unknown"
+  }
+}
+
 if (System.getenv("BUILD_NUMBER") != null)
     version += ".${System.getenv("BUILD_NUMBER")}"
+else
+    version += "-" + getGitRef()
 
 if (config.oc.subversion != null && config.oc.subversion != "")
     version += "-${config.oc.subversion}"

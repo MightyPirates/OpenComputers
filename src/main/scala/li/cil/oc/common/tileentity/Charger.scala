@@ -1,24 +1,34 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Localization, Settings, api}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.{Analyzable, Component, Node, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.Vec3
 import net.minecraftforge.common.util.ForgeDirection
+
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
 
-  val robots = Array.fill(6)(None: Option[RobotProxy])
+  val connectors = mutable.Set.empty[(Vec3, Connector)]
 
   var chargeSpeed = 0.0
 
@@ -46,8 +56,14 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def updateEntity() {
     super.updateEntity()
+
+    // Offset by hashcode to avoid all chargers ticking at the same time.
+    if ((world.getWorldInfo.getWorldTotalTime + math.abs(hashCode())) % 20 == 0) {
+      updateConnectors()
+    }
+
     if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
-      val charge = Settings.get.chargeRateRobot * chargeSpeed * Settings.get.tickFrequency
+      val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
       val canCharge = charge > 0 && node.globalBuffer >= charge
       if (hasPower && !canCharge) {
         hasPower = false
@@ -57,8 +73,10 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         hasPower = true
         ServerPacketSender.sendChargerState(this)
       }
-      if (canCharge) robots.collect {
-        case Some(proxy) => node.changeBuffer(proxy.robot.bot.node.changeBuffer(charge + node.changeBuffer(-charge)))
+      if (canCharge) {
+        connectors.foreach {
+          case (_, connector) => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge)))
+        }
       }
 
       // Charge tablet if present.
@@ -78,19 +96,16 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         })
       }
     }
-    else if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
-      ForgeDirection.VALID_DIRECTIONS.map(side => {
-        val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-        if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz)
-        else null
-      }).collect {
-        case proxy: RobotProxy if proxy.globalBuffer / proxy.globalBufferSize < 0.95 =>
+
+    if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
+      connectors.foreach {
+        case (position, _) =>
           val theta = world.rand.nextDouble * Math.PI
           val phi = world.rand.nextDouble * Math.PI * 2
           val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
           val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
           val dz = 0.45 * Math.cos(theta)
-          world.spawnParticle("happyVillager", proxy.x + 0.5 + dx, proxy.y + 0.5 + dz, proxy.z + 0.5 + dy, 0, 0, 0)
+          world.spawnParticle("happyVillager", position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
       }
     }
   }
@@ -166,13 +181,22 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   def onNeighborChanged() {
     checkRedstoneInputChanged()
-    ForgeDirection.VALID_DIRECTIONS.map(side => (side.ordinal(), {
-      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz)
-      else null
-    })).collect {
-      case (side, proxy: RobotProxy) => robots(side) = Some(proxy)
-      case (side, _) => robots(side) = None
+    updateConnectors()
+  }
+
+  def updateConnectors() {
+    val robotConnectors = ForgeDirection.VALID_DIRECTIONS.map(side => {
+      val blockPos = BlockPosition(this).offset(side)
+      if (world.blockExists(blockPos)) Option(world.getTileEntity(blockPos))
+      else None
+    }).collect {
+      case Some(t: RobotProxy) => (BlockPosition(t).toVec3, t.robot.node.asInstanceOf[Connector])
     }
+    val droneConnectors = world.getEntitiesWithinAABB(classOf[Drone], BlockPosition(this).bounds.expand(1, 1, 1)).collect {
+      case drone: Drone => (Vec3.createVectorHelper(drone.posX, drone.posY, drone.posZ), drone.components.node.asInstanceOf[Connector])
+    }
+    connectors.clear()
+    connectors ++= robotConnectors
+    connectors ++= droneConnectors
   }
 }

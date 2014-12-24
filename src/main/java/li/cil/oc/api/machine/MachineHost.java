@@ -79,6 +79,7 @@ public interface MachineHost extends EnvironmentHost {
      * <p/>
      * This method is called from executor threads, so it must be thread-safe.
      */
+    // TODO Merge with {@link EnvironmentHost#markChanged} in 1.5
     void markForSaving();
 
     /**

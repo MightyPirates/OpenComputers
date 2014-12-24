@@ -1,12 +1,12 @@
 package li.cil.oc.util
 
+import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.item.EntityMinecartContainer
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
@@ -18,19 +18,16 @@ object InventoryUtils {
    * This performs special handling for (double-)chests and also checks for
    * mine carts with chests.
    */
-  def inventoryAt(world: World, x: Int, y: Int, z: Int): Option[IInventory] = {
-    if (world.blockExists(x, y, z)) world.getTileEntity(x, y, z) match {
+  def inventoryAt(position: BlockPosition): Option[IInventory] = position.world match {
+    case Some(world) if world.blockExists(position) => world.getTileEntity(position) match {
       case chest: TileEntityChest => Option(net.minecraft.init.Blocks.chest.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord))
       case inventory: IInventory => Some(inventory)
-      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer],
-        AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)).
+      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).
         map(_.asInstanceOf[EntityMinecartContainer]).
         find(!_.isDead)
     }
-    else None
+    case _ => None
   }
-
-  def inventoryAt(blockPos: BlockPosition): Option[IInventory] = inventoryAt(blockPos.world.get, blockPos.x, blockPos.y, blockPos.z)
 
   /**
    * Inserts a stack into an inventory.
@@ -53,10 +50,10 @@ object InventoryUtils {
    * The number of items inserted can be limited, to avoid unnecessary
    * changes to the inventory the stack may come from, for example.
    */
-  def insertIntoInventorySlot(stack: ItemStack, inventory: IInventory, side: ForgeDirection, slot: Int, limit: Int = 64, simulate: Boolean = false) =
+  def insertIntoInventorySlot(stack: ItemStack, inventory: IInventory, side: Option[ForgeDirection], slot: Int, limit: Int = 64, simulate: Boolean = false) =
     (stack != null && limit > 0) && {
-      val isSideValidForSlot = inventory match {
-        case inventory: ISidedInventory => inventory.canInsertItem(slot, stack, side.ordinal)
+      val isSideValidForSlot = (inventory, side) match {
+        case (inventory: ISidedInventory, Some(s)) => inventory.canInsertItem(slot, stack, s.ordinal)
         case _ => true
       }
       (stack.stackSize > 0 && inventory.isItemValidForSlot(slot, stack) && isSideValidForSlot) && {
@@ -152,14 +149,15 @@ object InventoryUtils {
    * item stack will be adjusted to reflect the number items inserted, by
    * having its size decremented accordingly.
    */
-  def insertIntoInventory(stack: ItemStack, inventory: IInventory, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false) =
+  def insertIntoInventory(stack: ItemStack, inventory: IInventory, side: Option[ForgeDirection] = None, limit: Int = 64, simulate: Boolean = false, slots: Option[Iterable[Int]] = None) =
     (stack != null && limit > 0) && {
       var success = false
       var remaining = limit
+      val range = slots.getOrElse(0 until inventory.getSizeInventory)
 
       val shouldTryMerge = !stack.isItemStackDamageable && stack.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
       if (shouldTryMerge) {
-        for (slot <- 0 until inventory.getSizeInventory) {
+        for (slot <- range) {
           val stackSize = stack.stackSize
           if ((inventory.getStackInSlot(slot) != null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
             remaining -= stackSize - stack.stackSize
@@ -168,7 +166,7 @@ object InventoryUtils {
         }
       }
 
-      for (slot <- 0 until inventory.getSizeInventory) {
+      for (slot <- range) {
         val stackSize = stack.stackSize
         if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
           remaining -= stackSize - stack.stackSize
@@ -197,13 +195,61 @@ object InventoryUtils {
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
    * in the world.
    */
-  def insertIntoInventoryAt(stack: ItemStack, world: World, x: Int, y: Int, z: Int, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false): Boolean =
-    inventoryAt(world, x, y, z).exists(insertIntoInventory(stack, _, side, limit, simulate))
+  def insertIntoInventoryAt(stack: ItemStack, position: BlockPosition, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false): Boolean =
+    inventoryAt(position).exists(insertIntoInventory(stack, _, Option(side), limit, simulate))
 
   /**
    * Utility method for calling <tt>extractFromInventory</tt> on an inventory
    * in the world.
    */
-  def extractFromInventoryAt(consumer: (ItemStack) => Unit, world: World, x: Int, y: Int, z: Int, side: ForgeDirection, limit: Int = 64) =
-    inventoryAt(world, x, y, z).exists(extractFromInventory(consumer, _, side, limit))
+  def extractFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: ForgeDirection, limit: Int = 64) =
+    inventoryAt(position).exists(extractFromInventory(consumer, _, side, limit))
+
+  /**
+   * Utility method for dropping contents from a single inventory slot into
+   * the world.
+   */
+  def dropSlot(position: BlockPosition, inventory: IInventory, slot: Int, count: Int, direction: Option[ForgeDirection] = None) = {
+    Option(inventory.decrStackSize(slot, count)) match {
+      case Some(stack) if stack.stackSize > 0 => spawnStackInWorld(position, stack, direction); true
+      case _ => false
+    }
+  }
+
+  /**
+   * Utility method for dumping all inventory contents into the world.
+   */
+  def dropAllSlots(position: BlockPosition, inventory: IInventory) {
+    for (slot <- 0 until inventory.getSizeInventory) {
+      Option(inventory.getStackInSlot(slot)) match {
+        case Some(stack) if stack.stackSize > 0 =>
+          inventory.setInventorySlotContents(slot, null)
+          spawnStackInWorld(position, stack)
+        case _ => // Nothing.
+      }
+    }
+  }
+
+  /**
+   * Utility method for spawning an item stack in the world.
+   */
+  def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[ForgeDirection] = None): EntityItem = position.world match {
+    case Some(world) =>
+      val rng = world.rand
+      val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.offsetX, d.offsetY, d.offsetZ))
+      val (tx, ty, tz) = (
+        0.1 * (rng.nextDouble - 0.5) + ox * 0.65,
+        0.1 * (rng.nextDouble - 0.5) + oy * 0.75 + (ox + oz) * 0.25,
+        0.1 * (rng.nextDouble - 0.5) + oz * 0.65)
+      val dropPos = position.offset(0.5 + tx, 0.5 + ty, 0.5 + tz)
+      val entity = new EntityItem(world, dropPos.xCoord, dropPos.yCoord, dropPos.zCoord, stack.copy())
+      entity.motionX = 0.0125 * (rng.nextDouble - 0.5) + ox * 0.03
+      entity.motionY = 0.0125 * (rng.nextDouble - 0.5) + oy * 0.08 + (ox + oz) * 0.03
+      entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + oz * 0.03
+      entity.delayBeforeCanPickup = 15
+      world.spawnEntityInWorld(entity)
+      entity
+    case _ => null
+  }
+
 }

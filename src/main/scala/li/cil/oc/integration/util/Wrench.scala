@@ -3,6 +3,7 @@ package li.cil.oc.integration.util
 import java.lang.reflect.Method
 
 import li.cil.oc.common.IMC
+import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 
 import scala.collection.mutable
@@ -12,9 +13,9 @@ object Wrench {
 
   def add(wrench: Method): Unit = wrenches += wrench
 
-  def holdsApplicableWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean =
-    player.getCurrentEquippedItem != null && wrenches.exists(IMC.tryInvokeStatic(_, player, int2Integer(x), int2Integer(y), int2Integer(z), boolean2Boolean(false))(false))
+  def holdsApplicableWrench(player: EntityPlayer, position: BlockPosition): Boolean =
+    player.getCurrentEquippedItem != null && wrenches.exists(IMC.tryInvokeStatic(_, player, int2Integer(position.x), int2Integer(position.y), int2Integer(position.z), boolean2Boolean(false))(false))
 
-  def wrenchUsed(player: EntityPlayer, x: Int, y: Int, z: Int): Unit =
-    if (player.getCurrentEquippedItem != null) wrenches.foreach(IMC.tryInvokeStaticVoid(_, player, int2Integer(x), int2Integer(y), int2Integer(z), boolean2Boolean(true)))
+  def wrenchUsed(player: EntityPlayer, position: BlockPosition): Unit =
+    if (player.getCurrentEquippedItem != null) wrenches.foreach(IMC.tryInvokeStaticVoid(_, player, int2Integer(position.x), int2Integer(position.y), int2Integer(position.z), boolean2Boolean(true)))
 }

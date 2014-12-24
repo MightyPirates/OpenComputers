@@ -1,55 +1,76 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.event.RobotPlaceInAirEvent
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.common.{ToolDurabilityProviders, tileentity}
+import li.cil.oc.common.ToolDurabilityProviders
+import li.cil.oc.common.tileentity
+import li.cil.oc.server.component.traits
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ResultWrapper.result
-import net.minecraft.entity.{Entity, EntityLivingBase}
-import net.minecraft.entity.item.{EntityItem, EntityMinecart}
-import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
-import net.minecraft.util.{MovingObjectPosition, Vec3}
+import net.minecraft.util.Vec3
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.event.world.BlockEvent
-import net.minecraftforge.fluids._
 
 import scala.collection.convert.WrapAsScala._
 
-class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
+class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl with traits.TankControl with traits.TankWorldControl {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
     create()
 
-  def actualSlot(n: Int) = robot.actualSlot(n)
-
-  def world = robot.world
-
-  def x = robot.x
-
-  def y = robot.y
-
-  def z = robot.z
-
-  // ----------------------------------------------------------------------- //
-
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
 
-  def selectedSlot = robot.selectedSlot
+  override def position = BlockPosition(robot)
+
+  // ----------------------------------------------------------------------- //
+
+  def actualSlot(n: Int) = robot.actualSlot(n)
+
+  override def inventory = robot.dynamicInventory
+
+  override def selectedSlot = robot.selectedSlot - actualSlot(0)
+
+  override def selectedSlot_=(value: Int) {
+    robot.selectedSlot = value + actualSlot(0)
+    ServerPacketSender.sendRobotSelectedSlotChange(robot)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def tank = robot.tank
 
   def selectedTank = robot.selectedTank
 
-  def player = robot.player()
+  override def selectedTank_=(value: Int) = robot.selectedTank = value
+
+  // ----------------------------------------------------------------------- //
+
+  override def fakePlayer = robot.player()
+
+  override protected def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
+
+  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = robot.toGlobal(args.checkSideForFace(n, robot.toLocal(facing)))
+
+  // ----------------------------------------------------------------------- //
 
   def canPlaceInAir = {
     val event = new RobotPlaceInAirEvent(robot)
@@ -57,144 +78,12 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
     event.isAllowed
   }
 
+  // ----------------------------------------------------------------------- //
+
   @Callback
   def name(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
 
   // ----------------------------------------------------------------------- //
-
-  @Callback
-  def inventorySize(context: Context, args: Arguments): Array[AnyRef] = result(robot.inventorySize)
-
-  @Callback
-  def select(context: Context, args: Arguments): Array[AnyRef] = {
-    if (args.count > 0 && args.checkAny(0) != null) {
-      val slot = checkSlot(args, 0)
-      if (slot != selectedSlot) {
-        robot.selectedSlot = slot
-        ServerPacketSender.sendRobotSelectedSlotChange(robot)
-      }
-    }
-    result(selectedSlot - actualSlot(0) + 1)
-  }
-
-  @Callback(direct = true)
-  def count(context: Context, args: Arguments): Array[AnyRef] = {
-    val slot =
-      if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
-      else selectedSlot
-    result(stackInSlot(slot) match {
-      case Some(stack) => stack.stackSize
-      case _ => 0
-    })
-  }
-
-  @Callback(direct = true)
-  def space(context: Context, args: Arguments): Array[AnyRef] = {
-    val slot =
-      if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
-      else selectedSlot
-    result(stackInSlot(slot) match {
-      case Some(stack) => math.min(robot.getInventoryStackLimit, stack.getMaxStackSize) - stack.stackSize
-      case _ => robot.getInventoryStackLimit
-    })
-  }
-
-  @Callback
-  def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
-    val slot = checkSlot(args, 0)
-    result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(stackA), Some(stackB)) => haveSameItemType(stackA, stackB)
-      case (None, None) => true
-      case _ => false
-    })
-  }
-
-  @Callback
-  def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
-    val slot = checkSlot(args, 0)
-    val count = args.optionalItemCount(1)
-    if (slot == selectedSlot || count == 0) {
-      result(true)
-    }
-    else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(from), Some(to)) =>
-        if (haveSameItemType(from, to)) {
-          val space = math.min(robot.getInventoryStackLimit, to.getMaxStackSize) - to.stackSize
-          val amount = math.min(count, math.min(space, from.stackSize))
-          if (amount > 0) {
-            from.stackSize -= amount
-            to.stackSize += amount
-            assert(from.stackSize >= 0)
-            if (from.stackSize == 0) {
-              robot.setInventorySlotContents(selectedSlot, null)
-            }
-            robot.markDirty()
-            true
-          }
-          else false
-        }
-        else if (count >= from.stackSize) {
-          robot.setInventorySlotContents(slot, from)
-          robot.setInventorySlotContents(selectedSlot, to)
-          true
-        }
-        else false
-      case (Some(from), None) =>
-        robot.setInventorySlotContents(slot, robot.decrStackSize(selectedSlot, count))
-        true
-      case _ => false
-    })
-  }
-
-  @Callback
-  def compare(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSideForAction(args, 0)
-    stackInSlot(selectedSlot) match {
-      case Some(stack) => Option(stack.getItem) match {
-        case Some(item: ItemBlock) =>
-          val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-          val idMatches = item.field_150939_a == world.getBlock(bx, by, bz)
-          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(bx, by, bz)
-          return result(idMatches && subTypeMatches)
-        case _ =>
-      }
-      case _ =>
-    }
-    result(false)
-  }
-
-  @Callback
-  def drop(context: Context, args: Arguments): Array[AnyRef] = {
-    val facing = checkSideForAction(args, 0)
-    val count = args.optionalItemCount(1)
-    val stack = robot.getStackInSlot(selectedSlot)
-    if (stack != null && stack.stackSize > 0) {
-      val player = robot.player(facing)
-      InventoryUtils.inventoryAt(world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-        case Some(inventory) if inventory.isUseableByPlayer(player) =>
-          if (!InventoryUtils.insertIntoInventory(stack, inventory, facing.getOpposite, count)) {
-            // Cannot drop into that inventory.
-            return result(false, "inventory full")
-          }
-          else if (stack.stackSize == 0) {
-            // Dropped whole stack.
-            robot.setInventorySlotContents(selectedSlot, null)
-          }
-          else {
-            // Dropped partial stack.
-            robot.markDirty()
-          }
-        case _ =>
-          // No inventory to drop into, drop into the world.
-          player.dropPlayerItemWithRandomChoice(robot.decrStackSize(selectedSlot, count), inPlace = false)
-      }
-
-      context.pause(Settings.get.dropDelay)
-
-      result(true)
-    }
-    else result(false)
-  }
 
   @Callback
   def place(context: Context, args: Arguments): Array[AnyRef] = {
@@ -234,40 +123,6 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
     }
 
     result(false)
-  }
-
-  @Callback
-  def suck(context: Context, args: Arguments): Array[AnyRef] = {
-    val facing = checkSideForAction(args, 0)
-    val count = args.optionalItemCount(1)
-
-    if (InventoryUtils.inventoryAt(world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ).exists(inventory => {
-      inventory.isUseableByPlayer(player) && InventoryUtils.extractFromInventory(player.inventory.addItemStackToInventory, inventory, facing.getOpposite, count)
-    })) {
-      context.pause(Settings.get.suckDelay)
-      result(true)
-    }
-    else {
-      for (entity <- player.entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
-        val stack = entity.getEntityItem
-        val size = stack.stackSize
-        entity.onCollideWithPlayer(player)
-        if (stack.stackSize < size || entity.isDead) {
-          context.pause(Settings.get.suckDelay)
-          return result(true)
-        }
-      }
-      result(false)
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  @Callback
-  def detect(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSideForAction(args, 0)
-    val (something, what) = blockContent(robot.player(side), side)
-    result(something, what)
   }
 
   // ----------------------------------------------------------------------- //
@@ -338,7 +193,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
               case Some(entity) =>
                 attack(player, entity)
               case _ =>
-                if (world.extinguishFire(player, x, y, z, facing.ordinal)) {
+                if (world.extinguishFire(player, position, facing)) {
                   triggerDelay()
                   (true, "fire")
                 }
@@ -460,7 +315,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
       result(Unit, "already moving")
     }
     else {
-      val (something, what) = blockContent(robot.player(direction), direction)
+      val (something, what) = blockContent(direction)
       if (something) {
         result(Unit, what)
       }
@@ -492,195 +347,6 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
     }
     else {
       result(Unit, "not enough energy")
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  @Callback
-  def tankCount(context: Context, args: Arguments): Array[AnyRef] = result(robot.tankCount)
-
-  @Callback
-  def selectTank(context: Context, args: Arguments): Array[AnyRef] = {
-    if (args.count > 0 && args.checkAny(0) != null) {
-      robot.selectedTank = checkTank(args, 0)
-    }
-    result(selectedTank + 1)
-  }
-
-  @Callback(direct = true)
-  def tankLevel(context: Context, args: Arguments): Array[AnyRef] = {
-    val index =
-      if (args.count > 0 && args.checkAny(0) != null) checkTank(args, 0)
-      else selectedTank
-    result(fluidInTank(index) match {
-      case Some(fluid) => fluid.amount
-      case _ => 0
-    })
-  }
-
-  @Callback(direct = true)
-  def tankSpace(context: Context, args: Arguments): Array[AnyRef] = {
-    val index =
-      if (args.count > 0 && args.checkAny(0) != null) checkTank(args, 0)
-      else selectedTank
-    result(getTank(index) match {
-      case Some(tank) => tank.getCapacity - tank.getFluidAmount
-      case _ => 0
-    })
-  }
-
-  @Callback
-  def compareFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
-    val index = checkTank(args, 0)
-    result((fluidInTank(selectedTank), fluidInTank(index)) match {
-      case (Some(stackA), Some(stackB)) => haveSameFluidType(stackA, stackB)
-      case (None, None) => true
-      case _ => false
-    })
-  }
-
-  @Callback
-  def transferFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
-    val index = checkTank(args, 0)
-    val count = args.optionalFluidCount(1)
-    if (index == selectedTank || count == 0) {
-      result(true)
-    }
-    else (getTank(selectedTank), getTank(index)) match {
-      case (Some(from), Some(to)) =>
-        val drained = from.drain(count, false)
-        val transferred = to.fill(drained, true)
-        if (transferred > 0) {
-          from.drain(transferred, true)
-          robot.markDirty()
-          result(true)
-        }
-        else if (count >= from.getFluidAmount && to.getCapacity >= from.getFluidAmount && from.getCapacity >= to.getFluidAmount) {
-          // Swap.
-          val tmp = to.drain(to.getFluidAmount, true)
-          to.fill(from.drain(from.getFluidAmount, true), true)
-          from.fill(tmp, true)
-          robot.markDirty()
-          result(true)
-        }
-        else result(Unit, "incompatible or no fluid")
-      case _ => result(Unit, "invalid index")
-    }
-  }
-
-  @Callback
-  def compareFluid(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSideForAction(args, 0)
-    fluidInTank(selectedTank) match {
-      case Some(stack) =>
-        val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-        if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
-          case handler: IFluidHandler =>
-            result(Option(handler.getTankInfo(side.getOpposite)).exists(_.exists(other => stack.isFluidEqual(other.fluid))))
-          case _ =>
-            val block = world.getBlock(x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-            val fluid = FluidRegistry.lookupFluidForBlock(block)
-            result(stack.getFluid == fluid)
-        }
-        else result(false)
-      case _ => result(false)
-    }
-  }
-
-  @Callback
-  def drain(context: Context, args: Arguments): Array[AnyRef] = {
-    val facing = checkSideForAction(args, 0)
-    val count = args.optionalFluidCount(1)
-    getTank(selectedTank) match {
-      case Some(tank) =>
-        val space = tank.getCapacity - tank.getFluidAmount
-        val amount = math.min(count, space)
-        if (count > 0 && amount == 0) {
-          result(Unit, "tank is full")
-        }
-        else {
-          val (nx, ny, nz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-          if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
-            case handler: IFluidHandler =>
-              tank.getFluid match {
-                case stack: FluidStack =>
-                  val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
-                  if ((drained != null && drained.amount > 0) || amount == 0) {
-                    tank.fill(drained, true)
-                    result(true)
-                  }
-                  else result(Unit, "incompatible or no fluid")
-                case _ =>
-                  tank.fill(handler.drain(facing.getOpposite, amount, true), true)
-                  result(true)
-              }
-            case _ =>
-              val block = world.getBlock(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-              val fluid = FluidRegistry.lookupFluidForBlock(block)
-              if (fluid == null) {
-                result(Unit, "incompatible or no fluid")
-              }
-              else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
-                tank.fill(new FluidStack(fluid, 1000), true)
-                world.setBlockToAir(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-                result(true)
-              }
-              else result(Unit, "tank is full")
-          }
-          else result(Unit, "incompatible or no fluid")
-        }
-      case _ => result(Unit, "no tank selected")
-    }
-  }
-
-  @Callback
-  def fill(context: Context, args: Arguments): Array[AnyRef] = {
-    val facing = checkSideForAction(args, 0)
-    val count = args.optionalFluidCount(1)
-    getTank(selectedTank) match {
-      case Some(tank) =>
-        val amount = math.min(count, tank.getFluidAmount)
-        if (count > 0 && amount == 0) {
-          result(Unit, "tank is empty")
-        }
-        val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-        if (world.blockExists(bx, by, bz)) world.getTileEntity(bx, by, bz) match {
-          case handler: IFluidHandler =>
-            tank.getFluid match {
-              case stack: FluidStack =>
-                val filled = handler.fill(facing.getOpposite, new FluidStack(stack, amount), true)
-                if (filled > 0 || amount == 0) {
-                  tank.drain(filled, true)
-                  result(true)
-                }
-                else result(Unit, "incompatible or no fluid")
-              case _ =>
-                result(Unit, "tank is empty")
-            }
-          case _ =>
-            val block = world.getBlock(bx, by, bz)
-            if (block != null && !block.isAir(world, x, y, z) && !block.isReplaceable(world, x, y, z)) {
-              result(Unit, "no space")
-            }
-            else if (tank.getFluidAmount < 1000) {
-              result(Unit, "tank is empty")
-            }
-            else if (!tank.getFluid.getFluid.canBePlacedInWorld) {
-              result(Unit, "incompatible fluid")
-            }
-            else {
-              val fluidBlock = tank.getFluid.getFluid.getBlock
-              tank.drain(1000, true)
-              world.func_147480_a(bx, by, bz, true)
-              world.setBlock(bx, by, bz, fluidBlock)
-              // This fake neighbor update is required to get stills to start flowing.
-              world.notifyBlockOfNeighborChange(bx, by, bz, robot.block)
-              result(true)
-            }
-        }
-        else result(Unit, "no space")
-      case _ => result(Unit, "no tank selected")
     }
   }
 
@@ -736,33 +402,6 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
-  private def blockContent(player: Player, side: ForgeDirection) = {
-    player.closestEntity[Entity](side) match {
-      case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
-        (true, "entity")
-      case _ =>
-        val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-        val block = world.getBlock(bx, by, bz)
-        val metadata = world.getBlockMetadata(bx, by, bz)
-        if (block == null || block.isAir(world, bx, by, bz)) {
-          (false, "air")
-        }
-        else if (FluidRegistry.lookupFluidForBlock(block) != null) {
-          val event = new BlockEvent.BreakEvent(bx, by, bz, world, block, metadata, player)
-          MinecraftForge.EVENT_BUS.post(event)
-          (event.isCanceled, "liquid")
-        }
-        else if (block.isReplaceable(world, bx, by, bz)) {
-          val event = new BlockEvent.BreakEvent(bx, by, bz, world, block, metadata, player)
-          MinecraftForge.EVENT_BUS.post(event)
-          (event.isCanceled, "replaceable")
-        }
-        else {
-          (true, "solid")
-        }
-    }
-  }
-
   private def pick(player: Player, range: Double) = {
     val origin = Vec3.createVectorHelper(
       player.posX + player.facing.offsetX * 0.5,
@@ -784,16 +423,15 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
   }
 
   private def clickParamsForPlace(facing: ForgeDirection) = {
-    (x, y, z,
+    (position.x, position.y, position.z,
       0.5f + facing.offsetX * 0.5f,
       0.5f + facing.offsetY * 0.5f,
       0.5f + facing.offsetZ * 0.5f)
   }
 
   private def clickParamsForItemUse(facing: ForgeDirection, side: ForgeDirection) = {
-    (x + facing.offsetX + side.offsetX,
-      y + facing.offsetY + side.offsetY,
-      z + facing.offsetZ + side.offsetZ,
+    val blockPos = position.offset(facing).offset(side)
+    (blockPos.x, blockPos.y, blockPos.z,
       0.5f - side.offsetX * 0.5f,
       0.5f - side.offsetY * 0.5f,
       0.5f - side.offsetZ * 0.5f)
@@ -805,31 +443,4 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment {
       (hit.hitVec.yCoord - hit.blockY).toFloat,
       (hit.hitVec.zCoord - hit.blockZ).toFloat)
   }
-
-  // ----------------------------------------------------------------------- //
-
-  private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-    stackA.getItem == stackB.getItem &&
-      (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
-
-  private def haveSameFluidType(stackA: FluidStack, stackB: FluidStack) = stackA.isFluidEqual(stackB)
-
-  private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))
-
-  private def getTank(index: Int) = robot.tryGetTank(index)
-
-  private def fluidInTank(index: Int) = getTank(index) match {
-    case Some(tank) => Option(tank.getFluid)
-    case _ => None
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  private def checkSlot(args: Arguments, n: Int) = args.checkSlot(robot, n)
-
-  private def checkTank(args: Arguments, n: Int) = args.checkTank(robot, n)
-
-  private def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
-
-  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = robot.toGlobal(args.checkSideForFace(n, robot.toLocal(facing)))
 }

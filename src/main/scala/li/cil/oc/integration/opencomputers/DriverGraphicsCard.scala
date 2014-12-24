@@ -15,9 +15,6 @@ object DriverGraphicsCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("graphicsCard1"), api.Items.get("graphicsCard2"), api.Items.get("graphicsCard3"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && !isMicrocontroller(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     tier(stack) match {
       case Tier.One => new component.GraphicsCard.Tier1()

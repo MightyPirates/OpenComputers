@@ -13,9 +13,6 @@ object DriverUpgradeChunkloader extends Item with HostAware with EnvironmentAwar
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("chunkloaderUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && isRobot(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.UpgradeChunkloader(host)
 
   override def slot(stack: ItemStack) = Slot.Upgrade

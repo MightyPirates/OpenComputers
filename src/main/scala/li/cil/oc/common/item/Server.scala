@@ -2,13 +2,13 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.GuiType
-import li.cil.oc.common.Tier
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.util.Rarity
+import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World

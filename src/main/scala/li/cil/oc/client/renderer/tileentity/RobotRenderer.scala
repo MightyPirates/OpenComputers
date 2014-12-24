@@ -1,20 +1,20 @@
 package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.entity.RenderManager
-import net.minecraft.client.renderer.entity.RendererLivingEntity
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.entity.RenderManager
+import net.minecraft.client.renderer.entity.RendererLivingEntity
+import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity

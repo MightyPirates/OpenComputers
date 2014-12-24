@@ -8,6 +8,7 @@ import li.cil.oc.api
 import li.cil.oc.api.machine.Machine
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.tileentity.traits.TileEntity
@@ -31,6 +32,7 @@ object PacketHandler extends CommonPacketHandler {
   override def dispatch(p: PacketParser) {
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
+      case PacketType.DronePower => onDronePower(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
@@ -61,6 +63,20 @@ object PacketHandler extends CommonPacketHandler {
           case _ =>
         }
         case _ => // Invalid packet.
+      }
+      case _ => // Invalid packet.
+    }
+
+  def onDronePower(p: PacketParser) =
+    p.readEntity[Drone]() match {
+      case Some(drone) => p.player match {
+        case player: EntityPlayerMP =>
+          val power = p.readBoolean()
+          if (power) {
+            drone.preparePowerUp()
+          }
+          trySetComputerPower(drone.machine, power, player)
+        case _ =>
       }
       case _ => // Invalid packet.
     }
@@ -183,7 +199,7 @@ object PacketHandler extends CommonPacketHandler {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           val number = p.readInt()
           val side = p.readDirection()
-          if (rack.sides(number) != side && side != ForgeDirection.SOUTH && (!rack.sides.contains(side) || side == ForgeDirection.UNKNOWN)) {
+          if (rack.sides(number) != side && side != Option(ForgeDirection.SOUTH) && (!rack.sides.contains(side) || side == None)) {
             rack.sides(number) = side
             rack.servers(number) match {
               case Some(server) => rack.reconnectServer(number, server)

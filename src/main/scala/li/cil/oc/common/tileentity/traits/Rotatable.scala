@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.internal
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
@@ -129,7 +130,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   }
 
   def rotate(axis: ForgeDirection) = {
-    val block = world.getBlock(x, y, z)
+    val block = world.getBlock(position)
     if (block != null) {
       val valid = block.getValidRotations(world, x, y, z)
       if (valid != null && valid.contains(axis)) {

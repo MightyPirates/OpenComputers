@@ -4,8 +4,8 @@ import java.util.UUID
 
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.SideTracker
@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
 object ExtendedRecipe {
+  private lazy val drone = api.Items.get("drone")
   private lazy val eeprom = api.Items.get("eeprom")
   private lazy val mcu = api.Items.get("microcontroller")
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
@@ -71,9 +72,16 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == mcu) {
+    recraftMCU(craftedStack, inventory, mcu)
+    recraftMCU(craftedStack, inventory, drone)
+
+    craftedStack
+  }
+
+  private def recraftMCU(craftedStack: ItemStack, inventory: InventoryCrafting, descriptor: ItemInfo) {
+    if (api.Items.get(craftedStack) == descriptor) {
       // Find old Microcontroller.
-      (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).find(api.Items.get(_) == mcu) match {
+      (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).find(api.Items.get(_) == descriptor) match {
         case Some(oldMcu) =>
           val data = new ItemUtils.MicrocontrollerData(oldMcu)
 
@@ -93,8 +101,6 @@ object ExtendedRecipe {
         case _ =>
       }
     }
-
-    craftedStack
   }
 
   private def weAreBeingCalledFromAppliedEnergistics2 = Mods.AppliedEnergistics2.isAvailable && new Exception().getStackTrace.exists(_.getClassName == "appeng.container.implementations.ContainerPatternTerm")

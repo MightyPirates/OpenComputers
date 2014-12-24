@@ -2,7 +2,6 @@ package li.cil.oc.common.container
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Settings
 import li.cil.oc.client.gui.Icons
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
@@ -95,7 +94,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
         isAssembling = assembler.isAssembling
         sendProgressBarUpdate(0, if (isAssembling) 1 else 0)
       }
-      val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+      val timeRemaining = assembler.timeRemaining
       if (math.abs(assembler.progress - assemblyProgress) > 0.2 || assemblyRemainingTime != timeRemaining) {
         assemblyProgress = assembler.progress
         assemblyRemainingTime = timeRemaining

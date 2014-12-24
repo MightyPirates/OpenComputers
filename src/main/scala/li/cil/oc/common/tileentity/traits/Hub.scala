@@ -21,7 +21,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
-  val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
+  val queue = mutable.Queue.empty[(Option[ForgeDirection], Packet)]
 
   var maxQueueSize = queueBaseSize
 
@@ -80,7 +80,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
-  def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) = queue.synchronized {
+  def tryEnqueuePacket(sourceSide: Option[ForgeDirection], packet: Packet) = queue.synchronized {
     if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
       if (relayCooldown < 0) {
@@ -91,8 +91,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
     else false
   }
 
-  protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
-    for (side <- ForgeDirection.VALID_DIRECTIONS if side != sourceSide) {
+  protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
+    for (side <- ForgeDirection.VALID_DIRECTIONS if Option(side) != sourceSide) {
       sidedNode(side).sendToReachable("network.message", packet)
     }
   }
@@ -105,7 +105,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
     nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).foreach(
       (tag: NBTTagCompound) => {
-        val side = ForgeDirection.getOrientation(tag.getInteger("side"))
+        val side = tag.getDirection("side")
         val packet = api.Network.newPacket(tag)
         queue += side -> packet
       })
@@ -126,7 +126,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
       nbt.setNewTagList(Settings.namespace + "queue", queue.map {
         case (sourceSide, packet) =>
           val tag = new NBTTagCompound()
-          tag.setInteger("side", sourceSide.ordinal())
+          tag.setDirection("side", sourceSide)
           packet.save(tag)
           tag
       })
@@ -162,7 +162,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected def onPlugMessage(plug: Plug, message: Message) {
     if (message.name == "network.message" && !plugs.exists(_.node == message.source)) message.data match {
-      case Array(packet: Packet) => tryEnqueuePacket(plug.side, packet)
+      case Array(packet: Packet) => tryEnqueuePacket(Option(plug.side), packet)
       case _ =>
     }
   }

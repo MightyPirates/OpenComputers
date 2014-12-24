@@ -14,7 +14,6 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
@@ -656,7 +655,7 @@ object Network extends api.detail.NetworkAPI {
         case _: java.lang.Double => 8
         case value: java.lang.String => value.length
         case value: Array[Byte] => value.length
-        case _ => 0
+        case _ => throw new IllegalArgumentException("unsupported data type")
       })
     }))
 

@@ -41,7 +41,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
       8, 6, 0x404040)
     if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (computer.isRunning) Localization.Robot.TurnOff else Localization.Robot.TurnOn)
+      tooltip.add(if (computer.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()

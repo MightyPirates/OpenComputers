@@ -15,6 +15,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.client.renderer.TextBufferRenderCache
+import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.client.{ComponentTracker => ClientComponentTracker}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common._
@@ -513,9 +514,17 @@ object TextBuffer {
   }
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
+    val renderer = new TextBufferRenderData {
+      override def dirty = ClientProxy.this.dirty
+
+      override def dirty_=(value: Boolean) = ClientProxy.this.dirty = value
+
+      override def data = owner.data
+    }
+
     override def render() = {
       val wasDirty = dirty
-      TextBufferRenderCache.render(owner)
+      TextBufferRenderCache.render(renderer)
       wasDirty
     }
 

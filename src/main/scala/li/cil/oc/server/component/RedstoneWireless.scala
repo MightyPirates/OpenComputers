@@ -13,7 +13,6 @@ import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),

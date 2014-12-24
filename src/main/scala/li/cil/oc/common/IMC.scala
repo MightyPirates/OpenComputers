@@ -8,7 +8,9 @@ import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.template.AssemblerTemplates
+import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.integration.util.Wrench
+import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.Constants.NBT
@@ -25,6 +27,15 @@ object IMC {
           OpenComputers.log.info(s"Registering new, unnamed assembler template from mod ${message.getSender}.")
         try AssemblerTemplates.add(message.getNBTValue) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering assembler template.", t)
+        }
+      }
+      else if (message.key == "registerDisassemblerTemplate" && message.isNBTMessage) {
+        if (message.getNBTValue.hasKey("name", NBT.TAG_STRING))
+          OpenComputers.log.info(s"Registering new disassembler template '${message.getNBTValue.getString("name")}' from mod ${message.getSender}.")
+        else
+          OpenComputers.log.info(s"Registering new, unnamed disassembler template from mod ${message.getSender}.")
+        try DisassemblerTemplates.add(message.getNBTValue) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering disassembler template.", t)
         }
       }
       else if (message.key == "registerToolDurabilityProvider" && message.isStringMessage) {
@@ -50,6 +61,21 @@ object IMC {
         if (!Settings.get.peripheralBlacklist.contains(message.getStringValue)) {
           Settings.get.peripheralBlacklist.add(message.getStringValue)
         }
+      }
+      else if (message.key == "blacklistHost" && message.isNBTMessage) {
+        OpenComputers.log.info(s"Blacklisting component '${message.getNBTValue.getString("name")}' for host '${message.getNBTValue.getString("host")}' as requested by mod ${message.getSender}.")
+        try Registry.blacklistHost(ItemStack.loadItemStackFromNBT(message.getNBTValue.getCompoundTag("item")), Class.forName(message.getNBTValue.getString("host"))) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed blacklisting component.", t)
+        }
+      }
+      else if (message.key == "registerAssemblerFilter" && message.isStringMessage) {
+        OpenComputers.log.info(s"Registering new assembler template filter '${message.getStringValue}' from mod ${message.getSender}.")
+        try AssemblerTemplates.addFilter(message.getStringValue) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering assembler template filter.", t)
+        }
+      }
+      else {
+        OpenComputers.log.warn(s"Got an unrecognized or invalid IMC message '${message.key}' from mod ${message.getSender}.")
       }
     }
   }
