@@ -65,9 +65,9 @@ object RaidRenderer extends TileEntitySpecialRenderer {
   private def renderSlot(r: WorldRenderer, slot: Int, icon: TextureAtlasSprite) {
     val l = u1 + slot * fs
     val h = u1 + (slot + 1) * fs
-    r.addVertexWithUV(l, 1, 0, icon.getInterpolatedU(l), icon.getMaxV)
-    r.addVertexWithUV(h, 1, 0, icon.getInterpolatedU(h), icon.getMaxV)
-    r.addVertexWithUV(h, 0, 0, icon.getInterpolatedU(h), icon.getMinV)
-    r.addVertexWithUV(l, 0, 0, icon.getInterpolatedU(l), icon.getMinV)
+    r.addVertexWithUV(l, 1, 0, icon.getInterpolatedU(l * 16), icon.getMaxV)
+    r.addVertexWithUV(h, 1, 0, icon.getInterpolatedU(h * 16), icon.getMaxV)
+    r.addVertexWithUV(h, 0, 0, icon.getInterpolatedU(h * 16), icon.getMinV)
+    r.addVertexWithUV(l, 0, 0, icon.getInterpolatedU(l * 16), icon.getMinV)
   }
 }

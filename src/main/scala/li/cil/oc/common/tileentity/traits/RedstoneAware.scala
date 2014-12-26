@@ -150,18 +150,18 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   protected def onRedstoneInputChanged(side: EnumFacing) {}
 
   protected def onRedstoneOutputEnabledChanged() {
-    world.notifyBlocksOfNeighborChange(position, block)
+    world.notifyNeighborsOfStateChange(getPos, getBlockType)
     if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.markBlockForUpdate(position)
+    else world.markBlockForUpdate(getPos)
   }
 
   protected def onRedstoneOutputChanged(side: EnumFacing) {
-    val blockPos = position.offset(side)
-    world.notifyBlockOfNeighborChange(blockPos, block)
-    world.notifyBlocksOfNeighborChange(blockPos, world.getBlock(blockPos), side.getOpposite)
+    val blockPos = getPos.offset(side)
+    world.notifyNeighborsOfStateChange(blockPos, getBlockType)
+    world.notifyNeighborsOfStateExcept(blockPos, world.getBlockState(blockPos).getBlock, side.getOpposite)
 
     if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.markBlockForUpdate(position)
+    else world.markBlockForUpdate(getPos)
   }
 
   // ----------------------------------------------------------------------- //
