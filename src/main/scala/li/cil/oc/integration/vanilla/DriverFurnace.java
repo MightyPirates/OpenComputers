@@ -12,6 +12,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 public final class DriverFurnace extends DriverTileEntity implements EnvironmentAware {
@@ -21,8 +22,8 @@ public final class DriverFurnace extends DriverTileEntity implements Environment
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityFurnace) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((TileEntityFurnace) world.getTileEntity(pos));
     }
 
     @Override
@@ -49,17 +50,17 @@ public final class DriverFurnace extends DriverTileEntity implements Environment
 
         @Callback(doc = "function():number -- The number of ticks that the furnace will keep burning from the last consumed fuel.")
         public Object[] getBurnTime(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.furnaceBurnTime};
+            return new Object[]{tileEntity.getField(0)};
         }
 
         @Callback(doc = "function():number -- The number of ticks that the current item has been cooking for.")
         public Object[] getCookTime(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.furnaceCookTime};
+            return new Object[]{tileEntity.getField(2)};
         }
 
         @Callback(doc = "function():number -- The number of ticks that the currently burning fuel lasts in total.")
         public Object[] getCurrentItemBurnTime(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.currentItemBurnTime};
+            return new Object[]{tileEntity.getField(1)};
         }
 
         @Callback(doc = "function():boolean -- Get whether the furnace is currently active.")

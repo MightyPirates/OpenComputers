@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -13,13 +13,15 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+/* TODO FMP
 import li.cil.oc.integration.fmp.EventHandler
+*/
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
@@ -39,7 +41,9 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
+      /* TODO FMP
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
+      */
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
@@ -82,7 +86,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   private def trySetComputerPower(computer: Machine, value: Boolean, player: EntityPlayerMP) {
-    if (computer.canInteract(player.getCommandSenderName)) {
+    if (computer.canInteract(player.getName)) {
       if (value) {
         if (!computer.isPaused) {
           computer.start()
@@ -144,24 +148,26 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
+  /* TODO FMP
   def onMultiPartPlace(p: PacketParser) {
     p.player match {
       case player: EntityPlayerMP => EventHandler.place(player)
       case _ => // Invalid packet.
     }
   }
+  */
 
   def onPetVisibility(p: PacketParser) {
     p.player match {
       case player: EntityPlayerMP =>
         if (if (p.readBoolean()) {
-          PetVisibility.hidden.remove(player.getCommandSenderName)
+          PetVisibility.hidden.remove(player.getName)
         }
         else {
-          PetVisibility.hidden.add(player.getCommandSenderName)
+          PetVisibility.hidden.add(player.getName)
         }) {
           // Something changed.
-          PacketSender.sendPetVisibility(Some(player.getCommandSenderName))
+          PacketSender.sendPetVisibility(Some(player.getName))
         }
       case _ => // Invalid packet.
     }
@@ -178,7 +184,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onRobotStateRequest(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
-      case Some(proxy) => proxy.world.markBlockForUpdate(proxy.x, proxy.y, proxy.z)
+      case Some(proxy) => proxy.world.markBlockForUpdate(proxy.getPos)
       case _ => // Invalid packet.
     }
 
@@ -199,7 +205,7 @@ object PacketHandler extends CommonPacketHandler {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           val number = p.readInt()
           val side = p.readDirection()
-          if (rack.sides(number) != side && side != Option(ForgeDirection.SOUTH) && (!rack.sides.contains(side) || side == None)) {
+          if (rack.sides(number) != side && side != Option(EnumFacing.SOUTH) && (!rack.sides.contains(side) || side == None)) {
             rack.sides(number) = side
             rack.servers(number) match {
               case Some(server) => rack.reconnectServer(number, server)

@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
-import cpw.mods.fml.common.eventhandler.Event
+import net.minecraft.util.ChatComponentText
+import net.minecraftforge.fml.common.eventhandler.Event
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.internal.Robot
@@ -12,7 +13,7 @@ import net.minecraft.tileentity.TileEntitySign
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.BlockEvent
 
 abstract class UpgradeSign extends prefab.ManagedEnvironment {
@@ -36,14 +37,14 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
           return result(Unit, "not allowed")
         }
 
-        text.lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line).copyToArray(sign.signText)
-        host.world.markBlockForUpdate(sign.xCoord, sign.yCoord, sign.zCoord)
+        text.lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line).map(new ChatComponentText(_)).copyToArray(sign.signText)
+        host.world.markBlockForUpdate(sign.getPos)
         result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
     }
   }
 
-  protected def findSign(side: ForgeDirection) = {
+  protected def findSign(side: EnumFacing) = {
     val hostPos = BlockPosition(host)
     host.world.getTileEntity(hostPos) match {
       case sign: TileEntitySign => Option(sign)
@@ -55,10 +56,10 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
   }
 
   private def canChangeSign(player: EntityPlayer, tileEntity: TileEntitySign): Boolean = {
-    if (!host.world.canMineBlock(player, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)) {
+    if (!host.world.isBlockModifiable(player, tileEntity.getPos)) {
       return false
     }
-    val event = new BlockEvent.BreakEvent(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, host.world, tileEntity.getBlockType, tileEntity.getBlockMetadata, player)
+    val event = new BlockEvent.BreakEvent(host.world, tileEntity.getPos, tileEntity.getWorld.getBlockState(tileEntity.getPos), player)
     MinecraftForge.EVENT_BUS.post(event)
     !(event.isCanceled || event.getResult == Event.Result.DENY)
   }

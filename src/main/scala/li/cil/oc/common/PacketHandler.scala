@@ -9,11 +9,14 @@ import io.netty.buffer.ByteBufInputStream
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.common.block.RobotAfterimage
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.reflect.ClassTag
 import scala.reflect.classTag
@@ -43,15 +46,15 @@ abstract class PacketHandler {
    */
   protected def world(player: EntityPlayer, dimension: Int): Option[World]
 
-  protected def dispatch(p: PacketParser)
+  protected def dispatch(p: PacketParser): Unit
 
   protected class PacketParser(stream: InputStream, val player: EntityPlayer) extends DataInputStream(stream) {
     val packetType = PacketType(readByte())
 
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
       world(player, dimension) match {
-        case Some(world) if world.blockExists(x, y, z) =>
-          val t = world.getTileEntity(x, y, z)
+        case Some(world) if world.blockExists(BlockPosition(x, y, z)) =>
+          val t = world.getTileEntity(BlockPosition(x, y, z))
           if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass)) {
             return Some(t.asInstanceOf[T])
           }
@@ -59,7 +62,7 @@ abstract class PacketHandler {
           // mostly used when the robot *starts* moving while the client sends
           // a request to the server.
           api.Items.get("robotAfterimage").block match {
-            case afterimage: RobotAfterimage => afterimage.findMovingRobot(world, x, y, z) match {
+            case afterimage: RobotAfterimage => afterimage.findMovingRobot(world, new BlockPos(x, y, z)) match {
               case Some(robot) if classTag[T].runtimeClass.isAssignableFrom(robot.proxy.getClass) =>
                 return Some(robot.proxy.asInstanceOf[T])
               case _ =>
@@ -99,7 +102,7 @@ abstract class PacketHandler {
 
     def readDirection() = readByte() match {
       case id if id < 0 => None
-      case id => Option(ForgeDirection.getOrientation(id))
+      case id => Option(EnumFacing.getFront(id))
     }
 
     def readItemStack() = {

@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
@@ -20,8 +20,8 @@ trait TextBuffer extends Environment {
 
   def tier: Int
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (isClient || isConnected) {
       buffer.update()
     }

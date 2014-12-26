@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
@@ -14,7 +14,7 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.mutable
 
@@ -41,9 +41,9 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = side != ForgeDirection.UP
+  override protected def hasConnector(side: EnumFacing) = side != EnumFacing.UP
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
 
   override protected def energyThroughput = Settings.get.disassemblerRate
 
@@ -51,8 +51,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def canUpdate = isServer
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
         disassemble(decrStackSize(0, 1))
@@ -95,11 +95,11 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   private def drop(stack: ItemStack) {
     if (stack != null) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
+      for (side <- EnumFacing.values if stack.stackSize > 0) {
         InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), side.getOpposite)
       }
       if (stack.stackSize > 0) {
-        spawnStackInWorld(stack, Option(ForgeDirection.UP))
+        spawnStackInWorld(stack, Option(EnumFacing.UP))
       }
     }
   }

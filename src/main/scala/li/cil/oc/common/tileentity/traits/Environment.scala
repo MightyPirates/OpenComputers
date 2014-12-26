@@ -8,7 +8,7 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 trait Environment extends TileEntity with network.Environment with driver.EnvironmentHost {
   protected var isChangeScheduled = false
@@ -19,7 +19,7 @@ trait Environment extends TileEntity with network.Environment with driver.Enviro
 
   override def zPosition = z + 0.5
 
-  override def markChanged() = if (canUpdate) isChangeScheduled = true else world.markTileEntityChunkModified(x, y, z, this)
+  override def markChanged() = if (canUpdate) isChangeScheduled = true else world.markChunkDirty(getPos, this)
 
   protected def isConnected = node.address != null && node.network != null
 
@@ -32,10 +32,10 @@ trait Environment extends TileEntity with network.Environment with driver.Enviro
     }
   }
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (isChangeScheduled) {
-      world.markTileEntityChunkModified(x, y, z, this)
+      world.markChunkDirty(getPos, this)
       isChangeScheduled = false
     }
   }
@@ -45,7 +45,7 @@ trait Environment extends TileEntity with network.Environment with driver.Enviro
     if (isServer) {
       Option(node).foreach(_.remove)
       this match {
-        case sidedEnvironment: SidedEnvironment => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        case sidedEnvironment: SidedEnvironment => for (side <- EnumFacing.values) {
           Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
         }
         case _ =>

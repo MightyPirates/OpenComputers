@@ -13,6 +13,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityNote;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 public final class DriverNoteBlock extends DriverTileEntity implements EnvironmentAware {
@@ -22,8 +23,8 @@ public final class DriverNoteBlock extends DriverTileEntity implements Environme
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityNote) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((TileEntityNote) world.getTileEntity(pos));
     }
 
     @Override
@@ -65,14 +66,11 @@ public final class DriverNoteBlock extends DriverTileEntity implements Environme
                 setPitch(args.checkInteger(0));
             }
 
-            final World world = tileEntity.getWorldObj();
-            final int x = tileEntity.xCoord;
-            final int y = tileEntity.yCoord;
-            final int z = tileEntity.zCoord;
-            final Material material = world.getBlock(x, y + 1, z).getMaterial();
+            final World world = tileEntity.getWorld();
+            final Material material = world.getBlockState(tileEntity.getPos().up()).getBlock().getMaterial();
             final boolean canTrigger = material == Material.air;
 
-            tileEntity.triggerNote(world, x, y, z);
+            tileEntity.triggerNote(world, tileEntity.getPos());
             return new Object[]{canTrigger};
         }
 

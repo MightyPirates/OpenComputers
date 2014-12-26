@@ -23,7 +23,6 @@ object BufferRenderer {
     displayLists = GLAllocation.generateDisplayLists(2)
 
     RenderState.checkError(getClass.getName + ".displayLists: leaving")
-    Textures.init(tm)
   })
 
   def compileBackground(bufferWidth: Int, bufferHeight: Int, forRobot: Boolean = false) =
@@ -35,7 +34,7 @@ object BufferRenderer {
 
       GL11.glNewList(displayLists, GL11.GL_COMPILE)
 
-      textureManager.get.bindTexture(Textures.guiBorders)
+      textureManager.get.bindTexture(Textures.GUI.Borders)
 
       GL11.glBegin(GL11.GL_QUADS)
 

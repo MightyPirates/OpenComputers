@@ -14,6 +14,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
+import net.minecraft.command.CommandResultStats.Type
 import net.minecraft.command.ICommandSender
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
@@ -22,13 +23,14 @@ import net.minecraft.nbt.JsonToNBT
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.IChatComponent
 import net.minecraft.world.World
 import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraftforge.common.util.ForgeDirection
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
@@ -98,7 +100,7 @@ object DebugCard {
 
     def withPlayer(f: (EntityPlayerMP) => Array[AnyRef]) = {
       checkEnabled()
-      MinecraftServer.getServer.getConfigurationManager.func_152612_a(name) match {
+      MinecraftServer.getServer.getConfigurationManager.getPlayerByUsername(name) match {
         case player: EntityPlayerMP => f(player)
         case _ => result(Unit, "player is offline")
       }
@@ -167,7 +169,7 @@ object DebugCard {
     @Callback(doc = """function():number -- Gets the numeric id of the current dimension.""")
     def getDimensionId(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.provider.dimensionId)
+      result(world.provider.getDimensionId)
     }
 
     @Callback(doc = """function():string -- Gets the name of the current dimension.""")
@@ -230,7 +232,7 @@ object DebugCard {
     @Callback(doc = """function(x:number, y:number, z:number) -- Set the spawn point coordinates.""")
     def setSpawnPoint(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      world.getWorldInfo.setSpawnPosition(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      world.getWorldInfo.setSpawn(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
       null
     }
 
@@ -239,45 +241,45 @@ object DebugCard {
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the ID of the block at the specified coordinates.""")
     def getBlockId(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(Block.getIdFromBlock(world.getBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
+      result(Block.getIdFromBlock(world.getBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))).getBlock))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the metadata of the block at the specified coordinates.""")
     def getMetadata(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.getBlockMetadata(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.getBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates is loaded.""")
     def isLoaded(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.blockExists(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.isBlockLoaded(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Check whether the block at the specified coordinates has a tile entity.""")
     def hasTileEntity(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
-      val block = world.getBlock(x, y, z)
-      result(block != null && block.hasTileEntity(world.getBlockMetadata(x, y, z)))
+      val blockPos = new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      val state = world.getBlockState(blockPos)
+      result(state.getBlock.hasTileEntity(state))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light opacity of the block at the specified coordinates.""")
     def getLightOpacity(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.getBlockLightOpacity(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.getBlockLightOpacity(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light value (emission) of the block at the specified coordinates.""")
     def getLightValue(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.getBlockLightValue(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.getLight(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)), false))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get whether the block at the specified coordinates is directly under the sky.""")
     def canSeeSky(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      result(world.canBlockSeeTheSky(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      result(world.canBlockSeeSky(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))))
     }
 
     @Callback(doc = """function(x:number, y:number, z:number, id:number or string, meta:number):number -- Set the block at the specified coordinates.""")
@@ -285,7 +287,7 @@ object DebugCard {
       checkEnabled()
       val block = if (args.isInteger(3)) Block.getBlockById(args.checkInteger(3)) else Block.getBlockFromName(args.checkString(3))
       val metadata = args.checkInteger(4)
-      result(world.setBlock(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2), block, metadata, 3))
+      result(world.setBlockState(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)), block.getStateFromMeta(metadata)))
     }
 
     @Callback(doc = """function(x1:number, y1:number, z1:number, x2:number, y2:number, z2:number, id:number or string, meta:number):number -- Set all blocks in the area defined by the two corner points (x1, y1, z1) and (x2, y2, z2).""")
@@ -298,7 +300,7 @@ object DebugCard {
       for (x <- math.min(xMin, xMax) to math.max(xMin, xMax)) {
         for (y <- math.min(yMin, yMax) to math.max(yMin, yMax)) {
           for (z <- math.min(zMin, zMax) to math.max(zMin, zMax)) {
-            world.setBlock(x, y, z, block, metadata, 3)
+            world.setBlockState(new BlockPos(x, y, z), block.getStateFromMeta(metadata))
           }
         }
       }
@@ -317,9 +319,9 @@ object DebugCard {
       val count = args.checkInteger(1)
       val damage = args.checkInteger(2)
       val tagJson = args.checkString(3)
-      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_150315_a(tagJson).asInstanceOf[NBTTagCompound]
+      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_180713_a(tagJson)
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
-      val side = args.checkSide(7, ForgeDirection.VALID_DIRECTIONS: _*)
+      val side = args.checkSide(7, EnumFacing.values: _*)
       InventoryUtils.inventoryAt(position) match {
         case Some(inventory) =>
           val stack = new ItemStack(item, count, damage)
@@ -338,7 +340,7 @@ object DebugCard {
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      nbt.setInteger("dimension", world.provider.dimensionId)
+      nbt.setInteger("dimension", world.provider.getDimensionId)
     }
   }
 
@@ -347,7 +349,7 @@ object DebugCard {
 
     var messages: Option[String] = None
 
-    override def getCommandSenderName = fakePlayer.getCommandSenderName
+    override def getName = fakePlayer.getName
 
     override def getEntityWorld = host.world
 
@@ -355,18 +357,26 @@ object DebugCard {
       messages = Option(messages.getOrElse("") + message.getUnformattedText)
     }
 
-    override def canCommandSenderUseCommand(level: Int, command: String) = {
+    override def getDisplayName = fakePlayer.getDisplayName
+
+    override def setCommandStat(`type`: Type, amount: Int) = fakePlayer.setCommandStat(`type`, amount)
+
+    override def getPosition = fakePlayer.getPosition
+
+    override def canUseCommand(level: Int, commandName: String) = {
       val profile = fakePlayer.getGameProfile
       val server = fakePlayer.mcServer
       val config = server.getConfigurationManager
-      server.isSinglePlayer || (config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
-        case entry: UserListOpsEntry => entry.func_152644_a >= level
+      server.isSinglePlayer || (config.canSendCommands(profile) && (config.getOppedPlayers.getEntry(profile) match {
+        case entry: UserListOpsEntry => entry.getPermissionLevel >= level
         case _ => server.getOpPermissionLevel >= level
       }))
     }
 
-    override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates
+    override def getCommandSenderEntity = fakePlayer
 
-    override def func_145748_c_() = fakePlayer.func_145748_c_()
+    override def getPositionVector = fakePlayer.getPositionVector
+
+    override def sendCommandFeedback() = fakePlayer.sendCommandFeedback()
   }
 }

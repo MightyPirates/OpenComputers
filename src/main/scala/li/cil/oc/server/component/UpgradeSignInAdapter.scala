@@ -7,7 +7,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class UpgradeSignInAdapter(val host: EnvironmentHost) extends UpgradeSign {
   override val node = Network.newNode(this, Visibility.Network).
@@ -18,8 +18,8 @@ class UpgradeSignInAdapter(val host: EnvironmentHost) extends UpgradeSign {
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function(side:number):string -- Get the text on the sign on the specified side of the adapter.""")
-  def getValue(context: Context, args: Arguments): Array[AnyRef] = super.getValue(findSign(args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)))
+  def getValue(context: Context, args: Arguments): Array[AnyRef] = super.getValue(findSign(args.checkSide(0, EnumFacing.values: _*)))
 
   @Callback(doc = """function(side:number, value:string):string -- Set the text on the sign on the specified side of the adapter.""")
-  def setValue(context: Context, args: Arguments): Array[AnyRef] = super.setValue(findSign(args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)), args.checkString(1))
+  def setValue(context: Context, args: Arguments): Array[AnyRef] = super.setValue(findSign(args.checkSide(0, EnumFacing.values: _*)), args.checkString(1))
 }

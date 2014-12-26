@@ -1,27 +1,28 @@
 package li.cil.oc.common.block
 
+/* TODO FMP
 import codechicken.lib.vec.Cuboid6
 import codechicken.multipart.JNormalOcclusion
 import codechicken.multipart.NormalOcclusionTest
 import codechicken.multipart.TFacePart
 import codechicken.multipart.TileMultipart
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Settings
+import li.cil.oc.integration.fmp.CablePart
+*/
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.SidedEnvironment
-import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.fmp.CablePart
-import li.cil.oc.util.Color
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Cable extends SimpleBlock with traits.SpecialBlock {
   setLightOpacity(0)
@@ -32,41 +33,26 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
   // For FMP part coloring.
   var colorMultiplierOverride: Option[Int] = None
 
-  override protected def customTextures = Array(
-    Some("CablePart"),
-    Some("CablePart"),
-    Some("CablePart"),
-    Some("CablePart"),
-    Some("CablePart"),
-    Some("CablePart")
-  )
+  @SideOnly(Side.CLIENT) override
+  def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) = colorMultiplierOverride.getOrElse(super.colorMultiplier(world, pos, renderPass))
 
-  @SideOnly(Side.CLIENT)
-  override def registerBlockIcons(iconRegister: IIconRegister) {
-    super.registerBlockIcons(iconRegister)
-    Textures.Cable.iconCap = iconRegister.registerIcon(Settings.resourceDomain + ":CableCap")
-  }
-
-  override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    colorMultiplierOverride.getOrElse(super.colorMultiplier(world, x, y, z))
-
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
+  override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Cable()
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Cable()
 
   // ----------------------------------------------------------------------- //
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
-    world.markBlockForUpdate(x, y, z)
-    super.onNeighborBlockChange(world, x, y, z, block)
+  override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) {
+    world.markBlockForUpdate(pos)
+    super.onNeighborBlockChange(world, pos, state, neighborBlock)
   }
 
-  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int): Unit = {
-    setBlockBounds(Cable.bounds(world, x, y, z))
+  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos): Unit = {
+    setBlockBounds(Cable.bounds(world, pos))
   }
 }
 
@@ -74,87 +60,97 @@ object Cable {
   val cachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {
-      val bounds = AxisAlignedBB.getBoundingBox(-0.125, -0.125, -0.125, 0.125, 0.125, 0.125)
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        if ((side.flag & mask) != 0) {
-          if (side.offsetX < 0) bounds.minX += side.offsetX * 0.375
-          else bounds.maxX += side.offsetX * 0.375
-          if (side.offsetY < 0) bounds.minY += side.offsetY * 0.375
-          else bounds.maxY += side.offsetY * 0.375
-          if (side.offsetZ < 0) bounds.minZ += side.offsetZ * 0.375
-          else bounds.maxZ += side.offsetZ * 0.375
+      var minX = -0.125
+      var minY = -0.125
+      var minZ = -0.125
+      var maxX = 0.125
+      var maxY = 0.125
+      var maxZ = 0.125
+      for (side <- EnumFacing.values) {
+        if (((1 << side.getIndex) & mask) != 0) {
+          if (side.getFrontOffsetX < 0) minX += side.getFrontOffsetX * 0.375
+          else maxX += side.getFrontOffsetX * 0.375
+          if (side.getFrontOffsetY < 0) minY += side.getFrontOffsetY * 0.375
+          else maxY += side.getFrontOffsetY * 0.375
+          if (side.getFrontOffsetZ < 0) minZ += side.getFrontOffsetZ * 0.375
+          else maxZ += side.getFrontOffsetZ * 0.375
         }
       }
-      bounds.setBounds(
-        bounds.minX + 0.5, bounds.minY + 0.5, bounds.minZ + 0.5,
-        bounds.maxX + 0.5, bounds.maxY + 0.5, bounds.maxZ + 0.5)
+      AxisAlignedBB.fromBounds(
+        minX + 0.5, minY + 0.5, minZ + 0.5,
+        maxX + 0.5, maxY + 0.5, maxZ + 0.5)
     }).toArray
   }
 
-  def neighbors(world: IBlockAccess, x: Int, y: Int, z: Int) = {
+  def neighbors(world: IBlockAccess, pos: BlockPos) = {
     var result = 0
-    val tileEntity = world.getTileEntity(x, y, z)
-    for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+    val tileEntity = world.getTileEntity(pos)
+    for (side <- EnumFacing.values) {
+      val tpos = pos.offset(side)
       if (world match {
-        case world: World => world.blockExists(tx, ty, tz)
-        case _ => !world.isAirBlock(tx, ty, tz)
+        case world: World => world.isBlockLoaded(tpos)
+        case _ => !world.isAirBlock(tpos)
       }) {
-        val neighborTileEntity = world.getTileEntity(tx, ty, tz)
+        val neighborTileEntity = world.getTileEntity(tpos)
         val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
         val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
         val canConnectFMP = !Mods.ForgeMultipart.isAvailable ||
           (canConnectFromSideFMP(tileEntity, side) && canConnectFromSideFMP(neighborTileEntity, side.getOpposite))
         val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
         if (neighborHasNode && canConnectColor && canConnectFMP && canConnectIM) {
-          result |= side.flag
+          result |= (1 << side.getIndex)
         }
       }
     }
     result
   }
 
-  def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) = Cable.cachedBounds(Cable.neighbors(world, x, y, z)).copy()
+  def bounds(world: IBlockAccess, pos: BlockPos) = Cable.cachedBounds(Cable.neighbors(world, pos))
 
-  private def hasNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
+  private def hasNetworkNode(tileEntity: TileEntity, side: EnumFacing) =
     tileEntity match {
       case robot: tileentity.RobotProxy => false
       case host: SidedEnvironment =>
-        if (host.getWorldObj.isRemote) host.canConnect(side)
+        if (host.getWorld.isRemote) host.canConnect(side)
         else host.sidedNode(side) != null
       case host: Environment => true
       case host if Mods.ForgeMultipart.isAvailable => hasMultiPartNode(tileEntity)
       case _ => false
     }
 
-  private def hasMultiPartNode(tileEntity: TileEntity) =
+  private def hasMultiPartNode(tileEntity: TileEntity) = false
+  /* TODO FMP
     tileEntity match {
       case host: TileMultipart => host.partList.exists(_.isInstanceOf[CablePart])
       case _ => false
     }
+  */
 
   private def cableColor(tileEntity: TileEntity) =
     tileEntity match {
       case cable: tileentity.Cable => cable.color
       case _ =>
         if (Mods.ForgeMultipart.isAvailable) cableColorFMP(tileEntity)
-        else Color.LightGray
+        else EnumDyeColor.SILVER
     }
 
-  private def cableColorFMP(tileEntity: TileEntity) =
+  private def cableColorFMP(tileEntity: TileEntity) = EnumDyeColor.SILVER
+  /* TODO FMP
     tileEntity match {
       case host: TileMultipart => (host.partList collect {
         case cable: CablePart => cable.color
       }).headOption.getOrElse(Color.LightGray)
       case _ => Color.LightGray
     }
+  */
 
   private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity) = {
     val (c1, c2) = (cableColor(te1), cableColor(te2))
-    c1 == c2 || c1 == Color.LightGray || c2 == Color.LightGray
+    c1 == c2 || c1 == EnumDyeColor.SILVER || c2 == EnumDyeColor.SILVER
   }
 
-  private def canConnectFromSideFMP(tileEntity: TileEntity, side: ForgeDirection) =
+  private def canConnectFromSideFMP(tileEntity: TileEntity, side: EnumFacing) = true
+  /* TODO FMP
     tileEntity match {
       case host: TileMultipart =>
         host.partList.forall {
@@ -168,8 +164,9 @@ object Cable {
         }
       case _ => true
     }
+  */
 
-  private def canConnectFromSideIM(tileEntity: TileEntity, side: ForgeDirection) =
+  private def canConnectFromSideIM(tileEntity: TileEntity, side: EnumFacing) =
     tileEntity match {
       case im: tileentity.traits.ImmibisMicroblock => im.ImmibisMicroblocks_isSideOpen(side.ordinal)
       case _ => true

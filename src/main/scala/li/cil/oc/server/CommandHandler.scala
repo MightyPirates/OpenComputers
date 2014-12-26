@@ -1,6 +1,7 @@
 package li.cil.oc.server
 
-import cpw.mods.fml.common.event.FMLServerStartingEvent
+import net.minecraft.util.BlockPos
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent
 import li.cil.oc.Settings
 import net.minecraft.command.CommandBase
 import net.minecraft.command.ICommandSender
@@ -24,10 +25,10 @@ object CommandHandler {
 
     override def getCommandUsage(source: ICommandSender) = name + " <boolean>"
 
-    override def processCommand(source: ICommandSender, command: Array[String]) {
+    override def execute(sender: ICommandSender, command: Array[String]) {
       Settings.rTreeDebugRenderer =
         if (command != null && command.length > 0)
-          CommandBase.parseBoolean(source, command(0))
+          CommandBase.parseBoolean(command(0))
         else
           !Settings.rTreeDebugRenderer
     }
@@ -38,15 +39,15 @@ object CommandHandler {
   abstract class SimpleCommand(val name: String) extends CommandBase {
     protected var aliases = mutable.ListBuffer.empty[String]
 
-    override def getCommandName = name
+    override def getName = name
 
-    override def getCommandAliases = aliases
+    override def getAliases = aliases
 
-    override def canCommandSenderUseCommand(source: ICommandSender) = true
+    override def canCommandSenderUse(sender: ICommandSender) = true
+
+    override def addTabCompletionOptions(sender: ICommandSender, args: Array[String], pos: BlockPos) = List.empty[AnyRef]
 
     override def isUsernameIndex(command: Array[String], i: Int) = false
-
-    override def addTabCompletionOptions(source: ICommandSender, command: Array[String]) = List.empty[AnyRef]
   }
 
 }

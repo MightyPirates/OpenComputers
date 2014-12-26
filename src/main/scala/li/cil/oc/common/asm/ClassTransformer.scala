@@ -1,6 +1,6 @@
 package li.cil.oc.common.asm
 
-import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.integration.Mods
 import net.minecraft.launchwrapper.IClassTransformer

@@ -1,31 +1,15 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.Settings
-import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
 import net.minecraft.world.World
 
 class Geolyzer extends SimpleBlock {
   setLightLevel(0.14f)
 
-  override protected def customTextures = Array(
-    None,
-    Some("GeolyzerTop"),
-    Some("GeolyzerSide"),
-    Some("GeolyzerSide"),
-    Some("GeolyzerSide"),
-    Some("GeolyzerSide")
-  )
-
-  override def registerBlockIcons(iconRegister: IIconRegister) = {
-    super.registerBlockIcons(iconRegister)
-    Textures.Geolyzer.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":GeolyzerTopOn")
-  }
-
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
+  override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Geolyzer()
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Geolyzer()
 }

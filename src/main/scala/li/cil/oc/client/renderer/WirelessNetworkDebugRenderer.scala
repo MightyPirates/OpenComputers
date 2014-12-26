@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer
 
-import cpw.mods.fml.common.ObfuscationReflectionHelper
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.RenderState
@@ -19,7 +19,7 @@ object WirelessNetworkDebugRenderer {
       RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
 
       val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.context, "theWorld", "field_72769_h", "r").asInstanceOf[World]
-      WirelessNetwork.dimensions.get(world.provider.dimensionId) match {
+      WirelessNetwork.dimensions.get(world.provider.getDimensionId) match {
         case Some(tree) =>
           val mc = Minecraft.getMinecraft
           val player = mc.thePlayer

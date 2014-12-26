@@ -2,8 +2,9 @@ package li.cil.oc.common.tileentity
 
 import java.util.UUID
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
@@ -33,7 +34,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(filesystem.map(_.node).orNull)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(filesystem.map(_.node).orNull)
 
   override def canUpdate = false
 

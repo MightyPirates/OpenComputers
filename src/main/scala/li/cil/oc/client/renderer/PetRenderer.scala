@@ -4,9 +4,9 @@ import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.CacheBuilder
-import cpw.mods.fml.common.eventhandler.EventPriority
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
 import net.minecraft.client.Minecraft
@@ -37,7 +37,7 @@ object PetRenderer {
 
   @SubscribeEvent
   def onPlayerRender(e: RenderPlayerEvent.Pre) {
-    val name = e.entityPlayer.getCommandSenderName
+    val name = e.entityPlayer.getName
     if (hidden.contains(name) || !entitledPlayers.contains(name)) return
     rendering = Some(entitledPlayers(name))
 
@@ -53,8 +53,8 @@ object PetRenderer {
     GL11.glPushMatrix()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
     if (e.entityPlayer != Minecraft.getMinecraft.thePlayer) {
-      val localPos = Minecraft.getMinecraft.thePlayer.getPosition(e.partialRenderTick)
-      val playerPos = e.entityPlayer.getPosition(e.partialRenderTick)
+      val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.partialRenderTick)
+      val playerPos = e.entityPlayer.getPositionEyes(e.partialRenderTick)
       val correction = 1.62 - (if (e.entityPlayer.isSneaking) 0.125 else 0)
       GL11.glTranslated(
         playerPos.xCoord - localPos.xCoord,

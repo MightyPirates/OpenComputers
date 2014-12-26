@@ -2,7 +2,7 @@ package li.cil.oc.util
 
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
@@ -113,16 +113,12 @@ object ExtendedNBT {
 
     def getDirection(name: String) = {
       nbt.getByte(name) match {
-        case id if id < 0 => None
-        case id =>
-          val side = ForgeDirection.getOrientation(id)
-          // Backwards compatibility.
-          if (side == ForgeDirection.UNKNOWN) None
-          else Option(side)
+        case id if id < 0 || id > EnumFacing.values.length => None
+        case id => Option(EnumFacing.getFront(id))
       }
     }
 
-    def setDirection(name: String, d: Option[ForgeDirection]): Unit = {
+    def setDirection(name: String, d: Option[EnumFacing]): Unit = {
       d match {
         case Some(side) => nbt.setByte(name, side.ordinal.toByte)
         case _ => nbt.setByte(name, -1: Byte)

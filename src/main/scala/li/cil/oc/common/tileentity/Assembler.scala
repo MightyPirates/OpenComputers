@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
@@ -14,7 +14,7 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -31,14 +31,14 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UP
+  override def canConnect(side: EnumFacing) = side != EnumFacing.UP
 
-  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
+  override def sidedNode(side: EnumFacing) = if (side != EnumFacing.UP) node else null
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = canConnect(side)
+  override protected def hasConnector(side: EnumFacing) = canConnect(side)
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
 
   override protected def energyThroughput = Settings.get.assemblerRate
 
@@ -96,8 +96,8 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override def canUpdate = isServer
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (output.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
       val success = Settings.get.ignorePower || node.tryChangeBuffer(-want)

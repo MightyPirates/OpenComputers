@@ -4,7 +4,7 @@ import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.common.inventory.MultiTank
 import net.minecraft.inventory.IInventory
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.language.implicitConversions
 
@@ -54,18 +54,18 @@ object ExtendedArguments {
       tank
     }
 
-    def checkSideForAction(n: Int) = checkSide(n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
+    def checkSideForAction(n: Int) = checkSide(n, EnumFacing.SOUTH, EnumFacing.UP, EnumFacing.DOWN)
 
-    def checkSideForMovement(n: Int) = checkSide(n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN)
+    def checkSideForMovement(n: Int) = checkSide(n, EnumFacing.SOUTH, EnumFacing.NORTH, EnumFacing.UP, EnumFacing.DOWN)
 
-    def checkSideForFace(n: Int, facing: ForgeDirection) = checkSide(n, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite): _*)
+    def checkSideForFace(n: Int, facing: EnumFacing) = checkSide(n, EnumFacing.values.filter(_ != facing.getOpposite): _*)
 
-    def checkSide(n: Int, allowed: ForgeDirection*) = {
+    def checkSide(n: Int, allowed: EnumFacing*) = {
       val side = args.checkInteger(n)
       if (side < 0 || side > 5) {
         throw new IllegalArgumentException("invalid side")
       }
-      val direction = ForgeDirection.getOrientation(side)
+      val direction = EnumFacing.getFront(side)
       if (allowed.isEmpty || (allowed contains direction)) direction
       else throw new IllegalArgumentException("unsupported side")
     }

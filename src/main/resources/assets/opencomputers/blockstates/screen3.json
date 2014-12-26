@@ -1,0 +1,16 @@
+{
+    "variants": {
+        "facing=north,up=up": { "model": "opencomputers:screen" },
+        "facing=south,up=up": { "model": "opencomputers:screen", "y": 180 },
+        "facing=west,up=up":  { "model": "opencomputers:screen", "y": 270 },
+        "facing=east,up=up":  { "model": "opencomputers:screen", "y": 90 },
+        "facing=up,up=north": { "model": "opencomputers:screen", "x": 90 },
+        "facing=up,up=south": { "model": "opencomputers:screen", "x": 90, "y": 180 },
+        "facing=up,up=east":  { "model": "opencomputers:screen", "x": 90, "y": 270 },
+        "facing=up,up=west":  { "model": "opencomputers:screen", "x": 90, "y": 90 },
+        "facing=down,up=north": { "model": "opencomputers:screen", "x": -90 },
+        "facing=down,up=south": { "model": "opencomputers:screen", "x": -90, "y": 180 },
+        "facing=down,up=east":  { "model": "opencomputers:screen", "x": -90, "y": 270 },
+        "facing=down,up=west":  { "model": "opencomputers:screen", "x": -90, "y": 90 }
+    }
+}

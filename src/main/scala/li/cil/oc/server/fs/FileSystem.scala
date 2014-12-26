@@ -11,7 +11,6 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.computercraft.DriverComputerCraftMedia
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -97,12 +96,6 @@ object FileSystem extends api.detail.FileSystemAPI {
   }
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
-
-  def fromComputerCraft(mount: AnyRef): api.fs.FileSystem =
-    if (Mods.ComputerCraft.isAvailable) {
-      DriverComputerCraftMedia.createFileSystem(mount).orNull
-    }
-    else null
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, sound: String) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(sound)))).orNull

@@ -12,13 +12,13 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(serverInventory.getInventoryName),
+      Localization.localizeImmediately(serverInventory.getName),
       8, 6, 0x404040)
   }
 
   override def drawSecondaryBackgroundLayer() {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiServer)
+    mc.renderEngine.bindTexture(Textures.GUI.Server)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

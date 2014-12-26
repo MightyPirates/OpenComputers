@@ -12,7 +12,7 @@ import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 
@@ -41,16 +41,16 @@ trait WorldAware {
     entitiesInBounds[Type](blockPos.bounds)
   }
 
-  def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
+  def entitiesOnSide[Type <: Entity : ClassTag](side: EnumFacing) = {
     entitiesInBlock[Type](position.offset(side))
   }
 
-  def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection) = {
+  def closestEntity[Type <: Entity : ClassTag](side: EnumFacing) = {
     val blockPos = position.offset(side)
     Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, blockPos.bounds, fakePlayer)).map(_.asInstanceOf[Type])
   }
 
-  def blockContent(side: ForgeDirection) = {
+  def blockContent(side: EnumFacing) = {
     closestEntity[Entity](side) match {
       case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
         (true, "entity")
@@ -62,12 +62,12 @@ trait WorldAware {
           (false, "air")
         }
         else if (FluidRegistry.lookupFluidForBlock(block) != null) {
-          val event = new BlockEvent.BreakEvent(blockPos.x, blockPos.y, blockPos.z, world, block, metadata, fakePlayer)
+          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, metadata, fakePlayer)
           MinecraftForge.EVENT_BUS.post(event)
           (event.isCanceled, "liquid")
         }
         else if (block.isReplaceable(blockPos)) {
-          val event = new BlockEvent.BreakEvent(blockPos.x, blockPos.y, blockPos.z, world, block, metadata, fakePlayer)
+          val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, metadata, fakePlayer)
           MinecraftForge.EVENT_BUS.post(event)
           (event.isCanceled, "replaceable")
         }

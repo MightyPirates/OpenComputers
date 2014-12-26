@@ -6,11 +6,11 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object ServerRackRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val rack = tileEntity.asInstanceOf[ServerRack]
@@ -24,9 +24,9 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     rack.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
 
@@ -34,32 +34,43 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(1, -1, 1)
 
     if (rack.anyRunning) {
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+
+      Textures.Block.bind()
+      r.startDrawingQuads()
+
       val v1 = 2 / 16f
       val fs = 3 / 16f
-      for (i <- 0 until 4 if rack.isRunning(i)) {
-        val l = v1 + i * fs
-        val h = v1 + (i + 1) * fs
-        bindTexture(Textures.blockRackFrontOn)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, h, 0, 0, h)
-        t.addVertexWithUV(1, h, 0, 1, h)
-        t.addVertexWithUV(1, l, 0, 1, l)
-        t.addVertexWithUV(0, l, 0, 0, l)
-        t.draw()
+
+      {
+        val icon = Textures.Block.getSprite(Textures.Block.RackFrontOn)
+        for (i <- 0 until 4 if rack.isRunning(i)) {
+          val l = v1 + i * fs
+          val h = v1 + (i + 1) * fs
+          r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h))
+          r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h))
+          r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l))
+          r.addVertexWithUV(0, l, 0, icon.getMinU, icon.getInterpolatedV(l))
+        }
       }
-      for (i <- 0 until 4 if System.currentTimeMillis() - rack.lastAccess(i) < 400 && rack.world.rand.nextDouble() > 0.1) {
-        val l = v1 + i * fs
-        val h = v1 + (i + 1) * fs
-        bindTexture(Textures.blockRackFrontActivity)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, h, 0, 0, h)
-        t.addVertexWithUV(1, h, 0, 1, h)
-        t.addVertexWithUV(1, l, 0, 1, l)
-        t.addVertexWithUV(0, l, 0, 0, l)
-        t.draw()
+
+      {
+        val icon = Textures.Block.getSprite(Textures.Block.RackFrontActivity)
+        for (i <- 0 until 4 if System.currentTimeMillis() - rack.lastAccess(i) < 400 && rack.world.rand.nextDouble() > 0.1) {
+          val l = v1 + i * fs
+          val h = v1 + (i + 1) * fs
+
+          bindTexture(Textures.Block.RackFrontActivity)
+          r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h))
+          r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h))
+          r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l))
+          r.addVertexWithUV(0, l, 0, icon.getMinU, icon.getInterpolatedV(l))
+        }
       }
+
+      t.draw()
+      Textures.Block.unbind()
     }
 
     GL11.glPopMatrix()

@@ -1,6 +1,6 @@
 package li.cil.oc.common.event
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.WirelessNetworkCard

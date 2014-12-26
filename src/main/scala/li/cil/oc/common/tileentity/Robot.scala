@@ -2,8 +2,12 @@ package li.cil.oc.common.tileentity
 
 import java.util.UUID
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import com.sun.javafx.geom.Vec3f
+import net.minecraft.init.Blocks
+import net.minecraft.util.BlockPos
+import net.minecraft.util.Vec3
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.item
@@ -39,7 +43,7 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids._
 
 import scala.collection.mutable
@@ -81,17 +85,27 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
     override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(actualSlot(slot), amount)
 
-    override def getInventoryName = Robot.this.getInventoryName
+    override def getName = Robot.this.getName
 
-    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
+    override def hasCustomName = Robot.this.hasCustomName
 
-    override def openInventory() = Robot.this.openInventory()
+    override def openInventory(player: EntityPlayer) = Robot.this.openInventory(player)
 
-    override def closeInventory() = Robot.this.closeInventory()
+    override def closeInventory(player: EntityPlayer) = Robot.this.closeInventory(player)
 
     override def getStackInSlotOnClosing(slot: Int) = Robot.this.getStackInSlotOnClosing(actualSlot(slot))
 
     override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
+
+    override def getField(id: Int) = Robot.this.getField(id)
+
+    override def setField(id: Int, value: Int) = Robot.this.setField(id, value)
+
+    override def getFieldCount = Robot.this.getFieldCount
+
+    override def clear() = Robot.this.clear()
+
+    override def getDisplayName = Robot.this.getDisplayName
   }
 
   val actualInventorySize = 86
@@ -156,7 +170,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   var animationTicksTotal = 0
 
-  var moveFromX, moveFromY, moveFromZ = Int.MaxValue
+  var moveFrom: Option[BlockPos] = None
 
   var swingingTool = false
 
@@ -182,24 +196,24 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def name = info.name
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.RobotOwner(owner))
-    player.addChatMessage(Localization.Analyzer.RobotName(player_.getCommandSenderName))
+    player.addChatMessage(Localization.Analyzer.RobotName(player_.getName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
 
-  def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
+  def player(facing: EnumFacing = facing, side: EnumFacing = facing) = {
     player_.updatePositionAndRotation(facing, side)
     player_
   }
 
   def actualSlot(n: Int) = n + 1 + containerCount
 
-  def move(direction: ForgeDirection): Boolean = {
-    val oldPosition = BlockPosition(this)
+  def move(direction: EnumFacing): Boolean = {
+    val oldPosition = getPos
     val newPosition = oldPosition.offset(direction)
-    if (!world.blockExists(newPosition)) {
+    if (!world.isBlockLoaded(newPosition)) {
       return false // Don't fall off the earth.
     }
 
@@ -212,8 +226,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     val blockRobotProxy = api.Items.get("robot").block.asInstanceOf[common.block.RobotProxy]
     val blockRobotAfterImage = api.Items.get("robotAfterimage").block.asInstanceOf[common.block.RobotAfterimage]
     val wasAir = world.isAirBlock(newPosition)
-    val block = world.getBlock(newPosition)
-    val metadata = world.getBlockMetadata(newPosition)
+    val state = world.getBlockState(newPosition)
+    val block = state.getBlock
+    val metadata = block.getMetaFromState(state)
     try {
       // Setting this will make the tile entity created via the following call
       // to setBlock to re-use our "real" instance as the inner object, instead
@@ -226,13 +241,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       world.setBlockToAir(newPosition)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = world.setBlock(newPosition, blockRobotProxy, 0, 1) &&
+      val created = world.setBlockState(newPosition, blockRobotProxy.getDefaultState, 1) &&
         world.getTileEntity(newPosition) == proxy
       if (created) {
-        assert(BlockPosition(this) == newPosition)
-        world.setBlock(oldPosition, net.minecraft.init.Blocks.air, 0, 1)
-        world.setBlock(oldPosition, blockRobotAfterImage, 0, 1)
-        assert(world.getBlock(oldPosition) == blockRobotAfterImage)
+        assert(getPos == newPosition)
+        world.setBlockState(oldPosition, net.minecraft.init.Blocks.air.getDefaultState, 1)
+        world.setBlockState(oldPosition, blockRobotAfterImage.getDefaultState, 1)
+        assert(world.getBlockState(oldPosition).getBlock == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(oldPosition, moveTicks)
@@ -244,15 +259,17 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         else {
           // If we broke some replaceable block (like grass) play its break sound.
           if (!wasAir) {
-            if (block != null && block != blockRobotAfterImage) {
+            if (block != Blocks.air && block != blockRobotAfterImage) {
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
                 world.playAuxSFX(2001, newPosition, Block.getIdFromBlock(block) + (metadata << 12))
               }
               else {
-                val soundPos = newPosition.toVec3
-                world.playSound(soundPos.xCoord, soundPos.yCoord, soundPos.zCoord, "liquid.water",
+                val sx = newPosition.getX + 0.5
+                val sy = newPosition.getY + 0.5
+                val sz = newPosition.getZ + 0.5
+                world.playSound(sx, sy, sz, "liquid.water",
                   world.rand.nextFloat * 0.25f + 0.75f, world.rand.nextFloat * 1.0f + 0.5f, false)
               }
             }
@@ -274,7 +291,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  def isAnimatingMove = animationTicksLeft > 0 && (moveFromX != Int.MaxValue || moveFromY != Int.MaxValue || moveFromZ != Int.MaxValue)
+  def isAnimatingMove = animationTicksLeft > 0 && moveFrom.isDefined
 
   def isAnimatingSwing = animationTicksLeft > 0 && swingingTool
 
@@ -290,12 +307,10 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     ServerPacketSender.sendRobotAnimateTurn(this)
   }
 
-  def setAnimateMove(fromPosition: BlockPosition, ticks: Int) {
+  def setAnimateMove(fromPosition: BlockPos, ticks: Int) {
     animationTicksTotal = ticks
     prepareForAnimation()
-    moveFromX = fromPosition.x
-    moveFromY = fromPosition.y
-    moveFromZ = fromPosition.z
+    moveFrom = Some(fromPosition)
   }
 
   def setAnimateSwing(ticks: Int) {
@@ -312,9 +327,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   private def prepareForAnimation() {
     animationTicksLeft = animationTicksTotal
-    moveFromX = Int.MaxValue
-    moveFromY = Int.MaxValue
-    moveFromZ = Int.MaxValue
+    moveFrom = None
     swingingTool = false
     turnAxis = 0
   }
@@ -324,22 +337,20 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   override def shouldRenderInPass(pass: Int) = true
 
   override def getRenderBoundingBox =
-    getBlockType.getCollisionBoundingBoxFromPool(world, x, y, z).expand(0.5, 0.5, 0.5)
+    getBlockType.getCollisionBoundingBox(world, getPos, world.getBlockState(getPos)).expand(0.5, 0.5, 0.5)
 
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() {
+  override def update() {
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
       if (animationTicksLeft == 0) {
-        moveFromX = Int.MaxValue
-        moveFromY = Int.MaxValue
-        moveFromZ = Int.MaxValue
+        moveFrom = None
         swingingTool = false
         turnAxis = 0
       }
     }
-    super.updateEntity()
+    super.update()
     if (isServer) {
       if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (info.tier == 3) {
@@ -404,9 +415,10 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
-      moveFromX = nbt.getInteger(Settings.namespace + "moveFromX")
-      moveFromY = nbt.getInteger(Settings.namespace + "moveFromY")
-      moveFromZ = nbt.getInteger(Settings.namespace + "moveFromZ")
+      val moveFromX = nbt.getInteger(Settings.namespace + "moveFromX")
+      val moveFromY = nbt.getInteger(Settings.namespace + "moveFromY")
+      val moveFromZ = nbt.getInteger(Settings.namespace + "moveFromZ")
+      moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
       swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
       turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
@@ -426,9 +438,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
       nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
-      nbt.setInteger(Settings.namespace + "moveFromX", moveFromX)
-      nbt.setInteger(Settings.namespace + "moveFromY", moveFromY)
-      nbt.setInteger(Settings.namespace + "moveFromZ", moveFromZ)
+      nbt.setInteger(Settings.namespace + "moveFromX", moveFrom.get.getX)
+      nbt.setInteger(Settings.namespace + "moveFromY", moveFrom.get.getY)
+      nbt.setInteger(Settings.namespace + "moveFromZ", moveFrom.get.getZ)
       nbt.setBoolean(Settings.namespace + "swingingTool", swingingTool)
       nbt.setByte(Settings.namespace + "turnAxis", turnAxis.toByte)
     }
@@ -445,9 +457,10 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     selectedSlot = nbt.getInteger("selectedSlot")
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
-    moveFromX = nbt.getInteger("moveFromX")
-    moveFromY = nbt.getInteger("moveFromY")
-    moveFromZ = nbt.getInteger("moveFromZ")
+    val moveFromX = nbt.getInteger("moveFromX")
+    val moveFromY = nbt.getInteger("moveFromY")
+    val moveFromZ = nbt.getInteger("moveFromZ")
+    moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
     if (animationTicksLeft > 0) {
       swingingTool = nbt.getBoolean("swingingTool")
       turnAxis = nbt.getByte("turnAxis")
@@ -464,9 +477,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger("animationTicksTotal", animationTicksTotal)
       nbt.setInteger("animationTicksLeft", animationTicksLeft)
-      nbt.setInteger("moveFromX", moveFromX)
-      nbt.setInteger("moveFromY", moveFromY)
-      nbt.setInteger("moveFromZ", moveFromZ)
+      nbt.setInteger("moveFromX", moveFrom.get.getX)
+      nbt.setInteger("moveFromY", moveFrom.get.getY)
+      nbt.setInteger("moveFromZ", moveFrom.get.getZ)
       nbt.setBoolean("swingingTool", swingingTool)
       nbt.setByte("turnAxis", turnAxis.toByte)
     }
@@ -509,7 +522,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       }
       if (isComponentSlot(slot)) {
         super.onItemAdded(slot, stack)
-        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
+        world.notifyBlocksOfNeighborChange(position, getBlockType)
       }
       if (isInventorySlot(slot)) {
         machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
@@ -534,7 +547,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
       }
       if (isComponentSlot(slot)) {
-        world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
+        world.notifyBlocksOfNeighborChange(position, getBlockType)
       }
     }
   }
@@ -704,7 +717,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(ForgeDirection.UP))
+    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(EnumFacing.UP))
   }
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
@@ -727,7 +740,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  override def dropSlot(slot: Int, count: Int, direction: Option[ForgeDirection]) =
+  override def dropSlot(slot: Int, count: Int, direction: Option[EnumFacing]) =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, world), dynamicInventory, slot, count, direction)
 
   override def dropAllSlots() =
@@ -735,17 +748,17 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  override def canExtractItem(slot: Int, stack: ItemStack, side: Int) =
-    getAccessibleSlotsFromSide(side).contains(slot)
+  override def canExtractItem(slot: Int, stack: ItemStack, side: EnumFacing) =
+    getSlotsForFace(side).contains(slot)
 
-  override def canInsertItem(slot: Int, stack: ItemStack, side: Int) =
-    getAccessibleSlotsFromSide(side).contains(slot) &&
+  override def canInsertItem(slot: Int, stack: ItemStack, side: EnumFacing) =
+    getSlotsForFace(side).contains(slot) &&
       isItemValidForSlot(slot, stack)
 
-  override def getAccessibleSlotsFromSide(side: Int) =
-    toLocal(ForgeDirection.getOrientation(side)) match {
-      case ForgeDirection.WEST => Array(0) // Tool
-      case ForgeDirection.EAST => containerSlots.toArray
+  override def getSlotsForFace(side: EnumFacing) =
+    toLocal(side) match {
+      case EnumFacing.WEST => Array(0) // Tool
+      case EnumFacing.EAST => containerSlots.toArray
       case _ => inventorySlots.toArray
     }
 
@@ -768,21 +781,21 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) =
+  override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean) =
     tryGetTank(selectedTank) match {
       case Some(t) =>
         t.fill(resource, doFill)
       case _ => 0
     }
 
-  override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) =
+  override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean) =
     tryGetTank(selectedTank) match {
       case Some(t) if t.getFluid != null && t.getFluid.isFluidEqual(resource) =>
         t.drain(resource.amount, doDrain)
       case _ => null
     }
 
-  override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = {
+  override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean) = {
     tryGetTank(selectedTank) match {
       case Some(t) =>
         t.drain(maxDrain, doDrain)
@@ -790,21 +803,21 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     }
   }
 
-  override def canFill(from: ForgeDirection, fluid: Fluid) = {
+  override def canFill(from: EnumFacing, fluid: Fluid) = {
     tryGetTank(selectedTank) match {
       case Some(t) => t.getFluid == null || t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
-  override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
+  override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = {
     tryGetTank(selectedTank) match {
       case Some(t) => t.getFluid != null && t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
-  override def getTankInfo(from: ForgeDirection) =
+  override def getTankInfo(from: EnumFacing) =
     components.collect {
       case Some(t: IFluidTank) => t.getInfo
     }.toArray

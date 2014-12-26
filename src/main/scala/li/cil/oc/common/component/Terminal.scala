@@ -1,7 +1,7 @@
 package li.cil.oc.common.component
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
@@ -68,7 +68,7 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
     if (nbt.hasKey(Settings.namespace + "key")) {
       keys += nbt.getString(Settings.namespace + "key")
     }
-    nbt.getTagList(Settings.namespace + "keys", NBT.TAG_STRING).foreach((tag: NBTTagString) => keys += tag.func_150285_a_())
+    nbt.getTagList(Settings.namespace + "keys", NBT.TAG_STRING).foreach((tag: NBTTagString) => keys += tag.getString)
   }
 
   def save(nbt: NBTTagCompound) {
@@ -80,7 +80,7 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {
     buffer.load(nbt)
-    nbt.getTagList("keys", NBT.TAG_STRING).foreach((tag: NBTTagString) => keys += tag.func_150285_a_())
+    nbt.getTagList("keys", NBT.TAG_STRING).foreach((tag: NBTTagString) => keys += tag.getString)
   }
 
   def writeToNBTForClient(nbt: NBTTagCompound) {

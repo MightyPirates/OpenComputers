@@ -1,0 +1,18 @@
+{
+    "textures": {
+        "all": "opencomputers:blocks/keyboard"
+    },
+    "elements": [
+        {   "from": [ 1, 0, 4 ],
+            "to": [ 15, 1, 12 ],
+            "faces": {
+                "down":  { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
+                "up":    { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
+                "north": { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
+                "south": { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
+                "west":  { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
+                "east":  { "uv": [ 0, 0, 16, 16 ], "texture": "#all" }
+            }
+        }
+    ]
+}

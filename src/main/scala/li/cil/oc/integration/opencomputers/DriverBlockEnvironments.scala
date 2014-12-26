@@ -12,6 +12,7 @@ import li.cil.oc.server.machine.Machine
 import net.minecraft.block.Block
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 
 /**
@@ -21,22 +22,22 @@ import net.minecraft.world.World
  * and therefore have item drivers.
  */
 object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
-  override def worksWith(world: World, x: Int, y: Int, z: Int) = false
+  override def worksWith(world: World, pos: BlockPos) = false
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = null
+  override def createEnvironment(world: World, pos: BlockPos) = null
 
   override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] = stack.getItem match {
-    case block: ItemBlock if block.field_150939_a != null =>
-      if (isOneOf(block.field_150939_a, "accessPoint")) classOf[tileentity.AccessPoint]
-      else if (isOneOf(block.field_150939_a, "assembler")) classOf[tileentity.Assembler]
-      else if (isOneOf(block.field_150939_a, "case1", "case2", "case3", "caseCreative", "microcontroller")) classOf[Machine]
-      else if (isOneOf(block.field_150939_a, "hologram1", "hologram2")) classOf[tileentity.Hologram]
-      else if (isOneOf(block.field_150939_a, "motionSensor")) classOf[tileentity.MotionSensor]
-      else if (isOneOf(block.field_150939_a, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Simple]
-      else if (isOneOf(block.field_150939_a, "screen1")) classOf[common.component.TextBuffer].asInstanceOf[Class[_ <: Environment]]
-      else if (isOneOf(block.field_150939_a, "screen2", "screen3")) classOf[common.component.Screen]
-      else if (isOneOf(block.field_150939_a, "robot")) classOf[component.robot.Robot].asInstanceOf[Class[_ <: Environment]]
-      else if (isOneOf(block.field_150939_a, "drone")) classOf[component.Drone].asInstanceOf[Class[_ <: Environment]]
+    case block: ItemBlock if block.getBlock != null =>
+      if (isOneOf(block.getBlock, "accessPoint")) classOf[tileentity.AccessPoint]
+      else if (isOneOf(block.getBlock, "assembler")) classOf[tileentity.Assembler]
+      else if (isOneOf(block.getBlock, "case1", "case2", "case3", "caseCreative", "microcontroller")) classOf[Machine]
+      else if (isOneOf(block.getBlock, "hologram1", "hologram2")) classOf[tileentity.Hologram]
+      else if (isOneOf(block.getBlock, "motionSensor")) classOf[tileentity.MotionSensor]
+      else if (isOneOf(block.getBlock, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Simple]
+      else if (isOneOf(block.getBlock, "screen1")) classOf[common.component.TextBuffer].asInstanceOf[Class[_ <: Environment]]
+      else if (isOneOf(block.getBlock, "screen2", "screen3")) classOf[common.component.Screen]
+      else if (isOneOf(block.getBlock, "robot")) classOf[component.robot.Robot].asInstanceOf[Class[_ <: Environment]]
+      else if (isOneOf(block.getBlock, "drone")) classOf[component.Drone].asInstanceOf[Class[_ <: Environment]]
       else null
     case _ => null
   }

@@ -37,17 +37,21 @@ trait InputBuffer extends DisplayBuffer {
     super.drawBufferLayer()
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
-      Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.guiKeyboardMissing)
+      Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.GUI.KeyboardMissing)
       GL11.glDisable(GL11.GL_DEPTH_TEST)
-      val t = Tessellator.instance
-      t.startDrawingQuads()
+
       val x = bufferX + buffer.renderWidth - 16
       val y = bufferY + buffer.renderHeight - 16
-      t.addVertexWithUV(x, y + 16, 0, 0, 1)
-      t.addVertexWithUV(x + 16, y + 16, 0, 1, 1)
-      t.addVertexWithUV(x + 16, y, 0, 1, 0)
-      t.addVertexWithUV(x, y, 0, 0, 0)
+
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+      r.startDrawingQuads()
+      r.addVertexWithUV(x, y + 16, 0, 0, 1)
+      r.addVertexWithUV(x + 16, y + 16, 0, 1, 1)
+      r.addVertexWithUV(x + 16, y, 0, 1, 0)
+      r.addVertexWithUV(x, y, 0, 0, 0)
       t.draw()
+
       GL11.glEnable(GL11.GL_DEPTH_TEST)
 
       RenderState.checkError(getClass.getName + ".drawBufferLayer: keyboard icon")

@@ -1,6 +1,6 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.client.gui.Icons
+import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.util.SideTracker
@@ -15,7 +15,7 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
     else mainTier
   }
 
-  def tierIcon = Icons.get(tier)
+  def tierIcon = Textures.Icons.get(tier)
 
   def slot = {
     val mainTier = containerTierGetter()
@@ -23,7 +23,7 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
     else common.Slot.None
   }
 
-  override def getBackgroundIconIndex = Icons.get(slot)
+  override def getBackgroundLocation = Textures.Icons.get(slot)
 
   override def getSlotStackLimit =
     slot match {

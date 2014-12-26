@@ -9,7 +9,7 @@ class DiskDrive(playerInventory: InventoryPlayer, val drive: tileentity.DiskDriv
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(drive.getInventoryName),
+      Localization.localizeImmediately(drive.getName),
       8, 6, 0x404040)
   }
 }

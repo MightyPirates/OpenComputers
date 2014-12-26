@@ -1,0 +1,10 @@
+{
+    "parent": "block/orientable",
+    "textures": {
+        "top": "opencomputers:blocks/case_top",
+        "bottom": "opencomputers:blocks/case_top",
+        "side": "opencomputers:blocks/case_side",
+        "south": "opencomputers:blocks/case_back",
+        "front": "opencomputers:blocks/case_front"
+    }
+}

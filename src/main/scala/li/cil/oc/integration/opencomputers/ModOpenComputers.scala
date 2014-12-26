@@ -1,8 +1,8 @@
 package li.cil.oc.integration.opencomputers
 
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.event.FMLInterModComms
-import cpw.mods.fml.common.registry.EntityRegistry
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.event.FMLInterModComms
+import net.minecraftforge.fml.common.registry.EntityRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -130,6 +130,7 @@ object ModOpenComputers extends ModProxy {
       "keyboard",
       "lanCard",
       "redstoneCard1",
+      "redstoneCard2", // TODO Move back down to wireless section once wireless redstone can work on its own.
       "screen1",
       "angelUpgrade",
       "craftingUpgrade",
@@ -176,7 +177,6 @@ object ModOpenComputers extends ModProxy {
       "leashUpgrade")
 
     if (!WirelessRedstone.isAvailable) {
-      blacklistHost(classOf[internal.Drone], "redstoneCard2")
       blacklistHost(classOf[internal.Tablet], "redstoneCard2")
     }
   }

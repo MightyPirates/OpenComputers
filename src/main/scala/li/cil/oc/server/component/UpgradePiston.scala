@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import cpw.mods.fml.relauncher.ReflectionHelper
+import net.minecraftforge.fml.relauncher.ReflectionHelper
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost

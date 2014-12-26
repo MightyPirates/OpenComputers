@@ -1,6 +1,6 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.FMLCommonHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer

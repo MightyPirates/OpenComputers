@@ -1,9 +1,9 @@
 package li.cil.oc
 
-import cpw.mods.fml.common.event.FMLFingerprintViolationEvent
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.util.StatCollector
+import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent
 
 import scala.util.matching.Regex
 

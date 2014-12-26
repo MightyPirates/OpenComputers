@@ -11,6 +11,7 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityBrewingStand;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 public final class DriverBrewingStand extends DriverTileEntity implements EnvironmentAware {
@@ -20,8 +21,8 @@ public final class DriverBrewingStand extends DriverTileEntity implements Enviro
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityBrewingStand) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((TileEntityBrewingStand) world.getTileEntity(pos));
     }
 
     @Override
@@ -48,7 +49,7 @@ public final class DriverBrewingStand extends DriverTileEntity implements Enviro
 
         @Callback(doc = "function():number -- Get the number of ticks remaining of the current brewing operation.")
         public Object[] getBrewTime(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getBrewTime()};
+            return new Object[]{tileEntity.getField(0)};
         }
     }
 }

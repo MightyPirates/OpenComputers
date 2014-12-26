@@ -11,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -23,8 +24,8 @@ public final class DriverInventory extends DriverTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment(world.getTileEntity(x, y, z), world);
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment(world.getTileEntity(pos), world);
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IInventory> {
@@ -34,13 +35,13 @@ public final class DriverInventory extends DriverTileEntity {
         public Environment(final TileEntity tileEntity, final World world) {
             super((IInventory) tileEntity, "inventory");
             fakePlayer = FakePlayerFactory.get((WorldServer) world, Settings.get().fakePlayerProfile());
-            position = Vec3.createVectorHelper(tileEntity.xCoord + 0.5, tileEntity.yCoord + 0.5, tileEntity.zCoord + 0.5);
+            position = new Vec3(tileEntity.getPos().getX() + 0.5, tileEntity.getPos().getY() + 0.5, tileEntity.getPos().getZ() + 0.5);
         }
 
         @Callback(doc = "function():string -- Get the name of this inventory.")
         public Object[] getInventoryName(final Context context, final Arguments args) {
             if (notPermitted()) return new Object[]{null, "permission denied"};
-            return new Object[]{tileEntity.getInventoryName()};
+            return new Object[]{tileEntity.getName()};
         }
 
         @Callback(doc = "function():number -- Get the number of slots in this inventory.")

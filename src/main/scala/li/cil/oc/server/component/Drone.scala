@@ -13,7 +13,7 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl with traits.TankAware with traits.TankControl with traits.TankWorldControl {
   override val node = Network.newNode(this, Visibility.Network).
@@ -36,9 +36,9 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
   override def selectedTank_=(value: Int) = host.selectedTank = value
 
   override protected def checkSideForAction(args: Arguments, n: Int) =
-    args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+    args.checkSide(n, EnumFacing.values: _*)
 
-  override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(position) ++ super.suckableItems(side)
+  override protected def suckableItems(side: EnumFacing) = entitiesInBlock(position) ++ super.suckableItems(side)
 
   override protected def onSuckCollect(entity: EntityItem) = {
     if (InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))) {

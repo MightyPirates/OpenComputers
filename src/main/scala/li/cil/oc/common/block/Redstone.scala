@@ -5,22 +5,12 @@ import java.util
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 class Redstone extends RedstoneAware {
-  override protected def customTextures = Array(
-    Some("RedstoneTop"),
-    Some("RedstoneTop"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide"),
-    Some("RedstoneSide")
-  )
-
-  // ----------------------------------------------------------------------- //
-
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (Mods.RedLogic.isAvailable) {
@@ -33,5 +23,5 @@ class Redstone extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Redstone()
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Redstone()
 }

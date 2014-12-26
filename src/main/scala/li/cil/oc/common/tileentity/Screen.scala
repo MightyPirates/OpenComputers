@@ -1,18 +1,20 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -23,7 +25,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   // Enable redstone functionality.
   _isOutputEnabled = true
 
-  override def validFacings = ForgeDirection.VALID_DIRECTIONS
+  override def validFacings = EnumFacing.values
 
   // ----------------------------------------------------------------------- //
 
@@ -57,25 +59,25 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   color = Color.byTier(tier)
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
+  override def canConnect(side: EnumFacing) = toLocal(side) != EnumFacing.SOUTH
 
   // Allow connections from front for keyboards, and keyboards only...
-  override def sidedNode(side: ForgeDirection) = if (toLocal(side) != ForgeDirection.SOUTH || world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ).isInstanceOf[Keyboard]) node else null
+  override def sidedNode(side: EnumFacing) = if (toLocal(side) != EnumFacing.SOUTH || world.getTileEntity(getPos.offset(side)).isInstanceOf[Keyboard]) node else null
 
   // ----------------------------------------------------------------------- //
 
   def isOrigin = origin == this
 
   def localPosition = {
-    val (lx, ly, _) = project(this)
-    val (ox, oy, _) = project(origin)
-    (lx - ox, ly - oy)
+    val lpos = project(this)
+    val opos = project(origin)
+    (lpos.x - opos.x, lpos.y - opos.y)
   }
 
   def hasKeyboard = screens.exists(screen =>
-    ForgeDirection.VALID_DIRECTIONS.map(side => (side, {
-      val (nx, ny, nz) = (screen.x + side.offsetX, screen.y + side.offsetY, screen.z + side.offsetZ)
-      if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz)
+    EnumFacing.values.map(side => (side, {
+      val blockPos = BlockPosition(screen).offset(side)
+      if (world.blockExists(blockPos)) world.getTileEntity(blockPos)
       else null
     })).exists {
       case (side, keyboard: Keyboard) => keyboard.hasNodeOnSide(side.getOpposite)
@@ -95,8 +97,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   def click(player: EntityPlayer, hitX: Double, hitY: Double, hitZ: Double): Boolean = {
     // Compute absolute position of the click on the face, measured in blocks.
-    def dot(f: ForgeDirection) = f.offsetX * hitX + f.offsetY * hitY + f.offsetZ * hitZ
-    val (hx, hy) = (dot(toGlobal(ForgeDirection.EAST)), dot(toGlobal(ForgeDirection.UP)))
+    def dot(f: EnumFacing) = f.getFrontOffsetX * hitX + f.getFrontOffsetY * hitY + f.getFrontOffsetZ * hitZ
+    val (hx, hy) = (dot(toGlobal(EnumFacing.EAST)), dot(toGlobal(EnumFacing.UP)))
     val tx = if (hx < 0) 1 + hx else hx
     val ty = 1 - (if (hy < 0) 1 + hy else hy)
     val (lx, ly) = localPosition
@@ -146,7 +148,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     val (x, y) = localPosition
     entity match {
       case player: EntityPlayer if Settings.get.inputUsername =>
-        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getCommandSenderName)
+        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getName)
       case _ =>
         origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
     }
@@ -160,8 +162,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def canUpdate = true
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (shouldCheckForMultiBlock && ((isClient && isClientReadyForMultiBlockCheck) || (isServer && isConnected))) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
@@ -171,10 +173,10 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       val queue = mutable.Queue(this)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
-        val (lx, ly, lz) = project(current)
+        val lpos = project(current)
         def tryQueue(dx: Int, dy: Int) {
-          val (nx, ny, nz) = unproject(lx + dx, ly + dy, lz)
-          if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
+          val npos = unproject(lpos.x + dx, lpos.y + dy, lpos.z)
+          if (world.blockExists(npos)) world.getTileEntity(npos) match {
             case s: Screen if s.pitch == pitch && s.yaw == yaw && pending.add(s) => queue += s
             case _ => // Ignore.
           }
@@ -279,11 +281,13 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
+    tier = nbt.getByte("tier") max 0 min 2
     super.readFromNBTForClient(nbt)
     invertTouchMode = nbt.getBoolean("invertTouchMode")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
+    nbt.setByte("tier", tier.toByte)
     super.writeToNBTForClient(nbt)
     nbt.setBoolean("invertTouchMode", invertTouchMode)
   }
@@ -296,13 +300,14 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     else cachedBounds match {
       case Some(bounds) => bounds
       case _ =>
-        val (sx, sy, sz) = unproject(width, height, 1)
-        val ox = x + (if (sx < 0) 1 else 0)
-        val oy = y + (if (sy < 0) 1 else 0)
-        val oz = z + (if (sz < 0) 1 else 0)
-        val b = AxisAlignedBB.getBoundingBox(ox, oy, oz, ox + sx, oy + sy, oz + sz)
-        b.setBounds(math.min(b.minX, b.maxX), math.min(b.minY, b.maxY), math.min(b.minZ, b.maxZ),
-          math.max(b.minX, b.maxX), math.max(b.minY, b.maxY), math.max(b.minZ, b.maxZ))
+        val spos = unproject(width, height, 1)
+        val ox = x + (if (spos.x < 0) 1 else 0)
+        val oy = y + (if (spos.y < 0) 1 else 0)
+        val oz = z + (if (spos.z < 0) 1 else 0)
+        val btmp = AxisAlignedBB.fromBounds(ox, oy, oz, ox + spos.x, oy + spos.y, oz + spos.z)
+        val b = AxisAlignedBB.fromBounds(
+          math.min(btmp.minX, btmp.maxX), math.min(btmp.minY, btmp.maxY), math.min(btmp.minZ, btmp.maxZ),
+          math.max(btmp.minX, btmp.maxX), math.max(btmp.minY, btmp.maxY), math.max(btmp.minZ, btmp.maxZ))
         cachedBounds = Some(b)
         b
     }
@@ -312,9 +317,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+  override protected def onRedstoneInputChanged(side: EnumFacing) {
     super.onRedstoneInputChanged(side)
     val hasRedstoneInput = screens.map(_.maxInput).max > 0
     if (hasRedstoneInput != hadRedstoneInput) {
@@ -340,21 +345,21 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   // ----------------------------------------------------------------------- //
 
   private def tryMerge() = {
-    val (ox, oy, oz) = project(origin)
+    val opos = project(origin)
     def tryMergeTowards(dx: Int, dy: Int) = {
-      val (nx, ny, nz) = unproject(ox + dx, oy + dy, oz)
-      world.blockExists(nx, ny, nz) && (world.getTileEntity(nx, ny, nz) match {
+      val npos = unproject(opos.x + dx, opos.y + dy, opos.z)
+      world.blockExists(npos) && (world.getTileEntity(npos) match {
         case s: Screen if s.tier == tier && s.pitch == pitch && s.color == color && s.yaw == yaw && !screens.contains(s) =>
-          val (sx, sy, _) = project(s.origin)
-          val canMergeAlongX = sy == oy && s.height == height && s.width + width <= Settings.get.maxScreenWidth
-          val canMergeAlongY = sx == ox && s.width == width && s.height + height <= Settings.get.maxScreenHeight
+          val spos = project(s.origin)
+          val canMergeAlongX = spos.y == opos.y && s.height == height && s.width + width <= Settings.get.maxScreenWidth
+          val canMergeAlongY = spos.x == opos.x && s.width == width && s.height + height <= Settings.get.maxScreenHeight
           if (canMergeAlongX || canMergeAlongY) {
             val (newOrigin) =
               if (canMergeAlongX) {
-                if (sx < ox) s.origin else origin
+                if (spos.x < opos.x) s.origin else origin
               }
               else {
-                if (sy < oy) s.origin else origin
+                if (spos.y < opos.y) s.origin else origin
               }
             val (newWidth, newHeight) =
               if (canMergeAlongX) (width + s.width, height)
@@ -377,12 +382,12 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   }
 
   private def project(t: Screen) = {
-    def dot(f: ForgeDirection, s: Screen) = f.offsetX * s.x + f.offsetY * s.y + f.offsetZ * s.z
-    (dot(toGlobal(ForgeDirection.EAST), t), dot(toGlobal(ForgeDirection.UP), t), dot(toGlobal(ForgeDirection.SOUTH), t))
+    def dot(f: EnumFacing, s: Screen) = f.getFrontOffsetX * s.x + f.getFrontOffsetY * s.y + f.getFrontOffsetZ * s.z
+    BlockPosition(dot(toGlobal(EnumFacing.EAST), t), dot(toGlobal(EnumFacing.UP), t), dot(toGlobal(EnumFacing.SOUTH), t))
   }
 
   private def unproject(x: Int, y: Int, z: Int) = {
-    def dot(f: ForgeDirection) = f.offsetX * x + f.offsetY * y + f.offsetZ * z
-    (dot(toLocal(ForgeDirection.EAST)), dot(toLocal(ForgeDirection.UP)), dot(toLocal(ForgeDirection.SOUTH)))
+    def dot(f: EnumFacing) = f.getFrontOffsetX * x + f.getFrontOffsetY * y + f.getFrontOffsetZ * z
+    BlockPosition(dot(toLocal(EnumFacing.EAST)), dot(toLocal(EnumFacing.UP)), dot(toLocal(EnumFacing.SOUTH)))
   }
 }

@@ -2,61 +2,62 @@ package li.cil.oc.common.block
 
 import java.util
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
-import net.minecraft.world.IBlockAccess
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
-  private val iconsOn = new Array[IIcon](6)
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
+  setDefaultState(buildDefaultState())
 
-  // ----------------------------------------------------------------------- //
-
-  override protected def customTextures = Array(
-    Some("CaseTop"),
-    Some("CaseTop"),
-    Some("CaseBack"),
-    Some("CaseFront"),
-    Some("CaseSide"),
-    Some("CaseSide")
-  )
-
-  override def registerBlockIcons(iconRegister: IIconRegister) = {
-    super.registerBlockIcons(iconRegister)
-    System.arraycopy(icons, 0, iconsOn, 0, icons.length)
-    iconsOn(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseBackOn")
-    iconsOn(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":CaseSideOn")
-    iconsOn(ForgeDirection.EAST.ordinal) = iconsOn(ForgeDirection.WEST.ordinal)
-  }
-
-  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
-    if (world.getTileEntity(x, y, z) match {
-      case computer: tileentity.Case => computer.isRunning
-      case _ => false
-    }) iconsOn(localSide.ordinal)
-    else getIcon(localSide.ordinal(), 0)
-  }
+  // TODO remove
+//  private val iconsOn = new Array[IIcon](6)
+//
+//  // ----------------------------------------------------------------------- //
+//
+//  override protected def customTextures = Array(
+//    Some("CaseTop"),
+//    Some("CaseTop"),
+//    Some("CaseBack"),
+//    Some("CaseFront"),
+//    Some("CaseSide"),
+//    Some("CaseSide")
+//  )
+//
+//  override def registerBlockIcons(iconRegister: IIconRegister) = {
+//    super.registerBlockIcons(iconRegister)
+//    System.arraycopy(icons, 0, iconsOn, 0, icons.length)
+//    iconsOn(EnumFacing.NORTH.ordinal) = iconRegister.getAtlasSprite(Settings.resourceDomain + ":CaseBackOn")
+//    iconsOn(EnumFacing.WEST.ordinal) = iconRegister.getAtlasSprite(Settings.resourceDomain + ":CaseSideOn")
+//    iconsOn(EnumFacing.EAST.ordinal) = iconsOn(EnumFacing.WEST.ordinal)
+//  }
+//
+//  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: EnumFacing, localSide: EnumFacing) = {
+//    if (world.getTileEntity(x, y, z) match {
+//      case computer: tileentity.Case => computer.isRunning
+//      case _ => false
+//    }) iconsOn(localSide.ordinal)
+//    else getIcon(localSide.ordinal(), 0)
+//  }
 
   @SideOnly(Side.CLIENT)
-  override def getRenderColor(metadata: Int) = Color.byTier(tier)
+  override def getRenderColor(state: IBlockState) = Color.rgbValues(Color.byTier(tier))
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.epic).apply(tier)
+  override def rarity = Array(EnumRarity.COMMON, EnumRarity.UNCOMMON, EnumRarity.RARE, EnumRarity.EPIC).apply(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName, slots))
@@ -73,21 +74,20 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Case(tier)
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, pos)) {
       if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
+        player.openGui(OpenComputers, GuiType.Case.id, world, pos.getX, pos.getY, pos.getZ)
       }
       true
     }
     else if (player.getCurrentEquippedItem == null) {
       if (!world.isRemote) {
-        world.getTileEntity(x, y, z) match {
+        world.getTileEntity(pos) match {
           case computer: tileentity.Case if !computer.machine.isRunning => computer.machine.start()
           case _ =>
         }
@@ -97,9 +97,9 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
     else false
   }
 
-  override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int, willHarvest: Boolean) =
-    world.getTileEntity(x, y, z) match {
-      case c: tileentity.Case => c.canInteract(player.getCommandSenderName) && super.removedByPlayer(world, player, x, y, z, willHarvest)
-      case _ => super.removedByPlayer(world, player, x, y, z, willHarvest)
+  override def removedByPlayer(world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean) =
+    world.getTileEntity(pos) match {
+      case c: tileentity.Case => c.canInteract(player.getName) && super.removedByPlayer(world, pos, player, willHarvest)
+      case _ => super.removedByPlayer(world, pos, player, willHarvest)
     }
 }

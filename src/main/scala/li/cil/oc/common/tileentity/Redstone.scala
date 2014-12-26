@@ -8,7 +8,7 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class Redstone extends Environment with BundledRedstoneAware {
   val instance = if (BundledRedstone.isAvailable) new component.Redstone[BundledRedstoneAware](this) with component.RedstoneBundled else new component.Redstone(this)
@@ -34,7 +34,7 @@ class Redstone extends Environment with BundledRedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+  override protected def onRedstoneInputChanged(side: EnumFacing) {
     super.onRedstoneInputChanged(side)
     node.sendToReachable("computer.signal", "redstone_changed", Int.box(side.ordinal()))
   }

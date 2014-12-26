@@ -4,8 +4,8 @@ import java.io.File
 import java.io.FileReader
 
 import com.typesafe.config._
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.registry.GameRegistry
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
@@ -156,6 +156,7 @@ object Recipes {
           case "shaped" => addShapedRecipe(output, recipe)
           case "shapeless" => addShapelessRecipe(output, recipe)
           case "furnace" => addFurnaceRecipe(output, recipe)
+          /* TODO GregTech
           case "gt_assembler" =>
             if (Mods.GregTech.isAvailable) {
               addGTAssemblingMachineRecipe(output, recipe)
@@ -164,6 +165,7 @@ object Recipes {
               OpenComputers.log.warn(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item!")
               hide(output)
             }
+          */
           case other =>
             OpenComputers.log.warn(s"Failed adding recipe for '$name', you will not be able to craft this item! The error was: Invalid recipe type '$other'.")
             hide(output)
@@ -228,6 +230,7 @@ object Recipes {
     else hide(output)
   }
 
+  /* TODO GregTech
   private def addGTAssemblingMachineRecipe(output: ItemStack, recipe: Config) {
     val inputs = (recipe.getValue("input").unwrapped() match {
       case list: java.util.List[AnyRef]@unchecked => list.map(parseIngredient)
@@ -265,6 +268,7 @@ object Recipes {
       }
     }
   }
+  */
 
   private def addFurnaceRecipe(output: ItemStack, recipe: Config) {
     val input = parseIngredient(recipe.getValue("input").unwrapped())
@@ -272,10 +276,10 @@ object Recipes {
 
     input match {
       case stack: ItemStack =>
-        FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
+        FurnaceRecipes.instance.addSmeltingRecipe(stack, output, 0)
       case name: String =>
         for (stack <- OreDictionary.getOres(name)) {
-          FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
+          FurnaceRecipes.instance.addSmeltingRecipe(stack, output, 0)
         }
       case _ =>
     }
@@ -372,7 +376,7 @@ object Recipes {
     Items.multi.subItem(value) match {
       case Some(stack) => stack.showInItemList = false
       case _ => value.getItem match {
-        case itemBlock: ItemBlock => itemBlock.field_150939_a match {
+        case itemBlock: ItemBlock => itemBlock.getBlock match {
           case simple: SimpleBlock =>
             simple.setCreativeTab(null)
             NEI.hide(simple)

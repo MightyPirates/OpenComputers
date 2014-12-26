@@ -1,9 +1,12 @@
 package li.cil.oc.server.network
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.util.BlockPosition
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.util.RTree
+import li.cil.oc.util.ExtendedBlock._
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.util.Vec3
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
@@ -17,21 +20,21 @@ object WirelessNetwork {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     if (!e.world.isRemote) {
-      dimensions.remove(e.world.provider.dimensionId)
+      dimensions.remove(e.world.provider.getDimensionId)
     }
   }
 
   @SubscribeEvent
   def onWorldLoad(e: WorldEvent.Load) {
     if (!e.world.isRemote) {
-      dimensions.remove(e.world.provider.dimensionId)
+      dimensions.remove(e.world.provider.getDimensionId)
     }
   }
 
   // Safety clean up, in case some tile entities didn't properly leave the net.
   @SubscribeEvent
   def onChunkUnload(e: ChunkEvent.Unload) {
-    e.getChunk.chunkTileEntityMap.values.foreach {
+    e.getChunk.getTileEntityMap.values.foreach {
       case endpoint: WirelessEndpoint => remove(endpoint)
       case _ =>
     }
@@ -81,7 +84,7 @@ object WirelessNetwork {
     }
   }
 
-  private def dimension(endpoint: WirelessEndpoint) = endpoint.world.provider.dimensionId
+  private def dimension(endpoint: WirelessEndpoint) = endpoint.world.provider.getDimensionId
 
   private def offset(endpoint: WirelessEndpoint, value: Double) =
     (endpoint.x + 0.5 + value, endpoint.y + 0.5 + value, endpoint.z + 0.5 + value)
@@ -107,8 +110,8 @@ object WirelessNetwork {
       // the message.
       val world = endpoint.world
 
-      val origin = Vec3.createVectorHelper(reference.x, reference.y, reference.z)
-      val target = Vec3.createVectorHelper(endpoint.x, endpoint.y, endpoint.z)
+      val origin = new Vec3(reference.x, reference.y, reference.z)
+      val target = new Vec3(endpoint.x, endpoint.y, endpoint.z)
 
       // Vector from reference endpoint (sender) to this one (receiver).
       val delta = subtract(target, origin)
@@ -117,10 +120,10 @@ object WirelessNetwork {
       // Get the vectors that are orthogonal to the direction vector.
       val up = if (v.xCoord == 0 && v.zCoord == 0) {
         assert(v.yCoord != 0)
-        Vec3.createVectorHelper(1, 0, 0)
+        new Vec3(1, 0, 0)
       }
       else {
-        Vec3.createVectorHelper(0, 1, 0)
+        new Vec3(0, 1, 0)
       }
       val side = crossProduct(v, up)
       val top = crossProduct(v, side)
@@ -138,8 +141,9 @@ object WirelessNetwork {
         val x = (origin.xCoord + v.xCoord * rGap + side.xCoord * rSide + top.xCoord * rTop).toInt
         val y = (origin.yCoord + v.yCoord * rGap + side.yCoord * rSide + top.yCoord * rTop).toInt
         val z = (origin.zCoord + v.zCoord * rGap + side.zCoord * rSide + top.zCoord * rTop).toInt
-        Option(world.getBlock(x, y, z)) match {
-          case Some(block) => hardness += block.getBlockHardness(world, x, y, z)
+        val blockPos = BlockPosition(x, y, z, world)
+        Option(world.getBlock(blockPos)) match {
+          case Some(block) => hardness += block.getBlockHardness(blockPos)
           case _ =>
         }
       }
@@ -153,7 +157,7 @@ object WirelessNetwork {
     else true
   }
 
-  private def subtract(v1: Vec3, v2: Vec3) = Vec3.createVectorHelper(v1.xCoord - v2.xCoord, v1.yCoord - v2.yCoord, v1.zCoord - v2.zCoord)
+  private def subtract(v1: Vec3, v2: Vec3) = new Vec3(v1.xCoord - v2.xCoord, v1.yCoord - v2.yCoord, v1.zCoord - v2.zCoord)
 
-  private def crossProduct(v1: Vec3, v2: Vec3) = Vec3.createVectorHelper(v1.yCoord * v2.zCoord - v1.zCoord * v2.yCoord, v1.zCoord * v2.xCoord - v1.xCoord * v2.zCoord, v1.xCoord * v2.yCoord - v1.yCoord * v2.xCoord)
+  private def crossProduct(v1: Vec3, v2: Vec3) = new Vec3(v1.yCoord * v2.zCoord - v1.zCoord * v2.yCoord, v1.zCoord * v2.xCoord - v1.xCoord * v2.zCoord, v1.xCoord * v2.yCoord - v1.yCoord * v2.xCoord)
 }

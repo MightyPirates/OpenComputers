@@ -2,12 +2,12 @@ package li.cil.oc.common
 
 import java.util.Calendar
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.PlayerEvent._
-import cpw.mods.fml.common.gameevent.TickEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
-import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
+import net.minecraftforge.fml.common.Optional
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent._
+import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
@@ -25,7 +25,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
@@ -44,42 +44,6 @@ object EventHandler {
   def schedule(f: () => Unit) {
     pending.synchronized {
       pending += f
-    }
-  }
-
-  @Optional.Method(modid = Mods.IDs.ForgeMultipart)
-  def scheduleFMP(tileEntity: () => TileEntity) {
-    if (SideTracker.isServer) pending.synchronized {
-      pending += (() => Network.joinOrCreateNetwork(tileEntity()))
-    }
-  }
-
-  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
-  def scheduleAE2Add(tileEntity: power.AppliedEnergistics2) {
-    if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!tileEntity.isInvalid) {
-        tileEntity.getGridNode(ForgeDirection.UNKNOWN).updateState()
-      })
-    }
-  }
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
-    if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
-        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
-        tileEntity.addedToIC2PowerGrid = true
-      })
-    }
-  }
-
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2Classic)
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Classic) {
-    if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
-        MinecraftForge.EVENT_BUS.post(new ic2classic.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2classic.api.energy.tile.IEnergyTile]))
-        tileEntity.addedToIC2PowerGrid = true
-      })
     }
   }
 
@@ -117,7 +81,7 @@ object EventHandler {
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
         // Do update check in local games and for OPs.
-        if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.func_152596_g(player.getGameProfile))) {
+        if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.canSendCommands(player.getGameProfile))) {
           Future {
             UpdateCheck.info onSuccess {
               case Some(release) => player.addChatMessage(Localization.Chat.InfoNewVersion(release.tag_name))
@@ -132,7 +96,7 @@ object EventHandler {
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
     PetRenderer.hidden.clear()
     if (Settings.get.hideOwnPet) {
-      PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+      PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getName
     }
     ClientPacketSender.sendPetVisibility()
   }
@@ -195,7 +159,7 @@ object EventHandler {
     // On the 12th day of Christmas, my robot brought to me~
     (month == Calendar.DECEMBER && dayOfMonth > 24) || (month == Calendar.JANUARY && dayOfMonth < 7) ||
     // OC's release-birthday!
-    (month == Calendar.DECEMBER && dayOfMonth == 14) || true
+    (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {

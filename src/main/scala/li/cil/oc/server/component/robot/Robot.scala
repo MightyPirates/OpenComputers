@@ -22,11 +22,12 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.BlockPos
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraft.util.Vec3
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsScala._
 
@@ -68,7 +69,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   override protected def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
 
-  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = robot.toGlobal(args.checkSideForFace(n, robot.toLocal(facing)))
+  private def checkSideForFace(args: Arguments, n: Int, facing: EnumFacing) = robot.toGlobal(args.checkSideForFace(n, robot.toLocal(facing)))
 
   // ----------------------------------------------------------------------- //
 
@@ -94,7 +95,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
       }
       else {
         // Always try the direction we're looking first.
-        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
+        Iterable(facing) ++ EnumFacing.values.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = robot.inventory.selectedItemStack
@@ -107,11 +108,11 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
       player.setSneaking(sneaky)
       val success = Option(pick(player, Settings.get.useAndPlaceRange)) match {
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-          player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
+          val (blockPos, hx, hy, hz) = clickParamsFromHit(hit)
+          player.placeBlock(robot.selectedSlot, blockPos, hit.sideHit, hx, hy, hz)
         case None if canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
-          player.placeBlock(robot.selectedSlot, bx, by, bz, facing.ordinal, hx, hy, hz)
+          val (blockPos, hx, hy, hz) = clickParamsForPlace(facing)
+          player.placeBlock(robot.selectedSlot, blockPos, facing, hx, hy, hz)
         case _ => false
       }
       player.setSneaking(false)
@@ -137,7 +138,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
       }
       else {
         // Always try the direction we're looking first.
-        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
+        Iterable(facing) ++ EnumFacing.values.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
 
@@ -160,8 +161,8 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
       triggerDelay()
       (true, "entity")
     }
-    def click(player: Player, x: Int, y: Int, z: Int, side: Int) = {
-      val breakTime = player.clickBlock(x, y, z, side)
+    def click(player: Player, pos: BlockPos, side: EnumFacing) = {
+      val breakTime = player.clickBlock(pos, side)
       val broke = breakTime > 0
       if (broke) {
         // Subtract one tick because we take one to trigger the action - a bit
@@ -186,7 +187,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
           case MovingObjectType.ENTITY =>
             attack(player, hit.entityHit)
           case MovingObjectType.BLOCK =>
-            click(player, hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
+            click(player, hit.getBlockPos, hit.sideHit)
           case _ =>
             // Retry with full block bounds, disregarding swing range.
             player.closestEntity[EntityLivingBase]() match {
@@ -221,7 +222,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
       }
       else {
         // Always try the direction we're looking first.
-        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
+        Iterable(facing) ++ EnumFacing.values.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val duration =
@@ -261,16 +262,16 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
           triggerDelay()
           (true, "item_interacted")
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-          activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
+          val (blockPos, hx, hy, hz) = clickParamsFromHit(hit)
+          activationResult(player.activateBlockOrUseItem(blockPos, hit.sideHit, hx, hy, hz, duration))
         case _ =>
           (if (canPlaceInAir) {
-            val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
-            if (player.placeBlock(0, bx, by, bz, facing.ordinal, hx, hy, hz))
+            val (blockPos, hx, hy, hz) = clickParamsForPlace(facing)
+            if (player.placeBlock(0, blockPos, facing, hx, hy, hz))
               ActivationType.ItemPlaced
             else {
-              val (bx, by, bz, hx, hy, hz) = clickParamsForItemUse(facing, side)
-              player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
+              val (blockPos, hx, hy, hz) = clickParamsForItemUse(facing, side)
+              player.activateBlockOrUseItem(blockPos, side.getOpposite, hx, hy, hz, duration)
             }
           } else ActivationType.None) match {
             case ActivationType.None =>
@@ -339,8 +340,8 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
     if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
-      if (clockwise) robot.rotate(ForgeDirection.UP)
-      else robot.rotate(ForgeDirection.DOWN)
+      if (clockwise) robot.rotate(EnumFacing.UP)
+      else robot.rotate(EnumFacing.DOWN)
       robot.animateTurn(clockwise, Settings.get.turnDelay)
       context.pause(Settings.get.turnDelay)
       result(true)
@@ -403,44 +404,44 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
   // ----------------------------------------------------------------------- //
 
   private def pick(player: Player, range: Double) = {
-    val origin = Vec3.createVectorHelper(
-      player.posX + player.facing.offsetX * 0.5,
-      player.posY + player.facing.offsetY * 0.5,
-      player.posZ + player.facing.offsetZ * 0.5)
+    val origin = new Vec3(
+      player.posX + player.facing.getFrontOffsetX * 0.5,
+      player.posY + player.facing.getFrontOffsetY * 0.5,
+      player.posZ + player.facing.getFrontOffsetZ * 0.5)
     val blockCenter = origin.addVector(
-      player.facing.offsetX * 0.5,
-      player.facing.offsetY * 0.5,
-      player.facing.offsetZ * 0.5)
+      player.facing.getFrontOffsetX * 0.5,
+      player.facing.getFrontOffsetY * 0.5,
+      player.facing.getFrontOffsetZ * 0.5)
     val target = blockCenter.addVector(
-      player.side.offsetX * range,
-      player.side.offsetY * range,
-      player.side.offsetZ * range)
+      player.side.getFrontOffsetX * range,
+      player.side.getFrontOffsetY * range,
+      player.side.getFrontOffsetZ * range)
     val hit = world.rayTraceBlocks(origin, target)
     player.closestEntity[Entity]() match {
-      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || Vec3.createVectorHelper(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || new Vec3(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
   }
 
-  private def clickParamsForPlace(facing: ForgeDirection) = {
-    (position.x, position.y, position.z,
-      0.5f + facing.offsetX * 0.5f,
-      0.5f + facing.offsetY * 0.5f,
-      0.5f + facing.offsetZ * 0.5f)
+  private def clickParamsForPlace(facing: EnumFacing) = {
+    (position.toBlockPos,
+      0.5f + facing.getFrontOffsetX * 0.5f,
+      0.5f + facing.getFrontOffsetY * 0.5f,
+      0.5f + facing.getFrontOffsetZ * 0.5f)
   }
 
-  private def clickParamsForItemUse(facing: ForgeDirection, side: ForgeDirection) = {
+  private def clickParamsForItemUse(facing: EnumFacing, side: EnumFacing) = {
     val blockPos = position.offset(facing).offset(side)
-    (blockPos.x, blockPos.y, blockPos.z,
-      0.5f - side.offsetX * 0.5f,
-      0.5f - side.offsetY * 0.5f,
-      0.5f - side.offsetZ * 0.5f)
+    (blockPos.toBlockPos,
+      0.5f - side.getFrontOffsetX * 0.5f,
+      0.5f - side.getFrontOffsetY * 0.5f,
+      0.5f - side.getFrontOffsetZ * 0.5f)
   }
 
   private def clickParamsFromHit(hit: MovingObjectPosition) = {
-    (hit.blockX, hit.blockY, hit.blockZ,
-      (hit.hitVec.xCoord - hit.blockX).toFloat,
-      (hit.hitVec.yCoord - hit.blockY).toFloat,
-      (hit.hitVec.zCoord - hit.blockZ).toFloat)
+    (hit.getBlockPos,
+      (hit.hitVec.xCoord - hit.getBlockPos.getX).toFloat,
+      (hit.hitVec.yCoord - hit.getBlockPos.getY).toFloat,
+      (hit.hitVec.zCoord - hit.getBlockPos.getZ).toFloat)
   }
 }

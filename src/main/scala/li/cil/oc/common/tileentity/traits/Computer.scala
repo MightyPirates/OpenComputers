@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
@@ -14,21 +12,20 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
-import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
-import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with MachineHost {
+trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable with MachineHost {
   private lazy val _machine = if (isServer) Machine.create(this) else null
 
   def machine = _machine
@@ -54,7 +51,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   @SideOnly(Side.CLIENT)
   def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
-    world.markBlockForUpdate(x, y, z)
+    world.markBlockForUpdate(getPos)
     runSound.foreach(sound =>
       if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
       else Sound.stopLoop(this)
@@ -82,18 +79,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def markForSaving() = markChunkDirty = true
 
-  override def installedComponents = components collect {
-    case Some(component) => component
-  }
-
   override def onMachineConnect(node: Node) = this.onConnect(node)
 
   override def onMachineDisconnect(node: Node) = this.onDisconnect(node)
-
-  def hasAbstractBusCard = items.exists {
-    case Some(item) => machine.isRunning && DriverAbstractBusCard.worksWith(item, getClass)
-    case _ => false
-  }
 
   def hasRedstoneCard = items.exists {
     case Some(item) => machine.isRunning && DriverRedstoneCard.worksWith(item, getClass)
@@ -102,7 +90,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() {
+  override def update() {
     if (isServer && isConnected) {
       // If we're not yet in a network we might have just been loaded from disk,
       // meaning there may be other tile entities that also have not re-joined
@@ -113,7 +101,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
       if (markChunkDirty) {
         markChunkDirty = false
-        world.markTileEntityChunkModified(x, y, z, this)
+        world.markChunkDirty(getPos, this)
       }
 
       if (_isRunning != machine.isRunning) {
@@ -125,7 +113,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       updateComponents()
     }
 
-    super.updateEntity()
+    super.update()
   }
 
   // ----------------------------------------------------------------------- //
@@ -136,10 +124,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     // This is required for loading auxiliary data (kernel state), because the
     // coordinates in the actual robot won't be set properly, otherwise.
     this match {
-      case proxy: RobotProxy =>
-        proxy.robot.xCoord = xCoord
-        proxy.robot.yCoord = yCoord
-        proxy.robot.zCoord = zCoord
+      case proxy: RobotProxy => proxy.robot.setPos(getPos)
       case _ =>
     }
     machine.load(nbt.getCompoundTag(Settings.namespace + "computer"))
@@ -148,10 +133,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (machine != null) {
-      if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip)
-        nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)
-      else if (machine.node.address != null)
-        nbt.setString(Settings.namespace + "address", machine.node.address)
+      nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)
     }
   }
 
@@ -160,7 +142,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     super.readFromNBTForClient(nbt)
     _isRunning = nbt.getBoolean("isRunning")
     _users.clear()
-    _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
+    _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString)
     if (_isRunning) runSound.foreach(sound => Sound.startLoop(this, sound, 0.5f, 1000 + world.rand.nextInt(2000)))
   }
 
@@ -177,26 +159,25 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     if (isServer) {
       machine.onHostChanged()
       isOutputEnabled = hasRedstoneCard
-      isAbstractBusAvailable = hasAbstractBusCard
     }
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    super.isUseableByPlayer(player) && canInteract(player.getCommandSenderName)
+    super.isUseableByPlayer(player) && canInteract(player.getName)
 
   override protected def onRotationChanged() {
     super.onRotationChanged()
     checkRedstoneInputChanged()
   }
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+  override protected def onRedstoneInputChanged(side: EnumFacing) {
     super.onRedstoneInputChanged(side)
     machine.signal("redstone_changed", machine.node.address, Int.box(toLocal(side).ordinal()))
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     machine.lastError match {
       case value if value != null =>
         player.addChatMessage(Localization.Analyzer.LastError(value))

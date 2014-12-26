@@ -11,6 +11,7 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityComparator;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 public final class DriverComparator extends DriverTileEntity implements EnvironmentAware {
@@ -20,8 +21,8 @@ public final class DriverComparator extends DriverTileEntity implements Environm
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityComparator) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((TileEntityComparator) world.getTileEntity(pos));
     }
 
     @Override

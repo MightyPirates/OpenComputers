@@ -124,8 +124,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
     MinecraftServer.getServer.isSinglePlayer || {
     val config = MinecraftServer.getServer.getConfigurationManager
-    val entity = config.func_152612_a(player)
-    entity != null && config.func_152596_g(entity.getGameProfile)
+    val entity = config.getPlayerByUsername(player)
+    entity != null && config.canSendCommands(entity.getGameProfile)
   }
 
   override def isRunning = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
@@ -487,7 +487,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       case Array(name: String, args@_*) if message.name == "computer.signal" =>
         signal(name, Seq(message.source.address) ++ args: _*)
       case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
-        if (canInteract(player.getCommandSenderName))
+        if (canInteract(player.getName))
           signal(name, Seq(message.source.address) ++ args: _*)
       case _ =>
     }
@@ -589,7 +589,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     bootAddress = nbt.getString("bootAddress")
 
     state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
-    nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.func_150285_a_())
+    nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.getString)
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
     }
@@ -610,11 +610,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         val argsLength = argsNbt.getInteger("length")
         new Machine.Signal(signalNbt.getString("name"),
           (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
-            case tag: NBTTagByte if tag.func_150290_f == -1 => null
-            case tag: NBTTagByte => Boolean.box(tag.func_150290_f == 1)
-            case tag: NBTTagDouble => Double.box(tag.func_150286_g)
-            case tag: NBTTagString => tag.func_150285_a_
-            case tag: NBTTagByteArray => tag.func_150292_c
+            case tag: NBTTagByte if tag.getByte == -1 => null
+            case tag: NBTTagByte => Boolean.box(tag.getByte == 1)
+            case tag: NBTTagDouble => Double.box(tag.getDouble)
+            case tag: NBTTagString => tag.getString
+            case tag: NBTTagByteArray => tag.getByteArray
             case tag: NBTTagList =>
               val data = mutable.Map.empty[String, String]
               for (i <- 0 until tag.tagCount by 2) {

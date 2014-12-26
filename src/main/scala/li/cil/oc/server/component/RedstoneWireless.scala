@@ -1,9 +1,11 @@
 package li.cil.oc.server.component
 
+/* TODO WRCBE
 import codechicken.lib.vec.Vector3
 import codechicken.wirelessredstone.core.WirelessReceivingDevice
 import codechicken.wirelessredstone.core.WirelessTransmittingDevice
-import cpw.mods.fml.common.Optional
+*/
+import net.minecraftforge.fml.common.Optional
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -18,7 +20,7 @@ import net.minecraft.nbt.NBTTagCompound
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
-trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDevice with WirelessTransmittingDevice {
+trait RedstoneWireless extends Redstone[RedstoneAware] /* with WirelessReceivingDevice with WirelessTransmittingDevice TODO WRCBE */ {
   var wirelessFrequency = 0
 
   var wirelessInput = false
@@ -69,7 +71,7 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
   }
 
   // ----------------------------------------------------------------------- //
-
+/* TODO WRCBE
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
@@ -82,14 +84,14 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
   override def getPosition = Vector3.fromTileEntityCenter(owner)
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getDimension = owner.world.provider.dimensionId
+  override def getDimension = owner.world.provider.getDimensionId
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getFreq = wirelessFrequency
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getAttachedEntity = null
-
+*/
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {

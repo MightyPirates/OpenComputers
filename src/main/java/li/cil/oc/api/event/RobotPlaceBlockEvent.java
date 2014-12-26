@@ -1,6 +1,7 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Cancelable;
+import net.minecraft.util.BlockPos;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import li.cil.oc.api.internal.Robot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -19,15 +20,13 @@ public abstract class RobotPlaceBlockEvent extends RobotEvent {
     /**
      * The coordinates at which the block will be placed.
      */
-    public final int x, y, z;
+    public final BlockPos pos;
 
-    protected RobotPlaceBlockEvent(Robot robot, ItemStack stack, World world, int x, int y, int z) {
+    protected RobotPlaceBlockEvent(Robot robot, ItemStack stack, World world, BlockPos pos) {
         super(robot);
         this.stack = stack;
         this.world = world;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.pos = pos;
     }
 
     /**
@@ -37,8 +36,8 @@ public abstract class RobotPlaceBlockEvent extends RobotEvent {
      */
     @Cancelable
     public static class Pre extends RobotPlaceBlockEvent {
-        public Pre(Robot robot, ItemStack stack, World world, int x, int y, int z) {
-            super(robot, stack, world, x, y, z);
+        public Pre(Robot robot, ItemStack stack, World world, BlockPos pos) {
+            super(robot, stack, world, pos);
         }
     }
 
@@ -46,8 +45,8 @@ public abstract class RobotPlaceBlockEvent extends RobotEvent {
      * Fired after a robot placed a block.
      */
     public static class Post extends RobotPlaceBlockEvent {
-        public Post(Robot robot, ItemStack stack, World world, int x, int y, int z) {
-            super(robot, stack, world, x, y, z);
+        public Post(Robot robot, ItemStack stack, World world, BlockPos pos) {
+            super(robot, stack, world, pos);
         }
     }
 }

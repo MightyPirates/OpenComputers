@@ -7,15 +7,15 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
@@ -57,10 +57,10 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
   /** Used to pass the current screen along to call(). */
   private var hologram: Hologram = null
 
-  override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    hologram = te.asInstanceOf[Hologram]
+    hologram = tileEntity.asInstanceOf[Hologram]
     if (!hologram.hasPower) return
 
     GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
@@ -77,14 +77,14 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     hologram.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
     hologram.pitch match {
-      case ForgeDirection.DOWN => GL11.glRotatef(90, 1, 0, 0)
-      case ForgeDirection.UP => GL11.glRotatef(-90, 1, 0, 0)
+      case EnumFacing.DOWN => GL11.glRotatef(90, 1, 0, 0)
+      case EnumFacing.UP => GL11.glRotatef(-90, 1, 0, 0)
       case _ => // No pitch.
     }
 
@@ -103,7 +103,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     // After the below scaling, hologram is drawn inside a [0..48]x[0..32]x[0..48] box
     GL11.glScaled(hologram.scale / 16f, hologram.scale / 16f, hologram.scale / 16f)
 
-    bindTexture(Textures.blockHologram)
+    bindTexture(Textures.Model.HologramEffect)
 
     // Normalize normals (yes, glScale scales them too).
     GL11.glEnable(GL11.GL_NORMALIZE)

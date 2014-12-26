@@ -1,6 +1,5 @@
 package li.cil.oc.common.init
 
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.detail.ItemAPI
@@ -16,6 +15,7 @@ import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
@@ -23,7 +23,9 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.registry.GameRegistry
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object Items extends ItemAPI {
@@ -41,8 +43,15 @@ object Items extends ItemAPI {
   def registerBlock[T <: Block](instance: T, id: String) = {
     instance match {
       case simple: SimpleBlock =>
-        instance.setBlockName("oc." + id)
+        instance.setUnlocalizedName("oc." + id)
         GameRegistry.registerBlock(simple, classOf[common.block.Item], id)
+
+        instance.getBlockState.getValidStates.collect {
+          case state: IBlockState =>
+            val id = Block.blockRegistry.getIDForObject(instance) << 4 | instance.getMetaFromState(state)
+            Block.BLOCK_STATE_IDS.put(state, id)
+        }
+
       case _ =>
     }
     descriptors += id -> new ItemInfo {
@@ -58,6 +67,7 @@ object Items extends ItemAPI {
       }
     }
     names += instance -> id
+    OpenComputers.proxy.registerModel(instance, id)
     instance
   }
 
@@ -72,6 +82,7 @@ object Items extends ItemAPI {
       override def createItemStack(size: Int) = delegate.createItemStack(size)
     }
     names += delegate -> id
+    OpenComputers.proxy.registerModel(delegate, id)
     delegate
   }
 
@@ -95,13 +106,14 @@ object Items extends ItemAPI {
       }
     }
     names += instance -> id
+    OpenComputers.proxy.registerModel(instance, id)
     instance
   }
 
   private def getBlockOrItem(stack: ItemStack): Any = if (stack == null) null
   else {
     multi.subItem(stack).getOrElse(stack.getItem match {
-      case block: ItemBlock => block.field_150939_a
+      case block: ItemBlock => block.getBlock
       case item => item
     })
   }

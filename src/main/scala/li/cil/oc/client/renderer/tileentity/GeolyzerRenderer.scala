@@ -2,17 +2,18 @@ package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
 object GeolyzerRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
@@ -24,20 +25,24 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer {
     GL11.glScaled(1.0025, -1.0025, 1.0025)
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-    bindTexture(TextureMap.locationBlocksTexture)
-    val t = Tessellator.instance
-    t.startDrawingQuads()
+    val t = Tessellator.getInstance
+    val r = t.getWorldRenderer
 
-    val topOn = Textures.Geolyzer.iconTopOn
-    t.addVertexWithUV(0, 0, 1, topOn.getMinU, topOn.getMaxV)
-    t.addVertexWithUV(1, 0, 1, topOn.getMaxU, topOn.getMaxV)
-    t.addVertexWithUV(1, 0, 0, topOn.getMaxU, topOn.getMinV)
-    t.addVertexWithUV(0, 0, 0, topOn.getMinU, topOn.getMinV)
+    Textures.Block.bind()
+    r.startDrawingQuads()
+
+    val topOn = Textures.Block.getSprite(Textures.Block.GeolyzerTopOn)
+    r.addVertexWithUV(0, 0, 1, topOn.getMinU, topOn.getMaxV)
+    r.addVertexWithUV(1, 0, 1, topOn.getMaxU, topOn.getMaxV)
+    r.addVertexWithUV(1, 0, 0, topOn.getMaxU, topOn.getMinV)
+    r.addVertexWithUV(0, 0, 0, topOn.getMinU, topOn.getMinV)
 
     t.draw()
+    Textures.Block.unbind()
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
+    GL11.glPopClientAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

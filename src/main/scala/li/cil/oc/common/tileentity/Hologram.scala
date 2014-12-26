@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
@@ -10,14 +8,14 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.SaveHandler
-import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable {
   def this() = this(0)
@@ -39,7 +37,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   var scale = 1.0
 
   // Projection Y position offset - consider adding X,Z later perhaps
-  var translation = Vec3.createVectorHelper(0, 0, 0)
+  var translation = new Vec3(0, 0, 0)
 
   // Relative number of lit columns (for energy cost).
   var litRatio = -1.0
@@ -104,12 +102,12 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = toLocal(side) == ForgeDirection.DOWN
+  override def canConnect(side: EnumFacing) = toLocal(side) == EnumFacing.DOWN
 
-  override def sidedNode(side: ForgeDirection) = if (toLocal(side) == ForgeDirection.DOWN) node else null
+  override def sidedNode(side: EnumFacing) = if (toLocal(side) == EnumFacing.DOWN) node else null
 
   // Override automatic analyzer implementation for sided environments.
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
 
   // ----------------------------------------------------------------------- //
 
@@ -236,9 +234,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val ty = math.max(0, math.min(maxTranslation * 2, args.checkDouble(1)))
     val tz = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(2)))
 
-    translation.xCoord = tx
-    translation.yCoord = ty
-    translation.zCoord = tz
+    translation = new Vec3(tx, ty, tz)
 
     ServerPacketSender.sendHologramOffset(this)
     null
@@ -298,8 +294,8 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   override def canUpdate = isServer
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (isServer) {
       if (dirty) {
         cooldown -= 1
@@ -341,7 +337,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val cz = z + 0.5
     val sh = width / 16 * scale
     val sv = height / 16 * scale
-    AxisAlignedBB.getBoundingBox(
+    AxisAlignedBB.fromBounds(
       cx + (-0.5 + translation.xCoord) * sh,
       cy + translation.yCoord * sv,
       cz + (-0.5 + translation.zCoord) * sh,
@@ -359,20 +355,19 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     tag.getIntArray("volume").copyToArray(volume)
     tag.getIntArray("colors").map(convertColor).copyToArray(colors)
     scale = nbt.getDouble(Settings.namespace + "scale")
-    translation.xCoord = nbt.getDouble(Settings.namespace + "offsetX")
-    translation.yCoord = nbt.getDouble(Settings.namespace + "offsetY")
-    translation.zCoord = nbt.getDouble(Settings.namespace + "offsetZ")
+    val tx = nbt.getDouble(Settings.namespace + "offsetX")
+    val ty = nbt.getDouble(Settings.namespace + "offsetY")
+    val tz = nbt.getDouble(Settings.namespace + "offsetZ")
+    translation = new Vec3(tx, ty, tz)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-    if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip) {
-      SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
-        tag.setIntArray("volume", volume)
-        tag.setIntArray("colors", colors.map(convertColor))
-      })
-    }
+    SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
+      tag.setIntArray("volume", volume)
+      tag.setIntArray("colors", colors.map(convertColor))
+    })
     nbt.setDouble(Settings.namespace + "scale", scale)
     nbt.setDouble(Settings.namespace + "offsetX", translation.xCoord)
     nbt.setDouble(Settings.namespace + "offsetY", translation.yCoord)
@@ -386,9 +381,10 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.getIntArray("colors").copyToArray(colors)
     scale = nbt.getDouble("scale")
     hasPower = nbt.getBoolean("hasPower")
-    translation.xCoord = nbt.getDouble("offsetX")
-    translation.yCoord = nbt.getDouble("offsetY")
-    translation.zCoord = nbt.getDouble("offsetZ")
+    val tx = nbt.getDouble("offsetX")
+    val ty = nbt.getDouble("offsetY")
+    val tz = nbt.getDouble("offsetZ")
+    translation = new Vec3(tx, ty, tz)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

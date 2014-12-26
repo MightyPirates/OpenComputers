@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraftforge.fml.common.eventhandler.Event;
 import li.cil.oc.api.internal.Robot;
 
 /**

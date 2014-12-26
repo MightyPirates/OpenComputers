@@ -56,7 +56,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   override def initGui() {
     super.initGui()
-    runButton = new ImageButton(0, guiLeft + 7, guiTop + 89, 18, 18, Textures.guiButtonRun, canToggle = true)
+    runButton = new ImageButton(0, guiLeft + 7, guiTop + 89, 18, 18, Textures.GUI.ButtonRun, canToggle = true)
     add(buttonList, runButton)
   }
 
@@ -73,7 +73,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
           case _ => ""
         }
       fontRendererObj.drawString(message, 30, 94, 0x404040)
-      if (runButton.func_146115_a) {
+      if (runButton.isMouseOver) {
         val tooltip = new java.util.ArrayList[String]
         tooltip.add(Localization.Assembler.Run)
         info.foreach {
@@ -84,7 +84,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
         drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
       }
     }
-    else if (func_146978_c(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
+    else if (isPointInRegion(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(assemblerContainer.assemblyRemainingTime)
       tooltip.add(Localization.Assembler.Progress(assemblerContainer.assemblyProgress, timeRemaining))
@@ -102,7 +102,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(Textures.guiRobotAssembler)
+    mc.renderEngine.bindTexture(Textures.GUI.RobotAssembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     if (assemblerContainer.isAssembling) progress.level = assemblerContainer.assemblyProgress / 100.0
     else progress.level = 0

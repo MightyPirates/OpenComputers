@@ -3,34 +3,26 @@ package li.cil.oc.common.block
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
-class Raid extends SimpleBlock {
-  override protected def customTextures = Array(
-    None,
-    None,
-    Some("RaidSide"),
-    Some("RaidFront"),
-    Some("RaidSide"),
-    Some("RaidSide")
-  )
+class Raid extends SimpleBlock with traits.Rotatable {
+  setDefaultState(buildDefaultState())
+
+  override def hasTileEntity(state: IBlockState) = true
+
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Raid()
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
-
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Raid()
-
-  // ----------------------------------------------------------------------- //
-
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    world.getTileEntity(x, y, z) match {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+    world.getTileEntity(pos) match {
       case drive: tileentity.Raid if !player.isSneaking =>
         if (!world.isRemote) {
-          player.openGui(OpenComputers, GuiType.Raid.id, world, x, y, z)
+          player.openGui(OpenComputers, GuiType.Raid.id, world, pos.getX, pos.getY, pos.getZ)
         }
         true
       case _ => false

@@ -5,7 +5,7 @@
  * components, which would otherwise require reflection or linking against the
  * mod itself.
  */
-@cpw.mods.fml.common.API(
+@net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Component",
         apiVersion = API.VERSION)

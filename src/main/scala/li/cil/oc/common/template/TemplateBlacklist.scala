@@ -1,6 +1,6 @@
 package li.cil.oc.common.template
 
-import cpw.mods.fml.common.event.FMLInterModComms
+import net.minecraftforge.fml.common.event.FMLInterModComms
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.item.Item

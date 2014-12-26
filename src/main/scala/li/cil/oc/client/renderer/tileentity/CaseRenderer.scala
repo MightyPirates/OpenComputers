@@ -6,11 +6,11 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object CaseRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val computer = tileEntity.asInstanceOf[Case]
@@ -25,9 +25,9 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     computer.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
 
@@ -35,25 +35,30 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(1, -1, 1)
 
     if (computer.isRunning) {
-      bindTexture(Textures.blockCaseFrontOn)
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(0, 1, 0, 0, 1)
-      t.addVertexWithUV(1, 1, 0, 1, 1)
-      t.addVertexWithUV(1, 0, 0, 1, 0)
-      t.addVertexWithUV(0, 0, 0, 0, 0)
-      t.draw()
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+
+      Textures.Block.bind()
+      r.startDrawingQuads()
+
+      {
+        val power = Textures.Block.getSprite(Textures.Block.CaseFrontOn)
+        r.addVertexWithUV(0, 1, 0, power.getMinU, power.getMaxV)
+        r.addVertexWithUV(1, 1, 0, power.getMaxU, power.getMaxV)
+        r.addVertexWithUV(1, 0, 0, power.getMaxU, power.getMinV)
+        r.addVertexWithUV(0, 0, 0, power.getMinU, power.getMinV)
+      }
 
       if (System.currentTimeMillis() - computer.lastAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
-        bindTexture(Textures.blockCaseFrontActivity)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, 1, 0, 0, 1)
-        t.addVertexWithUV(1, 1, 0, 1, 1)
-        t.addVertexWithUV(1, 0, 0, 1, 0)
-        t.addVertexWithUV(0, 0, 0, 0, 0)
-        t.draw()
+        val activity = Textures.Block.getSprite(Textures.Block.CaseFrontActivity)
+        r.addVertexWithUV(0, 1, 0, activity.getMinU, activity.getMaxV)
+        r.addVertexWithUV(1, 1, 0, activity.getMaxU, activity.getMaxV)
+        r.addVertexWithUV(1, 0, 0, activity.getMaxU, activity.getMinV)
+        r.addVertexWithUV(0, 0, 0, activity.getMinU, activity.getMinV)
       }
+
+      t.draw()
+      Textures.Block.unbind()
     }
 
     GL11.glPopMatrix()

@@ -1,16 +1,16 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import li.cil.oc.api.internal.Robot;
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.util.EnumFacing;
 
 public abstract class RobotMoveEvent extends RobotEvent {
     /**
      * The direction in which the robot will be moving.
      */
-    public final ForgeDirection direction;
+    public final EnumFacing direction;
 
-    protected RobotMoveEvent(Robot robot, ForgeDirection direction) {
+    protected RobotMoveEvent(Robot robot, EnumFacing direction) {
         super(robot);
         this.direction = direction;
     }
@@ -22,7 +22,7 @@ public abstract class RobotMoveEvent extends RobotEvent {
      */
     @Cancelable
     public static class Pre extends RobotMoveEvent {
-        public Pre(Robot robot, ForgeDirection direction) {
+        public Pre(Robot robot, EnumFacing direction) {
             super(robot, direction);
         }
     }
@@ -31,7 +31,7 @@ public abstract class RobotMoveEvent extends RobotEvent {
      * Fired after a robot moved.
      */
     public static class Post extends RobotMoveEvent {
-        public Post(Robot robot, ForgeDirection direction) {
+        public Post(Robot robot, EnumFacing direction) {
             super(robot, direction);
         }
     }

@@ -13,7 +13,7 @@
  * used inside the specified environment (where the environment class may
  * be assignable to one of the interfaces in this package).
  */
-@cpw.mods.fml.common.API(
+@net.minecraftforge.fml.common.API(
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Internal",
         apiVersion = API.VERSION)

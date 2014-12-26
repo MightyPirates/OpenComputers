@@ -1,6 +1,6 @@
 package li.cil.oc.api.internal;
 
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.util.EnumFacing;
 
 /**
  * This interface is implemented by the computer case and robot tile entities
@@ -31,7 +31,7 @@ public interface Rotatable {
      *
      * @return the current facing.
      */
-    ForgeDirection facing();
+    EnumFacing facing();
 
     /**
      * Converts a facing relative to the block's <em>local</em> coordinate
@@ -44,7 +44,7 @@ public interface Rotatable {
      * @param value the value to translate.
      * @return the translated orientation.
      */
-    ForgeDirection toGlobal(ForgeDirection value);
+    EnumFacing toGlobal(EnumFacing value);
 
     /**
      * Converts a <tt>global</tt> orientation to a facing relative to the
@@ -57,5 +57,5 @@ public interface Rotatable {
      * @param value the value to translate.
      * @return the translated orientation.
      */
-    ForgeDirection toLocal(ForgeDirection value);
+    EnumFacing toLocal(EnumFacing value);
 }

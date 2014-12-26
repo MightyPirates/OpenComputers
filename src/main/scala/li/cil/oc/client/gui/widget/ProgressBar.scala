@@ -21,13 +21,14 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
       val ty = owner.windowY + y
       val w = width * level
 
-      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiBar)
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(tx, ty, owner.windowZ, u0, v0)
-      t.addVertexWithUV(tx, ty + height, owner.windowZ, u0, v1)
-      t.addVertexWithUV(tx + w, ty + height, owner.windowZ, u1, v1)
-      t.addVertexWithUV(tx + w, ty, owner.windowZ, u1, v0)
+      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.GUI.Bar)
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+      r.startDrawingQuads()
+      r.addVertexWithUV(tx, ty, owner.windowZ, u0, v0)
+      r.addVertexWithUV(tx, ty + height, owner.windowZ, u0, v1)
+      r.addVertexWithUV(tx + w, ty + height, owner.windowZ, u1, v1)
+      r.addVertexWithUV(tx + w, ty, owner.windowZ, u1, v0)
       t.draw()
     }
   }

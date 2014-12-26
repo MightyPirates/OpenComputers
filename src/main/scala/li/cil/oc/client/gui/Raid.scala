@@ -11,7 +11,7 @@ class Raid(playerInventory: InventoryPlayer, val raid: tileentity.Raid) extends 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(raid.getInventoryName),
+      Localization.localizeImmediately(raid.getName),
       8, 6, 0x404040)
 
     fontRendererObj.drawSplitString(
@@ -22,7 +22,7 @@ class Raid(playerInventory: InventoryPlayer, val raid: tileentity.Raid) extends 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(Textures.guiRaid)
+    mc.renderEngine.bindTexture(Textures.GUI.Raid)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 }

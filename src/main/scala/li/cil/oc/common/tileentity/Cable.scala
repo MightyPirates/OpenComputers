@@ -3,12 +3,12 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common
-import li.cil.oc.util.Color
+import net.minecraft.item.EnumDyeColor
 
 class Cable extends traits.Environment with traits.NotAnalyzable with traits.ImmibisMicroblock with traits.Colored {
   val node = api.Network.newNode(this, Visibility.None).create()
 
-  color = Color.LightGray
+  color = EnumDyeColor.SILVER
 
   override protected def onColorChanged() {
     super.onColorChanged()
@@ -19,5 +19,5 @@ class Cable extends traits.Environment with traits.NotAnalyzable with traits.Imm
 
   override def canUpdate = false
 
-  override def getRenderBoundingBox = common.block.Cable.bounds(world, x, y, z).offset(x, y, z)
+  override def getRenderBoundingBox = common.block.Cable.bounds(world, getPos).offset(x, y, z)
 }

@@ -3,8 +3,9 @@ package li.cil.oc.common.item
 import java.util
 import java.util.Random
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraft.util.BlockPos
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -22,7 +23,9 @@ import org.lwjgl.input
 
 class SimpleItem extends Item {
   setCreativeTab(CreativeTab)
-  iconString = Settings.resourceDomain + ":" + getClass.getSimpleName
+
+  // TODO remove
+//  iconString = Settings.resourceDomain + ":" + getClass.getSimpleName
 
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
 
@@ -30,10 +33,11 @@ class SimpleItem extends Item {
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
-  override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
-    world.getTileEntity(x, y, z) match {
+
+  override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer) = {
+    world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive => true
-      case _ => super.doesSneakBypassUse(world, x, y, z, player)
+      case _ => super.doesSneakBypassUse(world, pos, player)
     }
   }
 

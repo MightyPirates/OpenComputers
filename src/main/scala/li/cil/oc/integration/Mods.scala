@@ -1,8 +1,8 @@
 package li.cil.oc.integration
 
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.ModAPIManager
-import cpw.mods.fml.common.versioning.VersionParser
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.ModAPIManager
+import net.minecraftforge.fml.common.versioning.VersionParser
 import li.cil.oc.Settings
 import li.cil.oc.integration
 
@@ -71,37 +71,37 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   def init() {
-    tryInit(integration.appeng.ModAppEng)
-    tryInit(integration.buildcraft.tools.ModBuildCraftAPITools)
-    tryInit(integration.buildcraft.tiles.ModBuildCraftAPITiles)
-    tryInit(integration.buildcraft.transport.ModBuildCraftAPITransport)
-    tryInit(integration.cofh.energy.ModCoFHEnergy)
-    tryInit(integration.cofh.item.ModCoFHItem)
-    tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
-    tryInit(integration.cofh.transport.ModCoFHTransport)
-    tryInit(integration.enderstorage.ModEnderStorage)
-    tryInit(integration.forestry.ModForestry)
-    tryInit(integration.fmp.ModForgeMultipart)
-    tryInit(integration.gregtech.ModGregtech)
-    tryInit(integration.ic2.ModIndustrialCraft2)
-    tryInit(integration.mfr.ModMineFactoryReloaded)
-    tryInit(integration.mystcraft.ModMystcraft)
+//    tryInit(integration.appeng.ModAppEng)
+//    tryInit(integration.buildcraft.tools.ModBuildCraftAPITools)
+//    tryInit(integration.buildcraft.tiles.ModBuildCraftAPITiles)
+//    tryInit(integration.buildcraft.transport.ModBuildCraftAPITransport)
+//    tryInit(integration.cofh.energy.ModCoFHEnergy)
+//    tryInit(integration.cofh.item.ModCoFHItem)
+//    tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
+//    tryInit(integration.cofh.transport.ModCoFHTransport)
+//    tryInit(integration.enderstorage.ModEnderStorage)
+//    tryInit(integration.forestry.ModForestry)
+//    tryInit(integration.fmp.ModForgeMultipart)
+//    tryInit(integration.gregtech.ModGregtech)
+//    tryInit(integration.ic2.ModIndustrialCraft2)
+//    tryInit(integration.mfr.ModMineFactoryReloaded)
+//    tryInit(integration.mystcraft.ModMystcraft)
     tryInit(integration.opencomputers.ModOpenComputers)
-    tryInit(integration.railcraft.ModRailcraft)
-    tryInit(integration.stargatetech2.ModStargateTech2)
-    tryInit(integration.thaumcraft.ModThaumcraft)
-    tryInit(integration.thermalexpansion.ModThermalExpansion)
-    tryInit(integration.tcon.ModTinkersConstruct)
-    tryInit(integration.tmechworks.ModTMechworks)
+//    tryInit(integration.railcraft.ModRailcraft)
+//    tryInit(integration.stargatetech2.ModStargateTech2)
+//    tryInit(integration.thaumcraft.ModThaumcraft)
+//    tryInit(integration.thermalexpansion.ModThermalExpansion)
+//    tryInit(integration.tcon.ModTinkersConstruct)
+//    tryInit(integration.tmechworks.ModTMechworks)
     tryInit(integration.vanilla.ModVanilla)
-    tryInit(integration.versionchecker.ModVersionChecker)
-    tryInit(integration.waila.ModWaila)
-    tryInit(integration.wrcbe.ModWRCBE)
-    tryInit(integration.wrsve.ModWRSVE)
-
-    // Register the general IPeripheral driver last, if at all, to avoid it
-    // being used rather than other more concrete implementations.
-    tryInit(integration.computercraft.ModComputerCraft)
+//    tryInit(integration.versionchecker.ModVersionChecker)
+//    tryInit(integration.waila.ModWaila)
+//    tryInit(integration.wrcbe.ModWRCBE)
+//    tryInit(integration.wrsve.ModWRSVE)
+//
+//    // Register the general IPeripheral driver last, if at all, to avoid it
+//    // being used rather than other more concrete implementations.
+//    tryInit(integration.computercraft.ModComputerCraft)
   }
 
   private def tryInit(mod: ModProxy) {

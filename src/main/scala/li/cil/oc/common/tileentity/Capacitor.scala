@@ -1,10 +1,10 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
 import li.cil.oc.Settings
 import li.cil.oc.api
-import net.minecraftforge.common.util.ForgeDirection
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
+import net.minecraft.util.EnumFacing
 
 class Capacitor extends traits.Environment {
   // Start with maximum theoretical capacity, gets reduced after validation.
@@ -21,11 +21,10 @@ class Capacitor extends traits.Environment {
     super.dispose()
     if (isServer) {
       indirectNeighbors.map(coordinate => {
-        val (nx, ny, nz) = coordinate
-        if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz)
-        else null
+        if (world.isBlockLoaded(coordinate)) Option(world.getTileEntity(coordinate))
+        else None
       }).collect {
-        case capacitor: Capacitor => capacitor.recomputeCapacity()
+        case Some(capacitor: Capacitor) => capacitor.recomputeCapacity()
       }
     }
   }
@@ -42,26 +41,24 @@ class Capacitor extends traits.Environment {
   def recomputeCapacity(updateSecondGradeNeighbors: Boolean = false) {
     node.setLocalBufferSize(
       Settings.get.bufferCapacitor +
-        Settings.get.bufferCapacitorAdjacencyBonus * ForgeDirection.VALID_DIRECTIONS.count(side => {
-          val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-          world.blockExists(nx, ny, nz) && (world.getTileEntity(nx, ny, nz) match {
+        Settings.get.bufferCapacitorAdjacencyBonus * EnumFacing.values.count(side => {
+          val blockPos = getPos.offset(side)
+          world.isBlockLoaded(blockPos) && (world.getTileEntity(blockPos) match {
             case capacitor: Capacitor => true
             case _ => false
           })
         }) +
-        Settings.get.bufferCapacitorAdjacencyBonus / 2 * indirectNeighbors.count {
-          case (nx, ny, nz) => world.blockExists(nx, ny, nz) && (world.getTileEntity(nx, ny, nz) match {
+        Settings.get.bufferCapacitorAdjacencyBonus / 2 * indirectNeighbors.count(blockPos => world.isBlockLoaded(blockPos) && (world.getTileEntity(blockPos) match {
             case capacitor: Capacitor =>
               if (updateSecondGradeNeighbors) {
                 capacitor.recomputeCapacity()
               }
               true
             case _ => false
-          })
-        })
+          })))
   }
 
-  private def indirectNeighbors = ForgeDirection.VALID_DIRECTIONS.map(side => (x + side.offsetX * 2, y + side.offsetY * 2, z + side.offsetZ * 2))
+  private def indirectNeighbors = EnumFacing.values.map(getPos.offset(_, 2))
 
   private def maxCapacity = Settings.get.bufferCapacitor + Settings.get.bufferCapacitorAdjacencyBonus * 9
 }

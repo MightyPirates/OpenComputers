@@ -1,6 +1,6 @@
 package li.cil.oc.common.init
 
-import cpw.mods.fml.common.registry.GameRegistry
+import net.minecraftforge.fml.common.registry.GameRegistry
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block._
@@ -9,36 +9,28 @@ import li.cil.oc.common.tileentity
 
 object Blocks {
   def init() {
-    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "access_point")
+    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "accessPoint")
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
-    GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Assembler], Settings.namespace + "assembler", Settings.namespace + "robotAssembler")
+    GameRegistry.registerTileEntity(classOf[tileentity.Assembler], Settings.namespace + "assembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
     GameRegistry.registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
-    GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "disk_drive")
+    GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "diskDrive")
     GameRegistry.registerTileEntity(classOf[tileentity.Disassembler], Settings.namespace + "disassembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
     GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
     GameRegistry.registerTileEntity(classOf[tileentity.Microcontroller], Settings.namespace + "microcontroller")
-    GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motion_sensor")
-    GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
-    GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
+    GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motionSensor")
+    GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "powerConverter")
+    GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "powerDistributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
-
-    // These are purely for converting existing blocks in delegator format to the new,
-    // one block type per block format.
-    // TODO Remove in 1.5
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple")
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple_redstone")
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "special")
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "special_redstone")
 
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in

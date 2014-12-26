@@ -3,24 +3,23 @@ package li.cil.oc.common.item
 import java.util
 import java.util.Random
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.WeightedRandomChestContent
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
@@ -28,7 +27,6 @@ class Delegator extends Item {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
   setUnlocalizedName("oc.multi")
-  iconString = Settings.resourceDomain + ":Microchip0"
 
   // ----------------------------------------------------------------------- //
   // SubItem
@@ -84,7 +82,7 @@ class Delegator extends Item {
 
   override def getRarity(stack: ItemStack) = subItem(stack) match {
     case Some(subItem) => subItem.rarity
-    case _ => EnumRarity.common
+    case _ => EnumRarity.COMMON
   }
 
   override def getColorFromItemStack(stack: ItemStack, pass: Int) =
@@ -95,25 +93,25 @@ class Delegator extends Item {
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
-  override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
-    world.getTileEntity(x, y, z) match {
+  override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer) = {
+    world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive => true
-      case _ => super.doesSneakBypassUse(world, x, y, z, player)
+      case _ => super.doesSneakBypassUse(world, pos, player)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = 
     subItem(stack) match {
-      case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(x, y, z, world), side, hitX, hitY, hitZ)
-      case _ => super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
+      case _ => super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ)
     }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
     subItem(stack) match {
-      case Some(subItem) => subItem.onItemUse(stack, player, BlockPosition(x, y, z, world), side, hitX, hitY, hitZ)
-      case _ => super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case Some(subItem) => subItem.onItemUse(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
+      case _ => super.onItemUse(stack, player, world, pos, side, hitX, hitY, hitZ)
     }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
@@ -146,10 +144,10 @@ class Delegator extends Item {
     }
   }
 
-  override def getDisplayDamage(stack: ItemStack) =
+  override def getDurabilityForDisplay(stack: ItemStack) =
     subItem(stack) match {
       case Some(subItem) if subItem.isDamageable => subItem.damage(stack)
-      case _ => super.getDisplayDamage(stack)
+      case _ => super.getDurabilityForDisplay(stack)
     }
 
   override def getMaxDamage(stack: ItemStack) =
@@ -170,34 +168,35 @@ class Delegator extends Item {
       case _ => super.onUpdate(stack, world, player, slot, selected)
     }
 
-  @SideOnly(Side.CLIENT)
-  override def getIcon(stack: ItemStack, pass: Int) =
-    subItem(stack) match {
-      case Some(subItem) => subItem.icon(stack, pass) match {
-        case Some(icon) => icon
-        case _ => super.getIcon(stack, pass)
-      }
-      case _ => super.getIcon(stack, pass)
-    }
-
-  @SideOnly(Side.CLIENT)
-  override def getIconIndex(stack: ItemStack) = getIcon(stack, 0)
-
-  @SideOnly(Side.CLIENT)
-  override def getIconFromDamage(damage: Int): IIcon =
-    subItem(damage) match {
-      case Some(subItem) => subItem.icon match {
-        case Some(icon) => icon
-        case _ => super.getIconFromDamage(damage)
-      }
-      case _ => super.getIconFromDamage(damage)
-    }
-
-  @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IIconRegister) {
-    super.registerIcons(iconRegister)
-    subItems.foreach(_.registerIcons(iconRegister))
-  }
+  // TODO remove
+//  @SideOnly(Side.CLIENT)
+//  override def getIcon(stack: ItemStack, pass: Int) =
+//    subItem(stack) match {
+//      case Some(subItem) => subItem.icon(stack, pass) match {
+//        case Some(icon) => icon
+//        case _ => super.getIcon(stack, pass)
+//      }
+//      case _ => super.getIcon(stack, pass)
+//    }
+//
+//  @SideOnly(Side.CLIENT)
+//  override def getIconIndex(stack: ItemStack) = getIcon(stack, 0)
+//
+//  @SideOnly(Side.CLIENT)
+//  override def getIconFromDamage(damage: Int): IIcon =
+//    subItem(damage) match {
+//      case Some(subItem) => subItem.icon match {
+//        case Some(icon) => icon
+//        case _ => super.getIconFromDamage(damage)
+//      }
+//      case _ => super.getIconFromDamage(damage)
+//    }
+//
+//  @SideOnly(Side.CLIENT)
+//  override def registerIcons(iconRegister: IIconRegister) {
+//    super.getAtlasSprites(iconRegister)
+//    subItems.foreach(_.getAtlasSprites(iconRegister))
+//  }
 
   override def toString = getUnlocalizedName
 }

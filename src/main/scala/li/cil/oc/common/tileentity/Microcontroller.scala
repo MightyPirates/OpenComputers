@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
@@ -18,7 +18,7 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller {
   val info = new ItemUtils.MicrocontrollerData()
@@ -40,15 +40,15 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   // ----------------------------------------------------------------------- //
 
-  override def sidedNode(side: ForgeDirection) = if (side != facing) node else null
+  override def sidedNode(side: EnumFacing) = if (side != facing) node else null
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side != facing
+  override def canConnect(side: EnumFacing) = side != facing
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = side != facing
+  override protected def hasConnector(side: EnumFacing) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
 
   override protected def energyThroughput = Settings.get.caseRate(Tier.One)
 
@@ -102,8 +102,8 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   override def canUpdate = isServer
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
 
     // Pump energy into the internal network.
     if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {

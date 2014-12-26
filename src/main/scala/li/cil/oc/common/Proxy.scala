@@ -1,9 +1,12 @@
 package li.cil.oc.common
 
 import com.google.common.base.Strings
-import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.common.item.Delegate
+import net.minecraft.block.Block
+import net.minecraft.item.Item
+import net.minecraftforge.fml.common.event._
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
@@ -63,6 +66,12 @@ class Proxy {
       api.Machine.add(classOf[LuaJLuaArchitecture])
   }
 
+  def registerModel(instance: Item, location: String): Unit = {}
+
+  def registerModel(instance: Delegate, location: String): Unit = {}
+
+  def registerModel(instance: Block, location: String): Unit = {}
+
   def init(e: FMLInitializationEvent) {
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
     OpenComputers.channel.register(server.PacketHandler)
@@ -89,25 +98,11 @@ class Proxy {
   // extend, in case that should ever be needed.
 
   private val blockRenames = Map(
-    OpenComputers.ID + ":" + Settings.namespace + "simple" -> "simple",
-    OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
-    OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
-    OpenComputers.ID + ":rack" -> "serverRack"
+    OpenComputers.ID + ":server_rack" -> "serverRack"
   )
 
   private val itemRenames = Map(
-    OpenComputers.ID + ":" + Settings.namespace + "item" -> "item",
-    OpenComputers.ID + ":" + Settings.namespace + "simple" -> "simple",
-    OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
-    OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
-    OpenComputers.ID + ":rack" -> "serverRack",
-    OpenComputers.ID + ":appengTunnel" -> "", // Avoid breaking worlds for people that used the dev builds.
-    OpenComputers.ID + ":microcontrollerCase" -> "microcontrollerCase1",
-    OpenComputers.ID + ":droneCase" -> "droneCase1"
+    OpenComputers.ID + ":server_rack" -> "serverRack"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

@@ -14,7 +14,7 @@ class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) ex
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
-      Localization.localizeImmediately(switch.getInventoryName),
+      Localization.localizeImmediately(switch.getName),
       8, 6, 0x404040)
 
     fontRendererObj.drawString(

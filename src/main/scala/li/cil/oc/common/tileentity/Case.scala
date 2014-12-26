@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.item.Memory
@@ -12,12 +10,13 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case {
   def this() = this(0)
@@ -28,13 +27,11 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   color = Color.byTier(tier)
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = side != facing
+  override protected def hasConnector(side: EnumFacing) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
 
   override protected def energyThroughput = Settings.get.caseRate(tier)
-
-  override def getWorld = world
 
   var maxComponents = 0
 
@@ -76,12 +73,12 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def canUpdate = isServer
 
-  override def updateEntity() {
+  override def update() {
     if (isServer && isCreativeCase && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
-    super.updateEntity()
+    super.update()
   }
 
   // ----------------------------------------------------------------------- //
@@ -91,20 +88,11 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     color = Color.byTier(tier)
     super.readFromNBT(nbt)
     recomputeMaxComponents()
-
-    // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-    // TODO Remove in 1.5
-    if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-      items(items.length - 1) = Option(Items.createLuaBios())
-    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-
-    // TODO Remove in 1.5
-    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   // ----------------------------------------------------------------------- //

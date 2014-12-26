@@ -6,7 +6,7 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 trait Inventory extends TileEntity with inventory.Inventory {
   lazy val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
@@ -30,12 +30,12 @@ trait Inventory extends TileEntity with inventory.Inventory {
 
   // ----------------------------------------------------------------------- //
 
-  def dropSlot(slot: Int, count: Int = getInventoryStackLimit, direction: Option[ForgeDirection] = None) =
+  def dropSlot(slot: Int, count: Int = getInventoryStackLimit, direction: Option[EnumFacing] = None) =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, count, direction)
 
   def dropAllSlots() =
     InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), this)
 
-  def spawnStackInWorld(stack: ItemStack, direction: Option[ForgeDirection] = None) =
+  def spawnStackInWorld(stack: ItemStack, direction: Option[EnumFacing] = None) =
     InventoryUtils.spawnStackInWorld(BlockPosition(x, y, z, world), stack, direction)
 }

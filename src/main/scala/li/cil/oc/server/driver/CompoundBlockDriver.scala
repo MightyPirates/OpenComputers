@@ -1,7 +1,8 @@
 package li.cil.oc.server.driver
 
 import com.google.common.base.Strings
-import cpw.mods.fml.relauncher.ReflectionHelper
+import net.minecraft.util.BlockPos
+import net.minecraftforge.fml.relauncher.ReflectionHelper
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.network.ManagedEnvironment
@@ -12,52 +13,50 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 
 class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = {
+  override def createEnvironment(world: World, pos: BlockPos) = {
     val list = blocks.map {
-      driver => Option(driver.createEnvironment(world, x, y, z)) match {
+      driver => Option(driver.createEnvironment(world, pos)) match {
         case Some(environment) => (driver, environment)
         case _ => null
       }
     } filter (_ != null)
     if (list.isEmpty) null
-    else new CompoundBlockEnvironment(cleanName(tryGetName(world, x, y, z, list.map(_._2))), list: _*)
+    else new CompoundBlockEnvironment(cleanName(tryGetName(world, pos, list.map(_._2))), list: _*)
   }
 
-  override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))
+  override def worksWith(world: World, pos: BlockPos) = blocks.forall(_.worksWith(world, pos))
 
   override def equals(obj: Any) = obj match {
     case multi: CompoundBlockDriver if multi.blocks.length == blocks.length => blocks.intersect(multi.blocks).length == blocks.length
     case _ => false
   }
 
-  private def tryGetName(world: World, x: Int, y: Int, z: Int, environments: Seq[ManagedEnvironment]): String = {
+  // TODO rework this method
+  private def tryGetName(world: World, pos: BlockPos, environments: Seq[ManagedEnvironment]): String = {
     environments.collect {
       case named: NamedBlock => named
     }.sortBy(_.priority).lastOption match {
       case Some(named) => return named.preferredName
       case _ => // No preferred name.
     }
-    try world.getTileEntity(x, y, z) match {
-      case inventory: IInventory if !Strings.isNullOrEmpty(inventory.getInventoryName) => return inventory.getInventoryName.stripPrefix("container.")
+    try world.getTileEntity(pos) match {
+      case inventory: IInventory if !Strings.isNullOrEmpty(inventory.getName) => return inventory.getName.stripPrefix("container.")
     } catch {
       case _: Throwable =>
     }
     try {
-      val block = world.getBlock(x, y, z)
-      val stack = try Option(block.getPickBlock(null, world, x, y, z)) catch {
-        case _: Throwable =>
-          if (Item.getItemFromBlock(block) != null) {
-            Some(new ItemStack(block, 1, block.getDamageValue(world, x, y, z)))
+      val block = world.getBlockState(pos).getBlock
+      val stack = if (Item.getItemFromBlock(block) != null) {
+            Some(new ItemStack(block, 1, block.getDamageValue(world, pos)))
           }
           else None
-      }
       if (stack.isDefined) {
         return stack.get.getUnlocalizedName.stripPrefix("tile.")
       }
     } catch {
       case _: Throwable =>
     }
-    try world.getTileEntity(x, y, z) match {
+    try world.getTileEntity(pos) match {
       case tileEntity: TileEntity =>
         val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_145853_j")
         return map.get(tileEntity.getClass)

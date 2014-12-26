@@ -2,7 +2,7 @@ package li.cil.oc.common.event
 
 import java.util
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.UpgradeChunkloader
 import li.cil.oc.util.BlockPosition

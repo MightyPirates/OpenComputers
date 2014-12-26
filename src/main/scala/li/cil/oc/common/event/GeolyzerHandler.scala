@@ -1,12 +1,14 @@
 package li.cil.oc.common.event
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api.event.GeolyzerEvent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
+import net.minecraft.init.Blocks
+import net.minecraft.util.BlockPos
 import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 
@@ -29,10 +31,12 @@ object GeolyzerHandler {
 
     for (ry <- 0 until e.data.length) {
       val by = blockPos.y + ry - 32
-      if (!world.isAirBlock(bx, by, bz)) {
-        val block = world.getBlock(bx, by, bz)
-        if (block != null && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, blockPos.x, blockPos.y, blockPos.z))) {
-          e.data(ry) = e.data(ry) * (math.abs(ry - 32) + 1) * Settings.get.geolyzerNoise + block.getBlockHardness(world, bx, by, bz)
+      val bp = new BlockPos(bx, by, bz)
+      if (!world.isAirBlock(bp)) {
+        val state = world.getBlockState(bp)
+        val block = state.getBlock
+        if (!block.isAir(world, bp) && (includeReplaceable || !block.isReplaceable(world, bp) || isFluid(block))) {
+          e.data(ry) = e.data(ry) * (math.abs(ry - 32) + 1) * Settings.get.geolyzerNoise + block.getBlockHardness(world, bp)
         }
         else e.data(ry) = 0
       }
@@ -43,15 +47,17 @@ object GeolyzerHandler {
   @SubscribeEvent
   def onGeolyzerAnalyze(e: GeolyzerEvent.Analyze) {
     val world = e.host.world
-    val blockPos = BlockPosition(e.host).offset(e.side)
-    val block = world.getBlock(blockPos)
+    val blockPos = BlockPosition(e.host).offset(e.side).toBlockPos
+    val state = world.getBlockState(blockPos)
+    val block = state.getBlock
+    val metadata = block.getMetaFromState(state)
 
     e.data += "name" -> Block.blockRegistry.getNameForObject(block)
-    e.data += "metadata" -> int2Integer(world.getBlockMetadata(blockPos))
-    e.data += "hardness" -> float2Float(world.getBlockHardness(blockPos))
-    e.data += "harvestLevel" -> int2Integer(world.getBlockHarvestLevel(blockPos))
-    e.data += "harvestTool" -> world.getBlockHarvestTool(blockPos)
-    e.data += "color" -> int2Integer(world.getBlockMapColor(blockPos).colorValue)
+    e.data += "metadata" -> int2Integer(metadata)
+    e.data += "hardness" -> float2Float(block.getBlockHardness(world, blockPos))
+    e.data += "harvestLevel" -> int2Integer(block.getHarvestLevel(state))
+    e.data += "harvestTool" -> block.getHarvestTool(state)
+    e.data += "color" -> int2Integer(block.getMapColor(state).colorValue)
 
     if (Settings.get.insertIdsInConverters)
       e.data += "id" -> int2Integer(Block.getIdFromBlock(block))

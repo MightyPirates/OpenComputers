@@ -1,17 +1,19 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.network.IGuiHandler
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.network.IGuiHandler
 
 abstract class GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
-        world.getTileEntity(x, y, z) match {
+        world.getTileEntity(BlockPosition(x, y, z)) match {
           case t: tileentity.Adapter if id == GuiType.Adapter.id =>
             new container.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>

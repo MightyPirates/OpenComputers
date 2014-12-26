@@ -1,68 +1,29 @@
 package li.cil.oc.common.tileentity
 
-import com.google.common.base.Charsets
-import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.api.Driver
-import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Packet
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
-import li.cil.oc.integration.Mods
 import li.cil.oc.server.PacketSender
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
-
-import scala.collection.mutable
+import net.minecraft.util.EnumFacing
 
 class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentInventory {
   var lastMessage = 0L
-
-  val computers = mutable.Buffer.empty[AnyRef]
-
-  val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
 
   override def canUpdate = isServer
 
   // ----------------------------------------------------------------------- //
 
-  protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
-    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
-      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
-        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-          case x: Array[Byte] => new String(x, Charsets.UTF_8)
-          case x => x
-        }: _*))
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
+  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     super.relayPacket(sourceSide, packet)
     val now = System.currentTimeMillis()
     if (now - lastMessage >= (relayDelay - 1) * 50) {
       lastMessage = now
       PacketSender.sendSwitchActivity(this)
-    }
-  }
-
-  override protected def onPlugMessage(plug: Plug, message: Message) {
-    super.onPlugMessage(plug, message)
-    if (message.name == "network.message" && Mods.ComputerCraft.isAvailable) {
-      message.data match {
-        case Array(packet: Packet) =>
-          packet.data.headOption match {
-            case Some(answerPort: java.lang.Double) =>
-              queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
-            case _ =>
-              queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
-          }
-        case _ =>
-      }
     }
   }
 

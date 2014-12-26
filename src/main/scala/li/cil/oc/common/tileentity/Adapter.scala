@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.mutable
 
@@ -27,7 +27,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
     case Some(((environment, _))) => environment.node
   }
 
@@ -35,8 +35,8 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   override def canUpdate = isServer
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (updatingBlocks.nonEmpty) {
       for (block <- updatingBlocks) {
         block.update()
@@ -44,10 +44,10 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
     }
   }
 
-  def neighborChanged(d: ForgeDirection) {
+  def neighborChanged(d: EnumFacing) {
     if (node != null && node.network != null) {
-      val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
-      world.getTileEntity(x, y, z) match {
+      val blockPos = getPos.offset(d)
+      world.getTileEntity(getPos) match {
         case env: traits.Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
@@ -55,7 +55,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
         // but the only 'downside' is that it can't be used to manipulate
         // inventories, which I actually consider a plus :P
         case _ =>
-          Option(api.Driver.driverFor(world, x, y, z)) match {
+          Option(api.Driver.driverFor(world, blockPos)) match {
             case Some(newDriver) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
@@ -66,7 +66,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                   node.disconnect(oldEnvironment.node)
 
                   // Then rebuild - if we have something.
-                  val environment = newDriver.createEnvironment(world, x, y, z)
+                  val environment = newDriver.createEnvironment(world, blockPos)
                   if (environment != null) {
                     blocks(d.ordinal()) = Some((environment, newDriver))
                     if (environment.canUpdate) {
@@ -78,7 +78,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                 } // else: the more things change, the more they stay the same.
               case _ =>
                 // A challenger appears. Maybe.
-                val environment = newDriver.createEnvironment(world, x, y, z)
+                val environment = newDriver.createEnvironment(world, blockPos)
                 if (environment != null) {
                   blocks(d.ordinal()) = Some((environment, newDriver))
                   if (environment.canUpdate) {
@@ -110,7 +110,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   def neighborChanged() {
     if (node != null && node.network != null) {
-      for (d <- ForgeDirection.VALID_DIRECTIONS) {
+      for (d <- EnumFacing.values) {
         neighborChanged(d)
       }
     }

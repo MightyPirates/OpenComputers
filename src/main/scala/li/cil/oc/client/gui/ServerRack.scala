@@ -12,7 +12,7 @@ import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRack) extends DynamicGuiContainer(new container.ServerRack(playerInventory, rack)) {
@@ -25,11 +25,11 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
   protected var rangeButtons = new Array[GuiButton](2)
 
   def sideName(number: Int) = rack.sides(number) match {
-    case Some(ForgeDirection.UP) => Localization.ServerRack.Top
-    case Some(ForgeDirection.DOWN) => Localization.ServerRack.Bottom
-    case Some(ForgeDirection.EAST) => Localization.ServerRack.Left
-    case Some(ForgeDirection.WEST) => Localization.ServerRack.Right
-    case Some(ForgeDirection.NORTH) => Localization.ServerRack.Back
+    case Some(EnumFacing.UP) => Localization.ServerRack.Top
+    case Some(EnumFacing.DOWN) => Localization.ServerRack.Bottom
+    case Some(EnumFacing.EAST) => Localization.ServerRack.Left
+    case Some(EnumFacing.WEST) => Localization.ServerRack.Right
+    case Some(EnumFacing.NORTH) => Localization.ServerRack.Back
     case _ => Localization.ServerRack.None
   }
 
@@ -41,10 +41,10 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
     }
     if (button.id >= 4 && button.id <= 7) {
       val number = button.id - 4
-      val sides = ForgeDirection.VALID_DIRECTIONS.map(Option(_)) ++ Seq(None)
+      val sides = EnumFacing.values.map(Option(_)) ++ Seq(None)
       val currentSide = sides.indexOf(rack.sides(number))
       val searchSides = sides.drop(currentSide + 1) ++ sides.take(currentSide + 1)
-      val nextSide = searchSides.find(side => side != Option(ForgeDirection.SOUTH) && (!rack.sides.contains(side) || side == None)) match {
+      val nextSide = searchSides.find(side => side != Option(EnumFacing.SOUTH) && (!rack.sides.contains(side) || side == None)) match {
         case Some(side) => side
         case _ => None
       }
@@ -79,18 +79,18 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
   override def initGui() {
     super.initGui()
     for (i <- 0 to 3) {
-      powerButtons(i) = new ImageButton(i, guiLeft + 84, guiTop + 7 + i * 18, 18, 18, Textures.guiButtonPower, canToggle = true)
+      powerButtons(i) = new ImageButton(i, guiLeft + 84, guiTop + 7 + i * 18, 18, 18, Textures.GUI.ButtonPower, canToggle = true)
       add(buttonList, powerButtons(i))
     }
     for (i <- 0 to 3) {
-      sideButtons(i) = new ImageButton(4 + i, guiLeft + 126, guiTop + 7 + i * 18, 42, 18, Textures.guiButtonSide, sideName(i))
+      sideButtons(i) = new ImageButton(4 + i, guiLeft + 126, guiTop + 7 + i * 18, 42, 18, Textures.GUI.ButtonSide, sideName(i))
       add(buttonList, sideButtons(i))
     }
     for (i <- 0 to 1) {
-      rangeButtons(i) = new ImageButton(8 + i, guiLeft + 8 + i * 48, guiTop + 50, 16, 18, Textures.guiButtonRange, if (i == 0) "-" else "+")
+      rangeButtons(i) = new ImageButton(8 + i, guiLeft + 8 + i * 48, guiTop + 50, 16, 18, Textures.GUI.ButtonRange, if (i == 0) "-" else "+")
       add(buttonList, rangeButtons(i))
     }
-    switchButton = new ImageButton(10, guiLeft + 8, guiTop + 17, 64, 18, Textures.guiButtonSwitch, Localization.ServerRack.SwitchExternal, textIndent = 18)
+    switchButton = new ImageButton(10, guiLeft + 8, guiTop + 17, 64, 18, Textures.GUI.ButtonSwitch, Localization.ServerRack.SwitchExternal, textIndent = 18)
     add(buttonList, switchButton)
   }
 
@@ -99,7 +99,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Prevents NEI render glitch.
 
     fontRendererObj.drawString(
-      Localization.localizeImmediately(rack.getInventoryName),
+      Localization.localizeImmediately(rack.getName),
       8, 6, 0x404040)
 
     val rangeY = 39
@@ -111,15 +111,16 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       val ty = 50
       val w = 30
       val h = 18
-      val t = Tessellator.instance
-      mc.getTextureManager.bindTexture(Textures.guiRange)
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+      mc.getTextureManager.bindTexture(Textures.GUI.Range)
       GL11.glColor3f(1, 1, 1)
       GL11.glDepthMask(false)
-      t.startDrawingQuads()
-      t.addVertexWithUV(tx, ty + h, zLevel, 0, 1)
-      t.addVertexWithUV(tx + w, ty + h, zLevel, 1, 1)
-      t.addVertexWithUV(tx + w, ty, zLevel, 1, 0)
-      t.addVertexWithUV(tx, ty, zLevel, 0, 0)
+      r.startDrawingQuads()
+      r.addVertexWithUV(tx, ty + h, zLevel, 0, 1)
+      r.addVertexWithUV(tx + w, ty + h, zLevel, 1, 1)
+      r.addVertexWithUV(tx + w, ty, zLevel, 1, 0)
+      r.addVertexWithUV(tx, ty, zLevel, 0, 0)
       t.draw()
       GL11.glDepthMask(true)
     }
@@ -128,7 +129,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       rack.range.toString,
       40, 56, 0xFFFFFF)
 
-    for (i <- 0 to 3 if powerButtons(i).func_146115_a) {
+    for (i <- 0 to 3 if powerButtons(i).isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(if (rack.isRunning(i)) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)

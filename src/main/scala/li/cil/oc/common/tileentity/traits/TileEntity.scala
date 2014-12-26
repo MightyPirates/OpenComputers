@@ -1,26 +1,26 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.Sound
-import li.cil.oc.common.EventHandler
-import li.cil.oc.common.block.DelegatorConverter
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.SideTracker
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity
+import net.minecraft.server.gui.IUpdatePlayerListBox
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
-trait TileEntity extends net.minecraft.tileentity.TileEntity {
-  def world = getWorldObj
+// TODO only implement ticking interface where needed.
+trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerListBox {
+  def world = getWorld
 
-  def x = xCoord
+  def x = getPos.getX
 
-  def y = yCoord
+  def y = getPos.getY
 
-  def z = zCoord
+  def z = getPos.getZ
 
   def position = BlockPosition(x, y, z)
 
@@ -32,17 +32,17 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() {
-    super.updateEntity()
-    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && block.getLightValue(world, x, y, z) > 0) {
-      world.markBlockForUpdate(x, y, z)
+  def canUpdate = true
+
+  override def update() {
+    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && block.getLightValue(world, getPos) > 0) {
+      world.markBlockForUpdate(getPos)
     }
   }
 
   override def validate() {
     super.validate()
     initialize()
-    EventHandler.schedule(() => DelegatorConverter.convert(world, x, y, z, None))
   }
 
   override def invalidate() {
@@ -66,11 +66,6 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    EventHandler.schedule(() => DelegatorConverter.convert(world, x, y, z, Option(nbt)))
-  }
-
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}
 
@@ -83,11 +78,11 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
     try writeToNBTForClient(nbt) catch {
       case e: Throwable => OpenComputers.log.warn("There was a problem writing a TileEntity description packet. Please report this if you see it!", e)
     }
-    if (nbt.hasNoTags) null else new S35PacketUpdateTileEntity(x, y, z, -1, nbt)
+    if (nbt.hasNoTags) null else new S35PacketUpdateTileEntity(getPos, -1, nbt)
   }
 
   override def onDataPacket(manager: NetworkManager, packet: S35PacketUpdateTileEntity) {
-    try readFromNBTForClient(packet.func_148857_g()) catch {
+    try readFromNBTForClient(packet.getNbtCompound) catch {
       case e: Throwable => OpenComputers.log.warn("There was a problem reading a TileEntity description packet. Please report this if you see it!", e)
     }
   }

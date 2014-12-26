@@ -1,7 +1,7 @@
 package li.cil.oc.common.asm;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import li.cil.oc.api.Network;
 import li.cil.oc.util.SideTracker;
 import net.minecraft.tileentity.TileEntity;

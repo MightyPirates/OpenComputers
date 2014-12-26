@@ -1,10 +1,14 @@
 package li.cil.oc.server.network
 
+/* FMP
 import codechicken.lib.vec.Cuboid6
 import codechicken.multipart.JNormalOcclusion
 import codechicken.multipart.NormalOcclusionTest
 import codechicken.multipart.TFacePart
 import codechicken.multipart.TileMultipart
+import li.cil.oc.common.block.Cable
+import li.cil.oc.integration.fmp.CablePart
+*/
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -14,16 +18,14 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.fmp.CablePart
 import li.cil.oc.server.network.{Node => MutableNode}
-import li.cil.oc.util.Color
 import li.cil.oc.util.SideTracker
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -382,15 +384,12 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
 object Network extends api.detail.NetworkAPI {
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
-    if (!tileEntity.isInvalid && !tileEntity.getWorldObj.isRemote) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val (nx, ny, nz) = (
-          tileEntity.xCoord + side.offsetX,
-          tileEntity.yCoord + side.offsetY,
-          tileEntity.zCoord + side.offsetZ)
-        if (tileEntity.getWorldObj.blockExists(nx, ny, nz)) {
+    if (!tileEntity.isInvalid && !tileEntity.getWorld.isRemote) {
+      for (side <- EnumFacing.values) {
+        val npos = tileEntity.getPos.offset(side)
+        if (tileEntity.getWorld.isBlockLoaded(npos)) {
           val localNode = getNetworkNode(tileEntity, side)
-          val neighborTileEntity = tileEntity.getWorldObj.getTileEntity(nx, ny, nz)
+          val neighborTileEntity = tileEntity.getWorld.getTileEntity(npos)
           val neighborNode = getNetworkNode(neighborTileEntity, side.getOpposite)
           localNode match {
             case Some(node: MutableNode) =>
@@ -419,7 +418,7 @@ object Network extends api.detail.NetworkAPI {
     case _ =>
   }
 
-  private def getNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
+  private def getNetworkNode(tileEntity: TileEntity, side: EnumFacing) =
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
       case host: Environment => Some(host.node)
@@ -427,7 +426,8 @@ object Network extends api.detail.NetworkAPI {
       case _ => None
     }
 
-  private def getMultiPartNode(tileEntity: TileEntity) =
+  private def getMultiPartNode(tileEntity: TileEntity) = None
+  /* TODO FMP
     tileEntity match {
       case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
         case Some(part: CablePart) => Some(part.node)
@@ -435,29 +435,33 @@ object Network extends api.detail.NetworkAPI {
       }
       case _ => None
     }
+  */
 
   private def cableColor(tileEntity: TileEntity) =
     tileEntity match {
       case cable: tileentity.Cable => cable.color
       case _ =>
         if (Mods.ForgeMultipart.isAvailable) cableColorFMP(tileEntity)
-        else Color.LightGray
+        else EnumDyeColor.SILVER
     }
 
-  private def cableColorFMP(tileEntity: TileEntity) =
+  private def cableColorFMP(tileEntity: TileEntity) = EnumDyeColor.SILVER
+  /* TODO FMP
     tileEntity match {
       case host: TileMultipart => (host.partList collect {
         case cable: CablePart => cable.color
       }).headOption.getOrElse(Color.LightGray)
       case _ => Color.LightGray
     }
+  */
 
   private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity) = {
     val (c1, c2) = (cableColor(te1), cableColor(te2))
-    c1 == c2 || c1 == Color.LightGray || c2 == Color.LightGray
+    c1 == c2 || c1 == EnumDyeColor.SILVER || c2 == EnumDyeColor.SILVER
   }
 
-  private def canConnectFromSideFMP(tileEntity: TileEntity, side: ForgeDirection) =
+  private def canConnectFromSideFMP(tileEntity: TileEntity, side: EnumFacing) = true
+  /* TODO FMP
     tileEntity match {
       case host: TileMultipart =>
         host.partList.forall {
@@ -471,8 +475,9 @@ object Network extends api.detail.NetworkAPI {
         }
       case _ => true
     }
+  */
 
-  private def canConnectFromSideIM(tileEntity: TileEntity, side: ForgeDirection) =
+  private def canConnectFromSideIM(tileEntity: TileEntity, side: EnumFacing) =
     tileEntity match {
       case im: tileentity.traits.ImmibisMicroblock => im.ImmibisMicroblocks_isSideOpen(side.ordinal)
       case _ => true
@@ -524,11 +529,11 @@ object Network extends api.detail.NetworkAPI {
     val data = (for (i <- 0 until nbt.getInteger("dataLength")) yield {
       if (nbt.hasKey("data" + i)) {
         nbt.getTag("data" + i) match {
-          case boolean: NBTTagByte => Boolean.box(boolean.func_150290_f == 1)
-          case integer: NBTTagInt => Int.box(integer.func_150287_d)
-          case double: NBTTagDouble => Double.box(double.func_150286_g)
-          case string: NBTTagString => string.func_150285_a_(): AnyRef
-          case array: NBTTagByteArray => array.func_150292_c
+          case tag: NBTTagByte => Boolean.box(tag.getByte == 1)
+          case tag: NBTTagInt => Int.box(tag.getInt)
+          case tag: NBTTagDouble => Double.box(tag.getDouble)
+          case tag: NBTTagString => tag.getString: AnyRef
+          case tag: NBTTagByteArray => tag.getByteArray
         }
       }
       else null

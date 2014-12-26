@@ -9,10 +9,10 @@ import org.lwjgl.opengl.GL11
 object HologramRendererFallback extends TileEntitySpecialRenderer {
   val text = "Requires OpenGL 1.5"
 
-  override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val fontRenderer = Minecraft.getMinecraft.fontRenderer
+    val fontRenderer = Minecraft.getMinecraft.fontRendererObj
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.75, z + 0.5)

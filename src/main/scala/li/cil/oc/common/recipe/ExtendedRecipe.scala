@@ -64,7 +64,7 @@ object ExtendedRecipe {
         if (stack != null) {
           if (api.Items.get(stack) == floppy && stack.hasTagCompound) {
             val oldData = stack.getTagCompound
-            for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
+            for (oldTagName <- oldData.getKeySet.map(_.asInstanceOf[String])) {
               nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
             }
           }

@@ -8,6 +8,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -19,17 +20,6 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   }
 
   private val formatter = new DecimalFormat("#.#")
-
-  // ----------------------------------------------------------------------- //
-
-  override protected def customTextures = Array(
-    None,
-    None,
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide"),
-    Some("PowerConverterSide")
-  )
 
   // ----------------------------------------------------------------------- //
 
@@ -67,7 +57,7 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
 
   override def energyThroughput = Settings.get.powerConverterRate
 
-  override def hasTileEntity(metadata: Int) = true
+  override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.PowerConverter()
 }

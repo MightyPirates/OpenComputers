@@ -4,10 +4,9 @@ import java.util
 
 import com.google.common.base.Charsets
 import li.cil.oc.api.machine.Arguments
+import li.cil.oc.util.ItemUtils
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTSizeTracker
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
@@ -225,5 +224,5 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     }
   }
 
-  private def toNbtTagCompound(data: Array[Byte]) = Option(CompressedStreamTools.func_152457_a(data, NBTSizeTracker.field_152451_a))
+  private def toNbtTagCompound(data: Array[Byte]) = Option(ItemUtils.loadTag(data))
 }

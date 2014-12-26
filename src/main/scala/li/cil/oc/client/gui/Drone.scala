@@ -69,7 +69,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 45, 18, 18, Textures.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 45, 18, 18, Textures.GUI.ButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
@@ -90,7 +90,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
   override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
-    if (func_146978_c(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
+    if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(
@@ -99,7 +99,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
         drone.globalBufferSize))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    if (powerButton.func_146115_a) {
+    if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(if (drone.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
@@ -109,7 +109,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiDrone)
+    mc.renderEngine.bindTexture(Textures.GUI.Drone)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     power.level = drone.globalBuffer.toDouble / math.max(drone.globalBufferSize.toDouble, 1.0)
     drawWidgets()
@@ -139,18 +139,19 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     val slot = drone.selectedSlot
     if (slot >= 0 && slot < 16) {
       RenderState.makeItBlend()
-      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
+      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.GUI.RobotSelection)
       val now = System.currentTimeMillis() / 1000.0
       val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
       val x = guiLeft + inventoryX - 1 + (slot % 4) * (selectionSize - 2)
       val y = guiTop + inventoryY - 1 + (slot / 4) * (selectionSize - 2)
 
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(x, y, zLevel, 0, offsetV)
-      t.addVertexWithUV(x, y + selectionSize, zLevel, 0, offsetV + selectionStepV)
-      t.addVertexWithUV(x + selectionSize, y + selectionSize, zLevel, 1, offsetV + selectionStepV)
-      t.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+      r.startDrawingQuads()
+      r.addVertexWithUV(x, y, zLevel, 0, offsetV)
+      r.addVertexWithUV(x, y + selectionSize, zLevel, 0, offsetV + selectionStepV)
+      r.addVertexWithUV(x + selectionSize, y + selectionSize, zLevel, 1, offsetV + selectionStepV)
+      r.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
       t.draw()
     }
   }

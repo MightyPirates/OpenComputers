@@ -2,7 +2,7 @@ package li.cil.oc.common
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
@@ -18,7 +18,7 @@ abstract class ComponentTracker {
   private val worlds = mutable.Map.empty[Int, Cache[String, ManagedEnvironment]]
 
   private def components(world: World) = {
-    worlds.getOrElseUpdate(world.provider.dimensionId,
+    worlds.getOrElseUpdate(world.provider.getDimensionId,
       com.google.common.cache.CacheBuilder.newBuilder().
         weakValues().
         asInstanceOf[CacheBuilder[String, ManagedEnvironment]].

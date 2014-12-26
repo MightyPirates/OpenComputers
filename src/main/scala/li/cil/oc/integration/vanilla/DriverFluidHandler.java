@@ -6,8 +6,9 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fluids.IFluidHandler;
 
 public final class DriverFluidHandler extends DriverTileEntity {
@@ -17,8 +18,8 @@ public final class DriverFluidHandler extends DriverTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IFluidHandler) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((IFluidHandler) world.getTileEntity(pos));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IFluidHandler> {
@@ -28,7 +29,7 @@ public final class DriverFluidHandler extends DriverTileEntity {
 
         @Callback(doc = "function([side:number=6]):table -- Get some information about the tank accessible from the specified side.")
         public Object[] getTankInfo(final Context context, final Arguments args) {
-            ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
+            EnumFacing side = args.count() > 0 ? EnumFacing.getFront(args.checkInteger(0)) : EnumFacing.DOWN;
             return tileEntity.getTankInfo(side);
         }
     }

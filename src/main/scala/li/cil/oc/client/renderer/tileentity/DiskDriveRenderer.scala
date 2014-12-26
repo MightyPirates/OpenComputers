@@ -3,18 +3,17 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.RenderState
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.entity.RenderItem
-import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object DiskDriveRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val drive = tileEntity.asInstanceOf[DiskDrive]
@@ -25,9 +24,9 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     drive.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
 
@@ -37,15 +36,14 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
         GL11.glTranslatef(0, 3.5f / 16, 9 / 16f)
         GL11.glRotatef(90, -1, 0, 0)
 
-        val brightness = drive.world.getLightBrightnessForSkyBlocks(drive.x + drive.facing.offsetX, drive.y + drive.facing.offsetY, drive.z + drive.facing.offsetZ, 0)
+        val brightness = drive.world.getCombinedLight(drive.getPos.offset(drive.facing), 0)
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
 
         // This is very 'meh', but item frames do it like this, too!
         val entity = new EntityItem(drive.world, 0, 0, 0, stack)
         entity.hoverStart = 0
-        RenderItem.renderInFrame = true
-        RenderManager.instance.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 0)
-        RenderItem.renderInFrame = false
+        val rm = Minecraft.getMinecraft.getRenderManager
+        rm.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 0)
         GL11.glPopMatrix()
       case _ =>
     }
@@ -58,14 +56,20 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
       RenderState.makeItBlend()
       RenderState.setBlendAlpha(1)
 
-      bindTexture(Textures.blockDiskDriveFrontActivity)
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(0, 1, 0, 0, 1)
-      t.addVertexWithUV(1, 1, 0, 1, 1)
-      t.addVertexWithUV(1, 0, 0, 1, 0)
-      t.addVertexWithUV(0, 0, 0, 0, 0)
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+
+      Textures.Block.bind()
+      r.startDrawingQuads()
+
+      val activity = Textures.Block.getSprite(Textures.Block.DiskDriveFrontActivity)
+      r.addVertexWithUV(0, 1, 0, activity.getMinU, activity.getMaxV)
+      r.addVertexWithUV(1, 1, 0, activity.getMaxU, activity.getMaxV)
+      r.addVertexWithUV(1, 0, 0, activity.getMaxU, activity.getMinV)
+      r.addVertexWithUV(0, 0, 0, activity.getMinU, activity.getMinV)
+
       t.draw()
+      Textures.Block.unbind()
     }
 
     GL11.glPopMatrix()

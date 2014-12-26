@@ -1,29 +1,28 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.CreativeTab
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Colored
 import li.cil.oc.common.tileentity.traits.Inventory
 import li.cil.oc.common.tileentity.traits.Rotatable
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EnumCreatureType
+import net.minecraft.entity.EntityLiving.SpawnPlacementType
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.IIcon
-import net.minecraft.util.Vec3
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   setHardness(2f)
@@ -31,7 +30,7 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   var showInItemList = true
 
-  protected val validRotations_ = Array(ForgeDirection.UP, ForgeDirection.DOWN)
+  protected val validRotations_ = Array(EnumFacing.UP, EnumFacing.DOWN)
 
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
 
@@ -39,48 +38,12 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  val icons = new Array[IIcon](6)
-
-  protected def customTextures = Array.fill[Option[String]](6)(None)
-
-  override def getRenderType = Settings.blockRenderId
-
   @SideOnly(Side.CLIENT)
-  override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
-      case colored: Colored => colored.color
-      case _ => getRenderColor(world.getBlockMetadata(x, y, z))
+  override def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) =
+    world.getTileEntity(pos) match {
+      case colored: Colored => Color.rgbValues(colored.color)
+      case _ => getRenderColor(world.getBlockState(pos))
     }
-
-  @SideOnly(Side.CLIENT)
-  final override def getIcon(side: Int, metadata: Int) = getIcon(ForgeDirection.getOrientation(side), metadata)
-
-  @SideOnly(Side.CLIENT)
-  def getIcon(side: ForgeDirection, metadata: Int) = icons(side.ordinal())
-
-  @SideOnly(Side.CLIENT)
-  final override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = getIcon(world, x, y, z, ForgeDirection.getOrientation(side), toLocal(world, x, y, z, ForgeDirection.getOrientation(side)))
-
-  @SideOnly(Side.CLIENT)
-  def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, globalSide: ForgeDirection, localSide: ForgeDirection) = icons(localSide.ordinal())
-
-  @SideOnly(Side.CLIENT)
-  override def registerBlockIcons(iconRegister: IIconRegister) {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":GenericTop")
-    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":GenericSide")
-    icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
-
-    val custom = customTextures
-    for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      custom(side.ordinal) match {
-        case Some(name) => icons(side.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":" + name)
-        case _ =>
-      }
-    }
-  }
 
   @SideOnly(Side.CLIENT)
   def preItemRender(metadata: Int) {}
@@ -89,15 +52,11 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   def setBlockBoundsForItemRender(metadata: Int) = super.setBlockBoundsForItemRender()
 
-  final override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = shouldSideBeRendered(world, x, y, z, ForgeDirection.getOrientation(side))
-
-  def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = super.shouldSideBeRendered(world, x, y, z, side.ordinal())
-
   // ----------------------------------------------------------------------- //
   // ItemBlock
   // ----------------------------------------------------------------------- //
 
-  def rarity = EnumRarity.common
+  def rarity = EnumRarity.COMMON
 
   @SideOnly(Side.CLIENT)
   def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
@@ -120,26 +79,26 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   // Rotation
   // ----------------------------------------------------------------------- //
 
-  def getFacing(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
+  def getFacing(world: IBlockAccess, pos: BlockPos) =
+    world.getTileEntity(pos) match {
       case tileEntity: Rotatable => tileEntity.facing
-      case _ => ForgeDirection.UNKNOWN
+      case _ => EnumFacing.SOUTH
     }
 
-  def setFacing(world: World, x: Int, y: Int, z: Int, value: ForgeDirection) =
-    world.getTileEntity(x, y, z) match {
+  def setFacing(world: World, pos: BlockPos, value: EnumFacing) =
+    world.getTileEntity(pos) match {
       case rotatable: Rotatable => rotatable.setFromFacing(value); true
       case _ => false
     }
 
-  def setRotationFromEntityPitchAndYaw(world: World, x: Int, y: Int, z: Int, value: Entity) =
-    world.getTileEntity(x, y, z) match {
+  def setRotationFromEntityPitchAndYaw(world: World, pos: BlockPos, value: Entity) =
+    world.getTileEntity(pos) match {
       case rotatable: Rotatable => rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
-  def toLocal(world: IBlockAccess, x: Int, y: Int, z: Int, value: ForgeDirection) =
-    world.getTileEntity(x, y, z) match {
+  def toLocal(world: IBlockAccess, pos: BlockPos, value: EnumFacing) =
+    world.getTileEntity(pos) match {
       case rotatable: Rotatable => rotatable.toLocal(value)
       case _ => value
     }
@@ -148,39 +107,41 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   // Block
   // ----------------------------------------------------------------------- //
 
-  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = true
+  override def isNormalCube(world: IBlockAccess, pos: BlockPos) = true
 
-  override def canHarvestBlock(player: EntityPlayer, meta: Int) = true
+  override def canHarvestBlock(world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = true
 
-  override def canBeReplacedByLeaves(world: IBlockAccess, x: Int, y: Int, z: Int) = false
+  override def canBeReplacedByLeaves(world: IBlockAccess, pos: BlockPos) = false
 
-  override def canCreatureSpawn(creature: EnumCreatureType, world: IBlockAccess, x: Int, y: Int, z: Int) = false
+  override def canCreatureSpawn(world: IBlockAccess, pos: BlockPos, `type`: SpawnPlacementType) = false
 
-  override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations_
+  override def getValidRotations(world: World, pos: BlockPos) = validRotations_
 
-  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) =
-    if (!world.isRemote) world.getTileEntity(x, y, z) match {
+  override def harvestBlock(world: World, player: EntityPlayer, pos: BlockPos, state: IBlockState, te: TileEntity) = {
+    if (!world.isRemote) te match {
       case inventory: Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
+    super.harvestBlock(world, player, pos, state, te)
+  }
 
   // ----------------------------------------------------------------------- //
 
-  override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) =
-    world.getTileEntity(x, y, z) match {
+  override def rotateBlock(world: World, pos: BlockPos, axis: EnumFacing) =
+    world.getTileEntity(pos) match {
       case rotatable: tileentity.traits.Rotatable if rotatable.rotate(axis) =>
-        world.markBlockForUpdate(x, y, z)
+        world.markBlockForUpdate(pos)
         true
       case _ => false
     }
 
-  override def recolourBlock(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, colour: Int) =
-    world.getTileEntity(x, y, z) match {
-      case colored: Colored if colored.color != colour =>
-        colored.color = colour
-        world.markBlockForUpdate(x, y, z)
+  override def recolorBlock(world: World, pos: BlockPos, side: EnumFacing, color: EnumDyeColor) =
+    world.getTileEntity(pos) match {
+      case colored: Colored if colored.color != color =>
+        colored.color = color
+        world.markBlockForUpdate(pos)
         false // Don't consume items.
-      case _ => super.recolourBlock(world, x, y, z, side, colour)
+      case _ => super.recolorBlock(world, pos, side, color)
     }
 
   // This function can mess things up badly in single player if not
@@ -189,11 +150,11 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   // The other place where this is locked is in collisionRayTrace below,
   // which seems to be the only built-in function that *logically* depends
   // on the state bounds (rest is rendering which is unimportant).
-  final override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    this.synchronized(doSetBlockBoundsBasedOnState(world, x, y, z))
+  final override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) =
+    this.synchronized(doSetBlockBoundsBasedOnState(world, pos))
 
-  protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int): Unit =
-    super.setBlockBoundsBasedOnState(world, x, y, z)
+  protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos): Unit =
+    super.setBlockBoundsBasedOnState(world, pos)
 
   protected def setBlockBounds(bounds: AxisAlignedBB) {
     setBlockBounds(
@@ -206,58 +167,42 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   }
 
   // NOTE: must not be final for immibis microblocks to work.
-  override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
-    this.synchronized(intersect(world, x, y, z, origin, direction))
+  override def collisionRayTrace(world: World, pos: BlockPos, origin: Vec3, end: Vec3) =
+    this.synchronized(intersect(world, pos, origin, end))
 
-  override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) = this.synchronized {
-    doSetBlockBoundsBasedOnState(world, x, y, z)
-    super.getCollisionBoundingBoxFromPool(world, x, y, z)
+  override def getCollisionBoundingBox(world: World, pos: BlockPos, state: IBlockState) = this.synchronized {
+    doSetBlockBoundsBasedOnState(world, pos)
+    super.getCollisionBoundingBox(world, pos, state)
   }
 
-  protected def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
-    super.collisionRayTrace(world, x, y, z, origin, direction)
+  protected def intersect(world: World, pos: BlockPos, origin: Vec3, end: Vec3) =
+    super.collisionRayTrace(world, pos, origin, end)
 
-  final override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int) =
-    canPlaceBlockOnSide(world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
+  final override def canPlaceBlockOnSide(world: World, pos: BlockPos, side: EnumFacing) =
+    localCanPlaceBlockOnSide(world, pos, toLocal(world, pos, side.getOpposite))
 
-  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    super.canPlaceBlockOnSide(world, x, y, z, side.getOpposite.ordinal)
+  def localCanPlaceBlockOnSide(world: World, pos: BlockPos, side: EnumFacing) =
+    super.canPlaceBlockOnSide(world, BlockPosition(pos).toBlockPos, side.getOpposite)
 
   // ----------------------------------------------------------------------- //
 
-  final override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    canConnectRedstone(world, x, y, z, side match {
-      case -1 => ForgeDirection.UP
-      case 0 => ForgeDirection.NORTH
-      case 1 => ForgeDirection.EAST
-      case 2 => ForgeDirection.SOUTH
-      case 3 => ForgeDirection.WEST
-    })
+  override def canConnectRedstone(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
-  def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  override def isProvidingStrongPower(worldIn: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) = super.isProvidingWeakPower(worldIn, pos, state, side)
 
-  final override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    isProvidingStrongPower(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
-
-  def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    isProvidingWeakPower(world, x, y, z, side)
-
-  final override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    isProvidingWeakPower(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
-
-  def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
+  override def isProvidingWeakPower(worldIn: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) = 0
 
   // ----------------------------------------------------------------------- //
 
   // NOTE: must not be final for immibis microblocks to work.
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
-    world.getTileEntity(x, y, z) match {
+  override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
+    world.getTileEntity(pos) match {
       case colored: Colored if Color.isDye(player.getHeldItem) =>
         colored.color = Color.dyeColor(player.getHeldItem)
-        world.markBlockForUpdate(x, y, z)
+        world.markBlockForUpdate(pos)
         true
-      case _ => onBlockActivated(world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
+      case _ => localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
     }
 
-  def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = false
+  def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = false
 }

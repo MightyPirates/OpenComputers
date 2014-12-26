@@ -12,6 +12,8 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
@@ -20,7 +22,7 @@ object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
-        world.getTileEntity(x, y, z) match {
+        world.getTileEntity(BlockPosition(x, y, z)) match {
           case t: tileentity.Adapter if id == GuiType.Adapter.id =>
             new gui.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
@@ -93,7 +95,7 @@ object GuiHandler extends CommonGuiHandler {
                   case _ => false
                 }) match {
                   case Some(term) =>
-                    def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
+                    def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceSq(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
                     if (inRange) {
                       if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
                         // Check if someone else bound a term to our server.

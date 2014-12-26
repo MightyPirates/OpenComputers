@@ -5,8 +5,8 @@ import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import cpw.mods.fml.common.eventhandler.EventPriority
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
@@ -60,7 +60,7 @@ object SaveHandler {
 
   def scheduleSave(position: BlockPosition, nbt: NBTTagCompound, name: String, data: Array[Byte]) {
     val world = position.world.get
-    val dimension = world.provider.dimensionId
+    val dimension = world.provider.getDimensionId
     val chunk = new ChunkCoordIntPair(position.x >> 4, position.z >> 4)
 
     // We have to save the dimension and chunk coordinates, because they are
@@ -159,7 +159,7 @@ object SaveHandler {
   @SubscribeEvent
   def onChunkSave(e: ChunkDataEvent.Save) = saveData.synchronized {
     val path = statePath
-    val dimension = e.world.provider.dimensionId
+    val dimension = e.world.provider.getDimensionId
     val chunk = e.getChunk.getChunkCoordIntPair
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
@@ -210,7 +210,7 @@ object SaveHandler {
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onWorldSave(e: WorldEvent.Save) {
     saveData.synchronized {
-      saveData.get(e.world.provider.dimensionId) match {
+      saveData.get(e.world.provider.getDimensionId) match {
         case Some(chunks) => chunks.clear()
         case _ =>
       }

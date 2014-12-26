@@ -61,7 +61,7 @@ final class ModelQuadcopter extends ModelBase {
   light3.addBox("flap3", -7, 0, -7, 6, 1, 6)
 
   private val scale = 1 / 16f
-  private val up = Vec3.createVectorHelper(0, 1, 0)
+  private val up = new Vec3(0, 1, 0)
 
   private def doRender(drone: Drone, dt: Float) {
     if (drone.isRunning) {
@@ -69,7 +69,7 @@ final class ModelQuadcopter extends ModelBase {
       GL11.glTranslatef(0, (math.sin(timeJitter + (drone.worldObj.getTotalWorldTime + dt) / 20.0) * (1 / 16f)).toFloat, 0)
     }
 
-    val velocity = Vec3.createVectorHelper(drone.motionX, drone.motionY, drone.motionZ)
+    val velocity = new Vec3(drone.motionX, drone.motionY, drone.motionZ)
     val direction = velocity.normalize()
     if (direction.dotProduct(up) < 0.99) {
       // Flying sideways.

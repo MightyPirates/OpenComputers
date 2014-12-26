@@ -15,14 +15,14 @@ class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentit
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     fontRendererObj.drawString(
-      Localization.localizeImmediately(disassembler.getInventoryName),
+      Localization.localizeImmediately(disassembler.getName),
       8, 6, 0x404040)
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(Textures.guiDisassembler)
+    mc.renderEngine.bindTexture(Textures.GUI.Disassembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     progress.level = disassemblerContainer.disassemblyProgress / 100.0
     drawWidgets()

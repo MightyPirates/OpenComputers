@@ -1,8 +1,10 @@
 package li.cil.oc.common.inventory
 
+import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -60,15 +62,25 @@ trait Inventory extends IInventory {
 
   override def getStackInSlotOnClosing(slot: Int) = null
 
-  override def openInventory() {}
+  override def openInventory(player: EntityPlayer) {}
 
-  override def closeInventory() {}
+  override def closeInventory(player: EntityPlayer) {}
 
-  override def hasCustomInventoryName = false
+  override def clear() {} // TODO implement?
 
-  override def getInventoryName = Settings.namespace + "container." + inventoryName
+  override def getName = Settings.namespace + "container." + inventoryName
+
+  override def hasCustomName = false
+
+  override def getDisplayName = Localization.localizeLater(getName)
 
   protected def inventoryName = getClass.getSimpleName
+
+  override def getField(id: Int) = 0
+
+  override def setField(id: Int, value: Int) {}
+
+  override def getFieldCount = 0
 
   // ----------------------------------------------------------------------- //
 

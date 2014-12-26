@@ -8,9 +8,9 @@ import java.util.UUID
 import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.DefaultArtifactVersion
-import cpw.mods.fml.common.versioning.VersionRange
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
+import net.minecraftforge.fml.common.versioning.VersionRange
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.integration.Mods
 import org.apache.commons.lang3.StringEscapeUtils

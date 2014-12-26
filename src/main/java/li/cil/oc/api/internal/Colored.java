@@ -1,5 +1,7 @@
 package li.cil.oc.api.internal;
 
+import net.minecraft.item.EnumDyeColor;
+
 /**
  * This interface is implemented by tile entities that can be colored by
  * players, such as screens, computer cases and cables.
@@ -14,12 +16,12 @@ public interface Colored {
      *
      * @return the current color value.
      */
-    int getColor();
+    EnumDyeColor getColor();
 
     /**
      * Set the color value.
      *
      * @param value the new color value.
      */
-    void setColor(int value);
+    void setColor(EnumDyeColor value);
 }

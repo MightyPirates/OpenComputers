@@ -10,7 +10,7 @@ import li.cil.oc.common.tileentity.traits.Computer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 object PacketSender {
   // Timestamp after which the next clipboard message may be sent. Used to
@@ -161,7 +161,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerSide(t: ServerRack, number: Int, side: Option[ForgeDirection]) {
+  def sendServerSide(t: ServerRack, number: Int, side: Option[EnumFacing]) {
     val pb = new SimplePacketBuilder(PacketType.ServerSide)
 
     pb.writeTileEntity(t)

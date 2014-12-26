@@ -5,22 +5,15 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
-class DiskDrive extends SimpleBlock {
-  override protected def customTextures = Array(
-    None,
-    None,
-    Some("DiskDriveSide"),
-    Some("DiskDriveFront"),
-    Some("DiskDriveSide"),
-    Some("DiskDriveSide")
-  )
-
-  // ----------------------------------------------------------------------- //
+class DiskDrive extends SimpleBlock with traits.Rotatable {
+  setDefaultState(buildDefaultState())
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
@@ -31,20 +24,19 @@ class DiskDrive extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
+  override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.DiskDrive()
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.DiskDrive()
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    world.getTileEntity(x, y, z) match {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+    world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive =>
         // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
         if (!player.isSneaking) {
           if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, pos.getX, pos.getY, pos.getZ)
           }
           true
         }

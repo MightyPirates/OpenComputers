@@ -98,7 +98,7 @@ object ItemCosts {
                 case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
                 case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
                 case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                case _ => FurnaceRecipes.smelting.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
+                case _ => FurnaceRecipes.instance.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
                   case (_, value) => fuzzyEquals(stack, value)
                 } match {
                   case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)

@@ -29,7 +29,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, Textures.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, Textures.GUI.ButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
@@ -37,9 +37,9 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     fontRendererObj.drawString(
-      Localization.localizeImmediately(computer.getInventoryName),
+      Localization.localizeImmediately(computer.getName),
       8, 6, 0x404040)
-    if (powerButton.func_146115_a) {
+    if (powerButton.isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(if (computer.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
@@ -49,7 +49,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def drawSecondaryBackgroundLayer() {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiComputer)
+    mc.renderEngine.bindTexture(Textures.GUI.Computer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

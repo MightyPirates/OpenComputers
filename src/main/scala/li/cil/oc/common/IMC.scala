@@ -4,7 +4,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 import com.typesafe.config.Config
-import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
+import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.template.AssemblerTemplates

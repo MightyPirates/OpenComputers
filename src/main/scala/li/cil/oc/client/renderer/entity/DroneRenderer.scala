@@ -1,10 +1,11 @@
 package li.cil.oc.client.renderer.entity
 
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.entity.Render
 import net.minecraft.entity.Entity
 import org.lwjgl.opengl.GL11
 
-object DroneRenderer extends Render {
+object DroneRenderer extends Render(Minecraft.getMinecraft.getRenderManager) {
   val model = new ModelQuadcopter()
 
   override def doRender(entity: Entity, x: Double, y: Double, z: Double, yaw: Float, dt: Float) {

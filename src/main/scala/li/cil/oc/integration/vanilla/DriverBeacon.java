@@ -13,6 +13,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.tileentity.TileEntityBeacon;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 public final class DriverBeacon extends DriverTileEntity implements EnvironmentAware {
@@ -22,8 +23,8 @@ public final class DriverBeacon extends DriverTileEntity implements EnvironmentA
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityBeacon) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((TileEntityBeacon) world.getTileEntity(pos));
     }
 
     @Override
@@ -50,17 +51,17 @@ public final class DriverBeacon extends DriverTileEntity implements EnvironmentA
 
         @Callback(doc = "function():number -- Get the number of levels for this beacon.")
         public Object[] getLevels(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getLevels()};
+            return new Object[]{tileEntity.getField(0)};
         }
 
         @Callback(doc = "function():string -- Get the name of the active primary effect.")
         public Object[] getPrimaryEffect(final Context context, final Arguments args) {
-            return new Object[]{getEffectName(tileEntity.getPrimaryEffect())};
+            return new Object[]{getEffectName(tileEntity.getField(1))};
         }
 
         @Callback(doc = "function():string -- Get the name of the active secondary effect.")
         public Object[] getSecondaryEffect(final Context context, final Arguments args) {
-            return new Object[]{getEffectName(tileEntity.getSecondaryEffect())};
+            return new Object[]{getEffectName(tileEntity.getField(2))};
         }
     }
 

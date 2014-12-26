@@ -4,9 +4,11 @@ import java.util
 
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.util.ItemUtils
 import net.minecraft.item
 import net.minecraft.item.Item
 import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTBase
 
 import scala.collection.convert.WrapAsScala._
 
@@ -26,7 +28,7 @@ object ConverterItemStack extends api.driver.Converter {
         output += "label" -> stack.getDisplayName
 
         if (stack.hasTagCompound && Settings.get.allowItemStackNBTTags) {
-          output += "tag" -> CompressedStreamTools.compress(stack.getTagCompound)
+          output += "tag" -> ItemUtils.saveTag(stack.getTagCompound)
         }
       case _ =>
     }

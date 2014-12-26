@@ -2,74 +2,59 @@ package li.cil.oc.common.block
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.BlockPosition
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
-class Charger extends RedstoneAware with traits.PowerAcceptor {
-  override protected def customTextures = Array(
-    None,
-    None,
-    Some("ChargerSide"),
-    Some("ChargerFront"),
-    Some("ChargerSide"),
-    Some("ChargerSide")
-  )
-
-  override def registerBlockIcons(iconRegister: IIconRegister) = {
-    super.registerBlockIcons(iconRegister)
-    Textures.Charger.iconFrontCharging = iconRegister.registerIcon(Settings.resourceDomain + ":ChargerFrontOn")
-    Textures.Charger.iconSideCharging = iconRegister.registerIcon(Settings.resourceDomain + ":ChargerSideOn")
-  }
-
-  // ----------------------------------------------------------------------- //
+class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
+  setDefaultState(buildDefaultState())
 
   override def energyThroughput = Settings.get.chargerRate
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Charger()
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Charger()
 
   // ----------------------------------------------------------------------- //
 
-  override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+  override def canConnectRedstone(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
-    world.getTileEntity(x, y, z) match {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
+    world.getTileEntity(pos) match {
       case charger: tileentity.Charger =>
-        if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
+        if (Wrench.holdsApplicableWrench(player, pos)) {
           if (!world.isRemote) {
             charger.invertSignal = !charger.invertSignal
             charger.chargeSpeed = 1.0 - charger.chargeSpeed
             PacketSender.sendChargerState(charger)
-            Wrench.wrenchUsed(player, BlockPosition(x, y, z))
+            Wrench.wrenchUsed(player, pos)
           }
           true
         }
         else if (!player.isSneaking) {
           if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.Charger.id, world, x, y, z)
+            player.openGui(OpenComputers, GuiType.Charger.id, world, pos.getX, pos.getY, pos.getZ)
           }
           true
         }
         else false
-      case _ => super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+      case _ => super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
     }
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
-    world.getTileEntity(x, y, z) match {
+  override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) {
+    world.getTileEntity(pos) match {
       case charger: tileentity.Charger => charger.onNeighborChanged()
       case _ =>
     }
-    super.onNeighborBlockChange(world, x, y, z, block)
+    super.onNeighborBlockChange(world, pos, state, neighborBlock)
   }
 }

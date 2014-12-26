@@ -9,7 +9,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.server.component
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class Redstone[+Owner <: RedstoneAware](val owner: Owner) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
@@ -45,7 +45,7 @@ class Redstone[+Owner <: RedstoneAware](val owner: Owner) extends prefab.Managed
     val side = args.checkInteger(index)
     if (side < 0 || side > 5)
       throw new IllegalArgumentException("invalid side")
-    owner.toGlobal(ForgeDirection.getOrientation(side))
+    owner.toGlobal(EnumFacing.getFront(side))
   }
 }
 

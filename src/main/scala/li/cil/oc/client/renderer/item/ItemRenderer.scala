@@ -22,8 +22,7 @@ import org.lwjgl.opengl.GL11
 import scala.collection.convert.WrapAsScala._
 
 object ItemRenderer extends IItemRenderer {
-  val renderItem = new RenderItem()
-  renderItem.setRenderManager(RenderManager.instance)
+  val itemRenderer = Minecraft.getMinecraft.getRenderItem
 
   lazy val craftingUpgrade = api.Items.get("craftingUpgrade")
   lazy val generatorUpgrade = api.Items.get("generatorUpgrade")
@@ -34,7 +33,7 @@ object ItemRenderer extends IItemRenderer {
   lazy val lootDisk = api.Items.get("lootDisk")
   lazy val openOS = api.Items.get("openOS")
 
-  def bounds = AxisAlignedBB.getBoundingBox(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
+  def bounds = AxisAlignedBB.fromBounds(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
 
   def isUpgrade(descriptor: ItemInfo) =
     descriptor == craftingUpgrade ||
@@ -71,21 +70,21 @@ object ItemRenderer extends IItemRenderer {
       GL11.glTranslatef(0.5f, 0.5f, 0.5f)
 
       if (descriptor == api.Items.get("craftingUpgrade")) {
-        tm.bindTexture(Textures.upgradeCrafting)
+        tm.bindTexture(Textures.Model.UpgradeCrafting)
         drawSimpleBlock()
 
         RenderState.checkError(getClass.getName + ".renderItem: crafting upgrade")
       }
 
       else if (descriptor == api.Items.get("generatorUpgrade")) {
-        tm.bindTexture(Textures.upgradeGenerator)
+        tm.bindTexture(Textures.Model.UpgradeGenerator)
         drawSimpleBlock(if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5f else 0)
 
         RenderState.checkError(getClass.getName + ".renderItem: generator upgrade")
       }
 
       else if (descriptor == api.Items.get("inventoryUpgrade")) {
-        tm.bindTexture(Textures.upgradeInventory)
+        tm.bindTexture(Textures.Model.UpgradeInventory)
         drawSimpleBlock()
 
         RenderState.checkError(getClass.getName + ".renderItem: inventory upgrade")
@@ -94,9 +93,9 @@ object ItemRenderer extends IItemRenderer {
 
     else if (isFloppy(descriptor)) {
       GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-      renderItem.renderItemIntoGUI(null, tm, stack, 0, 0)
+      itemRenderer.renderItemIntoGUI(stack, 0, 0)
       val res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
-      val fontRenderer = renderItem.getFontRendererFromRenderManager
+      val fontRenderer = Minecraft.getMinecraft.fontRendererObj
       if (fontRenderer != null && res.getScaleFactor > 1) {
         GL11.glPushMatrix()
         GL11.glTranslatef(4f + 2f / res.getScaleFactor, 9f + 2f / res.getScaleFactor, 0)

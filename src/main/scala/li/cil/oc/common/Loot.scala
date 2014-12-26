@@ -3,7 +3,7 @@ package li.cil.oc.common
 import java.io
 import java.util.Random
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api

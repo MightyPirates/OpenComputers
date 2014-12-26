@@ -8,17 +8,17 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class Debugger(val parent: Delegator) extends Delegate {
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     player match {
       case realPlayer: EntityPlayerMP =>
         world.getTileEntity(position) match {
           case host: SidedEnvironment =>
             if (!world.isRemote) {
-              Debugger.reconnect(Array(host.sidedNode(ForgeDirection.getOrientation(side))))
+              Debugger.reconnect(Array(host.sidedNode(side)))
             }
             true
           case host: Environment =>

@@ -9,6 +9,7 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 
 import scala.collection.convert.WrapAsJava._
@@ -57,8 +58,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (!converters.contains(converter)) converters += converter
   }
 
-  override def driverFor(world: World, x: Int, y: Int, z: Int) =
-    blocks.filter(_.worksWith(world, x, y, z)) match {
+  override def driverFor(world: World, pos: BlockPos) =
+    blocks.filter(_.worksWith(world, pos)) match {
       case drivers if drivers.nonEmpty => new CompoundBlockDriver(drivers: _*)
       case _ => null
     }

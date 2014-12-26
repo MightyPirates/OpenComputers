@@ -1,6 +1,6 @@
 package li.cil.oc.common.event
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.common.tileentity.Case

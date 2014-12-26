@@ -8,19 +8,18 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.UUID
 
-import cpw.mods.fml.client.FMLClientHandler
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
 import net.minecraft.client.audio.SoundManager
-import net.minecraft.client.audio.SoundPoolEntry
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.client.FMLClientHandler
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.relauncher.ReflectionHelper
 import paulscode.sound.SoundSystem
 import paulscode.sound.SoundSystemConfig
 
@@ -110,7 +109,7 @@ object Sound {
   }
 
   private abstract class Command(val when: Long, val tileEntity: TileEntity) extends Ordered[Command] {
-    def apply()
+    def apply(): Unit
 
     override def compare(that: Command) = (that.when - when).toInt
   }
@@ -159,16 +158,16 @@ object Sound {
     }
 
     def updatePosition() {
-      soundSystem.setPosition(source, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+      soundSystem.setPosition(source, tileEntity.getPos.getX, tileEntity.getPos.getY, tileEntity.getPos.getZ)
     }
 
     def play(name: String) {
       val resourceName = s"${Settings.resourceDomain}:$name"
       val sound = Minecraft.getMinecraft.getSoundHandler.getSound(new ResourceLocation(resourceName))
-      val resource = (sound.func_148720_g: SoundPoolEntry).getSoundPoolEntryLocation
+      val resource = sound.cloneEntry.getSoundPoolEntryLocation
       if (!initialized) {
         initialized = true
-        soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16)
+        soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.getPos.getX, tileEntity.getPos.getY, tileEntity.getPos.getZ, SoundSystemConfig.ATTENUATION_LINEAR, 16)
         updateVolume()
         soundSystem.activate(source)
       }

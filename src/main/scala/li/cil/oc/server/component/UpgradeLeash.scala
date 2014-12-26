@@ -19,7 +19,7 @@ import net.minecraft.entity.EntityLiving
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.mutable
 
@@ -35,10 +35,10 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
   @Callback(doc = """function(side:number):boolean -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
     if (leashedEntities.size >= 8) return result(Unit, "too many leashed entities")
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSide(0, EnumFacing.values: _*)
     val nearBounds = position.bounds
-    val farBounds = nearBounds.offset(side.offsetX * 2.0, side.offsetY * 2.0, side.offsetZ * 2.0)
-    val bounds = nearBounds.func_111270_a(farBounds)
+    val farBounds = nearBounds.offset(side.getFrontOffsetX * 2.0, side.getFrontOffsetY * 2.0, side.getFrontOffsetZ * 2.0)
+    val bounds = nearBounds.union(farBounds)
     entitiesInBounds[EntityLiving](bounds).find(_.allowLeashing()) match {
       case Some(entity) =>
         entity.setLeashedToEntity(host, true)
@@ -74,7 +74,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     leashedEntities ++= nbt.getTagList("leashedEntities", NBT.TAG_STRING).
-      map((s: NBTTagString) => UUID.fromString(s.func_150285_a_()))
+      map((s: NBTTagString) => UUID.fromString(s.getString))
     // Re-acquire leashed entities. Need to do this manually because leashed
     // entities only remember their leashee if it's an EntityLivingBase...
     EventHandler.schedule(() => {

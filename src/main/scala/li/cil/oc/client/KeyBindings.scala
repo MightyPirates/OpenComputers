@@ -1,6 +1,6 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.FMLClientHandler
+import net.minecraftforge.fml.client.FMLClientHandler
 import net.minecraft.client.settings.KeyBinding
 import org.lwjgl.input.Keyboard
 

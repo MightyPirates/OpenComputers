@@ -9,19 +9,19 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraft.util.StatCollector
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.input
 
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
-
-  def block = field_150939_a
 
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
@@ -43,7 +43,7 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def getRarity(stack: ItemStack) = block match {
     case simple: SimpleBlock => simple.rarity
-    case _ => EnumRarity.common
+    case _ => EnumRarity.COMMON
   }
 
   override def getMetadata(itemDamage: Int) = itemDamage
@@ -55,22 +55,22 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false
 
-  override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, metadata: Int) = {
+  override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, newState: IBlockState) = {
     // When placing robots in creative mode, we have to copy the stack
     // manually before it's placed to ensure different component addresses
     // in the different robots, to avoid interference of screens e.g.
     val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get("robot")
     val stackToUse = if (needsCopying) new ItemUtils.RobotData(stack).copyItemStack() else stack
-    if (super.placeBlockAt(stackToUse, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
+    if (super.placeBlockAt(stackToUse, player, world, pos, side, hitX, hitY, hitZ, newState)) {
       // If it's a rotatable block try to make it face the player.
-      world.getTileEntity(x, y, z) match {
+      world.getTileEntity(pos) match {
         case keyboard: tileentity.Keyboard =>
           keyboard.setFromEntityPitchAndYaw(player)
-          keyboard.setFromFacing(ForgeDirection.getOrientation(side))
+          keyboard.setFromFacing(side)
         case rotatable: tileentity.traits.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
           if (!rotatable.validFacings.contains(rotatable.pitch)) {
-            rotatable.pitch = rotatable.validFacings.headOption.getOrElse(ForgeDirection.NORTH)
+            rotatable.pitch = rotatable.validFacings.headOption.getOrElse(EnumFacing.NORTH)
           }
           if (!rotatable.isInstanceOf[tileentity.RobotProxy]) {
             rotatable.invertRotation()

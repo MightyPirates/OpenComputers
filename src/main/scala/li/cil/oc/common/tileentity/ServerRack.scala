@@ -1,10 +1,11 @@
 package li.cil.oc.common.tileentity
 
 import com.google.common.base.Strings
-import cpw.mods.fml.common.Optional.Method
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.util.BlockPosition
+import net.minecraftforge.fml.common.Optional.Method
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.internal
@@ -12,28 +13,26 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
-import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
-import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
 
-class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.ServerRack {
+class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.ServerRack {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
-  val sides = Seq(Option(ForgeDirection.UP), Option(ForgeDirection.EAST), Option(ForgeDirection.WEST), Option(ForgeDirection.DOWN)).
+  val sides = Seq(Option(EnumFacing.UP), Option(EnumFacing.EAST), Option(EnumFacing.WEST), Option(EnumFacing.DOWN)).
     padTo(servers.length, None).toArray
 
   val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
@@ -56,9 +55,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override def server(slot: Int) = servers(slot).orNull
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = side != facing
+  override protected def hasConnector(side: EnumFacing) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing) sidedNode(side).asInstanceOf[Connector] else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != facing) sidedNode(side).asInstanceOf[Connector] else null)
 
   override protected def energyThroughput = Settings.get.serverRackRate
 
@@ -66,13 +65,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // ----------------------------------------------------------------------- //
 
-  override def canConnect(side: ForgeDirection) = side != facing
-
-  @Method(modid = Mods.IDs.StargateTech2)
-  override def getInterfaces(side: Int) = if (side != facing.ordinal) {
-    super.getInterfaces(side)
-  }
-  else null
+  override def canConnect(side: EnumFacing) = side != facing
 
   // ----------------------------------------------------------------------- //
 
@@ -83,7 +76,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   @SideOnly(Side.CLIENT)
   def setRunning(number: Int, value: Boolean) = {
     _isRunning(number) = value
-    world.markBlockForUpdate(x, y, z)
+    world.markBlockForUpdate(getPos)
     if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f, 50 + world.rand.nextInt(50))
     else Sound.stopLoop(this)
     this
@@ -94,21 +87,6 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // ----------------------------------------------------------------------- //
 
   def markForSaving() = markChunkDirty = true
-
-  override def installedComponents = servers.flatMap {
-    case Some(server) => server.inventory.components collect {
-      case Some(component) => component
-    }
-    case _ => Iterable.empty
-  }
-
-  def hasAbstractBusCard = servers exists {
-    case Some(server) => server.machine.isRunning && server.inventory.items.exists {
-      case Some(stack) => DriverAbstractBusCard.worksWith(stack, server.getClass)
-      case _ => false
-    }
-    case _ => false
-  }
 
   def hasRedstoneCard = servers exists {
     case Some(server) => server.machine.isRunning && server.inventory.items.exists {
@@ -122,7 +100,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     sides(number) match {
       case Some(serverSide) =>
         val serverNode = server.machine.node
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        for (side <- EnumFacing.values) {
           if (toLocal(side) == serverSide) sidedNode(side).connect(serverNode)
           else sidedNode(side).disconnect(serverNode)
         }
@@ -134,7 +112,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override protected def distribute() = {
     def node(side: Int) = sides(side) match {
-      case None | Some(ForgeDirection.UNKNOWN) => servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector])
+      case None => servers(side).fold(null: Connector)(_.machine.node.asInstanceOf[Connector])
       case _ => null
     }
     val nodes = (0 to 3).map(node)
@@ -164,7 +142,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // ----------------------------------------------------------------------- //
 
-  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
+  override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     if (internalSwitch) {
       for (slot <- 0 until servers.length) {
         val side = sides(slot).map(toGlobal)
@@ -205,8 +183,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    slotAt(ForgeDirection.getOrientation(side), hitX, hitY, hitZ) match {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+    slotAt(side, hitX, hitY, hitZ) match {
       case Some(slot) => servers(slot) match {
         case Some(server) =>
           val computer = server.machine
@@ -223,11 +201,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
           Array(computer.node)
         case _ => null
       }
-      case _ => Array(sidedNode(ForgeDirection.getOrientation(side)))
+      case _ => Array(sidedNode(side))
     }
   }
 
-  def slotAt(side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  def slotAt(side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (side == facing) {
       val l = 2 / 16.0
       val h = 14 / 16.0
@@ -241,8 +219,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def canUpdate = isServer
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
     if (isServer && isConnected) {
       val shouldUpdatePower = world.getTotalWorldTime % Settings.get.tickFrequency == 0
       if (shouldUpdatePower && range > 0 && !Settings.get.ignorePower) {
@@ -252,7 +230,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         }
         if (countRunning > 0) {
           var cost = -(countRunning * range * Settings.get.wirelessCostPerRange * Settings.get.tickFrequency)
-          for (side <- ForgeDirection.VALID_DIRECTIONS if cost < 0) {
+          for (side <- EnumFacing.values if cost < 0) {
             sidedNode(side) match {
               case connector: Connector => cost = connector.changeBuffer(cost)
               case _ =>
@@ -271,7 +249,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
       if (markChunkDirty) {
         markChunkDirty = false
-        world.markTileEntityChunkModified(x, y, z, this)
+        world.markChunkDirty(getPos, this)
       }
 
       for (i <- 0 until servers.length) {
@@ -282,7 +260,6 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         }
       }
       isOutputEnabled = hasRedstoneCard
-      isAbstractBusAvailable = hasAbstractBusCard
 
       servers collect {
         case Some(server) =>
@@ -324,18 +301,12 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
             try server.load(tag) catch {
               case t: Throwable => OpenComputers.log.warn("Failed restoring server state. Please report this!", t)
             }
-
-            // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-            // TODO Remove in 1.5
-            if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-              server.inventory.items(server.inventory.items.length - 1) = Option(Items.createLuaBios())
-            }
           case _ =>
         }
       case _ =>
     }
     val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").map {
-      case side if side >= 0 => Option(ForgeDirection.getOrientation(side))
+      case side if side >= 0 => Option(EnumFacing.getFront(side))
       case _ => None
     }
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
@@ -351,19 +322,16 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     internalSwitch = nbt.getBoolean(Settings.namespace + "internalSwitch")
   }
 
-  // Side check for Waila (and other mods that may call this client side).
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
-    if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip) {
-      nbt.setNewTagList(Settings.namespace + "servers", servers map {
-        case Some(server) =>
-          val serverNbt = new NBTTagCompound()
-          try server.save(serverNbt) catch {
-            case t: Throwable => OpenComputers.log.warn("Failed saving server state. Please report this!", t)
-          }
-          serverNbt
-        case _ => new NBTTagCompound()
-      })
-    }
+    nbt.setNewTagList(Settings.namespace + "servers", servers map {
+      case Some(server) =>
+        val serverNbt = new NBTTagCompound()
+        try server.save(serverNbt) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed saving server state. Please report this!", t)
+        }
+        serverNbt
+      case _ => new NBTTagCompound()
+    })
     super.writeToNBT(nbt)
     nbt.setByteArray(Settings.namespace + "sides", sides.map {
       case Some(side) => side.ordinal.toByte
@@ -378,9 +346,6 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }))
     nbt.setInteger(Settings.namespace + "range", range)
     nbt.setBoolean(Settings.namespace + "internalSwitch", internalSwitch)
-
-    // TODO Remove in 1.5
-    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   @SideOnly(Side.CLIENT)
@@ -389,12 +354,12 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     val isRunningNbt = nbt.getByteArray("isServerRunning").map(_ == 1)
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
     val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((tag: NBTTagString) => {
-      val value = tag.func_150285_a_()
+      val value = tag.getString()
       if (Strings.isNullOrEmpty(value)) None else Some(value)
     }).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
     val sidesNbt = nbt.getByteArray("sides").map {
-      case side if side >= 0 => Option(ForgeDirection.getOrientation(side))
+      case side if side >= 0 => Option(EnumFacing.getFront(side))
       case _ => None
     }
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
@@ -475,11 +440,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.markDirty()
     if (isServer) {
       isOutputEnabled = hasRedstoneCard
-      isAbstractBusAvailable = hasAbstractBusCard
       ServerPacketSender.sendServerPresence(this)
     }
     else {
-      world.markBlockForUpdate(x, y, z)
+      world.markBlockForUpdate(getPos)
     }
   }
 
@@ -488,14 +452,14 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     checkRedstoneInputChanged()
   }
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+  override protected def onRedstoneInputChanged(side: EnumFacing) {
     super.onRedstoneInputChanged(side)
     servers collect {
       case Some(server) => server.machine.signal("redstone_changed", server.machine.node.address, Int.box(toLocal(side).ordinal()))
     }
   }
 
-  override def rotate(axis: ForgeDirection) = false
+  override def rotate(axis: EnumFacing) = false
 }
 
 object ServerRack {

@@ -3,8 +3,9 @@ package li.cil.oc.common.item
 import java.util
 import java.util.UUID
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
@@ -21,9 +22,6 @@ import net.minecraft.world.World
 class Terminal(val parent: Delegator) extends Delegate {
   override def maxStackSize = 1
 
-  private var iconOn: Option[Icon] = None
-  private var iconOff: Option[Icon] = None
-
   def hasServer(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")
 
   @SideOnly(Side.CLIENT)
@@ -35,19 +33,23 @@ class Terminal(val parent: Delegator) extends Delegate {
     }
   }
 
-  // TODO check if server is in range and running
-  // Unlike in the GUI handler the result should definitely be cached here.
-  @SideOnly(Side.CLIENT)
-  override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
+  // TODO remove
+//  private var iconOn: Option[Icon] = None
+//  private var iconOff: Option[Icon] = None
+//
+//  // TODO check if server is in range and running
+//  // Unlike in the GUI handler the result should definitely be cached here.
+//  @SideOnly(Side.CLIENT)
+//  override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
+//
+//  override def registerIcons(iconRegister: IconRegister) = {
+//    super.getAtlasSprites(iconRegister)
+//
+//    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOn"))
+//    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOff"))
+//  }
 
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
-
-    iconOn = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOn"))
-    iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOff"))
-  }
-
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     world.getTileEntity(position) match {
       case rack: tileentity.ServerRack if side == rack.facing.ordinal() =>

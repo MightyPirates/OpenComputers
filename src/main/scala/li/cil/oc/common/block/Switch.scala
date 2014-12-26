@@ -1,45 +1,27 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
-import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 class Switch extends SimpleBlock {
-  override protected def customTextures = Array(
-    None,
-    Some("SwitchTop"),
-    Some("SwitchSide"),
-    Some("SwitchSide"),
-    Some("SwitchSide"),
-    Some("SwitchSide")
-  )
+  override def hasTileEntity(state: IBlockState) = true
 
-  override def registerBlockIcons(iconRegister: IIconRegister) = {
-    super.registerBlockIcons(iconRegister)
-    Textures.Switch.iconSideActivity = iconRegister.registerIcon(Settings.resourceDomain + ":SwitchSideOn")
-  }
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Switch()
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
-
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Switch()
-
-  // ----------------------------------------------------------------------- //
-
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    world.getTileEntity(x, y, z) match {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+    world.getTileEntity(pos) match {
       case switch: tileentity.Switch =>
         if (!player.isSneaking) {
           if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.Switch.id, world, x, y, z)
+            player.openGui(OpenComputers, GuiType.Switch.id, world, pos.getX, pos.getY, pos.getZ)
           }
           true
         }

@@ -56,8 +56,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     }
   }
 
-  protected override def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
-    super.mouseMovedOrUp(mouseX, mouseY, button)
+  override protected def mouseReleased(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseReleased(mouseX, mouseY, button)
     if (hasMouse && button >= 0) {
       if (didDrag) {
         val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1

@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "opencomputers:raid" },
+        "facing=south": { "model": "opencomputers:raid", "y": 180 },
+        "facing=west":  { "model": "opencomputers:raid", "y": 270 },
+        "facing=east":  { "model": "opencomputers:raid", "y": 90 }
+    }
+}

@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class PowerConverter extends traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -13,9 +13,9 @@ class PowerConverter extends traits.PowerAcceptor with traits.Environment with t
     create()
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = true
+  override protected def hasConnector(side: EnumFacing) = true
 
-  override protected def connector(side: ForgeDirection) = Option(node)
+  override protected def connector(side: EnumFacing) = Option(node)
 
   override protected def energyThroughput = Settings.get.powerConverterRate
 

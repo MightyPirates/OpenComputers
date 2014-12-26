@@ -11,7 +11,9 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntityMobSpawner;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 public final class DriverMobSpawner extends DriverTileEntity implements EnvironmentAware {
@@ -21,8 +23,8 @@ public final class DriverMobSpawner extends DriverTileEntity implements Environm
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityMobSpawner) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((TileEntityMobSpawner) world.getTileEntity(pos));
     }
 
     @Override
@@ -49,7 +51,9 @@ public final class DriverMobSpawner extends DriverTileEntity implements Environm
 
         @Callback(doc = "function():string -- Get the name of the entity that is being spawned by this spawner.")
         public Object[] getSpawningMobName(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.func_145881_a().getEntityNameToSpawn()};
+            final NBTTagCompound tag = new NBTTagCompound();
+            tileEntity.writeToNBT(tag);
+            return new Object[]{tag.getString("EntityId")};
         }
     }
 }

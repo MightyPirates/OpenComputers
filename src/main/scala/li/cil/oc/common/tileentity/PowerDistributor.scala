@@ -1,14 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 class PowerDistributor extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
   val node = null
@@ -24,9 +24,9 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = true
+  override def canConnect(side: EnumFacing) = true
 
-  override def sidedNode(side: ForgeDirection) = nodes(side.ordinal)
+  override def sidedNode(side: EnumFacing) = nodes(side.ordinal)
 
   // ----------------------------------------------------------------------- //
 

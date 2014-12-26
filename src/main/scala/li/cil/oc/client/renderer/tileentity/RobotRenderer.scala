@@ -7,24 +7,18 @@ import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.entity.RenderManager
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
 import net.minecraft.client.renderer.entity.RendererLivingEntity
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.init.Items
-import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
-import net.minecraftforge.client.IItemRenderer.ItemRenderType._
-import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
 
@@ -43,7 +37,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   }
 
   def compileList() {
-    val t = Tessellator.instance
+    val t = Tessellator.getInstance
+    val r = t.getWorldRenderer
 
     val size = 0.4f
     val l = 0.5f - size
@@ -56,26 +51,26 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glVertex3f(0.5f, 1, 0.5f)
     GL11.glTexCoord2f(0, 0.5f)
     GL11.glVertex3f(l, gt, h)
-    normal(Vec3.createVectorHelper(0, 0.2, 1))
+    normal(new Vec3(0, 0.2, 1))
     GL11.glTexCoord2f(0.5f, 0.5f)
     GL11.glVertex3f(h, gt, h)
-    normal(Vec3.createVectorHelper(1, 0.2, 0))
+    normal(new Vec3(1, 0.2, 0))
     GL11.glTexCoord2f(0.5f, 0)
     GL11.glVertex3f(h, gt, l)
-    normal(Vec3.createVectorHelper(0, 0.2, -1))
+    normal(new Vec3(0, 0.2, -1))
     GL11.glTexCoord2f(0, 0)
     GL11.glVertex3f(l, gt, l)
-    normal(Vec3.createVectorHelper(-1, 0.2, 0))
+    normal(new Vec3(-1, 0.2, 0))
     GL11.glTexCoord2f(0, 0.5f)
     GL11.glVertex3f(l, gt, h)
     GL11.glEnd()
 
-    t.startDrawingQuads()
-    t.setNormal(0, -1, 0)
-    t.addVertexWithUV(l, gt, h, 0, 1)
-    t.addVertexWithUV(l, gt, l, 0, 0.5)
-    t.addVertexWithUV(h, gt, l, 0.5, 0.5)
-    t.addVertexWithUV(h, gt, h, 0.5, 1)
+    r.startDrawingQuads()
+    r.setNormal(0, -1, 0)
+    r.addVertexWithUV(l, gt, h, 0, 1)
+    r.addVertexWithUV(l, gt, l, 0, 0.5)
+    r.addVertexWithUV(h, gt, l, 0.5, 0.5)
+    r.addVertexWithUV(h, gt, h, 0.5, 1)
     t.draw()
 
     GL11.glEndList()
@@ -87,26 +82,26 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glVertex3f(0.5f, 0.03f, 0.5f)
     GL11.glTexCoord2f(0.5f, 0)
     GL11.glVertex3f(l, gb, l)
-    normal(Vec3.createVectorHelper(0, -0.2, 1))
+    normal(new Vec3(0, -0.2, 1))
     GL11.glTexCoord2f(1, 0)
     GL11.glVertex3f(h, gb, l)
-    normal(Vec3.createVectorHelper(1, -0.2, 0))
+    normal(new Vec3(1, -0.2, 0))
     GL11.glTexCoord2f(1, 0.5f)
     GL11.glVertex3f(h, gb, h)
-    normal(Vec3.createVectorHelper(0, -0.2, -1))
+    normal(new Vec3(0, -0.2, -1))
     GL11.glTexCoord2f(0.5f, 0.5f)
     GL11.glVertex3f(l, gb, h)
-    normal(Vec3.createVectorHelper(-1, -0.2, 0))
+    normal(new Vec3(-1, -0.2, 0))
     GL11.glTexCoord2f(0.5f, 0)
     GL11.glVertex3f(l, gb, l)
     GL11.glEnd()
 
-    t.startDrawingQuads()
-    t.setNormal(0, 1, 0)
-    t.addVertexWithUV(l, gb, l, 0, 0.5)
-    t.addVertexWithUV(l, gb, h, 0, 1)
-    t.addVertexWithUV(h, gb, h, 0.5, 1)
-    t.addVertexWithUV(h, gb, l, 0.5, 0.5)
+    r.startDrawingQuads()
+    r.setNormal(0, 1, 0)
+    r.addVertexWithUV(l, gb, l, 0, 0.5)
+    r.addVertexWithUV(l, gb, h, 0, 1)
+    r.addVertexWithUV(h, gb, h, 0.5, 1)
+    r.addVertexWithUV(h, gb, l, 0.5, 0.5)
     t.draw()
 
     GL11.glEndList()
@@ -198,7 +193,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     val event = new RobotRenderEvent(robot, mountPoints)
     MinecraftForge.EVENT_BUS.post(event)
     if (!event.isCanceled) {
-      bindTexture(Textures.blockRobot)
+      bindTexture(Textures.Model.Robot)
       if (!isRunning) {
         GL11.glTranslatef(0, -2 * gap, 0)
       }
@@ -214,27 +209,28 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           RenderState.disableLighting()
         }
 
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(l, gt, l, u0, v0)
-        t.addVertexWithUV(l, gb, l, u0, v1)
-        t.addVertexWithUV(l, gb, h, u1, v1)
-        t.addVertexWithUV(l, gt, h, u1, v0)
+        val t = Tessellator.getInstance
+        val r = t.getWorldRenderer
+        r.startDrawingQuads()
+        r.addVertexWithUV(l, gt, l, u0, v0)
+        r.addVertexWithUV(l, gb, l, u0, v1)
+        r.addVertexWithUV(l, gb, h, u1, v1)
+        r.addVertexWithUV(l, gt, h, u1, v0)
 
-        t.addVertexWithUV(l, gt, h, u0, v0)
-        t.addVertexWithUV(l, gb, h, u0, v1)
-        t.addVertexWithUV(h, gb, h, u1, v1)
-        t.addVertexWithUV(h, gt, h, u1, v0)
+        r.addVertexWithUV(l, gt, h, u0, v0)
+        r.addVertexWithUV(l, gb, h, u0, v1)
+        r.addVertexWithUV(h, gb, h, u1, v1)
+        r.addVertexWithUV(h, gt, h, u1, v0)
 
-        t.addVertexWithUV(h, gt, h, u0, v0)
-        t.addVertexWithUV(h, gb, h, u0, v1)
-        t.addVertexWithUV(h, gb, l, u1, v1)
-        t.addVertexWithUV(h, gt, l, u1, v0)
+        r.addVertexWithUV(h, gt, h, u0, v0)
+        r.addVertexWithUV(h, gb, h, u0, v1)
+        r.addVertexWithUV(h, gb, l, u1, v1)
+        r.addVertexWithUV(h, gt, l, u1, v0)
 
-        t.addVertexWithUV(h, gt, l, u0, v0)
-        t.addVertexWithUV(h, gb, l, u0, v1)
-        t.addVertexWithUV(l, gb, l, u1, v1)
-        t.addVertexWithUV(l, gt, l, u1, v0)
+        r.addVertexWithUV(h, gt, l, u0, v0)
+        r.addVertexWithUV(h, gb, l, u0, v1)
+        r.addVertexWithUV(l, gb, l, u1, v1)
+        r.addVertexWithUV(l, gt, l, u1, v0)
         t.draw()
 
         if (MinecraftForgeClient.getRenderPass == 0) {
@@ -244,12 +240,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
   }
 
-  override def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val proxy = entity.asInstanceOf[tileentity.RobotProxy]
+    val proxy = tileEntity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
-    val worldTime = entity.getWorldObj.getTotalWorldTime + f
+    val worldTime = tileEntity.getWorld.getTotalWorldTime + f
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
@@ -263,10 +259,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     if (robot.isAnimatingMove) {
       val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-      val dx = robot.moveFromX - robot.x
-      val dy = robot.moveFromY - robot.y
-      val dz = robot.moveFromZ - robot.z
-      GL11.glTranslated(dx * remaining, dy * remaining, dz * remaining)
+      val delta = robot.moveFrom.get.subtract(robot.getPos)
+      GL11.glTranslated(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
     }
 
     val timeJitter = robot.hashCode ^ 0xFF
@@ -288,9 +282,9 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
 
     robot.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
 
@@ -302,9 +296,9 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
 
     if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
+      val itemRenderer = Minecraft.getMinecraft.getItemRenderer
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
-          val itemRenderer = RenderManager.instance.itemRenderer
 
           GL11.glPushMatrix()
           try {
@@ -322,62 +316,65 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
             }
 
-            val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
-            val is3D = customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, stack, BLOCK_3D)
+            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.NONE)
 
-            if (is3D || (stack.getItem.isInstanceOf[ItemBlock] && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem).getRenderType))) {
-              val scale = 0.375f
-              GL11.glTranslatef(0, 0.1875f, -0.3125f)
-              GL11.glRotatef(20, 1, 0, 0)
-              GL11.glRotatef(45, 0, 1, 0)
-              GL11.glScalef(-scale, -scale, scale)
-            }
-            else if (stack.getItem == Items.bow) {
-              val scale = 0.375f
-              GL11.glTranslatef(0, 0.2f, -0.2f)
-              GL11.glRotatef(-10, 0, 1, 0)
-              GL11.glScalef(scale, -scale, scale)
-              GL11.glRotatef(-20, 1, 0, 0)
-              GL11.glRotatef(45, 0, 1, 0)
-            }
-            else if (stack.getItem.isFull3D) {
-              val scale = 0.375f
-              if (stack.getItem.shouldRotateAroundWhenRendering) {
-                GL11.glRotatef(180, 0, 0, 1)
-                GL11.glTranslatef(0, -0.125f, 0)
-              }
-              GL11.glTranslatef(0, 0.1f, 0)
-              GL11.glScalef(scale, -scale, scale)
-              GL11.glRotatef(-100, 1, 0, 0)
-              GL11.glRotatef(45, 0, 1, 0)
-            }
-            else {
-              val scale = 0.375f
-              GL11.glTranslatef(0.25f, 0.1875f, -0.1875f)
-              GL11.glScalef(scale, scale, scale)
-              GL11.glRotatef(60, 0, 0, 1)
-              GL11.glRotatef(-90, 1, 0, 0)
-              GL11.glRotatef(20, 0, 0, 1)
-            }
-
-            if (stack.getItem.requiresMultipleRenderPasses) {
-              for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
-                val tint = stack.getItem.getColorFromItemStack(stack, pass)
-                val r = ((tint >> 16) & 0xFF) / 255f
-                val g = ((tint >> 8) & 0xFF) / 255f
-                val b = ((tint >> 0) & 0xFF) / 255f
-                GL11.glColor4f(r, g, b, 1)
-                itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
-              }
-            }
-            else {
-              val tint = stack.getItem.getColorFromItemStack(stack, 0)
-              val r = ((tint >> 16) & 0xFF) / 255f
-              val g = ((tint >> 8) & 0xFF) / 255f
-              val b = ((tint >> 0) & 0xFF) / 255f
-              GL11.glColor4f(r, g, b, 1)
-              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, 0)
-            }
+            // TODO remove
+            //            val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
+            //            val is3D = customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, stack, BLOCK_3D)
+            //
+            //            if (is3D || (stack.getItem.isInstanceOf[ItemBlock] && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem).getRenderType))) {
+            //              val scale = 0.375f
+            //              GL11.glTranslatef(0, 0.1875f, -0.3125f)
+            //              GL11.glRotatef(20, 1, 0, 0)
+            //              GL11.glRotatef(45, 0, 1, 0)
+            //              GL11.glScalef(-scale, -scale, scale)
+            //            }
+            //            else if (stack.getItem == Items.bow) {
+            //              val scale = 0.375f
+            //              GL11.glTranslatef(0, 0.2f, -0.2f)
+            //              GL11.glRotatef(-10, 0, 1, 0)
+            //              GL11.glScalef(scale, -scale, scale)
+            //              GL11.glRotatef(-20, 1, 0, 0)
+            //              GL11.glRotatef(45, 0, 1, 0)
+            //            }
+            //            else if (stack.getItem.isFull3D) {
+            //              val scale = 0.375f
+            //              if (stack.getItem.shouldRotateAroundWhenRendering) {
+            //                GL11.glRotatef(180, 0, 0, 1)
+            //                GL11.glTranslatef(0, -0.125f, 0)
+            //              }
+            //              GL11.glTranslatef(0, 0.1f, 0)
+            //              GL11.glScalef(scale, -scale, scale)
+            //              GL11.glRotatef(-100, 1, 0, 0)
+            //              GL11.glRotatef(45, 0, 1, 0)
+            //            }
+            //            else {
+            //              val scale = 0.375f
+            //              GL11.glTranslatef(0.25f, 0.1875f, -0.1875f)
+            //              GL11.glScalef(scale, scale, scale)
+            //              GL11.glRotatef(60, 0, 0, 1)
+            //              GL11.glRotatef(-90, 1, 0, 0)
+            //              GL11.glRotatef(20, 0, 0, 1)
+            //            }
+            //
+            //            if (stack.getItem.requiresMultipleRenderPasses) {
+            //              for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
+            //                val tint = stack.getItem.getColorFromItemStack(stack, pass)
+            //                val r = ((tint >> 16) & 0xFF) / 255f
+            //                val g = ((tint >> 8) & 0xFF) / 255f
+            //                val b = ((tint >> 0) & 0xFF) / 255f
+            //                GL11.glColor4f(r, g, b, 1)
+            //                itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
+            //              }
+            //            }
+            //            else {
+            //              val tint = stack.getItem.getColorFromItemStack(stack, 0)
+            //              val r = ((tint >> 16) & 0xFF) / 255f
+            //              val g = ((tint >> 8) & 0xFF) / 255f
+            //              val b = ((tint >> 0) & 0xFF) / 255f
+            //              GL11.glColor4f(r, g, b, 1)
+            //              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.NONE)
+            //            }
           }
           catch {
             case e: Throwable =>
@@ -393,7 +390,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       val stacks = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).filter(stack => stack != null && MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null).padTo(mountPoints.length, null).take(mountPoints.length)
       for ((stack, mountPoint) <- stacks.zip(mountPoints)) {
         try {
-          if (stack != null && (stack.getItem.requiresMultipleRenderPasses() || MinecraftForgeClient.getRenderPass == 0)) {
+          if (stack != null /* && (stack.getItem.requiresMultipleRenderPasses() || MinecraftForgeClient.getRenderPass == 0) TODO remove? */ ) {
             val tint = stack.getItem.getColorFromItemStack(stack, MinecraftForgeClient.getRenderPass)
             val r = ((tint >> 16) & 0xFF) / 255f
             val g = ((tint >> 8) & 0xFF) / 255f
@@ -403,7 +400,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             GL11.glTranslatef(0.5f, 0.5f, 0.5f)
             GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
             GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
-            RenderManager.instance.itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, MinecraftForgeClient.getRenderPass)
+            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.NONE)
             GL11.glPopMatrix()
           }
         }
@@ -421,8 +418,9 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glPushMatrix()
 
       // This is pretty much copy-pasta from the entity's label renderer.
-      val t = Tessellator.instance
-      val f = func_147498_b
+      val t = Tessellator.getInstance
+      val r = t.getWorldRenderer
+      val f = getFontRenderer
       val scale = 1.6f / 60f
       val width = f.getStringWidth(name)
       val halfWidth = width / 2
@@ -431,8 +429,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glNormal3f(0, 1, 0)
       GL11.glColor3f(1, 1, 1)
 
-      GL11.glRotatef(-field_147501_a.field_147562_h, 0, 1, 0)
-      GL11.glRotatef(field_147501_a.field_147563_i, 1, 0, 0)
+      GL11.glRotatef(-rendererDispatcher.entityYaw, 0, 1, 0)
+      GL11.glRotatef(rendererDispatcher.entityPitch, 1, 0, 0)
       GL11.glScalef(-scale, -scale, scale)
 
       RenderState.makeItBlend()
@@ -440,12 +438,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glDisable(GL11.GL_LIGHTING)
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
-      t.startDrawingQuads()
-      t.setColorRGBA_F(0, 0, 0, 0.25f)
-      t.addVertex(-halfWidth - 1, -1, 0)
-      t.addVertex(-halfWidth - 1, 8, 0)
-      t.addVertex(halfWidth + 1, 8, 0)
-      t.addVertex(halfWidth + 1, -1, 0)
+      r.startDrawingQuads()
+      r.setColorRGBA_F(0, 0, 0, 0.25f)
+      r.addVertex(-halfWidth - 1, -1, 0)
+      r.addVertex(-halfWidth - 1, 8, 0)
+      r.addVertex(halfWidth + 1, 8, 0)
+      r.addVertex(halfWidth + 1, -1, 0)
       t.draw
 
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.

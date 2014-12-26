@@ -135,7 +135,7 @@ class UpgradeGenerator(val host: EnvironmentHost with Robot) extends prefab.Mana
           val world = host.world
           val entity = new EntityItem(world, host.xPosition, host.yPosition, host.zPosition, stack.copy())
           entity.motionY = 0.04
-          entity.delayBeforeCanPickup = 5
+          entity.setPickupDelay(5)
           world.spawnEntityInWorld(entity)
           inventory = None
         case _ =>

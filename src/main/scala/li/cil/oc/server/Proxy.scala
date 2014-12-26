@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
-import cpw.mods.fml.common.event.FMLInitializationEvent
-import cpw.mods.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.common.event.FMLInitializationEvent
+import net.minecraftforge.fml.common.network.NetworkRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.{Proxy => CommonProxy}
 

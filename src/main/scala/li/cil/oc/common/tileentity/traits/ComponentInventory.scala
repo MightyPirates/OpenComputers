@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.inventory
 import net.minecraft.nbt.NBTTagCompound

@@ -1,5 +1,7 @@
 package li.cil.oc.util
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.util.Random
 
 import com.google.common.base.Charsets
@@ -9,8 +11,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.Tier
-import li.cil.oc.common.block.DelegatorConverter
-import li.cil.oc.common.init.Items
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemBucket
@@ -20,6 +20,7 @@ import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.item.crafting.IRecipe
 import net.minecraft.item.crafting.ShapedRecipes
 import net.minecraft.item.crafting.ShapelessRecipes
+import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
@@ -47,7 +48,28 @@ object ItemUtils {
     else Tier.None
   }
 
-  def loadStack(nbt: NBTTagCompound) = DelegatorConverter.convert(ItemStack.loadItemStackFromNBT(nbt))
+  def loadStack(nbt: NBTTagCompound) = ItemStack.loadItemStackFromNBT(nbt)
+
+  def loadStack(data: Array[Byte]) = {
+    ItemStack.loadItemStackFromNBT(loadTag(data))
+  }
+
+  def loadTag(data: Array[Byte]) = {
+    val bais = new ByteArrayInputStream(data)
+    CompressedStreamTools.readCompressed(bais)
+  }
+
+  def saveStack(stack: ItemStack) = {
+    val tag = new NBTTagCompound()
+    stack.writeToNBT(tag)
+    saveTag(tag)
+  }
+
+  def saveTag(tag: NBTTagCompound) = {
+    val baos = new ByteArrayOutputStream()
+    CompressedStreamTools.writeCompressed(tag, baos)
+    baos.toByteArray
+  }
 
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
     val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
@@ -157,7 +179,7 @@ object ItemUtils {
       newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
         case Some(driver) if driver == DriverScreen =>
           val nbt = driver.dataTag(cs)
-          for (tagName <- nbt.func_150296_c().toArray) {
+          for (tagName <- nbt.getKeySet.toArray) {
             nbt.removeTag(tagName.asInstanceOf[String])
           }
         case _ =>
@@ -239,12 +261,6 @@ object ItemUtils {
         toArray[NBTTagCompound].map(loadStack)
       containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
         toArray[NBTTagCompound].map(loadStack)
-
-      // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-      // TODO Remove in 1.5
-      if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-        components :+= Items.createLuaBios()
-      }
     }
 
     override def save(nbt: NBTTagCompound) {
@@ -259,9 +275,6 @@ object ItemUtils {
       nbt.setInteger(Settings.namespace + "tier", tier)
       nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
       nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
-
-      // TODO Remove in 1.5
-      nbt.setBoolean(Settings.namespace + "biosFlag", true)
     }
 
     def createItemStack() = {
@@ -278,7 +291,7 @@ object ItemUtils {
       newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
         case Some(driver) if driver == DriverScreen =>
           val nbt = driver.dataTag(cs)
-          for (tagName <- nbt.func_150296_c().toArray) {
+          for (tagName <- nbt.getKeySet.toArray) {
             nbt.removeTag(tagName.asInstanceOf[String])
           }
         case _ =>
@@ -328,13 +341,6 @@ object ItemUtils {
       isRunning = nbt.getBoolean(Settings.namespace + "isRunning")
       energy = nbt.getDouble(Settings.namespace + "energy")
       maxEnergy = nbt.getDouble(Settings.namespace + "maxEnergy")
-
-      // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-      // TODO Remove in 1.5
-      if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-        val firstEmpty = items.indexWhere(_.isEmpty)
-        items(firstEmpty) = Option(Items.createLuaBios())
-      }
     }
 
     override def save(nbt: NBTTagCompound) {
@@ -350,9 +356,6 @@ object ItemUtils {
       nbt.setBoolean(Settings.namespace + "isRunning", isRunning)
       nbt.setDouble(Settings.namespace + "energy", energy)
       nbt.setDouble(Settings.namespace + "maxEnergy", maxEnergy)
-
-      // TODO Remove in 1.5
-      nbt.setBoolean(Settings.namespace + "biosFlag", true)
     }
   }
 

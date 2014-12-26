@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object ScreenRenderer extends TileEntitySpecialRenderer {
@@ -28,10 +28,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    screen = t.asInstanceOf[Screen]
+    screen = tileEntity.asInstanceOf[Screen]
     if (!screen.isOrigin) {
       return
     }
@@ -44,7 +44,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     // Crude check whether screen text can be seen by the local player based
     // on the player's position -> angle relative to screen.
     val screenFacing = screen.facing.getOpposite
-    if (screenFacing.offsetX * (x + 0.5) + screenFacing.offsetY * (y + 0.5) + screenFacing.offsetZ * (z + 0.5) < 0) {
+    if (screenFacing.getFrontOffsetX * (x + 0.5) + screenFacing.getFrontOffsetY * (y + 0.5) + screenFacing.getFrontOffsetZ * (z + 0.5) < 0) {
       return
     }
 
@@ -83,14 +83,14 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
   private def transform() {
     screen.yaw match {
-      case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
+      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
     screen.pitch match {
-      case ForgeDirection.DOWN => GL11.glRotatef(90, 1, 0, 0)
-      case ForgeDirection.UP => GL11.glRotatef(-90, 1, 0, 0)
+      case EnumFacing.DOWN => GL11.glRotatef(90, 1, 0, 0)
+      case EnumFacing.UP => GL11.glRotatef(-90, 1, 0, 0)
       case _ => // No pitch.
     }
 
@@ -102,23 +102,31 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(1, -1, 1)
   }
 
-  private def drawOverlay() = if (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) {
+  private def drawOverlay() = if (screen.facing == EnumFacing.UP || screen.facing == EnumFacing.DOWN) {
     // Show up vector overlay when holding same screen block.
     val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
     if (stack != null) {
-      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.position) || screens.contains(api.Items.get(stack))) {
+      if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.getPos) || screens.contains(api.Items.get(stack))) {
         GL11.glPushMatrix()
         transform()
-        bindTexture(Textures.blockScreenUpIndicator)
         GL11.glDepthMask(false)
         GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, 1, 0, 0, 1)
-        t.addVertexWithUV(1, 1, 0, 1, 1)
-        t.addVertexWithUV(1, 0, 0, 1, 0)
-        t.addVertexWithUV(0, 0, 0, 0, 0)
+
+        val t = Tessellator.getInstance
+        val r = t.getWorldRenderer
+
+        Textures.Block.bind()
+        r.startDrawingQuads()
+
+        val icon = Textures.Block.getSprite(Textures.Block.ScreenUpIndicator)
+        r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+
         t.draw()
+        Textures.Block.unbind()
+
         GL11.glDepthMask(true)
         GL11.glPopMatrix()
       }

@@ -8,6 +8,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
 
 class Drone(val parent: Delegator) extends Delegate {
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
@@ -19,7 +20,7 @@ class Drone(val parent: Delegator) extends Delegate {
     }
   }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     if (!world.isRemote) {
       val drone = new entity.Drone(world)

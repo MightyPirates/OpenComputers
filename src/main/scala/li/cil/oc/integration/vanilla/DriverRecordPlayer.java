@@ -13,6 +13,7 @@ import net.minecraft.block.BlockJukebox;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 public final class DriverRecordPlayer extends DriverTileEntity implements EnvironmentAware {
@@ -22,8 +23,8 @@ public final class DriverRecordPlayer extends DriverTileEntity implements Enviro
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((BlockJukebox.TileEntityJukebox) world.getTileEntity(x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+        return new Environment((BlockJukebox.TileEntityJukebox) world.getTileEntity(pos));
     }
 
     @Override
@@ -50,7 +51,7 @@ public final class DriverRecordPlayer extends DriverTileEntity implements Enviro
 
         @Callback(doc = "function():string -- Get the title of the record currently in the jukebox.")
         public Object[] getRecord(final Context context, final Arguments args) {
-            final ItemStack record = tileEntity.func_145856_a();
+            final ItemStack record = tileEntity.getRecord();
             if (record == null || !(record.getItem() instanceof ItemRecord)) {
                 return null;
             }

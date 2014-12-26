@@ -11,6 +11,7 @@ import li.cil.oc.api.prefab
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.BlockPos
 
 import scala.collection.convert.WrapAsScala._
 
@@ -27,7 +28,7 @@ class UpgradeTractorBeam(owner: EnvironmentHost, player: () => EntityPlayer) ext
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val items = world.getEntitiesWithinAABB(classOf[EntityItem], pickupBounds)
       .map(_.asInstanceOf[EntityItem])
-      .filter(item => item.isEntityAlive && item.delayBeforeCanPickup <= 0)
+      .filter(item => item.isEntityAlive && !item.cannotPickup)
     if (items.nonEmpty) {
       val item = items(world.rand.nextInt(items.size))
       val stack = item.getEntityItem
@@ -35,7 +36,7 @@ class UpgradeTractorBeam(owner: EnvironmentHost, player: () => EntityPlayer) ext
       item.onCollideWithPlayer(player())
       if (stack.stackSize < size || item.isDead) {
         context.pause(Settings.get.suckDelay)
-        world.playAuxSFX(2003, math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt, 0)
+        world.playAuxSFX(2003, new BlockPos(math.floor(item.posX).toInt, math.floor(item.posY).toInt, math.floor(item.posZ).toInt), 0)
         return result(true)
       }
     }
@@ -47,7 +48,7 @@ class UpgradeTractorBeam(owner: EnvironmentHost, player: () => EntityPlayer) ext
     val x = player.posX
     val y = player.posY
     val z = player.posZ
-    AxisAlignedBB.getBoundingBox(
+    AxisAlignedBB.fromBounds(
       x - pickupRadius, y - pickupRadius, z - pickupRadius,
       x + pickupRadius, y + pickupRadius, z + pickupRadius)
   }

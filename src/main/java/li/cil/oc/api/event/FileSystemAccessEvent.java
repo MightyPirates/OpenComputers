@@ -1,7 +1,7 @@
 package li.cil.oc.api.event;
 
-import cpw.mods.fml.common.eventhandler.Cancelable;
-import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 import li.cil.oc.api.network.Node;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -44,10 +44,10 @@ public class FileSystemAccessEvent extends Event {
      */
     protected FileSystemAccessEvent(String sound, TileEntity tileEntity, NBTTagCompound data) {
         this.sound = sound;
-        this.world = tileEntity.getWorldObj();
-        this.x = tileEntity.xCoord + 0.5;
-        this.y = tileEntity.yCoord + 0.5;
-        this.z = tileEntity.zCoord + 0.5;
+        this.world = tileEntity.getWorld();
+        this.x = tileEntity.getPos().getX() + 0.5;
+        this.y = tileEntity.getPos().getY() + 0.5;
+        this.z = tileEntity.getPos().getZ() + 0.5;
         this.tileEntity = tileEntity;
         this.data = data;
     }

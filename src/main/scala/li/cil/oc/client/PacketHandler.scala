@@ -2,8 +2,6 @@ package li.cil.oc.client
 
 import java.io.EOFException
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
@@ -18,9 +16,13 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.Vec3
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import org.lwjgl.input.Keyboard
 
 object PacketHandler extends CommonPacketHandler {
@@ -30,13 +32,12 @@ object PacketHandler extends CommonPacketHandler {
 
   protected override def world(player: EntityPlayer, dimension: Int) = {
     val world = player.worldObj
-    if (world.provider.dimensionId == dimension) Some(world)
+    if (world.provider.getDimensionId == dimension) Some(world)
     else None
   }
 
   override def dispatch(p: PacketParser) {
     p.packetType match {
-      case PacketType.AbstractBusState => onAbstractBusState(p)
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ColorChange => onColorChange(p)
@@ -81,12 +82,6 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onAbstractBusState(p: PacketParser) =
-    p.readTileEntity[AbstractBusAware]() match {
-      case Some(t) => t.isAbstractBusAvailable = p.readBoolean()
-      case _ => // Invalid packet.
-    }
-
   def onAnalyze(p: PacketParser) {
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
@@ -107,7 +102,7 @@ object PacketHandler extends CommonPacketHandler {
   def onColorChange(p: PacketParser) =
     p.readTileEntity[Colored]() match {
       case Some(t) =>
-        t.color = p.readInt()
+        t.color = EnumDyeColor.byMetadata(p.readInt())
         t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }
@@ -222,9 +217,10 @@ object PacketHandler extends CommonPacketHandler {
   def onHologramPositionOffsetY(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
-        t.translation.xCoord = p.readDouble()
-        t.translation.yCoord = p.readDouble()
-        t.translation.zCoord = p.readDouble()
+        val x = p.readDouble()
+        val y = p.readDouble()
+        val z = p.readDouble()
+        t.translation = new Vec3(x, y, z)
       case _ => // Invalid packet.
     }
 
@@ -262,7 +258,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[RedstoneAware]() match {
       case Some(t) =>
         t.isOutputEnabled = p.readBoolean()
-        for (d <- ForgeDirection.VALID_DIRECTIONS) {
+        for (d <- EnumFacing.values) {
           t.output(d, p.readByte())
         }
       case _ => // Invalid packet.
@@ -311,7 +307,7 @@ object PacketHandler extends CommonPacketHandler {
       case (Some(t), Some(d)) => t.robot.move(d)
       case (_, Some(d)) =>
         // Invalid packet, robot may be coming from outside our loaded area.
-        PacketSender.sendRobotStateRequest(dimension, x + d.offsetX, y + d.offsetY, z + d.offsetZ)
+        PacketSender.sendRobotStateRequest(dimension, x + d.getFrontOffsetX, y + d.getFrontOffsetY, z + d.getFrontOffsetZ)
       case _ => // Invalid packet.
     }
   }

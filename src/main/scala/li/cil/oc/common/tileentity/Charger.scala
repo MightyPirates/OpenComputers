@@ -1,7 +1,8 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraft.util.EnumParticleTypes
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -18,7 +19,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.Vec3
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -39,13 +40,13 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = side != facing
+  override protected def hasConnector(side: EnumFacing) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
+  override protected def connector(side: EnumFacing) = Option(if (side != facing) node else null)
 
   override protected def energyThroughput = Settings.get.chargerRate
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null
   }
@@ -54,8 +55,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def canUpdate = true
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def update() {
+    super.update()
 
     // Offset by hashcode to avoid all chargers ticking at the same time.
     if ((world.getWorldInfo.getWorldTotalTime + math.abs(hashCode())) % 20 == 0) {
@@ -105,7 +106,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
           val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
           val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
           val dz = 0.45 * Math.cos(theta)
-          world.spawnParticle("happyVillager", position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
+          world.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
       }
     }
   }
@@ -168,9 +169,9 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
-  override protected def updateRedstoneInput(side: ForgeDirection) {
+  override protected def updateRedstoneInput(side: EnumFacing) {
     super.updateRedstoneInput(side)
-    val signal = math.max(0, math.min(15, ForgeDirection.VALID_DIRECTIONS.map(input).max))
+    val signal = math.max(0, math.min(15, EnumFacing.values.map(input).max))
 
     if (invertSignal) chargeSpeed = (15 - signal) / 15.0
     else chargeSpeed = signal / 15.0
@@ -185,7 +186,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   def updateConnectors() {
-    val robotConnectors = ForgeDirection.VALID_DIRECTIONS.map(side => {
+    val robotConnectors = EnumFacing.values.map(side => {
       val blockPos = BlockPosition(this).offset(side)
       if (world.blockExists(blockPos)) Option(world.getTileEntity(blockPos))
       else None
@@ -193,7 +194,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       case Some(t: RobotProxy) => (BlockPosition(t).toVec3, t.robot.node.asInstanceOf[Connector])
     }
     val droneConnectors = world.getEntitiesWithinAABB(classOf[Drone], BlockPosition(this).bounds.expand(1, 1, 1)).collect {
-      case drone: Drone => (Vec3.createVectorHelper(drone.posX, drone.posY, drone.posZ), drone.components.node.asInstanceOf[Connector])
+      case drone: Drone => (new Vec3(drone.posX, drone.posY, drone.posZ), drone.components.node.asInstanceOf[Connector])
     }
     connectors.clear()
     connectors ++= robotConnectors

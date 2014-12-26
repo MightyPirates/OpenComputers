@@ -1,8 +1,9 @@
 package li.cil.oc.server.component.robot
 
 import com.mojang.authlib.GameProfile
-import cpw.mods.fml.common.ObfuscationReflectionHelper
-import cpw.mods.fml.common.eventhandler.Event
+import net.minecraft.world.IInteractionObject
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
+import net.minecraftforge.fml.common.eventhandler.Event
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
@@ -34,7 +35,7 @@ import net.minecraft.world.WorldServer
 import net.minecraftforge.common.ForgeHooks
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.event.entity.player.EntityInteractEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
@@ -63,8 +64,8 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   capabilities.disableDamage = true
   capabilities.isFlying = true
   onGround = true
-  yOffset = 0.5f
-  eyeHeight = 0f
+  override def getYOffset = 0.5f
+  override def getEyeHeight = 0f
   setSize(1, 1)
 
   if (Mods.BattleGear2.isAvailable) {
@@ -72,30 +73,30 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   }
   else inventory = robot.inventory
 
-  var facing, side = ForgeDirection.SOUTH
+  var facing, side = EnumFacing.SOUTH
 
   var customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided: ItemStack = _
 
   def world = robot.world
 
-  override def getPlayerCoordinates = new ChunkCoordinates(robot.x, robot.y, robot.z)
+  override def getPosition = new BlockPos(posX, posY, posZ)
 
   override def getDefaultEyeHeight = 0f
 
-  override def getDisplayName = robot.name
+  override def getDisplayName = new ChatComponentText(robot.name)
 
   theItemInWorldManager.setBlockReachDistance(1)
 
   // ----------------------------------------------------------------------- //
 
-  def updatePositionAndRotation(facing: ForgeDirection, side: ForgeDirection) {
+  def updatePositionAndRotation(facing: EnumFacing, side: EnumFacing) {
     this.facing = facing
     this.side = side
     // Slightly offset in robot's facing to avoid glitches (e.g. Portal Gun).
-    val direction = Vec3.createVectorHelper(
-      facing.offsetX + side.offsetX + robot.facing.offsetX * 0.01,
-      facing.offsetY + side.offsetY + robot.facing.offsetY * 0.01,
-      facing.offsetZ + side.offsetZ + robot.facing.offsetZ * 0.01).normalize()
+    val direction = new Vec3(
+      facing.getFrontOffsetX + side.getFrontOffsetX + robot.facing.getFrontOffsetX * 0.01,
+      facing.getFrontOffsetY + side.getFrontOffsetY + robot.facing.getFrontOffsetY * 0.01,
+      facing.getFrontOffsetZ + side.getFrontOffsetZ + robot.facing.getFrontOffsetZ * 0.01).normalize()
     val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
     val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
     setLocationAndAngles(robot.x + 0.5, robot.y, robot.z + 0.5, yaw, pitch)
@@ -103,24 +104,24 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     prevRotationYaw = rotationYaw
   }
 
-  def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection = facing) = {
-    val (x, y, z) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-    val bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
+  def closestEntity[Type <: Entity : ClassTag](side: EnumFacing = facing) = {
+    val (x, y, z) = (robot.x + side.getFrontOffsetX, robot.y + side.getFrontOffsetY, robot.z + side.getFrontOffsetZ)
+    val bounds = AxisAlignedBB.fromBounds(x, y, z, x + 1, y + 1, z + 1)
     Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, bounds, this)).map(_.asInstanceOf[Type])
   }
 
-  def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    val (x, y, z) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
+  def entitiesOnSide[Type <: Entity : ClassTag](side: EnumFacing) = {
+    val (x, y, z) = (robot.x + side.getFrontOffsetX, robot.y + side.getFrontOffsetY, robot.z + side.getFrontOffsetZ)
     entitiesInBlock[Type](x, y, z)
   }
 
   def entitiesInBlock[Type <: Entity : ClassTag](x: Int, y: Int, z: Int) = {
-    val bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
+    val bounds = AxisAlignedBB.fromBounds(x, y, z, x + 1, y + 1, z + 1)
     world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
   }
 
   private def adjacentItems = {
-    val bounds = AxisAlignedBB.getBoundingBox(robot.x - 2, robot.y - 2, robot.z - 2, robot.x + 3, robot.y + 3, robot.z + 3)
+    val bounds = AxisAlignedBB.fromBounds(robot.x - 2, robot.y - 2, robot.z - 2, robot.x + 3, robot.y + 3, robot.z + 3)
     world.getEntitiesWithinAABB(classOf[EntityItem], bounds).map(_.asInstanceOf[EntityItem])
   }
 
@@ -128,7 +129,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     val itemsAfter = adjacentItems
     val itemsDropped = itemsAfter -- itemsBefore
     for (drop <- itemsDropped) {
-      drop.delayBeforeCanPickup = 0
+      drop.setNoPickupDelay()
       drop.onCollideWithPlayer(this)
     }
   }
@@ -168,26 +169,27 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     })
   }
 
-  def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
+  def activateBlockOrUseItem(pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
     callUsingItemInSlot(0, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side, world))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, world, pos, side))) {
         return ActivationType.None
       }
 
       val item = if (stack != null) stack.getItem else null
       if (!PortalGun.isPortalGun(stack)) {
-        if (item != null && item.onItemUseFirst(stack, this, world, x, y, z, side, hitX, hitY, hitZ)) {
+        if (item != null && item.onItemUseFirst(stack, this, world, pos, side, hitX, hitY, hitZ)) {
           return ActivationType.ItemUsed
         }
       }
 
-      val block = world.getBlock(x, y, z)
-      val canActivate = block != null && Settings.get.allowActivateBlocks
-      val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(world, x, y, z, this)))
+      val state = world.getBlockState(pos)
+      val block = state.getBlock
+      val canActivate = block != Blocks.air && Settings.get.allowActivateBlocks
+      val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(world, pos, this)))
       val result =
-        if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
+        if (shouldActivate && block.onBlockActivated(world, pos, state, this, side, hitX, hitY, hitZ))
           ActivationType.BlockActivated
-        else if (isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ))
+        else if (isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, pos, side, hitX, hitY, hitZ))
           ActivationType.ItemPlaced
         else if (tryUseItem(stack, duration))
           ActivationType.ItemUsed
@@ -200,7 +202,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, 0, world))) {
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, world, getPosition, facing))) {
         tryUseItem(stack, duration)
       }
       else false
@@ -217,18 +219,18 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       // Change the offset at which items are used, to avoid hitting
       // the robot itself (e.g. with bows, potions, mining laser, ...).
       val offset = facing
-      posX += offset.offsetX * 0.6
-      posY += offset.offsetY * 0.6
-      posZ += offset.offsetZ * 0.6
+      posX += offset.getFrontOffsetX * 0.6
+      posY += offset.getFrontOffsetY * 0.6
+      posZ += offset.getFrontOffsetZ * 0.6
       val newStack = stack.useItemRightClick(world, this)
       if (isUsingItem) {
         val remaining = customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided.getMaxItemUseDuration - heldTicks
         customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided.onPlayerStoppedUsing(world, this, remaining)
         clearItemInUse()
       }
-      posX -= offset.offsetX * 0.6
-      posY -= offset.offsetY * 0.6
-      posZ -= offset.offsetZ * 0.6
+      posX -= offset.getFrontOffsetX * 0.6
+      posY -= offset.getFrontOffsetY * 0.6
+      posZ -= offset.getFrontOffsetZ * 0.6
       robot.machine.pause(heldTicks / 20.0)
       // These are functions to avoid null pointers if newStack is null.
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
@@ -242,69 +244,70 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     }
   }
 
-  def placeBlock(slot: Int, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  def placeBlock(slot: Int, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     callUsingItemInSlot(slot, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side, world))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, world, pos, side))) {
         return false
       }
 
-      tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ)
+      tryPlaceBlockWhileHandlingFunnySpecialCases(stack, pos, side, hitX, hitY, hitZ)
     }, repair = false)
   }
 
-  def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
+  def clickBlock(pos: BlockPos, side: EnumFacing): Double = {
     callUsingItemInSlot(0, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side, world))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, world, pos, side))) {
         return 0
       }
 
       // TODO Is this already handled via the event?
-      if (MinecraftServer.getServer.isBlockProtected(world, x, y, z, this)) {
+      if (MinecraftServer.getServer.isBlockProtected(world, pos, this)) {
         return 0
       }
 
-      val block = world.getBlock(x, y, z)
-      val metadata = world.getBlockMetadata(x, y, z)
+      val state = world.getBlockState(pos)
+      val block = state.getBlock
+      val metadata = block.getMetaFromState(state)
       val mayClickBlock = block != null
       val canClickBlock = mayClickBlock &&
-        !block.isAir(world, x, y, z) &&
+        !block.isAir(world, pos) &&
         FluidRegistry.lookupFluidForBlock(block) == null
       if (!canClickBlock) {
         return 0
       }
 
-      val breakEvent = new BlockEvent.BreakEvent(x, y, z, world, block, metadata, this)
+      val breakEvent = new BlockEvent.BreakEvent(world, pos, state, this)
       MinecraftForge.EVENT_BUS.post(breakEvent)
       if (breakEvent.isCanceled) {
         return 0
       }
 
-      block.onBlockClicked(world, x, y, z, this)
-      world.extinguishFire(this, x, y, z, side)
+      block.onBlockClicked(world, pos, this)
+      world.extinguishFire(this, pos, side)
 
-      val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
-      val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
+      val isBlockUnbreakable = block.getBlockHardness(world, pos) < 0
+      val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, pos, this)
       if (!canDestroyBlock) {
         return 0
       }
 
-      if (world.getWorldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
+      if (world.getWorldInfo.getGameType.isAdventure && !canPlayerEdit(pos, side, stack)) {
         return 0
       }
 
       val cobwebOverride = block == Blocks.web && Settings.get.screwCobwebs
 
-      if (!ForgeHooks.canHarvestBlock(block, this, metadata) && !cobwebOverride) {
+      if (!ForgeHooks.canHarvestBlock(block, this, world, pos) && !cobwebOverride) {
         return 0
       }
 
-      val hardness = block.getBlockHardness(world, x, y, z)
-      val strength = getBreakSpeed(block, false, metadata, x, y, z)
+      val hardness = block.getBlockHardness(world, pos)
+      val strength = getBreakSpeed(state, pos)
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay
         else hardness * 1.5 / strength
 
-      val preEvent = new RobotBreakBlockEvent.Pre(robot, world, x, y, z, breakTime * Settings.get.harvestRatio)
+      val preEvent = new RobotBreakBlockEvent.Pre(robot, world, pos, breakTime * Settings.get.harvestRatio)
       MinecraftForge.EVENT_BUS.post(preEvent)
       if (preEvent.isCanceled) return 0
       val adjustedBreakTime = math.max(0.05, preEvent.getBreakTime)
@@ -317,7 +320,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         posY -= 1.62
         prevPosY = posY
       }
-      val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)
+      val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, pos, this)
       if (cancel && TinkersConstruct.isInfiTool(stack)) {
         posY += 1.62
         prevPosY = posY
@@ -327,19 +330,20 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         return 0
       }
 
-      world.playAuxSFXAtEntity(this, 2001, x, y, z, Block.getIdFromBlock(block) + (metadata << 12))
+      world.playAuxSFXAtEntity(this, 2001, pos, Block.getIdFromBlock(block) + (metadata << 12))
 
       if (stack != null) {
-        stack.func_150999_a(world, block, x, y, z, this)
+        stack.onBlockDestroyed(world, block, pos, this)
       }
 
-      block.onBlockHarvested(world, x, y, z, metadata, this)
-      if (block.removedByPlayer(world, this, x, y, z, block.canHarvestBlock(this, metadata))) {
-        block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
+      val te = world.getTileEntity(pos)
+      block.onBlockHarvested(world, pos, state, this)
+      if (block.removedByPlayer(world, pos, this, block.canHarvestBlock(world, pos, this))) {
+        block.onBlockDestroyedByPlayer(world, pos, state)
         // Note: the block has been destroyed by `removeBlockByPlayer`. This
         // check only serves to test whether the block can drop anything at all.
-        if (block.canHarvestBlock(this, metadata)) {
-          block.harvestBlock(world, this, x, y, z, metadata)
+        if (block.canHarvestBlock(world, pos, this)) {
+          block.harvestBlock(world, this, pos, state, te)
           MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(robot, breakEvent.getExpToDrop))
         }
         else if (stack != null) {
@@ -407,18 +411,18 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     }
   }
 
-  private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     stack != null && stack.stackSize > 0 && {
-      val event = new RobotPlaceBlockEvent.Pre(robot, stack, world, x, y, z)
+      val event = new RobotPlaceBlockEvent.Pre(robot, stack, world, pos)
       MinecraftForge.EVENT_BUS.post(event)
       if (event.isCanceled) false
       else {
         val fakeEyeHeight = if (rotationPitch < 0 && isSomeKindOfPiston(stack)) 1.82 else 0
         setPosition(posX, posY - fakeEyeHeight, posZ)
-        val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
+        val didPlace = stack.onItemUse(this, world, pos, side, hitX, hitY, hitZ)
         setPosition(posX, posY + fakeEyeHeight, posZ)
         if (didPlace) {
-          MinecraftForge.EVENT_BUS.post(new RobotPlaceBlockEvent.Post(robot, stack, world, x, y, z))
+          MinecraftForge.EVENT_BUS.post(new RobotPlaceBlockEvent.Post(robot, stack, world, pos))
         }
         didPlace
       }
@@ -428,7 +432,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   private def isSomeKindOfPiston(stack: ItemStack) =
     stack.getItem match {
       case itemBlock: ItemBlock =>
-        val block = itemBlock.field_150939_a
+        val block = itemBlock.getBlock
         block != null && block.isInstanceOf[BlockPistonBase]
       case _ => false
     }
@@ -450,10 +454,6 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       robot.bot.node.changeBuffer(-Settings.get.robotExhaustionCost * amount)
     }
     MinecraftForge.EVENT_BUS.post(new RobotExhaustionEvent(robot, amount))
-  }
-
-  override def displayGUIMerchant(merchant: IMerchant, name: String) {
-    merchant.setCustomer(null)
   }
 
   override def closeScreen() {}
@@ -488,29 +488,21 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   override def mountEntity(entity: Entity) {}
 
-  override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
+  override def trySleep(bedLocation: BlockPos) = EnumStatus.OTHER_PROBLEM
 
   override def addChatMessage(message: IChatComponent) {}
 
-  override def displayGUIWorkbench(x: Int, y: Int, z: Int) {}
-
-  override def displayGUIEnchantment(x: Int, y: Int, z: Int, idk: String) {}
-
-  override def displayGUIAnvil(x: Int, y: Int, z: Int) {}
-
   override def displayGUIChest(inventory: IInventory) {}
 
-  override def displayGUIHopperMinecart(cart: EntityMinecartHopper) {}
+  override def displayGUIBook(bookStack: ItemStack) {}
+
+  override def displayVillagerTradeGui(villager: IMerchant): Unit = {
+    villager.setCustomer(null)
+  }
+
+  override def displayGui(guiOwner: IInteractionObject) {}
 
   override def displayGUIHorse(horse: EntityHorse, inventory: IInventory) {}
 
-  override def func_146104_a(tileEntity: TileEntityBeacon) {}
-
-  override def func_146098_a(tileEntity: TileEntityBrewingStand) {}
-
-  override def func_146102_a(tileEntity: TileEntityDispenser) {}
-
-  override def func_146101_a(tileEntity: TileEntityFurnace) {}
-
-  override def func_146093_a(tileEntity: TileEntityHopper) {}
+  override def openEditSign(signTile: TileEntitySign) {}
 }

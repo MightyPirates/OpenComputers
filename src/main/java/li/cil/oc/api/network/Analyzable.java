@@ -1,6 +1,7 @@
 package li.cil.oc.api.network;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EnumFacing;
 
 /**
  * Allows defining a callback for when a block is right-clicked with an
@@ -30,5 +31,5 @@ public interface Analyzable {
      * @return the nodes to display information for, usually an environment's
      * main node (i.e. <tt>this.node()</tt>).
      */
-    Node[] onAnalyze(EntityPlayer player, int side, float hitX, float hitY, float hitZ);
+    Node[] onAnalyze(EntityPlayer player, EnumFacing side, float hitX, float hitY, float hitZ);
 }

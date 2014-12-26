@@ -1,7 +1,7 @@
 package li.cil.oc.common.entity
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -32,7 +32,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.IFluidTank
 
 class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
@@ -235,7 +235,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
 
   @SideOnly(Side.CLIENT)
-  override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
+  override def func_180426_a(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int, unused: Boolean) {
     // Only set exact position if we're too far away from the server's
     // position, otherwise keep interpolating. This removes jitter and
     // is good enough for drones.
@@ -259,7 +259,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       info.storedEnergy = control.node.localBuffer.toInt
       info.save(stack)
       val entity = new EntityItem(world, posX, posY, posZ, stack)
-      entity.delayBeforeCanPickup = 15
+      entity.setPickupDelay(15)
       world.spawnEntityInWorld(entity)
       InventoryUtils.dropAllSlots(BlockPosition(this: Entity), inventory)
     }
@@ -326,20 +326,20 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     prevPosX = posX
     prevPosY = posY
     prevPosZ = posZ
-    noClip = func_145771_j(posX, (boundingBox.minY + boundingBox.maxY) / 2, posZ)
+    noClip = pushOutOfBlocks(posX, (getEntityBoundingBox.minY + getEntityBoundingBox.maxY) / 2, posZ)
 
     if (isRunning) {
-      val toTarget = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
+      val toTarget = new Vec3(targetX - posX, targetY - posY, targetZ - posZ)
       val distance = toTarget.lengthVector()
-      val velocity = Vec3.createVectorHelper(motionX, motionY, motionZ)
+      val velocity = new Vec3(motionX, motionY, motionZ)
       if (distance > 0 && (distance > 0.005f || velocity.dotProduct(velocity) > 0.005f)) {
         val acceleration = math.min(targetAcceleration, distance) / distance
-        velocity.xCoord += toTarget.xCoord * acceleration
-        velocity.yCoord += toTarget.yCoord * acceleration
-        velocity.zCoord += toTarget.zCoord * acceleration
-        motionX = math.max(-maxVelocity, math.min(maxVelocity, velocity.xCoord))
-        motionY = math.max(-maxVelocity, math.min(maxVelocity, velocity.yCoord))
-        motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocity.zCoord))
+        val velocityX = velocity.xCoord + toTarget.xCoord * acceleration
+        val velocityY = velocity.yCoord + toTarget.yCoord * acceleration
+        val velocityZ = velocity.zCoord + toTarget.zCoord * acceleration
+        motionX = math.max(-maxVelocity, math.min(maxVelocity, velocityX))
+        motionY = math.max(-maxVelocity, math.min(maxVelocity, velocityY))
+        motionZ = math.max(-maxVelocity, math.min(maxVelocity, velocityZ))
       }
       else {
         motionX = 0
@@ -364,7 +364,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       motionZ *= drag
     }
     else {
-      val groundDrag = worldObj.getBlock(BlockPosition(this: Entity).offset(ForgeDirection.DOWN)).slipperiness * drag
+      val groundDrag = worldObj.getBlock(BlockPosition(this: Entity).offset(EnumFacing.DOWN)).slipperiness * drag
       motionX *= groundDrag
       motionY *= drag
       motionZ *= groundDrag
@@ -376,10 +376,10 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def hitByEntity(entity: Entity) = {
     if (isRunning) {
-      val direction = Vec3.createVectorHelper(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
+      val direction = new Vec3(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
       if (!world.isRemote) {
         if (Settings.get.inputUsername)
-          machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord), entity.getCommandSenderName)
+          machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord), entity.getName)
         else
           machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord))
       }
@@ -403,7 +403,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   // ----------------------------------------------------------------------- //
 
   override def handleWaterMovement() = {
-    inWater = worldObj.handleMaterialAcceleration(boundingBox, Material.water, this)
+    inWater = worldObj.handleMaterialAcceleration(getEntityBoundingBox, Material.water, this)
     inWater
   }
 

@@ -4,63 +4,49 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
 class Adapter extends SimpleBlock {
-  override protected def customTextures = Array(
-    None,
-    Some("AdapterTop"),
-    Some("AdapterSide"),
-    Some("AdapterSide"),
-    Some("AdapterSide"),
-    Some("AdapterSide")
-  )
+  override def hasTileEntity(state: IBlockState) = true
+
+  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Adapter()
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
-
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
-
-  // ----------------------------------------------------------------------- //
-
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Adapter.id, world, x, y, z)
+        player.openGui(OpenComputers, GuiType.Adapter.id, world, pos.getX, pos.getY, pos.getZ)
       }
       true
     }
     else false
   }
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
-    world.getTileEntity(x, y, z) match {
+  override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) =
+    world.getTileEntity(pos) match {
       case adapter: tileentity.Adapter => adapter.neighborChanged()
       case _ => // Ignore.
     }
 
-  override def onNeighborChange(world: IBlockAccess, x: Int, y: Int, z: Int, tileX: Int, tileY: Int, tileZ: Int) =
-    world.getTileEntity(x, y, z) match {
+  override def onNeighborChange(world: IBlockAccess, pos: BlockPos, neighbor: BlockPos) =
+    world.getTileEntity(pos) match {
       case adapter: tileentity.Adapter =>
-        val (dx, dy, dz) = (tileX - x, tileY - y, tileZ - z)
-        val index = 3 + dx + dy + dy + dz + dz + dz
-        if (index >= 0 && index < sides.length) {
-          adapter.neighborChanged(sides(index))
-        }
+        // TODO can we just pass the blockpos?
+        val side =
+          if (neighbor == pos.down()) EnumFacing.DOWN
+          else if (neighbor == pos.up()) EnumFacing.UP
+          else if (neighbor == pos.north()) EnumFacing.NORTH
+          else if (neighbor == pos.south()) EnumFacing.SOUTH
+          else if (neighbor == pos.west()) EnumFacing.WEST
+          else if (neighbor == pos.east()) EnumFacing.EAST
+          else throw new IllegalArgumentException("not a neighbor") // TODO wat
+        adapter.neighborChanged(side)
       case _ => // Ignore.
     }
-
-  private val sides = Array(
-    ForgeDirection.NORTH,
-    ForgeDirection.DOWN,
-    ForgeDirection.WEST,
-    ForgeDirection.UNKNOWN,
-    ForgeDirection.EAST,
-    ForgeDirection.UP,
-    ForgeDirection.SOUTH)
 }

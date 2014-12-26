@@ -7,11 +7,11 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -37,7 +37,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsJava._
@@ -49,23 +49,24 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override def maxStackSize = 1
 
-  private var iconOn: Option[Icon] = None
-  private var iconOff: Option[Icon] = None
-
-  @SideOnly(Side.CLIENT)
-  override def icon(stack: ItemStack, pass: Int) = {
-    if (stack.hasTagCompound) {
-      val data = new ItemUtils.TabletData(stack)
-      if (data.isRunning) iconOn else iconOff
-    } else super.icon(stack, pass)
-  }
-
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
-
-    iconOn = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TabletOn"))
-    iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TabletOff"))
-  }
+  // TODO remove
+//  private var iconOn: Option[Icon] = None
+//  private var iconOff: Option[Icon] = None
+//
+//  @SideOnly(Side.CLIENT)
+//  override def icon(stack: ItemStack, pass: Int) = {
+//    if (stack.hasTagCompound) {
+//      val data = new ItemUtils.TabletData(stack)
+//      if (data.isRunning) iconOn else iconOff
+//    } else super.icon(stack, pass)
+//  }
+//
+//  override def registerIcons(iconRegister: IconRegister) = {
+//    super.getAtlasSprites(iconRegister)
+//
+//    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOn"))
+//    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOff"))
+//  }
 
   // ----------------------------------------------------------------------- //
 
@@ -137,9 +138,9 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: ForgeDirection) = value // TODO do we care?
+  override def toLocal(value: EnumFacing) = value // TODO do we care?
 
-  override def toGlobal(value: ForgeDirection) = value // TODO do we care?
+  override def toGlobal(value: EnumFacing) = value // TODO do we care?
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
@@ -223,7 +224,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 
-  override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getCommandSenderName)
+  override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getName)
 
   override def markDirty() {}
 

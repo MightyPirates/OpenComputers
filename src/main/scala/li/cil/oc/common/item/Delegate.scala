@@ -2,8 +2,6 @@ package li.cil.oc.common.item
 
 import java.util
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -15,14 +13,14 @@ import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import org.lwjgl.input
 
 trait Delegate {
-  type Icon = net.minecraft.util.IIcon
-  type IconRegister = net.minecraft.client.renderer.texture.IIconRegister
-
-  val parent: Delegator
+  def parent: Delegator
 
   def unlocalizedName = getClass.getSimpleName
 
@@ -34,17 +32,15 @@ trait Delegate {
 
   val itemId = parent.add(this)
 
-  private var _icon: Option[Icon] = None
-
   def maxStackSize = 64
 
   def createItemStack(amount: Int = 1) = new ItemStack(parent, amount, itemId)
 
   // ----------------------------------------------------------------------- //
 
-  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
   def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (player.isSneaking) {
@@ -110,20 +106,6 @@ trait Delegate {
   def damage(stack: ItemStack) = 0
 
   def maxDamage(stack: ItemStack) = 0
-
-  @SideOnly(Side.CLIENT)
-  def icon: Option[Icon] = _icon
-
-  @SideOnly(Side.CLIENT)
-  protected def icon_=(value: Icon) = _icon = Option(value)
-
-  @SideOnly(Side.CLIENT)
-  def icon(stack: ItemStack, pass: Int): Option[Icon] = icon
-
-  @SideOnly(Side.CLIENT)
-  def registerIcons(iconRegister: IconRegister) {
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":" + unlocalizedName)
-  }
 
   // ----------------------------------------------------------------------- //
 

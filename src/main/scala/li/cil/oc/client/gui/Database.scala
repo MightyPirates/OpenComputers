@@ -15,16 +15,16 @@ class Database(playerInventory: InventoryPlayer, val databaseInventory: Database
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor4f(1, 1, 1, 1)
-    mc.renderEngine.bindTexture(Textures.guiDatabase)
+    mc.renderEngine.bindTexture(Textures.GUI.Database)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
 
     if (databaseInventory.tier > Tier.One) {
-      mc.renderEngine.bindTexture(Textures.guiDatabase1)
+      mc.renderEngine.bindTexture(Textures.GUI.Database1)
       drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     }
 
     if (databaseInventory.tier > Tier.Two) {
-      mc.renderEngine.bindTexture(Textures.guiDatabase2)
+      mc.renderEngine.bindTexture(Textures.GUI.Database2)
       drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     }
   }

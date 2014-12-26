@@ -18,7 +18,7 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 
@@ -49,7 +49,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   @Callback(doc = """function(side:number[,options:table]):table -- Get some information on a directly adjacent block.""")
   def analyze(computer: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSide(0, EnumFacing.values: _*)
     val globalSide = host match {
       case rotatable: Rotatable => rotatable.toGlobal(side)
       case _ => side
@@ -68,7 +68,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   @Callback(doc = """function(side:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack representation of the block on the specified side in a database component.""")
   def store(computer: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSide(0, EnumFacing.values: _*)
     val globalSide = host match {
       case rotatable: Rotatable => rotatable.toGlobal(side)
       case _ => side

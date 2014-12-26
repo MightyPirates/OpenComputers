@@ -4,8 +4,9 @@ import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.gui.IUpdatePlayerListBox;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.util.EnumFacing;
 
 /**
  * TileEntities can implement the {@link li.cil.oc.api.network.SidedEnvironment}
@@ -18,7 +19,7 @@ import net.minecraftforge.common.util.ForgeDirection;
  * network as an index structure to find other nodes connected to them.
  */
 @SuppressWarnings("UnusedDeclaration")
-public abstract class TileEntitySidedEnvironment extends TileEntity implements SidedEnvironment {
+public abstract class TileEntitySidedEnvironment extends TileEntity implements SidedEnvironment, IUpdatePlayerListBox {
     // See constructor.
     protected Node[] nodes = new Node[6];
 
@@ -71,15 +72,14 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
     // exists for a side won't work on the client.
 
     @Override
-    public Node sidedNode(final ForgeDirection side) {
-        return side == ForgeDirection.UNKNOWN ? null : nodes[side.ordinal()];
+    public Node sidedNode(final EnumFacing side) {
+        return nodes[side.ordinal()];
     }
 
     // ----------------------------------------------------------------------- //
 
     @Override
-    public void updateEntity() {
-        super.updateEntity();
+    public void update() {
         // On the first update, try to add our node to nearby networks. We do
         // this in the update logic, not in validate() because we need to access
         // neighboring tile entities, which isn't possible in validate().

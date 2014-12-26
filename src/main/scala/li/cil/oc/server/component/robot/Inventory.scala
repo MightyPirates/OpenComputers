@@ -5,6 +5,7 @@ import net.minecraft.block.Block
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 
 import scala.util.control.Breaks._
@@ -30,15 +31,11 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
     else inventorySlots.find(slot => getStackInSlot(slot) == null && isItemValidForSlot(slot, stack)).getOrElse(-1)
   }
 
-  override def func_146030_a(p_146030_1_ : Item, p_146030_2_ : Int, p_146030_3_ : Boolean, p_146030_4_ : Boolean) = setCurrentItem(p_146030_1_, p_146030_2_, p_146030_3_, p_146030_4_)
-
-  def setCurrentItem(item: Item, itemDamage: Int, checkDamage: Boolean, create: Boolean) {}
+  override def setCurrentItem(item: Item, itemDamage: Int, checkDamage: Boolean, create: Boolean) {}
 
   override def changeCurrentItem(direction: Int) {}
 
-  override def clearInventory(item: Item, itemDamage: Int) = 0
-
-  override def func_70439_a(item: Item, itemDamage: Int) {}
+  override def func_174925_a(item: Item, damage: Int, count: Int, tag: NBTTagCompound) = 0
 
   override def decrementAnimations() {
     for (slot <- 0 until getSizeInventory) {
@@ -121,9 +118,7 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) = robot.setInventorySlotContents(slot, stack)
 
-  override def func_146023_a(p_146023_1_ : Block) = getStrVsBlock(p_146023_1_)
-
-  def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.func_150997_a(block))
+  override def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.getStrVsBlock(block))
 
   override def writeToNBT(nbt: NBTTagList) = nbt
 
@@ -133,7 +128,7 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
 
   override def getStackInSlot(slot: Int) = robot.getStackInSlot(slot)
 
-  override def getInventoryName = robot.getInventoryName
+  override def getName = robot.getName
 
   override def getInventoryStackLimit = robot.getInventoryStackLimit
 

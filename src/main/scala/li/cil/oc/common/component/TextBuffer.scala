@@ -1,9 +1,9 @@
 package li.cil.oc.common.component
 
 import com.google.common.base.Strings
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -657,22 +657,22 @@ object TextBuffer {
     }
 
     override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button), player.getName)
       else owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button))
     }
 
     override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button), player.getName)
       else owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button))
     }
 
     override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button), player.getName)
       else owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button))
     }
 
     override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta), player.getCommandSenderName)
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta), player.getName)
       else owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta))
     }
 
