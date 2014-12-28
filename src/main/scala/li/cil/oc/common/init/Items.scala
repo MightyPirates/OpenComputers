@@ -72,6 +72,7 @@ object Items extends ItemAPI {
   }
 
   def registerItem[T <: common.item.Delegate](delegate: T, id: String) = {
+    OpenComputers.proxy.registerModel(delegate, id)
     descriptors += id -> new ItemInfo {
       override def name = id
 
@@ -90,7 +91,7 @@ object Items extends ItemAPI {
       case simple: SimpleItem =>
         simple.setUnlocalizedName("oc." + id)
         GameRegistry.registerItem(simple, id)
-        OpenComputers.proxy.registerModel(instance)
+        OpenComputers.proxy.registerModel(instance, id)
       case _ =>
     }
     descriptors += id -> new ItemInfo {
@@ -171,7 +172,6 @@ object Items extends ItemAPI {
     }
 
     GameRegistry.registerItem(multi, "item")
-    OpenComputers.proxy.registerModel(multi)
 
     Recipes.addMultiItem(new item.Analyzer(multi), "analyzer", "oc:analyzer")
 

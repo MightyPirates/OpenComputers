@@ -4,6 +4,7 @@ import com.google.common.base.Strings
 import li.cil.oc._
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.Delegate
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.server._
@@ -65,7 +66,9 @@ class Proxy {
       api.Machine.add(classOf[LuaJLuaArchitecture])
   }
 
-  def registerModel(instance: Item): Unit = {}
+  def registerModel(instance: Delegate, id: String): Unit = {}
+
+  def registerModel(instance: Item, id: String): Unit = {}
 
   def registerModel(instance: Block, id: String): Unit = {}
 

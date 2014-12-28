@@ -9,6 +9,7 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.property.IUnlistedProperty
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 // Provides 2-axis rotation for blocks (pitch and yaw) using metadata to store the rotation.
@@ -29,6 +30,6 @@ trait OmniRotatable extends Block with Extended {
 }
 
 object OmniRotatable {
-  final val Pitch = PropertyDirection.create("pitch", Predicates.instanceOf(classOf[EnumFacing]))
+  final val Pitch = PropertyDirection.create("pitch", Predicates.in(Set(EnumFacing.DOWN, EnumFacing.UP, EnumFacing.NORTH)))
   final val Yaw = PropertyDirection.create("yaw", EnumFacing.Plane.HORIZONTAL.asInstanceOf[Predicate[EnumFacing]])
 }

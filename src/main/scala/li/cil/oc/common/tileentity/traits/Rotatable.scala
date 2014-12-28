@@ -5,10 +5,7 @@ import li.cil.oc.common.block
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 
 /** TileEntity base class for rotatable blocks. */
 trait Rotatable extends RotationAware with internal.Rotatable {
@@ -73,10 +70,12 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // ----------------------------------------------------------------------- //
 
   /** Translation for facings based on current pitch and yaw. */
-  private var cachedTranslation = translations(EnumFacing.NORTH.ordinal)(EnumFacing.SOUTH.ordinal - 2)
+  private var cachedTranslation: Array[EnumFacing] = null
 
   /** Translation from local to global coordinates. */
-  private var cachedInverseTranslation = invert(cachedTranslation)
+  private var cachedInverseTranslation: Array[EnumFacing] = null
+
+  private var cacheDirty = true
 
   // ----------------------------------------------------------------------- //
   // Accessors
@@ -154,9 +153,15 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       facing.rotateAround(around.getAxis)
   }
 
-  override def toLocal(value: EnumFacing) = cachedTranslation(value.ordinal)
+  override def toLocal(value: EnumFacing) = {
+    updateTranslation()
+    cachedTranslation(value.ordinal)
+  }
 
-  override def toGlobal(value: EnumFacing) = cachedInverseTranslation(value.ordinal)
+  override def toGlobal(value: EnumFacing) = {
+    updateTranslation()
+    cachedInverseTranslation(value.ordinal)
+  }
 
   def validFacings = Array(EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST)
 
@@ -174,21 +179,10 @@ trait Rotatable extends RotationAware with internal.Rotatable {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
-    updateTranslation()
-  }
-
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
-    updateTranslation()
-  }
-
-  // ----------------------------------------------------------------------- //
-
   /** Updates cached translation array and sends notification to clients. */
-  private def updateTranslation() = {
+  private def updateTranslation(): Unit = if (cacheDirty) {
+    cacheDirty = false
+
     val newTranslation = translations(pitch.ordinal)(yaw.ordinal - 2)
     if (cachedTranslation != newTranslation) {
       cachedTranslation = newTranslation
@@ -209,12 +203,12 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     }
     if (oldState.hashCode() != newState.hashCode()) {
       world.setBlockState(getPos, newState)
-      updateTranslation()
+      cacheDirty = true
       true
     }
     else false
   }
 
   private def invert(t: Array[EnumFacing]) =
-    (0 until t.length).map(i => EnumFacing.getFront(t.indexOf(EnumFacing.getFront(i))))
+    (0 until t.length).map(i => EnumFacing.getFront(t.indexOf(EnumFacing.getFront(i)))).toArray
 }

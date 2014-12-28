@@ -1,9 +1,6 @@
 package li.cil.oc.client
 
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
-import li.cil.oc.client
+import li.cil.oc._
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
@@ -13,6 +10,7 @@ import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.Delegate
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{Proxy => CommonProxy}
@@ -20,13 +18,12 @@ import li.cil.oc.util.Audio
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemMeshDefinition
+import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.property.IExtendedBlockState
-import net.minecraftforge.common.property.IUnlistedProperty
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.client.registry.RenderingRegistry
 import net.minecraftforge.fml.common.FMLCommonHandler
@@ -40,6 +37,7 @@ import scala.collection.mutable
 
 private[oc] class Proxy extends CommonProxy {
   private val meshableItems = mutable.ArrayBuffer.empty[Item]
+  private val itemDelegates = mutable.ArrayBuffer.empty[(String, Delegate)]
 
   override def preInit(e: FMLPreInitializationEvent) {
     if (Loader.isModLoaded("OpenComponents")) {
@@ -52,17 +50,18 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(Textures)
   }
 
-  override def registerModel(instance: Item): Unit = {
+  override def registerModel(instance: Delegate, id: String): Unit = {
+    itemDelegates += id -> instance
+  }
+
+  override def registerModel(instance: Item, id: String): Unit = {
     meshableItems += instance
   }
 
   override def registerModel(instance: Block, id: String): Unit = {
     val item = Item.getItemFromBlock(instance)
-    registerModel(item)
+    registerModel(item, id)
   }
-
-  private def cross(xs: Iterable[(IExtendedBlockState, String)], ys: Iterable[((IUnlistedProperty[_], Comparable[AnyRef]), String)]) =
-    for {(state, stateString) <- xs; ((property, value), valueString) <- ys} yield (state.withProperty(property.asInstanceOf[IUnlistedProperty[Any]], value), stateString + "," + valueString)
 
   override def init(e: FMLInitializationEvent) {
     super.init(e)
@@ -78,8 +77,16 @@ private[oc] class Proxy extends CommonProxy {
         }
       }
     }
-    meshableItems.foreach(item => mesher.register(item, meshDefinition))
+    for (item <- meshableItems) {
+      mesher.register(item, meshDefinition)
+    }
     meshableItems.clear()
+    for ((id, item) <- itemDelegates) {
+      val location = Settings.resourceDomain + ":" + id
+      mesher.register(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
+      ModelBakery.addVariantName(item.parent, location)
+    }
+    itemDelegates.clear()
 
     RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
