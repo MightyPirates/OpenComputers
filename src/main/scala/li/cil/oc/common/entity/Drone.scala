@@ -1,7 +1,5 @@
 package li.cil.oc.common.entity
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -30,10 +28,12 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.IFluidTank
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
@@ -130,11 +130,11 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def facing() = ForgeDirection.SOUTH
+  override def facing() = EnumFacing.SOUTH
 
-  override def toLocal(value: ForgeDirection) = value
+  override def toLocal(value: EnumFacing) = value
 
-  override def toGlobal(value: ForgeDirection) = value
+  override def toGlobal(value: EnumFacing) = value
 
   // ----------------------------------------------------------------------- //
 
@@ -225,28 +225,48 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+
   def targetX = dataWatcher.getWatchableObjectFloat(3)
+
   def targetY = dataWatcher.getWatchableObjectFloat(4)
+
   def targetZ = dataWatcher.getWatchableObjectFloat(5)
+
   def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
+
   def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+
   def globalBuffer = dataWatcher.getWatchableObjectInt(8)
+
   def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
+
   def statusText = dataWatcher.getWatchableObjectString(10)
+
   def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+
   def lightColor = dataWatcher.getWatchableObjectInt(12)
 
   def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+
   // Round target values to low accuracy to avoid floating point errors accumulating.
   def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 4) / 4f))
+
   def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 4) / 4f))
+
   def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 4) / 4f))
+
   def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
+
   def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+
   def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
+
   def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
+
   def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
+
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
+
   def lightColor_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
 
   @SideOnly(Side.CLIENT)

@@ -2,11 +2,11 @@ package li.cil.oc.common.item
 
 import java.util
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait ItemTier extends Delegate {
   self: Delegate =>

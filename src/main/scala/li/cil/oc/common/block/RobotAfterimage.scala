@@ -47,9 +47,11 @@ class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = EnumRarity.EPIC
+  override def createNewTileEntity(worldIn: World, meta: Int) = null
 
   // ----------------------------------------------------------------------- //
+
+  override def rarity = EnumRarity.EPIC
 
   override def isAir(world: IBlockAccess, pos: BlockPos) = true
 

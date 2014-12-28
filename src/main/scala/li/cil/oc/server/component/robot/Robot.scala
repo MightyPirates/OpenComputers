@@ -23,11 +23,11 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraft.util.Vec3
 import net.minecraftforge.common.MinecraftForge
-import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsScala._
 

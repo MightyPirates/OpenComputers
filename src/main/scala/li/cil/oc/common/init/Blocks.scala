@@ -1,11 +1,11 @@
 package li.cil.oc.common.init
 
-import net.minecraftforge.fml.common.registry.GameRegistry
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block._
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity
+import net.minecraftforge.fml.common.registry.GameRegistry
 
 object Blocks {
   def init() {

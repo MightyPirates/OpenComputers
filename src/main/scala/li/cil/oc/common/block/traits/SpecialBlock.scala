@@ -10,5 +10,5 @@ trait SpecialBlock extends SimpleBlock {
   override def isOpaqueCube = false
 
   // TODO new equivalent?
-//  override def renderAsNormalBlock = false
+  //  override def renderAsNormalBlock = false
 }

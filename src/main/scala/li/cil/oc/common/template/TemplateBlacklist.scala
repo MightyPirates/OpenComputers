@@ -1,15 +1,16 @@
 package li.cil.oc.common.template
 
-import net.minecraftforge.fml.common.event.FMLInterModComms
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.event.FMLInterModComms
 
 import scala.collection.convert.WrapAsScala._
 
 object TemplateBlacklist {
-  private lazy val TheBlacklist = { // scnr
+  private lazy val TheBlacklist = {
+    // scnr
     val pattern = """^([^@]+)(?:@(\d+))?$""".r
     def parseDescriptor(id: String, meta: Int) = {
       val item = Item.itemRegistry.getObject(id).asInstanceOf[Item]

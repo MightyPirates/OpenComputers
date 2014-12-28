@@ -1,7 +1,5 @@
 package li.cil.oc.common.component
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
@@ -16,6 +14,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 

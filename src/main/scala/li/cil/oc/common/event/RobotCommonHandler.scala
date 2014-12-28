@@ -1,7 +1,7 @@
 package li.cil.oc.common.event
 
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object RobotCommonHandler {
   @SubscribeEvent

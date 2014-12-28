@@ -14,7 +14,7 @@ import net.minecraft.world.World
 class Adapter extends SimpleBlock {
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Adapter()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
 
   // ----------------------------------------------------------------------- //
 

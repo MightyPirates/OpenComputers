@@ -1,12 +1,6 @@
 package li.cil.oc.common
 
 import com.google.common.base.Strings
-import li.cil.oc.common.item.Delegate
-import net.minecraft.block.Block
-import net.minecraft.item.Item
-import net.minecraftforge.fml.common.event._
-import net.minecraftforge.fml.common.network.NetworkRegistry
-import net.minecraftforge.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
@@ -16,7 +10,12 @@ import li.cil.oc.server._
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import li.cil.oc.util.LuaStateFactory
+import net.minecraft.block.Block
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.event._
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._

@@ -5,10 +5,9 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.Colored
 import li.cil.oc.common.tileentity.traits.Inventory
 import li.cil.oc.common.tileentity.traits.Rotatable
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.Block
+import net.minecraft.block.BlockContainer
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
@@ -24,7 +23,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class SimpleBlock(material: Material = Material.iron) extends Block(material) {
+abstract class SimpleBlock(material: Material = Material.iron) extends BlockContainer(material) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
 
@@ -37,6 +36,8 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   // ----------------------------------------------------------------------- //
   // Rendering
   // ----------------------------------------------------------------------- //
+
+  override def getRenderType = 3
 
   @SideOnly(Side.CLIENT)
   override def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) =

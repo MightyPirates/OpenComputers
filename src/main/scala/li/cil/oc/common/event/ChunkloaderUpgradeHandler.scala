@@ -2,7 +2,6 @@ package li.cil.oc.common.event
 
 import java.util
 
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.server.component.UpgradeChunkloader
 import li.cil.oc.util.BlockPosition
@@ -12,6 +11,7 @@ import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.LoadingCallback
 import net.minecraftforge.common.ForgeChunkManager.Ticket
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable

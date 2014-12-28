@@ -2,10 +2,10 @@ package li.cil.oc.common
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.mutable
 

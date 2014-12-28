@@ -2,12 +2,6 @@ package li.cil.oc.common.tileentity
 
 import java.util.UUID
 
-import com.sun.javafx.geom.Vec3f
-import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.item
@@ -39,12 +33,16 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.init.Blocks
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.MinecraftForge
+import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fluids._
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 

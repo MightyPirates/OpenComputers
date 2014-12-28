@@ -1,11 +1,11 @@
 package li.cil.oc.client.gui
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import org.lwjgl.opengl.GL11
 
 @SideOnly(Side.CLIENT)

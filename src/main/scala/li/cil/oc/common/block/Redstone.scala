@@ -5,7 +5,6 @@ import java.util
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -23,5 +22,5 @@ class Redstone extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Redstone()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Redstone()
 }

@@ -9,8 +9,6 @@ import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.renderer.entity.RenderItem
-import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumChatFormatting

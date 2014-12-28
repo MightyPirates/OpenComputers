@@ -2,18 +2,18 @@ package li.cil.oc.common.block
 
 import java.util
 
-import net.minecraft.block.state.IBlockState
-import net.minecraft.util.BlockPos
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {
   setLightLevel(1)
@@ -40,5 +40,5 @@ class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Hologram(tier)
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Hologram(tier)
 }

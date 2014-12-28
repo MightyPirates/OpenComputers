@@ -28,7 +28,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     screen = tileEntity.asInstanceOf[Screen]

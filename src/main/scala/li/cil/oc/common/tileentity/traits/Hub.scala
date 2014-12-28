@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity.traits
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
@@ -9,8 +7,10 @@ import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.MovingAverage
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.Constants.NBT
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 

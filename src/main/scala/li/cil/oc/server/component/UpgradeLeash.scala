@@ -18,8 +18,8 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
-import net.minecraftforge.common.util.Constants.NBT
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 

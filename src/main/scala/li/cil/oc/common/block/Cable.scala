@@ -42,7 +42,7 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Cable()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Cable()
 
   // ----------------------------------------------------------------------- //
 

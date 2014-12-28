@@ -5,7 +5,7 @@ import codechicken.lib.vec.Vector3
 import codechicken.wirelessredstone.core.WirelessReceivingDevice
 import codechicken.wirelessredstone.core.WirelessTransmittingDevice
 */
-import net.minecraftforge.fml.common.Optional
+
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -15,6 +15,7 @@ import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.common.Optional
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
@@ -71,27 +72,27 @@ trait RedstoneWireless extends Redstone[RedstoneAware] /* with WirelessReceiving
   }
 
   // ----------------------------------------------------------------------- //
-/* TODO WRCBE
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def updateDevice(frequency: Int, on: Boolean) {
-    if (frequency == wirelessFrequency && on != wirelessInput) {
-      wirelessInput = on
-      node.sendToReachable("computer.signal", "redstone_changed", "wireless")
+  /* TODO WRCBE
+    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+    override def updateDevice(frequency: Int, on: Boolean) {
+      if (frequency == wirelessFrequency && on != wirelessInput) {
+        wirelessInput = on
+        node.sendToReachable("computer.signal", "redstone_changed", "wireless")
+      }
     }
-  }
 
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getPosition = Vector3.fromTileEntityCenter(owner)
+    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+    override def getPosition = Vector3.fromTileEntityCenter(owner)
 
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getDimension = owner.world.provider.getDimensionId
+    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+    override def getDimension = owner.world.provider.getDimensionId
 
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getFreq = wirelessFrequency
+    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+    override def getFreq = wirelessFrequency
 
-  @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getAttachedEntity = null
-*/
+    @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
+    override def getAttachedEntity = null
+  */
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {

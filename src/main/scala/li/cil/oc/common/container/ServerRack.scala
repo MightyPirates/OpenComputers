@@ -1,10 +1,10 @@
 package li.cil.oc.common.container
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class ServerRack(playerInventory: InventoryPlayer, rack: tileentity.ServerRack) extends Player(playerInventory, rack) {
   addSlotToContainer(106, 8, "server")

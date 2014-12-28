@@ -6,8 +6,8 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.util.BlockPosition
-import net.minecraft.world.biome.BiomeGenDesert
 import net.minecraft.util.EnumFacing
+import net.minecraft.world.biome.BiomeGenDesert
 
 class UpgradeSolarGenerator(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).

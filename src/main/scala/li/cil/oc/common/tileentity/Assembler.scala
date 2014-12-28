@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
@@ -15,6 +13,8 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {
   val node = api.Network.newNode(this, Visibility.Network).

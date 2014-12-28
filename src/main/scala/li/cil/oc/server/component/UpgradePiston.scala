@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import net.minecraftforge.fml.relauncher.ReflectionHelper
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
@@ -15,6 +14,7 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.BlockPistonBase
 import net.minecraft.init.Blocks
 import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.ReflectionHelper
 
 class UpgradePiston(val host: Rotatable with EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).

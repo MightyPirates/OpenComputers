@@ -13,7 +13,7 @@ class Capacitor extends SimpleBlock {
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Capacitor()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Capacitor()
 
   // ----------------------------------------------------------------------- //
 

@@ -1,21 +1,22 @@
 package li.cil.oc.common.tileentity.traits
 
-import net.minecraft.block.BlockRedstoneWire
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.common.Optional
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.block.BlockRedstoneWire
+import net.minecraftforge.fml.common.Optional
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
+
 /* TODO RedLogic
 import mods.immibis.redlogic.api.wiring.IConnectable
 import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
 import mods.immibis.redlogic.api.wiring.IWire
 */
+
 import net.minecraft.init.Blocks
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -129,20 +130,20 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
       val vanilla = math.max(world.getIndirectPowerLevelTo(blockPos, side),
         if (world.getBlock(blockPos) == Blocks.redstone_wire) world.getBlockMetadata(blockPos).getValue(BlockRedstoneWire.POWER).asInstanceOf[Integer].intValue() else 0)
       val redLogic = 0
-/* TODO RedLogic
-      val redLogic = if (Mods.RedLogic.isAvailable) {
-        world.getTileEntity(blockPos) match {
-          case emitter: IRedstoneEmitter =>
-            var strength = 0
-            for (i <- -1 to 5) {
-              strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
+      /* TODO RedLogic
+            val redLogic = if (Mods.RedLogic.isAvailable) {
+              world.getTileEntity(blockPos) match {
+                case emitter: IRedstoneEmitter =>
+                  var strength = 0
+                  for (i <- -1 to 5) {
+                    strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
+                  }
+                  strength
+                case _ => 0
+              }
             }
-            strength
-          case _ => 0
-        }
-      }
-      else 0
-*/
+            else 0
+      */
       math.max(vanilla, redLogic)
     }
   }
@@ -165,17 +166,17 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   }
 
   // ----------------------------------------------------------------------- //
-/* TODO RedLogic
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
+  /* TODO RedLogic
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
 
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
 
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
 
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  override def onRedstoneInputChanged() = checkRedstoneInputChanged()
-*/
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    override def onRedstoneInputChanged() = checkRedstoneInputChanged()
+  */
 }

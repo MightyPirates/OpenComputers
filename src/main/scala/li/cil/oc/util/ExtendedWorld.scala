@@ -4,9 +4,9 @@ import li.cil.oc.api.driver.EnvironmentHost
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraft.util.EnumFacing
 
 import scala.language.implicitConversions
 

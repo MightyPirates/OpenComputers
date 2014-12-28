@@ -1,6 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "opencomputers:keyboard" }/*,
         "pitch=north,yaw=north": { "model": "opencomputers:keyboard" },
         "pitch=north,yaw=south": { "model": "opencomputers:keyboard", "y": 180 },
         "pitch=north,yaw=east":  { "model": "opencomputers:keyboard", "y": 270 },

@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraftforge.fml.common.Optional
+
 /* TODO RedLogic
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
@@ -13,10 +14,12 @@ import mods.immibis.redlogic.api.wiring.IInsulatedRedstoneWire
 import mrtjp.projectred.api.IBundledTile
 import mrtjp.projectred.api.ProjectRedAPI
 */
+
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagIntArray
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
+
 /* TODO MFR
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 */
@@ -197,19 +200,19 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
   }
 
   // ----------------------------------------------------------------------- //
-/* TODO RedLogic
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(EnumFacing.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
+  /* TODO RedLogic
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(EnumFacing.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
 
-  @Optional.Method(modid = Mods.IDs.RedLogic)
-  def onBundledInputChanged() = checkRedstoneInputChanged()
-*/
+    @Optional.Method(modid = Mods.IDs.RedLogic)
+    def onBundledInputChanged() = checkRedstoneInputChanged()
+  */
   // ----------------------------------------------------------------------- //
-/* TODO Project Red
-  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-  def canConnectBundled(side: Int) = isOutputEnabled
+  /* TODO Project Red
+    @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+    def canConnectBundled(side: Int) = isOutputEnabled
 
-  @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
-  def getBundledSignal(side: Int) = bundledOutput(EnumFacing.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
-*/
+    @Optional.Method(modid = Mods.IDs.ProjectRedTransmission)
+    def getBundledSignal(side: Int) = bundledOutput(EnumFacing.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
+  */
 }

@@ -1,7 +1,7 @@
 package li.cil.oc.client
 
-import net.minecraftforge.fml.client.FMLClientHandler
 import net.minecraft.client.settings.KeyBinding
+import net.minecraftforge.fml.client.FMLClientHandler
 import org.lwjgl.input.Keyboard
 
 object KeyBindings {

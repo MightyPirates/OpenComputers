@@ -3,7 +3,6 @@ package li.cil.oc.integration.util
 import java.lang.reflect.Method
 
 import li.cil.oc.common.IMC
-import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 

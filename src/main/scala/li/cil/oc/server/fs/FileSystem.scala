@@ -10,7 +10,6 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.fs.Mode
-import li.cil.oc.integration.Mods
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

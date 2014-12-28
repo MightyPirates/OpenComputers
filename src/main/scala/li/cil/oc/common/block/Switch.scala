@@ -12,7 +12,7 @@ import net.minecraft.world.World
 class Switch extends SimpleBlock {
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Switch()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Switch()
 
   // ----------------------------------------------------------------------- //
 

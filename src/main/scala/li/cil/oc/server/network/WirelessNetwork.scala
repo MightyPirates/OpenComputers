@@ -1,15 +1,15 @@
 package li.cil.oc.server.network
 
-import li.cil.oc.util.BlockPosition
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api.network.WirelessEndpoint
-import li.cil.oc.util.RTree
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.RTree
 import net.minecraft.util.Vec3
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -79,7 +79,7 @@ object WirelessNetwork {
           filter(_._2 <= range * range).
           map {
           case (c, distance) => (c, Math.sqrt(distance))
-        } filter isUnobstructed(endpoint, strength) map(_._1)
+        } filter isUnobstructed(endpoint, strength) map (_._1)
       case _ => Iterable.empty[WirelessEndpoint]
     }
   }

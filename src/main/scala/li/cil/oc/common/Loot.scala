@@ -3,7 +3,6 @@ package li.cil.oc.common
 import java.io
 import java.util.Random
 
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -16,6 +15,7 @@ import net.minecraft.util.WeightedRandomChestContent
 import net.minecraftforge.common.ChestGenHooks
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable

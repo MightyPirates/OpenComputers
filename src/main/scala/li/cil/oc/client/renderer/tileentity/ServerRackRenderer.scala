@@ -10,7 +10,7 @@ import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
 object ServerRackRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z : Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val rack = tileEntity.asInstanceOf[ServerRack]

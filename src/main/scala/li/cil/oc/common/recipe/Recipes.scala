@@ -4,13 +4,10 @@ import java.io.File
 import java.io.FileReader
 
 import com.typesafe.config._
-import net.minecraftforge.fml.common.Loader
-import net.minecraftforge.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.SimpleItem
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
@@ -20,6 +17,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.RegistryNamespaced
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category

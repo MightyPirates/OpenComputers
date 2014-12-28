@@ -1,10 +1,10 @@
 package li.cil.oc.common.asm
 
-import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.integration.Mods
 import net.minecraft.launchwrapper.IClassTransformer
 import net.minecraft.launchwrapper.LaunchClassLoader
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import org.apache.logging.log4j.LogManager
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter

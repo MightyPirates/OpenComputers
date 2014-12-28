@@ -6,13 +6,13 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.tileentity.TileEntity
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.opengl.GL11
 
 object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEntity, Int] {

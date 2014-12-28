@@ -3,9 +3,6 @@ package li.cil.oc.common.item
 import java.util
 import java.util.UUID
 
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
@@ -17,7 +14,10 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Terminal(val parent: Delegator) extends Delegate {
   override def maxStackSize = 1
@@ -34,20 +34,20 @@ class Terminal(val parent: Delegator) extends Delegate {
   }
 
   // TODO remove
-//  private var iconOn: Option[Icon] = None
-//  private var iconOff: Option[Icon] = None
-//
-//  // TODO check if server is in range and running
-//  // Unlike in the GUI handler the result should definitely be cached here.
-//  @SideOnly(Side.CLIENT)
-//  override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
-//
-//  override def registerIcons(iconRegister: IconRegister) = {
-//    super.getAtlasSprites(iconRegister)
-//
-//    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOn"))
-//    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOff"))
-//  }
+  //  private var iconOn: Option[Icon] = None
+  //  private var iconOff: Option[Icon] = None
+  //
+  //  // TODO check if server is in range and running
+  //  // Unlike in the GUI handler the result should definitely be cached here.
+  //  @SideOnly(Side.CLIENT)
+  //  override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
+  //
+  //  override def registerIcons(iconRegister: IconRegister) = {
+  //    super.getAtlasSprites(iconRegister)
+  //
+  //    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOn"))
+  //    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOff"))
+  //  }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get

@@ -1,9 +1,9 @@
 package li.cil.oc.common.tileentity.traits
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait PowerInformation extends TileEntity {
   private var lastSentRatio = -1.0

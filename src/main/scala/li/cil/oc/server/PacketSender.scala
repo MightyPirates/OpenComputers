@@ -13,9 +13,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
-import net.minecraft.util.EnumFacing
 
 import scala.collection.mutable
 

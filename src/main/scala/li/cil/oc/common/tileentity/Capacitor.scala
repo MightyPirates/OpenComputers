@@ -49,13 +49,13 @@ class Capacitor extends traits.Environment {
           })
         }) +
         Settings.get.bufferCapacitorAdjacencyBonus / 2 * indirectNeighbors.count(blockPos => world.isBlockLoaded(blockPos) && (world.getTileEntity(blockPos) match {
-            case capacitor: Capacitor =>
-              if (updateSecondGradeNeighbors) {
-                capacitor.recomputeCapacity()
-              }
-              true
-            case _ => false
-          })))
+          case capacitor: Capacitor =>
+            if (updateSecondGradeNeighbors) {
+              capacitor.recomputeCapacity()
+            }
+            true
+          case _ => false
+        })))
   }
 
   private def indirectNeighbors = EnumFacing.values.map(getPos.offset(_, 2))

@@ -2,18 +2,11 @@ package li.cil.oc.common
 
 import java.util.Calendar
 
-import net.minecraftforge.fml.common.Optional
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.PlayerEvent._
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -23,10 +16,13 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent._
+import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -158,8 +154,8 @@ object EventHandler {
     val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
     // On the 12th day of Christmas, my robot brought to me~
     (month == Calendar.DECEMBER && dayOfMonth > 24) || (month == Calendar.JANUARY && dayOfMonth < 7) ||
-    // OC's release-birthday!
-    (month == Calendar.DECEMBER && dayOfMonth == 14)
+      // OC's release-birthday!
+      (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {

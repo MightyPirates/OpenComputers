@@ -1,12 +1,12 @@
 package li.cil.oc.common.tileentity.traits
 
-import net.minecraft.item.EnumDyeColor
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.internal
 import li.cil.oc.server.PacketSender
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait Colored extends TileEntity with internal.Colored {
   private var _color = EnumDyeColor.SILVER

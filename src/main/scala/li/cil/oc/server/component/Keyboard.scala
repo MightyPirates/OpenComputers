@@ -1,10 +1,5 @@
 package li.cil.oc.server.component
 
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
@@ -16,6 +11,11 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent
 
 import scala.collection.mutable
 

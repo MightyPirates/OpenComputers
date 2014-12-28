@@ -1,9 +1,6 @@
 package li.cil.oc.server.component.robot
 
 import com.mojang.authlib.GameProfile
-import net.minecraft.world.IInteractionObject
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper
-import net.minecraftforge.fml.common.eventhandler.Event
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
@@ -17,7 +14,6 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.IMerchant
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.item.EntityMinecartHopper
 import net.minecraft.entity.passive.EntityHorse
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.EnumStatus
@@ -30,18 +26,21 @@ import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity._
+import net.minecraft.util.EnumFacing
 import net.minecraft.util._
+import net.minecraft.world.IInteractionObject
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.ForgeHooks
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.event.entity.player.EntityInteractEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
+import net.minecraftforge.fml.common.eventhandler.Event
 
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
@@ -64,8 +63,11 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   capabilities.disableDamage = true
   capabilities.isFlying = true
   onGround = true
+
   override def getYOffset = 0.5f
+
   override def getEyeHeight = 0f
+
   setSize(1, 1)
 
   if (Mods.BattleGear2.isAvailable) {

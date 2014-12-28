@@ -59,5 +59,5 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.PowerConverter()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
 }

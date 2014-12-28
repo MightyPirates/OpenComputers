@@ -4,7 +4,6 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 import com.typesafe.config.Config
-import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.template.AssemblerTemplates
@@ -14,6 +13,7 @@ import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 
 import scala.collection.convert.WrapAsScala._
 

@@ -1,6 +1,10 @@
 package li.cil.oc.api.detail;
 
-import li.cil.oc.api.network.*;
+import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.Packet;
+import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.network.WirelessEndpoint;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 

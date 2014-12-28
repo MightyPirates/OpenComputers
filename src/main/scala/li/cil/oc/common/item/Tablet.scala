@@ -7,11 +7,6 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -36,9 +31,12 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.World
 import net.minecraft.util.EnumFacing
+import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -50,23 +48,23 @@ class Tablet(val parent: Delegator) extends Delegate {
   override def maxStackSize = 1
 
   // TODO remove
-//  private var iconOn: Option[Icon] = None
-//  private var iconOff: Option[Icon] = None
-//
-//  @SideOnly(Side.CLIENT)
-//  override def icon(stack: ItemStack, pass: Int) = {
-//    if (stack.hasTagCompound) {
-//      val data = new ItemUtils.TabletData(stack)
-//      if (data.isRunning) iconOn else iconOff
-//    } else super.icon(stack, pass)
-//  }
-//
-//  override def registerIcons(iconRegister: IconRegister) = {
-//    super.getAtlasSprites(iconRegister)
-//
-//    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOn"))
-//    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOff"))
-//  }
+  //  private var iconOn: Option[Icon] = None
+  //  private var iconOff: Option[Icon] = None
+  //
+  //  @SideOnly(Side.CLIENT)
+  //  override def icon(stack: ItemStack, pass: Int) = {
+  //    if (stack.hasTagCompound) {
+  //      val data = new ItemUtils.TabletData(stack)
+  //      if (data.isRunning) iconOn else iconOff
+  //    } else super.icon(stack, pass)
+  //  }
+  //
+  //  override def registerIcons(iconRegister: IconRegister) = {
+  //    super.getAtlasSprites(iconRegister)
+  //
+  //    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOn"))
+  //    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOff"))
+  //  }
 
   // ----------------------------------------------------------------------- //
 

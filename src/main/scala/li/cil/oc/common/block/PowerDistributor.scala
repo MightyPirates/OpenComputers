@@ -11,6 +11,6 @@ class PowerDistributor extends SimpleBlock {
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.PowerDistributor()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerDistributor()
 }
 

@@ -5,9 +5,6 @@ import java.io.DataOutputStream
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
-import net.minecraft.network.PacketBuffer
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.network.internal.FMLProxyPacket
 import io.netty.buffer.Unpooled
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.EnvironmentHost
@@ -16,9 +13,12 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.network.PacketBuffer
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.world.World
 import net.minecraft.util.EnumFacing
+import net.minecraft.world.World
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.network.internal.FMLProxyPacket
 
 import scala.collection.convert.WrapAsScala._
 

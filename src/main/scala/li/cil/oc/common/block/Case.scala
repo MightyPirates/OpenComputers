@@ -19,35 +19,27 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.common.property.IUnlistedProperty
-import net.minecraftforge.common.property.Properties
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
 class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
-  final lazy val RunningRaw = PropertyBool.create("running")
-  final lazy val Running: IUnlistedProperty[Boolean] = Properties.toUnlisted(RunningRaw)
+  final lazy val Running = PropertyBool.create("running")
 
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
-  override protected def addExtendedState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos) =
+  override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): Option[IBlockState] =
     world.getTileEntity(pos) match {
       case computer: tileentity.traits.Computer =>
         super.addExtendedState(state.withProperty(Running, computer.isRunning), world, pos)
       case _ => None
     }
 
-  override protected def addExtendedProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
-    super.addExtendedProperties(listed, unlisted)
-    unlisted += Running
-  }
-
-  override protected def addExtendedRawProperties(unlisted: mutable.Map[IUnlistedProperty[_], IProperty]): Unit = {
-    super.addExtendedRawProperties(unlisted)
-    unlisted += Running -> RunningRaw
+  override protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
+    super.createProperties(listed, unlisted)
+    listed += Running
   }
 
   // ----------------------------------------------------------------------- //
@@ -74,7 +66,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Case(tier)
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
 
   // ----------------------------------------------------------------------- //
 

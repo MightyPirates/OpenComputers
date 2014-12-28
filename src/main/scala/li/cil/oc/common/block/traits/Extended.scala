@@ -1,12 +1,7 @@
 package li.cil.oc.common.block.traits
 
-import com.google.common.base.Optional
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import net.minecraft.block.Block
-import net.minecraft.block.properties.IProperty
-import net.minecraft.block.state.BlockState
-import net.minecraft.block.state.BlockState.StateImplementation
+import net.minecraft.block.properties._
 import net.minecraft.block.state.IBlockState
 import net.minecraft.util.BlockPos
 import net.minecraft.world.IBlockAccess
@@ -14,90 +9,113 @@ import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.common.property.IUnlistedProperty
 
-import scala.collection.mutable
-import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
-object Extended {
-  // Patch in custom hash codes for extended block states.
-  def wrap(state: IBlockState): StateImplementation = state match {
-    case wrapped: ExtendedBlockStateWithHashCode => wrapped
-    case extended: StateImplementation with IExtendedBlockState => new ExtendedBlockStateWithHashCode(extended)
-    case simple: StateImplementation => simple
-  }
-
-  class ExtendedBlockStateWithHashCode(val inner: StateImplementation with IExtendedBlockState) extends StateImplementation(inner.getBlock, inner.getProperties) with IExtendedBlockState {
-    override def getPropertyNames = inner.getPropertyNames
-
-    override def getValue(property: IProperty) = inner.getValue(property)
-
-    override def withProperty(property: IProperty, value: Comparable[_]): IBlockState = wrap(inner.withProperty(property, value))
-
-    override def cycleProperty(property: IProperty) = wrap(inner.cycleProperty(property))
-
-    override def getProperties = inner.getProperties
-
-    override def getBlock = inner.getBlock
-
-    override def getUnlistedNames = inner.getUnlistedNames
-
-    override def getValue[V](property: IUnlistedProperty[V]) = inner.getValue(property)
-
-    override def withProperty[V](property: IUnlistedProperty[V], value: V) = wrap(inner.withProperty(property, value)).asInstanceOf[IExtendedBlockState]
-
-    override def getUnlistedProperties = inner.getUnlistedProperties
-
-    override def equals(obj: scala.Any) = inner.equals(obj)
-
-    override def hashCode() = (inner.hashCode() * 31) ^ inner.getUnlistedProperties.collect {
-      case (property: IUnlistedProperty[AnyRef]@unchecked, value: Optional[AnyRef]@unchecked) if value.isPresent => property.getName + "=" + property.valueToString(value.get)
-    }.toArray.sorted.mkString(",").hashCode
-  }
-
-}
-
+// Utility trait for blocks that use properties (e.g. for rotation).
+// Provides automatic conversion to and from metadata and takes care of generic
+// setup of stateful blocks with listed and unlisted properties.
 trait Extended extends Block {
-  setDefaultExtendedState(Extended.wrap(getBlockState.getBaseState))
+  // Keep track of our properties, used for automatic metadata conversion.
+  private lazy val (listedProperties, unlistedProperties) = {
+    val listed = mutable.ArrayBuffer.empty[IProperty]
+    val unlisted = mutable.ArrayBuffer.empty[IUnlistedProperty[_]]
+    createProperties(listed, unlisted)
+    (listed.toArray, unlisted.toArray)
+  }
 
-  // Gnaah, implementation limitations :-/
+  // Some metadata one the properties we cache for performance.
+  private lazy val propertyData =
+    listedProperties.map(property => (property, (propertySize(property), property.getAllowedValues.toArray.map(_.asInstanceOf[Comparable[AnyRef]]).sortWith((a, b) => a.compareTo(b.asInstanceOf[AnyRef]) < 0)))).toMap
+
+  // Check if property<->meta conversions work as expected.
+  performSelfTest()
+
+  // Gnaah, implementation limitations :-/ Can't access protected methods from
+  // traits, so we require subclasses to implement this methods which simply
+  // forwards to setDefaultState...
   protected def setDefaultExtendedState(state: IBlockState): Unit
 
-  override def getBlockState = super.getBlockState
-
-  override def getActualState(state: IBlockState, worldIn: IBlockAccess, pos: BlockPos) = getExtendedState(state, worldIn, pos)
-
-  override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
-    addExtendedState(getDefaultState.asInstanceOf[IExtendedBlockState], world, pos).
-      getOrElse(super.getExtendedState(state, world, pos))
+  setDefaultExtendedState(getBlockState.getBaseState)
 
   override def createBlockState() = {
-    val (listed, unlisted) = collectProperties()
-    new ExtendedBlockState(this, listed.toArray, unlisted.toArray) {
-      private lazy val validStates = ImmutableList.copyOf(super.getValidStates.map {
-        case state: IBlockState => Extended.wrap(state)
-      }.toArray)
-      override def createState(block: Block, properties: ImmutableMap[_, _], unlistedProperties: ImmutableMap[_, _]) = Extended.wrap(super.createState(block, properties, unlistedProperties))
+    new ExtendedBlockState(this, listedProperties, unlistedProperties)
+  }
 
-      override def getValidStates = validStates
+  // We basically store state information as a packed struct in the metadata
+  // bits. For each property we determine the number of bits required to store
+  // it (using the number of allowed values) and shift per property.
+  override def getMetaFromState(state: IBlockState): Int = {
+    var meta = 0
+    for (property <- listedProperties) {
+      val (bits, values) = propertyData(property)
+      if (bits > 0) {
+        val value = state.getValue(property)
+        meta = (meta << bits) | values.indexOf(value)
+      }
+    }
+    meta
+  }
+
+  override def getStateFromMeta(meta: Int): IBlockState = {
+    var currentMeta = meta
+    var state = getDefaultState
+    // When unpacking we work from back to front, so iterate backwards.
+    for (property <- listedProperties.reverseIterator) {
+      val (bits, values) = propertyData(property)
+      if (bits > 0) {
+        val value = currentMeta & (0xFFFF >>> (16 - bits))
+        state = state.withProperty(property, values(value))
+        currentMeta = currentMeta >>> bits
+      }
+    }
+    state
+  }
+
+  // Delegates to subclasses to accumulate state information.
+  override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
+    addExtendedState(state.asInstanceOf[IExtendedBlockState], world, pos).
+      getOrElse(super.getExtendedState(state, world, pos))
+
+  // Overridden in subclasses such that each subclass returns
+  // state.withProperty for each of their properties, then calls
+  // the parent with that modified. Call chain eventually returns
+  // fully built state, or None if one fails.
+  protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): Option[IBlockState] = Some(state)
+
+  // Overridden in subclasses to accumulate properties used by this block type,
+  // result is stored (this is only called once) and used for state generation
+  // and metadata computation.
+  protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {}
+
+  // Called during construction to ensure all our states map properly to
+  // metadata and back, to avoid unpleasant surprises during runtime.
+  private def performSelfTest(): Unit = {
+    val metas = mutable.Set.empty[Int]
+    getBlockState.getValidStates.collect {
+      case state: IBlockState =>
+        val meta = getMetaFromState(state)
+        if (metas.contains(meta)) {
+          throw new IllegalArgumentException("Invalid block definition, duplicate metadata for different block states.")
+        }
+        metas += meta
+        val stateFromMeta = getStateFromMeta(meta)
+        if (state.hashCode() != stateFromMeta.hashCode()) {
+          throw new IllegalArgumentException("Invalid block definition, state from meta does not match state meta was from.")
+        }
     }
   }
 
-  final def collectProperties() = {
-    val listed = mutable.ArrayBuffer.empty[IProperty]
-    val unlisted = mutable.ArrayBuffer.empty[IUnlistedProperty[_]]
-    addExtendedProperties(listed, unlisted)
-    (listed, unlisted)
+  // Computes number of bits required to store a property. Uses the naive and
+  // slow but readable and understandable approach because it is only called
+  // once per property during construction anyway.
+  private def propertySize(property: IProperty) = {
+    var maxIndex = property.getAllowedValues.size - 1
+    var bits = 0
+    while (maxIndex > 0) {
+      bits += 1
+      maxIndex >>= 1
+    }
+    bits
   }
-
-  final def collectRawProperties() = {
-    val unlistedRaw = mutable.Map.empty[IUnlistedProperty[_], IProperty]
-    addExtendedRawProperties(unlistedRaw)
-    unlistedRaw
-  }
-
-  protected def addExtendedState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos): Option[IExtendedBlockState] = Some(state)
-
-  protected def addExtendedProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {}
-
-  protected def addExtendedRawProperties(unlisted: mutable.Map[IUnlistedProperty[_], IProperty]): Unit = {}
 }

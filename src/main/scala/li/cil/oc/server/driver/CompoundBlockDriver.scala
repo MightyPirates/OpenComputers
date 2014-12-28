@@ -1,8 +1,6 @@
 package li.cil.oc.server.driver
 
 import com.google.common.base.Strings
-import net.minecraft.util.BlockPos
-import net.minecraftforge.fml.relauncher.ReflectionHelper
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.network.ManagedEnvironment
@@ -10,7 +8,9 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.ReflectionHelper
 
 class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   override def createEnvironment(world: World, pos: BlockPos) = {
@@ -47,9 +47,9 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     try {
       val block = world.getBlockState(pos).getBlock
       val stack = if (Item.getItemFromBlock(block) != null) {
-            Some(new ItemStack(block, 1, block.getDamageValue(world, pos)))
-          }
-          else None
+        Some(new ItemStack(block, 1, block.getDamageValue(world, pos)))
+      }
+      else None
       if (stack.isDefined) {
         return stack.get.getUnlocalizedName.stripPrefix("tile.")
       }

@@ -9,8 +9,8 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
-import net.minecraft.util.ResourceLocation
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.ResourceLocation
 
 object PacketSender {
   // Timestamp after which the next clipboard message may be sent. Used to

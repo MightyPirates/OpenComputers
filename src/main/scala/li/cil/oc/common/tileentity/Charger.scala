@@ -1,8 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import net.minecraft.util.EnumParticleTypes
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -18,8 +15,11 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.Vec3
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.Vec3
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable

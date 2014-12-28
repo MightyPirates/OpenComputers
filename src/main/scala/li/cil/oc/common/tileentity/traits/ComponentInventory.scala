@@ -1,10 +1,10 @@
 package li.cil.oc.common.tileentity.traits
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.inventory
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait ComponentInventory extends Environment with Inventory with inventory.ComponentInventory {
   override def host = this

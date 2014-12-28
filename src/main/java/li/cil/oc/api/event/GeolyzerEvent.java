@@ -1,9 +1,9 @@
 package li.cil.oc.api.event;
 
-import net.minecraftforge.fml.common.eventhandler.Cancelable;
-import net.minecraftforge.fml.common.eventhandler.Event;
 import li.cil.oc.api.driver.EnvironmentHost;
 import net.minecraft.util.EnumFacing;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 import java.util.HashMap;
 import java.util.Map;

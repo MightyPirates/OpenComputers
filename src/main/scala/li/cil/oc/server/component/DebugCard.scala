@@ -379,4 +379,5 @@ object DebugCard {
 
     override def sendCommandFeedback() = fakePlayer.sendCommandFeedback()
   }
+
 }

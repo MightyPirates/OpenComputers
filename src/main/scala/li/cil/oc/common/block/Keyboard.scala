@@ -34,7 +34,7 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock with traits.OmniRota
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Keyboard()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Keyboard()
 
   // ----------------------------------------------------------------------- //
 

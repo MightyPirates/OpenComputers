@@ -3,9 +3,6 @@ package li.cil.oc.common.item
 import java.util
 import java.util.Random
 
-import net.minecraft.util.BlockPos
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.CreativeTab
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -16,16 +13,19 @@ import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraft.util.WeightedRandomChestContent
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import org.lwjgl.input
 
 class SimpleItem extends Item {
   setCreativeTab(CreativeTab)
 
   // TODO remove
-//  iconString = Settings.resourceDomain + ":" + getClass.getSimpleName
+  //  iconString = Settings.resourceDomain + ":" + getClass.getSimpleName
 
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
 

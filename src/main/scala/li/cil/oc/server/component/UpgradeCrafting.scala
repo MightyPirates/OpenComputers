@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import net.minecraftforge.fml.common.FMLCommonHandler
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.internal.Robot
@@ -16,6 +15,7 @@ import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.item.crafting.IRecipe
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -62,7 +62,7 @@ class UpgradeCrafting(val host: EnvironmentHost with Robot) extends prefab.Manag
                     if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
                       MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container))
                     }
-                    else if (/* container.getItem.doesContainerItemLeaveCraftingGrid(container) || TODO */ getStackInSlot(slot) != null) {
+                    else if ( /* container.getItem.doesContainerItemLeaveCraftingGrid(container) || TODO */ getStackInSlot(slot) != null) {
                       surplus += container
                     }
                     else {

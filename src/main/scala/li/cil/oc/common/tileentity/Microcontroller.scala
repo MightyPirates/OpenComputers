@@ -1,7 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
@@ -19,6 +17,8 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller {
   val info = new ItemUtils.MicrocontrollerData()

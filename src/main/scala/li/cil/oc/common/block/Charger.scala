@@ -6,7 +6,6 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.BlockPosition
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -20,7 +19,7 @@ class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotata
 
   override def energyThroughput = Settings.get.chargerRate
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Charger()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Charger()
 
   // ----------------------------------------------------------------------- //
 

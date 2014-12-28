@@ -26,7 +26,7 @@ class DiskDrive extends SimpleBlock with traits.Rotatable {
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.DiskDrive()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.DiskDrive()
 
   // ----------------------------------------------------------------------- //
 

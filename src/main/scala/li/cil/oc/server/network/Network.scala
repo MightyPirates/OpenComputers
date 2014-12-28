@@ -9,6 +9,7 @@ import codechicken.multipart.TileMultipart
 import li.cil.oc.common.block.Cable
 import li.cil.oc.integration.fmp.CablePart
 */
+
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -427,6 +428,7 @@ object Network extends api.detail.NetworkAPI {
     }
 
   private def getMultiPartNode(tileEntity: TileEntity) = None
+
   /* TODO FMP
     tileEntity match {
       case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
@@ -446,6 +448,7 @@ object Network extends api.detail.NetworkAPI {
     }
 
   private def cableColorFMP(tileEntity: TileEntity) = EnumDyeColor.SILVER
+
   /* TODO FMP
     tileEntity match {
       case host: TileMultipart => (host.partList collect {
@@ -461,6 +464,7 @@ object Network extends api.detail.NetworkAPI {
   }
 
   private def canConnectFromSideFMP(tileEntity: TileEntity, side: EnumFacing) = true
+
   /* TODO FMP
     tileEntity match {
       case host: TileMultipart =>

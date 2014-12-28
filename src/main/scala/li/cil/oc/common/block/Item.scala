@@ -15,9 +15,9 @@ import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.StatCollector
 import net.minecraft.world.World
-import net.minecraft.util.EnumFacing
 import org.lwjgl.input
 
 class Item(value: Block) extends ItemBlock(value) {

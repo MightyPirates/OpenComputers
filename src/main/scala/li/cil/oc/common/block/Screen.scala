@@ -317,7 +317,7 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Screen(tier)
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Screen(tier)
 
   // ----------------------------------------------------------------------- //
 

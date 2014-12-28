@@ -1,7 +1,6 @@
 package li.cil.oc.util
 
 import net.minecraft.block.Block
-import net.minecraft.world.World
 
 import scala.language.implicitConversions
 

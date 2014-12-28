@@ -15,7 +15,6 @@ import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
-import net.minecraft.block.state.IBlockState
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
@@ -25,7 +24,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.registry.GameRegistry
 
-import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object Items extends ItemAPI {
@@ -47,13 +45,13 @@ object Items extends ItemAPI {
         GameRegistry.registerBlock(simple, classOf[common.block.Item], id)
         OpenComputers.proxy.registerModel(instance, id)
 
-//        Block.BLOCK_STATE_IDS.iterator().remove()
-//        Block.BLOCK_STATE_IDS.put(instance.getDefaultState, Block.blockRegistry.getIDForObject(instance) << 4)
-//        instance.getBlockState.getValidStates.collect {
-//          case state: IBlockState =>
-//            val id = Block.blockRegistry.getIDForObject(instance) << 4 | instance.getMetaFromState(state)
-//            Block.BLOCK_STATE_IDS.put(state, id)
-//        }
+      //        Block.BLOCK_STATE_IDS.iterator().remove()
+      //        Block.BLOCK_STATE_IDS.put(instance.getDefaultState, Block.blockRegistry.getIDForObject(instance) << 4)
+      //        instance.getBlockState.getValidStates.collect {
+      //          case state: IBlockState =>
+      //            val id = Block.blockRegistry.getIDForObject(instance) << 4 | instance.getMetaFromState(state)
+      //            Block.BLOCK_STATE_IDS.put(state, id)
+      //        }
 
       case _ =>
     }

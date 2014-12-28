@@ -8,11 +8,11 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 

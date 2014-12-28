@@ -102,7 +102,7 @@ class Delegator extends Item {
 
   // ----------------------------------------------------------------------- //
 
-  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = 
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
     subItem(stack) match {
       case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
       case _ => super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ)
@@ -169,34 +169,34 @@ class Delegator extends Item {
     }
 
   // TODO remove
-//  @SideOnly(Side.CLIENT)
-//  override def getIcon(stack: ItemStack, pass: Int) =
-//    subItem(stack) match {
-//      case Some(subItem) => subItem.icon(stack, pass) match {
-//        case Some(icon) => icon
-//        case _ => super.getIcon(stack, pass)
-//      }
-//      case _ => super.getIcon(stack, pass)
-//    }
-//
-//  @SideOnly(Side.CLIENT)
-//  override def getIconIndex(stack: ItemStack) = getIcon(stack, 0)
-//
-//  @SideOnly(Side.CLIENT)
-//  override def getIconFromDamage(damage: Int): IIcon =
-//    subItem(damage) match {
-//      case Some(subItem) => subItem.icon match {
-//        case Some(icon) => icon
-//        case _ => super.getIconFromDamage(damage)
-//      }
-//      case _ => super.getIconFromDamage(damage)
-//    }
-//
-//  @SideOnly(Side.CLIENT)
-//  override def registerIcons(iconRegister: IIconRegister) {
-//    super.getAtlasSprites(iconRegister)
-//    subItems.foreach(_.getAtlasSprites(iconRegister))
-//  }
+  //  @SideOnly(Side.CLIENT)
+  //  override def getIcon(stack: ItemStack, pass: Int) =
+  //    subItem(stack) match {
+  //      case Some(subItem) => subItem.icon(stack, pass) match {
+  //        case Some(icon) => icon
+  //        case _ => super.getIcon(stack, pass)
+  //      }
+  //      case _ => super.getIcon(stack, pass)
+  //    }
+  //
+  //  @SideOnly(Side.CLIENT)
+  //  override def getIconIndex(stack: ItemStack) = getIcon(stack, 0)
+  //
+  //  @SideOnly(Side.CLIENT)
+  //  override def getIconFromDamage(damage: Int): IIcon =
+  //    subItem(damage) match {
+  //      case Some(subItem) => subItem.icon match {
+  //        case Some(icon) => icon
+  //        case _ => super.getIconFromDamage(damage)
+  //      }
+  //      case _ => super.getIconFromDamage(damage)
+  //    }
+  //
+  //  @SideOnly(Side.CLIENT)
+  //  override def registerIcons(iconRegister: IIconRegister) {
+  //    super.getAtlasSprites(iconRegister)
+  //    subItems.foreach(_.getAtlasSprites(iconRegister))
+  //  }
 
   override def toString = getUnlocalizedName
 }

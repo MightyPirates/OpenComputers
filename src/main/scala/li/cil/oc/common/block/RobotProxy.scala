@@ -104,7 +104,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World, state: IBlockState) = {
+  override def createNewTileEntity(world: World, metadata: Int) = {
     moving.get match {
       case Some(robot) => new tileentity.RobotProxy(robot)
       case _ => new tileentity.RobotProxy()

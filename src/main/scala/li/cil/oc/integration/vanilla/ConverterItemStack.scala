@@ -7,8 +7,6 @@ import li.cil.oc.api
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item
 import net.minecraft.item.Item
-import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTBase
 
 import scala.collection.convert.WrapAsScala._
 

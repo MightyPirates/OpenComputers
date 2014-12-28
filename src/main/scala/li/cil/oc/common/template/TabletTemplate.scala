@@ -1,6 +1,5 @@
 package li.cil.oc.common.template
 
-import net.minecraftforge.fml.common.event.FMLInterModComms
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -12,6 +11,7 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
+import net.minecraftforge.fml.common.event.FMLInterModComms
 
 import scala.collection.mutable
 

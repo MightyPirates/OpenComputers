@@ -1,9 +1,9 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.common.GuiType
-import li.cil.oc.util.Rarity
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.common.GuiType
+import li.cil.oc.util.Rarity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World

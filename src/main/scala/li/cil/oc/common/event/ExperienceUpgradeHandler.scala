@@ -1,11 +1,11 @@
 package li.cil.oc.common.event
 
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.server.component
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
 
 object ExperienceUpgradeHandler {

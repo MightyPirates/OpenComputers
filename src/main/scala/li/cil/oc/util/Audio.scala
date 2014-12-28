@@ -2,12 +2,12 @@ package li.cil.oc.util
 
 import java.nio.ByteBuffer
 
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.OpenComputers
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10

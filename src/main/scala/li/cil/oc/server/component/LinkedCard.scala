@@ -1,11 +1,11 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.Network
 import li.cil.oc.api.prefab
 import li.cil.oc.server.network.QuantumNetwork
 import net.minecraft.nbt.NBTTagCompound

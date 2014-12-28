@@ -1,16 +1,14 @@
 package li.cil.oc.common.block
 
-import net.minecraft.block.state.IBlockState
-import net.minecraft.util.BlockPos
-import net.minecraftforge.fml.common.Optional
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.common.Optional
 /* TODO MFR
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode

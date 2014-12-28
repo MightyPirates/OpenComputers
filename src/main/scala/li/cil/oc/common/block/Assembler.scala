@@ -22,7 +22,7 @@ class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAc
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Assembler()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Assembler()
 
   // ----------------------------------------------------------------------- //
 

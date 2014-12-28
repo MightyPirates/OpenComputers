@@ -1,10 +1,10 @@
 package li.cil.oc.common.container
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentity.Disassembler) extends Player(playerInventory, disassembler) {
   addSlotToContainer(80, 35, "ocitem")

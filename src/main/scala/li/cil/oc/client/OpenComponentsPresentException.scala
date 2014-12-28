@@ -1,8 +1,8 @@
 package li.cil.oc.client
 
-import net.minecraftforge.fml.client.CustomModLoadingErrorDisplayException
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.GuiErrorScreen
+import net.minecraftforge.fml.client.CustomModLoadingErrorDisplayException
 
 class OpenComponentsPresentException extends CustomModLoadingErrorDisplayException {
   private val message = "The functionality OpenComponents provided for previous versions of OpenComputers has been integrated into OpenComputers 1.4.\n\nPlease remove OpenComponents, as it will otherwise lead to incompatibilities and crashes."

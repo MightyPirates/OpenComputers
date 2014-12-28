@@ -2,10 +2,7 @@ package li.cil.oc.common.item
 
 import java.util
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
-import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -26,20 +23,20 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
   }
 
   // TODO remove
-//  val icons = Array.fill[Icon](16)(null)
-//
-//  @SideOnly(Side.CLIENT)
-//  override def icon(stack: ItemStack, pass: Int) =
-//    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "color"))
-//      Some(icons(stack.getTagCompound.getInteger(Settings.namespace + "color") max 0 min 15))
-//    else
-//      Some(icons(8))
-//
-//  override def registerIcons(iconRegister: IconRegister) {
-//    val baseTextureName = Settings.resourceDomain + ":" + unlocalizedName + "_"
-//    Color.dyes.zipWithIndex.foreach {
-//      case (color, index) =>
-//        icons(index) = iconRegister.getAtlasSprite(baseTextureName + color)
-//    }
-//  }
+  //  val icons = Array.fill[Icon](16)(null)
+  //
+  //  @SideOnly(Side.CLIENT)
+  //  override def icon(stack: ItemStack, pass: Int) =
+  //    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "color"))
+  //      Some(icons(stack.getTagCompound.getInteger(Settings.namespace + "color") max 0 min 15))
+  //    else
+  //      Some(icons(8))
+  //
+  //  override def registerIcons(iconRegister: IconRegister) {
+  //    val baseTextureName = Settings.resourceDomain + ":" + unlocalizedName + "_"
+  //    Color.dyes.zipWithIndex.foreach {
+  //      case (color, index) =>
+  //        icons(index) = iconRegister.getAtlasSprite(baseTextureName + color)
+  //    }
+  //  }
 }

@@ -4,15 +4,15 @@ import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.CacheBuilder
-import net.minecraftforge.fml.common.eventhandler.EventPriority
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.Entity
 import net.minecraftforge.client.event.RenderPlayerEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
 

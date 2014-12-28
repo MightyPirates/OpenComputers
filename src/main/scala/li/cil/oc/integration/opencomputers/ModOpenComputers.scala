@@ -1,8 +1,5 @@
 package li.cil.oc.integration.opencomputers
 
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.event.FMLInterModComms
-import net.minecraftforge.fml.common.registry.EntityRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -23,6 +20,9 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.event.FMLInterModComms
+import net.minecraftforge.fml.common.registry.EntityRegistry
 
 object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers

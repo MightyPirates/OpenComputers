@@ -1,10 +1,10 @@
 package li.cil.oc.common.template
 
-import net.minecraftforge.fml.common.event.FMLInterModComms
 import li.cil.oc.api
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.common.event.FMLInterModComms
 
 import scala.language.postfixOps
 

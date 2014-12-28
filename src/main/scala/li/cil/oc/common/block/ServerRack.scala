@@ -50,7 +50,7 @@ class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.Powe
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.ServerRack()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.ServerRack()
 
   // ----------------------------------------------------------------------- //
 

@@ -1,7 +1,5 @@
 package li.cil.oc.server.component
 
-import net.minecraft.util.ChatComponentText
-import net.minecraftforge.fml.common.eventhandler.Event
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.internal.Robot
@@ -10,11 +8,13 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntitySign
+import net.minecraft.util.ChatComponentText
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.event.world.BlockEvent
+import net.minecraftforge.fml.common.eventhandler.Event
 
 abstract class UpgradeSign extends prefab.ManagedEnvironment {
   def host: EnvironmentHost

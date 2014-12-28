@@ -5,8 +5,6 @@ import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import net.minecraftforge.fml.common.eventhandler.EventPriority
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
@@ -19,6 +17,8 @@ import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.ChunkDataEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.apache.commons.lang3.JavaVersion
 import org.apache.commons.lang3.SystemUtils
 

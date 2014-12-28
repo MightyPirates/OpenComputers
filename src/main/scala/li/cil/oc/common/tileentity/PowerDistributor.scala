@@ -1,14 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.Constants.NBT
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class PowerDistributor extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
   val node = null

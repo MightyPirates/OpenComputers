@@ -7,8 +7,8 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.world.World;
 import net.minecraftforge.fluids.IFluidHandler;
 
 public final class DriverFluidHandler extends DriverTileEntity {

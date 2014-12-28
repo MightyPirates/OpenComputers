@@ -3,13 +3,13 @@ package li.cil.oc.common.launch
 import java.util
 
 import com.google.common.eventbus.EventBus
+import li.cil.oc.common.asm.ClassTransformer
 import net.minecraftforge.fml.common.DummyModContainer
 import net.minecraftforge.fml.common.LoadController
 import net.minecraftforge.fml.common.ModMetadata
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
-import li.cil.oc.common.asm.ClassTransformer
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
 @MCVersion("1.7.10")

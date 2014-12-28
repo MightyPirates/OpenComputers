@@ -1,7 +1,5 @@
 package li.cil.oc.server
 
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -13,15 +11,19 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
+
 /* TODO FMP
 import li.cil.oc.integration.fmp.EventHandler
 */
+
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetHandlerPlayServer
-import net.minecraftforge.common.DimensionManager
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.DimensionManager
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent

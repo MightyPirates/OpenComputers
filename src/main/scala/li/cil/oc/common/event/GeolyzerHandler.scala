@@ -3,9 +3,7 @@ package li.cil.oc.common.event
 import li.cil.oc.Settings
 import li.cil.oc.api.event.GeolyzerEvent
 import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
-import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent

@@ -1,11 +1,6 @@
 package li.cil.oc.common.tileentity
 
 import com.google.common.base.Strings
-import li.cil.oc.util.BlockPosition
-import net.minecraftforge.fml.common.Optional.Method
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.internal
@@ -13,19 +8,20 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
-import net.minecraftforge.common.util.Constants.NBT
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 

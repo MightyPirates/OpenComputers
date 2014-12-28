@@ -1,8 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.network.Analyzable
@@ -17,6 +14,9 @@ import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class DiskDrive extends traits.Environment with traits.ComponentInventory with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()

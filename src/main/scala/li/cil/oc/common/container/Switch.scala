@@ -1,9 +1,9 @@
 package li.cil.oc.common.container
 
-import net.minecraftforge.fml.common.FMLCommonHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 class Switch(playerInventory: InventoryPlayer, switch: tileentity.Switch) extends Player(playerInventory, switch) {
   addSlotToContainer(151, 15, Slot.CPU)

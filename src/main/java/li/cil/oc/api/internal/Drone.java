@@ -2,7 +2,6 @@ package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.machine.Machine;
-import li.cil.oc.api.network.Environment;
 
 /**
  * This interface is implemented as a marker by drones.

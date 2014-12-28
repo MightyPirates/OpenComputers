@@ -17,8 +17,8 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.MinecraftForge
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.MinecraftForge
 
 import scala.collection.convert.WrapAsJava._
 

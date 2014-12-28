@@ -8,11 +8,11 @@ import java.util.UUID
 import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
+import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.integration.Mods
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
 import net.minecraftforge.fml.common.versioning.VersionRange
-import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.integration.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 
 import scala.collection.convert.WrapAsScala._
@@ -287,7 +287,8 @@ class Settings(val config: Config) {
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
-  val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
+  val databaseEntriesPerTier = Array(9, 25, 81)
+  // Not configurable because of GUI design.
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
 
