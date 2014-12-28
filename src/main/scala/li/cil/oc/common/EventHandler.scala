@@ -195,7 +195,7 @@ object EventHandler {
     // On the 12th day of Christmas, my robot brought to me~
     (month == Calendar.DECEMBER && dayOfMonth > 24) || (month == Calendar.JANUARY && dayOfMonth < 7) ||
     // OC's release-birthday!
-    (month == Calendar.DECEMBER && dayOfMonth == 14) || true
+    (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {

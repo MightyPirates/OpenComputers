@@ -35,7 +35,10 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.IFluidTank
 
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
+// internal.Rotatable is also in internal.Drone, but it wasn't since the start
+// so this is to ensure it is implemented here, in the very unlikely case that
+// someone decides to ship that specific version of the API.
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -124,6 +127,14 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def zPosition = posZ
 
   override def markChanged() {}
+
+  // ----------------------------------------------------------------------- //
+
+  override def facing() = ForgeDirection.SOUTH
+
+  override def toLocal(value: ForgeDirection) = value
+
+  override def toGlobal(value: ForgeDirection) = value
 
   // ----------------------------------------------------------------------- //
 
