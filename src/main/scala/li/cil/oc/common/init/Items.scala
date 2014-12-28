@@ -45,12 +45,15 @@ object Items extends ItemAPI {
       case simple: SimpleBlock =>
         instance.setUnlocalizedName("oc." + id)
         GameRegistry.registerBlock(simple, classOf[common.block.Item], id)
+        OpenComputers.proxy.registerModel(instance, id)
 
-        instance.getBlockState.getValidStates.collect {
-          case state: IBlockState =>
-            val id = Block.blockRegistry.getIDForObject(instance) << 4 | instance.getMetaFromState(state)
-            Block.BLOCK_STATE_IDS.put(state, id)
-        }
+//        Block.BLOCK_STATE_IDS.iterator().remove()
+//        Block.BLOCK_STATE_IDS.put(instance.getDefaultState, Block.blockRegistry.getIDForObject(instance) << 4)
+//        instance.getBlockState.getValidStates.collect {
+//          case state: IBlockState =>
+//            val id = Block.blockRegistry.getIDForObject(instance) << 4 | instance.getMetaFromState(state)
+//            Block.BLOCK_STATE_IDS.put(state, id)
+//        }
 
       case _ =>
     }
@@ -67,7 +70,6 @@ object Items extends ItemAPI {
       }
     }
     names += instance -> id
-    OpenComputers.proxy.registerModel(instance, id)
     instance
   }
 
@@ -82,7 +84,6 @@ object Items extends ItemAPI {
       override def createItemStack(size: Int) = delegate.createItemStack(size)
     }
     names += delegate -> id
-    OpenComputers.proxy.registerModel(delegate, id)
     delegate
   }
 
@@ -91,6 +92,7 @@ object Items extends ItemAPI {
       case simple: SimpleItem =>
         simple.setUnlocalizedName("oc." + id)
         GameRegistry.registerItem(simple, id)
+        OpenComputers.proxy.registerModel(instance)
       case _ =>
     }
     descriptors += id -> new ItemInfo {
@@ -106,7 +108,6 @@ object Items extends ItemAPI {
       }
     }
     names += instance -> id
-    OpenComputers.proxy.registerModel(instance, id)
     instance
   }
 
@@ -172,6 +173,7 @@ object Items extends ItemAPI {
     }
 
     GameRegistry.registerItem(multi, "item")
+    OpenComputers.proxy.registerModel(multi)
 
     Recipes.addMultiItem(new item.Analyzer(multi), "analyzer", "oc:analyzer")
 

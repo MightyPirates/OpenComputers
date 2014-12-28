@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity.traits
 import li.cil.oc.Settings
 import li.cil.oc.api.internal
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
@@ -169,7 +168,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     else {
       world.markBlockForUpdate(getPos)
     }
-    world.notifyBlocksOfNeighborChange(BlockPosition(x, y, z), block)
+    world.notifyNeighborsOfStateChange(getPos, getBlockType)
   }
 
   // ----------------------------------------------------------------------- //

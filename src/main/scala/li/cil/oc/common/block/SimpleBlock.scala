@@ -178,12 +178,6 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   protected def intersect(world: World, pos: BlockPos, origin: Vec3, end: Vec3) =
     super.collisionRayTrace(world, pos, origin, end)
 
-  final override def canPlaceBlockOnSide(world: World, pos: BlockPos, side: EnumFacing) =
-    localCanPlaceBlockOnSide(world, pos, toLocal(world, pos, side.getOpposite))
-
-  def localCanPlaceBlockOnSide(world: World, pos: BlockPos, side: EnumFacing) =
-    super.canPlaceBlockOnSide(world, BlockPosition(pos).toBlockPos, side.getOpposite)
-
   // ----------------------------------------------------------------------- //
 
   override def canConnectRedstone(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false

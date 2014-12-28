@@ -2,37 +2,42 @@ package li.cil.oc.common.block.traits
 
 import com.google.common.base.Predicate
 import com.google.common.base.Predicates
+import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
+import net.minecraft.block.properties.IProperty
 import net.minecraft.block.properties.PropertyDirection
-import net.minecraft.block.state.BlockState
-import net.minecraft.block.state.IBlockState
+import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.world.IBlockAccess
+import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraftforge.common.property.IUnlistedProperty
+import net.minecraftforge.common.property.Properties
 
-trait OmniRotatable extends Block {
-  final lazy val Facing = PropertyDirection.create("facing", Predicates.instanceOf(classOf[EnumFacing]))
-  final lazy val Up = PropertyDirection.create("up", EnumFacing.Plane.HORIZONTAL.asInstanceOf[Predicate[EnumFacing]])
+import scala.collection.mutable
 
-  protected def buildDefaultState() = getBlockState.getBaseState.withProperty(Facing, EnumFacing.NORTH).withProperty(Up, EnumFacing.NORTH)
+trait OmniRotatable extends Block with Extended {
+  final lazy val PitchRaw = PropertyDirection.create("pitch", Predicates.instanceOf(classOf[EnumFacing]))
+  final lazy val Pitch: IUnlistedProperty[EnumFacing] = Properties.toUnlisted(PitchRaw)
+  final lazy val YawRaw = PropertyDirection.create("yaw", EnumFacing.Plane.HORIZONTAL.asInstanceOf[Predicate[EnumFacing]])
+  final lazy val Yaw: IUnlistedProperty[EnumFacing] = Properties.toUnlisted(YawRaw)
 
-  @SideOnly(Side.CLIENT)
-  override def getStateForEntityRender(state: IBlockState) = getDefaultState.withProperty(Facing, EnumFacing.SOUTH)
+  override protected def addExtendedState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos) =
+    (world.getTileEntity(pos), state) match {
+      case rotatable: tileentity.traits.Rotatable =>
+        super.addExtendedState(state.withProperty(Pitch, rotatable.pitch).withProperty(Yaw, rotatable.yaw), world, pos)
+      case _ =>
+        None
+    }
 
-  override def getStateFromMeta(meta: Int) = {
-    val facing = EnumFacing.getFront(meta >>> 3)
-    val up = EnumFacing.getHorizontal(meta & 7)
-    if (up.getAxis == EnumFacing.Axis.Y)
-      getDefaultState.withProperty(Facing, facing).withProperty(Up, EnumFacing.NORTH)
-    else
-      getDefaultState.withProperty(Facing, facing).withProperty(Up, up)
+  override protected def addExtendedProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
+    super.addExtendedProperties(listed, unlisted)
+    unlisted += Pitch
+    unlisted += Yaw
   }
 
-  override def getMetaFromState(state: IBlockState) = {
-    val facing = state.getValue(Facing).asInstanceOf[EnumFacing]
-    val up = state.getValue(Up).asInstanceOf[EnumFacing]
-    facing.getIndex << 3 | up.getHorizontalIndex
+  override protected def addExtendedRawProperties(unlisted: mutable.Map[IUnlistedProperty[_], IProperty]): Unit = {
+    super.addExtendedRawProperties(unlisted)
+    unlisted += Pitch -> PitchRaw
+    unlisted += Yaw -> YawRaw
   }
-
-  override def createBlockState() = new BlockState(this, Facing, Up)
 }

@@ -13,7 +13,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
 class DiskDrive extends SimpleBlock with traits.Rotatable {
-  setDefaultState(buildDefaultState())
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)

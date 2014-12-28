@@ -9,48 +9,48 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.Color
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.properties.IProperty
+import net.minecraft.block.properties.PropertyBool
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraftforge.common.property.IUnlistedProperty
+import net.minecraftforge.common.property.Properties
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
-  setDefaultState(buildDefaultState())
+import scala.collection.mutable
 
-  // TODO remove
-//  private val iconsOn = new Array[IIcon](6)
-//
-//  // ----------------------------------------------------------------------- //
-//
-//  override protected def customTextures = Array(
-//    Some("CaseTop"),
-//    Some("CaseTop"),
-//    Some("CaseBack"),
-//    Some("CaseFront"),
-//    Some("CaseSide"),
-//    Some("CaseSide")
-//  )
-//
-//  override def registerBlockIcons(iconRegister: IIconRegister) = {
-//    super.registerBlockIcons(iconRegister)
-//    System.arraycopy(icons, 0, iconsOn, 0, icons.length)
-//    iconsOn(EnumFacing.NORTH.ordinal) = iconRegister.getAtlasSprite(Settings.resourceDomain + ":CaseBackOn")
-//    iconsOn(EnumFacing.WEST.ordinal) = iconRegister.getAtlasSprite(Settings.resourceDomain + ":CaseSideOn")
-//    iconsOn(EnumFacing.EAST.ordinal) = iconsOn(EnumFacing.WEST.ordinal)
-//  }
-//
-//  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: EnumFacing, localSide: EnumFacing) = {
-//    if (world.getTileEntity(x, y, z) match {
-//      case computer: tileentity.Case => computer.isRunning
-//      case _ => false
-//    }) iconsOn(localSide.ordinal)
-//    else getIcon(localSide.ordinal(), 0)
-//  }
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
+  final lazy val RunningRaw = PropertyBool.create("running")
+  final lazy val Running: IUnlistedProperty[Boolean] = Properties.toUnlisted(RunningRaw)
+
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+
+  override protected def addExtendedState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos) =
+    world.getTileEntity(pos) match {
+      case computer: tileentity.traits.Computer =>
+        super.addExtendedState(state.withProperty(Running, computer.isRunning), world, pos)
+      case _ => None
+    }
+
+  override protected def addExtendedProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
+    super.addExtendedProperties(listed, unlisted)
+    unlisted += Running
+  }
+
+  override protected def addExtendedRawProperties(unlisted: mutable.Map[IUnlistedProperty[_], IProperty]): Unit = {
+    super.addExtendedRawProperties(unlisted)
+    unlisted += Running -> RunningRaw
+  }
+
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   override def getRenderColor(state: IBlockState) = Color.rgbValues(Color.byTier(tier))

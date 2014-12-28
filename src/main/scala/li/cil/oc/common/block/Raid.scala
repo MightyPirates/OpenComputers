@@ -10,7 +10,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
 class Raid extends SimpleBlock with traits.Rotatable {
-  setDefaultState(buildDefaultState())
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override def hasTileEntity(state: IBlockState) = true
 

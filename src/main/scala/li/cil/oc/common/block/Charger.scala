@@ -16,7 +16,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
 class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
-  setDefaultState(buildDefaultState())
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override def energyThroughput = Settings.get.chargerRate
 

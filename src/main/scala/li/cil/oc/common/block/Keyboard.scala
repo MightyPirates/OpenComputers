@@ -15,10 +15,11 @@ import org.lwjgl.opengl.GL11
 
 class Keyboard extends SimpleBlock with traits.SpecialBlock with traits.OmniRotatable {
   setLightOpacity(0)
-  setDefaultState(buildDefaultState())
 
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
+
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
@@ -43,10 +44,10 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock with traits.OmniRota
       case _ =>
     }
 
-  override def localCanPlaceBlockOnSide(world: World, pos: BlockPos, side: EnumFacing) = {
-    world.isSideSolid(pos.offset(side), side.getOpposite) &&
-      (world.getTileEntity(pos.offset(side)) match {
-        case screen: tileentity.Screen => screen.facing != side.getOpposite
+  override def canPlaceBlockOnSide(world: World, pos: BlockPos, side: EnumFacing) = {
+    world.isSideSolid(pos.offset(side.getOpposite), side) &&
+      (world.getTileEntity(pos.offset(side.getOpposite)) match {
+        case screen: tileentity.Screen => screen.facing != side
         case _ => true
       })
   }
@@ -77,7 +78,7 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock with traits.OmniRota
 
   override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) =
     world.getTileEntity(pos) match {
-      case keyboard: tileentity.Keyboard if localCanPlaceBlockOnSide(world, pos, keyboard.facing.getOpposite) => // Can stay.
+      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, pos, keyboard.facing) => // Can stay.
       case _ =>
         dropBlockAsItem(world, pos, world.getBlockState(pos), 0)
         world.setBlockToAir(pos)

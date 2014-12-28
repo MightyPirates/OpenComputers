@@ -25,7 +25,8 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
   setLightLevel(0.34f)
-  setDefaultState(buildDefaultState())
+
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   @SideOnly(Side.CLIENT)
   override def getRenderColor(state: IBlockState) = Color.rgbValues(Color.byTier(tier))

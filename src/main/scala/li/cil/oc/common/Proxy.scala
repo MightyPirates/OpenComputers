@@ -66,11 +66,9 @@ class Proxy {
       api.Machine.add(classOf[LuaJLuaArchitecture])
   }
 
-  def registerModel(instance: Item, location: String): Unit = {}
+  def registerModel(instance: Item): Unit = {}
 
-  def registerModel(instance: Delegate, location: String): Unit = {}
-
-  def registerModel(instance: Block, location: String): Unit = {}
+  def registerModel(instance: Block, id: String): Unit = {}
 
   def init(e: FMLInitializationEvent) {
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")

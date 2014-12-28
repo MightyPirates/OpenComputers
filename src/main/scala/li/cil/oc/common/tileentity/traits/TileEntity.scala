@@ -24,8 +24,6 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerL
 
   def position = BlockPosition(x, y, z)
 
-  def block = getBlockType
-
   def isClient = !isServer
 
   def isServer = if (world != null) !world.isRemote else SideTracker.isServer
@@ -35,7 +33,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerL
   def canUpdate = true
 
   override def update() {
-    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && block.getLightValue(world, getPos) > 0) {
+    if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(world, getPos) > 0) {
       world.markBlockForUpdate(getPos)
     }
   }
