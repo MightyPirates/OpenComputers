@@ -57,20 +57,19 @@ object UpgradeInventoryController {
 
     override def inventory = host.dynamicInventory
 
-    override def selectedSlot = host.selectedSlot
+    override def selectedSlot = host.selectedSlot - host.actualSlot(0)
 
-    override def selectedSlot_=(value: Int) = host.selectedSlot = value
+    override def selectedSlot_=(value: Int) = host.selectedSlot = host.actualSlot(value)
 
     override protected def checkSideForAction(args: Arguments, n: Int) = host.toGlobal(args.checkSideForAction(n))
 
     @Callback(doc = """function():boolean -- Swaps the equipped tool with the content of the currently selected inventory slot.""")
     def equip(context: Context, args: Arguments): Array[AnyRef] = {
-      if (host.inventorySize > 0) {
-        val selectedSlot = host.selectedSlot
+      if (inventory.getSizeInventory > 0) {
         val equipped = host.getStackInSlot(0)
-        val selected = host.getStackInSlot(selectedSlot)
+        val selected = inventory.getStackInSlot(selectedSlot)
         host.setInventorySlotContents(0, selected)
-        host.setInventorySlotContents(selectedSlot, equipped)
+        inventory.setInventorySlotContents(selectedSlot, equipped)
         result(true)
       }
       else result(false)
