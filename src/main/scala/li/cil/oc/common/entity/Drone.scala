@@ -196,6 +196,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     dataWatcher.addObject(10, "")
     // Inventory size for client.
     dataWatcher.addObject(11, byte2Byte(0: Byte))
+    // Light color.
+    dataWatcher.addObject(12, int2Integer(0x66DD55))
   }
 
   def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3) {
@@ -232,6 +234,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
   def statusText = dataWatcher.getWatchableObjectString(10)
   def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+  def lightColor = dataWatcher.getWatchableObjectInt(12)
 
   def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
   // Round target values to low accuracy to avoid floating point errors accumulating.
@@ -244,6 +247,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
   def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
+  def lightColor_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
 
   @SideOnly(Side.CLIENT)
   override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
@@ -436,6 +440,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     selectedSlot = nbt.getByte("selectedSlot") & 0xFF
     selectedTank = nbt.getByte("selectedTank") & 0xFF
     statusText = nbt.getString("statusText")
+    lightColor = nbt.getInteger("lightColor")
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
@@ -455,5 +460,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     nbt.setByte("selectedSlot", selectedSlot.toByte)
     nbt.setByte("selectedTank", selectedTank.toByte)
     nbt.setString("statusText", statusText)
+    nbt.setInteger("lightColor", lightColor)
   }
 }

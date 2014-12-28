@@ -58,6 +58,16 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
     result(host.statusText)
   }
 
+  @Callback(doc = "function():number -- Get the current color of the flap lights as an integer encoded RGB value (0xRRGGBB).")
+  def getLightColor(context: Context, args: Arguments): Array[AnyRef] = result(host.lightColor)
+
+  @Callback(doc = "function(value:number):number -- Set the color of the flap lights to the specified integer encoded RGB value (0xRRGGBB).")
+  def setLightColor(context: Context, args: Arguments): Array[AnyRef] = {
+    host.lightColor = args.checkInteger(0)
+    context.pause(0.1)
+    result(host.lightColor)
+  }
+
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = "function(dx:number, dy:number, dz:number) -- Change the target position by the specified offset.")
