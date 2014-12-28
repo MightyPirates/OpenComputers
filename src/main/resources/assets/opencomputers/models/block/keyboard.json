@@ -3,15 +3,15 @@
         "all": "opencomputers:blocks/keyboard"
     },
     "elements": [
-        {   "from": [ 1, 0, 4 ],
-            "to": [ 15, 1, 12 ],
+        {   "from": [ 1, 4, 15 ],
+            "to": [ 15, 12, 16 ],
             "faces": {
-                "down":  { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
-                "up":    { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
-                "north": { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
-                "south": { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
-                "west":  { "uv": [ 0, 0, 16, 16 ], "texture": "#all" },
-                "east":  { "uv": [ 0, 0, 16, 16 ], "texture": "#all" }
+                "down":  { "uv": [ 1, 15, 15, 16 ], "texture": "#all" },
+                "up":    { "uv": [ 1, 15, 15, 16 ], "texture": "#all" },
+                "north": { "uv": [ 1, 4, 15, 12 ], "texture": "#all" },
+                "south": { "uv": [ 1, 4, 15, 12 ], "texture": "#all" },
+                "west":  { "uv": [ 15, 4, 16, 12 ], "texture": "#all" },
+                "east":  { "uv": [ 15, 4, 16, 12 ], "texture": "#all" }
             }
         }
     ]

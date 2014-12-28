@@ -12,7 +12,11 @@ import scala.collection.mutable
 
 // Provides 4-way rotation for blocks using metadata to store the rotation.
 trait Rotatable extends Block with Extended {
-  def getFacing(state: IBlockState) = state.getValue(Rotatable.Facing).asInstanceOf[EnumFacing]
+  def getFacing(state: IBlockState) =
+    if (state.getBlock == this)
+      state.getValue(Rotatable.Facing).asInstanceOf[EnumFacing]
+    else
+      EnumFacing.SOUTH
 
   def withFacing(state: IBlockState, facing: EnumFacing) = state.
     withProperty(Rotatable.Facing, facing)

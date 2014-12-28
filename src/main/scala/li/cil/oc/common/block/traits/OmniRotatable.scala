@@ -14,9 +14,17 @@ import scala.collection.mutable
 
 // Provides 2-axis rotation for blocks (pitch and yaw) using metadata to store the rotation.
 trait OmniRotatable extends Block with Extended {
-  def getPitch(state: IBlockState) = state.getValue(OmniRotatable.Pitch).asInstanceOf[EnumFacing]
+  def getPitch(state: IBlockState) =
+    if (state.getBlock == this)
+      state.getValue(OmniRotatable.Pitch).asInstanceOf[EnumFacing]
+    else
+      EnumFacing.NORTH
 
-  def getYaw(state: IBlockState) = state.getValue(OmniRotatable.Yaw).asInstanceOf[EnumFacing]
+  def getYaw(state: IBlockState) =
+    if (state.getBlock == this)
+      state.getValue(OmniRotatable.Yaw).asInstanceOf[EnumFacing]
+    else
+      EnumFacing.SOUTH
 
   def withPitchAndYaw(state: IBlockState, pitch: EnumFacing, yaw: EnumFacing) = state.
     withProperty(OmniRotatable.Pitch, pitch).
