@@ -6,6 +6,7 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
@@ -13,6 +14,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.resources.model.ModelResourceLocation
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.RegistrySimple
 import net.minecraftforge.client.event.ModelBakeEvent
@@ -37,11 +39,9 @@ object ExtendedBlockModel {
   @SubscribeEvent
   def onModelBake(e: ModelBakeEvent): Unit = {
     val registry = e.modelRegistry.asInstanceOf[RegistrySimple]
+    val screenPattern = "^" + Settings.resourceDomain + ":screen\\d#.*"
     registry.getKeys.collect {
-      case location: ModelResourceLocation =>
-        if (location.toString.startsWith(Settings.resourceDomain + ":screen1#")) {
-          registry.putObject(location, ScreenRenderer)
-        }
+      case location: ModelResourceLocation if location.toString.matches(screenPattern) => registry.putObject(location, ScreenRenderer)
     }
   }
 }
@@ -89,64 +89,76 @@ class ScreenRenderer(val state: IExtendedBlockState) extends SmartBlockModelBase
   override def getFaceQuads(side: EnumFacing) = {
     state.getValue(block.Screen.Tile) match {
       case screen: tileentity.Screen =>
-        // TODO Translate facing to "local" coordinate system of our default texture layout.
         val facing = screen.toLocal(side)
 
-        val textures = if (screen.width == 1 && screen.height == 1) {
-          Textures.Block.Screen.Single
-        }
-        else if (screen.width == 1) {
-          val (_, y) = screen.localPosition
-          if (y == 0) Textures.Block.Screen.VerticalBottom
-          else if (y == screen.height - 1) Textures.Block.Screen.VerticalTop
-          else Textures.Block.Screen.VerticalMiddle
-        }
-        else if (screen.height == 1) {
-          val (x, _) = screen.localPosition
-          if (x == 0) Textures.Block.Screen.HorizontalRight
-          else if (x == screen.width - 1) Textures.Block.Screen.HorizontalLeft
-          else Textures.Block.Screen.HorizontalMiddle
+        val (x, y) = screen.localPosition
+        val pitch = if (screen.pitch == EnumFacing.NORTH) 0 else 1
+        var rx = multiCoords(x, screen.width - 1)
+        var ry = multiCoords(y, screen.height - 1)
+        var rotation = 0
+
+        if (side == EnumFacing.UP) {
+          rotation += screen.yaw.getHorizontalIndex
+          ry = 2 - ry
         }
         else {
-          val (x, y) = screen.localPosition
-          // TODO Differentiate horizontal and vertical multiscreens.
-          if (x == 0)
-            if (y == 0) Textures.Block.Screen.MultiBottomRight
-            else if (y == screen.height - 1) Textures.Block.Screen.MultiTopRight
-            else Textures.Block.Screen.MultiMiddleRight
-          else if (x == screen.width - 1)
-            if (y == 0) Textures.Block.Screen.MultiBottomLeft
-            else if (y == screen.height - 1) Textures.Block.Screen.MultiTopLeft
-            else Textures.Block.Screen.MultiMiddleLeft
-          else
-            if (y == 0) Textures.Block.Screen.MultiBottomMiddle
-            else if (y == screen.height - 1) Textures.Block.Screen.MultiTopMiddle
-            else Textures.Block.Screen.MultiMiddleMiddle
+          if (side == EnumFacing.DOWN) {
+            if (screen.yaw.getAxis == EnumFacing.Axis.X) {
+              rotation += 1
+              rx = 2 - rx
+            }
+            if (screen.yaw.getAxisDirection.getOffset < 0)
+              ry = 2 - ry
+          }
+          else if (screen.yaw.getAxisDirection.getOffset > 0 && pitch == 1)
+            ry = 2 - ry
+          if (screen.yaw == EnumFacing.NORTH || screen.yaw == EnumFacing.EAST)
+            rx = 2 - rx
         }
 
-        List(new BakedQuad(makeQuad(side, Textures.Block.getSprite(textures(facing.ordinal()))), -1, side))
+        val textures =
+          if (screen.width == 1 && screen.height == 1)
+            Textures.Block.Screen.Single
+          else if (screen.width == 1)
+            Textures.Block.Screen.Vertical(pitch)(ry)
+          else if (screen.height == 1)
+            Textures.Block.Screen.Horizontal(pitch)(rx)
+          else
+            Textures.Block.Screen.Multi(pitch)(ry)(rx)
+
+        List(new BakedQuad(makeQuad(side, Textures.Block.getSprite(textures(facing.ordinal())), screen.color, rotation), -1, side))
       case _ => super.getFaceQuads(side)
     }
   }
 
-  private def makeQuad(facing: EnumFacing, texture: TextureAtlasSprite) = {
+  private def multiCoords(value: Int, high: Int) = if (value == 0) 2 else if (value == high) 0 else 1
+
+  private def makeQuad(facing: EnumFacing, texture: TextureAtlasSprite, color: EnumDyeColor, rotation: Int) = {
     val face = faces(facing.getIndex)
-    face.map(data => {
+    val verts = face.map(f => (f._1, f._2, f._3))
+    val coords = face.map(f => (f._4, f._5))
+    (verts, coords.drop(rotation) ++ coords.take(rotation)).zipped.
+      map((v, c) => (v._1, v._2, v._3, c._1, c._2)).
+      map(data => {
       val (x, y, z, u, v) = data
-      rawData(x, y, z, texture, u, v)
+      rawData(x, y, z, texture, u, v, Color.rgbValues(color))
     }).flatten
   }
 
   // See FaceBakery#storeVertexData.
-  private def rawData(x: Float, y: Float, z: Float, texture: TextureAtlasSprite, u: Float, v: Float) = {
+  private def rawData(x: Float, y: Float, z: Float, texture: TextureAtlasSprite, u: Float, v: Float, color: Int) = {
     Array(
       java.lang.Float.floatToRawIntBits(x),
       java.lang.Float.floatToRawIntBits(y),
       java.lang.Float.floatToRawIntBits(z),
-      0xFFFFFFFF,
+      0xFF000000 | rgb2bgr(color),
       java.lang.Float.floatToRawIntBits(texture.getInterpolatedU(u)),
       java.lang.Float.floatToRawIntBits(texture.getInterpolatedV(v)),
       0
     )
+  }
+
+  private def rgb2bgr(color: Int) = {
+    ((color & 0x0000FF) << 16) | (color & 0x00FF00) | ((color & 0xFF0000) >>> 16)
   }
 }
