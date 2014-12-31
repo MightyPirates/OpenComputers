@@ -17,7 +17,6 @@ import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.IUnlistedProperty
 import net.minecraftforge.fml.relauncher.Side
@@ -25,21 +24,25 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
+object Case {
+  final val Running = PropertyBool.create("running")
+}
+
 class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
-  final lazy val Running = PropertyBool.create("running")
+  def getRunning(state: IBlockState) =
+    if (state.getBlock == this)
+      state.getValue(Case.Running).asInstanceOf[Boolean]
+    else
+      false
+
+  def withRunning(state: IBlockState, running: Boolean) = state.
+    withProperty(Case.Running, boolean2Boolean(running))
 
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
-  override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): Option[IBlockState] =
-    world.getTileEntity(pos) match {
-      case computer: tileentity.traits.Computer =>
-        super.addExtendedState(state.withProperty(Running, computer.isRunning), world, pos)
-      case _ => None
-    }
-
   override protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
     super.createProperties(listed, unlisted)
-    listed += Running
+    listed += Case.Running
   }
 
   // ----------------------------------------------------------------------- //

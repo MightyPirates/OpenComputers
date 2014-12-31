@@ -4,6 +4,7 @@ import li.cil.oc._
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
+import li.cil.oc.client.renderer.block.ExtendedBlockModel
 import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
@@ -46,6 +47,7 @@ private[oc] class Proxy extends CommonProxy {
 
     super.preInit(e)
 
+    MinecraftForge.EVENT_BUS.register(ExtendedBlockModel)
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(Textures)
   }

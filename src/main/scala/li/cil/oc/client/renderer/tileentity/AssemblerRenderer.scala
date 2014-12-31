@@ -38,8 +38,12 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
       r.addVertexWithUV(-0.5, 0.55, -0.5, icon.getMinU, icon.getMinV)
     }
 
+    t.draw()
+
+    // TODO Unroll loop to draw all at once?
     val indent = 6 / 16f + 0.005
     for (i <- 0 until 4) {
+      r.startDrawingQuads()
 
       if (assembler.isAssembling) {
         val icon = Textures.Block.getSprite(Textures.Block.AssemblerSideAssembling)
@@ -57,10 +61,11 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
         r.addVertexWithUV(0.5005, -0.5, -0.5, icon.getMinU, icon.getMinV)
       }
 
+      t.draw()
+
       GL11.glRotatef(90, 0, 1, 0)
     }
 
-    t.draw()
     Textures.Block.unbind()
 
     GL11.glPopMatrix()

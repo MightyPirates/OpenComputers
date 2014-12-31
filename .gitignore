@@ -18,3 +18,6 @@
 # Debugging
 /eclipse
 /run
+
+# Windows...
+**/Thumbs.db

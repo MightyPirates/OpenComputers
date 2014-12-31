@@ -18,8 +18,9 @@ trait Rotatable extends Block with Extended {
     else
       EnumFacing.SOUTH
 
-  def withFacing(state: IBlockState, facing: EnumFacing) = state.
-    withProperty(Rotatable.Facing, facing)
+  def withFacing(state: IBlockState, facing: EnumFacing) =
+    (if (state.getBlock == this) state else getDefaultState).
+      withProperty(Rotatable.Facing, facing)
 
   override protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
     super.createProperties(listed, unlisted)

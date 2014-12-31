@@ -26,9 +26,11 @@ trait OmniRotatable extends Block with Extended {
     else
       EnumFacing.SOUTH
 
-  def withPitchAndYaw(state: IBlockState, pitch: EnumFacing, yaw: EnumFacing) = state.
-    withProperty(OmniRotatable.Pitch, pitch).
-    withProperty(OmniRotatable.Yaw, yaw)
+  def withPitchAndYaw(state: IBlockState, pitch: EnumFacing, yaw: EnumFacing) =
+    (if (state.getBlock == this) state else getDefaultState).
+      withProperty(OmniRotatable.Pitch, pitch).
+      withProperty(OmniRotatable.Yaw, yaw)
+
 
   override protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
     super.createProperties(listed, unlisted)

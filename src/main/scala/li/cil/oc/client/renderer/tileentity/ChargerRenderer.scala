@@ -52,7 +52,6 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
 
       if (charger.hasPower) {
         val sideIcon = Textures.Block.getSprite(Textures.Block.ChargerSideOn)
-        r.startDrawingQuads()
 
         r.addVertexWithUV(-0.005, 1, -1, sideIcon.getMinU, sideIcon.getMaxV)
         r.addVertexWithUV(-0.005, 1, 0, sideIcon.getMaxU, sideIcon.getMaxV)

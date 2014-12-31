@@ -176,7 +176,6 @@ eclipse.classpath.plusConfigurations += configurations.provided
 sourceSets {
     main {
         scala {
-            srcDir 'src'
             exclude 'li/cil/oc/integration/appeng/**'
             exclude 'li/cil/oc/integration/buildcraft/**'
             exclude 'li/cil/oc/integration/cofh/**'

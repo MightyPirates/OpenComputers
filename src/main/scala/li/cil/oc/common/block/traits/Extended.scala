@@ -95,11 +95,14 @@ trait Extended extends Block {
     getBlockState.getValidStates.collect {
       case state: IBlockState =>
         val meta = getMetaFromState(state)
+        if ((meta & 0xF) != meta) {
+          throw new IllegalArgumentException("Invalid block definition, meta data out of bounds (uses more than 4 bits).")
+        }
         if (metas.contains(meta)) {
           throw new IllegalArgumentException("Invalid block definition, duplicate metadata for different block states.")
         }
         metas += meta
-        val stateFromMeta = getStateFromMeta(meta)
+        val stateFromMeta = getStateFromMeta(meta & 0xF)
         if (state.hashCode() != stateFromMeta.hashCode()) {
           throw new IllegalArgumentException("Invalid block definition, state from meta does not match state meta was from.")
         }

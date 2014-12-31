@@ -5,19 +5,25 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
+import scala.collection.mutable
+
 object Textures {
-  val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
-  val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
-  object GUI {
-    private def L(name: String) = new ResourceLocation(Settings.resourceDomain, "textures/gui/" + name + ".png")
+  object Font extends TextureBundle {
+    val Aliased = L("chars_aliased")
+    val AntiAliased = L("chars.png")
 
+    override protected def basePath = "textures/font/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
+  }
+
+  object GUI extends TextureBundle {
     val Background = L("background")
     val Bar = L("bar")
     val Borders = L("borders")
@@ -43,72 +49,38 @@ object Textures {
     val Server = L("server")
     val Slot = L("slot")
 
-    def init(tm: TextureManager): Unit = {
-      tm.bindTexture(Background)
-      tm.bindTexture(Bar)
-      tm.bindTexture(Borders)
-      tm.bindTexture(ButtonPower)
-      tm.bindTexture(ButtonRange)
-      tm.bindTexture(ButtonRun)
-      tm.bindTexture(ButtonScroll)
-      tm.bindTexture(ButtonSide)
-      tm.bindTexture(ButtonSwitch)
-      tm.bindTexture(Computer)
-      tm.bindTexture(Database)
-      tm.bindTexture(Database1)
-      tm.bindTexture(Database2)
-      tm.bindTexture(Disassembler)
-      tm.bindTexture(Drone)
-      tm.bindTexture(KeyboardMissing)
-      tm.bindTexture(Raid)
-      tm.bindTexture(Range)
-      tm.bindTexture(Robot)
-      tm.bindTexture(RobotAssembler)
-      tm.bindTexture(RobotNoScreen)
-      tm.bindTexture(RobotSelection)
-      tm.bindTexture(Server)
-      tm.bindTexture(Slot)
-    }
+    override protected def basePath = "textures/gui/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
   }
 
-  object Icons {
-    private def L(name: String) = new ResourceLocation(Settings.resourceDomain, "textures/icons/" + name + ".png")
-
+  object Icons extends TextureBundle {
     private val ForSlotType = Slot.All.map(name => name -> L(name)).toMap
     private val ForTier = Map(Tier.None -> L("na")) ++ (Tier.One to Tier.Three).map(tier => tier -> L("tier" + tier)).toMap
-
-    def init(tm: TextureManager): Unit = {
-      for ((_, icon) <- ForSlotType) tm.bindTexture(icon)
-      for ((_, icon) <- ForTier) tm.bindTexture(icon)
-    }
 
     def get(slotType: String) = ForSlotType.get(slotType).orNull
 
     def get(tier: Int) = ForTier.get(tier).orNull
+
+    override protected def basePath = "textures/icons/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
   }
 
-  object Model {
-    private def L(name: String) = new ResourceLocation(Settings.resourceDomain, "textures/model/" + name + ".png")
-
+  object Model extends TextureBundle {
     val HologramEffect = L("HologramEffect")
     val Robot = L("robot")
     val UpgradeCrafting = L("UpgradeCrafting")
     val UpgradeGenerator = L("UpgradeGenerator")
     val UpgradeInventory = L("UpgradeInventory")
 
-    def init(tm: TextureManager): Unit = {
-      tm.bindTexture(HologramEffect)
-      tm.bindTexture(Robot)
-      tm.bindTexture(UpgradeCrafting)
-      tm.bindTexture(UpgradeGenerator)
-      tm.bindTexture(UpgradeInventory)
-    }
+    override protected def basePath = "textures/model/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
   }
 
   // These are kept in the block texture atlas to support animations.
-  object Block {
-    private def L(name: String) = new ResourceLocation(Settings.resourceDomain, "blocks/" + name)
-
+  object Block extends TextureBundle {
     val AssemblerSideAssembling = L("AssemblerSideAssembling")
     val AssemblerSideOn = L("AssemblerSideOn")
     val AssemblerTopOn = L("AssemblerTopOn")
@@ -132,47 +104,196 @@ object Textures {
     val ScreenUpIndicator = L("screen/up_indicator")
     val SwitchSideOn = L("SwitchSideOn")
 
-    def init(map: TextureMap): Unit = {
-      map.registerSprite(AssemblerSideAssembling)
-      map.registerSprite(AssemblerSideOn)
-      map.registerSprite(AssemblerTopOn)
-      map.registerSprite(CableCap)
-      map.registerSprite(CaseFrontActivity)
-      map.registerSprite(CaseFrontOn)
-      map.registerSprite(ChargerFrontOn)
-      map.registerSprite(ChargerSideOn)
-      map.registerSprite(DisassemblerSideOn)
-      map.registerSprite(DisassemblerTopOn)
-      map.registerSprite(DiskDriveFrontActivity)
-      map.registerSprite(GeolyzerTopOn)
-      map.registerSprite(MicrocontrollerFrontLight)
-      map.registerSprite(MicrocontrollerFrontOn)
-      map.registerSprite(PowerDistributorSideOn)
-      map.registerSprite(PowerDistributorTopOn)
-      map.registerSprite(RackFrontActivity)
-      map.registerSprite(RackFrontOn)
-      map.registerSprite(RaidFrontActivity)
-      map.registerSprite(RaidFrontError)
-      map.registerSprite(ScreenUpIndicator)
-      map.registerSprite(SwitchSideOn)
+    object Screen {
+      val Single = Array(
+        L("screen/b"),
+        L("screen/b"),
+        L("screen/b2"),
+        L("screen/b2"),
+        L("screen/b2"),
+        L("screen/b2")
+      )
+
+      val HorizontalLeft = Array(
+        L("screen/bht"),
+        L("screen/bht"),
+        L("screen/bht2"),
+        L("screen/bht2"),
+        L("screen/b2"),
+        L("screen/b2") // Never rendered.
+      )
+
+      val HorizontalMiddle = Array(
+        L("screen/bhm"),
+        L("screen/bhm"),
+        L("screen/bhm2"),
+        L("screen/bhm2"),
+        L("screen/b2"), // Never rendered.
+        L("screen/b2") // Never rendered.
+      )
+
+      val HorizontalRight = Array(
+        L("screen/bhb"),
+        L("screen/bhb"),
+        L("screen/bhb2"),
+        L("screen/bhb2"),
+        L("screen/b2"), // Never rendered.
+        L("screen/b2")
+      )
+
+      val VerticalTop = Array(
+        L("screen/b"), // Never rendered.
+        L("screen/b"),
+        L("screen/bvt"),
+        L("screen/bvt"),
+        L("screen/bvt"),
+        L("screen/bvt")
+      )
+
+      val VerticalMiddle = Array(
+        L("screen/b"), // Never rendered.
+        L("screen/b"), // Never rendered.
+        L("screen/bvm"),
+        L("screen/bvm"),
+        L("screen/bvm"),
+        L("screen/bvm")
+      )
+
+      val VerticalBottom = Array(
+        L("screen/b"),
+        L("screen/b"), // Never rendered.
+        L("screen/bvb2"),
+        L("screen/bvb2"),
+        L("screen/bvb2"),
+        L("screen/bvb2")
+      )
+
+      // TODO Horizontal one, too (for alternative sides).
+
+      val MultiTopLeft = Array(
+        L("screen/bht"), // Never rendered.
+        L("screen/bht"),
+        L("screen/btl"),
+        L("screen/btl"),
+        L("screen/bvt"),
+        L("screen/bvt") // Never rendered.
+      )
+
+      val MultiTopMiddle = Array(
+        L("screen/bhm"), // Never rendered.
+        L("screen/bhm"),
+        L("screen/btm"),
+        L("screen/btm"),
+        L("screen/bvt"),
+        L("screen/bvt") // Never rendered.
+      )
+
+      val MultiTopRight = Array(
+        L("screen/bhb"), // Never rendered.
+        L("screen/bhb"), // Never rendered.
+        L("screen/btr"),
+        L("screen/btr"),
+        L("screen/bvt"),  // Never rendered.
+        L("screen/bvt") // Never rendered.
+      )
+
+      val MultiMiddleLeft = Array(
+        L("screen/bht"), // Never rendered.
+        L("screen/bht"), // Never rendered.
+        L("screen/bml"),
+        L("screen/bml"),
+        L("screen/bvm"), // Never rendered.
+        L("screen/bvm") // Never rendered.
+      )
+
+      val MultiMiddleMiddle = Array(
+        L("screen/bhm"), // Never rendered.
+        L("screen/bhm"), // Never rendered.
+        L("screen/bmm"),
+        L("screen/bmm"),
+        L("screen/bvt"), // Never rendered.
+        L("screen/bvt") // Never rendered.
+      )
+
+      val MultiMiddleRight = Array(
+        L("screen/bhb"),
+        L("screen/bhb"), // Never rendered.
+        L("screen/bmr"),
+        L("screen/bmr"),
+        L("screen/bvm"),  // Never rendered.
+        L("screen/bvm")
+      )
+
+      val MultiBottomLeft = Array(
+        L("screen/bht"), // Never rendered.
+        L("screen/bht"),
+        L("screen/bbl2"),
+        L("screen/bbl2"),
+        L("screen/bvb2"),
+        L("screen/bvb2") // Never rendered.
+      )
+
+      val MultiBottomMiddle = Array(
+        L("screen/bhm"),
+        L("screen/bhm"), // Never rendered.
+        L("screen/bbm2"),
+        L("screen/bbm2"),
+        L("screen/bvb2"),
+        L("screen/bvb2") // Never rendered.
+      )
+
+      val MultiBottomRight = Array(
+        L("screen/bhb"),
+        L("screen/bhb"), // Never rendered.
+        L("screen/bbr2"),
+        L("screen/bbr2"),
+        L("screen/bvb2"),  // Never rendered.
+        L("screen/bvb2")
+      )
+
+      // The hacks I do for namespacing...
+      private[Block] def makeSureThisIsInitialized() {}
     }
+    Screen.makeSureThisIsInitialized()
 
     def bind(): Unit = Minecraft.getMinecraft.renderEngine.bindTexture(TextureMap.locationBlocksTexture)
 
     def unbind(): Unit = GlStateManager.bindTexture(0)
 
     def getSprite(location: ResourceLocation) = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location.toString)
+
+    override protected def basePath = "blocks/%s"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
   }
 
   @SubscribeEvent
-  def onTextureLoad(e: TextureStitchEvent.Pre): Unit = {
-    val tm = Minecraft.getMinecraft.getTextureManager
-    tm.bindTexture(fontAntiAliased)
-    tm.bindTexture(fontAliased)
-
-    GUI.init(tm)
-    Icons.init(tm)
-    Model.init(tm)
+  def onTextureStitchPre(e: TextureStitchEvent.Pre): Unit = {
+    Font.init(e.map)
+    GUI.init(e.map)
+    Icons.init(e.map)
+    Model.init(e.map)
     Block.init(e.map)
   }
+
+  abstract class TextureBundle {
+    private val locations = mutable.ArrayBuffer.empty[ResourceLocation]
+
+    protected def textureManager = Minecraft.getMinecraft.getTextureManager
+
+    final def init(map: TextureMap): Unit = {
+      locations.foreach(loader(map, _))
+    }
+
+    protected def L(name: String) = {
+      val location = new ResourceLocation(Settings.resourceDomain, String.format(basePath, name))
+      locations += location
+      location
+    }
+
+    protected def basePath: String
+
+    protected def loader(map: TextureMap, loc: ResourceLocation): Unit
+  }
+
 }
