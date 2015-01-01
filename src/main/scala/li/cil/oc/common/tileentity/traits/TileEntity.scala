@@ -5,10 +5,13 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Sound
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.SideTracker
+import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity
 import net.minecraft.server.gui.IUpdatePlayerListBox
+import net.minecraft.util.BlockPos
+import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -63,6 +66,8 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerL
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def shouldRefresh(world: World, pos: BlockPos, oldState: IBlockState, newSate: IBlockState) = oldState.getBlock != newSate.getBlock
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}

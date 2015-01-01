@@ -113,93 +113,93 @@ trait SmartBlockModelBase extends ISmartBlockModel {
 
 object ScreenRenderer extends SmartBlockModelBase with ISmartItemModel {
   override def handleBlockState(state: IBlockState) = state match {
-    case extended: IExtendedBlockState => new ScreenRenderer(extended)
+    case extended: IExtendedBlockState => new BlockModel(extended)
     case _ => missingModel
   }
 
-  override def handleItemState(stack: ItemStack) = new ScreenItemModel(stack)
-}
+  override def handleItemState(stack: ItemStack) = new ItemModel(stack)
 
-class ScreenRenderer(val state: IExtendedBlockState) extends SmartBlockModelBase {
-  override def getFaceQuads(side: EnumFacing) = {
-    state.getValue(block.Screen.Tile) match {
-      case screen: tileentity.Screen =>
-        val facing = screen.toLocal(side)
+  private def multiCoords(value: Int, high: Int) = if (value == 0) 2 else if (value == high) 0 else 1
 
-        val (x, y) = screen.localPosition
-        val pitch = if (screen.pitch == EnumFacing.NORTH) 0 else 1
-        var rx = multiCoords(x, screen.width - 1)
-        var ry = multiCoords(y, screen.height - 1)
-        var rotation = 0
+  class BlockModel(val state: IExtendedBlockState) extends SmartBlockModelBase {
+    override def getFaceQuads(side: EnumFacing) =
+      state.getValue(block.Screen.Tile) match {
+        case screen: tileentity.Screen =>
+          val facing = screen.toLocal(side)
 
-        if (screen.pitch == EnumFacing.DOWN)
-          ry = 2 - ry
-        if (side == EnumFacing.UP) {
-          rotation += screen.yaw.getHorizontalIndex
-          ry = 2 - ry
-        }
-        else {
-          if (side == EnumFacing.DOWN) {
-            if (screen.yaw.getAxis == EnumFacing.Axis.X) {
-              rotation += 1
-              rx = 2 - rx
-            }
-            if (screen.yaw.getAxisDirection.getOffset < 0)
-              ry = 2 - ry
-          }
-          else if (screen.yaw.getAxisDirection.getOffset > 0 && pitch == 1)
+          val (x, y) = screen.localPosition
+          val pitch = if (screen.pitch == EnumFacing.NORTH) 0 else 1
+          var rx = multiCoords(x, screen.width - 1)
+          var ry = multiCoords(y, screen.height - 1)
+          var rotation = 0
+
+          if (screen.pitch == EnumFacing.DOWN)
             ry = 2 - ry
-          if (screen.yaw == EnumFacing.NORTH || screen.yaw == EnumFacing.EAST)
-            rx = 2 - rx
-        }
-
-        val textures =
-          if (screen.width == 1 && screen.height == 1) {
-            val result = Textures.Block.Screen.Single.clone()
-            if (facing == EnumFacing.SOUTH)
-              result(3) = Textures.Block.Screen.SingleFront(pitch)
-            result
-          }
-          else if (screen.width == 1) {
-            val result = Textures.Block.Screen.Vertical(pitch)(ry).clone()
-            if (facing == EnumFacing.SOUTH)
-              result(3) = Textures.Block.Screen.VerticalFront(pitch)(ry)
-            result
-          }
-          else if (screen.height == 1) {
-            val result = Textures.Block.Screen.Horizontal(pitch)(rx).clone()
-            if (facing == EnumFacing.SOUTH)
-              result(3) = Textures.Block.Screen.HorizontalFront(pitch)(rx)
-            result
+          if (side == EnumFacing.UP) {
+            rotation += screen.yaw.getHorizontalIndex
+            ry = 2 - ry
           }
           else {
-            val result = Textures.Block.Screen.Multi(pitch)(ry)(rx).clone()
-            if (facing == EnumFacing.SOUTH)
-              result(3) = Textures.Block.Screen.MultiFront(pitch)(ry)(rx)
-            result
+            if (side == EnumFacing.DOWN) {
+              if (screen.yaw.getAxis == EnumFacing.Axis.X) {
+                rotation += 1
+                rx = 2 - rx
+              }
+              if (screen.yaw.getAxisDirection.getOffset < 0)
+                ry = 2 - ry
+            }
+            else if (screen.yaw.getAxisDirection.getOffset > 0 && pitch == 1)
+              ry = 2 - ry
+            if (screen.yaw == EnumFacing.NORTH || screen.yaw == EnumFacing.EAST)
+              rx = 2 - rx
           }
 
-        List(new BakedQuad(makeQuad(side, Textures.Block.getSprite(textures(facing.ordinal())), screen.color, rotation), -1, side))
-      case _ => super.getFaceQuads(side)
+          val textures =
+            if (screen.width == 1 && screen.height == 1) {
+              val result = Textures.Block.Screen.Single.clone()
+              if (facing == EnumFacing.SOUTH)
+                result(3) = Textures.Block.Screen.SingleFront(pitch)
+              result
+            }
+            else if (screen.width == 1) {
+              val result = Textures.Block.Screen.Vertical(pitch)(ry).clone()
+              if (facing == EnumFacing.SOUTH)
+                result(3) = Textures.Block.Screen.VerticalFront(pitch)(ry)
+              result
+            }
+            else if (screen.height == 1) {
+              val result = Textures.Block.Screen.Horizontal(pitch)(rx).clone()
+              if (facing == EnumFacing.SOUTH)
+                result(3) = Textures.Block.Screen.HorizontalFront(pitch)(rx)
+              result
+            }
+            else {
+              val result = Textures.Block.Screen.Multi(pitch)(ry)(rx).clone()
+              if (facing == EnumFacing.SOUTH)
+                result(3) = Textures.Block.Screen.MultiFront(pitch)(ry)(rx)
+              result
+            }
+
+          seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(textures(facing.ordinal())), screen.color, rotation), -1, side)))
+        case _ => super.getFaceQuads(side)
+      }
+  }
+
+  class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
+    val color = api.Items.get(stack).name() match {
+      case "screen2" => Color.byTier(Tier.Two)
+      case "screen3" => Color.byTier(Tier.Three)
+      case _ => Color.byTier(Tier.One)
+    }
+
+    override def getFaceQuads(side: EnumFacing) = {
+      val result =
+        if (side == EnumFacing.NORTH)
+          Textures.Block.Screen.SingleFront(0)
+        else
+          Textures.Block.Screen.Single(side.ordinal())
+      seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(result), color, 0), -1, side)))
     }
   }
 
-  private def multiCoords(value: Int, high: Int) = if (value == 0) 2 else if (value == high) 0 else 1
-}
-
-class ScreenItemModel(val stack: ItemStack) extends SmartBlockModelBase {
-  val color = api.Items.get(stack).name() match {
-    case "screen2" => Color.byTier(Tier.Two)
-    case "screen3" => Color.byTier(Tier.Three)
-    case _ => Color.byTier(Tier.One)
-  }
-
-  override def getFaceQuads(side: EnumFacing) = {
-    val result =
-      if (side == EnumFacing.NORTH)
-        Textures.Block.Screen.SingleFront(0)
-      else
-        Textures.Block.Screen.Single(side.ordinal())
-    List(new BakedQuad(makeQuad(side, Textures.Block.getSprite(result), color, 0), -1, side))
-  }
 }
