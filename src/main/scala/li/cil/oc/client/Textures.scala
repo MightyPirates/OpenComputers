@@ -115,6 +115,11 @@ object Textures {
         L("screen/b2")
       )
 
+      val SingleFront = Array(
+        L("screen/f"),
+        L("screen/f2")
+      )
+
       val Horizontal = Array(
         // Vertical.
         Array(
@@ -172,6 +177,21 @@ object Textures {
         )
       )
 
+      val HorizontalFront = Array(
+        // Vertical.
+        Array(
+          L("screen/fht2"),
+          L("screen/fhm2"),
+          L("screen/fhb2")
+        ),
+        // Horizontal.
+        Array(
+          L("screen/fht"),
+          L("screen/fhm"),
+          L("screen/fhb")
+        )
+      )
+
       val Vertical = Array(
         // Vertical.
         Array(
@@ -226,6 +246,21 @@ object Textures {
             L("screen/bhb2"),
             L("screen/bhb2")
           )
+        )
+      )
+
+      val VerticalFront = Array(
+        // Vertical.
+        Array(
+          L("screen/fvt"),
+          L("screen/fvm"),
+          L("screen/fvb2")
+        ),
+        // Horizontal.
+        Array(
+          L("screen/fvt"),
+          L("screen/fvm"),
+          L("screen/fvb")
         )
       )
 
@@ -394,6 +429,45 @@ object Textures {
               L("screen/bhb2"),  // Never rendered.
               L("screen/bhb2")
             )
+          )
+        )
+      )
+
+      val MultiFront = Array(
+        // Vertical.
+        Array(
+          Array(
+            L("screen/ftl"),
+            L("screen/ftm"),
+            L("screen/ftr")
+          ),
+          Array(
+            L("screen/fml"),
+            L("screen/fmm"),
+            L("screen/fmr")
+          ),
+          Array(
+            L("screen/fbl2"),
+            L("screen/fbm2"),
+            L("screen/fbr2")
+          )
+        ),
+        // Horizontal.
+        Array(
+          Array(
+            L("screen/ftl"),
+            L("screen/ftm"),
+            L("screen/ftr")
+          ),
+          Array(
+            L("screen/fml"),
+            L("screen/fmm"),
+            L("screen/fmr")
+          ),
+          Array(
+            L("screen/fbl"),
+            L("screen/fbm"),
+            L("screen/fbr")
           )
         )
       )
