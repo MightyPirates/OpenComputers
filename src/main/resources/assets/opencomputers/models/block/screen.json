@@ -1,8 +1,8 @@
 {
-    "parent": "block/orientable",
+    "parent": "block/cube_bottom_top",
     "textures": {
-        "top": "opencomputers:blocks/screen_side",
-        "side": "opencomputers:blocks/screen_side",
-        "front": "opencomputers:blocks/screen_front"
+        "bottom": "opencomputers:blocks/generic_top",
+        "top": "opencomputers:blocks/generic_top",
+        "side": "opencomputers:blocks/generic_side"
     }
 }
