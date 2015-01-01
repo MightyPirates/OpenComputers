@@ -124,6 +124,9 @@ item.oc.UpgradeTankController.name=Tank Controller Upgrade
 item.oc.UpgradeTractorBeam.name=Tractor Beam Upgrade
 item.oc.WirelessNetworkCard.name=Wireless Network Card
 
+# Entities
+entity.oc.Drone.name=Drone
+
 # GUI
 oc:gui.Analyzer.Address=§6Address§f: %s
 oc:gui.Analyzer.AddressCopied=Address copied to clipboard.

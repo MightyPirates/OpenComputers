@@ -22,8 +22,10 @@ object Analyzer {
     val player = e.entityPlayer
     val held = player.getHeldItem
     if (api.Items.get(held) == analyzer) {
-      if (analyze(e.target, player, 0, 0, 0, 0))
+      if (analyze(e.target, player, 0, 0, 0, 0)) {
+        player.swingItem()
         e.setCanceled(true)
+      }
     }
   }
 

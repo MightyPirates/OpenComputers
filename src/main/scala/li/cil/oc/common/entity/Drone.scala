@@ -434,6 +434,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
+  override def getCommandSenderName = Localization.localizeImmediately("entity.oc.Drone.name")
+
   override def handleWaterMovement() = {
     inWater = worldObj.handleMaterialAcceleration(boundingBox, Material.water, this)
     inWater
