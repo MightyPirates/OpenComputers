@@ -2,6 +2,7 @@ package li.cil.oc.common.entity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -38,7 +39,7 @@ import net.minecraftforge.fluids.IFluidTank
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable {
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -135,6 +136,22 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def toLocal(value: ForgeDirection) = value
 
   override def toGlobal(value: ForgeDirection) = value
+
+  // ----------------------------------------------------------------------- //
+
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    machine.lastError match {
+      case value if value != null =>
+        player.addChatMessage(Localization.Analyzer.LastError(value))
+      case _ =>
+    }
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    val list = machine.users
+    if (list.size > 0) {
+      player.addChatMessage(Localization.Analyzer.Users(list))
+    }
+    Array(machine.node)
+  }
 
   // ----------------------------------------------------------------------- //
 

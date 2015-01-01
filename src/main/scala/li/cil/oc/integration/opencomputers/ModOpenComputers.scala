@@ -12,6 +12,7 @@ import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event._
+import li.cil.oc.common.item.Analyzer
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template._
@@ -47,6 +48,7 @@ object ModOpenComputers extends ModProxy {
     FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
     FMLCommonHandler.instance.bus.register(Tablet)
 
+    MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(EventHandler)

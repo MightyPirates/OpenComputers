@@ -22,7 +22,7 @@ trait Delegate {
   type Icon = net.minecraft.util.IIcon
   type IconRegister = net.minecraft.client.renderer.texture.IIconRegister
 
-  val parent: Delegator
+  def parent: Delegator
 
   def unlocalizedName = getClass.getSimpleName
 
