@@ -350,6 +350,16 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
     }
   }
 
+  @Callback(doc = "function():number -- Get the current color of the activity light as an integer encoded RGB value (0xRRGGBB).")
+  def getLightColor(context: Context, args: Arguments): Array[AnyRef] = result(robot.info.lightColor)
+
+  @Callback(doc = "function(value:number):number -- Set the color of the activity light to the specified integer encoded RGB value (0xRRGGBB).")
+  def setLightColor(context: Context, args: Arguments): Array[AnyRef] = {
+    robot.setLightColor(args.checkInteger(0))
+    context.pause(0.1)
+    result(robot.info.lightColor)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {

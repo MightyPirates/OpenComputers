@@ -309,6 +309,15 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t, Option(16))
   }
 
+  def sendRobotLightChange(t: tileentity.Robot) {
+    val pb = new SimplePacketBuilder(PacketType.RobotLightChange)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeInt(t.info.lightColor)
+
+    pb.sendToPlayersNearTileEntity(t, Option(64))
+  }
+
   def sendRotatableState(t: Rotatable) {
     val pb = new SimplePacketBuilder(PacketType.RotatableState)
 

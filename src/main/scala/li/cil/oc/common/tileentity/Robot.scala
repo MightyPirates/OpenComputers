@@ -808,4 +808,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     components.collect {
       case Some(t: IFluidTank) => t.getInfo
     }.toArray
+
+  def setLightColor(value: Int): Unit = {
+    info.lightColor = value
+    ServerPacketSender.sendRobotLightChange(this)
+  }
 }
