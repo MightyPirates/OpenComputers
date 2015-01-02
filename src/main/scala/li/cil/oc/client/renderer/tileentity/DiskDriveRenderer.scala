@@ -62,11 +62,11 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
       Textures.Block.bind()
       r.startDrawingQuads()
 
-      val activity = Textures.Block.getSprite(Textures.Block.DiskDriveFrontActivity)
-      r.addVertexWithUV(0, 1, 0, activity.getMinU, activity.getMaxV)
-      r.addVertexWithUV(1, 1, 0, activity.getMaxU, activity.getMaxV)
-      r.addVertexWithUV(1, 0, 0, activity.getMaxU, activity.getMinV)
-      r.addVertexWithUV(0, 0, 0, activity.getMinU, activity.getMinV)
+      val icon = Textures.Block.getSprite(Textures.Block.DiskDriveFrontActivity)
+      r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
+      r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
+      r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+      r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
 
       t.draw()
       Textures.Block.unbind()

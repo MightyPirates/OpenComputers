@@ -8,8 +8,8 @@ import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsScala._
@@ -22,17 +22,15 @@ object DriverCPU extends Item with Processor {
 
   override def slot(stack: ItemStack) = Slot.CPU
 
-  override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(cpu: item.CPU) => cpu.tier
-      case _ => Tier.One
-    }
+  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(cpu: item.CPU) => cpu.tier
+    case _ => Tier.One
+  }
 
-  override def supportedComponents(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(cpu: item.CPU) => Settings.get.cpuComponentSupport(cpu.tier)
-      case _ => Tier.One
-    }
+  override def supportedComponents(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(cpu: item.CPU) => Settings.get.cpuComponentSupport(cpu.tier)
+    case _ => Tier.One
+  }
 
   override def architecture(stack: ItemStack): Class[_ <: Architecture] = {
     if (stack.hasTagCompound) {

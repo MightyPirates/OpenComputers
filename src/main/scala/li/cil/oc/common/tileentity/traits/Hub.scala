@@ -57,8 +57,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
     if (relayCooldown > 0) {
       relayCooldown -= 1
     }

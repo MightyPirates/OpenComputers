@@ -1,8 +1,8 @@
 package li.cil.oc.common
 
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
@@ -43,7 +43,7 @@ abstract class GuiHandler extends IGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Items.multi.subItem(player.getCurrentEquippedItem) match {
+        Delegator.subItem(player.getCurrentEquippedItem) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new container.Database(player.inventory, new DatabaseInventory {
               override def tier = database.tier

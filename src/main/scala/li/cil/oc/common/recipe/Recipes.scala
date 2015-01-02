@@ -7,6 +7,7 @@ import com.typesafe.config._
 import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
@@ -332,12 +333,12 @@ object Recipes {
   }
 
   private def findItem(name: String) = getObjectWithoutFallback(Item.itemRegistry, name).orElse(Item.itemRegistry.find {
-    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name
+    case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name || Item.itemRegistry.getNameForObject(item).toString == name
     case _ => false
   })
 
   private def findBlock(name: String) = getObjectWithoutFallback(Block.blockRegistry, name).orElse(Block.blockRegistry.find {
-    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name
+    case block: Block => block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name || Block.blockRegistry.getNameForObject(block).toString == name
     case _ => false
   })
 
@@ -372,17 +373,24 @@ object Recipes {
   }
 
   private def hide(value: ItemStack) {
-    Items.multi.subItem(value) match {
-      case Some(stack) => stack.showInItemList = false
-      case _ => value.getItem match {
-        case itemBlock: ItemBlock => itemBlock.getBlock match {
-          case simple: SimpleBlock =>
-            simple.setCreativeTab(null)
-            NEI.hide(simple)
-          case _ =>
-        }
+    Delegator.subItem(value) match {
+      case Some(stack) =>
+        stack.showInItemList = false
+      case _ =>
+    }
+    value.getItem match {
+      case simple: SimpleItem =>
+        simple.setCreativeTab(null)
+      case _ =>
+    }
+    value.getItem match {
+      case itemBlock: ItemBlock => itemBlock.getBlock match {
+        case simple: SimpleBlock =>
+          simple.setCreativeTab(null)
+          NEI.hide(simple)
         case _ =>
       }
+      case _ =>
     }
   }
 

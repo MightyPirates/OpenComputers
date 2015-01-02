@@ -339,7 +339,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  override def update() {
+  override def updateEntity() {
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
       if (animationTicksLeft == 0) {
@@ -348,7 +348,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         turnAxis = 0
       }
     }
-    super.update()
+    super.updateEntity()
     if (isServer) {
       if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (info.tier == 3) {

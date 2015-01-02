@@ -35,7 +35,11 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerL
 
   def canUpdate = true
 
-  override def update() {
+  override def update(): Unit = {
+    if (canUpdate) updateEntity()
+  }
+
+  def updateEntity() {
     if (Settings.get.periodicallyForceLightUpdate && world.getTotalWorldTime % 40 == 0 && getBlockType.getLightValue(world, getPos) > 0) {
       world.markBlockForUpdate(getPos)
     }

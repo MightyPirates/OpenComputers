@@ -30,11 +30,11 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer {
     Textures.Block.bind()
     r.startDrawingQuads()
 
-    val topOn = Textures.Block.getSprite(Textures.Block.GeolyzerTopOn)
-    r.addVertexWithUV(0, 0, 1, topOn.getMinU, topOn.getMaxV)
-    r.addVertexWithUV(1, 0, 1, topOn.getMaxU, topOn.getMaxV)
-    r.addVertexWithUV(1, 0, 0, topOn.getMaxU, topOn.getMinV)
-    r.addVertexWithUV(0, 0, 0, topOn.getMinU, topOn.getMinV)
+    val icon = Textures.Block.getSprite(Textures.Block.GeolyzerTopOn)
+    r.addVertexWithUV(0, 0, 1, icon.getMinU, icon.getMaxV)
+    r.addVertexWithUV(1, 0, 1, icon.getMaxU, icon.getMaxV)
+    r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+    r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
 
     t.draw()
     Textures.Block.unbind()

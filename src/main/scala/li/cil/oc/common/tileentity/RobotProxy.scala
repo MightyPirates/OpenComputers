@@ -93,8 +93,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  override def update() {
-    robot.update()
+  override def updateEntity() {
+    robot.updateEntity()
   }
 
   override def validate() {

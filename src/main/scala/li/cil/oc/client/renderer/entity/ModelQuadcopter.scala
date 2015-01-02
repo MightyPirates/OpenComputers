@@ -1,18 +1,14 @@
 package li.cil.oc.client.renderer.entity
 
-import li.cil.oc.Settings
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelRenderer
 import net.minecraft.entity.Entity
-import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
 import org.lwjgl.opengl.GL11
 
 final class ModelQuadcopter extends ModelBase {
-  val texture = new ResourceLocation(Settings.resourceDomain, "textures/model/drone.png")
-
   val body = new ModelRenderer(this, "body")
   val wing0 = new ModelRenderer(this, "wing0")
   val wing1 = new ModelRenderer(this, "wing1")

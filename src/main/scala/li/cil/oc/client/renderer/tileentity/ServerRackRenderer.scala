@@ -48,6 +48,7 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
         for (i <- 0 until 4 if rack.isRunning(i)) {
           val l = v1 + i * fs
           val h = v1 + (i + 1) * fs
+
           r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h))
           r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h))
           r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l))
@@ -61,7 +62,6 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
           val l = v1 + i * fs
           val h = v1 + (i + 1) * fs
 
-          bindTexture(Textures.Block.RackFrontActivity)
           r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h))
           r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h))
           r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l))

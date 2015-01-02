@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.internal.Robot;
+import li.cil.oc.api.internal.Agent;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 
@@ -10,8 +10,8 @@ public abstract class RobotMoveEvent extends RobotEvent {
      */
     public final EnumFacing direction;
 
-    protected RobotMoveEvent(Robot robot, EnumFacing direction) {
-        super(robot);
+    protected RobotMoveEvent(Agent agent, EnumFacing direction) {
+        super(agent);
         this.direction = direction;
     }
 
@@ -22,8 +22,8 @@ public abstract class RobotMoveEvent extends RobotEvent {
      */
     @Cancelable
     public static class Pre extends RobotMoveEvent {
-        public Pre(Robot robot, EnumFacing direction) {
-            super(robot, direction);
+        public Pre(Agent agent, EnumFacing direction) {
+            super(agent, direction);
         }
     }
 
@@ -31,8 +31,8 @@ public abstract class RobotMoveEvent extends RobotEvent {
      * Fired after a robot moved.
      */
     public static class Post extends RobotMoveEvent {
-        public Post(Robot robot, EnumFacing direction) {
-            super(robot, direction);
+        public Post(Agent agent, EnumFacing direction) {
+            super(agent, direction);
         }
     }
 }

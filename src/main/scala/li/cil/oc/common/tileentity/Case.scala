@@ -73,12 +73,12 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def canUpdate = isServer
 
-  override def update() {
+  override def updateEntity() {
     if (isServer && isCreativeCase && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
-    super.update()
+    super.updateEntity()
   }
 
   // ----------------------------------------------------------------------- //

@@ -41,12 +41,21 @@ object RaidRenderer extends TileEntitySpecialRenderer {
     Textures.Block.bind()
     r.startDrawingQuads()
 
-    for (slot <- 0 until raid.getSizeInventory) {
-      if (!raid.presence(slot)) {
-        renderSlot(r, slot, Textures.Block.getSprite(Textures.Block.RaidFrontError))
+    {
+      val icon = Textures.Block.getSprite(Textures.Block.RaidFrontError)
+      for (slot <- 0 until raid.getSizeInventory) {
+        if (!raid.presence(slot)) {
+          renderSlot(r, slot, icon)
+        }
       }
-      else if (System.currentTimeMillis() - raid.lastAccess < 400 && raid.world.rand.nextDouble() > 0.1 && slot == raid.lastAccess % raid.getSizeInventory) {
-        renderSlot(r, slot, Textures.Block.getSprite(Textures.Block.RaidFrontActivity))
+    }
+
+    {
+      val icon = Textures.Block.getSprite(Textures.Block.RaidFrontActivity)
+      for (slot <- 0 until raid.getSizeInventory) {
+        if (System.currentTimeMillis() - raid.lastAccess < 400 && raid.world.rand.nextDouble() > 0.1 && slot == raid.lastAccess % raid.getSizeInventory) {
+          renderSlot(r, slot, icon)
+        }
       }
     }
 

@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.entity
 
+import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.entity.Render
 import net.minecraft.entity.Entity
@@ -21,5 +22,5 @@ object DroneRenderer extends Render(Minecraft.getMinecraft.getRenderManager) {
     GL11.glPopMatrix()
   }
 
-  override def getEntityTexture(entity: Entity) = model.texture
+  override def getEntityTexture(entity: Entity) = Textures.Model.Drone
 }

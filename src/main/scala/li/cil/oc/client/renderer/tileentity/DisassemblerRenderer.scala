@@ -31,33 +31,35 @@ object DisassemblerRenderer extends TileEntitySpecialRenderer {
       r.startDrawingQuads()
 
       {
-        val topOn = Textures.Block.getSprite(Textures.Block.DisassemblerTopOn)
-        r.addVertexWithUV(0, 0, 1, topOn.getMinU, topOn.getMaxV)
-        r.addVertexWithUV(1, 0, 1, topOn.getMaxU, topOn.getMaxV)
-        r.addVertexWithUV(1, 0, 0, topOn.getMaxU, topOn.getMinV)
-        r.addVertexWithUV(0, 0, 0, topOn.getMinU, topOn.getMinV)
+        val icon = Textures.Block.getSprite(Textures.Block.DisassemblerTopOn)
+        r.addVertexWithUV(0, 0, 1, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(1, 0, 1, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
       }
 
-      val sideOn = Textures.Block.getSprite(Textures.Block.DisassemblerSideOn)
-      r.addVertexWithUV(1, 1, 0, sideOn.getMinU, sideOn.getMaxV)
-      r.addVertexWithUV(0, 1, 0, sideOn.getMaxU, sideOn.getMaxV)
-      r.addVertexWithUV(0, 0, 0, sideOn.getMaxU, sideOn.getMinV)
-      r.addVertexWithUV(1, 0, 0, sideOn.getMinU, sideOn.getMinV)
+      {
+        val icon = Textures.Block.getSprite(Textures.Block.DisassemblerSideOn)
+        r.addVertexWithUV(1, 1, 0, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(0, 1, 0, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(0, 0, 0, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(1, 0, 0, icon.getMinU, icon.getMinV)
 
-      r.addVertexWithUV(0, 1, 1, sideOn.getMinU, sideOn.getMaxV)
-      r.addVertexWithUV(1, 1, 1, sideOn.getMaxU, sideOn.getMaxV)
-      r.addVertexWithUV(1, 0, 1, sideOn.getMaxU, sideOn.getMinV)
-      r.addVertexWithUV(0, 0, 1, sideOn.getMinU, sideOn.getMinV)
+        r.addVertexWithUV(0, 1, 1, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(1, 1, 1, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(1, 0, 1, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(0, 0, 1, icon.getMinU, icon.getMinV)
 
-      r.addVertexWithUV(1, 1, 1, sideOn.getMinU, sideOn.getMaxV)
-      r.addVertexWithUV(1, 1, 0, sideOn.getMaxU, sideOn.getMaxV)
-      r.addVertexWithUV(1, 0, 0, sideOn.getMaxU, sideOn.getMinV)
-      r.addVertexWithUV(1, 0, 1, sideOn.getMinU, sideOn.getMinV)
+        r.addVertexWithUV(1, 1, 1, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(1, 0, 1, icon.getMinU, icon.getMinV)
 
-      r.addVertexWithUV(0, 1, 0, sideOn.getMinU, sideOn.getMaxV)
-      r.addVertexWithUV(0, 1, 1, sideOn.getMaxU, sideOn.getMaxV)
-      r.addVertexWithUV(0, 0, 1, sideOn.getMaxU, sideOn.getMinV)
-      r.addVertexWithUV(0, 0, 0, sideOn.getMinU, sideOn.getMinV)
+        r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(0, 1, 1, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(0, 0, 1, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+      }
 
       t.draw()
       Textures.Block.unbind()

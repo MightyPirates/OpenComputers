@@ -57,8 +57,6 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override protected def energyThroughput = Settings.get.serverRackRate
 
-  override def getWorld = world
-
   // ----------------------------------------------------------------------- //
 
   override def canConnect(side: EnumFacing) = side != facing
@@ -215,8 +213,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def canUpdate = isServer
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
     if (isServer && isConnected) {
       val shouldUpdatePower = world.getTotalWorldTime % Settings.get.tickFrequency == 0
       if (shouldUpdatePower && range > 0 && !Settings.get.ignorePower) {

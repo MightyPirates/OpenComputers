@@ -52,8 +52,6 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   override protected def energyThroughput = Settings.get.caseRate(Tier.One)
 
-  override def getWorld = world
-
   // ----------------------------------------------------------------------- //
 
   override def cpuArchitecture = info.components.map(stack => (stack, Driver.driverFor(stack, getClass))).collectFirst {
@@ -102,8 +100,8 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   override def canUpdate = isServer
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
 
     // Pump energy into the internal network.
     if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {

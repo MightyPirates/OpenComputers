@@ -5,7 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
-import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.FloppyDisk
 import li.cil.oc.common.item.HardDiskDrive
 import li.cil.oc.server.fs.FileSystem.ItemLabel
@@ -16,25 +16,22 @@ object DriverFileSystem extends Item {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"), api.Items.get("floppy"))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    Items.multi.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host)
-      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, host)
-      case _ => null
-    }
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = Delegator.subItem(stack) match {
+    case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host)
+    case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, host)
+    case _ => null
+  }
 
-  override def slot(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => Slot.HDD
-      case Some(disk: FloppyDisk) => Slot.Floppy
-      case _ => throw new IllegalArgumentException()
-    }
+  override def slot(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(hdd: HardDiskDrive) => Slot.HDD
+    case Some(disk: FloppyDisk) => Slot.Floppy
+    case _ => throw new IllegalArgumentException()
+  }
 
-  override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => hdd.tier
-      case _ => 0
-    }
+  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(hdd: HardDiskDrive) => hdd.tier
+    case _ => 0
+  }
 
   private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost) = {
     // We have a bit of a chicken-egg problem here, because we want to use the

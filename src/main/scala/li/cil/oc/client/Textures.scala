@@ -16,7 +16,7 @@ object Textures {
 
   object Font extends TextureBundle {
     val Aliased = L("chars_aliased")
-    val AntiAliased = L("chars.png")
+    val AntiAliased = L("chars")
 
     override protected def basePath = "textures/font/%s.png"
 
@@ -68,11 +68,12 @@ object Textures {
   }
 
   object Model extends TextureBundle {
-    val HologramEffect = L("HologramEffect")
+    val UpgradeCrafting = L("crafting_upgrade")
+    val UpgradeGenerator = L("generator_upgrade")
+    val UpgradeInventory = L("inventory_upgrade")
+    val HologramEffect = L("hologram_effect")
+    val Drone = L("drone")
     val Robot = L("robot")
-    val UpgradeCrafting = L("UpgradeCrafting")
-    val UpgradeGenerator = L("UpgradeGenerator")
-    val UpgradeInventory = L("UpgradeInventory")
 
     override protected def basePath = "textures/model/%s.png"
 
@@ -81,28 +82,28 @@ object Textures {
 
   // These are kept in the block texture atlas to support animations.
   object Block extends TextureBundle {
-    val AssemblerSideAssembling = L("AssemblerSideAssembling")
-    val AssemblerSideOn = L("AssemblerSideOn")
-    val AssemblerTopOn = L("AssemblerTopOn")
+    val AssemblerSideAssembling = L("overlay/assembler_side_assembling")
+    val AssemblerSideOn = L("overlay/assembler_side_on")
+    val AssemblerTopOn = L("overlay/assembler_top_on")
     val CableCap = L("CableCap")
-    val CaseFrontActivity = L("CaseFrontActivity")
-    val CaseFrontOn = L("CaseFrontOn")
-    val ChargerFrontOn = L("ChargerFrontOn")
-    val ChargerSideOn = L("ChargerSideOn")
-    val DisassemblerSideOn = L("DisassemblerSideOn")
-    val DisassemblerTopOn = L("DisassemblerTopOn")
-    val DiskDriveFrontActivity = L("DiskDriveFrontActivity")
-    val GeolyzerTopOn = L("GeolyzerTopOn")
-    val MicrocontrollerFrontLight = L("MicrocontrollerFrontLight")
-    val MicrocontrollerFrontOn = L("MicrocontrollerFrontOn")
-    val PowerDistributorSideOn = L("PowerDistributorSideOn")
-    val PowerDistributorTopOn = L("PowerDistributorTopOn")
-    val RackFrontActivity = L("ServerRackFrontActivity")
-    val RackFrontOn = L("ServerRackFrontOn")
-    val RaidFrontActivity = L("RaidFrontActivity")
-    val RaidFrontError = L("RaidFrontError")
-    val ScreenUpIndicator = L("screen/up_indicator")
-    val SwitchSideOn = L("SwitchSideOn")
+    val CaseFrontActivity = L("overlay/case_front_activity")
+    val CaseFrontOn = L("overlay/case_front_on")
+    val ChargerFrontOn = L("overlay/charger_front_on")
+    val ChargerSideOn = L("overlay/charger_side_on")
+    val DisassemblerSideOn = L("overlay/disassembler_side_on")
+    val DisassemblerTopOn = L("overlay/disassembler_top_on")
+    val DiskDriveFrontActivity = L("overlay/diskDrive_front_activity")
+    val GeolyzerTopOn = L("overlay/geolyzer_top_on")
+    val MicrocontrollerFrontLight = L("overlay/microcontroller_front_light")
+    val MicrocontrollerFrontOn = L("overlay/microcontroller_front_on")
+    val PowerDistributorSideOn = L("overlay/powerDistributor_side_on")
+    val PowerDistributorTopOn = L("overlay/powerDistributor_top_on")
+    val RackFrontActivity = L("overlay/serverRack_front_activity")
+    val RackFrontOn = L("overlay/serverRack_front_on")
+    val RaidFrontActivity = L("overlay/raid_front_activity")
+    val RaidFrontError = L("overlay/raid_front_error")
+    val ScreenUpIndicator = L("overlay/screen_up_indicator")
+    val SwitchSideOn = L("overlay/switch_side_on")
 
     // Kill me now.
     object Screen {

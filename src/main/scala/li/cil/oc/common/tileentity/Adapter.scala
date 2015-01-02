@@ -35,8 +35,8 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
 
   override def canUpdate = isServer
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
     if (updatingBlocks.nonEmpty) {
       for (block <- updatingBlocks) {
         block.update()

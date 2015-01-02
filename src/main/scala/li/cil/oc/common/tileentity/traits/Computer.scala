@@ -90,7 +90,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  override def update() {
+  override def updateEntity() {
     if (isServer && isConnected) {
       // If we're not yet in a network we might have just been loaded from disk,
       // meaning there may be other tile entities that also have not re-joined
@@ -113,7 +113,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       updateComponents()
     }
 
-    super.update()
+    super.updateEntity()
   }
 
   // ----------------------------------------------------------------------- //

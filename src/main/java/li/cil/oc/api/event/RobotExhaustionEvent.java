@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.internal.Robot;
+import li.cil.oc.api.internal.Agent;
 
 /**
  * Fired when a robot performed an action that would cause exhaustion for a
@@ -12,8 +12,8 @@ public class RobotExhaustionEvent extends RobotEvent {
      */
     public final double exhaustion;
 
-    public RobotExhaustionEvent(Robot robot, double exhaustion) {
-        super(robot);
+    public RobotExhaustionEvent(Agent agent, double exhaustion) {
+        super(agent);
         this.exhaustion = exhaustion;
     }
 }

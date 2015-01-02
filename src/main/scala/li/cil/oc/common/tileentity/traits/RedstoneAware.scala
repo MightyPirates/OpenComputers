@@ -68,8 +68,8 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
 
   // ----------------------------------------------------------------------- //
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
     if (isServer) {
       if (shouldUpdateInput) {
         shouldUpdateInput = false

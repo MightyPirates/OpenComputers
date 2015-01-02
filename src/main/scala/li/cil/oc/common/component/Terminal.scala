@@ -6,8 +6,8 @@ import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -35,7 +35,7 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
     keyboard.setUsableOverride(new UsabilityChecker {
       override def isUsableByPlayer(keyboard: api.component.Keyboard, player: EntityPlayer) = {
         val stack = player.getCurrentEquippedItem
-        Items.multi.subItem(stack) match {
+        Delegator.subItem(stack) match {
           case Some(t: item.Terminal) if stack.hasTagCompound => keys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))
           case _ => false
         }

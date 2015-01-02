@@ -109,6 +109,7 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
+  // TODO wat
   def equals(stack: ItemStack) =
-    stack != null && stack.getItem == parent && parent.subItem(stack).contains(this)
+    stack != null && stack.getItem == parent && parent.subItem(stack.getItemDamage).contains(this)
 }

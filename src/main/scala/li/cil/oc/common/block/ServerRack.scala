@@ -13,21 +13,8 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor {
-  // TODO remove
-//  override protected def customTextures = Array(
-//    None,
-//    None,
-//    Some("ServerRackSide"),
-//    Some("ServerRackFront"),
-//    Some("ServerRackSide"),
-//    Some("ServerRackSide")
-//  )
-//
-//  override def registerBlockIcons(iconRegister: IIconRegister) = {
-//    super.registerBlockIcons(iconRegister)
-//    System.arraycopy(icons, 0, Textures.ServerRack.icons, 0, icons.length)
-//  }
+class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor with traits.Rotatable {
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   @SideOnly(Side.CLIENT)
   override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {

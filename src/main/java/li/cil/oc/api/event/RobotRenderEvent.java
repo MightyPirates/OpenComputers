@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.internal.Robot;
+import li.cil.oc.api.internal.Agent;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
@@ -29,8 +29,8 @@ public class RobotRenderEvent extends RobotEvent {
      */
     public final MountPoint[] mountPoints;
 
-    public RobotRenderEvent(Robot robot, MountPoint[] mountPoints) {
-        super(robot);
+    public RobotRenderEvent(Agent agent, MountPoint[] mountPoints) {
+        super(agent);
         this.mountPoints = mountPoints;
     }
 

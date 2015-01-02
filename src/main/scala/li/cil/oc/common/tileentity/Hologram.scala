@@ -294,8 +294,8 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   override def canUpdate = isServer
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
     if (isServer) {
       if (dirty) {
         cooldown -= 1

@@ -20,8 +20,8 @@ trait TextBuffer extends Environment {
 
   def tier: Int
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
     if (isClient || isConnected) {
       buffer.update()
     }

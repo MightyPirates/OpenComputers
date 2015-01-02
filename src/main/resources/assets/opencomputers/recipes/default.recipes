@@ -221,9 +221,9 @@ inventoryControllerUpgrade {
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 leashUpgrade {
-  input: [[ingotIron, lead, ingotIron]
-          [lead, "oc:materialCU", lead]
-          [ingotIron, lead, ingotIron]]
+  input: [[ingotIron, {item="minecraft:lead"}, ingotIron]
+          [{item="minecraft:lead"}, "oc:materialCU", {item="minecraft:lead"}]
+          [ingotIron, {item="minecraft:lead"}, ingotIron]]
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]

@@ -16,7 +16,7 @@ import li.cil.oc.api.machine.Machine;
  * i.e. without having to link against internal classes. This also means
  * that <em>you should not implement this</em>.
  */
-public interface Drone extends EnvironmentHost, Rotatable {
+public interface Drone extends Agent, EnvironmentHost, Rotatable {
     /**
      * The machine currently hosted by this drone.
      */

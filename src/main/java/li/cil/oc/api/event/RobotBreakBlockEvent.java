@@ -1,13 +1,13 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.internal.Robot;
+import li.cil.oc.api.internal.Agent;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 
 public abstract class RobotBreakBlockEvent extends RobotEvent {
-    protected RobotBreakBlockEvent(Robot robot) {
-        super(robot);
+    protected RobotBreakBlockEvent(Agent agent) {
+        super(agent);
     }
 
     /**
@@ -32,8 +32,8 @@ public abstract class RobotBreakBlockEvent extends RobotEvent {
          */
         private double breakTime;
 
-        public Pre(Robot robot, World world, BlockPos pos, double breakTime) {
-            super(robot);
+        public Pre(Agent agent, World world, BlockPos pos, double breakTime) {
+            super(agent);
             this.world = world;
             this.pos = pos;
             this.breakTime = breakTime;
@@ -70,8 +70,8 @@ public abstract class RobotBreakBlockEvent extends RobotEvent {
          */
         public final double experience;
 
-        public Post(Robot robot, double experience) {
-            super(robot);
+        public Post(Agent agent, double experience) {
+            super(agent);
             this.experience = experience;
         }
     }

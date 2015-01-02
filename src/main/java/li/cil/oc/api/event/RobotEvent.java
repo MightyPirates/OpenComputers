@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.internal.Robot;
+import li.cil.oc.api.internal.Agent;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
@@ -10,9 +10,9 @@ public abstract class RobotEvent extends Event {
     /**
      * The robot for which this event was fired.
      */
-    public final Robot robot;
+    public final Agent agent;
 
-    protected RobotEvent(Robot robot) {
-        this.robot = robot;
+    protected RobotEvent(Agent agent) {
+        this.agent = agent;
     }
 }

@@ -6,11 +6,9 @@ import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.ExtendedBlockModel
 import li.cil.oc.client.renderer.entity.DroneRenderer
-import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegate
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
@@ -23,7 +21,6 @@ import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.client.registry.RenderingRegistry
@@ -111,7 +108,8 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 
-    MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
+    // TODO labels on floppies and such
+    //    MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
 
     ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)

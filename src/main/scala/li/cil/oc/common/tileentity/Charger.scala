@@ -55,8 +55,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def canUpdate = true
 
-  override def update() {
-    super.update()
+  override def updateEntity() {
+    super.updateEntity()
 
     // Offset by hashcode to avoid all chargers ticking at the same time.
     if ((world.getWorldInfo.getWorldTotalTime + math.abs(hashCode())) % 20 == 0) {

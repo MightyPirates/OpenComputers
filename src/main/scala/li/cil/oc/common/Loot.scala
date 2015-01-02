@@ -20,32 +20,32 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createItemStack(1), 1, 1, Settings.get.lootProbability) {
-  val containers = Array(
-    ChestGenHooks.DUNGEON_CHEST,
-    ChestGenHooks.PYRAMID_DESERT_CHEST,
-    ChestGenHooks.PYRAMID_JUNGLE_CHEST,
-    ChestGenHooks.STRONGHOLD_LIBRARY)
-
+object Loot {
   val builtInDisks = mutable.Map.empty[String, (ItemStack, Int)]
 
   val worldDisks = mutable.Map.empty[String, (ItemStack, Int)]
 
   val disks = mutable.ArrayBuffer.empty[ItemStack]
 
-  def init() {
-    for (container <- containers) {
-      ChestGenHooks.addItem(container, Loot)
-    }
+  def randomDisk(rng: Random) =
+    if (disks.length > 0) Some(disks(rng.nextInt(disks.length)))
+    else None
 
+  def init() {
     val list = new java.util.Properties()
     val listStream = getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/loot/loot.properties")
     list.load(listStream)
     listStream.close()
     parseLootDisks(list, builtInDisks)
 
-    for ((name, (stack, _)) <- builtInDisks if name == "OpenOS") {
-      Recipes.addRecipe(stack, "openOS")
+    val loot = new Loot(createLootDisk("openos", "OpenOS"))
+    val containers = Array(
+      ChestGenHooks.DUNGEON_CHEST,
+      ChestGenHooks.PYRAMID_DESERT_CHEST,
+      ChestGenHooks.PYRAMID_JUNGLE_CHEST,
+      ChestGenHooks.STRONGHOLD_LIBRARY)
+    for (container <- containers) {
+      ChestGenHooks.addItem(container, loot)
     }
   }
 
@@ -80,7 +80,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
   }
 
   private def parseLootDisks(list: java.util.Properties, acc: mutable.Map[String, (ItemStack, Int)]) {
-    for (key <- list.stringPropertyNames if key != "OpenOS") {
+    for (key <- list.stringPropertyNames) {
       val value = list.getProperty(key)
       try value.split(":") match {
         case Array(name, count, color) =>
@@ -115,10 +115,14 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
 
     disk
   }
+}
 
+class Loot(baseItem: ItemStack) extends WeightedRandomChestContent(baseItem, 1, 1, Settings.get.lootProbability) {
   override def generateChestContent(random: Random, newInventory: IInventory) =
-    if (disks.length > 0)
-      ChestGenHooks.generateStacks(random, disks(random.nextInt(disks.length)),
-        theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
-    else Array.empty
+    Loot.randomDisk(random) match {
+      case Some(disk) =>
+        ChestGenHooks.generateStacks(random, disk,
+          theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
+      case _ => Array.empty
+    }
 }

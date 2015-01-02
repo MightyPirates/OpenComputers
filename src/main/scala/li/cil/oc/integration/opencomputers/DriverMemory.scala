@@ -4,12 +4,12 @@ import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
 object DriverMemory extends Item with driver.item.Memory {
-  override def amount(stack: ItemStack) = Items.multi.subItem(stack) match {
+  override def amount(stack: ItemStack) = Delegator.subItem(stack) match {
     case Some(memory: item.Memory) => memory.kiloBytes * 1024
     case _ => 0
   }
@@ -21,9 +21,8 @@ object DriverMemory extends Item with driver.item.Memory {
 
   override def slot(stack: ItemStack) = Slot.Memory
 
-  override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(memory: item.Memory) => memory.tier / 2
-      case _ => Tier.One
-    }
+  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(memory: item.Memory) => memory.tier / 2
+    case _ => Tier.One
+  }
 }

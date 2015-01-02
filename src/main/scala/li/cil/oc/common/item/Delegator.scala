@@ -23,6 +23,14 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
+object Delegator {
+  def subItem(stack: ItemStack) =
+    stack.getItem match {
+      case delegator: Delegator => delegator.subItem(stack.getItemDamage)
+      case _ => None
+    }
+}
+
 class Delegator extends Item {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
@@ -33,7 +41,7 @@ class Delegator extends Item {
   // ----------------------------------------------------------------------- //
 
   override def getItemStackLimit(stack: ItemStack) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.maxStackSize
       case _ => maxStackSize
     }
@@ -45,13 +53,6 @@ class Delegator extends Item {
     subItems += subItem
     itemId
   }
-
-  def subItem(stack: ItemStack): Option[Delegate] =
-    if (stack != null) subItem(stack.getItemDamage) match {
-      case Some(subItem) if stack.getItem == this => Some(subItem)
-      case _ => None
-    }
-    else None
 
   def subItem(damage: Int) =
     damage match {
@@ -73,20 +74,20 @@ class Delegator extends Item {
   // ----------------------------------------------------------------------- //
 
   override def getUnlocalizedName(stack: ItemStack): String =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => "item.oc." + subItem.unlocalizedName
       case _ => getUnlocalizedName
     }
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 
-  override def getRarity(stack: ItemStack) = subItem(stack) match {
+  override def getRarity(stack: ItemStack) = Delegator.subItem(stack) match {
     case Some(subItem) => subItem.rarity
     case _ => EnumRarity.COMMON
   }
 
   override def getColorFromItemStack(stack: ItemStack, pass: Int) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.color(stack, pass)
       case _ => super.getColorFromItemStack(stack, pass)
     }
@@ -103,19 +104,19 @@ class Delegator extends Item {
   // ----------------------------------------------------------------------- //
 
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
       case _ => super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ)
     }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.onItemUse(stack, player, BlockPosition(pos, world), side, hitX, hitY, hitZ)
       case _ => super.onItemUse(stack, player, world, pos, side, hitX, hitY, hitZ)
     }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.onItemRightClick(stack, world, player)
       case _ => super.onItemRightClick(stack, world, player)
     }
@@ -125,7 +126,7 @@ class Delegator extends Item {
   def internalGetItemStackDisplayName(stack: ItemStack) = super.getItemStackDisplayName(stack)
 
   override def getItemStackDisplayName(stack: ItemStack) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.displayName(stack) match {
         case Some(name) => name
         case _ => super.getItemStackDisplayName(stack)
@@ -136,7 +137,7 @@ class Delegator extends Item {
   @SideOnly(Side.CLIENT)
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced) catch {
         case t: Throwable => OpenComputers.log.warn("Error in item tooltip.", t)
       }
@@ -145,25 +146,25 @@ class Delegator extends Item {
   }
 
   override def getDurabilityForDisplay(stack: ItemStack) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) if subItem.isDamageable => subItem.damage(stack)
       case _ => super.getDurabilityForDisplay(stack)
     }
 
   override def getMaxDamage(stack: ItemStack) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) if subItem.isDamageable => subItem.maxDamage(stack)
       case _ => super.getMaxDamage(stack)
     }
 
   override def isDamaged(stack: ItemStack) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) if subItem.isDamageable => subItem.damage(stack) > 0
       case _ => false
     }
 
   override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.update(stack, world, player, slot, selected)
       case _ => super.onUpdate(stack, world, player, slot, selected)
     }

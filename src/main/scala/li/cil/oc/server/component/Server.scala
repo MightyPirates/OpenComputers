@@ -14,10 +14,10 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
@@ -33,7 +33,7 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
 
   machine.onHostChanged()
 
-  def tier = Items.multi.subItem(rack.getStackInSlot(slot)) match {
+  def tier = Delegator.subItem(rack.getStackInSlot(slot)) match {
     case Some(server: item.Server) => server.tier
     case _ => 0
   }

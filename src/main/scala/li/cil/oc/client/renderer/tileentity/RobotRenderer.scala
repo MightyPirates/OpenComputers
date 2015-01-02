@@ -66,11 +66,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glEnd()
 
     r.startDrawingQuads()
+
     r.setNormal(0, -1, 0)
     r.addVertexWithUV(l, gt, h, 0, 1)
     r.addVertexWithUV(l, gt, l, 0, 0.5)
     r.addVertexWithUV(h, gt, l, 0.5, 0.5)
     r.addVertexWithUV(h, gt, h, 0.5, 1)
+
     t.draw()
 
     GL11.glEndList()
@@ -97,11 +99,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glEnd()
 
     r.startDrawingQuads()
+
     r.setNormal(0, 1, 0)
     r.addVertexWithUV(l, gb, l, 0, 0.5)
     r.addVertexWithUV(l, gb, h, 0, 1)
     r.addVertexWithUV(h, gb, h, 0.5, 1)
     r.addVertexWithUV(h, gb, l, 0.5, 0.5)
+
     t.draw()
 
     GL11.glEndList()

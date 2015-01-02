@@ -42,19 +42,19 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       r.startDrawingQuads()
 
       {
-        val power = Textures.Block.getSprite(Textures.Block.CaseFrontOn)
-        r.addVertexWithUV(0, 1, 0, power.getMinU, power.getMaxV)
-        r.addVertexWithUV(1, 1, 0, power.getMaxU, power.getMaxV)
-        r.addVertexWithUV(1, 0, 0, power.getMaxU, power.getMinV)
-        r.addVertexWithUV(0, 0, 0, power.getMinU, power.getMinV)
+        val icon = Textures.Block.getSprite(Textures.Block.CaseFrontOn)
+        r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
       }
 
       if (System.currentTimeMillis() - computer.lastAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
-        val activity = Textures.Block.getSprite(Textures.Block.CaseFrontActivity)
-        r.addVertexWithUV(0, 1, 0, activity.getMinU, activity.getMaxV)
-        r.addVertexWithUV(1, 1, 0, activity.getMaxU, activity.getMaxV)
-        r.addVertexWithUV(1, 0, 0, activity.getMaxU, activity.getMinV)
-        r.addVertexWithUV(0, 0, 0, activity.getMinU, activity.getMinV)
+        val icon = Textures.Block.getSprite(Textures.Block.CaseFrontActivity)
+        r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
+        r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
+        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
       }
 
       t.draw()

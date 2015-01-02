@@ -119,7 +119,7 @@ object ItemRenderer extends IItemRenderer {
       GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
       GL11.glPushMatrix()
 
-      Minecraft.getMinecraft.renderEngine.bindTexture(DroneRenderer.model.texture)
+      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.Model.Drone)
       RenderState.makeItBlend()
       GL11.glDisable(GL11.GL_CULL_FACE)
 

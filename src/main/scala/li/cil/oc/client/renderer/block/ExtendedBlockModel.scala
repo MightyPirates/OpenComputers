@@ -33,9 +33,7 @@ object ExtendedBlockModel {
     registry.getKeys.collect {
       case location: ModelResourceLocation =>
         models.find(entry => location.toString.matches(entry._1)) match {
-          case Some((_, model)) =>
-            OpenComputers.log.info(">>>>>>>>>>>>>>> " + location.toString)
-            registry.putObject(location, model)
+          case Some((_, model)) => registry.putObject(location, model)
           case _ =>
         }
     }

@@ -5,8 +5,8 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
 object DriverContainerUpgrade extends Item with Container {
@@ -21,9 +21,8 @@ object DriverContainerUpgrade extends Item with Container {
 
   override def providedTier(stack: ItemStack) = tier(stack)
 
-  override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(container: item.UpgradeContainerUpgrade) => container.tier
-      case _ => Tier.One
-    }
+  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(container: item.UpgradeContainerUpgrade) => container.tier
+    case _ => Tier.One
+  }
 }

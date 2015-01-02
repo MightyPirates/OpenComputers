@@ -7,7 +7,7 @@ import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.common
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -25,11 +25,10 @@ object DriverGraphicsCard extends Item with HostAware with EnvironmentAware {
 
   override def slot(stack: ItemStack) = Slot.Card
 
-  override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(gpu: common.item.GraphicsCard) => gpu.tier
-      case _ => Tier.One
-    }
+  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
+    case Some(gpu: common.item.GraphicsCard) => gpu.tier
+    case _ => Tier.One
+  }
 
   override def providedEnvironment(stack: ItemStack) = classOf[component.GraphicsCard]
 }

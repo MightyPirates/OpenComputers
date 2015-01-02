@@ -5,6 +5,7 @@ import li.cil.oc._
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegate
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.server._
@@ -35,14 +36,20 @@ class Proxy {
     registerExclusive("craftingPiston", new ItemStack(net.minecraft.init.Blocks.piston), new ItemStack(net.minecraft.init.Blocks.sticky_piston))
     registerExclusive("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch))
     registerExclusive("nuggetGold", new ItemStack(net.minecraft.init.Items.gold_nugget))
-    registerExclusive("nuggetIron", Items.ironNugget.createItemStack())
 
-    if (OreDictionary.getOres("nuggetIron").exists(Items.ironNugget.createItemStack().isItemEqual)) {
-      Recipes.addMultiItem(Items.ironNugget, "nuggetIron")
-      Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
-    }
-    else {
-      Items.ironNugget.showInItemList = false
+    val nuggetIron = api.Items.get("ironNugget").createItemStack(1)
+    registerExclusive("nuggetIron", nuggetIron)
+
+    Delegator.subItem(nuggetIron) match {
+      case Some(subItem: item.IronNugget) =>
+        if (OreDictionary.getOres("nuggetIron").exists(nuggetIron.isItemEqual)) {
+          Recipes.addMultiItem(subItem, "nuggetIron")
+          Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
+        }
+        else {
+          subItem.showInItemList = false
+        }
+      case _ =>
     }
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
