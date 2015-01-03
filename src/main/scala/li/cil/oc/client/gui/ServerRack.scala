@@ -3,14 +3,11 @@ package li.cil.oc.client.gui
 import java.util
 
 import li.cil.oc.Localization
-import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
@@ -21,8 +18,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
   protected var powerButtons = new Array[ImageButton](4)
 
   protected var sideButtons = new Array[GuiButton](4)
-
-  protected var rangeButtons = new Array[GuiButton](2)
 
   def sideName(number: Int) = rack.sides(number) match {
     case Some(EnumFacing.UP) => Localization.ServerRack.Top
@@ -50,18 +45,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       }
       ClientPacketSender.sendServerSide(rack, number, nextSide)
     }
-    if (button.id >= 8 && button.id <= 9) {
-      val step =
-        if (GuiScreen.isShiftKeyDown) 32
-        else if (GuiScreen.isCtrlKeyDown) 1
-        else 8
-      val range =
-        if (button.id == 8) math.max(rack.range - step, 0)
-        else math.min(rack.range + step, Settings.get.maxWirelessRange.toInt)
-      if (range != rack.range) {
-        ClientPacketSender.sendServerRange(rack, range)
-      }
-    }
     if (button.id == 10) {
       ClientPacketSender.sendServerSwitchMode(rack, !rack.internalSwitch)
     }
@@ -86,10 +69,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       sideButtons(i) = new ImageButton(4 + i, guiLeft + 126, guiTop + 7 + i * 18, 42, 18, Textures.GUI.ButtonSide, sideName(i))
       add(buttonList, sideButtons(i))
     }
-    for (i <- 0 to 1) {
-      rangeButtons(i) = new ImageButton(8 + i, guiLeft + 8 + i * 48, guiTop + 50, 16, 18, Textures.GUI.ButtonRange, if (i == 0) "-" else "+")
-      add(buttonList, rangeButtons(i))
-    }
     switchButton = new ImageButton(10, guiLeft + 8, guiTop + 17, 64, 18, Textures.GUI.ButtonSwitch, Localization.ServerRack.SwitchExternal, textIndent = 18)
     add(buttonList, switchButton)
   }
@@ -101,33 +80,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
     fontRendererObj.drawString(
       Localization.localizeImmediately(rack.getName),
       8, 6, 0x404040)
-
-    val rangeY = 39
-    fontRendererObj.drawString(Localization.ServerRack.WirelessRange, 8, rangeY, 0x404040)
-
-    {
-      // Background for range value.
-      val tx = 25
-      val ty = 50
-      val w = 30
-      val h = 18
-      val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
-      mc.getTextureManager.bindTexture(Textures.GUI.Range)
-      GL11.glColor3f(1, 1, 1)
-      GL11.glDepthMask(false)
-      r.startDrawingQuads()
-      r.addVertexWithUV(tx, ty + h, zLevel, 0, 1)
-      r.addVertexWithUV(tx + w, ty + h, zLevel, 1, 1)
-      r.addVertexWithUV(tx + w, ty, zLevel, 1, 0)
-      r.addVertexWithUV(tx, ty, zLevel, 0, 0)
-      t.draw()
-      GL11.glDepthMask(true)
-    }
-
-    drawCenteredString(fontRendererObj,
-      rack.range.toString,
-      40, 56, 0xFFFFFF)
 
     for (i <- 0 to 3 if powerButtons(i).isMouseOver) {
       val tooltip = new java.util.ArrayList[String]

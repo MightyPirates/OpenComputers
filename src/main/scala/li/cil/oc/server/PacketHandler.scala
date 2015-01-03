@@ -1,7 +1,6 @@
 package li.cil.oc.server
 
 import li.cil.oc.Localization
-import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.machine.Machine
 import li.cil.oc.common.PacketType
@@ -49,7 +48,6 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
-      case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
       case PacketType.ServerSwitchMode => onServerSwitchMode(p)
       case PacketType.TextBufferInit => onTextBufferInit(p)
@@ -187,17 +185,6 @@ object PacketHandler extends CommonPacketHandler {
   def onRobotStateRequest(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
       case Some(proxy) => proxy.world.markBlockForUpdate(proxy.getPos)
-      case _ => // Invalid packet.
-    }
-
-  def onServerRange(p: PacketParser) =
-    p.readTileEntity[ServerRack]() match {
-      case Some(rack) => p.player match {
-        case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
-          rack.range = math.min(math.max(0, p.readInt()), Settings.get.maxWirelessRange).toInt
-          PacketSender.sendServerState(rack)
-        case _ =>
-      }
       case _ => // Invalid packet.
     }
 

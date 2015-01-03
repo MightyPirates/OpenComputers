@@ -420,16 +420,6 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendServerState(t: tileentity.ServerRack) {
-    val pb = new SimplePacketBuilder(PacketType.ComputerState)
-
-    pb.writeTileEntity(t)
-    pb.writeInt(-1)
-    pb.writeInt(t.range)
-
-    pb.sendToPlayersNearTileEntity(t)
-  }
-
   def sendServerState(t: tileentity.ServerRack, number: Int, player: Option[EntityPlayerMP] = None) {
     val pb = new SimplePacketBuilder(PacketType.ComputerState)
 
@@ -437,11 +427,6 @@ object PacketSender {
     pb.writeInt(number)
     pb.writeBoolean(t.isRunning(number))
     pb.writeDirection(t.sides(number))
-    val keys = t.terminals(number).keys
-    pb.writeInt(keys.length)
-    for (key <- keys) {
-      pb.writeUTF(key)
-    }
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

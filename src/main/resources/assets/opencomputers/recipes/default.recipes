@@ -26,11 +26,6 @@ microcontrollerCase2 {
           [blockRedstone, chest, blockRedstone]
           [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
 }
-terminal {
-  input: [[nuggetIron, "oc:solarGeneratorUpgrade", nuggetIron]
-          ["oc:circuitChip3", "oc:screen2", "oc:wlanCard"]
-          [nuggetIron, "oc:keyboard", nuggetIron]]
-}
 tabletCase {
   input: [[ingotGold, button, ingotGold]
           ["oc:componentBus1", "oc:screen2", "oc:circuitChip3"]

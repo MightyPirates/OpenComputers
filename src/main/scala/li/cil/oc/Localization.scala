@@ -114,8 +114,6 @@ object Localization {
     def SwitchExternal = localizeImmediately("gui.ServerRack.SwitchExternal")
 
     def SwitchInternal = localizeImmediately("gui.ServerRack.SwitchInternal")
-
-    def WirelessRange = localizeImmediately("gui.ServerRack.WirelessRange")
   }
 
   object Switch {
@@ -124,12 +122,6 @@ object Localization {
     def PacketsPerCycle = localizeImmediately("gui.Switch.PacketsPerCycle")
 
     def QueueSize = localizeImmediately("gui.Switch.QueueSize")
-  }
-
-  object Terminal {
-    def InvalidKey = localizeLater("gui.Terminal.InvalidKey")
-
-    def OutOfRange = localizeLater("gui.Terminal.OutOfRange")
   }
 
   object Tooltip {

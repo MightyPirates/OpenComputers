@@ -30,9 +30,4 @@ public interface ServerRack extends Environment, SidedEnvironment, Rotatable, II
      * @return the machine currently hosted in the specified slot.
      */
     Server server(int slot);
-
-    /**
-     * The currently set wireless range in which remote terminals work.
-     */
-    int range();
 }

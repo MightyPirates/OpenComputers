@@ -283,8 +283,6 @@ object Items extends ItemAPI {
     Recipes.addMultiItem(new item.Analyzer(components), "analyzer", "oc:analyzer")
     registerItem(new item.Debugger(components), "debugger")
 
-    Recipes.addMultiItem(new item.Terminal(multi), "terminal", "oc:terminal")
-
     registerItem(new item.Tablet(multi), "tablet")
     registerItem(new item.Drone(multi), "drone")
 
