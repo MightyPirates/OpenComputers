@@ -250,8 +250,6 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def markForSaving() {}
-
   override def onMachineConnect(node: Node) = onConnect(node)
 
   override def onMachineDisconnect(node: Node) = onDisconnect(node)

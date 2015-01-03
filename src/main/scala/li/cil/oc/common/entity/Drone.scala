@@ -162,8 +162,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def componentSlot(address: String) = -1 // TODO
 
-  override def markForSaving() {}
-
   override def onMachineConnect(node: Node) {}
 
   override def onMachineDisconnect(node: Node) {}

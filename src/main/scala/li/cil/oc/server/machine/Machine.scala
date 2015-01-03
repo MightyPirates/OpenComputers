@@ -168,7 +168,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       }
     case Machine.State.Paused if remainingPause > 0 =>
       remainingPause = 0
-      host.markForSaving()
+      host.markChanged()
       true
     case Machine.State.Stopping =>
       switchTo(Machine.State.Restarting)
@@ -196,7 +196,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           state.push(Machine.State.Paused)
         }
         remainingPause = ticksToPause
-        host.markForSaving()
+        host.markChanged()
         return true
       }))
     }
@@ -762,7 +762,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       remainIdle = 0
 
       // Mark state change in owner, to send it to clients.
-      host.markForSaving()
+      host.markChanged()
     })
 
   // ----------------------------------------------------------------------- //
@@ -779,7 +779,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
 
     // Mark state change in owner, to send it to clients.
-    host.markForSaving()
+    host.markChanged()
 
     result
   }

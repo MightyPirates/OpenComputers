@@ -1,5 +1,7 @@
 package li.cil.oc.util
 
+import scala.annotation.tailrec
+
 /**
  * https://gist.github.com/viktorklang/1057513
  */
@@ -14,7 +16,7 @@ trait ScalaEnum {
   private val _values = new AtomicReference(Vector[EnumVal]()) //Stores our enum values
 
   //Adds an EnumVal to our storage, uses CCAS to make sure it's thread safe, returns the ordinal
-  private final def addEnumVal(newVal: EnumVal): Int = {
+  @tailrec private final def addEnumVal(newVal: EnumVal): Int = {
     import _values.get
     import _values.{compareAndSet => CAS}
     val oldVec = get
