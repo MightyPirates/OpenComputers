@@ -59,9 +59,9 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
       case PacketType.RobotAssemblingState => onRobotAssemblingState(p)
       case PacketType.RobotInventoryChange => onRobotInventoryChange(p)
+      case PacketType.RobotLightChange => onRobotLightChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
-      case PacketType.RobotLightChange => onRobotLightChange(p)
       case PacketType.RotatableState => onRotatableState(p)
       case PacketType.SwitchActivity => onSwitchActivity(p)
       case PacketType.TextBufferColorChange => onTextBufferColorChange(p)
@@ -302,6 +302,12 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onRobotLightChange(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.info.lightColor = p.readInt()
+      case _ => // Invalid packet.
+    }
+
   def onRobotMove(p: PacketParser) = {
     val dimension = p.readInt()
     val x = p.readInt()
@@ -320,12 +326,6 @@ object PacketHandler extends CommonPacketHandler {
   def onRobotSelectedSlotChange(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
       case Some(t) => t.robot.selectedSlot = p.readInt()
-      case _ => // Invalid packet.
-    }
-
-  def onRobotLightChange(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
-      case Some(t) => t.robot.info.lightColor = p.readInt()
       case _ => // Invalid packet.
     }
 

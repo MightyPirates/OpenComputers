@@ -18,6 +18,14 @@ function robot.level()
   end
 end
 
+function robot.getLightColor()
+  return component.robot.getLightColor()
+end
+
+function robot.setLightColor(value)
+  return component.robot.setLightColor(value)
+end
+
 -------------------------------------------------------------------------------
 -- World
 

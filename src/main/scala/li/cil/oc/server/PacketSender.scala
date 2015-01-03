@@ -300,15 +300,6 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendRobotSelectedSlotChange(t: tileentity.Robot) {
-    val pb = new SimplePacketBuilder(PacketType.RobotSelectedSlotChange)
-
-    pb.writeTileEntity(t.proxy)
-    pb.writeInt(t.selectedSlot)
-
-    pb.sendToPlayersNearTileEntity(t, Option(16))
-  }
-
   def sendRobotLightChange(t: tileentity.Robot) {
     val pb = new SimplePacketBuilder(PacketType.RobotLightChange)
 
@@ -316,6 +307,15 @@ object PacketSender {
     pb.writeInt(t.info.lightColor)
 
     pb.sendToPlayersNearTileEntity(t, Option(64))
+  }
+
+  def sendRobotSelectedSlotChange(t: tileentity.Robot) {
+    val pb = new SimplePacketBuilder(PacketType.RobotSelectedSlotChange)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeInt(t.selectedSlot)
+
+    pb.sendToPlayersNearTileEntity(t, Option(16))
   }
 
   def sendRotatableState(t: Rotatable) {

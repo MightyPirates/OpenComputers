@@ -241,14 +241,14 @@ object ItemUtils {
         toArray[NBTTagCompound].map(loadStack)
       containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
         toArray[NBTTagCompound].map(loadStack)
+      if (nbt.hasKey(Settings.namespace + "lightColor")) {
+        lightColor = nbt.getInteger(Settings.namespace + "lightColor")
+      }
 
       // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
       // TODO Remove in 1.5
       if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
         components :+= Items.createLuaBios()
-      }
-      if (nbt.hasKey(Settings.namespace + "lightColor")) {
-        lightColor = nbt.getInteger(Settings.namespace + "lightColor")
       }
     }
 
@@ -264,10 +264,10 @@ object ItemUtils {
       nbt.setInteger(Settings.namespace + "tier", tier)
       nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
       nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
+      nbt.setInteger(Settings.namespace + "lightColor", lightColor)
 
       // TODO Remove in 1.5
       nbt.setBoolean(Settings.namespace + "biosFlag", true)
-      nbt.setInteger(Settings.namespace + "lightColor", lightColor)
     }
 
     def createItemStack() = {

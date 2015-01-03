@@ -140,6 +140,11 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def inventorySlots = actualSlot(0) until actualSlot(0) + inventorySize
 
+  def setLightColor(value: Int): Unit = {
+    info.lightColor = value
+    ServerPacketSender.sendRobotLightChange(this)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def node = if (isServer) machine.node else null
@@ -808,9 +813,4 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     components.collect {
       case Some(t: IFluidTank) => t.getInfo
     }.toArray
-
-  def setLightColor(value: Int): Unit = {
-    info.lightColor = value
-    ServerPacketSender.sendRobotLightChange(this)
-  }
 }
