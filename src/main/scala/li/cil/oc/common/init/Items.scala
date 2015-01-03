@@ -317,5 +317,11 @@ object Items extends ItemAPI {
     Recipes.addMultiItem(new item.MicrocontrollerCase(multi, Tier.Two), "microcontrollerCase2", "oc:microcontrollerCase2")
     Recipes.addMultiItem(new item.DroneCase(multi, Tier.Two), "droneCase2", "oc:droneCase2")
     registerItem(new item.Present(multi), "present")
+
+    // Always create, to avoid shifting IDs.
+    val worldSensorCard = new item.WorldSensorCard(multi)
+    if (Mods.Galacticraft.isAvailable) {
+      Recipes.addMultiItem(worldSensorCard, "worldSensorCard", "oc:worldSensorCard")
+    }
   }
 }

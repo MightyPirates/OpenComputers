@@ -82,6 +82,7 @@ object Mods {
     tryInit(integration.enderstorage.ModEnderStorage)
     tryInit(integration.forestry.ModForestry)
     tryInit(integration.fmp.ModForgeMultipart)
+    tryInit(integration.gc.ModGalacticraft)
     tryInit(integration.gregtech.ModGregtech)
     tryInit(integration.ic2.ModIndustrialCraft2)
     tryInit(integration.mfr.ModMineFactoryReloaded)

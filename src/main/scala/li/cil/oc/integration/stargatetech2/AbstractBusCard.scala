@@ -1,4 +1,4 @@
-package li.cil.oc.server.component
+package li.cil.oc.integration.stargatetech2
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
@@ -7,6 +7,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.server.component.result
 import lordfokas.stargatetech2.api.StargateTechAPI
 import lordfokas.stargatetech2.api.bus._
 import net.minecraft.nbt.NBTTagCompound

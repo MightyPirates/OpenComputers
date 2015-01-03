@@ -123,6 +123,7 @@ item.oc.UpgradeTank.name=Tank Upgrade
 item.oc.UpgradeTankController.name=Tank Controller Upgrade
 item.oc.UpgradeTractorBeam.name=Tractor Beam Upgrade
 item.oc.WirelessNetworkCard.name=Wireless Network Card
+item.oc.WorldSensorCard.name=World Sensor Card
 
 # Entities
 entity.oc.Drone.name=Drone
@@ -302,6 +303,7 @@ oc:tooltip.UpgradeTank=This upgrade provides a tank for fluid storage to the rob
 oc:tooltip.UpgradeTankController=This upgrade allows the robot more control in how it interacts with external tanks, and allows it to transfer fluids into and out of fluid tank items in its inventory.
 oc:tooltip.UpgradeTractorBeam=Equips the robot with extremely advanced technology, nicknamed the "Item Magnet". Allows it to pick up items anywhere within 3 blocks of its location.
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.
+oc:tooltip.WorldSensorCard=Allows reading out information about the world, such as its gravity and whether it has a breathable atmosphere. Use results at own risk. The manufacturer takes no responsibility for bodily or material harm caused by decisions made upon the cards' outputs. We have lawyers. And money. Don't even try.
 
 # NEI Usage Pages
 item.oc.AbstractBusCard.usage=This card allows computers, servers and robots to interact with StargateTech2's abstract bus. When the card is installed, these blocks will connect to the abstract bus and a component becomes available to the machine that can be used to send messages across the abstract bus. Incoming abstract bus messages are converted to signals that are injected into the machine.
