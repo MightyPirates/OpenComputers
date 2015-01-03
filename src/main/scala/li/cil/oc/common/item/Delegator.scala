@@ -169,35 +169,5 @@ class Delegator extends Item {
       case _ => super.onUpdate(stack, world, player, slot, selected)
     }
 
-  // TODO remove
-  //  @SideOnly(Side.CLIENT)
-  //  override def getIcon(stack: ItemStack, pass: Int) =
-  //    subItem(stack) match {
-  //      case Some(subItem) => subItem.icon(stack, pass) match {
-  //        case Some(icon) => icon
-  //        case _ => super.getIcon(stack, pass)
-  //      }
-  //      case _ => super.getIcon(stack, pass)
-  //    }
-  //
-  //  @SideOnly(Side.CLIENT)
-  //  override def getIconIndex(stack: ItemStack) = getIcon(stack, 0)
-  //
-  //  @SideOnly(Side.CLIENT)
-  //  override def getIconFromDamage(damage: Int): IIcon =
-  //    subItem(damage) match {
-  //      case Some(subItem) => subItem.icon match {
-  //        case Some(icon) => icon
-  //        case _ => super.getIconFromDamage(damage)
-  //      }
-  //      case _ => super.getIconFromDamage(damage)
-  //    }
-  //
-  //  @SideOnly(Side.CLIENT)
-  //  override def registerIcons(iconRegister: IIconRegister) {
-  //    super.getAtlasSprites(iconRegister)
-  //    subItems.foreach(_.getAtlasSprites(iconRegister))
-  //  }
-
   override def toString = getUnlocalizedName
 }

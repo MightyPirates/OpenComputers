@@ -21,22 +21,4 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
     }
     super.tooltipLines(stack, player, tooltip, advanced)
   }
-
-  // TODO remove
-  //  val icons = Array.fill[Icon](16)(null)
-  //
-  //  @SideOnly(Side.CLIENT)
-  //  override def icon(stack: ItemStack, pass: Int) =
-  //    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "color"))
-  //      Some(icons(stack.getTagCompound.getInteger(Settings.namespace + "color") max 0 min 15))
-  //    else
-  //      Some(icons(8))
-  //
-  //  override def registerIcons(iconRegister: IconRegister) {
-  //    val baseTextureName = Settings.resourceDomain + ":" + unlocalizedName + "_"
-  //    Color.dyes.zipWithIndex.foreach {
-  //      case (color, index) =>
-  //        icons(index) = iconRegister.getAtlasSprite(baseTextureName + color)
-  //    }
-  //  }
 }

@@ -5,8 +5,8 @@ import codechicken.nei.api.API
 import codechicken.nei.api.IConfigureNEI
 import codechicken.nei.config.OptionToggleButton
 import codechicken.nei.guihook.GuiContainerManager
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.integration.util.NEI
 import net.minecraft.item.ItemStack
 

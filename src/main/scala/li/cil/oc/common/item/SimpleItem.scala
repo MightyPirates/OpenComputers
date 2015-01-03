@@ -24,9 +24,6 @@ import org.lwjgl.input
 class SimpleItem extends Item {
   setCreativeTab(CreativeTab)
 
-  // TODO remove
-  //  iconString = Settings.resourceDomain + ":" + getClass.getSimpleName
-
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
 
   override def isBookEnchantable(stack: ItemStack, book: ItemStack) = false

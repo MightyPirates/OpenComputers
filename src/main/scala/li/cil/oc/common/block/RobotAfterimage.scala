@@ -21,20 +21,6 @@ class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
   setCreativeTab(null)
   NEI.hide(this)
 
-  // TODO remove
-//  private var icon: IIcon = _
-//
-//  // ----------------------------------------------------------------------- //
-//
-//  @SideOnly(Side.CLIENT)
-//  override def getIcon(side: EnumFacing, metadata: Int) = icon
-//
-//  @SideOnly(Side.CLIENT)
-//  override def registerBlockIcons(iconRegister: IIconRegister) {
-//    super.registerBlockIcons(iconRegister)
-//    icon = iconRegister.getAtlasSprite(Settings.resourceDomain + ":GenericTop")
-//  }
-
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false

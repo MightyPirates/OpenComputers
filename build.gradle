@@ -61,14 +61,14 @@ runServer {
 }
 
 repositories {
-/*
-    maven {
-        name = "bc"
-        url = "http://mod-buildcraft.com/"
-    }
     maven {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
+    }
+    /*
+    maven {
+        name = "bc"
+        url = "http://mod-buildcraft.com/"
     }
     maven {
         name = "ic2, forestry"
@@ -128,7 +128,7 @@ repositories {
         name 'Railcraft'
         artifactPattern "http://addons.cursecdn.com/files/${config.rc.cf}/[module]_[revision].[ext]"
     }
-*/
+    */
 }
 
 configurations {
@@ -138,13 +138,14 @@ configurations {
 }
 
 dependencies {
+    provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
+    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
+    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
 /*
     provided "api:rotarycraft:${config.rotc.version}"
     provided "appeng:appliedenergistics2:${config.ae2.version}:dev"
-    provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
     provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
-    provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
@@ -171,7 +172,7 @@ dependencies {
 }
 
 idea.module.scopes.PROVIDED.plus += configurations.provided
-eclipse.classpath.plusConfigurations += configurations.provided
+// eclipse.classpath.plusConfigurations += configurations.provided
 
 sourceSets {
     main {
@@ -187,7 +188,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/ic2/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
-            exclude 'li/cil/oc/integration/nei/**'
             exclude 'li/cil/oc/integration/railcraft/**'
             exclude 'li/cil/oc/integration/stargatetech2/**'
             exclude 'li/cil/oc/integration/tcon/**'

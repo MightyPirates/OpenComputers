@@ -47,25 +47,6 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override def maxStackSize = 1
 
-  // TODO remove
-  //  private var iconOn: Option[Icon] = None
-  //  private var iconOff: Option[Icon] = None
-  //
-  //  @SideOnly(Side.CLIENT)
-  //  override def icon(stack: ItemStack, pass: Int) = {
-  //    if (stack.hasTagCompound) {
-  //      val data = new ItemUtils.TabletData(stack)
-  //      if (data.isRunning) iconOn else iconOff
-  //    } else super.icon(stack, pass)
-  //  }
-  //
-  //  override def registerIcons(iconRegister: IconRegister) = {
-  //    super.getAtlasSprites(iconRegister)
-  //
-  //    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOn"))
-  //    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TabletOff"))
-  //  }
-
   // ----------------------------------------------------------------------- //
 
   override def isDamageable = true

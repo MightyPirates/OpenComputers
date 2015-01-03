@@ -39,18 +39,6 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
 
   // ----------------------------------------------------------------------- //
 
-  // TODO remove
-//  private var icon: IIcon = _
-//
-//  @SideOnly(Side.CLIENT)
-//  override def registerBlockIcons(iconRegister: IIconRegister) {
-//    super.registerBlockIcons(iconRegister)
-//    icon = iconRegister.getAtlasSprite(Settings.resourceDomain + ":GenericTop")
-//  }
-//
-//  @SideOnly(Side.CLIENT)
-//  override def getIcon(side: EnumFacing, metadata: Int) = icon
-
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
