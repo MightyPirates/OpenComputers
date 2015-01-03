@@ -434,6 +434,14 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
+  override def travelToDimension(dimension: Int) {
+    super.travelToDimension(dimension)
+    // Avoid running off towards coordinates that don't apply to this dimension.
+    targetX = math.floor(posX).toFloat + 0.5f
+    targetY = math.floor(posY).toFloat + 0.5f
+    targetZ = math.floor(posZ).toFloat + 0.5f
+  }
+
   override def getCommandSenderName = Localization.localizeImmediately("entity.oc.Drone.name")
 
   override def handleWaterMovement() = {
