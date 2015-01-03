@@ -63,6 +63,16 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor {
 
   // ----------------------------------------------------------------------- //
 
+  override def hasComparatorInputOverride = true
+
+  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
+    world.getTileEntity(x, y, z) match {
+      case computer: tileentity.Microcontroller if computer.isRunning => 15
+      case _ => 0
+    }
+
+  // ----------------------------------------------------------------------- //
+
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {

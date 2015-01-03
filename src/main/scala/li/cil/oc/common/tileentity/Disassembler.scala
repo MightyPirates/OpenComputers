@@ -36,6 +36,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
     ServerPacketSender.sendDisassemblerActive(this, isActive)
+    world.notifyBlocksOfNeighborChange(x, y, z, block)
   }
 
   // ----------------------------------------------------------------------- //

@@ -279,6 +279,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         if (_isRunning(i) != isRunning) {
           _isRunning(i) = isRunning
           ServerPacketSender.sendServerState(this, i)
+          world.notifyBlocksOfNeighborChange(x, y, z, block)
         }
       }
       isOutputEnabled = hasRedstoneCard

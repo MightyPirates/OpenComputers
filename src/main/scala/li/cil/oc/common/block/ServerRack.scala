@@ -53,6 +53,16 @@ class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.Powe
 
   // ----------------------------------------------------------------------- //
 
+  override def hasComparatorInputOverride = true
+
+  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
+    world.getTileEntity(x, y, z) match {
+      case rack: tileentity.ServerRack if rack.anyRunning => 15
+      case _ => 0
+    }
+
+  // ----------------------------------------------------------------------- //
+
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {

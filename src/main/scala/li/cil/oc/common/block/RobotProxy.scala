@@ -115,6 +115,16 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
 
   // ----------------------------------------------------------------------- //
 
+  override def hasComparatorInputOverride = true
+
+  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
+    world.getTileEntity(x, y, z) match {
+      case proxy: tileentity.RobotProxy if proxy.isRunning => 15
+      case _ => 0
+    }
+
+  // ----------------------------------------------------------------------- //
+
   override def getExplosionResistance(entity: Entity) = 10f
 
   override def getDrops(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) = {

@@ -44,6 +44,16 @@ class Disassembler extends SimpleBlock with traits.PowerAcceptor {
 
   // ----------------------------------------------------------------------- //
 
+  override def hasComparatorInputOverride = true
+
+  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
+    world.getTileEntity(x, y, z) match {
+      case disassembler: tileentity.Disassembler if disassembler.isActive => 15
+      case _ => 0
+    }
+
+  // ----------------------------------------------------------------------- //
+
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
