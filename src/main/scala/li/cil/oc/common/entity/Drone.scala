@@ -115,6 +115,16 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
+  override def getTarget = Vec3.createVectorHelper(targetX, targetY, targetZ)
+
+  override def setTarget(value: Vec3): Unit = {
+    targetX = value.xCoord.toFloat
+    targetY = value.yCoord.toFloat
+    targetZ = value.zCoord.toFloat
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def canBeCollidedWith = true
 
   override def canBePushed = true

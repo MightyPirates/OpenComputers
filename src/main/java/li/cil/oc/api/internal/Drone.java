@@ -3,6 +3,8 @@ package li.cil.oc.api.internal;
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.machine.Machine;
 import li.cil.oc.api.network.Environment;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.util.Vec3;
 
 /**
  * This interface is implemented as a marker by drones.
@@ -22,4 +24,23 @@ public interface Drone extends EnvironmentHost, Rotatable {
      * The machine currently hosted by this drone.
      */
     Machine machine();
+
+    /**
+     * Provides access to the inventory of the drone.
+     */
+    IInventory inventory();
+
+    /**
+     * Get the current target coordinates of the drone.
+     */
+    Vec3 getTarget();
+
+    /**
+     * Set the new target coordinates of the drone.
+     * <p/>
+     * Note that the actual value used will use a reduced accuracy. This is
+     * to avoid jitter on the client and floating point inaccuracies to
+     * accumulate.
+     */
+    void setTarget(Vec3 value);
 }
