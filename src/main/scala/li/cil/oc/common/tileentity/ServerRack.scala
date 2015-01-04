@@ -350,6 +350,16 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }
     range = nbt.getInteger(Settings.namespace + "range")
     internalSwitch = nbt.getBoolean(Settings.namespace + "internalSwitch")
+
+    // Kickstart initialization to avoid values getting overwritten by
+    // readFromNBTForClient if that packet is handled after a manual
+    // initialization / state change packet.
+    for (i <- 0 until servers.length) {
+      val isRunning = servers(i).fold(false)(_.machine.isRunning)
+      _isRunning(i) = isRunning
+    }
+    _isOutputEnabled = hasRedstoneCard
+    _isAbstractBusAvailable = hasAbstractBusCard
   }
 
   // Side check for Waila (and other mods that may call this client side).

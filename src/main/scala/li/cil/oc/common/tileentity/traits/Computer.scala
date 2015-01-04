@@ -143,6 +143,13 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       case _ =>
     }
     machine.load(nbt.getCompoundTag(Settings.namespace + "computer"))
+
+    // Kickstart initialization to avoid values getting overwritten by
+    // readFromNBTForClient if that packet is handled after a manual
+    // initialization / state change packet.
+    _isRunning = machine.isRunning
+    _isOutputEnabled = hasRedstoneCard
+    _isAbstractBusAvailable = hasAbstractBusCard
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
