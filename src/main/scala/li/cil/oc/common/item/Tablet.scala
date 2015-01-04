@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
@@ -24,6 +25,7 @@ import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
@@ -68,6 +70,16 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
+    if (KeyBindings.showExtendedTooltips) {
+      val info = new ItemUtils.TabletData(stack)
+      // Ignore/hide the screen.
+      info.items.drop(1).collect {
+        case Some(component) => tooltip.add("- " + component.getDisplayName)
+      }
+    }
+  }
 
   override def isDamageable = true
 

@@ -2,6 +2,8 @@ package li.cil.oc.common.item
 
 import java.util
 
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.entity
 import li.cil.oc.util.BlockPosition
@@ -29,4 +31,8 @@ class Drone(val parent: Delegator) extends Delegate {
     stack.stackSize -= 1
     true
   }
+
+  // We no item (rendering using model only).
+  @SideOnly(Side.CLIENT)
+  override def registerIcons(iconRegister: IconRegister) {}
 }
