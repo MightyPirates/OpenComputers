@@ -123,6 +123,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     targetZ = value.zCoord.toFloat
   }
 
+  override def getVelocity = Vec3.createVectorHelper(motionX, motionY, motionZ)
+
   // ----------------------------------------------------------------------- //
 
   override def canBeCollidedWith = true

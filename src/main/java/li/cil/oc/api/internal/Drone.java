@@ -2,7 +2,6 @@ package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.machine.Machine;
-import li.cil.oc.api.network.Environment;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.util.Vec3;
 
@@ -43,4 +42,13 @@ public interface Drone extends EnvironmentHost, Rotatable {
      * accumulate.
      */
     void setTarget(Vec3 value);
+
+    /**
+     * Get the drones velocity vector.
+     * <p/>
+     * Note that this is really just the underlying entity's <tt>motionX/Y/Z</tt>,
+     * so you can cast this to {@link net.minecraft.entity.Entity} and use that
+     * instead, if you'd like.
+     */
+    Vec3 getVelocity();
 }
