@@ -447,11 +447,14 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   // ----------------------------------------------------------------------- //
 
   override def travelToDimension(dimension: Int) {
+    // Store relative target and update after teleportation, because our frame
+    // of reference most certainly changed (i.e. we'll spawn at different
+    // coordinates than the ones we started traveling from).
+    val relativeTarget = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
     super.travelToDimension(dimension)
-    // Avoid running off towards coordinates that don't apply to this dimension.
-    targetX = math.floor(posX).toFloat + 0.5f
-    targetY = math.floor(posY).toFloat + 0.5f
-    targetZ = math.floor(posZ).toFloat + 0.5f
+    targetX = (posX + relativeTarget.xCoord).toFloat
+    targetY = (posY + relativeTarget.yCoord).toFloat
+    targetZ = (posZ + relativeTarget.zCoord).toFloat
   }
 
   override def getCommandSenderName = Localization.localizeImmediately("entity.oc.Drone.name")
