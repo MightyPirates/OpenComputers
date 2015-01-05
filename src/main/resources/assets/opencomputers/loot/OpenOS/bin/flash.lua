@@ -1,17 +1,41 @@
 local component = require("component")
 local shell = require("shell")
+local fs = require("filesystem")
 
 local args, options = shell.parse(...)
 
 if #args < 1 and not options.l then
-  io.write("Usage: flash [-ql] [<bios.lua>] [label]\n")
+  io.write("Usage: flash [-qlr] [<bios.lua>] [label]\n")
   io.write(" q: quiet mode, don't ask questions.\n")
-  io.write(" l: print current contents of installed EEPROM.")
+  io.write(" l: print current contents of installed EEPROM.\n")
+  io.write(" r: save the current contents of installed EEPROM to file.")
   return
 end
 
+local eeprom = component.eeprom
+
 if options.l then
-  io.write(component.eeprom.get())
+  io.write(eeprom.get())
+  return
+end
+
+if options.r then
+  fileName = shell.resolve(args[1])
+  if not options.q then
+    if fs.exists(fileName) then
+      io.write("Are you sure you want to overwrite " .. fileName .. "?\n")
+      io.write("Type `y` to confirm.\n")
+      repeat
+        local response = io.read()
+      until response and response:lower():sub(1, 1) == "y"
+    end
+    io.write("Reading EEPROM " .. eeprom.address .. ".\n" )
+  end
+  file = io.open(fileName, 'wb')
+  local bios = eeprom.get()
+  file:write(bios)
+  file:close()
+  if not options.q then io.write("All done!\nThe label is '" .. eeprom.getLabel() .. "'.\n") end
   return
 end
 
@@ -25,8 +49,6 @@ if not options.q then
   until response and response:lower():sub(1, 1) == "y"
   io.write("Beginning to flash EEPROM.\n")
 end
-
-local eeprom = component.eeprom
 
 if not options.q then
   io.write("Flashing EEPROM " .. eeprom.address .. ".\n")
