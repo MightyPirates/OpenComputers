@@ -12,6 +12,7 @@ import li.cil.oc.api.driver.item
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
@@ -39,7 +40,7 @@ import net.minecraftforge.fluids.IFluidTank
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable {
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -112,6 +113,24 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     }.apply(index)
   }
   var selectedTank = 0
+
+  // ----------------------------------------------------------------------- //
+  // Forward context stuff to our machine. Interface needed for some components
+  // to work correctly (such as the chunkloader upgrade).
+
+  override def node = machine.node
+
+  override def canInteract(player: String) = machine.canInteract(player)
+
+  override def isPaused = machine.isPaused
+
+  override def start() = machine.start()
+
+  override def pause(seconds: Double) = machine.pause(seconds)
+
+  override def stop() = machine.stop()
+
+  override def signal(name: String, args: AnyRef*) = machine.signal(name, args: _*)
 
   // ----------------------------------------------------------------------- //
 
