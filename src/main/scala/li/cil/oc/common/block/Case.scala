@@ -21,7 +21,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware {
   private val iconsOn = new Array[IIcon](6)
 
   // ----------------------------------------------------------------------- //
@@ -74,16 +74,6 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
   override def energyThroughput = Settings.get.caseRate(tier)
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
-
-  // ----------------------------------------------------------------------- //
-
-  override def hasComparatorInputOverride = true
-
-  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
-    world.getTileEntity(x, y, z) match {
-      case computer: tileentity.Case if computer.isRunning => 15
-      case _ => 0
-    }
 
   // ----------------------------------------------------------------------- //
 

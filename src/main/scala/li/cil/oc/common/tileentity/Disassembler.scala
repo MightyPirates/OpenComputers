@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
@@ -18,7 +20,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -47,6 +49,12 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
 
   override protected def energyThroughput = Settings.get.disassemblerRate
+
+  override def currentState = {
+    if (isActive) util.EnumSet.of(traits.State.IsWorking)
+    else if (queue.nonEmpty) util.EnumSet.of(traits.State.CanWork)
+    else util.EnumSet.noneOf(classOf[traits.State])
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -143,5 +151,5 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
-      DisassemblerTemplates.select(stack) != null
+      DisassemblerTemplates.select(stack) != None
 }

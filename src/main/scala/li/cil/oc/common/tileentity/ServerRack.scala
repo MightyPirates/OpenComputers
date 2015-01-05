@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import com.google.common.base.Strings
 import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
@@ -30,7 +32,7 @@ import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
 
-class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.ServerRack {
+class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.ServerRack with traits.StateAware {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(Option(ForgeDirection.UP), Option(ForgeDirection.EAST), Option(ForgeDirection.WEST), Option(ForgeDirection.DOWN)).
@@ -90,6 +92,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   }
 
   def anyRunning = (0 until servers.length).exists(isRunning)
+
+  override def currentState = {
+    if (anyRunning) util.EnumSet.of(traits.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[traits.State])
+  }
 
   // ----------------------------------------------------------------------- //
 

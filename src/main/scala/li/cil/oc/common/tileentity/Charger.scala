@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
@@ -23,7 +25,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable with traits.StateAware {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -44,6 +46,15 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
 
   override protected def energyThroughput = Settings.get.chargerRate
+
+  override def currentState = {
+    // TODO Refine to only report working if present robots/drones actually *need* power.
+    if (connectors.nonEmpty) {
+      if (hasPower) util.EnumSet.of(traits.State.IsWorking)
+      else util.EnumSet.of(traits.State.CanWork)
+    }
+    else util.EnumSet.noneOf(classOf[traits.State])
+  }
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))

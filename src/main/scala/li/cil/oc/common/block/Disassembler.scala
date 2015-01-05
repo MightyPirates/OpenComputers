@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Disassembler extends SimpleBlock with traits.PowerAcceptor {
+class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware {
   override protected def customTextures = Array(
     None,
     Some("DisassemblerTop"),
@@ -41,16 +41,6 @@ class Disassembler extends SimpleBlock with traits.PowerAcceptor {
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Disassembler()
-
-  // ----------------------------------------------------------------------- //
-
-  override def hasComparatorInputOverride = true
-
-  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
-    world.getTileEntity(x, y, z) match {
-      case disassembler: tileentity.Disassembler if disassembler.isActive => 15
-      case _ => 0
-    }
 
   // ----------------------------------------------------------------------- //
 

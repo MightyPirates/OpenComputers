@@ -15,7 +15,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Charger extends RedstoneAware with traits.PowerAcceptor {
+class Charger extends RedstoneAware with traits.PowerAcceptor with traits.StateAware {
   override protected def customTextures = Array(
     None,
     None,

@@ -13,7 +13,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor {
+class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware {
   override protected def customTextures = Array(
     None,
     None,
@@ -50,16 +50,6 @@ class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.Powe
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.ServerRack()
-
-  // ----------------------------------------------------------------------- //
-
-  override def hasComparatorInputOverride = true
-
-  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
-    world.getTileEntity(x, y, z) match {
-      case rack: tileentity.ServerRack if rack.anyRunning => 15
-      case _ => 0
-    }
 
   // ----------------------------------------------------------------------- //
 

@@ -17,7 +17,7 @@ import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Microcontroller extends RedstoneAware with traits.PowerAcceptor {
+class Microcontroller extends RedstoneAware with traits.PowerAcceptor with traits.StateAware {
   setCreativeTab(null)
   NEI.hide(this)
 
@@ -60,16 +60,6 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor {
   override def energyThroughput = Settings.get.caseRate(Tier.One)
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Microcontroller()
-
-  // ----------------------------------------------------------------------- //
-
-  override def hasComparatorInputOverride = true
-
-  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
-    world.getTileEntity(x, y, z) match {
-      case computer: tileentity.Microcontroller if computer.isRunning => 15
-      case _ => 0
-    }
 
   // ----------------------------------------------------------------------- //
 

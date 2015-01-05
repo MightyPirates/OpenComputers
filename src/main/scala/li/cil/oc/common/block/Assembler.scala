@@ -11,7 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor {
+class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware {
   setLightLevel(0.34f)
 
   override protected def customTextures = Array(
@@ -39,16 +39,6 @@ class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAc
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Assembler()
-
-  // ----------------------------------------------------------------------- //
-
-  override def hasComparatorInputOverride = true
-
-  override def getComparatorInputOverride(world: World, x: Int, y: Int, z: Int, side: Int) =
-    world.getTileEntity(x, y, z) match {
-      case assembler: tileentity.Assembler if assembler.isAssembling => 15
-      case _ => 0
-    }
 
   // ----------------------------------------------------------------------- //
 
