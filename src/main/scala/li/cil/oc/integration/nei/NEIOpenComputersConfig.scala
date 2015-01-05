@@ -28,8 +28,8 @@ class NEIOpenComputersConfig extends IConfigureNEI {
     GuiContainerManager.addTooltipHandler(new OredictTooltipHandler())
     API.addOption(oreDictOption)
 
-    for (block <- NEI.hiddenBlocks) {
-      API.hideItem(new ItemStack(block))
+    for (stack <- NEI.hiddenItems) {
+      API.hideItem(stack)
     }
   }
 }

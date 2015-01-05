@@ -206,8 +206,13 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     val droneConnectors = world.getEntitiesWithinAABB(classOf[Drone], BlockPosition(this).bounds.expand(1, 1, 1)).collect {
       case drone: Drone => (Vec3.createVectorHelper(drone.posX, drone.posY, drone.posZ), drone.components.node.asInstanceOf[Connector])
     }
-    connectors.clear()
-    connectors ++= robotConnectors
-    connectors ++= droneConnectors
+
+    // Only update list when we have to, keeps pointless block updates to a minimum.
+    if (connectors.size != robotConnectors.size + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
+      connectors.clear()
+      connectors ++= robotConnectors
+      connectors ++= droneConnectors
+      world.notifyBlocksOfNeighborChange(x, y, z, block)
+    }
   }
 }
