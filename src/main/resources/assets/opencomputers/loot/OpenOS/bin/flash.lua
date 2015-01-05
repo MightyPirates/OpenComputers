@@ -23,7 +23,7 @@ if options.r then
   fileName = shell.resolve(args[1])
   if not options.q then
     if fs.exists(fileName) then
-      io.write("Are you want to overwrite " .. fileName .. "?\n")
+      io.write("Are you sure you want to overwrite " .. fileName .. "?\n")
       io.write("Type `y` to confirm.\n")
       repeat
         local response = io.read()
