@@ -34,6 +34,7 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.RotationHelper
+import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -75,8 +76,12 @@ class Tablet(val parent: Delegator) extends Delegate {
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.TabletData(stack)
       // Ignore/hide the screen.
-      info.items.drop(1).collect {
-        case Some(component) => tooltip.add("- " + component.getDisplayName)
+      val components = info.items.drop(1)
+      if (components.length > 1) {
+        tooltip.addAll(Tooltip.get("Server.Components"))
+        components.collect {
+          case Some(component) => tooltip.add("- " + component.getDisplayName)
+        }
       }
     }
   }
