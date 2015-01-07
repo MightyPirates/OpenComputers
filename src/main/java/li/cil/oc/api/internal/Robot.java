@@ -31,7 +31,7 @@ import net.minecraftforge.fluids.IFluidTank;
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
-public interface Robot extends Environment, EnvironmentHost, Rotatable, ISidedInventory, IFluidHandler {
+public interface Robot extends Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
     /**
      * The machine currently hosted by this robot.
      */

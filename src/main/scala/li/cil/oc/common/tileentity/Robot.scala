@@ -50,7 +50,8 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with MultiTank with InventorySelection with TankSelection {
+// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
+class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with internal.Tiered with MultiTank with InventorySelection with TankSelection {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
@@ -64,6 +65,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def tier = info.tier
 
   // Wrapper for the part of the inventory that is mutable.
   val dynamicInventory = new IInventory {

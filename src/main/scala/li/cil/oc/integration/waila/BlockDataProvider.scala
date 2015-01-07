@@ -9,6 +9,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.traits.NotAnalyzable
 import li.cil.oc.util.ExtendedNBT._
 import mcp.mobius.waila.api.IWailaConfigHandler
 import mcp.mobius.waila.api.IWailaDataAccessor
@@ -33,7 +34,7 @@ object BlockDataProvider extends IWailaDataProvider {
 
   override def getNBTData(player: EntityPlayerMP, tileEntity: TileEntity, tag: NBTTagCompound, world: World, x: Int, y: Int, z: Int) = {
     def writeNode(node: Node, tag: NBTTagCompound) = {
-      if (node != null && node.reachability != Visibility.None) {
+      if (node != null && node.reachability != Visibility.None && !tileEntity.isInstanceOf[NotAnalyzable]) {
         if (node.address != null) {
           tag.setString("address", node.address)
         }

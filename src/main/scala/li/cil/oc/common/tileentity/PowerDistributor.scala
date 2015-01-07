@@ -13,7 +13,7 @@ import net.minecraftforge.common.util.ForgeDirection
 class PowerDistributor extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
   val node = null
 
-  private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+  private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferDistributor).
     create())
 

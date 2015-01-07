@@ -70,7 +70,6 @@ private[oc] class Proxy extends CommonProxy {
 
     MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
 
-    ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 

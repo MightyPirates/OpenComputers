@@ -17,7 +17,7 @@ import li.cil.oc.api.network.Environment;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Microcontroller extends Environment, EnvironmentHost, Rotatable {
+public interface Microcontroller extends Environment, EnvironmentHost, Rotatable, Tiered {
     /**
      * The machine currently hosted by this microcontroller.
      */

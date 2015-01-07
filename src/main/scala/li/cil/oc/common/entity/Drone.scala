@@ -40,7 +40,8 @@ import net.minecraftforge.fluids.IFluidTank
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
+// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with internal.Tiered with Analyzable with Context {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -113,6 +114,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     }.apply(index)
   }
   var selectedTank = 0
+
+  override def tier = info.tier
 
   // ----------------------------------------------------------------------- //
   // Forward context stuff to our machine. Interface needed for some components
