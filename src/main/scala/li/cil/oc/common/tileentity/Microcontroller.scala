@@ -20,7 +20,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller {
+// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
+class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller with internal.Tiered {
   val info = new ItemUtils.MicrocontrollerData()
 
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -35,6 +36,8 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
   if (machine != null) {
     machine.node.asInstanceOf[Connector].setLocalBufferSize(0)
   }
+
+  override def tier = info.tier
 
   override protected def runSound = None // Microcontrollers are silent.
 

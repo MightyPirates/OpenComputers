@@ -29,7 +29,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotProxy extends RedstoneAware with traits.SpecialBlock {
+class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.StateAware {
   setLightOpacity(0)
   setCreativeTab(null)
   NEI.hide(this)
@@ -80,8 +80,12 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.RobotData(stack)
-      for (component <- info.containers ++ info.components) {
-        tooltip.add("- " + component.getDisplayName)
+      val components = info.containers ++ info.components
+      if (components.length > 0) {
+        tooltip.addAll(Tooltip.get("Server.Components"))
+        for (component <- components) {
+          tooltip.add("- " + component.getDisplayName)
+        }
       }
     }
   }

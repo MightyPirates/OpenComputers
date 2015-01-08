@@ -11,7 +11,7 @@ import net.minecraft.util.Vec3
 import org.lwjgl.opengl.GL11
 
 final class ModelQuadcopter extends ModelBase {
-  val texture = new ResourceLocation(Settings.resourceDomain, "textures/entity/drone.png")
+  val texture = new ResourceLocation(Settings.resourceDomain, "textures/model/drone.png")
 
   val body = new ModelRenderer(this, "body")
   val wing0 = new ModelRenderer(this, "wing0")
@@ -109,6 +109,15 @@ final class ModelQuadcopter extends ModelBase {
       light3.rotateAngleX = drone.flapAngles(3)(0)
       light3.rotateAngleZ = drone.flapAngles(3)(1)
 
+      // Additive blending for the lights.
+      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+      // Light color.
+      val lightColor = drone.lightColor
+      val r = ((lightColor >>> 16) & 0xFF).toByte
+      val g = ((lightColor >>> 8) & 0xFF).toByte
+      val b = ((lightColor >>> 0) & 0xFF).toByte
+      GL11.glColor3ub(r, g, b)
+
       light0.render(scale)
       light1.render(scale)
       light2.render(scale)
@@ -146,6 +155,9 @@ final class ModelQuadcopter extends ModelBase {
     light2.rotateAngleZ = -tilt
     light3.rotateAngleX = tilt
     light3.rotateAngleZ = -tilt
+
+    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    GL11.glColor3ub(0x66.toByte, 0xDD.toByte, 0x55.toByte)
 
     light0.render(scale)
     light1.render(scale)

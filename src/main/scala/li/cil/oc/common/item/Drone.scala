@@ -2,14 +2,19 @@ package li.cil.oc.common.item
 
 import java.util
 
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.entity
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 class Drone(val parent: Delegator) extends Delegate {
+  NEI.hide(this)
+
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.MicrocontrollerData(stack)
@@ -29,4 +34,8 @@ class Drone(val parent: Delegator) extends Delegate {
     stack.stackSize -= 1
     true
   }
+
+  // We no item (rendering using model only).
+  @SideOnly(Side.CLIENT)
+  override def registerIcons(iconRegister: IconRegister) {}
 }

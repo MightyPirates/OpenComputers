@@ -59,6 +59,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
       case PacketType.RobotAssemblingState => onRobotAssemblingState(p)
       case PacketType.RobotInventoryChange => onRobotInventoryChange(p)
+      case PacketType.RobotLightChange => onRobotLightChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RotatableState => onRotatableState(p)
@@ -298,6 +299,12 @@ object PacketHandler extends CommonPacketHandler {
           robot.info.components(slot - (robot.getSizeInventory - robot.componentCount)) = stack
         }
         else t.robot.setInventorySlotContents(slot, stack)
+      case _ => // Invalid packet.
+    }
+
+  def onRobotLightChange(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.info.lightColor = p.readInt()
       case _ => // Invalid packet.
     }
 

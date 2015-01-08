@@ -11,7 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor {
+class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware {
   setLightLevel(0.34f)
 
   override protected def customTextures = Array(

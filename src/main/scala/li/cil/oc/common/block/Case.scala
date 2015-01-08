@@ -21,7 +21,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor {
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware {
   private val iconsOn = new Array[IIcon](6)
 
   // ----------------------------------------------------------------------- //

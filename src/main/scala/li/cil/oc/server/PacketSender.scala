@@ -300,6 +300,15 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendRobotLightChange(t: tileentity.Robot) {
+    val pb = new SimplePacketBuilder(PacketType.RobotLightChange)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeInt(t.info.lightColor)
+
+    pb.sendToPlayersNearTileEntity(t, Option(64))
+  }
+
   def sendRobotSelectedSlotChange(t: tileentity.Robot) {
     val pb = new SimplePacketBuilder(PacketType.RobotSelectedSlotChange)
 

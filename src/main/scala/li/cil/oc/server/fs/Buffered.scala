@@ -14,6 +14,8 @@ trait Buffered extends OutputStreamFileSystem {
 
   private val deletions = mutable.Map.empty[String, Long]
 
+  protected def isValidFilename(name: String) = true
+
   // ----------------------------------------------------------------------- //
 
   override def delete(path: String) = {
@@ -37,7 +39,7 @@ trait Buffered extends OutputStreamFileSystem {
   override def load(nbt: NBTTagCompound) = {
     def recurse(path: String, directory: io.File) {
       makeDirectory(path)
-      for (child <- directory.listFiles()) {
+      for (child <- directory.listFiles() if isValidFilename(child.getName)) {
         val childPath = path + child.getName
         val childFile = new io.File(directory, child.getName)
         if (child.isDirectory) {

@@ -82,11 +82,11 @@ object Mods {
     tryInit(integration.enderstorage.ModEnderStorage)
     tryInit(integration.forestry.ModForestry)
     tryInit(integration.fmp.ModForgeMultipart)
+    tryInit(integration.gc.ModGalacticraft)
     tryInit(integration.gregtech.ModGregtech)
     tryInit(integration.ic2.ModIndustrialCraft2)
     tryInit(integration.mfr.ModMineFactoryReloaded)
     tryInit(integration.mystcraft.ModMystcraft)
-    tryInit(integration.opencomputers.ModOpenComputers)
     tryInit(integration.railcraft.ModRailcraft)
     tryInit(integration.stargatetech2.ModStargateTech2)
     tryInit(integration.thaumcraft.ModThaumcraft)
@@ -102,6 +102,10 @@ object Mods {
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
     tryInit(integration.computercraft.ModComputerCraft)
+
+    // We go last to ensure all other mod integration is done, e.g. to
+    // allow properly checking if wireless redstone is present.
+    tryInit(integration.opencomputers.ModOpenComputers)
   }
 
   private def tryInit(mod: ModProxy) {

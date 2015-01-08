@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Disassembler extends SimpleBlock with traits.PowerAcceptor {
+class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware {
   override protected def customTextures = Array(
     None,
     Some("DisassemblerTop"),

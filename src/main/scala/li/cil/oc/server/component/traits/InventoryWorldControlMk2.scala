@@ -25,11 +25,11 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
         }
         else if (stack.stackSize == 0) {
           // Dropped whole stack.
-          inventory.setInventorySlotContents(selectedSlot, null)
+          this.inventory.setInventorySlotContents(selectedSlot, null)
         }
         else {
           // Dropped partial stack.
-          inventory.markDirty()
+          this.inventory.markDirty()
         }
 
         context.pause(Settings.get.dropDelay)

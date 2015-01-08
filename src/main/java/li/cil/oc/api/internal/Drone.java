@@ -2,7 +2,8 @@ package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.machine.Machine;
-import li.cil.oc.api.network.Environment;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.util.Vec3;
 
 /**
  * This interface is implemented as a marker by drones.
@@ -17,9 +18,37 @@ import li.cil.oc.api.network.Environment;
  * i.e. without having to link against internal classes. This also means
  * that <em>you should not implement this</em>.
  */
-public interface Drone extends EnvironmentHost {
+public interface Drone extends EnvironmentHost, Rotatable, Tiered {
     /**
      * The machine currently hosted by this drone.
      */
     Machine machine();
+
+    /**
+     * Provides access to the inventory of the drone.
+     */
+    IInventory inventory();
+
+    /**
+     * Get the current target coordinates of the drone.
+     */
+    Vec3 getTarget();
+
+    /**
+     * Set the new target coordinates of the drone.
+     * <p/>
+     * Note that the actual value used will use a reduced accuracy. This is
+     * to avoid jitter on the client and floating point inaccuracies to
+     * accumulate.
+     */
+    void setTarget(Vec3 value);
+
+    /**
+     * Get the drones velocity vector.
+     * <p/>
+     * Note that this is really just the underlying entity's <tt>motionX/Y/Z</tt>,
+     * so you can cast this to {@link net.minecraft.entity.Entity} and use that
+     * instead, if you'd like.
+     */
+    Vec3 getVelocity();
 }

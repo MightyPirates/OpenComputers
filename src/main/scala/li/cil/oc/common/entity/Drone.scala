@@ -2,6 +2,7 @@ package li.cil.oc.common.entity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -11,6 +12,7 @@ import li.cil.oc.api.driver.item
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
@@ -35,7 +37,11 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.IFluidTank
 
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
+// internal.Rotatable is also in internal.Drone, but it wasn't since the start
+// so this is to ensure it is implemented here, in the very unlikely case that
+// someone decides to ship that specific version of the API.
+// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with internal.Tiered with Analyzable with Context {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -109,6 +115,38 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
   var selectedTank = 0
 
+  override def tier = info.tier
+
+  // ----------------------------------------------------------------------- //
+  // Forward context stuff to our machine. Interface needed for some components
+  // to work correctly (such as the chunkloader upgrade).
+
+  override def node = machine.node
+
+  override def canInteract(player: String) = machine.canInteract(player)
+
+  override def isPaused = machine.isPaused
+
+  override def start() = machine.start()
+
+  override def pause(seconds: Double) = machine.pause(seconds)
+
+  override def stop() = machine.stop()
+
+  override def signal(name: String, args: AnyRef*) = machine.signal(name, args: _*)
+
+  // ----------------------------------------------------------------------- //
+
+  override def getTarget = Vec3.createVectorHelper(targetX, targetY, targetZ)
+
+  override def setTarget(value: Vec3): Unit = {
+    targetX = value.xCoord.toFloat
+    targetY = value.yCoord.toFloat
+    targetZ = value.zCoord.toFloat
+  }
+
+  override def getVelocity = Vec3.createVectorHelper(motionX, motionY, motionZ)
+
   // ----------------------------------------------------------------------- //
 
   override def canBeCollidedWith = true
@@ -124,6 +162,30 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def zPosition = posZ
 
   override def markChanged() {}
+
+  // ----------------------------------------------------------------------- //
+
+  override def facing() = ForgeDirection.SOUTH
+
+  override def toLocal(value: ForgeDirection) = value
+
+  override def toGlobal(value: ForgeDirection) = value
+
+  // ----------------------------------------------------------------------- //
+
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    machine.lastError match {
+      case value if value != null =>
+        player.addChatMessage(Localization.Analyzer.LastError(value))
+      case _ =>
+    }
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    val list = machine.users
+    if (list.size > 0) {
+      player.addChatMessage(Localization.Analyzer.Users(list))
+    }
+    Array(machine.node)
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -185,6 +247,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     dataWatcher.addObject(10, "")
     // Inventory size for client.
     dataWatcher.addObject(11, byte2Byte(0: Byte))
+    // Light color.
+    dataWatcher.addObject(12, int2Integer(0x66DD55))
   }
 
   def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3) {
@@ -221,6 +285,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
   def statusText = dataWatcher.getWatchableObjectString(10)
   def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+  def lightColor = dataWatcher.getWatchableObjectInt(12)
 
   def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
   // Round target values to low accuracy to avoid floating point errors accumulating.
@@ -233,6 +298,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
   def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
+  def lightColor_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
 
   @SideOnly(Side.CLIENT)
   override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
@@ -402,6 +468,19 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
+  override def travelToDimension(dimension: Int) {
+    // Store relative target and update after teleportation, because our frame
+    // of reference most certainly changed (i.e. we'll spawn at different
+    // coordinates than the ones we started traveling from).
+    val relativeTarget = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
+    super.travelToDimension(dimension)
+    targetX = (posX + relativeTarget.xCoord).toFloat
+    targetY = (posY + relativeTarget.yCoord).toFloat
+    targetZ = (posZ + relativeTarget.zCoord).toFloat
+  }
+
+  override def getCommandSenderName = Localization.localizeImmediately("entity.oc.Drone.name")
+
   override def handleWaterMovement() = {
     inWater = worldObj.handleMaterialAcceleration(boundingBox, Material.water, this)
     inWater
@@ -425,6 +504,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     selectedSlot = nbt.getByte("selectedSlot") & 0xFF
     selectedTank = nbt.getByte("selectedTank") & 0xFF
     statusText = nbt.getString("statusText")
+    lightColor = nbt.getInteger("lightColor")
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
@@ -444,5 +524,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     nbt.setByte("selectedSlot", selectedSlot.toByte)
     nbt.setByte("selectedTank", selectedTank.toByte)
     nbt.setString("statusText", statusText)
+    nbt.setInteger("lightColor", lightColor)
   }
 }

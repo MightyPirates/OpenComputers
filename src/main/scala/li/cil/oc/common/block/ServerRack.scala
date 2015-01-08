@@ -13,7 +13,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor {
+class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware {
   override protected def customTextures = Array(
     None,
     None,

@@ -7,6 +7,7 @@ import li.cil.oc.api.network
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.stargatetech2.AbstractBusCard
 import li.cil.oc.integration.util.StargateTech2
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -28,7 +29,7 @@ trait AbstractBusAware extends TileEntity with network.Environment {
     if (isAbstractBusAvailable) {
       if (isServer) {
         installedComponents.collect {
-          case abstractBus: component.AbstractBusCard => abstractBus.busInterface
+          case abstractBus: AbstractBusCard => abstractBus.busInterface
         }.toArray
       }
       else fakeInterface.map(_.asInstanceOf[IBusInterface])

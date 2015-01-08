@@ -111,11 +111,6 @@ luaBios {
   type: shapeless
   input: ["oc:eeprom", book]
 }
-
-abstractBusCard {
-  input: [[{block="StargateTech2:block.busCable"}, {item="StargateTech2:naquadah", subID=3}, ""]
-          ["", "oc:materialCard", ""]]
-}
 graphicsCard1 {
   input: [["oc:circuitChip1", "oc:materialALU", "oc:ram1"]
           ["", "oc:materialCard", ""]]
@@ -153,6 +148,15 @@ linkedCard {
           ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
           ["oc:circuitChip3", "", "oc:circuitChip3"]]
   output: 2 # Note: all resulting cards are linked to each other.
+}
+
+abstractBusCard {
+  input: [[{block="StargateTech2:block.busCable"}, {item="StargateTech2:naquadah", subID=3}, ""]
+          ["", "oc:materialCard", ""]]
+}
+worldSensorCard {
+  input: [[{item="GalacticraftCore:item.sensorLens"}, "oc:circuitChip2", ""]
+          ["", "oc:materialCard", ""]]
 }
 
 angelUpgrade {
