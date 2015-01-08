@@ -124,53 +124,53 @@ object Textures {
         Array(
           Array(
             L("screen/bht"),
-            L("screen/bht"),
+            L("screen/bhb"),
             L("screen/bht2"),
             L("screen/bht2"),
             L("screen/b2"),
-            L("screen/b2") // Never rendered.
+            L("screen/b2")
           ),
           Array(
             L("screen/bhm"),
             L("screen/bhm"),
             L("screen/bhm2"),
             L("screen/bhm2"),
-            L("screen/b2"), // Never rendered.
-            L("screen/b2") // Never rendered.
+            L("screen/b"), // Not rendered.
+            L("screen/b") // Not rendered.
           ),
           Array(
             L("screen/bhb"),
-            L("screen/bhb"),
+            L("screen/bht"),
             L("screen/bhb2"),
             L("screen/bhb2"),
-            L("screen/b2"), // Never rendered.
+            L("screen/b2"),
             L("screen/b2")
           )
         ),
         // Horizontal.
         Array(
           Array(
-            L("screen/bht2"),
+            L("screen/bhb2"),
             L("screen/bht2"),
             L("screen/bht"),
+            L("screen/bhb"),
+            L("screen/b2"),
+            L("screen/b2")
+          ),
+          Array(
+            L("screen/bhm2"),
+            L("screen/bhm2"),
+            L("screen/bhm"),
+            L("screen/bhm"),
+            L("screen/b"), // Not rendered.
+            L("screen/b") // Not rendered.
+          ),
+          Array(
+            L("screen/bht2"),
+            L("screen/bhb2"),
+            L("screen/bhb"),
             L("screen/bht"),
             L("screen/b2"),
-            L("screen/b2") // Never rendered.
-          ),
-          Array(
-            L("screen/bhm2"),
-            L("screen/bhm2"),
-            L("screen/bhm"),
-            L("screen/bhm"),
-            L("screen/b2"), // Never rendered.
-            L("screen/b2") // Never rendered.
-          ),
-          Array(
-            L("screen/bhb2"),
-            L("screen/bhb2"),
-            L("screen/bhb"),
-            L("screen/bhb"),
-            L("screen/b2"), // Never rendered.
             L("screen/b2")
           )
         )
@@ -179,15 +179,15 @@ object Textures {
       val HorizontalFront = Array(
         // Vertical.
         Array(
-          L("screen/fht2"),
+          L("screen/fhb2"),
           L("screen/fhm2"),
-          L("screen/fhb2")
+          L("screen/fht2")
         ),
         // Horizontal.
         Array(
-          L("screen/fht"),
+          L("screen/fhb"),
           L("screen/fhm"),
-          L("screen/fhb")
+          L("screen/fht")
         )
       )
 
@@ -195,7 +195,7 @@ object Textures {
         // Vertical.
         Array(
           Array(
-            L("screen/b"), // Never rendered.
+            L("screen/b"),
             L("screen/b"),
             L("screen/bvt"),
             L("screen/bvt"),
@@ -203,8 +203,8 @@ object Textures {
             L("screen/bvt")
           ),
           Array(
-            L("screen/b"), // Never rendered.
-            L("screen/b"), // Never rendered.
+            L("screen/b"), // Not rendered.
+            L("screen/b"), // Not rendered.
             L("screen/bvm"),
             L("screen/bvm"),
             L("screen/bvm"),
@@ -212,7 +212,7 @@ object Textures {
           ),
           Array(
             L("screen/b"),
-            L("screen/b"), // Never rendered.
+            L("screen/b"),
             L("screen/bvb2"),
             L("screen/bvb2"),
             L("screen/bvb2"),
@@ -222,16 +222,16 @@ object Textures {
         // Horizontal.
         Array(
           Array(
-            L("screen/b2"), // Never rendered.
+            L("screen/b2"),
             L("screen/b2"),
             L("screen/bvt"),
             L("screen/bvt"),
             L("screen/bht2"),
-            L("screen/bht2")
+            L("screen/bhb2")
           ),
           Array(
-            L("screen/b2"), // Never rendered.
-            L("screen/b2"), // Never rendered.
+            L("screen/b"), // Not rendered.
+            L("screen/b"), // Not rendered.
             L("screen/bvm"),
             L("screen/bvm"),
             L("screen/bhm2"),
@@ -239,11 +239,11 @@ object Textures {
           ),
           Array(
             L("screen/b2"),
-            L("screen/b2"), // Never rendered.
+            L("screen/b2"),
             L("screen/bvb"),
             L("screen/bvb"),
             L("screen/bhb2"),
-            L("screen/bhb2")
+            L("screen/bht2")
           )
         )
       )
@@ -269,81 +269,81 @@ object Textures {
           // Top.
           Array(
             Array(
-              L("screen/bht"), // Never rendered.
               L("screen/bht"),
+              L("screen/bhb"),
               L("screen/btl"),
-              L("screen/btl"),
-              L("screen/bvt"),
-              L("screen/bvt") // Never rendered.
+              L("screen/btr"),
+              L("screen/bvb"),
+              L("screen/bvt")
             ),Array(
-              L("screen/bhm"), // Never rendered.
+              L("screen/bhm"),
               L("screen/bhm"),
               L("screen/btm"),
               L("screen/btm"),
-              L("screen/bvt"),
-              L("screen/bvt") // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
             ),
             Array(
-              L("screen/bhb"), // Never rendered.
-              L("screen/bhb"), // Never rendered.
+              L("screen/bhb"),
+              L("screen/bht"),
               L("screen/btr"),
-              L("screen/btr"),
-              L("screen/bvt"),  // Never rendered.
-              L("screen/bvt") // Never rendered.
+              L("screen/btl"),
+              L("screen/bvt"),
+              L("screen/bvb")
             )
           ),
           // Middle.
           Array(
             Array(
-              L("screen/bht"), // Never rendered.
-              L("screen/bht"), // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
               L("screen/bml"),
-              L("screen/bml"),
-              L("screen/bvm"), // Never rendered.
-              L("screen/bvm") // Never rendered.
-            ),
-            Array(
-              L("screen/bhm"), // Never rendered.
-              L("screen/bhm"), // Never rendered.
-              L("screen/bmm"),
-              L("screen/bmm"),
-              L("screen/bvt"), // Never rendered.
-              L("screen/bvt") // Never rendered.
-            ),
-            Array(
-              L("screen/bhb"),
-              L("screen/bhb"), // Never rendered.
               L("screen/bmr"),
-              L("screen/bmr"),
-              L("screen/bvm"),  // Never rendered.
+              L("screen/bvm"),
               L("screen/bvm")
+            ),
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bmm"),
+              L("screen/bmm"),
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
+            ),
+            Array(
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/bmr"),
+              L("screen/bml"),
+              L("screen/bvm"),
+              L("screen/bvt")
             )
           ),
-          // Right.
+          // Bottom.
           Array(
             Array(
-              L("screen/bht"), // Never rendered.
               L("screen/bht"),
+              L("screen/bhb"),
               L("screen/bbl2"),
-              L("screen/bbl2"),
-              L("screen/bvb2"),
-              L("screen/bvb2") // Never rendered.
+              L("screen/bbr2"),
+              L("screen/bvt2"),
+              L("screen/bvb2")
             ),
             Array(
               L("screen/bhm"),
-              L("screen/bhm"), // Never rendered.
+              L("screen/bhm"),
               L("screen/bbm2"),
               L("screen/bbm2"),
-              L("screen/bvb2"),
-              L("screen/bvb2") // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
             ),
             Array(
               L("screen/bhb"),
-              L("screen/bhb"), // Never rendered.
+              L("screen/bht"),
               L("screen/bbr2"),
-              L("screen/bbr2"),
-              L("screen/bvb2"),  // Never rendered.
-              L("screen/bvb2")
+              L("screen/bbl2"),
+              L("screen/bvb2"),
+              L("screen/bvt2")
             )
           )
         ),
@@ -352,81 +352,82 @@ object Textures {
           // Top.
           Array(
             Array(
-              L("screen/bht2"), // Never rendered.
+              L("screen/bhb2"),
               L("screen/bht2"),
               L("screen/btl"),
-              L("screen/btl"),
+              L("screen/btr"),
               L("screen/bht2"),
-              L("screen/bht2") // Never rendered.
-            ),Array(
-              L("screen/bhm2"), // Never rendered.
+              L("screen/bhb2")
+            ),
+            Array(
+              L("screen/bhm2"),
               L("screen/bhm2"),
               L("screen/btm"),
               L("screen/btm"),
-              L("screen/bht2"),
-              L("screen/bht2") // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
             ),
             Array(
-              L("screen/bhb2"), // Never rendered.
-              L("screen/bhb2"), // Never rendered.
+              L("screen/bht2"),
+              L("screen/bhb2"),
               L("screen/btr"),
-              L("screen/btr"),
-              L("screen/bht2"),  // Never rendered.
-              L("screen/bht2") // Never rendered.
+              L("screen/btl"),
+              L("screen/bht2"),
+              L("screen/bhb2")
             )
           ),
           // Middle.
           Array(
             Array(
-              L("screen/bht2"), // Never rendered.
-              L("screen/bht2"), // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
               L("screen/bml"),
               L("screen/bml"),
-              L("screen/bhm2"), // Never rendered.
-              L("screen/bhm2") // Never rendered.
+              L("screen/bhm2"),
+              L("screen/bhm2")
             ),
             Array(
-              L("screen/bhm2"), // Never rendered.
-              L("screen/bhm2"), // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
               L("screen/bmm"),
               L("screen/bmm"),
-              L("screen/bht2"), // Never rendered.
-              L("screen/bht2") // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
             ),
             Array(
-              L("screen/bhb2"),
-              L("screen/bhb2"), // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b"), // Not rendered.
               L("screen/bmr"),
               L("screen/bmr"),
-              L("screen/bhm2"),  // Never rendered.
+              L("screen/bhm2"),
               L("screen/bhm2")
             )
           ),
-          // Right.
+          // Bottom.
           Array(
             Array(
-              L("screen/bht2"), // Never rendered.
+              L("screen/bhb2"),
               L("screen/bht2"),
               L("screen/bbl"),
-              L("screen/bbl"),
+              L("screen/bbr"),
               L("screen/bhb2"),
-              L("screen/bhb2") // Never rendered.
+              L("screen/bht2")
             ),
             Array(
               L("screen/bhm2"),
-              L("screen/bhm2"), // Never rendered.
+              L("screen/bhm2"),
               L("screen/bbm"),
               L("screen/bbm"),
-              L("screen/bhb2"),
-              L("screen/bhb2") // Never rendered.
+              L("screen/b"), // Not rendered.
+              L("screen/b") // Not rendered.
             ),
             Array(
+              L("screen/bht2"),
               L("screen/bhb2"),
-              L("screen/bhb2"), // Never rendered.
               L("screen/bbr"),
-              L("screen/bbr"),
-              L("screen/bhb2"),  // Never rendered.
-              L("screen/bhb2")
+              L("screen/bbl"),
+              L("screen/bhb2"),
+              L("screen/bht2")
             )
           )
         )
@@ -436,37 +437,37 @@ object Textures {
         // Vertical.
         Array(
           Array(
-            L("screen/ftl"),
+            L("screen/ftr"),
             L("screen/ftm"),
-            L("screen/ftr")
+            L("screen/ftl")
           ),
           Array(
-            L("screen/fml"),
+            L("screen/fmr"),
             L("screen/fmm"),
-            L("screen/fmr")
+            L("screen/fml")
           ),
           Array(
-            L("screen/fbl2"),
+            L("screen/fbr2"),
             L("screen/fbm2"),
-            L("screen/fbr2")
+            L("screen/fbl2")
           )
         ),
         // Horizontal.
         Array(
           Array(
-            L("screen/ftl"),
+            L("screen/ftr"),
             L("screen/ftm"),
-            L("screen/ftr")
+            L("screen/ftl")
           ),
           Array(
-            L("screen/fml"),
+            L("screen/fmr"),
             L("screen/fmm"),
-            L("screen/fmr")
+            L("screen/fml")
           ),
           Array(
-            L("screen/fbl"),
+            L("screen/fbr"),
             L("screen/fbm"),
-            L("screen/fbr")
+            L("screen/fbl")
           )
         )
       )

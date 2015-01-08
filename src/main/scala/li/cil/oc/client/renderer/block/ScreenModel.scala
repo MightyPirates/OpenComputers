@@ -30,59 +30,45 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
           val facing = screen.toLocal(side)
 
           val (x, y) = screen.localPosition
-          val pitch = if (screen.pitch == EnumFacing.NORTH) 0 else 1
           var px = xy2part(x, screen.width - 1)
           var py = xy2part(y, screen.height - 1)
-          var rotation = 0
-
-          if (screen.pitch == EnumFacing.DOWN)
-            py = 2 - py
-          if (side == EnumFacing.UP) {
-            rotation += screen.yaw.getHorizontalIndex
+          if ((side == EnumFacing.DOWN || screen.facing == EnumFacing.DOWN) && side != screen.facing) {
+            px = 2 - px
             py = 2 - py
           }
-          else {
-            if (side == EnumFacing.DOWN) {
-              if (screen.yaw.getAxis == EnumFacing.Axis.X) {
-                rotation += 1
-                px = 2 - px
-              }
-              if (screen.yaw.getAxisDirection.getOffset < 0)
-                py = 2 - py
-            }
-            else if (screen.yaw.getAxisDirection.getOffset > 0 && pitch == 1)
-              py = 2 - py
-            if (screen.yaw == EnumFacing.NORTH || screen.yaw == EnumFacing.EAST)
-              px = 2 - px
-          }
+          val rotation =
+            if (side == EnumFacing.UP) screen.yaw.getHorizontalIndex
+            else if (side == EnumFacing.DOWN) -screen.yaw.getHorizontalIndex
+            else 0
 
-          val textures =
+          def pitch = if (screen.pitch == EnumFacing.NORTH) 0 else 1
+          val texture =
             if (screen.width == 1 && screen.height == 1) {
-              val result = Textures.Block.Screen.Single.clone()
               if (facing == EnumFacing.SOUTH)
-                result(3) = Textures.Block.Screen.SingleFront(pitch)
-              result
+                Textures.Block.Screen.SingleFront(pitch)
+              else
+                Textures.Block.Screen.Single(side.getIndex)
             }
             else if (screen.width == 1) {
-              val result = Textures.Block.Screen.Vertical(pitch)(py).clone()
               if (facing == EnumFacing.SOUTH)
-                result(3) = Textures.Block.Screen.VerticalFront(pitch)(py)
-              result
+                Textures.Block.Screen.VerticalFront(pitch)(py)
+              else
+                Textures.Block.Screen.Vertical(pitch)(py)(facing.getIndex)
             }
             else if (screen.height == 1) {
-              val result = Textures.Block.Screen.Horizontal(pitch)(px).clone()
               if (facing == EnumFacing.SOUTH)
-                result(3) = Textures.Block.Screen.HorizontalFront(pitch)(px)
-              result
+                Textures.Block.Screen.HorizontalFront(pitch)(px)
+              else
+                Textures.Block.Screen.Horizontal(pitch)(px)(facing.getIndex)
             }
             else {
-              val result = Textures.Block.Screen.Multi(pitch)(py)(px).clone()
               if (facing == EnumFacing.SOUTH)
-                result(3) = Textures.Block.Screen.MultiFront(pitch)(py)(px)
-              result
+                Textures.Block.Screen.MultiFront(pitch)(py)(px)
+              else
+                Textures.Block.Screen.Multi(pitch)(py)(px)(facing.getIndex)
             }
 
-          seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(textures(facing.ordinal())), screen.color, rotation), -1, side)))
+          seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(texture), rotation, Some(screen.color)), -1, side)))
         case _ => super.getFaceQuads(side)
       }
 
@@ -102,7 +88,7 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
           Textures.Block.Screen.SingleFront(0)
         else
           Textures.Block.Screen.Single(side.ordinal())
-      seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(result), color, 0), -1, side)))
+      seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(result), 0, Some(color)), -1, side)))
     }
   }
 

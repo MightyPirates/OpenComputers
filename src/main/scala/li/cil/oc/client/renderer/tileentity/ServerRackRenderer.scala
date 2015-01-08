@@ -49,10 +49,10 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
           val l = v1 + i * fs
           val h = v1 + (i + 1) * fs
 
-          r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h))
-          r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h))
-          r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l))
-          r.addVertexWithUV(0, l, 0, icon.getMinU, icon.getInterpolatedV(l))
+          r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h * 16))
+          r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h * 16))
+          r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l * 16))
+          r.addVertexWithUV(0, l, 0, icon.getMinU, icon.getInterpolatedV(l * 16))
         }
       }
 
@@ -62,10 +62,10 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
           val l = v1 + i * fs
           val h = v1 + (i + 1) * fs
 
-          r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h))
-          r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h))
-          r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l))
-          r.addVertexWithUV(0, l, 0, icon.getMinU, icon.getInterpolatedV(l))
+          r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h * 16))
+          r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h * 16))
+          r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l * 16))
+          r.addVertexWithUV(0, l, 0, icon.getMinU, icon.getInterpolatedV(l * 16))
         }
       }
 

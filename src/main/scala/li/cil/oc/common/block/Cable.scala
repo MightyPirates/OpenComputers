@@ -13,6 +13,7 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
+import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.tileentity.TileEntity
@@ -21,10 +22,14 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraftforge.common.property.IUnlistedProperty
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Cable extends SimpleBlock with traits.SpecialBlock {
+import scala.collection.mutable.ArrayBuffer
+
+class Cable extends SimpleBlock with traits.Extended with traits.SpecialBlock {
   setLightOpacity(0)
 
   // For Immibis Microblock support.
@@ -32,6 +37,22 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
 
   // For FMP part coloring.
   var colorMultiplierOverride: Option[Int] = None
+
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+
+  override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
+    (state, world.getTileEntity(pos)) match {
+      case (extendedState: IExtendedBlockState, cable: tileentity.Cable) =>
+        super.addExtendedState(extendedState.withProperty(Cable.Tile, cable), world, pos)
+      case _ => None
+    }
+
+  override protected def createProperties(listed: ArrayBuffer[IProperty], unlisted: ArrayBuffer[IUnlistedProperty[_]]) {
+    super.createProperties(listed, unlisted)
+    unlisted += Cable.Tile
+  }
+
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT) override
   def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) = colorMultiplierOverride.getOrElse(super.colorMultiplier(world, pos, renderPass))
@@ -57,6 +78,8 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
 }
 
 object Cable {
+  final val Tile = new property.PropertyTile()
+
   val cachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {

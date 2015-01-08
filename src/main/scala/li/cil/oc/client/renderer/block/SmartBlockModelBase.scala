@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.Vec3
 import net.minecraftforge.client.model.ISmartBlockModel
 import net.minecraftforge.client.model.ISmartItemModel
 
@@ -37,37 +38,60 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   protected def missingModel = Minecraft.getMinecraft.getRenderItem.getItemModelMesher.getModelManager.getMissingModel
 
-  // Standard faces for a unit cube, with uv coordinates.
-  protected def faces = Array(
-    Array((0f, 0f, 0f, 16f, 0f), (1f, 0f, 0f, 0f, 0f), (1f, 0f, 1f, 0f, 16f), (0f, 0f, 1f, 16f, 16f)),
-    Array((0f, 1f, 0f, 16f, 16f), (0f, 1f, 1f, 16f, 0f), (1f, 1f, 1f, 0f, 0f), (1f, 1f, 0f, 0f, 16f)),
-    Array((0f, 0f, 0f, 16f, 16f), (0f, 1f, 0f, 16f, 0f), (1f, 1f, 0f, 0f, 0f), (1f, 0f, 0f, 0f, 16f)),
-    Array((0f, 0f, 1f, 16f, 16f), (1f, 0f, 1f, 0f, 16f), (1f, 1f, 1f, 0f, 0f), (0f, 1f, 1f, 16f, 0f)),
-    Array((0f, 0f, 0f, 16f, 16f), (0f, 0f, 1f, 0f, 16f), (0f, 1f, 1f, 0f, 0f), (0f, 1f, 0f, 16f, 0f)),
-    Array((1f, 0f, 0f, 16f, 16f), (1f, 1f, 0f, 16f, 0f), (1f, 1f, 1f, 0f, 0f), (1f, 0f, 1f, 0f, 16f))
+  // Standard faces for a unit cube.
+  protected final val UnitCube = Array(
+    Array(new Vec3(0, 0, 0), new Vec3(1, 0, 0), new Vec3(1, 0, 1), new Vec3(0, 0, 1)),
+    Array(new Vec3(0, 1, 1), new Vec3(1, 1, 1), new Vec3(1, 1, 0), new Vec3(0, 1, 0)),
+    Array(new Vec3(0, 1, 0), new Vec3(1, 1, 0), new Vec3(1, 0, 0), new Vec3(0, 0, 0)),
+    Array(new Vec3(1, 1, 1), new Vec3(0, 1, 1), new Vec3(0, 0, 1), new Vec3(1, 0, 1)),
+    Array(new Vec3(0, 1, 1), new Vec3(0, 1, 0), new Vec3(0, 0, 0), new Vec3(0, 0, 1)),
+    Array(new Vec3(1, 1, 0), new Vec3(1, 1, 1), new Vec3(1, 0, 1), new Vec3(1, 0, 0))
   )
 
-  protected def makeQuad(facing: EnumFacing, texture: TextureAtlasSprite, color: EnumDyeColor, rotation: Int) = {
-    val face = faces(facing.getIndex)
-    val verts = face.map(f => (f._1, f._2, f._3))
-    val coords = face.map(f => (f._4, f._5))
-    (verts, coords.drop(rotation) ++ coords.take(rotation)).zipped.
-      map((v, c) => (v._1, v._2, v._3, c._1, c._2)).
-      map(data => {
-      val (x, y, z, u, v) = data
-      rawData(x, y, z, texture, u, v, Color.rgbValues(color))
+  // Planes perpendicular to facings. Negative values mean we mirror along that,
+  // axis which is done to mirror back faces and the y axis (because up is
+  // positive but for our texture coordinates down is positive).
+  protected final val Planes = Array(
+    (new Vec3(1, 0, 0), new Vec3(0, 0, -1)),
+    (new Vec3(1, 0, 0), new Vec3(0, 0, 1)),
+    (new Vec3(-1, 0, 0), new Vec3(0, -1, 0)),
+    (new Vec3(1, 0, 0), new Vec3(0, -1, 0)),
+    (new Vec3(0, 0, 1), new Vec3(0, -1, 0)),
+    (new Vec3(0, 0, -1), new Vec3(0, -1, 0))
+  )
+
+  protected def makeQuad(facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int, color: Option[EnumDyeColor]): Array[Int] = {
+    makeQuad(UnitCube(facing.getIndex), facing, texture, rotation, color)
+  }
+
+  protected def makeQuad(vertices: Array[Vec3], facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int, color: Option[EnumDyeColor]): Array[Int] = {
+    val (uAxis, vAxis) = Planes(facing.getIndex)
+    val bgr = rgb2bgr(color.fold(0xFFFFFF)(Color.rgbValues(_)))
+    val rot = (rotation + 4) % 4
+    vertices.map(vertex => {
+      var u = vertex.dotProduct(uAxis)
+      var v = vertex.dotProduct(vAxis)
+      if (uAxis.xCoord + uAxis.yCoord + uAxis.zCoord < 0) u = 1 + u
+      if (vAxis.xCoord + vAxis.yCoord + vAxis.zCoord < 0) v = 1 + v
+      for (i <- 0 until rot) {
+        // (u, v) = (v, -u)
+        val tmp = u
+        u = v
+        v = (-(tmp - 0.5)) + 0.5
+      }
+      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, texture, u, v, bgr)
     }).flatten
   }
 
   // See FaceBakery#storeVertexData.
-  protected def rawData(x: Float, y: Float, z: Float, texture: TextureAtlasSprite, u: Float, v: Float, color: Int) = {
+  private def rawData(x: Double, y: Double, z: Double, texture: TextureAtlasSprite, u: Double, v: Double, bgr: Int) = {
     Array(
-      java.lang.Float.floatToRawIntBits(x),
-      java.lang.Float.floatToRawIntBits(y),
-      java.lang.Float.floatToRawIntBits(z),
-      0xFF000000 | rgb2bgr(color),
-      java.lang.Float.floatToRawIntBits(texture.getInterpolatedU(u)),
-      java.lang.Float.floatToRawIntBits(texture.getInterpolatedV(v)),
+      java.lang.Float.floatToRawIntBits(x.toFloat),
+      java.lang.Float.floatToRawIntBits(y.toFloat),
+      java.lang.Float.floatToRawIntBits(z.toFloat),
+      0xFF000000 | bgr,
+      java.lang.Float.floatToRawIntBits(texture.getInterpolatedU(u * 16)),
+      java.lang.Float.floatToRawIntBits(texture.getInterpolatedV(v * 16)),
       0
     )
   }

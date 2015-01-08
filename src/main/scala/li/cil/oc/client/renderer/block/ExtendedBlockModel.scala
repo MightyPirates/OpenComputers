@@ -20,15 +20,8 @@ object ExtendedBlockModel {
 //      "^" + Settings.resourceDomain + ":cable#.*" -> CableModel
     )
 
-//    api.Items.get("cable").block()
-//    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + ":cable", null), CableModel)
-//    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + "item/cable"), CableModel)
-
-//    val screenBlock = api.Items.get("screen1").block()
-//    val screenStates = screenBlock.getBlockState.getValidStates
-//    screenStates.collect {
-//      case state: IBlockState => registry.putObject(new ModelResourceLocation(Settings.resourceDomain + ":screen1#" + state.toString), ScreenModel)
-//    }
+    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + ":cable", null), CableModel)
+    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + "item/cable"), CableModel)
 
     registry.getKeys.collect {
       case location: ModelResourceLocation =>
