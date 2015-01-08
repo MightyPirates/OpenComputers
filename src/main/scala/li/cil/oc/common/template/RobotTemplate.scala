@@ -42,7 +42,7 @@ object RobotTemplate extends Template {
     Array(stack, double2Double(energy))
   }
 
-  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontroller")
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("robot")
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new ItemUtils.RobotData(stack)

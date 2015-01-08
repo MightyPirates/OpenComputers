@@ -12,7 +12,7 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
-class Disassembler extends SimpleBlock with traits.PowerAcceptor {
+class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware {
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName, (Settings.get.disassemblerBreakChance * 100).toInt.toString))
   }

@@ -5,10 +5,9 @@ import codechicken.nei.api.API
 import codechicken.nei.api.IConfigureNEI
 import codechicken.nei.config.OptionToggleButton
 import codechicken.nei.guihook.GuiContainerManager
+import li.cil.oc.integration.util.NEI
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
-import li.cil.oc.integration.util.NEI
-import net.minecraft.item.ItemStack
 
 @SideOnly(Side.CLIENT)
 class NEIOpenComputersConfig extends IConfigureNEI {
@@ -28,8 +27,8 @@ class NEIOpenComputersConfig extends IConfigureNEI {
     GuiContainerManager.addTooltipHandler(new OredictTooltipHandler())
     API.addOption(oreDictOption)
 
-    for (block <- NEI.hiddenBlocks) {
-      API.hideItem(new ItemStack(block))
+    for (stack <- NEI.hiddenItems) {
+      API.hideItem(stack)
     }
   }
 }

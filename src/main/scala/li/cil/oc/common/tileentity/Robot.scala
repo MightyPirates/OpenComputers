@@ -67,6 +67,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
+  override def tier = info.tier
+
   // Wrapper for the part of the inventory that is mutable.
   val dynamicInventory = new IInventory {
     override def getSizeInventory = Robot.this.inventorySize
@@ -151,6 +153,11 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   def componentSlots = getSizeInventory - componentCount until getSizeInventory
 
   def inventorySlots = actualSlot(0) until actualSlot(0) + inventorySize
+
+  def setLightColor(value: Int): Unit = {
+    info.lightColor = value
+    ServerPacketSender.sendRobotLightChange(this)
+  }
 
   // ----------------------------------------------------------------------- //
 

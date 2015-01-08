@@ -1,5 +1,6 @@
 package li.cil.oc.common.entity
 
+import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -9,6 +10,7 @@ import li.cil.oc.api.driver.item
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
@@ -38,7 +40,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone {
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -112,6 +114,38 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
   var selectedTank = 0
 
+  override def tier = info.tier
+
+  // ----------------------------------------------------------------------- //
+  // Forward context stuff to our machine. Interface needed for some components
+  // to work correctly (such as the chunkloader upgrade).
+
+  override def node = machine.node
+
+  override def canInteract(player: String) = machine.canInteract(player)
+
+  override def isPaused = machine.isPaused
+
+  override def start() = machine.start()
+
+  override def pause(seconds: Double) = machine.pause(seconds)
+
+  override def stop() = machine.stop()
+
+  override def signal(name: String, args: AnyRef*) = machine.signal(name, args: _*)
+
+  // ----------------------------------------------------------------------- //
+
+  override def getTarget = new Vec3(targetX, targetY, targetZ)
+
+  override def setTarget(value: Vec3): Unit = {
+    targetX = value.xCoord.toFloat
+    targetY = value.yCoord.toFloat
+    targetZ = value.zCoord.toFloat
+  }
+
+  override def getVelocity = new Vec3(motionX, motionY, motionZ)
+
   // ----------------------------------------------------------------------- //
 
   override def canBeCollidedWith = true
@@ -135,6 +169,22 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def toLocal(value: EnumFacing) = value
 
   override def toGlobal(value: EnumFacing) = value
+
+  // ----------------------------------------------------------------------- //
+
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
+    machine.lastError match {
+      case value if value != null =>
+        player.addChatMessage(Localization.Analyzer.LastError(value))
+      case _ =>
+    }
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    val list = machine.users
+    if (list.size > 0) {
+      player.addChatMessage(Localization.Analyzer.Users(list))
+    }
+    Array(machine.node)
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -434,6 +484,19 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def travelToDimension(dimension: Int) {
+    // Store relative target and update after teleportation, because our frame
+    // of reference most certainly changed (i.e. we'll spawn at different
+    // coordinates than the ones we started traveling from).
+    val relativeTarget = new Vec3(targetX - posX, targetY - posY, targetZ - posZ)
+    super.travelToDimension(dimension)
+    targetX = (posX + relativeTarget.xCoord).toFloat
+    targetY = (posY + relativeTarget.yCoord).toFloat
+    targetZ = (posZ + relativeTarget.zCoord).toFloat
+  }
+
+  override def getName = Localization.localizeImmediately("entity.oc.Drone.name")
 
   override def handleWaterMovement() = {
     inWater = worldObj.handleMaterialAcceleration(getEntityBoundingBox, Material.water, this)

@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -24,7 +26,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with traits.ComponentInventory with Analyzable with traits.StateAware {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -46,6 +48,15 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override protected def energyThroughput = Settings.get.chargerRate
 
+  override def currentState = {
+    // TODO Refine to only report working if present robots/drones actually *need* power.
+    if (connectors.nonEmpty) {
+      if (hasPower) util.EnumSet.of(traits.State.IsWorking)
+      else util.EnumSet.of(traits.State.CanWork)
+    }
+    else util.EnumSet.noneOf(classOf[traits.State])
+  }
+
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null
@@ -65,7 +76,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
     if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
       val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
-      val canCharge = charge > 0 && (node.globalBuffer >= charge || Settings.get.ignorePower)
+      val canCharge = charge > 0 && (node.globalBuffer >= charge * 0.5 || Settings.get.ignorePower)
       if (hasPower && !canCharge) {
         hasPower = false
         ServerPacketSender.sendChargerState(this)
@@ -196,8 +207,13 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     val droneConnectors = world.getEntitiesWithinAABB(classOf[Drone], BlockPosition(this).bounds.expand(1, 1, 1)).collect {
       case drone: Drone => (new Vec3(drone.posX, drone.posY, drone.posZ), drone.components.node.asInstanceOf[Connector])
     }
-    connectors.clear()
-    connectors ++= robotConnectors
-    connectors ++= droneConnectors
+
+    // Only update list when we have to, keeps pointless block updates to a minimum.
+    if (connectors.size != robotConnectors.size + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
+      connectors.clear()
+      connectors ++= robotConnectors
+      connectors ++= droneConnectors
+      world.notifyNeighborsOfStateChange(getPos, getBlockType)
+    }
   }
 }

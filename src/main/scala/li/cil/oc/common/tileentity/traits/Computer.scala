@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.util
+
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
@@ -12,6 +14,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
+import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -25,7 +28,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable with MachineHost {
+trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable with MachineHost with StateAware {
   private lazy val _machine = if (isServer) Machine.create(this) else null
 
   def machine = _machine
@@ -60,6 +63,11 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   def setUsers(list: Iterable[String]) {
     _users.clear()
     _users ++= list
+  }
+
+  override def currentState = {
+    if (isRunning) util.EnumSet.of(traits.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[traits.State])
   }
 
   // ----------------------------------------------------------------------- //
@@ -120,6 +128,12 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       case _ =>
     }
     machine.load(nbt.getCompoundTag(Settings.namespace + "computer"))
+
+    // Kickstart initialization to avoid values getting overwritten by
+    // readFromNBTForClient if that packet is handled after a manual
+    // initialization / state change packet.
+    _isRunning = machine.isRunning
+    _isOutputEnabled = hasRedstoneCard
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {

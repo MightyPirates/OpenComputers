@@ -213,6 +213,17 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           RenderState.disableLighting()
         }
 
+        {
+          // Additive blending for the light.
+          GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+          // Light color.
+          val lightColor = if (robot != null && robot.info != null) robot.info.lightColor else 0xF23030
+          val r = ((lightColor >>> 16) & 0xFF).toByte
+          val g = ((lightColor >>> 8) & 0xFF).toByte
+          val b = ((lightColor >>> 0) & 0xFF).toByte
+          GL11.glColor3ub(r, g, b)
+        }
+
         val t = Tessellator.getInstance
         val r = t.getWorldRenderer
         r.startDrawingQuads()

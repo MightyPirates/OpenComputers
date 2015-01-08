@@ -247,6 +247,8 @@ object ItemUtils {
 
     var containers = Array.empty[ItemStack]
 
+    var lightColor = 0xF23030
+
     override def load(nbt: NBTTagCompound) {
       if (nbt.hasKey("display") && nbt.getCompoundTag("display").hasKey("Name")) {
         name = nbt.getCompoundTag("display").getString("Name")
@@ -261,6 +263,9 @@ object ItemUtils {
         toArray[NBTTagCompound].map(loadStack)
       containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
         toArray[NBTTagCompound].map(loadStack)
+      if (nbt.hasKey(Settings.namespace + "lightColor")) {
+        lightColor = nbt.getInteger(Settings.namespace + "lightColor")
+      }
     }
 
     override def save(nbt: NBTTagCompound) {
@@ -275,6 +280,7 @@ object ItemUtils {
       nbt.setInteger(Settings.namespace + "tier", tier)
       nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
       nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
+      nbt.setInteger(Settings.namespace + "lightColor", lightColor)
     }
 
     def createItemStack() = {

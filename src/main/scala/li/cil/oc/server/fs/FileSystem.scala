@@ -150,6 +150,8 @@ object FileSystem extends api.detail.FileSystemAPI {
     // accordingly before the path is passed to the file system.
     private val invalidChars = """\:*?"<>|""".toSet
 
+    override protected def isValidFilename(name: String) = !name.exists(invalidChars.contains)
+
     override def makeDirectory(path: String) = super.makeDirectory(validatePath(path))
 
     override protected def openOutputHandle(id: Int, path: String, mode: Mode) = super.openOutputHandle(id, validatePath(path), mode)
@@ -160,7 +162,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
 
     private def validatePath(path: String) = {
-      if (path.exists(invalidChars.contains)) {
+      if (!isValidFilename(path)) {
         throw new java.io.IOException("path contains invalid characters")
       }
       path

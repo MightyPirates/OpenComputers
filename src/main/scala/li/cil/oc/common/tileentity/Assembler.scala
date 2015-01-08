@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.machine.Arguments
@@ -16,7 +18,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {
+class Assembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("assembler").
     withConnector(Settings.get.bufferConverter).
@@ -42,7 +44,18 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override protected def energyThroughput = Settings.get.assemblerRate
 
+  override def currentState = {
+    if (isAssembling) util.EnumSet.of(traits.State.IsWorking)
+    else if (canAssemble) util.EnumSet.of(traits.State.CanWork)
+    else util.EnumSet.noneOf(classOf[traits.State])
+  }
+
   // ----------------------------------------------------------------------- //
+
+  def canAssemble = AssemblerTemplates.select(getStackInSlot(0)) match {
+    case Some(template) => !isAssembling && output.isEmpty && template.validate(this)._1
+    case _ => false
+  }
 
   def isAssembling = requiredEnergy > 0
 

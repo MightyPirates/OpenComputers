@@ -57,6 +57,12 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     }
   }
 
+  override def markDirty() {
+    super.markDirty()
+    // Makes the implementation of the comparator output easier.
+    items.map(_.isDefined).copyToArray(presence)
+  }
+
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
     if (isServer) this.synchronized {

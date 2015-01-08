@@ -9,19 +9,16 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.traits.NotAnalyzable
 import li.cil.oc.util.ExtendedNBT._
-import mcp.mobius.waila.api.IWailaConfigHandler
-import mcp.mobius.waila.api.IWailaDataAccessor
-import mcp.mobius.waila.api.IWailaDataProvider
-import mcp.mobius.waila.api.IWailaRegistrar
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
 
 object BlockDataProvider extends IWailaDataProvider {
   def init(registrar: IWailaRegistrar) {
@@ -33,7 +30,7 @@ object BlockDataProvider extends IWailaDataProvider {
 
   override def getNBTData(player: EntityPlayerMP, tileEntity: TileEntity, tag: NBTTagCompound, world: World, x: Int, y: Int, z: Int) = {
     def writeNode(node: Node, tag: NBTTagCompound) = {
-      if (node != null && node.reachability != Visibility.None) {
+      if (node != null && node.reachability != Visibility.None && !tileEntity.isInstanceOf[NotAnalyzable]) {
         if (node.address != null) {
           tag.setString("address", node.address)
         }
@@ -66,7 +63,7 @@ object BlockDataProvider extends IWailaDataProvider {
     def ignoreSidedness(node: Node): Unit = {
       tag.removeTag("nodes")
       val nodeTag = writeNode(node, new NBTTagCompound())
-      tag.setNewTagList("nodes", ForgeDirection.VALID_DIRECTIONS.map(_ => nodeTag))
+      tag.setNewTagList("nodes", EnumFacing.values.map(_ => nodeTag))
     }
 
     tileEntity match {
@@ -95,15 +92,17 @@ object BlockDataProvider extends IWailaDataProvider {
       case te: tileentity.ServerRack =>
         tag.removeTag("nodes")
         tag.setNewTagList("servers", stringIterableToNbt(te.servers.map(_.fold("")(_.node.address))))
-        tag.setByteArray("sideIndexes", ForgeDirection.VALID_DIRECTIONS.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
+        tag.setByteArray("sideIndexes", EnumFacing.values.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
       case _ =>
     }
 
     tag
   }
 
-  override def getWailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) = {
+  override def getWailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler): util.List[String] = {
     val tag = accessor.getNBTData
+    if (tag.hasNoTags) return tooltip
+
     accessor.getTileEntity match {
       case _: tileentity.AccessPoint =>
         val address = tag.getTagList("addresses", NBT.TAG_STRING).getStringTagAt(accessor.getSide.ordinal)

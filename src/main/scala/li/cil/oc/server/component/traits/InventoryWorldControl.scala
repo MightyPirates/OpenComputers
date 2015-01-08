@@ -52,7 +52,10 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
           }
         case _ =>
           // No inventory to drop into, drop into the world.
-          fakePlayer.dropPlayerItemWithRandomChoice(inventory.decrStackSize(selectedSlot, count), false)
+          val dropped = inventory.decrStackSize(selectedSlot, count)
+          if (dropped != null && dropped.stackSize > 0) {
+            InventoryUtils.spawnStackInWorld(position, stack, Some(facing))
+          }
       }
 
       context.pause(Settings.get.dropDelay)

@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
@@ -18,7 +20,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -36,6 +38,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
     ServerPacketSender.sendDisassemblerActive(this, isActive)
+    world.notifyNeighborsOfStateChange(getPos, getBlockType)
   }
 
   // ----------------------------------------------------------------------- //
@@ -46,6 +49,12 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
 
   override protected def energyThroughput = Settings.get.disassemblerRate
+
+  override def currentState = {
+    if (isActive) util.EnumSet.of(traits.State.IsWorking)
+    else if (queue.nonEmpty) util.EnumSet.of(traits.State.CanWork)
+    else util.EnumSet.noneOf(classOf[traits.State])
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -142,5 +151,5 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
-      DisassemblerTemplates.select(stack) != null
+      DisassemblerTemplates.select(stack) != None
 }

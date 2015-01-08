@@ -11,7 +11,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor {
+class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware {
   setLightLevel(0.34f)
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.DOWN || side == EnumFacing.UP

@@ -21,7 +21,7 @@ import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Microcontroller extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
+class Microcontroller extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
   setCreativeTab(null)
   NEI.hide(this)
 

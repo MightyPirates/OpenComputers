@@ -476,19 +476,19 @@ object TextBuffer {
 
     def render() = false
 
-    def onScreenColorChange()
+    def onScreenColorChange(): Unit
 
     def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       owner.relativeLitArea = -1
     }
 
-    def onScreenDepthChange(depth: ColorDepth)
+    def onScreenDepthChange(depth: ColorDepth): Unit
 
     def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       owner.relativeLitArea = -1
     }
 
-    def onScreenPaletteChange(index: Int)
+    def onScreenPaletteChange(index: Int): Unit
 
     def onScreenResolutionChange(w: Int, h: Int) {
       owner.relativeLitArea = -1
@@ -498,19 +498,19 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
-    def keyDown(character: Char, code: Int, player: EntityPlayer)
+    def keyDown(character: Char, code: Int, player: EntityPlayer): Unit
 
-    def keyUp(character: Char, code: Int, player: EntityPlayer)
+    def keyUp(character: Char, code: Int, player: EntityPlayer): Unit
 
-    def clipboard(value: String, player: EntityPlayer)
+    def clipboard(value: String, player: EntityPlayer): Unit
 
-    def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer)
+    def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
 
-    def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer)
+    def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
 
-    def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer)
+    def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
 
-    def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer)
+    def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer): Unit
   }
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {

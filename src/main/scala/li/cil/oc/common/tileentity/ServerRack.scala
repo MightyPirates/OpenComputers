@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import java.util
+
 import com.google.common.base.Strings
 import li.cil.oc._
 import li.cil.oc.api.Network
@@ -25,7 +27,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable
 
-class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.ServerRack {
+class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.ServerRack with traits.StateAware {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(Option(EnumFacing.UP), Option(EnumFacing.EAST), Option(EnumFacing.WEST), Option(EnumFacing.DOWN)).
@@ -73,6 +75,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   }
 
   def anyRunning = (0 until servers.length).exists(isRunning)
+
+  override def currentState = {
+    if (anyRunning) util.EnumSet.of(traits.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[traits.State])
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -230,6 +237,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         if (_isRunning(i) != isRunning) {
           _isRunning(i) = isRunning
           ServerPacketSender.sendServerState(this, i)
+          world.notifyNeighborsOfStateChange(getPos, getBlockType)
         }
       }
       isOutputEnabled = hasRedstoneCard
@@ -283,6 +291,15 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     internalSwitch = nbt.getBoolean(Settings.namespace + "internalSwitch")
+
+    // Kickstart initialization to avoid values getting overwritten by
+    // readFromNBTForClient if that packet is handled after a manual
+    // initialization / state change packet.
+    for (i <- 0 until servers.length) {
+      val isRunning = servers(i).fold(false)(_.machine.isRunning)
+      _isRunning(i) = isRunning
+    }
+    _isOutputEnabled = hasRedstoneCard
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {

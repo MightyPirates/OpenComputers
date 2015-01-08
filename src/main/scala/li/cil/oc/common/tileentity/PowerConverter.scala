@@ -8,7 +8,7 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class PowerConverter extends traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
 

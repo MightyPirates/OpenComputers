@@ -198,12 +198,6 @@ object Items extends ItemAPI {
     Recipes.addMultiItem(new item.DroneCase(materials, Tier.One), "droneCase1", "oc:droneCase1")
     Recipes.addMultiItem(new item.DroneCase(materials, Tier.Two), "droneCase2", "oc:droneCase2")
 
-    // Always create, to avoid shifting IDs.
-    val abstractBus = new item.AbstractBusCard(cards)
-    if (Mods.StargateTech2.isAvailable) {
-      Recipes.addMultiItem(abstractBus, "abstractBusCard", "oc:abstractBusCard")
-    }
-
     Recipes.addMultiItem(new item.CPU(components, Tier.One), "cpu1", "oc:cpu1")
     Recipes.addMultiItem(new item.CPU(components, Tier.Two), "cpu2", "oc:cpu2")
     Recipes.addMultiItem(new item.CPU(components, Tier.Three), "cpu3", "oc:cpu3")
@@ -287,5 +281,17 @@ object Items extends ItemAPI {
     registerItem(new item.Drone(multi), "drone")
 
     registerItem(new item.Present(multi), "present")
+
+    // Always create, to avoid shifting IDs.
+    val abstractBus = new item.AbstractBusCard(cards)
+    if (Mods.StargateTech2.isAvailable) {
+      Recipes.addMultiItem(abstractBus, "abstractBusCard", "oc:abstractBusCard")
+    }
+
+    // Always create, to avoid shifting IDs.
+    val worldSensorCard = new item.WorldSensorCard(cards)
+    if (Mods.Galacticraft.isAvailable) {
+      Recipes.addMultiItem(worldSensorCard, "worldSensorCard", "oc:worldSensorCard")
+    }
   }
 }

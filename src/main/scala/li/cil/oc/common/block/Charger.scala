@@ -14,7 +14,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
+class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override def energyThroughput = Settings.get.chargerRate

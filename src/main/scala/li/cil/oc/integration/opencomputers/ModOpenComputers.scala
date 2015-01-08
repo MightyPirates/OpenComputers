@@ -9,11 +9,15 @@ import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event._
+import li.cil.oc.common.item.Analyzer
+import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
@@ -47,6 +51,7 @@ object ModOpenComputers extends ModProxy {
     FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
     FMLCommonHandler.instance.bus.register(Tablet)
 
+    MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(ChunkloaderUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(EventHandler)
@@ -178,6 +183,17 @@ object ModOpenComputers extends ModProxy {
 
     if (!WirelessRedstone.isAvailable) {
       blacklistHost(classOf[internal.Tablet], "redstoneCard2")
+    }
+
+    // Note: kinda nasty, but we have to check for availabilty for extended
+    // redstone mods after integration init, so we have to set tier two
+    // redstone card availability here, after all other mods were inited.
+    if (BundledRedstone.isAvailable || WirelessRedstone.isAvailable) {
+      OpenComputers.log.info("Found extended redstone mods, enabling tier two redstone card.")
+      Delegator.subItem(api.Items.get("redstoneCard2").createItemStack(1)) match {
+        case Some(redstone: RedstoneCard) => redstone.showInItemList = true
+        case _ =>
+      }
     }
   }
 

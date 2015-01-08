@@ -18,7 +18,7 @@ import net.minecraft.inventory.IInventory;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Case extends Environment, EnvironmentHost, Rotatable, Colored, IInventory {
+public interface Case extends Environment, EnvironmentHost, Colored, Rotatable, Tiered, IInventory {
     /**
      * The machine currently hosted by this computer case.
      */

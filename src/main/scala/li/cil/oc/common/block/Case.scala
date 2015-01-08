@@ -28,7 +28,7 @@ object Case {
   final val Running = PropertyBool.create("running")
 }
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable {
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
   def getRunning(state: IBlockState) =
     if (state.getBlock == this)
       state.getValue(Case.Running).asInstanceOf[Boolean]

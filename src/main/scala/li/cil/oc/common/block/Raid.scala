@@ -18,6 +18,16 @@ class Raid extends SimpleBlock with traits.Rotatable {
 
   // ----------------------------------------------------------------------- //
 
+  override def hasComparatorInputOverride = true
+
+  override def getComparatorInputOverride(world: World, pos: BlockPos) =
+    world.getTileEntity(pos) match {
+      case raid: tileentity.Raid if raid.presence.forall(ok => ok) => 15
+      case _ => 0
+    }
+
+  // ----------------------------------------------------------------------- //
+
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getTileEntity(pos) match {
       case drive: tileentity.Raid if !player.isSneaking =>

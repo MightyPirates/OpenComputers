@@ -37,6 +37,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def maxComponents = robot.maxComponents
 
+  override def tier = robot.tier
+
   // ----------------------------------------------------------------------- //
 
   override def connectComponents() {}
