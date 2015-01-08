@@ -43,7 +43,7 @@ class Proxy {
     Delegator.subItem(nuggetIron) match {
       case Some(subItem: item.IronNugget) =>
         if (OreDictionary.getOres("nuggetIron").exists(nuggetIron.isItemEqual)) {
-          Recipes.addMultiItem(subItem, "nuggetIron")
+          Recipes.addSubItem(subItem, "nuggetIron")
           Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
         }
         else {

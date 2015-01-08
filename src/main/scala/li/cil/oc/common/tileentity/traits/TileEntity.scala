@@ -25,7 +25,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerL
 
   def z = getPos.getZ
 
-  def position = BlockPosition(x, y, z)
+  def position = BlockPosition(x, y, z, world)
 
   def isClient = !isServer
 

@@ -184,6 +184,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
             exclude 'li/cil/oc/integration/forestry/**'
+            exclude 'li/cil/oc/integration/gc/**'
             exclude 'li/cil/oc/integration/gregtech/**'
             exclude 'li/cil/oc/integration/ic2/**'
             exclude 'li/cil/oc/integration/mfr/**'

@@ -2,11 +2,18 @@ package li.cil.oc.client.renderer.block
 
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
+import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.Vec3
 import net.minecraftforge.client.model.ISmartItemModel
 import net.minecraftforge.common.property.IExtendedBlockState
 
@@ -21,39 +28,100 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
 
   override def handleItemState(stack: ItemStack) = new ItemModel(stack)
 
-  val verticesMid = Array(-3/16f, -3/16f, 3/16f, 3/16f)
-  val verticesSideUnconnected = Array(
-    Array(-4/16f, -3/16f, -3/16f, 3/16f),
-    Array(-3/16f, -4/16f, 3/16f, -3/16f),
-    Array(3/16f, -3/16f, 4/16f, 3/16f),
-    Array(-3/16f, 3/16f, 3/16f, 4/16f)
-  )
-  val verticesSideConnected = Array(
-    Array(-1f, -3/16f, -3/16f, 3/16f),
-    Array(-3/16f, -1f, 3/16f, -3/16f),
-    Array(3/16f, -3/16f, 1f, 3/16f),
-    Array(-3/16f, 3/16f, 3/16f, 1f)
+  protected final val Middle = makeBox(new Vec3(6 / 16f, 6 / 16f, 6 / 16f), new Vec3(10 / 16f, 10 / 16f, 10 / 16f))
+
+  // Per side, always plug + short cable + long cable (no plug).
+  protected final val Connected = Array(
+    (makeBox(new Vec3(5 / 16f, 0 / 16f, 5 / 16f), new Vec3(11 / 16f, 1 / 16f, 11 / 16f)),
+      makeBox(new Vec3(6 / 16f, 1 / 16f, 6 / 16f), new Vec3(10 / 16f, 6 / 16f, 10 / 16f)),
+      makeBox(new Vec3(6 / 16f, 0 / 16f, 6 / 16f), new Vec3(10 / 16f, 6 / 16f, 10 / 16f))),
+    (makeBox(new Vec3(5 / 16f, 15 / 16f, 5 / 16f), new Vec3(11 / 16f, 16 / 16f, 11 / 16f)),
+      makeBox(new Vec3(6 / 16f, 10 / 16f, 6 / 16f), new Vec3(10 / 16f, 15 / 16f, 10 / 16f)),
+      makeBox(new Vec3(6 / 16f, 10 / 16f, 6 / 16f), new Vec3(10 / 16f, 16 / 16f, 10 / 16f))),
+    (makeBox(new Vec3(5 / 16f, 5 / 16f, 0 / 16f), new Vec3(11 / 16f, 11 / 16f, 1 / 16f)),
+      makeBox(new Vec3(6 / 16f, 6 / 16f, 1 / 16f), new Vec3(10 / 16f, 10 / 16f, 6 / 16f)),
+      makeBox(new Vec3(6 / 16f, 6 / 16f, 0 / 16f), new Vec3(10 / 16f, 10 / 16f, 6 / 16f))),
+    (makeBox(new Vec3(5 / 16f, 5 / 16f, 15 / 16f), new Vec3(11 / 16f, 11 / 16f, 16 / 16f)),
+      makeBox(new Vec3(6 / 16f, 6 / 16f, 10 / 16f), new Vec3(10 / 16f, 10 / 16f, 15 / 16f)),
+      makeBox(new Vec3(6 / 16f, 6 / 16f, 10 / 16f), new Vec3(10 / 16f, 10 / 16f, 16 / 16f))),
+    (makeBox(new Vec3(0 / 16f, 5 / 16f, 5 / 16f), new Vec3(1 / 16f, 11 / 16f, 11 / 16f)),
+      makeBox(new Vec3(1 / 16f, 6 / 16f, 6 / 16f), new Vec3(6 / 16f, 10 / 16f, 10 / 16f)),
+      makeBox(new Vec3(0 / 16f, 6 / 16f, 6 / 16f), new Vec3(6 / 16f, 10 / 16f, 10 / 16f))),
+    (makeBox(new Vec3(15 / 16f, 5 / 16f, 5 / 16f), new Vec3(16 / 16f, 11 / 16f, 11 / 16f)),
+      makeBox(new Vec3(10 / 16f, 6 / 16f, 6 / 16f), new Vec3(15 / 16f, 10 / 16f, 10 / 16f)),
+      makeBox(new Vec3(10 / 16f, 6 / 16f, 6 / 16f), new Vec3(16 / 16f, 10 / 16f, 10 / 16f)))
   )
 
-  def cableTexture = Textures.Block.getSprite(Textures.Block.CableCap)
+  // Per side, cap only.
+  protected final val Disconnected = Array(
+    makeBox(new Vec3(6 / 16f, 5 / 16f, 6 / 16f), new Vec3(10 / 16f, 6 / 16f, 10 / 16f)),
+    makeBox(new Vec3(6 / 16f, 10 / 16f, 6 / 16f), new Vec3(10 / 16f, 11 / 16f, 10 / 16f)),
+    makeBox(new Vec3(6 / 16f, 6 / 16f, 5 / 16f), new Vec3(10 / 16f, 10 / 16f, 6 / 16f)),
+    makeBox(new Vec3(6 / 16f, 6 / 16f, 10 / 16f), new Vec3(10 / 16f, 10 / 16f, 11 / 16f)),
+    makeBox(new Vec3(5 / 16f, 6 / 16f, 6 / 16f), new Vec3(6 / 16f, 10 / 16f, 10 / 16f)),
+    makeBox(new Vec3(10 / 16f, 6 / 16f, 6 / 16f), new Vec3(11 / 16f, 10 / 16f, 10 / 16f))
+  )
+
+  protected def cableTexture = Textures.Block.getSprite(Textures.Block.Cable)
+
+  protected def cableCapTexture = Textures.Block.getSprite(Textures.Block.CableCap)
 
   class BlockModel(val state: IExtendedBlockState) extends SmartBlockModelBase {
-    override def getFaceQuads(side: EnumFacing) =
+    override def getGeneralQuads =
       state.getValue(block.Cable.Tile) match {
         case cable: tileentity.Cable =>
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-          makeQuad(???, side, cableTexture, 0, None)
+          val color = Some(cable.color)
+          val mask = Cable.neighbors(cable.world, cable.getPos)
+          faces ++= bakeQuads(Middle, cableTexture, color)
+          for (side <- EnumFacing.values) {
+            val connected = (mask & (1 << side.getIndex)) != 0
+            val (plug, shortBody, longBody) = Connected(side.getIndex)
+            if (connected) {
+              if (isCable(cable.position.offset(side))) {
+                faces ++= bakeQuads(longBody, cableTexture, color)
+              }
+              else {
+                faces ++= bakeQuads(shortBody, cableTexture, color)
+                faces ++= bakeQuads(plug, cableCapTexture, None)
+              }
+            }
+            else if (((1 << side.getOpposite.getIndex) & mask) == mask || mask == 0) {
+              faces ++= bakeQuads(Disconnected(side.getIndex), cableCapTexture, None)
+            }
+          }
 
           bufferAsJavaList(faces)
-          super.getFaceQuads(side)
-        case _ => super.getFaceQuads(side)
+        case _ => super.getGeneralQuads
       }
+
+    private def isCable(pos: BlockPosition) = {
+      pos.world match {
+        case Some(world) =>
+          val tileEntity = world.getTileEntity(pos)
+          tileEntity.isInstanceOf[tileentity.Cable] || (Mods.ForgeMultipart.isAvailable && isCableFMP(tileEntity))
+        case _ => false
+      }
+    }
+
+    private def isCableFMP(tileEntity: TileEntity) = false
+    /* TODO FMP
+      tileEntity.isInstanceOf[TileMultipart]
+    */
   }
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
     override def getFaceQuads(side: EnumFacing) = {
-      seqAsJavaList(Seq(new BakedQuad(makeQuad(side, cableTexture, 0, None), -1, side)))
+      val faces = mutable.ArrayBuffer.empty[BakedQuad]
+
+      faces ++= bakeQuads(Middle, cableTexture, Some(EnumDyeColor.SILVER))
+      faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(EnumDyeColor.SILVER))
+      faces ++= bakeQuads(Connected(1)._2, cableTexture, Some(EnumDyeColor.SILVER))
+      faces ++= bakeQuads(Connected(0)._1, cableCapTexture, None)
+      faces ++= bakeQuads(Connected(1)._1, cableCapTexture, None)
+
+      bufferAsJavaList(faces)
     }
   }
 

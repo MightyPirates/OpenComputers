@@ -34,7 +34,6 @@ object Delegator {
 class Delegator extends Item {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
-  setUnlocalizedName("oc.multi")
 
   // ----------------------------------------------------------------------- //
   // SubItem

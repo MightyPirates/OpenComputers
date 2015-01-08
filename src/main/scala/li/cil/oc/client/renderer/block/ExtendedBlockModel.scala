@@ -17,11 +17,10 @@ object ExtendedBlockModel {
     val registry = e.modelRegistry.asInstanceOf[RegistrySimple]
     val models = Array(
       "^" + Settings.resourceDomain + ":screen\\d#.*" -> ScreenModel
-//      "^" + Settings.resourceDomain + ":cable#.*" -> CableModel
     )
 
     registry.putObject(new ModelResourceLocation(Settings.resourceDomain + ":cable", null), CableModel)
-    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + "item/cable"), CableModel)
+    registry.putObject(new ModelResourceLocation(Settings.resourceDomain + ":cable", "inventory"), CableModel)
 
     registry.getKeys.collect {
       case location: ModelResourceLocation =>

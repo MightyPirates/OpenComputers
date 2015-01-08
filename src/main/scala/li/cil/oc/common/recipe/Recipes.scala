@@ -42,13 +42,6 @@ object Recipes {
     instance
   }
 
-  def addMultiItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
-    Items.registerItem(delegate, name)
-    addRecipe(delegate.createItemStack(), name)
-    register(oreDict, delegate.createItemStack())
-    delegate
-  }
-
   def addItem(instance: Item, name: String, oreDict: String = null) = {
     Items.registerItem(instance, name)
     addRecipe(new ItemStack(instance), name)
@@ -57,6 +50,13 @@ object Recipes {
       case _ => new ItemStack(instance)
     })
     instance
+  }
+
+  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+    Items.registerItem(delegate, name)
+    addRecipe(delegate.createItemStack(), name)
+    register(oreDict, delegate.createItemStack())
+    delegate
   }
 
   def addRecipe(stack: ItemStack, name: String) {

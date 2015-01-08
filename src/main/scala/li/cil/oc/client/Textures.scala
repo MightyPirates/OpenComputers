@@ -83,7 +83,6 @@ object Textures {
     val AssemblerSideAssembling = L("overlay/assembler_side_assembling")
     val AssemblerSideOn = L("overlay/assembler_side_on")
     val AssemblerTopOn = L("overlay/assembler_top_on")
-    val CableCap = L("CableCap")
     val CaseFrontActivity = L("overlay/case_front_activity")
     val CaseFrontOn = L("overlay/case_front_on")
     val ChargerFrontOn = L("overlay/charger_front_on")
@@ -102,6 +101,9 @@ object Textures {
     val RaidFrontError = L("overlay/raid_front_error")
     val ScreenUpIndicator = L("overlay/screen_up_indicator")
     val SwitchSideOn = L("overlay/switch_side_on")
+
+    val Cable = L("cable")
+    val CableCap = L("cableCap")
 
     // Kill me now.
     object Screen {
@@ -326,7 +328,7 @@ object Textures {
               L("screen/bhb"),
               L("screen/bbl2"),
               L("screen/bbr2"),
-              L("screen/bvt2"),
+              L("screen/bvt"),
               L("screen/bvb2")
             ),
             Array(
@@ -343,7 +345,7 @@ object Textures {
               L("screen/bbr2"),
               L("screen/bbl2"),
               L("screen/bvb2"),
-              L("screen/bvt2")
+              L("screen/bvt")
             )
           )
         ),

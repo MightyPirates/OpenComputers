@@ -27,7 +27,7 @@ object NEI {
 
   private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
 
-  def hide(block: Block): Unit = if (Mods.NotEnoughItems.isAvailable) hiddenItems += new ItemStack(block)
+  def hide(block: Block): Unit = if (Mods.NotEnoughItems.isAvailable) {} //hiddenItems += new ItemStack(block)
 
-  def hide(item: Delegate): Unit = if (Mods.NotEnoughItems.isAvailable) hiddenItems += item.createItemStack()
+  def hide(item: Delegate): Unit = if (Mods.NotEnoughItems.isAvailable) {} //hiddenItems += item.createItemStack()
 }

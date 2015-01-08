@@ -1,12 +1,15 @@
 package li.cil.oc.client.renderer.block
 
 import java.util.Collections
+import javax.vecmath.Vector3f
 
 import li.cil.oc.client.Textures
 import li.cil.oc.util.Color
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
@@ -34,7 +37,21 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   // texture atlas. So any of our textures we know is loaded into it will do.
   override def getTexture = Textures.Block.getSprite(Textures.Block.CableCap)
 
-  override def getItemCameraTransforms = ItemCameraTransforms.DEFAULT
+  override def getItemCameraTransforms = DefaultBlockCameraTransforms
+
+  protected final val DefaultBlockCameraTransforms = {
+    // Value from common block item model.
+    val rotation = new Vector3f(10, -45, 170)
+    val translation = new Vector3f(0, 1.5f, -2.75f)
+    val scale = new Vector3f(0.375f, 0.375f, 0.375f)
+    // See ItemTransformVec3f.Deserializer.deserialize0
+    translation.scale(0.0625f)
+    new ItemCameraTransforms(
+      new ItemTransformVec3f(rotation, translation, scale),
+      ItemTransformVec3f.DEFAULT,
+      ItemTransformVec3f.DEFAULT,
+      ItemTransformVec3f.DEFAULT)
+  }
 
   protected def missingModel = Minecraft.getMinecraft.getRenderItem.getItemModelMesher.getModelManager.getMissingModel
 
@@ -59,6 +76,25 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     (new Vec3(0, 0, 1), new Vec3(0, -1, 0)),
     (new Vec3(0, 0, -1), new Vec3(0, -1, 0))
   )
+
+  protected def makeBox(from: Vec3, to: Vec3) = {
+    val minX = math.min(from.xCoord, to.xCoord)
+    val minY = math.min(from.yCoord, to.yCoord)
+    val minZ = math.min(from.zCoord, to.zCoord)
+    val maxX = math.max(from.xCoord, to.xCoord)
+    val maxY = math.max(from.yCoord, to.yCoord)
+    val maxZ = math.max(from.zCoord, to.zCoord)
+    UnitCube.map(face => face.map(vertex => new Vec3(
+      math.max(minX, math.min(maxX, vertex.xCoord)),
+      math.max(minY, math.min(maxY, vertex.yCoord)),
+      math.max(minZ, math.min(maxZ, vertex.zCoord)))))
+  }
+
+  protected def bakeQuads(box: Array[Array[Vec3]], texture: TextureAtlasSprite, color: Option[EnumDyeColor]) = {
+    EnumFacing.values.map(side => {
+      new BakedQuad(makeQuad(box(side.getIndex), side, texture, 0, color), -1, side)
+    })
+  }
 
   protected def makeQuad(facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int, color: Option[EnumDyeColor]): Array[Int] = {
     makeQuad(UnitCube(facing.getIndex), facing, texture, rotation, color)
