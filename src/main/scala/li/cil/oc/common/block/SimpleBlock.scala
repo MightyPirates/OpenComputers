@@ -16,7 +16,6 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -118,12 +117,12 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
 
   override def getValidRotations(world: World, pos: BlockPos) = validRotations_
 
-  override def harvestBlock(world: World, player: EntityPlayer, pos: BlockPos, state: IBlockState, te: TileEntity) = {
-    if (!world.isRemote) te match {
+  override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {
+    if (!world.isRemote) world.getTileEntity(pos) match {
       case inventory: Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
-    super.harvestBlock(world, player, pos, state, te)
+    super.breakBlock(world, pos, state)
   }
 
   // ----------------------------------------------------------------------- //
