@@ -6,11 +6,13 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Color
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
@@ -22,6 +24,19 @@ import org.lwjgl.input
 
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
+
+  private lazy val Cases = Set(
+    api.Items.get("case1"),
+    api.Items.get("case2"),
+    api.Items.get("case3"),
+    api.Items.get("caseCreative")
+  )
+
+  private lazy val Screens = Set(
+    api.Items.get("screen1"),
+    api.Items.get("screen2"),
+    api.Items.get("screen3")
+  )
 
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
@@ -39,6 +54,14 @@ class Item(value: Block) extends ItemBlock(value) {
         }
       case _ =>
     }
+  }
+
+  override def getColorFromItemStack(stack: ItemStack, tintIndex: Int) = {
+    if (Screens.contains(api.Items.get(stack)))
+      Color.rgbValues(EnumDyeColor.byDyeDamage(tintIndex))
+    else if (Cases.contains(api.Items.get(stack)))
+      Color.rgbValues(Color.byTier(ItemUtils.caseTier(stack)))
+    else super.getColorFromItemStack(stack, tintIndex)
   }
 
   override def getRarity(stack: ItemStack) = block match {

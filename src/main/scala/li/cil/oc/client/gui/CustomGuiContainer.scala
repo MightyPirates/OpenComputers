@@ -5,6 +5,7 @@ import java.util
 import li.cil.oc.client.gui.widget.WidgetContainer
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.inventory.Container
 import org.lwjgl.opengl.GL11
@@ -30,6 +31,7 @@ abstract class CustomGuiContainer(container: Container) extends GuiContainer(con
 
   protected def copiedDrawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer) {
     if (!text.isEmpty) {
+      GlStateManager.pushAttrib()
       GL11.glDisable(GL12.GL_RESCALE_NORMAL)
       RenderHelper.disableStandardItemLighting()
       GL11.glDisable(GL11.GL_LIGHTING)
@@ -73,10 +75,7 @@ abstract class CustomGuiContainer(container: Container) extends GuiContainer(con
       }
       zLevel = 0f
 
-      GL11.glEnable(GL11.GL_LIGHTING)
-      GL11.glEnable(GL11.GL_DEPTH_TEST)
-      RenderHelper.enableStandardItemLighting()
-      GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+      GlStateManager.popAttrib()
     }
   }
 }

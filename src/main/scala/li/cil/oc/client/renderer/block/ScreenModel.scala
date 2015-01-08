@@ -88,7 +88,7 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
           Textures.Block.Screen.SingleFront(0)
         else
           Textures.Block.Screen.Single(side.ordinal())
-      seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(result), 0, Some(color)), -1, side)))
+      seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(result), 0, Some(color)), color.getDyeDamage, side)))
     }
   }
 

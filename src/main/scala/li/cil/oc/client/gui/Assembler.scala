@@ -81,7 +81,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
             tooltip.addAll(warnings.map(_.getUnformattedText).toList)
           }
         }
-        drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+        copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
       }
     }
     else if (isPointInRegion(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
