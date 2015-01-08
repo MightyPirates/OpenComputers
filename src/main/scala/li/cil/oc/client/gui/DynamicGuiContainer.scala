@@ -81,8 +81,10 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
                 mc.getTextureManager.bindTexture(component.tierIcon)
                 Gui.drawModalRectWithCustomSizedTexture(slot.xDisplayPosition, slot.yDisplayPosition, 0, 0, 16, 16, 16, 16)
               }
-              mc.getTextureManager.bindTexture(slot.getBackgroundLocation)
-              Gui.drawModalRectWithCustomSizedTexture(slot.xDisplayPosition, slot.yDisplayPosition, 0, 0, 16, 16, 16, 16)
+              if (component.hasBackground) {
+                mc.getTextureManager.bindTexture(slot.getBackgroundLocation)
+                Gui.drawModalRectWithCustomSizedTexture(slot.xDisplayPosition, slot.yDisplayPosition, 0, 0, 16, 16, 16, 16)
+              }
               GL11.glEnable(GL11.GL_DEPTH_TEST)
             case _ =>
           }
@@ -144,12 +146,6 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     r.addVertexWithUV(x + 18, y, zLevel + 1, 1, 0)
     r.addVertexWithUV(x, y, zLevel + 1, 0, 0)
     t.draw()
-  }
-
-  protected override def drawGradientRect(par1: Int, par2: Int, par3: Int, par4: Int, par5: Int, par6: Int) {
-    super.drawGradientRect(par1, par2, par3, par4, par5, par6)
-    RenderState.makeItBlend()
-    GL11.glDisable(GL11.GL_LIGHTING)
   }
 
   private def isInPlayerInventory(slot: Slot) = container match {

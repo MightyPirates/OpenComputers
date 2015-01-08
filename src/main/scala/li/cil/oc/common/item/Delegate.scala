@@ -101,11 +101,9 @@ trait Delegate {
     }
   }
 
-  def isDamageable = false
+  def showDurabilityBar(stack: ItemStack) = false
 
-  def damage(stack: ItemStack) = 0
-
-  def maxDamage(stack: ItemStack) = 0
+  def durability(stack: ItemStack) = 0.0
 
   // ----------------------------------------------------------------------- //
 

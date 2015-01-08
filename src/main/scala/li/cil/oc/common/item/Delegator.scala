@@ -147,20 +147,14 @@ class Delegator extends Item {
 
   override def getDurabilityForDisplay(stack: ItemStack) =
     Delegator.subItem(stack) match {
-      case Some(subItem) if subItem.isDamageable => subItem.damage(stack)
+      case Some(subItem) => subItem.durability(stack)
       case _ => super.getDurabilityForDisplay(stack)
     }
 
-  override def getMaxDamage(stack: ItemStack) =
+  override def showDurabilityBar(stack: ItemStack) =
     Delegator.subItem(stack) match {
-      case Some(subItem) if subItem.isDamageable => subItem.maxDamage(stack)
-      case _ => super.getMaxDamage(stack)
-    }
-
-  override def isDamaged(stack: ItemStack) =
-    Delegator.subItem(stack) match {
-      case Some(subItem) if subItem.isDamageable => subItem.damage(stack) > 0
-      case _ => false
+      case Some(subItem) => subItem.showDurabilityBar(stack)
+      case _ => super.showDurabilityBar(stack)
     }
 
   override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =

@@ -2,6 +2,7 @@ package li.cil.oc.common.container
 
 import li.cil.oc.common
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
@@ -10,7 +11,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsScala._
 
-trait ComponentSlot extends Slot {
+abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) extends Slot(inventory, index, x, y) {
   def container: Player
 
   def slot: String
@@ -22,6 +23,8 @@ trait ComponentSlot extends Slot {
   var changeListener: Option[Slot => Unit] = None
 
   // ----------------------------------------------------------------------- //
+
+  def hasBackground = backgroundLocation != null
 
   @SideOnly(Side.CLIENT)
   override def canBeHovered = slot != common.Slot.None && tier != common.Tier.None && super.canBeHovered

@@ -10,16 +10,13 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends Delegate with
 
   override protected def tooltipData = Seq(Settings.get.bufferCapacitorUpgrades(tier).toInt)
 
-  override def isDamageable = true
+  override def showDurabilityBar(stack: ItemStack) = true
 
-  override def damage(stack: ItemStack) = {
-    val nbt = stack.getTagCompound
-    if (nbt != null) {
-      val stored = nbt.getCompoundTag(Settings.namespace + "data").getCompoundTag("node").getDouble("buffer")
-      ((1 - stored / Settings.get.bufferCapacitorUpgrades(tier)) * 100).toInt
+  override def durability(stack: ItemStack) = {
+    if (stack.hasTagCompound) {
+      val stored = stack.getTagCompound.getCompoundTag(Settings.namespace + "data").getCompoundTag("node").getDouble("buffer")
+      1 - stored / Settings.get.bufferCapacitorUpgrades(tier)
     }
-    else 100
+    else 1.0
   }
-
-  override def maxDamage(stack: ItemStack) = 100
 }

@@ -49,26 +49,15 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def isDamageable = true
+  override def showDurabilityBar(stack: ItemStack) = true
 
-  override def damage(stack: ItemStack) = {
-    val nbt = stack.getTagCompound
-    if (nbt != null) {
+  override def durability(stack: ItemStack) = {
+    if (stack.hasTagCompound) {
       val data = new ItemUtils.TabletData()
-      data.load(nbt)
-      (data.maxEnergy - data.energy).toInt
+      data.load(stack.getTagCompound)
+      data.energy / data.maxEnergy
     }
-    else 100
-  }
-
-  override def maxDamage(stack: ItemStack) = {
-    val nbt = stack.getTagCompound
-    if (nbt != null) {
-      val data = new ItemUtils.TabletData()
-      data.load(nbt)
-      data.maxEnergy.toInt max 1
-    }
-    else 100
+    else 1.0
   }
 
   // ----------------------------------------------------------------------- //
