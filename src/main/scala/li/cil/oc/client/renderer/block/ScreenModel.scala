@@ -68,7 +68,7 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
                 Textures.Block.Screen.Multi(pitch)(py)(px)(facing.getIndex)
             }
 
-          seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(texture), rotation, Some(screen.color)), -1, side)))
+          seqAsJavaList(Seq(bakeQuad(side, Textures.Block.getSprite(texture), Some(screen.color), rotation)))
         case _ => super.getFaceQuads(side)
       }
 
@@ -88,7 +88,7 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
           Textures.Block.Screen.SingleFront(0)
         else
           Textures.Block.Screen.Single(side.ordinal())
-      seqAsJavaList(Seq(new BakedQuad(makeQuad(side, Textures.Block.getSprite(result), 0, Some(color)), color.getDyeDamage, side)))
+      seqAsJavaList(Seq(bakeQuad(side, Textures.Block.getSprite(result), Some(color), 0)))
     }
   }
 

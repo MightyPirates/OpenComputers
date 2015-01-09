@@ -4,7 +4,6 @@ import java.util.Collections
 import javax.vecmath.Vector3f
 
 import li.cil.oc.client.Textures
-import li.cil.oc.util.Color
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.BakedQuad
@@ -77,6 +76,12 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     (new Vec3(0, 0, -1), new Vec3(0, -1, 0))
   )
 
+  private final val NoTint = -1
+
+  /**
+   * Generates a list of arrays, each containing the four vertices making up a
+   * face of the box with the specified size.
+   */
   protected def makeBox(from: Vec3, to: Vec3) = {
     val minX = math.min(from.xCoord, to.xCoord)
     val minY = math.min(from.yCoord, to.yCoord)
@@ -90,19 +95,35 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
       math.max(minZ, math.min(maxZ, vertex.zCoord)))))
   }
 
+  /**
+   * Create the BakedQuads for a set of quads defined by the specified vertices.
+   * <p/>
+   * Usually used to generate the quads for a cube previously generated using makeBox().
+   */
   protected def bakeQuads(box: Array[Array[Vec3]], texture: TextureAtlasSprite, color: Option[EnumDyeColor]) = {
+    val tintIndex = color.fold(NoTint)(_.getDyeDamage)
     EnumFacing.values.map(side => {
-      new BakedQuad(makeQuad(box(side.getIndex), side, texture, 0, color), -1, side)
+      val vertices = box(side.getIndex)
+      val data = quadData(vertices, side, texture, 0)
+      new BakedQuad(data, tintIndex, side)
     })
   }
 
-  protected def makeQuad(facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int, color: Option[EnumDyeColor]): Array[Int] = {
-    makeQuad(UnitCube(facing.getIndex), facing, texture, rotation, color)
+  /**
+   * Create a single BakedQuad of a unit cube's specified side.
+   */
+  protected def bakeQuad(side: EnumFacing, texture: TextureAtlasSprite, color: Option[EnumDyeColor], rotation: Int) = {
+    val tintIndex = color.fold(NoTint)(_.getDyeDamage)
+    val vertices = UnitCube(side.getIndex)
+    val data = quadData(vertices, side, texture, rotation)
+    new BakedQuad(data, tintIndex, side)
   }
 
-  protected def makeQuad(vertices: Array[Vec3], facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int, color: Option[EnumDyeColor]): Array[Int] = {
+  // Generate raw data used for a BakedQuad based on the specified facing, vertices, texture and rotation.
+  // The UV coordinates are generated from the positions of the vertices, i.e. they are simply cube-
+  // mapped. This is good enough for us.
+  protected def quadData(vertices: Array[Vec3], facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int): Array[Int] = {
     val (uAxis, vAxis) = Planes(facing.getIndex)
-    val bgr = rgb2bgr(color.fold(0xFFFFFF)(Color.rgbValues(_)))
     val rot = (rotation + 4) % 4
     vertices.map(vertex => {
       var u = vertex.dotProduct(uAxis)
@@ -115,24 +136,20 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
         u = v
         v = (-(tmp - 0.5)) + 0.5
       }
-      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, texture, u, v, bgr)
+      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, texture, u, v)
     }).flatten
   }
 
   // See FaceBakery#storeVertexData.
-  private def rawData(x: Double, y: Double, z: Double, texture: TextureAtlasSprite, u: Double, v: Double, bgr: Int) = {
+  private def rawData(x: Double, y: Double, z: Double, texture: TextureAtlasSprite, u: Double, v: Double) = {
     Array(
       java.lang.Float.floatToRawIntBits(x.toFloat),
       java.lang.Float.floatToRawIntBits(y.toFloat),
       java.lang.Float.floatToRawIntBits(z.toFloat),
-      0xFF000000 | bgr,
+      0xFFFFFFFF,
       java.lang.Float.floatToRawIntBits(texture.getInterpolatedU(u * 16)),
       java.lang.Float.floatToRawIntBits(texture.getInterpolatedV(v * 16)),
       0
     )
-  }
-
-  private def rgb2bgr(color: Int) = {
-    ((color & 0x0000FF) << 16) | (color & 0x00FF00) | ((color & 0xFF0000) >>> 16)
   }
 }
