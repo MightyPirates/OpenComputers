@@ -83,6 +83,14 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   // ----------------------------------------------------------------------- //
 
+  override protected def onRunningChanged(): Unit = {
+    super.onRunningChanged()
+    getBlockType match {
+      case block: common.block.Case => world.setBlockState(getPos, block.withRunning(world.getBlockState(getPos), isRunning))
+      case _ =>
+    }
+  }
+
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 3
     color = Color.byTier(tier)

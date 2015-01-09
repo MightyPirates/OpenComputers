@@ -106,14 +106,18 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
       if (_isRunning != machine.isRunning) {
         _isRunning = machine.isRunning
-        markDirty()
-        ServerPacketSender.sendComputerState(this)
+        onRunningChanged()
       }
 
       updateComponents()
     }
 
     super.updateEntity()
+  }
+
+  protected def onRunningChanged(): Unit = {
+    markDirty()
+    ServerPacketSender.sendComputerState(this)
   }
 
   // ----------------------------------------------------------------------- //
