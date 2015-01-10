@@ -1,3 +1,4 @@
+os.setlocale("C")
 local hookInterval = 100
 local deadline = math.huge
 local hitDeadline = false
