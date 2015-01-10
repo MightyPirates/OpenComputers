@@ -51,6 +51,7 @@ local function writeRom()
       local response = io.read()
     until response and response:lower():sub(1, 1) == "y"
     io.write("Beginning to flash EEPROM.\n")
+    eeprom = component.eeprom
   end
 
   if not options.q then
