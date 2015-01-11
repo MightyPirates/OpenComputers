@@ -29,7 +29,7 @@ class NEIOpenComputersConfig extends IConfigureNEI {
     API.addOption(oreDictOption)
 
     for (stack <- NEI.hiddenItems) {
-      API.hideItem(stack)
+      API.hideItem(stack())
     }
   }
 }

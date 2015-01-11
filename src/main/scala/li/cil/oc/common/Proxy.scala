@@ -3,8 +3,10 @@ package li.cil.oc.common
 import com.google.common.base.Strings
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
+import cpw.mods.fml.common.registry.EntityRegistry
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.recipe.Recipes
@@ -66,6 +68,11 @@ class Proxy {
   def init(e: FMLInitializationEvent) {
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
     OpenComputers.channel.register(server.PacketHandler)
+
+    Loot.init()
+    Recipes.init()
+
+    EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
     OpenComputers.log.info("Initializing mod integration.")
     Mods.init()
