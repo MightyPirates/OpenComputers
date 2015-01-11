@@ -386,6 +386,13 @@ object PacketSender {
     pb.writeInt(h)
   }
 
+  def appendTextBufferMaxResolutionChange(pb: PacketBuilder, w: Int, h: Int): Unit = {
+    pb.writePacketType(PacketType.TextBufferMaxResolutionChange)
+
+    pb.writeInt(w)
+    pb.writeInt(h)
+  }
+
   def appendTextBufferSet(pb: PacketBuilder, col: Int, row: Int, s: String, vertical: Boolean) {
     pb.writePacketType(PacketType.TextBufferSet)
 

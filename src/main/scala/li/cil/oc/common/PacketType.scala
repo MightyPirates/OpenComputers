@@ -40,6 +40,7 @@ object PacketType extends Enumeration {
   TextBufferPaletteChange,
   TextBufferPowerChange,
   TextBufferResolutionChange,
+  TextBufferMaxResolutionChange,
   TextBufferSet,
   ScreenTouchMode,
   ServerPresence,

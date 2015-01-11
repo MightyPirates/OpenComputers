@@ -73,6 +73,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferMulti => onTextBufferMulti(p)
       case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
+      case PacketType.TextBufferMaxResolutionChange => onTextBufferMaxResolutionChange(p)
       case PacketType.TextBufferSet => onTextBufferSet(p)
       case PacketType.ScreenTouchMode => onScreenTouchMode(p)
       case PacketType.ServerPresence => onServerPresence(p)
@@ -394,7 +395,13 @@ object PacketHandler extends CommonPacketHandler {
   def onTextBufferInit(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: li.cil.oc.common.component.TextBuffer) =>
-        buffer.data.load(p.readNBT())
+        val nbt = p.readNBT()
+        if (nbt.hasKey("maxWidth")) {
+          val maxWidth = nbt.getInteger("maxWidth")
+          val maxHeight = nbt.getInteger("maxHeight")
+          buffer.setMaximumResolution(maxWidth, maxHeight)
+        }
+        buffer.data.load(nbt)
         buffer.proxy.markDirty()
       case _ => // Invalid packet.
     }
@@ -444,6 +451,16 @@ object PacketHandler extends CommonPacketHandler {
         val w = p.readInt()
         val h = p.readInt()
         buffer.setResolution(w, h)
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onTextBufferMaxResolutionChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
+    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
+      case Some(buffer: component.TextBuffer) =>
+        val w = p.readInt()
+        val h = p.readInt()
+        buffer.setMaximumResolution(w, h)
       case _ => // Invalid packet.
     }
   }
