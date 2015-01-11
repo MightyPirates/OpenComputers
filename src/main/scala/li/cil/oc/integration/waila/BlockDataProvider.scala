@@ -3,6 +3,7 @@ package li.cil.oc.integration.waila
 import java.util
 
 import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Node
@@ -30,6 +31,10 @@ object BlockDataProvider extends IWailaDataProvider {
 
     registrar.registerNBTProvider(this, classOf[li.cil.oc.api.network.Environment])
     registrar.registerNBTProvider(this, classOf[li.cil.oc.api.network.SidedEnvironment])
+
+    registrar.addConfig(OpenComputers.Name, "oc.address")
+    registrar.addConfig(OpenComputers.Name, "oc.energy")
+    registrar.addConfig(OpenComputers.Name, "oc.componentName")
   }
 
   override def getNBTData(player: EntityPlayerMP, tileEntity: TileEntity, tag: NBTTagCompound, world: World, x: Int, y: Int, z: Int) = {
