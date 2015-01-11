@@ -114,7 +114,7 @@ object BlockDataProvider extends IWailaDataProvider {
 
   override def getWailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler): util.List[String] = {
     val tag = accessor.getNBTData
-    if (tag.hasNoTags) return tooltip
+    if (tag == null || tag.hasNoTags) return tooltip
 
     accessor.getTileEntity match {
       case _: tileentity.AccessPoint =>
