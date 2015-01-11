@@ -367,3 +367,8 @@ tile.oc.switch.usage=The §oSwitch§r can be used to allow different subnetworks
 nei.options.inventory.oredict=Show OreDictionary names
 nei.options.inventory.oredict.true=True
 nei.options.inventory.oredict.false=False
+
+# Waila Integration
+option.oc.address=Address
+option.oc.componentName=Component Name
+option.oc.energy=Energy
