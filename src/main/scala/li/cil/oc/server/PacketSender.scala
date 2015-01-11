@@ -337,7 +337,7 @@ object PacketSender {
   }
 
   def appendTextBufferColorChange(pb: PacketBuilder, foreground: PackedColor.Color, background: PackedColor.Color) {
-    pb.writePacketType(PacketType.TextBufferColorChange)
+    pb.writePacketType(PacketType.TextBufferMultiColorChange)
 
     pb.writeInt(foreground.value)
     pb.writeBoolean(foreground.isPalette)
@@ -346,7 +346,7 @@ object PacketSender {
   }
 
   def appendTextBufferCopy(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-    pb.writePacketType(PacketType.TextBufferCopy)
+    pb.writePacketType(PacketType.TextBufferMultiCopy)
 
     pb.writeInt(col)
     pb.writeInt(row)
@@ -357,13 +357,13 @@ object PacketSender {
   }
 
   def appendTextBufferDepthChange(pb: PacketBuilder, value: ColorDepth) {
-    pb.writePacketType(PacketType.TextBufferDepthChange)
+    pb.writePacketType(PacketType.TextBufferMultiDepthChange)
 
     pb.writeInt(value.ordinal)
   }
 
   def appendTextBufferFill(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, c: Char) {
-    pb.writePacketType(PacketType.TextBufferFill)
+    pb.writePacketType(PacketType.TextBufferMultiFill)
 
     pb.writeInt(col)
     pb.writeInt(row)
@@ -373,28 +373,28 @@ object PacketSender {
   }
 
   def appendTextBufferPaletteChange(pb: PacketBuilder, index: Int, color: Int) {
-    pb.writePacketType(PacketType.TextBufferPaletteChange)
+    pb.writePacketType(PacketType.TextBufferMultiPaletteChange)
 
     pb.writeInt(index)
     pb.writeInt(color)
   }
 
   def appendTextBufferResolutionChange(pb: PacketBuilder, w: Int, h: Int) {
-    pb.writePacketType(PacketType.TextBufferResolutionChange)
+    pb.writePacketType(PacketType.TextBufferMultiResolutionChange)
 
     pb.writeInt(w)
     pb.writeInt(h)
   }
 
   def appendTextBufferMaxResolutionChange(pb: PacketBuilder, w: Int, h: Int): Unit = {
-    pb.writePacketType(PacketType.TextBufferMaxResolutionChange)
+    pb.writePacketType(PacketType.TextBufferMultiMaxResolutionChange)
 
     pb.writeInt(w)
     pb.writeInt(h)
   }
 
   def appendTextBufferSet(pb: PacketBuilder, col: Int, row: Int, s: String, vertical: Boolean) {
-    pb.writePacketType(PacketType.TextBufferSet)
+    pb.writePacketType(PacketType.TextBufferMultiSet)
 
     pb.writeInt(col)
     pb.writeInt(row)
