@@ -10,8 +10,8 @@ import li.cil.oc.api.prefab
 import net.minecraft.nbt.NBTTagCompound
 
 class EEPROM extends prefab.ManagedEnvironment {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("eeprom", Visibility.Network).
+  override val node = Network.newNode(this, Visibility.Neighbors).
+    withComponent("eeprom", Visibility.Neighbors).
     withConnector().
     create()
 

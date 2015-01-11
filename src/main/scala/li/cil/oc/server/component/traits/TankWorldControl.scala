@@ -51,7 +51,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
                   val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
                   if ((drained != null && drained.amount > 0) || amount == 0) {
                     tank.fill(drained, true)
-                    result(true)
+                    result(true, drained.amount)
                   }
                   else result(Unit, "incompatible or no fluid")
                 case _ =>
@@ -67,7 +67,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
               else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
                 tank.fill(new FluidStack(fluid, 1000), true)
                 world.setBlockToAir(blockPos)
-                result(true)
+                result(true, 1000)
               }
               else result(Unit, "tank is full")
           }
@@ -95,7 +95,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
                 val filled = handler.fill(facing.getOpposite, new FluidStack(stack, amount), true)
                 if (filled > 0 || amount == 0) {
                   tank.drain(filled, true)
-                  result(true)
+                  result(true, filled)
                 }
                 else result(Unit, "incompatible or no fluid")
               case _ =>
@@ -119,7 +119,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
               world.setBlock(blockPos, fluidBlock)
               // This fake neighbor update is required to get stills to start flowing.
               world.notifyBlockOfNeighborChange(blockPos, world.getBlock(position))
-              result(true)
+              result(true, 1000)
             }
         }
         else result(Unit, "no space")

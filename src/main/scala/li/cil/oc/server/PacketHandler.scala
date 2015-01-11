@@ -226,6 +226,8 @@ object PacketHandler extends CommonPacketHandler {
           case Some(buffer: TextBuffer) =>
             val nbt = new NBTTagCompound()
             buffer.data.save(nbt)
+            nbt.setInteger("maxWidth", buffer.getMaximumWidth)
+            nbt.setInteger("maxHeight", buffer.getMaximumHeight)
             PacketSender.sendTextBufferInit(address, nbt, entity)
           case _ => // Invalid packet.
         }

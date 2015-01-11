@@ -189,6 +189,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     if (height < 1) throw new IllegalArgumentException("height must be larger or equal to one")
     maxResolution = (width, height)
     fullyLitCost = computeFullyLitCost()
+    proxy.onScreenMaxResolutionChange(width, width)
   }
 
   override def getMaximumWidth = maxResolution._1
@@ -494,6 +495,9 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
+    def onScreenMaxResolutionChange(w: Int, h: Int) {
+    }
+
     def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
       owner.relativeLitArea = -1
     }
@@ -636,6 +640,14 @@ object TextBuffer {
       super.onScreenResolutionChange(w, h)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferResolutionChange(owner.pendingCommands, w, h))
+    }
+
+    override def onScreenMaxResolutionChange(w: Int, h: Int) {
+      if (owner.node.network != null) {
+        super.onScreenMaxResolutionChange(w, h)
+        owner.host.markChanged()
+        owner.synchronized(ServerPacketSender.appendTextBufferMaxResolutionChange(owner.pendingCommands, w, h))
+      }
     }
 
     override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {

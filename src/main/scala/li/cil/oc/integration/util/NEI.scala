@@ -10,7 +10,8 @@ import net.minecraft.item.ItemStack
 import scala.collection.mutable
 
 object NEI {
-  val hiddenItems = mutable.Set.empty[ItemStack]
+  // Lazily evaluated stacks to avoid creating stacks with unregistered items/blocks.
+  val hiddenItems = mutable.Set.empty[() => ItemStack]
 
   def isInputFocused =
     Mods.NotEnoughItems.isAvailable && (try isInputFocused0 catch {
@@ -27,7 +28,7 @@ object NEI {
 
   private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
 
-  def hide(block: Block): Unit = if (Mods.NotEnoughItems.isAvailable) {} //hiddenItems += new ItemStack(block)
+  def hide(block: Block): Unit = if (Mods.NotEnoughItems.isAvailable) hiddenItems += (() => new ItemStack(block))
 
-  def hide(item: Delegate): Unit = if (Mods.NotEnoughItems.isAvailable) {} //hiddenItems += item.createItemStack()
+  def hide(item: Delegate): Unit = if (Mods.NotEnoughItems.isAvailable) hiddenItems += (() => item.createItemStack())
 }

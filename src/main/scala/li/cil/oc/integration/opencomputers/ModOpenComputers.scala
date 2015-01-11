@@ -7,13 +7,11 @@ import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
-import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Analyzer
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
-import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
@@ -26,7 +24,6 @@ import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.event.FMLInterModComms
-import net.minecraftforge.fml.common.registry.EntityRegistry
 
 object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
@@ -39,11 +36,6 @@ object ModOpenComputers extends ModProxy {
     ServerTemplate.register()
     TabletTemplate.register()
     TemplateBlacklist.register()
-
-    Loot.init()
-    Recipes.init()
-
-    EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 

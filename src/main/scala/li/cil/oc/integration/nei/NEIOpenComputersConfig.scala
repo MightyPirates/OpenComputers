@@ -5,15 +5,16 @@ import codechicken.nei.api.API
 import codechicken.nei.api.IConfigureNEI
 import codechicken.nei.config.OptionToggleButton
 import codechicken.nei.guihook.GuiContainerManager
+import li.cil.oc.OpenComputers
 import li.cil.oc.integration.util.NEI
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 @SideOnly(Side.CLIENT)
 class NEIOpenComputersConfig extends IConfigureNEI {
-  override def getName = "OpenComputers"
+  override def getName = OpenComputers.Name
 
-  override def getVersion = "1.1.0"
+  override def getVersion = OpenComputers.Version
 
   override def loadConfig() {
     // Non-alphabetic order haunts my OCD, but I want the "Manual" to show up
@@ -28,7 +29,7 @@ class NEIOpenComputersConfig extends IConfigureNEI {
     API.addOption(oreDictOption)
 
     for (stack <- NEI.hiddenItems) {
-      API.hideItem(stack)
+//      API.hideItem(stack())
     }
   }
 }
