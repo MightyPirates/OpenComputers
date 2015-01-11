@@ -16,6 +16,8 @@ import net.minecraft.item.ItemStack
 class Drone(val parent: Delegator) extends Delegate {
   NEI.hide(this)
 
+  showInItemList = false
+
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
       val info = new ItemUtils.MicrocontrollerData(stack)
