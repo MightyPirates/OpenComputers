@@ -15,7 +15,7 @@ class UpgradeDatabase(val parent: Delegator, val tier: Int) extends Delegate wit
 
   override protected def tooltipData = Seq(Settings.get.databaseEntriesPerTier(tier))
 
-  override def rarity = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
     if (!player.isSneaking) {

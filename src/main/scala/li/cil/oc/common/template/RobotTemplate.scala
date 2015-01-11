@@ -46,9 +46,8 @@ object RobotTemplate extends Template {
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new ItemUtils.RobotData(stack)
-    val itemName =
-      if (info.tier == Tier.Four) "caseCreative"
-      else "case" + (info.tier + 1)
+    val itemName = ItemUtils.caseNameWithTierSuffix("case", info.tier)
+
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.containers ++ info.components
   }
 

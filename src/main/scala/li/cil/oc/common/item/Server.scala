@@ -23,7 +23,7 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
 
   override protected def tooltipData = Seq(Settings.get.terminalsPerTier(math.min(Tier.Three, tier)))
 
-  override def rarity = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override def maxStackSize = 1
 

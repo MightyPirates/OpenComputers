@@ -15,6 +15,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
+import scala.util.control.Breaks._
 
 object ExtendedRecipe {
   private lazy val drone = api.Items.get("drone")
@@ -61,13 +62,24 @@ object ExtendedRecipe {
       val nbt = craftedStack.getTagCompound
       for (slot <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(slot)
-        if (stack != null) {
-          if (api.Items.get(stack) == floppy && stack.hasTagCompound) {
-            val oldData = stack.getTagCompound
-            for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
-              nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
-            }
+        if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
+          val oldData = stack.getTagCompound
+          for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
+            nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
           }
+        }
+      }
+    }
+
+    if (api.Items.get(craftedStack) == eeprom) breakable {
+      for (slot <- 0 until inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(slot)
+        if (stack != null && api.Items.get(stack) == eeprom && stack.hasTagCompound) {
+          val copy = stack.getTagCompound.copy.asInstanceOf[NBTTagCompound]
+          // Erase node address, just in case.
+          copy.getCompoundTag(Settings.namespace + "data").getCompoundTag("node").removeTag("address")
+          craftedStack.setTagCompound(copy)
+          break()
         }
       }
     }

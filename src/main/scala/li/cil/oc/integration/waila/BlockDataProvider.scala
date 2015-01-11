@@ -3,6 +3,7 @@ package li.cil.oc.integration.waila
 import java.util
 
 import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Node
@@ -25,11 +26,19 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
 object BlockDataProvider extends IWailaDataProvider {
+  val ConfigAddress = "oc.address"
+  val ConfigEnergy = "oc.energy"
+  val ConfigComponentName = "oc.componentName"
+
   def init(registrar: IWailaRegistrar) {
     registrar.registerBodyProvider(BlockDataProvider, classOf[SimpleBlock])
 
     registrar.registerNBTProvider(this, classOf[li.cil.oc.api.network.Environment])
     registrar.registerNBTProvider(this, classOf[li.cil.oc.api.network.SidedEnvironment])
+
+    registrar.addConfig(OpenComputers.Name, ConfigAddress)
+    registrar.addConfig(OpenComputers.Name, ConfigEnergy)
+    registrar.addConfig(OpenComputers.Name, ConfigComponentName)
   }
 
   override def getNBTData(player: EntityPlayerMP, tileEntity: TileEntity, tag: NBTTagCompound, world: World, x: Int, y: Int, z: Int) = {
@@ -111,7 +120,9 @@ object BlockDataProvider extends IWailaDataProvider {
       case _: tileentity.AccessPoint =>
         val address = tag.getTagList("addresses", NBT.TAG_STRING).getStringTagAt(accessor.getSide.ordinal)
         val signalStrength = tag.getDouble("signalStrength")
-        tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+        if (config.getConfig(ConfigAddress)) {
+          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+        }
         tooltip.add(Localization.Analyzer.WirelessStrength(signalStrength).getUnformattedText)
       case _: tileentity.Assembler =>
         if (tag.hasKey("progress")) {
@@ -133,27 +144,27 @@ object BlockDataProvider extends IWailaDataProvider {
           case Some(slot) => servers(slot)
           case _ => tag.getByteArray("sideIndexes").map(index => if (index >= 0) servers(index) else "").apply(te.toLocal(accessor.getSide).ordinal)
         }
-        if (address.nonEmpty) {
-          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+        if (address.nonEmpty && config.getConfig(ConfigAddress)) {
+            tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
         }
       case _ =>
     }
 
     def readNode(tag: NBTTagCompound) = {
-      if (tag.hasKey("address")) {
+      if (config.getConfig(ConfigAddress) && tag.hasKey("address")) {
         val address = tag.getString("address")
         if (address.nonEmpty) {
           tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
         }
       }
-      if (tag.hasKey("buffer") && tag.hasKey("bufferSize")) {
+      if (config.getConfig(ConfigEnergy) && tag.hasKey("buffer") && tag.hasKey("bufferSize")) {
         val buffer = tag.getInteger("buffer")
         val bufferSize = tag.getInteger("bufferSize")
         if (bufferSize > 0) {
           tooltip.add(Localization.Analyzer.StoredEnergy(s"$buffer/$bufferSize").getUnformattedText)
         }
       }
-      if (tag.hasKey("componentName")) {
+      if (config.getConfig(ConfigComponentName) && tag.hasKey("componentName")) {
         val componentName = tag.getString("componentName")
         if (componentName.nonEmpty) {
           tooltip.add(Localization.Analyzer.ComponentName(componentName).getUnformattedText)

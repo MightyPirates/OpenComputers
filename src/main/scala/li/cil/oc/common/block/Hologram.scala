@@ -5,9 +5,9 @@ import java.util
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -37,7 +37,7 @@ class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = Array(EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName + tier))

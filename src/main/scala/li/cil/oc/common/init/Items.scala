@@ -15,6 +15,7 @@ import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
+import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -139,6 +140,98 @@ object Items extends ItemAPI {
     stack
   }
 
+  def createConfiguredDrone() = {
+    val data = new ItemUtils.MicrocontrollerData()
+
+    data.tier = Tier.Four
+    data.storedEnergy = Settings.get.bufferDrone.toInt
+    data.components = Array(
+      get("inventoryUpgrade").createItemStack(1),
+      get("inventoryUpgrade").createItemStack(1),
+      get("inventoryControllerUpgrade").createItemStack(1),
+      get("tankUpgrade").createItemStack(1),
+      get("tankControllerUpgrade").createItemStack(1),
+
+      get("wlanCard").createItemStack(1),
+
+      get("cpu3").createItemStack(1),
+      get("ram6").createItemStack(1),
+      get("ram6").createItemStack(1)
+    )
+
+    val stack = get("drone").createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
+  def createConfiguredMicrocontroller() = {
+    val data = new ItemUtils.MicrocontrollerData()
+
+    data.tier = Tier.Four
+    data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
+    data.components = Array(
+      get("signUpgrade").createItemStack(1),
+      get("pistonUpgrade").createItemStack(1),
+
+      get("redstoneCard2").createItemStack(1),
+      get("wlanCard").createItemStack(1),
+
+      get("cpu3").createItemStack(1),
+      get("ram6").createItemStack(1),
+      get("ram6").createItemStack(1)
+    )
+
+    val stack = get("microcontroller").createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
+  def createConfiguredRobot() = {
+    val data = new ItemUtils.RobotData()
+
+    data.name = "Creatix"
+    data.tier = Tier.Four
+    data.robotEnergy = Settings.get.bufferRobot.toInt
+    data.totalEnergy = data.robotEnergy
+    data.components = Array(
+      get("screen1").createItemStack(1),
+      get("keyboard").createItemStack(1),
+      get("inventoryUpgrade").createItemStack(1),
+      get("inventoryUpgrade").createItemStack(1),
+      get("inventoryUpgrade").createItemStack(1),
+      get("inventoryUpgrade").createItemStack(1),
+      get("inventoryControllerUpgrade").createItemStack(1),
+      get("tankUpgrade").createItemStack(1),
+      get("tankControllerUpgrade").createItemStack(1),
+      get("craftingUpgrade").createItemStack(1),
+
+      get("graphicsCard3").createItemStack(1),
+      get("redstoneCard2").createItemStack(1),
+      get("wlanCard").createItemStack(1),
+      get("internetCard").createItemStack(1),
+
+      get("cpu3").createItemStack(1),
+      get("ram6").createItemStack(1),
+      get("ram6").createItemStack(1),
+
+      createLuaBios(),
+      createOpenOS(),
+      get("hdd3").createItemStack(1)
+    )
+    data.containers = Array(
+      get("cardContainer3").createItemStack(1),
+      get("upgradeContainer3").createItemStack(1),
+      get("upgradeContainer3").createItemStack(1)
+    )
+
+    val stack = get("robot").createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
   // ----------------------------------------------------------------------- //
 
   var multi: item.Delegator = _
@@ -149,13 +242,20 @@ object Items extends ItemAPI {
 
   def init() {
     multi = new item.Delegator() {
+      lazy val configuredItems = Array(
+        createOpenOS(),
+        createLuaBios(),
+        createConfiguredDrone(),
+        createConfiguredMicrocontroller(),
+        createConfiguredRobot()
+      )
+
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
         // Workaround for MC's untyped lists...
         def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
         super.getSubItems(item, tab, list)
         Loot.worldDisks.values.foreach(entry => add(list, entry._1))
-        add(list, createOpenOS())
-        add(list, createLuaBios())
+        configuredItems.foreach(add(list, _))
       }
     }
 
@@ -323,5 +423,9 @@ object Items extends ItemAPI {
     if (Mods.Galacticraft.isAvailable) {
       Recipes.addMultiItem(worldSensorCard, "worldSensorCard", "oc:worldSensorCard")
     }
+
+    // 1.4.4
+    registerItem(new item.MicrocontrollerCase(multi, Tier.Four), "microcontrollerCaseCreative")
+    registerItem(new item.DroneCase(multi, Tier.Four), "droneCaseCreative")
   }
 }

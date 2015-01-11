@@ -39,13 +39,18 @@ object ItemUtils {
     else if (descriptor == api.Items.get("caseCreative")) Tier.Four
     else if (descriptor == api.Items.get("microcontrollerCase1")) Tier.One
     else if (descriptor == api.Items.get("microcontrollerCase2")) Tier.Two
+    else if (descriptor == api.Items.get("microcontrollerCaseCreative")) Tier.Four
     else if (descriptor == api.Items.get("droneCase1")) Tier.One
     else if (descriptor == api.Items.get("droneCase2")) Tier.Two
+    else if (descriptor == api.Items.get("droneCaseCreative")) Tier.Four
     else if (descriptor == api.Items.get("server1")) Tier.One
     else if (descriptor == api.Items.get("server2")) Tier.Two
     else if (descriptor == api.Items.get("server3")) Tier.Three
+    else if (descriptor == api.Items.get("serverCreative")) Tier.Four
     else Tier.None
   }
+
+  def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
 
   def loadStack(nbt: NBTTagCompound) = DelegatorConverter.convert(ItemStack.loadItemStackFromNBT(nbt))
 
@@ -253,7 +258,7 @@ object ItemUtils {
     }
 
     override def save(nbt: NBTTagCompound) {
-      if (name != null) {
+      if (!Strings.isNullOrEmpty(name)) {
         if (!nbt.hasKey("display")) {
           nbt.setTag("display", new NBTTagCompound())
         }

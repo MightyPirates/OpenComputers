@@ -55,7 +55,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               if (container.stackSize > 0) {
                 InventoryUtils.spawnStackInWorld(position, container)
               }
-              result(true)
+              result(true, contents.amount)
             }
           }
           else stack.getItem match {
@@ -64,7 +64,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               val transferred = into.fill(drained, true)
               if (transferred > 0) {
                 from.drain(stack, transferred, true)
-                result(true)
+                result(true, transferred)
               }
               else result(Unit, "incompatible or no fluid")
             case _ => result(Unit, "item is empty or not a fluid container")
@@ -88,13 +88,14 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               result(Unit, "tank is empty")
             }
             else {
-              from.drain(FluidContainerRegistry.getFluidForFilledItem(filled).amount, true)
+              val amount = FluidContainerRegistry.getFluidForFilledItem(filled).amount
+              from.drain(amount, true)
               inventory.decrStackSize(selectedSlot, 1)
               InventoryUtils.insertIntoInventory(filled, inventory, slots = Option(insertionSlots))
               if (filled.stackSize > 0) {
                 InventoryUtils.spawnStackInWorld(position, filled)
               }
-              result(true)
+              result(true, amount)
             }
           }
           else stack.getItem match {
@@ -103,7 +104,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
               val transferred = into.fill(stack, drained, true)
               if (transferred > 0) {
                 from.drain(transferred, true)
-                result(true)
+                result(true, transferred)
               }
               else result(Unit, "incompatible or no fluid")
             case _ => result(Unit, "item is full or not a fluid container")

@@ -60,15 +60,13 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def rarity = Rarity.byTier(tierFromDriver)
+  def rarity(stack: ItemStack) = Rarity.byTier(tierFromDriver(stack))
 
-  protected def tierFromDriver = {
-    val stack = createItemStack()
+  protected def tierFromDriver(stack: ItemStack) =
     api.Driver.driverFor(stack) match {
       case driver: api.driver.Item => driver.tier(stack)
       case _ => 0
     }
-  }
 
   def color(stack: ItemStack, pass: Int) = 0xFFFFFF
 

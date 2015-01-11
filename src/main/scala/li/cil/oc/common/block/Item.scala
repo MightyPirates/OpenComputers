@@ -42,7 +42,7 @@ class Item(value: Block) extends ItemBlock(value) {
   }
 
   override def getRarity(stack: ItemStack) = block match {
-    case simple: SimpleBlock => simple.rarity
+    case simple: SimpleBlock => simple.rarity(stack)
     case _ => EnumRarity.common
   }
 

@@ -70,42 +70,48 @@ object Mods {
 
   // ----------------------------------------------------------------------- //
 
-  def init() {
-    tryInit(integration.appeng.ModAppEng)
-    tryInit(integration.buildcraft.tools.ModBuildCraftAPITools)
-    tryInit(integration.buildcraft.tiles.ModBuildCraftAPITiles)
-    tryInit(integration.buildcraft.transport.ModBuildCraftAPITransport)
-    tryInit(integration.cofh.energy.ModCoFHEnergy)
-    tryInit(integration.cofh.item.ModCoFHItem)
-    tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
-    tryInit(integration.cofh.transport.ModCoFHTransport)
-    tryInit(integration.enderstorage.ModEnderStorage)
-    tryInit(integration.forestry.ModForestry)
-    tryInit(integration.fmp.ModForgeMultipart)
-    tryInit(integration.gc.ModGalacticraft)
-    tryInit(integration.gregtech.ModGregtech)
-    tryInit(integration.ic2.ModIndustrialCraft2)
-    tryInit(integration.mfr.ModMineFactoryReloaded)
-    tryInit(integration.mystcraft.ModMystcraft)
-    tryInit(integration.railcraft.ModRailcraft)
-    tryInit(integration.stargatetech2.ModStargateTech2)
-    tryInit(integration.thaumcraft.ModThaumcraft)
-    tryInit(integration.thermalexpansion.ModThermalExpansion)
-    tryInit(integration.tcon.ModTinkersConstruct)
-    tryInit(integration.tmechworks.ModTMechworks)
-    tryInit(integration.vanilla.ModVanilla)
-    tryInit(integration.versionchecker.ModVersionChecker)
-    tryInit(integration.waila.ModWaila)
-    tryInit(integration.wrcbe.ModWRCBE)
-    tryInit(integration.wrsve.ModWRSVE)
+  val Proxies = Array(
+    integration.appeng.ModAppEng,
+    integration.buildcraft.tools.ModBuildCraftAPITools,
+    integration.buildcraft.tiles.ModBuildCraftAPITiles,
+    integration.buildcraft.transport.ModBuildCraftAPITransport,
+    integration.cofh.energy.ModCoFHEnergy,
+    integration.cofh.item.ModCoFHItem,
+    integration.cofh.tileentity.ModCoFHTileEntity,
+    integration.cofh.transport.ModCoFHTransport,
+    integration.enderstorage.ModEnderStorage,
+    integration.forestry.ModForestry,
+    integration.fmp.ModForgeMultipart,
+    integration.gc.ModGalacticraft,
+    integration.gregtech.ModGregtech,
+    integration.ic2.ModIndustrialCraft2,
+    integration.mfr.ModMineFactoryReloaded,
+    integration.mystcraft.ModMystcraft,
+    integration.railcraft.ModRailcraft,
+    integration.stargatetech2.ModStargateTech2,
+    integration.thaumcraft.ModThaumcraft,
+    integration.thermalexpansion.ModThermalExpansion,
+    integration.tcon.ModTinkersConstruct,
+    integration.tmechworks.ModTMechworks,
+    integration.vanilla.ModVanilla,
+    integration.versionchecker.ModVersionChecker,
+    integration.waila.ModWaila,
+    integration.wrcbe.ModWRCBE,
+    integration.wrsve.ModWRSVE,
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
-    tryInit(integration.computercraft.ModComputerCraft)
+    integration.computercraft.ModComputerCraft,
 
     // We go last to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
-    tryInit(integration.opencomputers.ModOpenComputers)
+    integration.opencomputers.ModOpenComputers
+  )
+
+  def init(): Unit = {
+    for (proxy <- Proxies) {
+      tryInit(proxy)
+    }
   }
 
   private def tryInit(mod: ModProxy) {

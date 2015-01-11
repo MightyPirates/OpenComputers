@@ -97,7 +97,7 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   // ItemBlock
   // ----------------------------------------------------------------------- //
 
-  def rarity = EnumRarity.common
+  def rarity(stack: ItemStack) = EnumRarity.common
 
   @SideOnly(Side.CLIENT)
   def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
