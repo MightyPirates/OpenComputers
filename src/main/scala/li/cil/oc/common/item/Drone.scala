@@ -9,6 +9,7 @@ import li.cil.oc.common.entity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.Rarity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -22,6 +23,11 @@ class Drone(val parent: Delegator) extends Delegate {
         tooltip.add("- " + component.getDisplayName)
       }
     }
+  }
+
+  override def rarity(stack: ItemStack) = {
+    val data = new ItemUtils.MicrocontrollerData(stack)
+    Rarity.byTier(data.tier)
   }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {

@@ -14,12 +14,12 @@ import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.IIcon
@@ -65,7 +65,10 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = EnumRarity.epic
+  override def rarity(stack: ItemStack) = {
+    val data = new ItemUtils.RobotData(stack)
+    Rarity.byTier(data.tier)
+  }
 
   override protected def tooltipHead(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipHead(metadata, stack, player, tooltip, advanced)

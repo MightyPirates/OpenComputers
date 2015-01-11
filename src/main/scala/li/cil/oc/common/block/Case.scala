@@ -11,10 +11,10 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
+import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
@@ -56,7 +56,7 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.epic).apply(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(getClass.getSimpleName, slots))

@@ -10,6 +10,7 @@ import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.Rarity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -53,6 +54,11 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor with trait
         tooltip.add("- " + component.getDisplayName)
       }
     }
+  }
+
+  override def rarity(stack: ItemStack) = {
+    val data = new ItemUtils.MicrocontrollerData(stack)
+    Rarity.byTier(data.tier)
   }
 
   // ----------------------------------------------------------------------- //
