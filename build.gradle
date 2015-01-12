@@ -92,11 +92,11 @@ repositories {
 
     ivy {
         name 'Galacticraft'
-        artifactPattern "http://ci.micdoodle8.com/job/Galacticraft-1.7/${config.gc.build}/artifact/Forge/build/libs/[module]-BETA-1.7-[revision].${config.gc.build}.[ext]"
+        artifactPattern "http://ci.cil.li/job/Galacticraft/${config.gc.build}/artifact/build/libs/[module]-1.7-[revision].${config.gc.build}.[ext]"
     }
     ivy {
         name 'Mekanism'
-        artifactPattern "http://ci.indiewikis.com:8080/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
+        artifactPattern "http://ci.cil.li/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
     }
     ivy {
         name 'ProjectRed'
@@ -151,13 +151,13 @@ dependencies {
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
 
-    provided name: 'GalacticraftCore', version: config.gc.version, ext: 'jar'
-    provided name: 'Mekanism', version: config.mekanism.version, ext: 'jar'
+    provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
+    provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
     provided name: 'ProjectRed', version: config.projred.version, ext: 'jar'
     provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
 
-    provided name: 'CoFHLib', version: URLEncoder.encode(config.cofhlib.version, "UTF-8"), ext: 'jar'
-    provided name: 'MineFactoryReloaded', version: URLEncoder.encode(config.mfr.version, "UTF-8"), ext: 'jar'
+    provided name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
+    provided name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
     provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
@@ -168,7 +168,8 @@ dependencies {
 }
 
 idea.module.scopes.PROVIDED.plus += configurations.provided
-eclipse.classpath.plusConfigurations += configurations.provided
+// TODO Causes errors on Gradle 2 for me (No such property: allDependencies for class: java.io.File).
+//eclipse.classpath.plusConfigurations += configurations.provided
 
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
