@@ -175,9 +175,9 @@ dependencies {
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 }
 
-idea.module.scopes.PROVIDED.plus += configurations.provided
+idea.module.scopes.PROVIDED.plus += [configurations.provided]
 // TODO Causes errors on Gradle 2 for me (No such property: allDependencies for class: java.io.File).
-//eclipse.classpath.plusConfigurations += configurations.provided
+//eclipse.classpath.plusConfigurations += [configurations.provided]
 
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
@@ -276,5 +276,12 @@ publishing {
         maven {
             url "${config.maven.url}"
         }
+    }
+}
+
+// this is needed for IntelliJ so we don't have to copy over the assets manually every time
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
     }
 }
