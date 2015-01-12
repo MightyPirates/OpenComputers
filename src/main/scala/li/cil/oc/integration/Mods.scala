@@ -39,7 +39,7 @@ object Mods {
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new SimpleMod(IDs.GregTech)
-  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
+  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val Minecraft = new SimpleMod(IDs.Minecraft)
