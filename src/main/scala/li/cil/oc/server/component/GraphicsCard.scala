@@ -236,8 +236,8 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
   def copy(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
-    val w = args.checkInteger(2)
-    val h = args.checkInteger(3)
+    val w = math.max(0, args.checkInteger(2))
+    val h = math.max(0, args.checkInteger(3))
     val tx = args.checkInteger(4)
     val ty = args.checkInteger(5)
     screen(s => {
@@ -252,8 +252,8 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
-    val w = args.checkInteger(2)
-    val h = args.checkInteger(3)
+    val w = math.max(0, args.checkInteger(2))
+    val h = math.max(0, args.checkInteger(3))
     val value = args.checkString(4)
     if (value.length == 1) screen(s => {
       val c = value.charAt(0)
