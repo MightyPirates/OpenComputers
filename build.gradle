@@ -60,6 +60,14 @@ runServer {
     jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
 }
 
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
 repositories {
     maven {
         name = "bc"
