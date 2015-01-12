@@ -151,6 +151,7 @@ object Items extends ItemAPI {
       get("inventoryControllerUpgrade").createItemStack(1),
       get("tankUpgrade").createItemStack(1),
       get("tankControllerUpgrade").createItemStack(1),
+      get("leashUpgrade").createItemStack(1),
 
       get("wlanCard").createItemStack(1),
 
