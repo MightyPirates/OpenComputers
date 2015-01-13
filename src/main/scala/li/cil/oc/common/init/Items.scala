@@ -280,8 +280,10 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.TabletCase(materials), "tabletCase", "oc:tabletCase")
     Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.One), "microcontrollerCase1", "oc:microcontrollerCase1")
     Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.Two), "microcontrollerCase2", "oc:microcontrollerCase2")
+    registerItem(new item.MicrocontrollerCase(materials, Tier.Four), "microcontrollerCaseCreative")
     Recipes.addSubItem(new item.DroneCase(materials, Tier.One), "droneCase1", "oc:droneCase1")
     Recipes.addSubItem(new item.DroneCase(materials, Tier.Two), "droneCase2", "oc:droneCase2")
+    registerItem(new item.DroneCase(materials, Tier.Four), "droneCaseCreative")
   }
 
   // All kinds of tools.
@@ -422,10 +424,6 @@ object Items extends ItemAPI {
     if (Mods.Galacticraft.isAvailable) {
       Recipes.addSubItem(worldSensorCard, "worldSensorCard", "oc:worldSensorCard")
     }
-
-    // 1.4.4
-    registerItem(new item.MicrocontrollerCase(multi, Tier.Four), "microcontrollerCaseCreative")
-    registerItem(new item.DroneCase(multi, Tier.Four), "droneCaseCreative")
   }
 
   private def newItem[T <: Item](item: T, name: String): T = {

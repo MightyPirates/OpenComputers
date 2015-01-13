@@ -60,6 +60,14 @@ runServer {
     jvmArgs '-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader'
 }
 
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
 repositories {
     maven {
         name = "chickenbones"
@@ -93,11 +101,11 @@ repositories {
 
     ivy {
         name 'Galacticraft'
-        artifactPattern "http://ci.micdoodle8.com/job/Galacticraft-1.7/${config.gc.build}/artifact/Forge/build/libs/[module]-BETA-1.7-[revision].${config.gc.build}.[ext]"
+        artifactPattern "http://ci.cil.li/job/Galacticraft/${config.gc.build}/artifact/build/libs/[module]-1.7-[revision].${config.gc.build}.[ext]"
     }
     ivy {
         name 'Mekanism'
-        artifactPattern "http://ci.indiewikis.com:8080/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
+        artifactPattern "http://ci.cil.li/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
     }
     ivy {
         name 'ProjectRed'
@@ -155,8 +163,8 @@ dependencies {
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
 
-    provided name: 'GalacticraftCore', version: config.gc.version, ext: 'jar'
-    provided name: 'Mekanism', version: config.mekanism.version, ext: 'jar'
+    provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
+    provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
     provided name: 'ProjectRed', version: config.projred.version, ext: 'jar'
     provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
 
@@ -171,8 +179,8 @@ dependencies {
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
 }
 
-idea.module.scopes.PROVIDED.plus += configurations.provided
-// eclipse.classpath.plusConfigurations += configurations.provided
+idea.module.scopes.PROVIDED.plus += [configurations.provided]
+// eclipse.classpath.plusConfigurations += [configurations.provided]
 
 sourceSets {
     main {
@@ -305,5 +313,12 @@ publishing {
         maven {
             url "${config.maven.url}"
         }
+    }
+}
+
+// this is needed for IntelliJ so we don't have to copy over the assets manually every time
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
     }
 }

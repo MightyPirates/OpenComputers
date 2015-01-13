@@ -15,6 +15,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.command.CommandResultStats.Type
@@ -102,7 +103,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     val z = args.checkInteger(2)
-    findNode(x, y, z) match {
+    findNode(BlockPosition(x, y, z)) match {
       case Some(other) =>
         remoteNode.foreach(other => node.disconnect(other))
         remoteNode = Some(other)
@@ -114,10 +115,10 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     }
   }
 
-  private def findNode(x: Int, y: Int, z: Int) =
-    if (host.world.blockExists(x, y, z)) {
-      host.world.getTileEntity(x, y, z) match {
-        case env: SidedEnvironment => ForgeDirection.VALID_DIRECTIONS.map(env.sidedNode).find(_ != null)
+  private def findNode(position: BlockPosition) =
+    if (host.world.blockExists(position)) {
+      host.world.getTileEntity(position) match {
+        case env: SidedEnvironment => EnumFacing.values.map(env.sidedNode).find(_ != null)
         case env: Environment => Option(env.node)
         case _ => None
       }
@@ -130,7 +131,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     super.onConnect(node)
     if (node == this.node) remoteNodePosition.foreach {
       case (x, y, z) =>
-        remoteNode = findNode(x, y, z)
+        remoteNode = findNode(BlockPosition(x, y, z))
         remoteNode match {
           case Some(other) => node.connect(other)
           case _ => remoteNodePosition = None

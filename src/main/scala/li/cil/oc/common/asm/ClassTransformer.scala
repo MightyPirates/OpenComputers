@@ -16,16 +16,16 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 object ObfNames {
-  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "ss")
-  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sw")
-  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bok")
-  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "aor")
-  final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bx")
-  final val Method_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bw")
-  final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "bP")
+  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "adj")
+  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "xn")
+  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "cqz")
+  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "bcm")
+  final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bo")
+  final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bn")
+  final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "n")
   final val Method_recreateLeashDesc = Array("()V")
   final val Method_renderHanging = Array("func_110827_b", "b")
-  final val Method_renderHangingDesc = Array("(Lsw;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
+  final val Method_renderHangingDesc = Array("(Lxn;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
   final val Method_validate = Array("validate", "func_145829_t")
   final val Method_invalidate = Array("invalidate", "func_145843_s")
   final val Method_onChunkUnload = Array("onChunkUnload", "func_76623_d")
@@ -159,7 +159,7 @@ class ClassTransformer extends IClassTransformer {
             if varNode.getOpcode == Opcodes.ALOAD && varNode.`var` == 0 &&
               fieldNode.getOpcode == Opcodes.GETFIELD && ObfNames.Field_leashNBTTag.contains(fieldNode.name) &&
               jumpNode.getOpcode == Opcodes.IFNULL =>
-            classNode.fields.find(field => ObfNames.Method_leashedToEntity.contains(field.name)) match {
+            classNode.fields.find(field => ObfNames.Field_leashedToEntity.contains(field.name)) match {
               case Some(field) =>
                 val toInject = new InsnList()
                 toInject.add(new VarInsnNode(Opcodes.ALOAD, 0))

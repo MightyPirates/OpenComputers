@@ -1,14 +1,15 @@
 package li.cil.oc
 
+import li.cil.oc.common.init.Items
 import net.minecraft.creativetab.CreativeTabs
 
 object CreativeTab extends CreativeTabs(CreativeTabs.getNextID, "OpenComputers") {
   private lazy val configuredItems = Array(
-    createOpenOS(),
-    createLuaBios(),
-    createConfiguredDrone(),
-    createConfiguredMicrocontroller(),
-    createConfiguredRobot()
+    Items.createOpenOS(),
+    Items.createLuaBios(),
+    Items.createConfiguredDrone(),
+    Items.createConfiguredMicrocontroller(),
+    Items.createConfiguredRobot()
   )
 
   override def getTabIconItem = api.Items.get("case1").item()
