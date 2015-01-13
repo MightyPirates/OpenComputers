@@ -30,16 +30,16 @@ group = "li.cil.oc"
 archivesBaseName = "OpenComputers"
 
 def getGitRef() {
-  try {
-    def stdout = new ByteArrayOutputStream()
-    exec {
-      commandLine 'git', 'rev-parse', '--short', 'HEAD'
-      standardOutput = stdout
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    } catch (Throwable e) {
+        return "unknown"
     }
-    return stdout.toString().trim()
-  } catch (Throwable e) {
-    return "unknown"
-  }
 }
 
 if (System.getenv("BUILD_NUMBER") != null)
@@ -199,8 +199,8 @@ sourceSets {
             exclude 'li/cil/oc/integration/waila/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
             exclude 'li/cil/oc/integration/wrsve/**'
-       }
-   }
+        }
+    }
 }
 
 minecraft {
@@ -235,7 +235,7 @@ processResources {
 jar {
     exclude "cofh/**"
     configurations.embedded.each { dep ->
-        from(project.zipTree(dep)){
+        from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
         }
     }
@@ -255,7 +255,7 @@ task deobfJar(type: Jar) {
     from sourceSets.main.output
     exclude "cofh/**"
     configurations.embedded.each { dep ->
-        from(project.zipTree(dep)){
+        from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
         }
     }

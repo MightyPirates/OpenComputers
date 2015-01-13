@@ -337,6 +337,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     if (!world.isRemote) {
       machine.stop()
       machine.node.remove()
+      components.disconnectComponents()
       components.saveComponents()
       val stack = api.Items.get("drone").createItemStack(1)
       info.storedEnergy = control.node.localBuffer.toInt

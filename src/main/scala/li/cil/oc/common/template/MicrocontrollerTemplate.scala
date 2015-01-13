@@ -23,6 +23,8 @@ object MicrocontrollerTemplate extends Template {
 
   def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontrollerCase2")
 
+  def selectTierCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontrollerCaseCreative")
+
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory) = {
@@ -42,7 +44,9 @@ object MicrocontrollerTemplate extends Template {
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new ItemUtils.MicrocontrollerData(stack)
-    Array(api.Items.get("microcontrollerCase" + (info.tier + 1)).createItemStack(1)) ++ info.components
+    val itemName = ItemUtils.caseNameWithTierSuffix("microcontrollerCase", info.tier)
+
+    Array(api.Items.get(itemName).createItemStack(1)) ++ info.components
   }
 
   def register() {
@@ -98,6 +102,40 @@ object MicrocontrollerTemplate extends Template {
       FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
     }
 
+    // Creative
+    {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", "Microcontroller (Creative)")
+      nbt.setString("select", "li.cil.oc.common.template.MicrocontrollerTemplate.selectTierCreative")
+      nbt.setString("validate", "li.cil.oc.common.template.MicrocontrollerTemplate.validate")
+      nbt.setString("assemble", "li.cil.oc.common.template.MicrocontrollerTemplate.assemble")
+      nbt.setString("hostClass", "li.cil.oc.api.internal.Microcontroller")
+
+      val upgradeSlots = new NBTTagList()
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      upgradeSlots.appendTag(Map("tier" -> Tier.Three))
+      nbt.setTag("upgradeSlots", upgradeSlots)
+
+      val componentSlots = new NBTTagList()
+      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Three))
+      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Three))
+      componentSlots.appendTag(Map("type" -> Slot.Card, "tier" -> Tier.Three))
+      componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Three))
+      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
+      componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
+      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
+      nbt.setTag("componentSlots", componentSlots)
+
+      FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+    }
+
     // Disassembler
     {
       val nbt = new NBTTagCompound()
@@ -109,7 +147,10 @@ object MicrocontrollerTemplate extends Template {
     }
   }
 
-  override protected def maxComplexity(inventory: IInventory) = if (caseTier(inventory) == Tier.Two) 5 else 4
+  override protected def maxComplexity(inventory: IInventory) =
+    if (caseTier(inventory) == Tier.Two) 5
+    else if (caseTier(inventory) == Tier.Four) 9001 // Creative
+    else 4
 
   override protected def caseTier(inventory: IInventory) = ItemUtils.caseTier(inventory.getStackInSlot(0))
 }

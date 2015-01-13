@@ -14,7 +14,7 @@ trait ItemTier extends Delegate {
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipLines(stack, player, tooltip, advanced)
     if (advanced) {
-      tooltip.add(Localization.Tooltip.Tier(tierFromDriver + 1))
+      tooltip.add(Localization.Tooltip.Tier(tierFromDriver(stack) + 1))
     }
   }
 }

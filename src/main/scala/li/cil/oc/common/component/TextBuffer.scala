@@ -375,7 +375,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      ServerComponentTracker.remove(host.world, node.address)
+      ServerComponentTracker.remove(host.world, this)
     }
   }
 
@@ -441,7 +441,7 @@ object TextBuffer {
       val blockPos = BlockPosition(t.host)
       val keep = t.host.world != e.world || !chunk.isAtLocation(blockPos.x >> 4, blockPos.z >> 4)
       if (!keep) {
-        ClientComponentTracker.remove(t.host.world, t.proxy.nodeAddress)
+        ClientComponentTracker.remove(t.host.world, t)
       }
       keep
     })
@@ -452,7 +452,7 @@ object TextBuffer {
     clientBuffers = clientBuffers.filter(t => {
       val keep = t.host.world != e.world
       if (!keep) {
-        ClientComponentTracker.remove(t.host.world, t.proxy.nodeAddress)
+        ClientComponentTracker.remove(t.host.world, t)
       }
       keep
     })

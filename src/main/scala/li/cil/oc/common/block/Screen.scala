@@ -9,6 +9,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.Color
 import li.cil.oc.util.PackedColor
+import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
@@ -16,7 +17,6 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
-import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
@@ -57,7 +57,7 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = Array(EnumRarity.COMMON, EnumRarity.UNCOMMON, EnumRarity.RARE).apply(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)

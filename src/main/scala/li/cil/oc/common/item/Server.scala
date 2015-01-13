@@ -19,7 +19,7 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override def rarity = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override def maxStackSize = 1
 

@@ -81,7 +81,7 @@ class Delegator extends Item {
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 
   override def getRarity(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(subItem) => subItem.rarity
+    case Some(subItem) => subItem.rarity(stack)
     case _ => EnumRarity.COMMON
   }
 

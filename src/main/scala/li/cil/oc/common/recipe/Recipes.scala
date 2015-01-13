@@ -119,27 +119,41 @@ object Recipes {
         addRecipe(stack, recipes, name)
       }
 
+      // Recrafting operations.
+      val navigationUpgrade = api.Items.get("navigationUpgrade")
+      val mcu = api.Items.get("microcontroller")
+      val floppy = api.Items.get("floppy")
+      val drone = api.Items.get("drone")
+      val eeprom = api.Items.get("eeprom")
+
       // Navigation upgrade recrafting.
-      val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(net.minecraft.init.Items.filled_map, 1, OreDictionary.WILDCARD_VALUE)))
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        navigationUpgrade.createItemStack(1),
+        navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.filled_map, 1, OreDictionary.WILDCARD_VALUE)))
 
       // Floppy disk coloring.
-      val floppy = api.Items.get("floppy").createItemStack(1)
       for (dye <- Color.dyes) {
-        val result = api.Items.get("floppy").createItemStack(1)
+        val result = floppy.createItemStack(1)
         val tag = new NBTTagCompound()
         tag.setInteger(Settings.namespace + "color", Color.dyes.indexOf(dye))
         result.setTagCompound(tag)
-        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(result, floppy, dye))
+        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(result, floppy.createItemStack(1), dye))
       }
 
       // Microcontroller recrafting.
-      val mcu = api.Items.get("microcontroller").createItemStack(1)
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(mcu, mcu, api.Items.get("eeprom").createItemStack(1)))
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        mcu.createItemStack(1),
+        mcu.createItemStack(1), eeprom.createItemStack(1)))
 
       // Drone recrafting.
-      val drone = api.Items.get("drone").createItemStack(1)
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(drone, drone, api.Items.get("eeprom").createItemStack(1)))
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        drone.createItemStack(1),
+        drone.createItemStack(1), eeprom.createItemStack(1)))
+
+      // EEPROM copying via crafting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        eeprom.createItemStack(2),
+        eeprom.createItemStack(1), eeprom.createItemStack(1)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

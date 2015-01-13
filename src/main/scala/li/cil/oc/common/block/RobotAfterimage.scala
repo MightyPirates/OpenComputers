@@ -6,9 +6,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
+import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.Rarity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition
@@ -37,7 +39,10 @@ class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = EnumRarity.EPIC
+  override def rarity(stack: ItemStack) = {
+    val data = new ItemUtils.RobotData(stack)
+    Rarity.byTier(data.tier)
+  }
 
   override def isAir(world: IBlockAccess, pos: BlockPos) = true
 

@@ -18,6 +18,7 @@ import scala.collection.mutable
 object TabletTemplate extends Template {
   override protected val suggestedComponents = Array(
     "BIOS" -> hasComponent("eeprom") _,
+    "Keyboard" -> hasComponent("keyboard") _,
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
