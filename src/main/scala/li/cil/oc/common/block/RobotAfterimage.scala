@@ -11,17 +11,20 @@ import li.cil.oc.util.Rarity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.MovingObjectPosition
-import net.minecraft.util.Vec3i
+import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
+class RobotAfterimage extends SimpleBlock {
   setLightOpacity(0)
   setCreativeTab(null)
   NEI.hide(this)
+
+  // ----------------------------------------------------------------------- //
+
+  override def isOpaqueCube = false
+
+  override def isFullCube = false
 
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
@@ -64,19 +67,16 @@ class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
     }
   }
 
-  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) {
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) {
     findMovingRobot(world, pos) match {
       case Some(robot) =>
         val block = robot.getBlockType
         block.setBlockBoundsBasedOnState(world, robot.getPos)
         val delta = robot.moveFrom.fold(Vec3i.NULL_VECTOR)(robot.getPos.subtract(_))
-        setBlockBounds(
-          block.getBlockBoundsMinX.toFloat + delta.getX,
-          block.getBlockBoundsMinY.toFloat + delta.getY,
-          block.getBlockBoundsMinZ.toFloat + delta.getZ,
-          block.getBlockBoundsMaxX.toFloat + delta.getX,
-          block.getBlockBoundsMaxY.toFloat + delta.getY,
-          block.getBlockBoundsMaxZ.toFloat + delta.getZ)
+        setBlockBounds(new AxisAlignedBB(
+          block.getBlockBoundsMinX, block.getBlockBoundsMinY, block.getBlockBoundsMinZ,
+          block.getBlockBoundsMaxX, block.getBlockBoundsMaxY, block.getBlockBoundsMaxZ).
+          offset(delta.getX, delta.getY, delta.getZ))
       case _ => // throw new Exception("Robot afterimage without a robot found. This is a bug!")
     }
   }

@@ -13,7 +13,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
+class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   @SideOnly(Side.CLIENT)

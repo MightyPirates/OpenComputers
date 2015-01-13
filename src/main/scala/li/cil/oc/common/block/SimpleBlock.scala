@@ -30,7 +30,56 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
 
   protected val validRotations_ = Array(EnumFacing.UP, EnumFacing.DOWN)
 
+  protected val bounds = new ThreadLocal[AxisAlignedBB]() {
+    override def initialValue() = new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ)
+  }
+
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
+
+  // ----------------------------------------------------------------------- //
+  // Synchronized block size, because threading...
+  //
+  // These functions can mess things up badly in single player if not
+  // synchronized because the bounds fields are in an instance stored in the
+  // static block list... which is used by both server and client thread.
+  //
+  // Also, final getBlockBoundsMin/MaxX/Y/Z(), really?
+  // ----------------------------------------------------------------------- //
+
+  protected def setBlockBounds(bounds: AxisAlignedBB): Unit = {
+    this.bounds.set(bounds)
+    setBlockBounds(
+      bounds.minX.toFloat,
+      bounds.minY.toFloat,
+      bounds.minZ.toFloat,
+      bounds.maxX.toFloat,
+      bounds.maxY.toFloat,
+      bounds.maxZ.toFloat)
+  }
+
+  override def getCollisionBoundingBox(world: World, pos: BlockPos, state: IBlockState) = {
+    setBlockBoundsBasedOnState(world, pos)
+    new AxisAlignedBB(
+      pos.getX + bounds.get.minX, pos.getY + bounds.get.minY, pos.getZ + bounds.get.minZ,
+      pos.getX + bounds.get.maxX, pos.getY + bounds.get.maxY, pos.getZ + bounds.get.maxZ)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def getSelectedBoundingBox(world: World, pos: BlockPos): AxisAlignedBB = {
+    new AxisAlignedBB(
+      pos.getX + bounds.get.minX, pos.getY + bounds.get.minY, pos.getZ + bounds.get.minZ,
+      pos.getX + bounds.get.maxX, pos.getY + bounds.get.maxY, pos.getZ + bounds.get.maxZ)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) =
+    (side == EnumFacing.DOWN && bounds.get.minY > 0) ||
+      (side == EnumFacing.UP && bounds.get.maxY < 1) ||
+      (side == EnumFacing.NORTH && bounds.get.minZ > 0) ||
+      (side == EnumFacing.SOUTH && bounds.get.maxZ < 1) ||
+      (side == EnumFacing.WEST && bounds.get.minX > 0) ||
+      (side == EnumFacing.EAST && bounds.get.maxX < 1) ||
+      !world.getBlockState(pos).getBlock.isOpaqueCube
 
   // ----------------------------------------------------------------------- //
   // Rendering
@@ -143,40 +192,6 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
         false // Don't consume items.
       case _ => super.recolorBlock(world, pos, side, color)
     }
-
-  // This function can mess things up badly in single player if not
-  // synchronized because it sets fields in an instance stored in the
-  // static block list... which is used by both server and client thread.
-  // The other place where this is locked is in collisionRayTrace below,
-  // which seems to be the only built-in function that *logically* depends
-  // on the state bounds (rest is rendering which is unimportant).
-  final override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) =
-    this.synchronized(doSetBlockBoundsBasedOnState(world, pos))
-
-  protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos): Unit =
-    super.setBlockBoundsBasedOnState(world, pos)
-
-  protected def setBlockBounds(bounds: AxisAlignedBB) {
-    setBlockBounds(
-      bounds.minX.toFloat,
-      bounds.minY.toFloat,
-      bounds.minZ.toFloat,
-      bounds.maxX.toFloat,
-      bounds.maxY.toFloat,
-      bounds.maxZ.toFloat)
-  }
-
-  // NOTE: must not be final for immibis microblocks to work.
-  override def collisionRayTrace(world: World, pos: BlockPos, origin: Vec3, end: Vec3) =
-    this.synchronized(intersect(world, pos, origin, end))
-
-  override def getCollisionBoundingBox(world: World, pos: BlockPos, state: IBlockState) = this.synchronized {
-    doSetBlockBoundsBasedOnState(world, pos)
-    super.getCollisionBoundingBox(world, pos, state)
-  }
-
-  protected def intersect(world: World, pos: BlockPos, origin: Vec3, end: Vec3) =
-    super.collisionRayTrace(world, pos, origin, end)
 
   // ----------------------------------------------------------------------- //
 

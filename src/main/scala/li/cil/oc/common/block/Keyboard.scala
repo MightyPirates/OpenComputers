@@ -7,17 +7,26 @@ import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import org.lwjgl.opengl.GL11
 
-class Keyboard extends SimpleBlock with traits.SpecialBlock with traits.OmniRotatable {
+class Keyboard extends SimpleBlock with traits.OmniRotatable {
   setLightOpacity(0)
 
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
+
+  // ----------------------------------------------------------------------- //
+
+  override def isOpaqueCube = false
+
+  override def isFullCube = false
+
+  // ----------------------------------------------------------------------- //
 
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
@@ -52,7 +61,7 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock with traits.OmniRota
       })
   }
 
-  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) =
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) =
     world.getTileEntity(pos) match {
       case keyboard: tileentity.Keyboard => setBlockBounds(keyboard.pitch, keyboard.yaw)
       case _ =>
@@ -71,9 +80,7 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock with traits.OmniRota
     val y1 = up.getFrontOffsetY * sizes(1) + side.getFrontOffsetY * sizes(2) - forward.getFrontOffsetY * 0.5f
     val z0 = -up.getFrontOffsetZ * sizes(1) - side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * sizes(0)
     val z1 = up.getFrontOffsetZ * sizes(1) + side.getFrontOffsetZ * sizes(2) - forward.getFrontOffsetZ * 0.5f
-    setBlockBounds(
-      math.min(x0, x1) + 0.5f, math.min(y0, y1) + 0.5f, math.min(z0, z1) + 0.5f,
-      math.max(x0, x1) + 0.5f, math.max(y0, y1) + 0.5f, math.max(z0, z1) + 0.5f)
+    setBlockBounds(new AxisAlignedBB(x0, y0, z0, x1, y1, z1).offset(0.5, 0.5, 0.5))
   }
 
   override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) =

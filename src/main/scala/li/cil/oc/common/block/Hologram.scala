@@ -15,11 +15,15 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {
+class Hologram(val tier: Int) extends SimpleBlock {
   setLightLevel(1)
   setBlockBounds(0, 0, 0, 1, 0.5f, 1)
 
   // ----------------------------------------------------------------------- //
+
+  override def isOpaqueCube = false
+
+  override def isFullCube = false
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.DOWN
 

@@ -228,24 +228,24 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def entityInit() {
     // Running or not.
-    dataWatcher.addObject(2, byte2Byte(0: Byte))
+    dataWatcher.addObject(5, byte2Byte(0: Byte))
     // Target position.
-    dataWatcher.addObject(3, float2Float(0f))
-    dataWatcher.addObject(4, float2Float(0f))
-    dataWatcher.addObject(5, float2Float(0f))
-    // Max acceleration.
     dataWatcher.addObject(6, float2Float(0f))
+    dataWatcher.addObject(7, float2Float(0f))
+    dataWatcher.addObject(8, float2Float(0f))
+    // Max acceleration.
+    dataWatcher.addObject(9, float2Float(0f))
     // Selected inventory slot.
-    dataWatcher.addObject(7, byte2Byte(0: Byte))
+    dataWatcher.addObject(10, byte2Byte(0: Byte))
     // Current and maximum energy.
-    dataWatcher.addObject(8, int2Integer(0))
-    dataWatcher.addObject(9, int2Integer(100))
+    dataWatcher.addObject(11, int2Integer(0))
+    dataWatcher.addObject(12, int2Integer(100))
     // Status text.
-    dataWatcher.addObject(10, "")
+    dataWatcher.addObject(13, "")
     // Inventory size for client.
-    dataWatcher.addObject(11, byte2Byte(0: Byte))
+    dataWatcher.addObject(14, byte2Byte(0: Byte))
     // Light color.
-    dataWatcher.addObject(12, int2Integer(0x66DD55))
+    dataWatcher.addObject(15, int2Integer(0x66DD55))
   }
 
   def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3) {
@@ -272,50 +272,50 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     components.connectComponents()
   }
 
-  def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+  def isRunning = dataWatcher.getWatchableObjectByte(5) != 0
 
-  def targetX = dataWatcher.getWatchableObjectFloat(3)
+  def targetX = dataWatcher.getWatchableObjectFloat(6)
 
-  def targetY = dataWatcher.getWatchableObjectFloat(4)
+  def targetY = dataWatcher.getWatchableObjectFloat(7)
 
-  def targetZ = dataWatcher.getWatchableObjectFloat(5)
+  def targetZ = dataWatcher.getWatchableObjectFloat(8)
 
-  def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
+  def targetAcceleration = dataWatcher.getWatchableObjectFloat(9)
 
-  def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+  def selectedSlot = dataWatcher.getWatchableObjectByte(10) & 0xFF
 
-  def globalBuffer = dataWatcher.getWatchableObjectInt(8)
+  def globalBuffer = dataWatcher.getWatchableObjectInt(11)
 
-  def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
+  def globalBufferSize = dataWatcher.getWatchableObjectInt(12)
 
-  def statusText = dataWatcher.getWatchableObjectString(10)
+  def statusText = dataWatcher.getWatchableObjectString(13)
 
-  def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+  def inventorySize = dataWatcher.getWatchableObjectByte(14) & 0xFF
 
-  def lightColor = dataWatcher.getWatchableObjectInt(12)
+  def lightColor = dataWatcher.getWatchableObjectInt(15)
 
-  def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+  def setRunning(value: Boolean) = dataWatcher.updateObject(5, byte2Byte(if (value) 1: Byte else 0: Byte))
 
   // Round target values to low accuracy to avoid floating point errors accumulating.
-  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 4) / 4f))
+  def targetX_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.round(value * 4) / 4f))
 
-  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 4) / 4f))
+  def targetY_=(value: Float): Unit = dataWatcher.updateObject(7, float2Float(math.round(value * 4) / 4f))
 
-  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 4) / 4f))
+  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(8, float2Float(math.round(value * 4) / 4f))
 
-  def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
+  def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(9, float2Float(math.max(0, math.min(maxAcceleration, value))))
 
-  def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+  def selectedSlot_=(value: Int) = dataWatcher.updateObject(10, byte2Byte(value.toByte))
 
-  def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
+  def globalBuffer_=(value: Int) = dataWatcher.updateObject(11, int2Integer(value))
 
-  def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
+  def globalBufferSize_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
 
-  def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
+  def statusText_=(value: String) = dataWatcher.updateObject(13, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
 
-  def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
+  def inventorySize_=(value: Int) = dataWatcher.updateObject(14, byte2Byte(value.toByte))
 
-  def lightColor_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
+  def lightColor_=(value: Int) = dataWatcher.updateObject(15, int2Integer(value))
 
   @SideOnly(Side.CLIENT)
   override def func_180426_a(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int, unused: Boolean) {

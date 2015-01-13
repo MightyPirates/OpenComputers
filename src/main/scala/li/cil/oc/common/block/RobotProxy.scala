@@ -26,7 +26,7 @@ import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.StateAware {
+class RobotProxy extends RedstoneAware with traits.StateAware {
   setLightOpacity(0)
   setCreativeTab(null)
   NEI.hide(this)
@@ -38,6 +38,10 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def isOpaqueCube = false
+
+  override def isFullCube = false
 
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
@@ -150,15 +154,15 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
 
   private def gettingDropsForActualDrop = new Exception().getStackTrace.exists(element => getDropForRealDropCallers.contains(element.getClassName + "." + element.getMethodName))
 
-  protected override def intersect(world: World, pos: BlockPos, origin: Vec3, direction: Vec3) = {
+  override def collisionRayTrace(world: World, pos: BlockPos, origin: Vec3, direction: Vec3) = {
     val bounds = getCollisionBoundingBox(world, pos, world.getBlockState(pos))
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(origin) => null
-      case _ => super.intersect(world, pos, origin, direction)
+      case _ => super.collisionRayTrace(world, pos, origin, direction)
     }
   }
 
-  protected override def doSetBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) {
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos) {
     world.getTileEntity(pos) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
@@ -169,7 +173,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
           bounds.offset(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
         }
         setBlockBounds(bounds)
-      case _ => super.doSetBlockBoundsBasedOnState(world, pos)
+      case _ => super.setBlockBoundsBasedOnState(world, pos)
     }
   }
 

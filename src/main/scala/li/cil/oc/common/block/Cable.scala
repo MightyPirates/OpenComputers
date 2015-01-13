@@ -29,14 +29,16 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable.ArrayBuffer
 
-class Cable extends SimpleBlock with traits.Extended with traits.SpecialBlock {
-  setLightOpacity(0)
+class Cable extends SimpleBlock with traits.Extended {
+  setLightOpacity(2)
 
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 
   // For FMP part coloring.
   var colorMultiplierOverride: Option[Int] = None
+
+  // ----------------------------------------------------------------------- //
 
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
@@ -53,6 +55,10 @@ class Cable extends SimpleBlock with traits.Extended with traits.SpecialBlock {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def isOpaqueCube = false
+
+  override def isFullCube = false
 
   @SideOnly(Side.CLIENT) override
   def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) = colorMultiplierOverride.getOrElse(super.colorMultiplier(world, pos, renderPass))
@@ -72,7 +78,7 @@ class Cable extends SimpleBlock with traits.Extended with traits.SpecialBlock {
     super.onNeighborBlockChange(world, pos, state, neighborBlock)
   }
 
-  override protected def doSetBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos): Unit = {
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos): Unit = {
     setBlockBounds(Cable.bounds(world, pos))
   }
 }
