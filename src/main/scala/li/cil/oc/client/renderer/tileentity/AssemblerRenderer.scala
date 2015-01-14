@@ -20,6 +20,7 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
     RenderState.disableLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
+    GL11.glColor4f(1, 1, 1, 1)
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)

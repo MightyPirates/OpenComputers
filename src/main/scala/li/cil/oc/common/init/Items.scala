@@ -1,5 +1,7 @@
 package li.cil.oc.common.init
 
+import java.util
+
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.detail.ItemAPI
@@ -17,12 +19,10 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.World
 import net.minecraftforge.fml.common.registry.GameRegistry
 
 import scala.collection.mutable
@@ -126,7 +126,7 @@ object Items extends ItemAPI {
     nbt.setString(Settings.namespace + "lootPath", "OpenOS")
     nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
 
-    val stack = get("lootDisk").createItemStack(amount)
+    val stack = get("floppy").createItemStack(amount)
     stack.setTagCompound(nbt)
 
     stack
@@ -373,11 +373,9 @@ object Items extends ItemAPI {
     val storage = newItem(new item.Delegator() {
       // Override to inject loot disks.
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
-        // Workaround for MC's untyped lists...
-        def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
         super.getSubItems(item, tab, list)
-        add(list, createLuaBios())
-        Loot.worldDisks.values.foreach(entry => add(list, entry._1))
+        Items.add(list, createLuaBios())
+        Loot.worldDisks.values.foreach(entry => Items.add(list, entry._1))
       }
     }, "storage")
 
@@ -386,15 +384,6 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.One), "hdd1", "oc:hdd1")
     Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Two), "hdd2", "oc:hdd2")
     Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Three), "hdd3", "oc:hdd3")
-    // TODO merge loot disks into normal floppies, only differentiate using NBT
-    registerItem(new item.FloppyDisk(storage) {
-      showInItemList = false
-
-      override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
-        if (player.isSneaking) get("floppy").createItemStack(1)
-        else super.onItemRightClick(stack, world, player)
-      }
-    }, "lootDisk")
 
     Recipes.addRecipe(createLuaBios(), "luaBios")
     Recipes.addRecipe(createOpenOS(), "openOS")
@@ -402,7 +391,20 @@ object Items extends ItemAPI {
 
   // Special purpose items that don't fit into any other category.
   private def initSpecial(): Unit = {
-    val misc = newItem(new item.Delegator(), "misc")
+    val misc = newItem(new item.Delegator() {
+      private lazy val configuredItems = Array(
+        Items.createOpenOS(),
+        Items.createLuaBios(),
+        Items.createConfiguredDrone(),
+        Items.createConfiguredMicrocontroller(),
+        Items.createConfiguredRobot()
+      )
+
+      override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[_]): Unit = {
+        super.getSubItems(item, tab, list)
+        configuredItems.foreach(Items.add(list, _))
+      }
+    }, "misc")
 
     registerItem(new item.Tablet(misc), "tablet")
     registerItem(new item.Drone(misc), "drone")
@@ -431,4 +433,7 @@ object Items extends ItemAPI {
     GameRegistry.registerItem(item, name)
     item
   }
+
+  // Workaround for MC's untyped lists...
+  private final def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 }

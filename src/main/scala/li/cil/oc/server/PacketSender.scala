@@ -254,7 +254,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
-    pb.writeInt(t.proxy.world.provider.getDimensionId)
+    pb.writeInt(t.world.provider.getDimensionId)
     pb.writeInt(position.getX)
     pb.writeInt(position.getY)
     pb.writeInt(position.getZ)

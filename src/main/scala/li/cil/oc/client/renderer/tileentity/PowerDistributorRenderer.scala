@@ -19,6 +19,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       RenderState.disableLighting()
       RenderState.makeItBlend()
       RenderState.setBlendAlpha((distributor.globalBuffer / distributor.globalBufferSize).toFloat)
+      GL11.glColor4f(1, 1, 1, 1)
 
       GL11.glPushMatrix()
 

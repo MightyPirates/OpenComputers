@@ -18,6 +18,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
 
     val drive = tileEntity.asInstanceOf[DiskDrive]
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GL11.glColor4f(1, 1, 1, 1)
 
     GL11.glPushMatrix()
 

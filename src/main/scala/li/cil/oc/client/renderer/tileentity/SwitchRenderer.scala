@@ -20,6 +20,7 @@ object SwitchRenderer extends TileEntitySpecialRenderer {
       RenderState.disableLighting()
       RenderState.makeItBlend()
       RenderState.setBlendAlpha(activity.toFloat)
+      GL11.glColor4f(1, 1, 1, 1)
 
       GL11.glPushMatrix()
 

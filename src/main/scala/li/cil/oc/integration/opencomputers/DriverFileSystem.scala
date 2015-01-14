@@ -14,7 +14,8 @@ import net.minecraft.nbt.NBTTagCompound
 
 object DriverFileSystem extends Item {
   override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"), api.Items.get("floppy"))
+    isOneOf(stack, api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"), api.Items.get("floppy")) &&
+      (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = Delegator.subItem(stack) match {
     case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host)

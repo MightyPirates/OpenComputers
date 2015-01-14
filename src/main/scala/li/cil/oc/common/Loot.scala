@@ -110,7 +110,7 @@ object Loot {
       case _ =>
     }
 
-    val disk = api.Items.get("lootDisk").createItemStack(1)
+    val disk = api.Items.get("floppy").createItemStack(1)
     disk.setTagCompound(tag)
 
     disk

@@ -18,6 +18,7 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
+    GL11.glColor4f(1, 1, 1, 1)
 
     GL11.glPushMatrix()
 

@@ -67,6 +67,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
     RenderState.makeItBlend()
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    GL11.glColor4f(1, 1, 1, 1)
 
     val playerDistSq = x * x + y * y + z * z
     val maxDistSq = hologram.getMaxRenderDistanceSquared

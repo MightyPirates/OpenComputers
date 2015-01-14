@@ -37,6 +37,7 @@ import net.minecraft.init.Blocks
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
@@ -243,13 +244,15 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
-      world.setBlockToAir(newPosition)
+//      world.setBlockToAir(newPosition)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = world.setBlockState(newPosition, blockRobotProxy.getDefaultState, 1) &&
-        world.getTileEntity(newPosition) == proxy
-      if (created) {
-        assert(getPos == newPosition)
+      val created = world.setBlockState(newPosition, blockRobotProxy.getDefaultState, 1)
+      val newProxy = world.getTileEntity(newPosition)
+      if (created && newProxy != null) {
+        assert(newProxy.getPos == newPosition)
+        proxy = newProxy.asInstanceOf[RobotProxy]
+        setPos(newPosition)
         world.setBlockState(oldPosition, net.minecraft.init.Blocks.air.getDefaultState, 1)
         world.setBlockState(oldPosition, blockRobotAfterImage.getDefaultState, 1)
         assert(world.getBlockState(oldPosition).getBlock == blockRobotAfterImage)
@@ -462,11 +465,11 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     selectedSlot = nbt.getInteger("selectedSlot")
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
-    val moveFromX = nbt.getInteger("moveFromX")
-    val moveFromY = nbt.getInteger("moveFromY")
-    val moveFromZ = nbt.getInteger("moveFromZ")
-    moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
     if (animationTicksLeft > 0) {
+      val moveFromX = nbt.getInteger("moveFromX")
+      val moveFromY = nbt.getInteger("moveFromY")
+      val moveFromZ = nbt.getInteger("moveFromZ")
+      moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
       swingingTool = nbt.getBoolean("swingingTool")
       turnAxis = nbt.getByte("turnAxis")
     }

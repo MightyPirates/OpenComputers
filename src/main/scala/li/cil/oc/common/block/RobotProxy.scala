@@ -21,7 +21,6 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -105,7 +104,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   override def createNewTileEntity(world: World, metadata: Int) = {
     moving.get match {
-      case Some(robot) => new tileentity.RobotProxy(robot)
+      case Some(robot) => null // new tileentity.RobotProxy(robot)
       case _ => new tileentity.RobotProxy()
     }
   }
@@ -167,12 +166,12 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
         val bounds = AxisAlignedBB.fromBounds(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
-        if (robot.isAnimatingMove) {
+        setBlockBounds(if (robot.isAnimatingMove) {
           val remaining = robot.animationTicksLeft.toDouble / robot.animationTicksTotal.toDouble
           val delta = robot.moveFrom.get.subtract(robot.getPos)
           bounds.offset(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
         }
-        setBlockBounds(bounds)
+        else bounds)
       case _ => super.setBlockBoundsBasedOnState(world, pos)
     }
   }
@@ -235,17 +234,15 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
           robot.saveComponents()
           InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), robot.info.createItemStack())
         }
-        robot.moveFrom.foreach(altPos => if (world.getBlockState(altPos).getBlock == api.Items.get("robotAfterimage").block) {
-          world.setBlockState(altPos, net.minecraft.init.Blocks.air.getDefaultState, 1)
+        robot.moveFrom.foreach(fromPos => if (world.getBlockState(fromPos).getBlock == api.Items.get("robotAfterimage").block) {
+          world.setBlockState(fromPos, net.minecraft.init.Blocks.air.getDefaultState, 1)
         })
       case _ =>
     }
     super.removedByPlayer(world, pos, player, willHarvest)
   }
 
-  override def harvestBlock(world: World, player: EntityPlayer, pos: BlockPos, state: IBlockState, te: TileEntity): Unit = {
-    if (moving.get.isEmpty) {
-      super.harvestBlock(world, player, pos, state, te)
-    }
-  }
+  override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit =
+    if (moving.get.isEmpty)
+      super.breakBlock(world, pos, state)
 }
