@@ -73,6 +73,7 @@ object Mods {
 
   val Proxies = Array(
     integration.appeng.ModAppEng,
+    integration.bloodmagic.ModBloodMagic,
     integration.buildcraft.tools.ModBuildCraftAPITools,
     integration.buildcraft.tiles.ModBuildCraftAPITiles,
     integration.buildcraft.transport.ModBuildCraftAPITransport,
@@ -99,7 +100,6 @@ object Mods {
     integration.waila.ModWaila,
     integration.wrcbe.ModWRCBE,
     integration.wrsve.ModWRSVE,
-    integration.bloodmagic.ModBloodMagic,
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
@@ -133,6 +133,7 @@ object Mods {
   object IDs {
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
+    final val BloodMagic = "AWWayofTime"
     final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftPower = "BuildCraftAPI|power"
     final val BuildCraftTiles = "BuildCraftAPI|tiles"
@@ -173,7 +174,6 @@ object Mods {
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"
     final val WirelessRedstoneSV = "WirelessRedstoneCore"
-    final val BloodMagic = "AWWayofTime"
   }
 
   // ----------------------------------------------------------------------- //
