@@ -21,6 +21,7 @@ object Mods {
 
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
@@ -67,7 +68,6 @@ object Mods {
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
   val WirelessRedstoneSVE = new SimpleMod(IDs.WirelessRedstoneSV)
-  val BloodMagic = new SimpleMod(IDs.BloodMagic)
 
   // ----------------------------------------------------------------------- //
 
