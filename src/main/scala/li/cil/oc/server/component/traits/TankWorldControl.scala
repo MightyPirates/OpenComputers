@@ -7,8 +7,10 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ResultWrapper.result
+import net.minecraft.block.BlockLiquid
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.IFluidBlock
 import net.minecraftforge.fluids.IFluidHandler
 
 trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
@@ -50,26 +52,41 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
                 case stack: FluidStack =>
                   val drained = handler.drain(facing.getOpposite, new FluidStack(stack, amount), true)
                   if ((drained != null && drained.amount > 0) || amount == 0) {
-                    tank.fill(drained, true)
-                    result(true, drained.amount)
+                    val filled = tank.fill(drained, true)
+                    result(true, filled)
                   }
                   else result(Unit, "incompatible or no fluid")
                 case _ =>
                   val transferred = tank.fill(handler.drain(facing.getOpposite, amount, true), true)
                   result(transferred > 0, transferred)
               }
-            case _ =>
-              val block = world.getBlock(blockPos)
-              val fluid = FluidRegistry.lookupFluidForBlock(block)
-              if (fluid == null) {
+            case _ => world.getBlock(blockPos) match {
+              case fluidBlock: IFluidBlock if fluidBlock.canDrain(world, blockPos.x, blockPos.y, blockPos.z) =>
+                val drained = fluidBlock.drain(world, blockPos.x, blockPos.y, blockPos.z, false)
+                if ((drained != null && drained.amount > 0) && (drained.amount <= amount || amount == 0)) {
+                  if (drained.amount <= amount) {
+                    val filled = tank.fill(fluidBlock.drain(world, blockPos.x, blockPos.y, blockPos.z, true), true)
+                    result(true, filled)
+                  }
+                  else /* if (amount == 0) */ {
+                    result(true, 0)
+                  }
+                }
+                else result(Unit, "tank is full")
+              case liquidBlock: BlockLiquid if world.getBlockMetadata(blockPos) == 0 =>
+                val fluid = FluidRegistry.lookupFluidForBlock(liquidBlock)
+                if (fluid == null) {
+                  result(Unit, "incompatible or no fluid")
+                }
+                else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
+                  tank.fill(new FluidStack(fluid, 1000), true)
+                  world.setBlockToAir(blockPos)
+                  result(true, 1000)
+                }
+                else result(Unit, "tank is full")
+              case _ =>
                 result(Unit, "incompatible or no fluid")
-              }
-              else if (tank.fill(new FluidStack(fluid, 1000), false) == 1000) {
-                tank.fill(new FluidStack(fluid, 1000), true)
-                world.setBlockToAir(blockPos)
-                result(true, 1000)
-              }
-              else result(Unit, "tank is full")
+            }
           }
           else result(Unit, "incompatible or no fluid")
         }
