@@ -239,7 +239,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       val l = 2 / 16.0
       val h = 14 / 16.0
       val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
-      Some(math.max(0, math.min(servers.length, slot)))
+      Some(math.max(0, math.min(servers.length - 1, slot)))
     }
     else None
   }
