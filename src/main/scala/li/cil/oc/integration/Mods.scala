@@ -67,6 +67,7 @@ object Mods {
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
   val WirelessRedstoneSVE = new SimpleMod(IDs.WirelessRedstoneSV)
+  val BloodMagic = new SimpleMod(IDs.BloodMagic)
 
   // ----------------------------------------------------------------------- //
 
@@ -98,6 +99,7 @@ object Mods {
     integration.waila.ModWaila,
     integration.wrcbe.ModWRCBE,
     integration.wrsve.ModWRSVE,
+    integration.bloodmagic.ModBloodMagic,
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
@@ -171,6 +173,7 @@ object Mods {
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"
     final val WirelessRedstoneSV = "WirelessRedstoneCore"
+    final val BloodMagic = "AWWayofTime"
   }
 
   // ----------------------------------------------------------------------- //
