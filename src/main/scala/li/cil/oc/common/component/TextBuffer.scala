@@ -438,6 +438,11 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     if (nbt.hasKey(Settings.namespace + "hasPower")) {
       hasPower = nbt.getBoolean(Settings.namespace + "hasPower")
     }
+    if (nbt.hasKey(Settings.namespace + "maxWidth") && nbt.hasKey(Settings.namespace + "maxHeight")) {
+      val maxWidth = nbt.getInteger(Settings.namespace + "maxWidth")
+      val maxHeight = nbt.getInteger(Settings.namespace + "maxHeight")
+      maxResolution = (maxWidth, maxHeight)
+    }
   }
 
   // Null check for Waila (and other mods that may call this client side).
@@ -463,6 +468,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     SaveHandler.scheduleSave(host, nbt, node.address + "_buffer", data.save _)
     nbt.setBoolean(Settings.namespace + "isOn", isDisplaying)
     nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
+    nbt.setInteger(Settings.namespace + "maxWidth", maxResolution._1)
+    nbt.setInteger(Settings.namespace + "maxHeight", maxResolution._2)
   }
 }
 
