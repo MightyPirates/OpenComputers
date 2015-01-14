@@ -738,8 +738,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   override def dropSlot(slot: Int, count: Int, direction: Option[ForgeDirection]) =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, world), dynamicInventory, slot, count, direction)
 
-  override def dropAllSlots() =
+  override def dropAllSlots() = {
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, 0, Int.MaxValue)
+    for (slot <- containerSlots) {
+      InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, Int.MaxValue)
+    }
     InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), dynamicInventory)
+  }
 
   // ----------------------------------------------------------------------- //
 
