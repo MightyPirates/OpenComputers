@@ -21,6 +21,7 @@ object Mods {
 
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
@@ -98,6 +99,7 @@ object Mods {
     integration.waila.ModWaila,
     integration.wrcbe.ModWRCBE,
     integration.wrsve.ModWRSVE,
+    integration.bloodmagic.ModBloodMagic,
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
@@ -171,6 +173,7 @@ object Mods {
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"
     final val WirelessRedstoneSV = "WirelessRedstoneCore"
+    final val BloodMagic = "AWWayofTime"
   }
 
   // ----------------------------------------------------------------------- //

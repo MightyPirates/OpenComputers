@@ -135,6 +135,10 @@ repositories {
         name 'Railcraft'
         artifactPattern "http://addons.cursecdn.com/files/${config.rc.cf}/[module]_[revision].[ext]"
     }
+    ivy {
+        name 'BloodMagic'
+        artifactPattern "http://addons.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
+    }
 }
 
 configurations {
@@ -169,6 +173,7 @@ dependencies {
     provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
+    provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
