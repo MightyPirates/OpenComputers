@@ -108,10 +108,11 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history, dobreak, hint, pwchar)
+function term.read(history, dobreak, hint, pwchar, match)
   checkArg(1, history, "table", "nil")
   checkArg(3, hint, "function", "table", "nil")
   checkArg(4, pwchar, "string", "nil")
+  checkArg(5, match, "string", "function", "nil")
   history = history or {}
   table.insert(history, "")
   local offset = term.getCursor() - 1
@@ -327,12 +328,16 @@ function term.read(history, dobreak, hint, pwchar)
     elseif code == keyboard.keys.tab and hint then
       tab(keyboard.isShiftDown() and -1 or 1)
     elseif code == keyboard.keys.enter then
-      local cbx, cby = getCursor()
-      if cby ~= #history then -- bring entry to front
-        history[#history] = line()
-        table.remove(history, cby)
+      if not match or (type(match) == "string" and match:match(line() or "")) or (type(match) == "function" and match(line() or "")) then
+        local cbx, cby = getCursor()
+        if cby ~= #history then -- bring entry to front
+          history[#history] = line()
+          table.remove(history, cby)
+        end
+        return true, history[#history] .. "\n"
+      else
+        computer.beep(2000, 0.1)
       end
-      return true, history[#history] .. "\n"
     elseif keyboard.isControlDown() and code == keyboard.keys.d then
       if line() == "" then
         history[#history] = ""
