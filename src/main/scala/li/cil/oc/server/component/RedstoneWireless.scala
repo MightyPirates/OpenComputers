@@ -9,7 +9,6 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.prefab
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
@@ -19,7 +18,7 @@ import net.minecraft.nbt.NBTTagCompound
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
-trait RedstoneWireless extends prefab.ManagedEnvironment with RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice {
+trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice {
   def redstone: EnvironmentHost
 
   var wirelessFrequency = 0
@@ -77,7 +76,7 @@ trait RedstoneWireless extends prefab.ManagedEnvironment with RedstoneSignaller 
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
       wirelessInput = on
-      onRedstoneChanged("wireless", boolean2Boolean(!on), boolean2Boolean(on))
+      onRedstoneChanged("wireless", if (on) 0 else 1, if (on) 1 else 0)
     }
   }
 
