@@ -21,6 +21,7 @@ object Mods {
 
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val Botania = new SimpleMod(IDs.Botania)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
@@ -73,6 +74,7 @@ object Mods {
 
   val Proxies = Array(
     integration.appeng.ModAppEng,
+    integration.botania.ModBotania,
     integration.bloodmagic.ModBloodMagic,
     integration.buildcraft.tools.ModBuildCraftAPITools,
     integration.buildcraft.tiles.ModBuildCraftAPITiles,
@@ -133,6 +135,7 @@ object Mods {
   object IDs {
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
+    final val Botania = "Botania"
     final val BloodMagic = "AWWayofTime"
     final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftPower = "BuildCraftAPI|power"

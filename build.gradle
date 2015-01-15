@@ -114,6 +114,10 @@ repositories {
         name 'immibis'
         artifactPattern "https://dl.dropboxusercontent.com/u/2944265/mods/autobuilt/files/[module]-[revision].[ext]"
     }
+    ivy {
+        name 'Botania'
+        artifactPattern "http://vazkii.us/mod/[module]/files/deobf/[module] [revision]-deobf.[ext]"
+    }
 
     ivy {
         name 'CoFHLib'
@@ -174,6 +178,7 @@ dependencies {
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
+    provided name: 'Botania', version: config.botania.version, ext: 'jar'
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
