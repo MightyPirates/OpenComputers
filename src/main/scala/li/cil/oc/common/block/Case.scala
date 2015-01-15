@@ -4,7 +4,6 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
@@ -21,7 +20,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware {
+class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   private val iconsOn = new Array[IIcon](6)
 
   // ----------------------------------------------------------------------- //
@@ -73,28 +72,22 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override def energyThroughput = Settings.get.caseRate(tier)
 
+  override def guiType = GuiType.Case
+
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Case(tier)
 
   // ----------------------------------------------------------------------- //
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
+    if (player.isSneaking) {
+      if (!world.isRemote) world.getTileEntity(x, y, z) match {
+        case computer: tileentity.Case if !computer.machine.isRunning => computer.machine.start()
+        case _ =>
       }
       true
     }
-    else if (player.getCurrentEquippedItem == null) {
-      if (!world.isRemote) {
-        world.getTileEntity(x, y, z) match {
-          case computer: tileentity.Case if !computer.machine.isRunning => computer.machine.start()
-          case _ =>
-        }
-      }
-      true
-    }
-    else false
+    else super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
   }
 
   override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int, willHarvest: Boolean) =
