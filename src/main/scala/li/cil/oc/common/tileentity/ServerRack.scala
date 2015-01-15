@@ -509,7 +509,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
     servers collect {
-      case Some(server) => server.machine.signal("redstone_changed", server.machine.node.address, Int.box(toLocal(side).ordinal()))
+      case Some(server) => server.machine.node.sendToNeighbors("redstone.changed", toLocal(side))
     }
   }
 

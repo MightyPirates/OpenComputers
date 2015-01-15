@@ -206,7 +206,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    machine.signal("redstone_changed", machine.node.address, Int.box(toLocal(side).ordinal()))
+    machine.node.sendToNeighbors("redstone.changed", toLocal(side))
   }
 
   // ----------------------------------------------------------------------- //

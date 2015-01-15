@@ -11,7 +11,11 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 class Redstone extends Environment with BundledRedstoneAware {
-  val instance = if (BundledRedstone.isAvailable) new component.Redstone[BundledRedstoneAware](this) with component.RedstoneBundled else new component.Redstone(this)
+  val instance =
+    if (BundledRedstone.isAvailable)
+      new component.Redstone.Bundled(this)
+    else
+      new component.Redstone.Vanilla(this)
   val node = instance.node
   if (node != null) {
     node.setVisibility(Visibility.Network)

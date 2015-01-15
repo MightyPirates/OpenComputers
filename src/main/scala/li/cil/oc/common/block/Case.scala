@@ -7,8 +7,6 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
