@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Settings
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -15,10 +14,11 @@ trait RedstoneSignaller extends prefab.ManagedEnvironment {
   @Callback(direct = true, doc = """function():number -- Get the current wake-up threshold.""")
   def getWakeThreshold(context: Context, args: Arguments): Array[AnyRef] = result(wakeThreshold)
 
-  @Callback(doc = """function(threshold:number) -- Set the wake-up threshold.""")
+  @Callback(doc = """function(threshold:number):number -- Set the wake-up threshold.""")
   def setWakeThreshold(context: Context, args: Arguments): Array[AnyRef] = {
+    val oldThreshold = wakeThreshold
     wakeThreshold = args.checkInteger(0)
-    null
+    result(oldThreshold)
   }
 
   // ----------------------------------------------------------------------- //
@@ -34,11 +34,11 @@ trait RedstoneSignaller extends prefab.ManagedEnvironment {
 
   override def load(nbt: NBTTagCompound): Unit = {
     super.load(nbt)
-    wakeThreshold = nbt.getInteger(Settings.namespace + "wakeThreshold")
+    wakeThreshold = nbt.getInteger("wakeThreshold")
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
     super.save(nbt)
-    nbt.setInteger(Settings.namespace + "wakeThreshold", wakeThreshold)
+    nbt.setInteger("wakeThreshold", wakeThreshold)
   }
 }
