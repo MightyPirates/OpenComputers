@@ -7,12 +7,10 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 import li.cil.oc.common.tileentity.traits.RedstoneAware
-import li.cil.oc.server.component
 import net.minecraftforge.common.util.ForgeDirection
 
-trait RedstoneVanilla extends prefab.ManagedEnvironment {
+trait RedstoneVanilla extends prefab.ManagedEnvironment with RedstoneSignaller {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("redstone", Visibility.Neighbors).
     create()
@@ -47,7 +45,8 @@ trait RedstoneVanilla extends prefab.ManagedEnvironment {
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
     if (message.name == "redstone.changed") message.data match {
-      case Array(side: ForgeDirection) => node.sendToReachable("computer.signal", "redstone_changed", Int.box(side.ordinal()))
+      case Array(side: ForgeDirection, oldMaxValue: Number, newMaxValue: Number) =>
+        onRedstoneChanged(int2Integer(side.ordinal()), oldMaxValue, newMaxValue)
       case _ =>
     }
   }

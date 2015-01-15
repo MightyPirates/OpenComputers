@@ -173,7 +173,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
   private def drawNEIHighlights(): Unit = {
     val panel = LayoutManager.itemPanel
     if (panel == null) return
-    zLevel += 500
+    zLevel += 350
     for (index <- 0 until ItemPanel.items.size()) {
       val rect = panel.getSlotRect(index)
       val slot = panel.getSlotMouseOver(rect.x, rect.y)
@@ -188,6 +188,6 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
         case _ =>
       }
     }
-    zLevel -= 500
+    zLevel -= 350
   }
 }

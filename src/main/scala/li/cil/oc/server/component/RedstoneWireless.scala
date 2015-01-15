@@ -19,7 +19,7 @@ import net.minecraft.nbt.NBTTagCompound
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
-trait RedstoneWireless extends prefab.ManagedEnvironment with WirelessReceivingDevice with WirelessTransmittingDevice {
+trait RedstoneWireless extends prefab.ManagedEnvironment with RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice {
   def redstone: EnvironmentHost
 
   var wirelessFrequency = 0
@@ -77,7 +77,7 @@ trait RedstoneWireless extends prefab.ManagedEnvironment with WirelessReceivingD
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
       wirelessInput = on
-      node.sendToReachable("computer.signal", "redstone_changed", "wireless")
+      onRedstoneChanged("wireless", boolean2Boolean(!on), boolean2Boolean(on))
     }
   }
 

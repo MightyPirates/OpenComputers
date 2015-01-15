@@ -314,8 +314,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
-    super.onRedstoneInputChanged(side)
+  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
+    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     val hasRedstoneInput = screens.map(_.maxInput).max > 0
     if (hasRedstoneInput != hadRedstoneInput) {
       hadRedstoneInput = hasRedstoneInput
