@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL11
 class Database(playerInventory: InventoryPlayer, val databaseInventory: DatabaseInventory) extends DynamicGuiContainer(new container.Database(playerInventory, databaseInventory)) {
   ySize = 256
 
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {}
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {}
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor4f(1, 1, 1, 1)
