@@ -13,7 +13,7 @@ A few useful links:
 You can find experimental builds [on the build server][jenkins]. Expect these to be generally more unstable than builds marked as releases. Use these **at your own risk**, but - when using the latest one - please *do* report bugs you encounter using them. Thanks!
 
 ## License / Use in Modpacks
-This mod is [licensed under the **MIT license**](https://github.com/MightyPirates/OpenComputers/blob/master/LICENSE). All **assets are public domain**, unless otherwise stated; all are free to be distributed as long as the license / source credits are kept. This means you can use this mod in any mod pack **as you please**. I'd be happy to hear about you using it, though, just out of curiosity.
+This mod is [licensed under the **MIT license**](https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/LICENSE). All **assets are public domain**, unless otherwise stated; all are free to be distributed as long as the license / source credits are kept. This means you can use this mod in any mod pack **as you please**. I'd be happy to hear about you using it, though, just out of curiosity.
 
 ## Contributing
 ###Assets and Localizations
