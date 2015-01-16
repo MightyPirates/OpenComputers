@@ -43,7 +43,9 @@ class Redstone extends Environment with BundledRedstoneAware {
 
   override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    node.connect(dummyNode)
-    dummyNode.sendToNeighbors("redstone.changed", side, int2Integer(oldMaxValue), int2Integer(newMaxValue))
+    if (node != null && node.network != null) {
+      node.connect(dummyNode)
+      dummyNode.sendToNeighbors("redstone.changed", side, int2Integer(oldMaxValue), int2Integer(newMaxValue))
+    }
   }
 }
