@@ -252,11 +252,11 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       // never happen in normal operation anyway. It *can* happen when NBT
       // editing stuff or using mods to clone blocks (e.g. WorldEdit).
       otherNetwork.data.filter(entry => data.contains(entry._1)).toArray.foreach {
-        case (address, node: MutableNode) =>
-          val neighbors = node.neighbors.toArray // Copy to be on the safe side.
-          node.remove()
-          node.address = java.util.UUID.randomUUID().toString
-          neighbors.foreach(_.connect(node))
+        case (address, node: Network.Vertex) =>
+          val neighbors = node.data.neighbors.toArray // Copy to be on the safe side.
+          node.data.remove()
+          node.data.address = java.util.UUID.randomUUID().toString
+          neighbors.foreach(_.connect(node.data))
       }
 
       if (addedNode.reachability == Visibility.Neighbors)
