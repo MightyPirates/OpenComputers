@@ -7,6 +7,8 @@ import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
 
+import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 /**
@@ -31,9 +33,9 @@ abstract class ComponentTracker {
     }
   }
 
-  def remove(world: World, address: String) {
+  def remove(world: World, component: ManagedEnvironment) {
     this.synchronized {
-      components(world).invalidate(address)
+      components(world).invalidateAll(asJavaIterable(components(world).asMap().filter(_._2 == component).map(_._1)))
       components(world).cleanUp()
     }
   }

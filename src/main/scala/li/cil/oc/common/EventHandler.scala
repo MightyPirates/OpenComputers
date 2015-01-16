@@ -85,7 +85,7 @@ object EventHandler {
 
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
     if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!rs.owner.isInvalid) {
+      pending += (() => if (rs.node.network != null) {
         util.WirelessRedstone.addReceiver(rs)
         util.WirelessRedstone.updateOutput(rs)
       })
@@ -130,11 +130,18 @@ object EventHandler {
 
   @SubscribeEvent
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
-    PetRenderer.hidden.clear()
-    if (Settings.get.hideOwnPet) {
-      PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+    try {
+      PetRenderer.hidden.clear()
+      if (Settings.get.hideOwnPet) {
+        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+      }
+      ClientPacketSender.sendPetVisibility()
     }
-    ClientPacketSender.sendPetVisibility()
+    catch {
+      case _: Throwable =>
+      // Reportedly, things can derp if this is called at inopportune moments,
+      // such as the server shutting down.
+    }
   }
 
   lazy val drone = api.Items.get("drone")
@@ -194,8 +201,8 @@ object EventHandler {
     val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
     // On the 12th day of Christmas, my robot brought to me~
     (month == Calendar.DECEMBER && dayOfMonth > 24) || (month == Calendar.JANUARY && dayOfMonth < 7) ||
-    // OC's release-birthday!
-    (month == Calendar.DECEMBER && dayOfMonth == 14)
+      // OC's release-birthday!
+      (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {

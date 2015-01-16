@@ -4,12 +4,12 @@ import codechicken.lib.vec.Vector3
 import codechicken.wirelessredstone.core.WirelessReceivingDevice
 import codechicken.wirelessredstone.core.WirelessTransmittingDevice
 import cpw.mods.fml.common.Optional
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.EventHandler
-import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import net.minecraft.nbt.NBTTagCompound
@@ -18,7 +18,9 @@ import net.minecraft.nbt.NBTTagCompound
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessReceivingDevice", modid = Mods.IDs.WirelessRedstoneCBE),
   new Optional.Interface(iface = "codechicken.wirelessredstone.core.WirelessTransmittingDevice", modid = Mods.IDs.WirelessRedstoneCBE)
 ))
-trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDevice with WirelessTransmittingDevice {
+trait RedstoneWireless extends RedstoneSignaller with WirelessReceivingDevice with WirelessTransmittingDevice {
+  def redstone: EnvironmentHost
+
   var wirelessFrequency = 0
 
   var wirelessInput = false
@@ -74,15 +76,15 @@ trait RedstoneWireless extends Redstone[RedstoneAware] with WirelessReceivingDev
   override def updateDevice(frequency: Int, on: Boolean) {
     if (frequency == wirelessFrequency && on != wirelessInput) {
       wirelessInput = on
-      node.sendToReachable("computer.signal", "redstone_changed", "wireless")
+      onRedstoneChanged("wireless", if (on) 0 else 1, if (on) 1 else 0)
     }
   }
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getPosition = Vector3.fromTileEntityCenter(owner)
+  override def getPosition = new Vector3(redstone.xPosition, redstone.yPosition, redstone.zPosition)
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
-  override def getDimension = owner.world.provider.dimensionId
+  override def getDimension = redstone.world.provider.dimensionId
 
   @Optional.Method(modid = Mods.IDs.WirelessRedstoneCBE)
   override def getFreq = wirelessFrequency

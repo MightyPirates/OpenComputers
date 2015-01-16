@@ -127,7 +127,6 @@ object ModOpenComputers extends ModProxy {
       "keyboard",
       "lanCard",
       "redstoneCard1",
-      "redstoneCard2", // TODO Move back down to wireless section once wireless redstone can work on its own.
       "screen1",
       "angelUpgrade",
       "craftingUpgrade",
@@ -174,6 +173,7 @@ object ModOpenComputers extends ModProxy {
       "leashUpgrade")
 
     if (!WirelessRedstone.isAvailable) {
+      blacklistHost(classOf[internal.Drone], "redstoneCard2")
       blacklistHost(classOf[internal.Tablet], "redstoneCard2")
     }
 

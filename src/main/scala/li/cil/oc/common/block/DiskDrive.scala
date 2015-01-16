@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
@@ -10,7 +9,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class DiskDrive extends SimpleBlock {
+class DiskDrive extends SimpleBlock with traits.GUI {
   override protected def customTextures = Array(
     None,
     None,
@@ -31,6 +30,8 @@ class DiskDrive extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
+  override def guiType = GuiType.DiskDrive
+
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.DiskDrive()
@@ -49,30 +50,23 @@ class DiskDrive extends SimpleBlock {
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    world.getTileEntity(x, y, z) match {
+    // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
+    if (player.isSneaking) world.getTileEntity(x, y, z) match {
       case drive: tileentity.DiskDrive =>
-        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
-        if (!player.isSneaking) {
+        val isDiskInDrive = drive.getStackInSlot(0) != null
+        val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
+        if (isDiskInDrive) {
           if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+            drive.dropSlot(0, 1, Option(drive.facing))
           }
-          true
         }
-        else {
-          val isDiskInDrive = drive.getStackInSlot(0) != null
-          val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
-          if (isDiskInDrive) {
-            if (!world.isRemote) {
-              drive.dropSlot(0, 1, Option(drive.facing))
-            }
-          }
-          if (isHoldingDisk) {
-            // Insert the disk.
-            drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
-          }
-          isDiskInDrive || isHoldingDisk
+        if (isHoldingDisk) {
+          // Insert the disk.
+          drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
         }
+        isDiskInDrive || isHoldingDisk
       case _ => false
     }
+    else super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
   }
 }

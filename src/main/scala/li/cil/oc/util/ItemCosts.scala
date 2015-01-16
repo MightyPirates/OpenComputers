@@ -19,13 +19,13 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ItemCosts {
-  protected val cache = mutable.Map.empty[ItemStack, Iterable[(ItemStack, Double)]]
+  protected val cache = mutable.Map.empty[ItemStackWrapper, Iterable[(ItemStack, Double)]]
 
-  cache += init.Items.ironNugget.createItemStack() -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
+  cache += new ItemStackWrapper(init.Items.ironNugget.createItemStack()) -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
 
-  def terminate(item: Item, meta: Int = 0) = cache += new ItemStack(item, 1, meta) -> mutable.Iterable((new ItemStack(item, 1, meta), 1))
+  def terminate(item: Item, meta: Int = 0) = cache += new ItemStackWrapper(new ItemStack(item, 1, meta)) -> mutable.Iterable((new ItemStack(item, 1, meta), 1))
 
-  def terminate(block: Block) = cache += new ItemStack(block) -> mutable.Iterable((new ItemStack(block), 1))
+  def terminate(block: Block) = cache += new ItemStackWrapper(new ItemStack(block)) -> mutable.Iterable((new ItemStack(block), 1))
 
   terminate(Blocks.clay)
   terminate(Blocks.cobblestone)
@@ -83,7 +83,7 @@ object ItemCosts {
     def accumulate(input: Any, path: Seq[ItemStack] = Seq.empty): Iterable[(ItemStack, Double)] = input match {
       case stack: ItemStack =>
         cache.find {
-          case (key, value) => fuzzyEquals(key, stack)
+          case (key, value) => fuzzyEquals(key.inner, stack)
         } match {
           case Some((_, value)) => value
           case _ =>
@@ -108,7 +108,7 @@ object ItemCosts {
               val scaled = deflate(ingredients.map {
                 case (ingredient, count) => (ingredient.copy(), count / output)
               }).toArray.sortBy(_._1.getUnlocalizedName)
-              cache += stack.copy() -> scaled
+              cache += new ItemStackWrapper(stack.copy()) -> scaled
               scaled
             }
         }
@@ -116,7 +116,7 @@ object ItemCosts {
         var result = Iterable.empty[(ItemStack, Double)]
         for (stack <- list if result.isEmpty) {
           cache.find {
-            case (key, value) => fuzzyEquals(key, stack)
+            case (key, value) => fuzzyEquals(key.inner, stack)
           } match {
             case Some((_, value)) => result = value
             case _ =>

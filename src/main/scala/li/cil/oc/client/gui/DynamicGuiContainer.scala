@@ -1,10 +1,14 @@
 package li.cil.oc.client.gui
 
+import codechicken.nei.ItemPanel
+import codechicken.nei.LayoutManager
+import cpw.mods.fml.common.Optional
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.container.Player
+import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -22,10 +26,22 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
   protected var hoveredStackNEI: Option[ItemStack] = None
 
-  override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+  protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRendererObj.drawString(
       Localization.localizeImmediately("container.inventory"),
       8, ySize - 96 + 2, 0x404040)
+  }
+
+  override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
+    drawSecondaryForegroundLayer(mouseX, mouseY)
+
+    for (slot <- 0 until inventorySlots.inventorySlots.size()) {
+      drawSlotHighlight(inventorySlots.inventorySlots.get(slot).asInstanceOf[Slot])
+    }
+
+    GL11.glPopAttrib()
   }
 
   protected def drawSecondaryBackgroundLayer() {}
@@ -55,12 +71,11 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
     super.drawScreen(mouseX, mouseY, dt)
 
-    GL11.glPushMatrix()
-    GL11.glTranslatef(guiLeft, guiTop, 0)
-    for (slot <- 0 until inventorySlots.inventorySlots.size()) {
-      drawSlotHighlight(inventorySlots.inventorySlots.get(slot).asInstanceOf[Slot])
+    if (Mods.NotEnoughItems.isAvailable) {
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      drawNEIHighlights()
+      GL11.glPopAttrib()
     }
-    GL11.glPopMatrix()
   }
 
   protected def drawSlotInventory(slot: Slot) {
@@ -70,44 +85,43 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
           drawDisabledSlot(component)
         }
       case _ =>
+        zLevel += 1
         if (!isInPlayerInventory(slot)) {
           drawSlotBackground(slot.xDisplayPosition - 1, slot.yDisplayPosition - 1)
         }
         if (!slot.getHasStack) slot match {
           case component: ComponentSlot if component.tierIcon != null =>
             mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
             drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
           case _ =>
         }
+        zLevel -= 1
     }
   }
 
   protected def drawSlotHighlight(slot: Slot) {
-    slot match {
+    if (mc.thePlayer.inventory.getItemStack == null) slot match {
       case component: ComponentSlot if component.slot == common.Slot.None || component.tier == common.Tier.None => // Ignore.
       case _ =>
-        if (mc.thePlayer.inventory.getItemStack == null) {
-          val currentIsInPlayerInventory = isInPlayerInventory(slot)
-          val drawHighlight = hoveredSlot match {
-            case Some(hovered) =>
-              val hoveredIsInPlayerInventory = isInPlayerInventory(hovered)
-              (currentIsInPlayerInventory != hoveredIsInPlayerInventory) &&
-                ((currentIsInPlayerInventory && slot.getHasStack && isSelectiveSlot(hovered) && hovered.isItemValid(slot.getStack)) ||
-                  (hoveredIsInPlayerInventory && hovered.getHasStack && isSelectiveSlot(slot) && slot.isItemValid(hovered.getStack)))
-            case _ => hoveredStackNEI match {
-              case Some(stack) => !currentIsInPlayerInventory && isSelectiveSlot(slot) && slot.isItemValid(stack)
-              case _ => false
-            }
+        val currentIsInPlayerInventory = isInPlayerInventory(slot)
+        val drawHighlight = hoveredSlot match {
+          case Some(hovered) =>
+            val hoveredIsInPlayerInventory = isInPlayerInventory(hovered)
+            (currentIsInPlayerInventory != hoveredIsInPlayerInventory) &&
+              ((currentIsInPlayerInventory && slot.getHasStack && isSelectiveSlot(hovered) && hovered.isItemValid(slot.getStack)) ||
+                (hoveredIsInPlayerInventory && hovered.getHasStack && isSelectiveSlot(slot) && slot.isItemValid(hovered.getStack)))
+          case _ => hoveredStackNEI match {
+            case Some(stack) => !currentIsInPlayerInventory && isSelectiveSlot(slot) && slot.isItemValid(stack)
+            case _ => false
           }
-          if (drawHighlight) {
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
-            GL11.glDisable(GL11.GL_LIGHTING)
-            drawGradientRect(slot.xDisplayPosition, slot.yDisplayPosition, slot.xDisplayPosition + 16, slot.yDisplayPosition + 16, 0x80FFFFFF, 0x80FFFFFF)
-            GL11.glEnable(GL11.GL_LIGHTING)
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
-          }
+        }
+        if (drawHighlight) {
+          zLevel += 100
+          drawGradientRect(
+            slot.xDisplayPosition, slot.yDisplayPosition,
+            slot.xDisplayPosition + 16, slot.yDisplayPosition + 16,
+            0x80FFFFFF, 0x80FFFFFF)
+          zLevel -= 100
         }
     }
   }
@@ -120,11 +134,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
   protected def drawDisabledSlot(slot: ComponentSlot) {
     GL11.glColor4f(1, 1, 1, 1)
     mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
-    GL11.glDisable(GL11.GL_DEPTH_TEST)
-    GL11.glDisable(GL11.GL_LIGHTING)
     drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, slot.tierIcon, 16, 16)
-    GL11.glEnable(GL11.GL_LIGHTING)
-    GL11.glEnable(GL11.GL_DEPTH_TEST)
   }
 
   protected def drawSlotBackground(x: Int, y: Int) {
@@ -132,10 +142,10 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     mc.getTextureManager.bindTexture(Textures.guiSlot)
     val t = Tessellator.instance
     t.startDrawingQuads()
-    t.addVertexWithUV(x, y + 18, zLevel + 1, 0, 1)
-    t.addVertexWithUV(x + 18, y + 18, zLevel + 1, 1, 1)
-    t.addVertexWithUV(x + 18, y, zLevel + 1, 1, 0)
-    t.addVertexWithUV(x, y, zLevel + 1, 0, 0)
+    t.addVertexWithUV(x, y + 18, zLevel, 0, 1)
+    t.addVertexWithUV(x + 18, y + 18, zLevel, 1, 1)
+    t.addVertexWithUV(x + 18, y, zLevel, 1, 0)
+    t.addVertexWithUV(x, y, zLevel, 0, 0)
     t.draw()
   }
 
@@ -157,5 +167,27 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
   private def isInPlayerInventory(slot: Slot) = container match {
     case player: Player => slot.inventory == player.playerInventory
     case _ => false
+  }
+
+  @Optional.Method(modid = Mods.IDs.NotEnoughItems)
+  private def drawNEIHighlights(): Unit = {
+    val panel = LayoutManager.itemPanel
+    if (panel == null) return
+    zLevel += 350
+    for (index <- 0 until ItemPanel.items.size()) {
+      val rect = panel.getSlotRect(index)
+      val slot = panel.getSlotMouseOver(rect.x, rect.y)
+      if (slot != null) hoveredSlot match {
+        case Some(hovered) =>
+          if (!isInPlayerInventory(hovered) && isSelectiveSlot(hovered) && hovered.isItemValid(slot.item)) {
+            drawGradientRect(
+              rect.x1 + 1, rect.y1 + 1,
+              rect.x2, rect.y2,
+              0x40FFFFFF, 0x40FFFFFF)
+          }
+        case _ =>
+      }
+    }
+    zLevel -= 350
   }
 }

@@ -16,13 +16,13 @@ import net.minecraft.nbt.NBTTagList
 object RobotTemplate extends Template {
   override protected def hostClass = classOf[internal.Robot]
 
-  def selectTier1(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.One
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case1")
 
-  def selectTier2(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Two
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case2")
 
-  def selectTier3(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Three
+  def selectTier3(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case3")
 
-  def selectCreative(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Four
+  def selectCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("caseCreative")
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 

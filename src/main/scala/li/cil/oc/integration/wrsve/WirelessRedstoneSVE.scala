@@ -2,6 +2,7 @@ package li.cil.oc.integration.wrsve
 
 import li.cil.oc.integration.util.WirelessRedstone.WirelessRedstoneSystem
 import li.cil.oc.server.component.RedstoneWireless
+import li.cil.oc.util.BlockPosition
 import net.minecraft.world.World
 
 import scala.language.reflectiveCalls
@@ -9,15 +10,15 @@ import scala.language.reflectiveCalls
 object WirelessRedstoneSVE extends WirelessRedstoneSystem {
   private val ether = try {
     Option(Class.forName("net.slimevoid.wirelessredstone.ether.RedstoneEther").getMethod("getInstance").invoke(null).asInstanceOf[ {
-      def addTransmitter(world: World, x: Int, y: Int, z: Int, frequency: AnyRef)
+      def addTransmitter(world: World, x: Int, y: Int, z: Int, frequency: AnyRef): Unit
 
-      def remTransmitter(world: World, x: Int, y: Int, z: Int, frequency: AnyRef)
+      def remTransmitter(world: World, x: Int, y: Int, z: Int, frequency: AnyRef): Unit
 
-      def addReceiver(world: World, x: Int, y: Int, z: Int, frequency: AnyRef)
+      def addReceiver(world: World, x: Int, y: Int, z: Int, frequency: AnyRef): Unit
 
-      def remReceiver(world: World, x: Int, y: Int, z: Int, frequency: AnyRef)
+      def remReceiver(world: World, x: Int, y: Int, z: Int, frequency: AnyRef): Unit
 
-      def setTransmitterState(world: World, x: Int, y: Int, z: Int, frequency: AnyRef, state: Boolean)
+      def setTransmitterState(world: World, x: Int, y: Int, z: Int, frequency: AnyRef, state: Boolean): Unit
 
       def getFreqState(world: World, frequency: AnyRef): Boolean
     }])
@@ -27,25 +28,25 @@ object WirelessRedstoneSVE extends WirelessRedstoneSystem {
   }
 
   def removeTransmitter(rs: RedstoneWireless) {
-    val te = rs.owner
-    ether.foreach(_.remTransmitter(te.world, te.x, te.y, te.z, rs.wirelessFrequency.toString))
+    val blockPos = BlockPosition(rs.redstone)
+    ether.foreach(_.remTransmitter(rs.redstone.world, blockPos.x, blockPos.y, blockPos.z, rs.wirelessFrequency.toString))
   }
 
   def addReceiver(rs: RedstoneWireless) {
-    val te = rs.owner
-    ether.foreach(_.addReceiver(te.world, te.x, te.y, te.z, rs.wirelessFrequency.toString))
+    val blockPos = BlockPosition(rs.redstone)
+    ether.foreach(_.addReceiver(rs.redstone.world, blockPos.x, blockPos.y, blockPos.z, rs.wirelessFrequency.toString))
   }
 
   def removeReceiver(rs: RedstoneWireless) {
-    val te = rs.owner
-    ether.foreach(_.remReceiver(te.world, te.x, te.y, te.z, rs.wirelessFrequency.toString))
+    val blockPos = BlockPosition(rs.redstone)
+    ether.foreach(_.remReceiver(rs.redstone.world, blockPos.x, blockPos.y, blockPos.z, rs.wirelessFrequency.toString))
   }
 
   def updateOutput(rs: RedstoneWireless) {
-    val te = rs.owner
-    ether.foreach(_.addTransmitter(te.world, te.x, te.y, te.z, rs.wirelessFrequency.toString))
-    ether.foreach(_.setTransmitterState(te.world, te.x, te.y, te.z, rs.wirelessFrequency.toString, rs.wirelessOutput))
+    val blockPos = BlockPosition(rs.redstone)
+    ether.foreach(_.addTransmitter(rs.redstone.world, blockPos.x, blockPos.y, blockPos.z, rs.wirelessFrequency.toString))
+    ether.foreach(_.setTransmitterState(rs.redstone.world, blockPos.x, blockPos.y, blockPos.z, rs.wirelessFrequency.toString, rs.wirelessOutput))
   }
 
-  def getInput(rs: RedstoneWireless) = ether.fold(false)(_.getFreqState(rs.owner.world, rs.wirelessFrequency.toString))
+  def getInput(rs: RedstoneWireless) = ether.fold(false)(_.getFreqState(rs.redstone.world, rs.wirelessFrequency.toString))
 }

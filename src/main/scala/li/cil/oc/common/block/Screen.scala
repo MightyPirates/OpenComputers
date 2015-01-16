@@ -328,8 +328,8 @@ class Screen(val tier: Int) extends RedstoneAware {
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, x, y, z, player, side, hitX, hitY, hitZ, force = false)
 
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) =
-    if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) false
+                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) = {
+    if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z)) && getValidRotations(world, x, y, z).contains(side) && !force) false
     else world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
@@ -343,6 +343,7 @@ class Screen(val tier: Int) extends RedstoneAware {
         screen.click(player, hitX, hitY, hitZ)
       case _ => false
     }
+  }
 
   override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity) =
     if (!world.isRemote) world.getTileEntity(x, y, z) match {

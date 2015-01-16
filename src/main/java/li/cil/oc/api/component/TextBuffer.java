@@ -341,6 +341,71 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      */
     boolean isBackgroundFromPalette(int column, int row);
 
+    /**
+     * Overwrites a portion of the text in raw mode.
+     * <p/>
+     * This will copy the given char array into the buffer, starting at the
+     * specified column and row. The array is expected to be indexed row-
+     * first, i.e. the first dimension is the vertical axis, the second
+     * the horizontal.
+     * <p/>
+     * <em>Important</em>: this performs no checks as to whether something
+     * actually changed. It will always send the changed patch to clients.
+     * It will also not crop the specified array to the actually used range.
+     * In other words, this is not intended to be exposed as-is to user code,
+     * it should always be called with validated, and, as necessary, cropped
+     * values.
+     *
+     * @param column the horizontal index.
+     * @param row the vertical index.
+     * @param text the text to write.
+     */
+    void rawSetText(int column, int row, char[][] text);
+
+    /**
+     * Overwrites a portion of the foreground color information in raw mode.
+     * <p/>
+     * This will convert the specified RGB data (in <tt>0xRRGGBB</tt> format)
+     * to the internal, packed representation and copy it into the buffer,
+     * starting at the specified column and row. The array is expected to be
+     * indexed row-first, i.e. the first dimension is the vertical axis, the
+     * second the horizontal.
+     * <p/>
+     * <em>Important</em>: this performs no checks as to whether something
+     * actually changed. It will always send the changed patch to clients.
+     * It will also not crop the specified array to the actually used range.
+     * In other words, this is not intended to be exposed as-is to user code,
+     * it should always be called with validated, and, as necessary, cropped
+     * values.
+     *
+     * @param column the horizontal index.
+     * @param row the vertical index.
+     * @param color the foreground color data to write.
+     */
+    void rawSetForeground(int column, int row, int[][] color);
+
+    /**
+     * Overwrites a portion of the background color information in raw mode.
+     * <p/>
+     * This will convert the specified RGB data (in <tt>0xRRGGBB</tt> format)
+     * to the internal, packed representation and copy it into the buffer,
+     * starting at the specified column and row. The array is expected to be
+     * indexed row-first, i.e. the first dimension is the vertical axis, the
+     * second the horizontal.
+     * <p/>
+     * <em>Important</em>: this performs no checks as to whether something
+     * actually changed. It will always send the changed patch to clients.
+     * It will also not crop the specified array to the actually used range.
+     * In other words, this is not intended to be exposed as-is to user code,
+     * it should always be called with validated, and, as necessary, cropped
+     * values.
+     *
+     * @param column the horizontal index.
+     * @param row the vertical index.
+     * @param color the background color data to write.
+     */
+    void rawSetBackground(int column, int row, int[][] color);
+
     // ----------------------------------------------------------------------- //
 
     /**
@@ -452,7 +517,7 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param button the button of the mouse that was pressed.
      * @param player the player that pressed the mouse button. Pass <tt>null</tt> on the client side.
      */
-    void mouseDown(int x, int y, int button, EntityPlayer player);
+    void mouseDown(double x, double y, int button, EntityPlayer player);
 
     /**
      * Signals a mouse drag event for the buffer.
@@ -465,7 +530,7 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param button the button of the mouse that is pressed.
      * @param player the player that moved the mouse. Pass <tt>null</tt> on the client side.
      */
-    void mouseDrag(int x, int y, int button, EntityPlayer player);
+    void mouseDrag(double x, double y, int button, EntityPlayer player);
 
     /**
      * Signals a mouse button release event for the buffer.
@@ -478,7 +543,7 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param button the button of the mouse that was released.
      * @param player the player that released the mouse button. Pass <tt>null</tt> on the client side.
      */
-    void mouseUp(int x, int y, int button, EntityPlayer player);
+    void mouseUp(double x, double y, int button, EntityPlayer player);
 
     /**
      * Signals a mouse wheel scroll event for the buffer.
@@ -491,6 +556,24 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * @param delta  indicates the direction of the mouse scroll.
      * @param player the player that scrolled the mouse wheel. Pass <tt>null</tt> on the client side.
      */
+    void mouseScroll(double x, double y, int delta, EntityPlayer player);
+
+    // TODO Remove deprecated overloads in 1.5.
+
+    /** @deprecated Use the floating-point variant instead. */
+    @Deprecated
+    void mouseDown(int x, int y, int button, EntityPlayer player);
+
+    /** @deprecated Use the floating-point variant instead. */
+    @Deprecated
+    void mouseDrag(int x, int y, int button, EntityPlayer player);
+
+    /** @deprecated Use the floating-point variant instead. */
+    @Deprecated
+    void mouseUp(int x, int y, int button, EntityPlayer player);
+
+    /** @deprecated Use the floating-point variant instead. */
+    @Deprecated
     void mouseScroll(int x, int y, int delta, EntityPlayer player);
 
     // ----------------------------------------------------------------------- //

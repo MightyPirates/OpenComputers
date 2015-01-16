@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
@@ -10,9 +9,8 @@ import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 
-class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware {
+class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override protected def customTextures = Array(
     None,
     Some("DisassemblerTop"),
@@ -38,20 +36,9 @@ class Disassembler extends SimpleBlock with traits.PowerAcceptor with traits.Sta
 
   override def energyThroughput = Settings.get.disassemblerRate
 
+  override def guiType = GuiType.Disassembler
+
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Disassembler()
-
-  // ----------------------------------------------------------------------- //
-
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Disassembler.id, world, x, y, z)
-      }
-      true
-    }
-    else false
-  }
 }

@@ -165,16 +165,16 @@ object PackedColor {
   case class Color(value: Int, isPalette: Boolean = false)
 
   // Colors are packed: 0xFFBB (F = foreground, B = background)
-  private val fgShift = 8
-  private val bgMask = 0x000000FF
+  val ForegroundShift = 8
+  val BackgroundMask = 0x000000FF
 
   def pack(foreground: Color, background: Color, format: ColorFormat) = {
-    (((format.deflate(foreground) & 0xFF) << fgShift) | (format.deflate(background) & 0xFF)).toShort
+    (((format.deflate(foreground) & 0xFF) << ForegroundShift) | (format.deflate(background) & 0xFF)).toShort
   }
 
-  def extractForeground(color: Short) = (color & 0xFFFF) >>> fgShift
+  def extractForeground(color: Short) = (color & 0xFFFF) >>> ForegroundShift
 
-  def extractBackground(color: Short) = color & bgMask
+  def extractBackground(color: Short) = color & BackgroundMask
 
   def unpackForeground(color: Short, format: ColorFormat) =
     format.inflate(extractForeground(color))

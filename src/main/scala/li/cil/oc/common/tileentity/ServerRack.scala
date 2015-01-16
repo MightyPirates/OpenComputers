@@ -239,7 +239,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       val l = 2 / 16.0
       val h = 14 / 16.0
       val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
-      Some(math.max(0, math.min(servers.length, slot)))
+      Some(math.max(0, math.min(servers.length - 1, slot)))
     }
     else None
   }
@@ -506,10 +506,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     checkRedstoneInputChanged()
   }
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
-    super.onRedstoneInputChanged(side)
+  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
+    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     servers collect {
-      case Some(server) => server.machine.signal("redstone_changed", server.machine.node.address, Int.box(toLocal(side).ordinal()))
+      case Some(server) => server.machine.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
     }
   }
 
