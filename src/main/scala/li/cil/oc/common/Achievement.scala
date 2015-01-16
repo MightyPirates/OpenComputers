@@ -7,7 +7,7 @@ import net.minecraft.stats.{Achievement => MCAchievement}
 import net.minecraftforge.common.AchievementPage
 
 object Achievement {
-  lazy val Transistor = new MCAchievement("oc.transistor", "oc.transistor", -2, 0, Items.get("transistor").createItemStack(1), AchievementList.acquireIron)
+  lazy val Transistor = new MCAchievement("oc.transistor", "oc.transistor", -2, 0, Items.get("transistor").createItemStack(1), null)
   lazy val Microchip = new MCAchievement("oc.chip", "oc.chip", 0, 0, Items.get("chip1").createItemStack(1), Transistor)
   lazy val CPU = new MCAchievement("oc.ram", "oc.ram", 2, -1, Items.get("ram1").createItemStack(1), Microchip)
   lazy val Memory = new MCAchievement("oc.cpu", "oc.cpu", 2, -3, Items.get("cpu1").createItemStack(1), Microchip)
