@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -10,10 +9,6 @@ import li.cil.oc.common.tileentity.traits.RedstoneAware
 import net.minecraftforge.common.util.ForgeDirection
 
 trait RedstoneVanilla extends RedstoneSignaller {
-  override val node = Network.newNode(this, Visibility.Network).
-    withComponent("redstone", Visibility.Neighbors).
-    create()
-
   def redstone: EnvironmentHost with RedstoneAware
 
   // ----------------------------------------------------------------------- //
