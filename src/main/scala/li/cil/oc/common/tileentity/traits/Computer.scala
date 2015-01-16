@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.util
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
@@ -14,6 +16,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
+import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
@@ -28,7 +31,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with MachineHost {
+trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with MachineHost with StateAware {
   private lazy val _machine = if (isServer) Machine.create(this) else null
 
   def machine = _machine
@@ -40,6 +43,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   private var markChunkDirty = false
 
   private val _users = mutable.Set.empty[String]
+
+  protected def runSound = Option("computer_running")
 
   // ----------------------------------------------------------------------- //
 
@@ -53,14 +58,21 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
     world.markBlockForUpdate(x, y, z)
-    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 50 + world.rand.nextInt(50))
-    else Sound.stopLoop(this)
+    runSound.foreach(sound =>
+      if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
+      else Sound.stopLoop(this)
+    )
   }
 
   @SideOnly(Side.CLIENT)
   def setUsers(list: Iterable[String]) {
     _users.clear()
     _users ++= list
+  }
+
+  override def currentState = {
+    if (isRunning) util.EnumSet.of(traits.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[traits.State])
   }
 
   // ----------------------------------------------------------------------- //
@@ -114,8 +126,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
       if (_isRunning != machine.isRunning) {
         _isRunning = machine.isRunning
-        isOutputEnabled = hasRedstoneCard
-        isAbstractBusAvailable = hasAbstractBusCard
+        markDirty()
         ServerPacketSender.sendComputerState(this)
       }
 
@@ -140,6 +151,13 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       case _ =>
     }
     machine.load(nbt.getCompoundTag(Settings.namespace + "computer"))
+
+    // Kickstart initialization to avoid values getting overwritten by
+    // readFromNBTForClient if that packet is handled after a manual
+    // initialization / state change packet.
+    _isRunning = machine.isRunning
+    _isOutputEnabled = hasRedstoneCard
+    _isAbstractBusAvailable = hasAbstractBusCard
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -158,7 +176,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     _isRunning = nbt.getBoolean("isRunning")
     _users.clear()
     _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
-    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 1000 + world.rand.nextInt(2000))
+    if (_isRunning) runSound.foreach(sound => Sound.startLoop(this, sound, 0.5f, 1000 + world.rand.nextInt(2000)))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
@@ -186,9 +204,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     checkRedstoneInputChanged()
   }
 
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
-    super.onRedstoneInputChanged(side)
-    machine.signal("redstone_changed", machine.node.address, Int.box(toLocal(side).ordinal()))
+  override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
+    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+    machine.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
   }
 
   // ----------------------------------------------------------------------- //

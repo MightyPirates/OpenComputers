@@ -9,8 +9,8 @@ import net.minecraft.inventory.Slot
 import org.lwjgl.opengl.GL11
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends DynamicGuiContainer(new container.Server(playerInventory, serverInventory)) {
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
-    super.drawGuiContainerForegroundLayer(mouseX, mouseY)
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
+    super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
       Localization.localizeImmediately(serverInventory.getInventoryName),
       8, 6, 0x404040)

@@ -13,9 +13,6 @@ object DriverUpgradePiston extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("pistonUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && isRotatable(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
     case rotatable: Rotatable with EnvironmentHost => new component.UpgradePiston(rotatable)
     case _ => null

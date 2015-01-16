@@ -52,15 +52,17 @@ object PackedColor {
     override def save(nbt: NBTTagCompound) {}
   }
 
-  object SingleBitFormat extends ColorFormat {
+  class SingleBitFormat(val color: Int) extends ColorFormat {
     override def depth = ColorDepth.OneBit
 
-    override def inflate(value: Int) = if (value == 0) 0x000000 else Settings.get.monochromeColor
+    override def inflate(value: Int) = if (value == 0) 0x000000 else color
 
     override def deflate(value: Color) = {
       (if (value.value == 0) 0 else 1).toByte
     }
   }
+
+  object SingleBitFormat extends SingleBitFormat(Settings.get.monochromeColor)
 
   abstract class PaletteFormat extends ColorFormat {
     override def inflate(value: Int) = palette(math.max(0, math.min(palette.length - 1, value)))
@@ -163,16 +165,16 @@ object PackedColor {
   case class Color(value: Int, isPalette: Boolean = false)
 
   // Colors are packed: 0xFFBB (F = foreground, B = background)
-  private val fgShift = 8
-  private val bgMask = 0x000000FF
+  val ForegroundShift = 8
+  val BackgroundMask = 0x000000FF
 
   def pack(foreground: Color, background: Color, format: ColorFormat) = {
-    (((format.deflate(foreground) & 0xFF) << fgShift) | (format.deflate(background) & 0xFF)).toShort
+    (((format.deflate(foreground) & 0xFF) << ForegroundShift) | (format.deflate(background) & 0xFF)).toShort
   }
 
-  def extractForeground(color: Short) = (color & 0xFFFF) >>> fgShift
+  def extractForeground(color: Short) = (color & 0xFFFF) >>> ForegroundShift
 
-  def extractBackground(color: Short) = color & bgMask
+  def extractBackground(color: Short) = color & BackgroundMask
 
   def unpackForeground(color: Short, format: ColorFormat) =
     format.inflate(extractForeground(color))

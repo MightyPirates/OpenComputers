@@ -4,9 +4,10 @@ import java.util.UUID
 
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.SideTracker
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.InventoryCrafting
@@ -14,8 +15,12 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
+import scala.util.control.Breaks._
 
 object ExtendedRecipe {
+  private lazy val drone = api.Items.get("drone")
+  private lazy val eeprom = api.Items.get("eeprom")
+  private lazy val mcu = api.Items.get("microcontroller")
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   private lazy val linkedCard = api.Items.get("linkedCard")
   private lazy val floppy = api.Items.get("floppy")
@@ -30,8 +35,8 @@ object ExtendedRecipe {
   def addNBTToResult(craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
     if (api.Items.get(craftedStack) == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
-        for (i <- 0 until inventory.getSizeInventory) {
-          val stack = inventory.getStackInSlot(i)
+        for (slot <- 0 until inventory.getSizeInventory) {
+          val stack = inventory.getStackInSlot(slot)
           if (stack != null && stack.getItem == net.minecraft.init.Items.filled_map) {
             // Store information of the map used for crafting in the result.
             val nbt = driver.dataTag(craftedStack)
@@ -55,25 +60,59 @@ object ExtendedRecipe {
         craftedStack.setTagCompound(new NBTTagCompound())
       }
       val nbt = craftedStack.getTagCompound
-      for (i <- 0 until inventory.getSizeInventory) {
-        val stack = inventory.getStackInSlot(i)
-        if (stack != null) {
-          Color.findDye(stack) match {
-            case Some(oreDictName) =>
-              nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf(oreDictName))
-            case _ =>
-          }
-          if (api.Items.get(stack) == floppy && stack.hasTagCompound) {
-            val oldData = stack.getTagCompound
-            for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
-              nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
-            }
+      for (slot <- 0 until inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(slot)
+        if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
+          val oldData = stack.getTagCompound
+          for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
+            nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
           }
         }
       }
     }
 
+    if (api.Items.get(craftedStack) == eeprom) breakable {
+      for (slot <- 0 until inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(slot)
+        if (stack != null && api.Items.get(stack) == eeprom && stack.hasTagCompound) {
+          val copy = stack.getTagCompound.copy.asInstanceOf[NBTTagCompound]
+          // Erase node address, just in case.
+          copy.getCompoundTag(Settings.namespace + "data").getCompoundTag("node").removeTag("address")
+          craftedStack.setTagCompound(copy)
+          break()
+        }
+      }
+    }
+
+    recraftMCU(craftedStack, inventory, mcu)
+    recraftMCU(craftedStack, inventory, drone)
+
     craftedStack
+  }
+
+  private def recraftMCU(craftedStack: ItemStack, inventory: InventoryCrafting, descriptor: ItemInfo) {
+    if (api.Items.get(craftedStack) == descriptor) {
+      // Find old Microcontroller.
+      (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).find(api.Items.get(_) == descriptor) match {
+        case Some(oldMcu) =>
+          val data = new ItemUtils.MicrocontrollerData(oldMcu)
+
+          // Remove old EEPROM.
+          val oldRom = data.components.filter(api.Items.get(_) == eeprom)
+          data.components = data.components.diff(oldRom)
+
+          // Insert new EEPROM.
+          for (slot <- 0 until inventory.getSizeInventory) {
+            val stack = inventory.getStackInSlot(slot)
+            if (api.Items.get(stack) == eeprom) {
+              data.components :+= stack
+            }
+          }
+
+          data.save(craftedStack)
+        case _ =>
+      }
+    }
   }
 
   private def weAreBeingCalledFromAppliedEnergistics2 = Mods.AppliedEnergistics2.isAvailable && new Exception().getStackTrace.exists(_.getClassName == "appeng.container.implementations.ContainerPatternTerm")

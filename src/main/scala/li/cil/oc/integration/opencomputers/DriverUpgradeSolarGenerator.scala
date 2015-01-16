@@ -12,12 +12,9 @@ object DriverUpgradeSolarGenerator extends Item with HostAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("solarGeneratorUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && !isAdapter(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.UpgradeSolarGenerator(host)
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 
-  override def tier(stack: ItemStack) = Tier.Three
+  override def tier(stack: ItemStack) = Tier.Two
 }

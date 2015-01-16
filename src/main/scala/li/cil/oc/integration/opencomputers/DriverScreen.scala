@@ -13,9 +13,6 @@ object DriverScreen extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("screen1"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && !isTablet(host) && !isAdapter(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
     case screen: tileentity.Screen if screen.tier > 0 => new component.Screen(screen)
     case _ => new component.TextBuffer(host)

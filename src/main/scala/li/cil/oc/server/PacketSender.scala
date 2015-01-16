@@ -258,15 +258,15 @@ object PacketSender {
     pb.sendToPlayersNearHost(t)
   }
 
-  def sendRobotMove(t: tileentity.Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
+  def sendRobotMove(t: tileentity.Robot, position: BlockPosition, direction: ForgeDirection) {
     val pb = new SimplePacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
     pb.writeInt(t.proxy.world.provider.dimensionId)
-    pb.writeInt(ox)
-    pb.writeInt(oy)
-    pb.writeInt(oz)
-    pb.writeDirection(direction)
+    pb.writeInt(position.x)
+    pb.writeInt(position.y)
+    pb.writeInt(position.z)
+    pb.writeDirection(Option(direction))
 
     pb.sendToPlayersNearTileEntity(t)
   }
@@ -300,6 +300,15 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendRobotLightChange(t: tileentity.Robot) {
+    val pb = new SimplePacketBuilder(PacketType.RobotLightChange)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeInt(t.info.lightColor)
+
+    pb.sendToPlayersNearTileEntity(t, Option(64))
+  }
+
   def sendRobotSelectedSlotChange(t: tileentity.Robot) {
     val pb = new SimplePacketBuilder(PacketType.RobotSelectedSlotChange)
 
@@ -313,8 +322,8 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.RotatableState)
 
     pb.writeTileEntity(t)
-    pb.writeDirection(t.pitch)
-    pb.writeDirection(t.yaw)
+    pb.writeDirection(Option(t.pitch))
+    pb.writeDirection(Option(t.yaw))
 
     pb.sendToPlayersNearTileEntity(t)
   }
@@ -328,7 +337,7 @@ object PacketSender {
   }
 
   def appendTextBufferColorChange(pb: PacketBuilder, foreground: PackedColor.Color, background: PackedColor.Color) {
-    pb.writePacketType(PacketType.TextBufferColorChange)
+    pb.writePacketType(PacketType.TextBufferMultiColorChange)
 
     pb.writeInt(foreground.value)
     pb.writeBoolean(foreground.isPalette)
@@ -337,7 +346,7 @@ object PacketSender {
   }
 
   def appendTextBufferCopy(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-    pb.writePacketType(PacketType.TextBufferCopy)
+    pb.writePacketType(PacketType.TextBufferMultiCopy)
 
     pb.writeInt(col)
     pb.writeInt(row)
@@ -348,13 +357,13 @@ object PacketSender {
   }
 
   def appendTextBufferDepthChange(pb: PacketBuilder, value: ColorDepth) {
-    pb.writePacketType(PacketType.TextBufferDepthChange)
+    pb.writePacketType(PacketType.TextBufferMultiDepthChange)
 
     pb.writeInt(value.ordinal)
   }
 
   def appendTextBufferFill(pb: PacketBuilder, col: Int, row: Int, w: Int, h: Int, c: Char) {
-    pb.writePacketType(PacketType.TextBufferFill)
+    pb.writePacketType(PacketType.TextBufferMultiFill)
 
     pb.writeInt(col)
     pb.writeInt(row)
@@ -364,26 +373,78 @@ object PacketSender {
   }
 
   def appendTextBufferPaletteChange(pb: PacketBuilder, index: Int, color: Int) {
-    pb.writePacketType(PacketType.TextBufferPaletteChange)
+    pb.writePacketType(PacketType.TextBufferMultiPaletteChange)
 
     pb.writeInt(index)
     pb.writeInt(color)
   }
 
   def appendTextBufferResolutionChange(pb: PacketBuilder, w: Int, h: Int) {
-    pb.writePacketType(PacketType.TextBufferResolutionChange)
+    pb.writePacketType(PacketType.TextBufferMultiResolutionChange)
+
+    pb.writeInt(w)
+    pb.writeInt(h)
+  }
+
+  def appendTextBufferMaxResolutionChange(pb: PacketBuilder, w: Int, h: Int): Unit = {
+    pb.writePacketType(PacketType.TextBufferMultiMaxResolutionChange)
 
     pb.writeInt(w)
     pb.writeInt(h)
   }
 
   def appendTextBufferSet(pb: PacketBuilder, col: Int, row: Int, s: String, vertical: Boolean) {
-    pb.writePacketType(PacketType.TextBufferSet)
+    pb.writePacketType(PacketType.TextBufferMultiSet)
 
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeUTF(s)
     pb.writeBoolean(vertical)
+  }
+
+  def appendTextBufferRawSetText(pb: PacketBuilder, col: Int, row: Int, text: Array[Array[Char]]) {
+    pb.writePacketType(PacketType.TextBufferMultiRawSetText)
+
+    pb.writeInt(col)
+    pb.writeInt(row)
+    pb.writeShort(text.length.toShort)
+    for (y <- 0 until text.length.toShort) {
+      val line = text(y)
+      pb.writeShort(line.length.toShort)
+      for (x <- 0 until line.length.toShort) {
+        pb.writeChar(line(x))
+      }
+    }
+  }
+
+  def appendTextBufferRawSetBackground(pb: PacketBuilder, col: Int, row: Int, color: Array[Array[Int]]) {
+    pb.writePacketType(PacketType.TextBufferMultiRawSetBackground)
+
+    pb.writeInt(col)
+    pb.writeInt(row)
+    pb.writeShort(color.length.toShort)
+    for (y <- 0 until color.length.toShort) {
+      val line = color(y)
+      pb.writeShort(line.length.toShort)
+      for (x <- 0 until line.length.toShort) {
+        pb.writeInt(line(x))
+      }
+    }
+  }
+
+  def appendTextBufferRawSetForeground(pb: PacketBuilder, col: Int, row: Int, color: Array[Array[Int]]) {
+    pb.writePacketType(PacketType.TextBufferMultiRawSetForeground)
+
+    pb.writeInt(col)
+    pb.writeInt(row)
+    pb.writeShort(color.length.toShort)
+    for (y <- 0 until color.length.toShort) {
+      val line = color(y)
+      pb.writeShort(line.length.toShort)
+      for (x <- 0 until line.length.toShort) {
+        pb.writeInt(line(x))
+      }
+    }
   }
 
   def sendTextBufferInit(address: String, value: NBTTagCompound, player: EntityPlayerMP) {

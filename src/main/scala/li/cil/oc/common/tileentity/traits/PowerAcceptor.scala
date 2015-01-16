@@ -9,4 +9,3 @@ trait PowerAcceptor
   with power.IndustrialCraft2Classic
   with power.Mekanism
   with power.RedstoneFlux
-  with power.UniversalElectricity

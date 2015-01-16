@@ -1,13 +1,17 @@
 package li.cil.oc.integration.opencomputers
 
-import li.cil.oc.api.driver.{EnvironmentAware, EnvironmentHost}
-import li.cil.oc.{api, common}
+import li.cil.oc.api
+import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.HostAware
+import li.cil.oc.common
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.init.Items
-import li.cil.oc.common.{Slot, Tier}
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
-object DriverGraphicsCard extends Item with EnvironmentAware {
+object DriverGraphicsCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("graphicsCard1"), api.Items.get("graphicsCard2"), api.Items.get("graphicsCard3"))
 

@@ -10,10 +10,9 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.WirelessEndpoint
-import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
@@ -26,6 +25,7 @@ import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -242,6 +242,22 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     }
     else {
       val otherNetwork = addedNode.network.asInstanceOf[Network.Wrapper].network
+
+      // If the other network contains nodes with addresses used in our local
+      // network we'll have to re-assign those... since dynamically handling
+      // changes to one's address is not expected of nodes / hosts, we have to
+      // remove and reconnect the nodes. This is a pretty shitty solution, and
+      // may break things slightly here and there (e.g. if this is the node of
+      // a running machine the computer will most likely crash), but it should
+      // never happen in normal operation anyway. It *can* happen when NBT
+      // editing stuff or using mods to clone blocks (e.g. WorldEdit).
+      otherNetwork.data.filter(entry => data.contains(entry._1)).toArray.foreach {
+        case (address, node: MutableNode) =>
+          val neighbors = node.neighbors.toArray // Copy to be on the safe side.
+          node.remove()
+          node.address = java.util.UUID.randomUUID().toString
+          neighbors.foreach(_.connect(node))
+      }
 
       if (addedNode.reachability == Visibility.Neighbors)
         connects += ((addedNode, Iterable(oldNode.data)))
@@ -463,7 +479,6 @@ object Network extends api.detail.NetworkAPI {
       case host: TileMultipart =>
         host.partList.forall {
           case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
-            import scala.collection.convert.WrapAsScala._
             val ownBounds = Iterable(new Cuboid6(Cable.cachedBounds(side.flag)))
             val otherBounds = part.getOcclusionBoxes
             NormalOcclusionTest(ownBounds, otherBounds)
@@ -600,6 +615,8 @@ object Network extends api.detail.NetworkAPI {
       edges.foreach(edge => edge.other(this).edges -= edge)
       searchGraphs(edges.map(_.other(this)))
     }
+
+    override def toString = s"$data [${edges.length}]"
   }
 
   private case class Edge(left: Vertex, right: Vertex) {
@@ -654,7 +671,7 @@ object Network extends api.detail.NetworkAPI {
         case _: java.lang.Double => 8
         case value: java.lang.String => value.length
         case value: Array[Byte] => value.length
-        case _ => 0
+        case _ => throw new IllegalArgumentException("unsupported data type")
       })
     }))
 

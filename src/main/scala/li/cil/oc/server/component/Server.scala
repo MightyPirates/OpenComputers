@@ -22,7 +22,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.util.ForgeDirection
 
 class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment with MachineHost with internal.Server {
   val machine = Machine.create(this)
@@ -111,7 +110,9 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
     // Ensure the message originated in our local network, to avoid infinite
     // recursion if two unconnected servers are in one server rack.
     if (rack.internalSwitch && message.name == "network.message" &&
-      rack.sides(this.slot) == ForgeDirection.UNKNOWN && node.network.node(message.source.address) != null) {
+      rack.sides(this.slot) == None && // Only if we're in internal mode.
+      message.source != machine.node && // In this case it was relayed from another internal machine.
+      node.network.node(message.source.address) != null) {
       for (slot <- 0 until rack.servers.length) {
         rack.servers(slot) match {
           case Some(server) if server != this => server.machine.node.sendToNeighbors(message.name, message.data: _*)

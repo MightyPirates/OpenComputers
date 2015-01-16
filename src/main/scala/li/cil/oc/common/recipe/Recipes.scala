@@ -9,6 +9,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
@@ -17,6 +18,7 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.RegistryNamespaced
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
@@ -32,22 +34,33 @@ object Recipes {
 
   def addBlock(instance: Block, name: String, oreDict: String = null) = {
     Items.registerBlock(instance, name)
-    list += new ItemStack(instance) -> name
-    register(oreDict, new ItemStack(instance))
+    addRecipe(new ItemStack(instance), name)
+    register(oreDict, instance match {
+      case simple: SimpleBlock => simple.createItemStack()
+      case _ => new ItemStack(instance)
+    })
     instance
   }
 
-  def addItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+  def addMultiItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
     Items.registerItem(delegate, name)
-    list += delegate.createItemStack() -> name
+    addRecipe(delegate.createItemStack(), name)
     register(oreDict, delegate.createItemStack())
     delegate
   }
 
-  def addItem(instance: Item, name: String) = {
+  def addItem(instance: Item, name: String, oreDict: String = null) = {
     Items.registerItem(instance, name)
-    list += new ItemStack(instance) -> name
+    addRecipe(new ItemStack(instance), name)
+    register(oreDict, instance match {
+      case simple: SimpleItem => simple.createItemStack()
+      case _ => new ItemStack(instance)
+    })
     instance
+  }
+
+  def addRecipe(stack: ItemStack, name: String) {
+    list += stack -> name
   }
 
   private def register(name: String, item: ItemStack) {
@@ -106,15 +119,41 @@ object Recipes {
         addRecipe(stack, recipes, name)
       }
 
+      // Recrafting operations.
+      val navigationUpgrade = api.Items.get("navigationUpgrade")
+      val mcu = api.Items.get("microcontroller")
+      val floppy = api.Items.get("floppy")
+      val drone = api.Items.get("drone")
+      val eeprom = api.Items.get("eeprom")
+
       // Navigation upgrade recrafting.
-      val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(net.minecraft.init.Items.filled_map, 1, OreDictionary.WILDCARD_VALUE)))
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        navigationUpgrade.createItemStack(1),
+        navigationUpgrade.createItemStack(1), new ItemStack(net.minecraft.init.Items.filled_map, 1, OreDictionary.WILDCARD_VALUE)))
 
       // Floppy disk coloring.
-      val floppy = api.Items.get("floppy").createItemStack(1)
       for (dye <- Color.dyes) {
-        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy, floppy, dye))
+        val result = floppy.createItemStack(1)
+        val tag = new NBTTagCompound()
+        tag.setInteger(Settings.namespace + "color", Color.dyes.indexOf(dye))
+        result.setTagCompound(tag)
+        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(result, floppy.createItemStack(1), dye))
       }
+
+      // Microcontroller recrafting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        mcu.createItemStack(1),
+        mcu.createItemStack(1), eeprom.createItemStack(1)))
+
+      // Drone recrafting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        drone.createItemStack(1),
+        drone.createItemStack(1), eeprom.createItemStack(1)))
+
+      // EEPROM copying via crafting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        eeprom.createItemStack(2),
+        eeprom.createItemStack(1), eeprom.createItemStack(1)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

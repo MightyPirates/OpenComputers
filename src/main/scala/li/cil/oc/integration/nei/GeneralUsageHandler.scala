@@ -1,8 +1,8 @@
 package li.cil.oc.integration.nei
 
+import codechicken.nei.recipe.IUsageHandler
 import li.cil.oc.Localization
 import li.cil.oc.api
-import codechicken.nei.recipe.IUsageHandler
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsScala._

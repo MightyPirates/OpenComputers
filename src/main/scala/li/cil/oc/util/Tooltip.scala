@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import net.minecraft.client.Minecraft
 import org.lwjgl.input.Keyboard
@@ -14,6 +15,7 @@ object Tooltip {
   private def font = Minecraft.getMinecraft.fontRenderer
 
   def get(name: String, args: Any*): java.util.List[String] = {
+    if (!Localization.canLocalize(Settings.namespace + "tooltip." + name)) return Seq.empty[String]
     val tooltip = Localization.localizeImmediately("tooltip." + name).
       format(args.map(_.toString): _*)
     val isSubTooltip = name.contains(".")

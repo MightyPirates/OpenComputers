@@ -8,7 +8,6 @@ import li.cil.oc.api
 import li.cil.oc.common.tileentity.AccessPoint
 import li.cil.oc.common.tileentity.Switch
 import li.cil.oc.util.ResultWrapper._
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
@@ -49,7 +48,7 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
       val answerPort = checkPort(arguments, 1)
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
       val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
-      result(switch.tryEnqueuePacket(ForgeDirection.UNKNOWN, packet))
+      result(switch.tryEnqueuePacket(None, packet))
     case "isWireless" => result(switch.isInstanceOf[AccessPoint])
     case _ => null
   }
@@ -61,10 +60,10 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
 
   private def checkPort(args: Array[AnyRef], index: Int) = {
     if (args.length < index - 1 || !args(index).isInstanceOf[Double])
-      throw new IllegalArgumentException("bad argument #%d (number expected)".format(index + 1))
+      throw new IllegalArgumentException(s"bad argument #${index + 1} (number expected)")
     val port = args(index).asInstanceOf[Double].toInt
     if (port < 1 || port > 0xFFFF)
-      throw new IllegalArgumentException("bad argument #%d (number in [1, 65535] expected)".format(index + 1))
+      throw new IllegalArgumentException(s"bad argument #${index + 1} (number in [1, 65535] expected)")
     port
   }
 }

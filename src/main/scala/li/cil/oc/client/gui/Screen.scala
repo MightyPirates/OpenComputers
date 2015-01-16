@@ -7,7 +7,7 @@ import li.cil.oc.util.RenderState
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
-class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val hasKeyboardCallback: () => Boolean, val hasPower: () => Boolean) extends TextBuffer {
+class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val hasKeyboardCallback: () => Boolean, val hasPower: () => Boolean) extends traits.InputBuffer {
   override protected def hasKeyboard = hasKeyboardCallback()
 
   override protected def bufferX = 8 + x
@@ -20,18 +20,18 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
 
   private var x, y = 0
 
-  private var mx, my = 0
+  private var mx, my = -1
 
   override def handleMouseInput() {
     super.handleMouseInput()
     if (hasMouse && Mouse.hasWheel && Mouse.getEventDWheel != 0) {
       val mouseX = Mouse.getEventX * width / mc.displayWidth
       val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1
-      val bx = (mouseX - x - bufferMargin) / TextBufferRenderCache.renderer.charRenderWidth + 1
-      val by = (mouseY - y - bufferMargin) / TextBufferRenderCache.renderer.charRenderHeight + 1
+      val bx = (mouseX - x - bufferMargin) / TextBufferRenderCache.renderer.charRenderWidth.toDouble
+      val by = (mouseY - y - bufferMargin) / TextBufferRenderCache.renderer.charRenderHeight.toDouble
       val bw = buffer.getWidth
       val bh = buffer.getHeight
-      if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
+      if (bx >= 0 && by >= 0 && bx < bw && by < bh) {
         val scroll = math.signum(Mouse.getEventDWheel)
         buffer.mouseScroll(bx, by, scroll, null)
       }
@@ -60,35 +60,35 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     super.mouseMovedOrUp(mouseX, mouseY, button)
     if (hasMouse && button >= 0) {
       if (didDrag) {
-        val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1
-        val by = ((mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight).toInt + 1
+        val bx = (mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth
+        val by = (mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight
         val bw = buffer.getWidth
         val bh = buffer.getHeight
-        if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
+        if (bx >= 0 && by >= 0 && bx < bw && by < bh) {
           buffer.mouseUp(bx, by, button, null)
         }
         else {
-          buffer.mouseUp(-1, -1, button, null)
+          buffer.mouseUp(-1.0, -1.0, button, null)
         }
       }
       didDrag = false
-      mx = 0
-      my = 0
+      mx = -1
+      my = -1
     }
   }
 
   private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
-    val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1
-    val by = ((mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight).toInt + 1
+    val bx = (mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth
+    val by = (mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight
     val bw = buffer.getWidth
     val bh = buffer.getHeight
-    if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
-      if (bx != mx || by != my) {
-        if (mx > 0 && my > 0) buffer.mouseDrag(bx, by, button, null)
+    if (bx >= 0 && by >= 0 && bx < bw && by < bh) {
+      if (bx.toInt != mx || by.toInt != my) {
+        if (mx >= 0 && my >= 0) buffer.mouseDrag(bx, by, button, null)
         else buffer.mouseDown(bx, by, button, null)
-        didDrag = mx > 0 && my > 0
-        mx = bx
-        my = by
+        didDrag = mx >= 0 && my >= 0
+        mx = bx.toInt
+        my = by.toInt
       }
     }
   }

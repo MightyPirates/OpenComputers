@@ -32,6 +32,11 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
     addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
+  {
+    val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
+    addSlotToContainer(48, 34, slot.slot, slot.tier)
+  }
+
   // Show the player's inventory.
   addPlayerInventorySlots(8, 84)
 

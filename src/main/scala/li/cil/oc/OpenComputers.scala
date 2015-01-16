@@ -32,13 +32,20 @@ object OpenComputers {
   def preInit(e: FMLPreInitializationEvent) {
     log = e.getModLog
     proxy.preInit(e)
+    OpenComputers.log.info("Done with pre init phase.")
   }
 
   @EventHandler
-  def init(e: FMLInitializationEvent) = proxy.init(e)
+  def init(e: FMLInitializationEvent) = {
+    proxy.init(e)
+    OpenComputers.log.info("Done with init phase.")
+  }
 
   @EventHandler
-  def postInit(e: FMLPostInitializationEvent) = proxy.postInit(e)
+  def postInit(e: FMLPostInitializationEvent) = {
+    proxy.postInit(e)
+    OpenComputers.log.info("Done with post init phase.")
+  }
 
   @EventHandler
   def missingMappings(e: FMLMissingMappingsEvent) = proxy.missingMappings(e)

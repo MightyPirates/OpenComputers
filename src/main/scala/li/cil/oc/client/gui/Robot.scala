@@ -23,7 +23,7 @@ import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
-class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
+class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with traits.InputBuffer {
   override protected val buffer = robot.components.collect {
     case Some(buffer: api.component.TextBuffer) => buffer
   }.headOption.orNull
@@ -55,13 +55,13 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val maxBufferWidth = 240.0
   private val maxBufferHeight = 140.0
 
-  private def bufferWidth = math.min(maxBufferWidth, TextBufferRenderCache.renderer.charRenderWidth * Settings.screenResolutionsByTier(0)._1)
+  private def bufferRenderWidth = math.min(maxBufferWidth, TextBufferRenderCache.renderer.charRenderWidth * Settings.screenResolutionsByTier(0)._1)
 
-  private def bufferHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * Settings.screenResolutionsByTier(0)._2)
+  private def bufferRenderHeight = math.min(maxBufferHeight, TextBufferRenderCache.renderer.charRenderHeight * Settings.screenResolutionsByTier(0)._2)
 
-  override protected def bufferX = (8 + (maxBufferWidth - bufferWidth) / 2).toInt
+  override protected def bufferX = (8 + (maxBufferWidth - bufferRenderWidth) / 2).toInt
 
-  override protected def bufferY = (8 + (maxBufferHeight - bufferHeight) / 2).toInt
+  override protected def bufferY = (8 + (maxBufferHeight - bufferRenderHeight) / 2).toInt
 
   private val inventoryX = 169
   private val inventoryY = 155 - deltaY
@@ -113,8 +113,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       BufferRenderer.drawBackground()
       GL11.glPopMatrix()
       RenderState.makeItBlend()
-      val scaleX = bufferWidth / buffer.renderWidth
-      val scaleY = bufferHeight / buffer.renderHeight
+      val scaleX = bufferRenderWidth / buffer.renderWidth
+      val scaleY = bufferRenderHeight / buffer.renderHeight
       val scale = math.min(scaleX, scaleY)
       if (scaleX > scale) {
         GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
@@ -128,12 +128,12 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+  override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (func_146978_c(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      val format = Localization.Robot.Power + ": %d%% (%d/%d)"
+      val format = Localization.Computer.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(
         ((robot.globalBuffer / robot.globalBufferSize) * 100).toInt,
         robot.globalBuffer.toInt,
@@ -142,7 +142,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
     if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (robot.isRunning) Localization.Robot.TurnOff else Localization.Robot.TurnOn)
+      tooltip.add(if (robot.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()
@@ -260,10 +260,10 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
     val bw = w * TextBufferRenderCache.renderer.charRenderWidth
     val bh = h * TextBufferRenderCache.renderer.charRenderHeight
-    val scaleX = math.min(bufferWidth / bw, 1)
-    val scaleY = math.min(bufferHeight / bh, 1)
+    val scaleX = math.min(bufferRenderWidth / bw, 1)
+    val scaleY = math.min(bufferRenderHeight / bh, 1)
     if (recompile) {
-      BufferRenderer.compileBackground(bufferWidth.toInt, bufferHeight.toInt, forRobot = true)
+      BufferRenderer.compileBackground(bufferRenderWidth.toInt, bufferRenderHeight.toInt, forRobot = true)
     }
     math.min(scaleX, scaleY)
   }

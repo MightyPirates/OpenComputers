@@ -18,6 +18,7 @@ import scala.collection.mutable
 
 abstract class Template {
   protected val suggestedComponents = Array(
+    "BIOS" -> hasComponent("eeprom") _,
     "Screen" -> hasComponent("screen1") _,
     "Keyboard" -> hasComponent("keyboard") _,
     "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
@@ -92,7 +93,7 @@ abstract class Template {
       acc += (Option(api.Driver.driverFor(stack, hostClass)) match {
         case Some(driver: Processor) => 0 // CPUs are exempt, since they control the limit.
         case Some(driver: Container) => (1 + driver.tier(stack)) * 2
-        case Some(driver) => 1 + driver.tier(stack)
+        case Some(driver) if driver.slot(stack) != Slot.EEPROM => 1 + driver.tier(stack)
         case _ => 0
       })
     }

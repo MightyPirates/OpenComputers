@@ -1,18 +1,27 @@
 package li.cil.oc.server.component
 
+import com.google.common.base.Strings
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.command.ICommandSender
 import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.JsonToNBT
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
@@ -22,12 +31,19 @@ import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.FakePlayerFactory
+import net.minecraftforge.common.util.ForgeDirection
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("debug").
     withConnector().
     create()
+
+  // Used to detect disconnects.
+  private var remoteNode: Option[Node] = None
+
+  // Used for delayed connecting to remote node again after loading.
+  private var remoteNodePosition: Option[(Int, Int, Int)] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -71,10 +87,86 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")
   def runCommand(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
     val command = args.checkString(0)
     val sender = new CommandSender(host)
     val value = MinecraftServer.getServer.getCommandManager.executeCommand(sender, command)
     result(value, sender.messages.orNull)
+  }
+
+  @Callback(doc = """function(x:number, y:number, z:number):boolean -- Connect the debug card to the block at the specified coordinates.""")
+  def connectToBlock(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    val x = args.checkInteger(0)
+    val y = args.checkInteger(1)
+    val z = args.checkInteger(2)
+    findNode(x, y, z) match {
+      case Some(other) =>
+        remoteNode.foreach(other => node.disconnect(other))
+        remoteNode = Some(other)
+        remoteNodePosition = Some((x, y, z))
+        node.connect(other)
+        result(true)
+      case _ =>
+        result(Unit, "no node found at this position")
+    }
+  }
+
+  private def findNode(x: Int, y: Int, z: Int) =
+    if (host.world.blockExists(x, y, z)) {
+      host.world.getTileEntity(x, y, z) match {
+        case env: SidedEnvironment => ForgeDirection.VALID_DIRECTIONS.map(env.sidedNode).find(_ != null)
+        case env: Environment => Option(env.node)
+        case _ => None
+      }
+    }
+    else None
+
+  // ----------------------------------------------------------------------- //
+
+  override def onConnect(node: Node): Unit = {
+    super.onConnect(node)
+    if (node == this.node) remoteNodePosition.foreach {
+      case (x, y, z) =>
+        remoteNode = findNode(x, y, z)
+        remoteNode match {
+          case Some(other) => node.connect(other)
+          case _ => remoteNodePosition = None
+        }
+    }
+  }
+
+  override def onDisconnect(node: Node): Unit = {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      remoteNode.foreach(other => other.disconnect(node))
+    }
+    else if (remoteNode.contains(node)) {
+      remoteNode = None
+      remoteNodePosition = None
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def load(nbt: NBTTagCompound): Unit = {
+    super.load(nbt)
+    if (nbt.hasKey(Settings.namespace + "remoteX")) {
+      val x = nbt.getInteger(Settings.namespace + "remoteX")
+      val y = nbt.getInteger(Settings.namespace + "remoteY")
+      val z = nbt.getInteger(Settings.namespace + "remoteZ")
+      remoteNodePosition = Some((x, y, z))
+    }
+  }
+
+  override def save(nbt: NBTTagCompound): Unit = {
+    super.save(nbt)
+    remoteNodePosition.foreach {
+      case (x, y, z) =>
+        nbt.setInteger(Settings.namespace + "remoteX", x)
+        nbt.setInteger(Settings.namespace + "remoteY", y)
+        nbt.setInteger(Settings.namespace + "remoteZ", z)
+    }
   }
 }
 
@@ -300,6 +392,30 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
+    @Callback(doc = """function(id:string, count:number, damage:number, nbt:string, x:number, y:number, z:number, side:number):boolean - Insert an item stack into the inventory at the specified location. NBT tag is expected in JSON format.""")
+    def insertItem(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val item = Item.itemRegistry.getObject(args.checkString(0)).asInstanceOf[Item]
+      if (item == null) {
+        throw new IllegalArgumentException("invalid item id")
+      }
+      val count = args.checkInteger(1)
+      val damage = args.checkInteger(2)
+      val tagJson = args.checkString(3)
+      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_150315_a(tagJson).asInstanceOf[NBTTagCompound]
+      val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
+      val side = args.checkSide(7, ForgeDirection.VALID_DIRECTIONS: _*)
+      InventoryUtils.inventoryAt(position) match {
+        case Some(inventory) =>
+          val stack = new ItemStack(item, count, damage)
+          stack.setTagCompound(tag)
+          result(InventoryUtils.insertIntoInventory(stack, inventory, Option(side)))
+        case _ => result(Unit, "no inventory")
+      }
+    }
+
+    // ----------------------------------------------------------------------- //
+
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
       world = DimensionManager.getWorld(nbt.getInteger("dimension"))
@@ -328,14 +444,15 @@ object DebugCard {
       val profile = fakePlayer.getGameProfile
       val server = fakePlayer.mcServer
       val config = server.getConfigurationManager
-      config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
+      server.isSinglePlayer || (config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
         case entry: UserListOpsEntry => entry.func_152644_a >= level
         case _ => server.getOpPermissionLevel >= level
-      })
+      }))
     }
 
     override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates
 
     override def func_145748_c_() = fakePlayer.func_145748_c_()
   }
+
 }

@@ -37,6 +37,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
 
+  val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
+
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
 
@@ -55,13 +57,13 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (!converters.contains(converter)) converters += converter
   }
 
-  def driverFor(world: World, x: Int, y: Int, z: Int) =
+  override def driverFor(world: World, x: Int, y: Int, z: Int) =
     blocks.filter(_.worksWith(world, x, y, z)) match {
       case drivers if drivers.nonEmpty => new CompoundBlockDriver(drivers: _*)
       case _ => null
     }
 
-  def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
+  override def driverFor(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
     if (stack != null) {
       val hostAware = items.collect {
         case driver: HostAware if driver.worksWith(stack) => driver
@@ -73,13 +75,20 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
     else null
 
-  def driverFor(stack: ItemStack) =
+  override def driverFor(stack: ItemStack) =
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
 
   override def blockDrivers = blocks.toSeq
 
   override def itemDrivers = items.toSeq
+
+  def blacklistHost(stack: ItemStack, host: Class[_]) {
+    blacklist.find(_._1.isItemEqual(stack)) match {
+      case Some((_, hosts)) => hosts += host
+      case _ => blacklist.append((stack, mutable.Set(host)))
+    }
+  }
 
   def convert(value: Array[AnyRef]) = if (value != null) value.map(arg => convertRecursively(arg, new util.IdentityHashMap())) else null
 

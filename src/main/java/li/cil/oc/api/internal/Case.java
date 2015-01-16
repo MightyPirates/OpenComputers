@@ -8,22 +8,17 @@ import net.minecraft.inventory.IInventory;
 /**
  * This interface is implemented as a marker by computer cases.
  * <p/>
- * This is implemented by computer case tile entities, which also serve as its
- * computer components' environment. That means you can use this to check for
- * computer cases by using either:
+ * This is implemented by computer case tile entities. That means you can
+ * use this to check for computer cases by using:
  * <pre>
  *     if (tileEntity instanceof Case) {
- * </pre>
- * or
- * <pre>
- *     if (node.host() instanceof Case) {
  * </pre>
  * <p/>
  * The only purpose is to allow identifying tile entities as computer cases
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Case extends Environment, EnvironmentHost, Rotatable, Colored, IInventory {
+public interface Case extends Environment, EnvironmentHost, Colored, Rotatable, Tiered, IInventory {
     /**
      * The machine currently hosted by this computer case.
      */

@@ -11,9 +11,6 @@ object DriverUpgradeInventory extends Item with Inventory with HostAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("inventoryUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && isRobot(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 
   override def slot(stack: ItemStack) = Slot.Upgrade

@@ -8,9 +8,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
+import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.Rarity
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.IBlockAccess
@@ -47,7 +49,10 @@ class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = EnumRarity.epic
+  override def rarity(stack: ItemStack) = {
+    val data = new ItemUtils.RobotData(stack)
+    Rarity.byTier(data.tier)
+  }
 
   // ----------------------------------------------------------------------- //
 

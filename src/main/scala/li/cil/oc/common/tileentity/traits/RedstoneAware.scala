@@ -6,6 +6,8 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import mods.immibis.redlogic.api.wiring.IConnectable
 import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
@@ -77,8 +79,8 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     val oldInput = _input(side.ordinal())
     val newInput = computeInput(side)
     _input(side.ordinal()) = newInput
-    if (oldInput >= 0 && input(side) != oldInput) {
-      onRedstoneInputChanged(side)
+    if (oldInput >= 0 && newInput != oldInput) {
+      onRedstoneInputChanged(side, oldInput, newInput)
     }
   }
 
@@ -116,14 +118,14 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   // ----------------------------------------------------------------------- //
 
   protected def computeInput(side: ForgeDirection) = {
-    val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-    if (!world.blockExists(nx, ny, nz)) 0
+    val blockPos = BlockPosition(x, y, z).offset(side)
+    if (!world.blockExists(blockPos)) 0
     else {
       // See BlockRedstoneLogic.getInputStrength() for reference.
-      val vanilla = math.max(world.getIndirectPowerLevelTo(nx, ny, nz, side.ordinal()),
-        if (world.getBlock(nx, ny, nz) == Blocks.redstone_wire) world.getBlockMetadata(nx, ny, nz) else 0)
+      val vanilla = math.max(world.getIndirectPowerLevelTo(blockPos, side),
+        if (world.getBlock(blockPos) == Blocks.redstone_wire) world.getBlockMetadata(blockPos) else 0)
       val redLogic = if (Mods.RedLogic.isAvailable) {
-        world.getTileEntity(nx, ny, nz) match {
+        world.getTileEntity(blockPos) match {
           case emitter: IRedstoneEmitter =>
             var strength = 0
             for (i <- -1 to 5) {
@@ -138,23 +140,21 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     }
   }
 
-  protected def onRedstoneInputChanged(side: ForgeDirection) {}
+  protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {}
 
   protected def onRedstoneOutputEnabledChanged() {
-    world.notifyBlocksOfNeighborChange(x, y, z, block)
+    world.notifyBlocksOfNeighborChange(position, block)
     if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.markBlockForUpdate(x, y, z)
+    else world.markBlockForUpdate(position)
   }
 
   protected def onRedstoneOutputChanged(side: ForgeDirection) {
-    val nx = x + side.offsetX
-    val ny = y + side.offsetY
-    val nz = z + side.offsetZ
-    world.notifyBlockOfNeighborChange(nx, ny, nz, block)
-    world.notifyBlocksOfNeighborChange(nx, ny, nz, world.getBlock(nx, ny, nz), side.getOpposite.ordinal)
+    val blockPos = position.offset(side)
+    world.notifyBlockOfNeighborChange(blockPos, block)
+    world.notifyBlocksOfNeighborChange(blockPos, world.getBlock(blockPos), side.getOpposite)
 
     if (isServer) ServerPacketSender.sendRedstoneState(this)
-    else world.markBlockForUpdate(x, y, z)
+    else world.markBlockForUpdate(position)
   }
 
   // ----------------------------------------------------------------------- //

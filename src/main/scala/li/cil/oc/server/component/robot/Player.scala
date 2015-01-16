@@ -1,7 +1,5 @@
 package li.cil.oc.server.component.robot
 
-import java.util.UUID
-
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
@@ -74,7 +72,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   }
   else inventory = robot.inventory
 
-  var facing, side = ForgeDirection.UNKNOWN
+  var facing, side = ForgeDirection.SOUTH
 
   var customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided: ItemStack = _
 
@@ -202,7 +200,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, ForgeDirection.UNKNOWN.ordinal, world))) {
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, 0, world))) {
         tryUseItem(stack, duration)
       }
       else false
@@ -360,7 +358,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   }
 
   override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =
-    robot.spawnStackInWorld(stack, if (inPlace) ForgeDirection.UNKNOWN else facing)
+    robot.spawnStackInWorld(stack, if (inPlace) None else Option(facing))
 
   private def shouldCancel(f: () => PlayerInteractEvent) = {
     try {
@@ -400,7 +398,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
     // Only if the underlying type didn't change.
-    if (stack.getItem == oldStack.getItem) {
+    if (stack != null && oldStack != null && stack.getItem == oldStack.getItem) {
       val damageRate = new RobotUsedToolEvent.ComputeDamageRate(robot, oldStack, stack, Settings.get.itemDamageRate)
       MinecraftForge.EVENT_BUS.post(damageRate)
       if (damageRate.getDamageRate < 1) {

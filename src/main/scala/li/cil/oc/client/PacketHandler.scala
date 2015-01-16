@@ -7,13 +7,13 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
-import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
@@ -58,20 +58,14 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
       case PacketType.RobotAssemblingState => onRobotAssemblingState(p)
       case PacketType.RobotInventoryChange => onRobotInventoryChange(p)
+      case PacketType.RobotLightChange => onRobotLightChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RotatableState => onRotatableState(p)
       case PacketType.SwitchActivity => onSwitchActivity(p)
-      case PacketType.TextBufferColorChange => onTextBufferColorChange(p)
-      case PacketType.TextBufferCopy => onTextBufferCopy(p)
-      case PacketType.TextBufferDepthChange => onTextBufferDepthChange(p)
-      case PacketType.TextBufferFill => onTextBufferFill(p)
       case PacketType.TextBufferInit => onTextBufferInit(p)
-      case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p)
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferMulti => onTextBufferMulti(p)
-      case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
-      case PacketType.TextBufferSet => onTextBufferSet(p)
       case PacketType.ScreenTouchMode => onScreenTouchMode(p)
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
@@ -99,7 +93,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
         t.hasPower = p.readBoolean()
-        t.world.markBlockForUpdate(t.x, t.y, t.z)
+        t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -107,7 +101,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Colored]() match {
       case Some(t) =>
         t.color = p.readInt()
-        t.world.markBlockForUpdate(t.x, t.y, t.z)
+        t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }
 
@@ -300,17 +294,24 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onRobotLightChange(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.info.lightColor = p.readInt()
+      case _ => // Invalid packet.
+    }
+
   def onRobotMove(p: PacketParser) = {
     val dimension = p.readInt()
     val x = p.readInt()
     val y = p.readInt()
     val z = p.readInt()
     val direction = p.readDirection()
-    p.getTileEntity[RobotProxy](dimension, x, y, z) match {
-      case Some(t) => t.robot.move(direction)
-      case _ =>
+    (p.getTileEntity[RobotProxy](dimension, x, y, z), direction) match {
+      case (Some(t), Some(d)) => t.robot.move(d)
+      case (_, Some(d)) =>
         // Invalid packet, robot may be coming from outside our loaded area.
-        PacketSender.sendRobotStateRequest(dimension, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
+        PacketSender.sendRobotStateRequest(dimension, x + d.offsetX, y + d.offsetY, z + d.offsetZ)
+      case _ => // Invalid packet.
     }
   }
 
@@ -323,8 +324,8 @@ object PacketHandler extends CommonPacketHandler {
   def onRotatableState(p: PacketParser) =
     p.readTileEntity[Rotatable]() match {
       case Some(t) =>
-        t.pitch = p.readDirection()
-        t.yaw = p.readDirection()
+        t.pitch = p.readDirection().get
+        t.yaw = p.readDirection().get
       case _ => // Invalid packet.
     }
 
@@ -334,9 +335,56 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onTextBufferColorChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
-    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
+  def onTextBufferPowerChange(p: PacketParser) =
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: component.TextBuffer) =>
+        buffer.setRenderingEnabled(p.readBoolean())
+      case _ => // Invalid packet.
+    }
+
+  def onTextBufferInit(p: PacketParser) {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+      case Some(buffer: li.cil.oc.common.component.TextBuffer) =>
+        val nbt = p.readNBT()
+        if (nbt.hasKey("maxWidth")) {
+          val maxWidth = nbt.getInteger("maxWidth")
+          val maxHeight = nbt.getInteger("maxHeight")
+          buffer.setMaximumResolution(maxWidth, maxHeight)
+        }
+        buffer.data.load(nbt)
+        buffer.proxy.markDirty()
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onTextBufferMulti(p: PacketParser) =
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
+        try while (true) {
+          p.readPacketType() match {
+            case PacketType.TextBufferMultiColorChange => onTextBufferMultiColorChange(p, buffer)
+            case PacketType.TextBufferMultiCopy => onTextBufferMultiCopy(p, buffer)
+            case PacketType.TextBufferMultiDepthChange => onTextBufferMultiDepthChange(p, buffer)
+            case PacketType.TextBufferMultiFill => onTextBufferMultiFill(p, buffer)
+            case PacketType.TextBufferMultiPaletteChange => onTextBufferMultiPaletteChange(p, buffer)
+            case PacketType.TextBufferMultiResolutionChange => onTextBufferMultiResolutionChange(p, buffer)
+            case PacketType.TextBufferMultiMaxResolutionChange => onTextBufferMultiMaxResolutionChange(p, buffer)
+            case PacketType.TextBufferMultiSet => onTextBufferMultiSet(p, buffer)
+            case PacketType.TextBufferMultiRawSetText => onTextBufferMultiRawSetText(p, buffer)
+            case PacketType.TextBufferMultiRawSetBackground => onTextBufferMultiRawSetBackground(p, buffer)
+            case PacketType.TextBufferMultiRawSetForeground => onTextBufferMultiRawSetForeground(p, buffer)
+            case _ => // Invalid packet.
+          }
+        }
+        catch {
+          case ignored: EOFException => // No more commands.
+        }
+      case _ => // Invalid packet.
+    }
+
+  def onTextBufferMultiColorChange(p: PacketParser, env: component.TextBuffer) {
+    env match {
+      case buffer: component.TextBuffer =>
         val foreground = p.readInt()
         val foregroundIsPalette = p.readBoolean()
         buffer.setForegroundColor(foreground, foregroundIsPalette)
@@ -347,108 +395,107 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onTextBufferCopy(p: PacketParser, env: Option[ManagedEnvironment] = None) {
-    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
-      case Some(buffer: component.TextBuffer) =>
-        val col = p.readInt()
-        val row = p.readInt()
-        val w = p.readInt()
-        val h = p.readInt()
-        val tx = p.readInt()
-        val ty = p.readInt()
-        buffer.copy(col, row, w, h, tx, ty)
-      case _ => // Invalid packet.
-    }
+  def onTextBufferMultiCopy(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+    val w = p.readInt()
+    val h = p.readInt()
+    val tx = p.readInt()
+    val ty = p.readInt()
+    buffer.copy(col, row, w, h, tx, ty)
   }
 
-  def onTextBufferDepthChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
-    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
-      case Some(buffer: component.TextBuffer) =>
-        buffer.setColorDepth(component.TextBuffer.ColorDepth.values.apply(p.readInt()))
-      case _ => // Invalid packet.
-    }
+  def onTextBufferMultiDepthChange(p: PacketParser, buffer: component.TextBuffer) {
+    buffer.setColorDepth(component.TextBuffer.ColorDepth.values.apply(p.readInt()))
   }
 
-  def onTextBufferFill(p: PacketParser, env: Option[ManagedEnvironment] = None) {
-    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
-      case Some(buffer: component.TextBuffer) =>
-        val col = p.readInt()
-        val row = p.readInt()
-        val w = p.readInt()
-        val h = p.readInt()
-        val c = p.readChar()
-        buffer.fill(col, row, w, h, c)
-      case _ => // Invalid packet.
-    }
+  def onTextBufferMultiFill(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+    val w = p.readInt()
+    val h = p.readInt()
+    val c = p.readChar()
+    buffer.fill(col, row, w, h, c)
   }
 
-  def onTextBufferInit(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: li.cil.oc.common.component.TextBuffer) =>
-        buffer.data.load(p.readNBT())
-        buffer.proxy.markDirty()
-      case _ => // Invalid packet.
-    }
+  def onTextBufferMultiPaletteChange(p: PacketParser, buffer: component.TextBuffer) {
+    val index = p.readInt()
+    val color = p.readInt()
+    buffer.setPaletteColor(index, color)
   }
 
-  def onTextBufferPaletteChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
-    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
-      case Some(buffer: component.TextBuffer) =>
-        val index = p.readInt()
-        val color = p.readInt()
-        buffer.setPaletteColor(index, color)
-      case _ => // Invalid packet.
-    }
+  def onTextBufferMultiResolutionChange(p: PacketParser, buffer: component.TextBuffer) {
+    val w = p.readInt()
+    val h = p.readInt()
+    buffer.setResolution(w, h)
   }
 
-  def onTextBufferPowerChange(p: PacketParser) =
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: component.TextBuffer) =>
-        buffer.setRenderingEnabled(p.readBoolean())
-      case _ => // Invalid packet.
-    }
-
-  def onTextBufferMulti(p: PacketParser) =
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: component.TextBuffer) =>
-        try while (true) {
-          p.readPacketType() match {
-            case PacketType.TextBufferColorChange => onTextBufferColorChange(p, Some(buffer))
-            case PacketType.TextBufferCopy => onTextBufferCopy(p, Some(buffer))
-            case PacketType.TextBufferDepthChange => onTextBufferDepthChange(p, Some(buffer))
-            case PacketType.TextBufferFill => onTextBufferFill(p, Some(buffer))
-            case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p, Some(buffer))
-            case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p, Some(buffer))
-            case PacketType.TextBufferSet => onTextBufferSet(p, Some(buffer))
-            case _ => // Invalid packet.
-          }
-        }
-        catch {
-          case ignored: EOFException => // No more commands.
-        }
-      case _ => // Invalid packet.
-    }
-
-  def onTextBufferResolutionChange(p: PacketParser, env: Option[ManagedEnvironment] = None) {
-    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
-      case Some(buffer: component.TextBuffer) =>
-        val w = p.readInt()
-        val h = p.readInt()
-        buffer.setResolution(w, h)
-      case _ => // Invalid packet.
-    }
+  def onTextBufferMultiMaxResolutionChange(p: PacketParser, buffer: component.TextBuffer) {
+    val w = p.readInt()
+    val h = p.readInt()
+    buffer.setMaximumResolution(w, h)
   }
 
-  def onTextBufferSet(p: PacketParser, env: Option[ManagedEnvironment] = None) {
-    env.orElse(ComponentTracker.get(p.player.worldObj, p.readUTF())) match {
-      case Some(buffer: component.TextBuffer) =>
-        val col = p.readInt()
-        val row = p.readInt()
-        val s = p.readUTF()
-        val vertical = p.readBoolean()
-        buffer.set(col, row, s, vertical)
-      case _ => // Invalid packet.
+  def onTextBufferMultiSet(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+    val s = p.readUTF()
+    val vertical = p.readBoolean()
+    buffer.set(col, row, s, vertical)
+  }
+
+  def onTextBufferMultiRawSetText(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+
+    val rows = p.readShort()
+    val text = new Array[Array[Char]](rows)
+    for (y <- 0 until rows) {
+      val cols = p.readShort()
+      val line = new Array[Char](cols)
+      for (x <- 0 until cols) {
+        line(x) = p.readChar()
+      }
+      text(y) = line
     }
+
+    buffer.rawSetText(col, row, text)
+  }
+
+  def onTextBufferMultiRawSetBackground(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+
+    val rows = p.readShort()
+    val color = new Array[Array[Int]](rows)
+    for (y <- 0 until rows) {
+      val cols = p.readShort()
+      val line = new Array[Int](cols)
+      for (x <- 0 until cols) {
+        line(x) = p.readInt()
+      }
+      color(y) = line
+    }
+
+    buffer.rawSetBackground(col, row, color)
+  }
+
+  def onTextBufferMultiRawSetForeground(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+
+    val rows = p.readShort()
+    val color = new Array[Array[Int]](rows)
+    for (y <- 0 until rows) {
+      val cols = p.readShort()
+      val line = new Array[Int](cols)
+      for (x <- 0 until cols) {
+        line(x) = p.readInt()
+      }
+      color(y) = line
+    }
+
+    buffer.rawSetForeground(col, row, color)
   }
 
   def onScreenTouchMode(p: PacketParser) =

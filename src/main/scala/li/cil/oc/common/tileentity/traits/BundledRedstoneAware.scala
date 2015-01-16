@@ -3,7 +3,9 @@ package li.cil.oc.common.tileentity.traits
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ExtendedWorld._
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
 import mods.immibis.redlogic.api.wiring.IInsulatedRedstoneWire
@@ -46,13 +48,15 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   def bundledInput(side: ForgeDirection, color: Int) =
     math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
 
-  def rednetInput(side: ForgeDirection, color: Int, value: Int) =
-    if (_rednetInput(side.ordinal())(color) != value) {
-      if (_rednetInput(side.ordinal())(color) != -1) {
-        onRedstoneInputChanged(side)
+  def rednetInput(side: ForgeDirection, color: Int, value: Int): Unit = {
+    val oldValue = _rednetInput(side.ordinal())(color)
+    if (oldValue != value) {
+      if (oldValue != -1) {
+        onRedstoneInputChanged(side, oldValue, value)
       }
       _rednetInput(side.ordinal())(color) = value
     }
+  }
 
   def bundledOutput(side: ForgeDirection) = _bundledOutput(toLocal(side).ordinal())
 
@@ -62,11 +66,9 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     _bundledOutput(toLocal(side).ordinal())(color) = value
 
     if (Mods.MineFactoryReloaded.isAvailable) {
-      val nx = x + side.offsetX
-      val ny = y + side.offsetY
-      val nz = z + side.offsetZ
-      world.getBlock(nx, ny, nz) match {
-        case block: IRedNetNetworkContainer => block.updateNetwork(world, nx, ny, nz, side.getOpposite)
+      val blockPos = BlockPosition(x, y, z).offset(side)
+      world.getBlock(blockPos) match {
+        case block: IRedNetNetworkContainer => block.updateNetwork(world, blockPos.x, blockPos.y, blockPos.z, side.getOpposite)
         case _ =>
       }
     }
@@ -78,19 +80,20 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   override protected def updateRedstoneInput(side: ForgeDirection) {
     super.updateRedstoneInput(side)
-    val oldBundledInput = _bundledInput(side.ordinal())
+    val ownBundledInput = _bundledInput(side.ordinal())
     val newBundledInput = computeBundledInput(side)
+    val oldMaxValue = ownBundledInput.max
     var changed = false
     if (newBundledInput != null) for (color <- 0 until 16) {
-      changed = changed || (oldBundledInput(color) >= 0 && oldBundledInput(color) != newBundledInput(color))
-      oldBundledInput(color) = newBundledInput(color)
+      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
+      ownBundledInput(color) = newBundledInput(color)
     }
     else for (color <- 0 until 16) {
-      changed = changed || oldBundledInput(color) > 0
-      oldBundledInput(color) = 0
+      changed = changed || ownBundledInput(color) > 0
+      ownBundledInput(color) = 0
     }
     if (changed) {
-      onRedstoneInputChanged(side)
+      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
     }
   }
 
@@ -169,10 +172,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   override protected def onRedstoneOutputEnabledChanged() {
     if (Mods.MineFactoryReloaded.isAvailable) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val nx = x + side.offsetX
-        val ny = y + side.offsetY
-        val nz = z + side.offsetZ
-        world.getBlock(nx, ny, nz) match {
+        val blockPos = BlockPosition(x, y, z).offset(side)
+        world.getBlock(blockPos) match {
           case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z, side.getOpposite)
           case _ =>
         }

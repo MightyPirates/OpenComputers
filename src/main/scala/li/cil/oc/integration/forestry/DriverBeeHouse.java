@@ -1,9 +1,12 @@
 package li.cil.oc.integration.forestry;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import forestry.api.apiculture.IBeeHousing;
-import forestry.api.genetics.*;
+import forestry.api.genetics.AlleleManager;
+import forestry.api.genetics.IAllele;
+import forestry.api.genetics.IAlleleSpecies;
+import forestry.api.genetics.IMutation;
+import forestry.api.genetics.ISpeciesRoot;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -14,8 +17,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DriverBeeHouse extends DriverTileEntity {
     @Override
@@ -63,8 +66,7 @@ public class DriverBeeHouse extends DriverTileEntity {
                 return null;
             }
 
-            final Map<Integer, Map<String, Object>> result = Maps.newHashMap();
-            int j = 1;
+            final Set<Map<String, Object>> result = Sets.newHashSet();
             for (IMutation mutation : beeRoot.getMutations(false)) {
                 HashMap<String, Object> mutationMap = new HashMap<String, Object>();
 
@@ -86,7 +88,7 @@ public class DriverBeeHouse extends DriverTileEntity {
                 if (template != null && template.length > 0) {
                     mutationMap.put("result", template[0].getName());
                 }
-                result.put(j++, mutationMap);
+                result.add(mutationMap);
             }
             return new Object[]{result};
         }
@@ -98,7 +100,7 @@ public class DriverBeeHouse extends DriverTileEntity {
                 return null;
             }
 
-            final List<IAlleleSpecies> result = Lists.newArrayList();
+            final Set<IAlleleSpecies> result = Sets.newHashSet();
             for (IMutation mutation : beeRoot.getMutations(false)) {
                 final IAllele[] template = mutation.getTemplate();
                 if (template == null || template.length <= 0) {
@@ -112,7 +114,7 @@ public class DriverBeeHouse extends DriverTileEntity {
 
                 result.add((IAlleleSpecies) allele);
             }
-            return new Object[]{result.toArray(new IAlleleSpecies[result.size()])};
+            return new Object[]{result};
         }
 
         @Callback(doc = "function(beeName:string):table -- Get the parents for a particular mutation")
@@ -122,7 +124,7 @@ public class DriverBeeHouse extends DriverTileEntity {
                 return null;
             }
 
-            List<IMutation> result = Lists.newArrayList();
+            final Set<IMutation> result = Sets.newHashSet();
             final String childType = args.checkString(0).toLowerCase();
             for (IMutation mutation : beeRoot.getMutations(false)) {
                 final IAllele[] template = mutation.getTemplate();
@@ -142,7 +144,7 @@ public class DriverBeeHouse extends DriverTileEntity {
                     result.add(mutation);
                 }
             }
-            return new Object[]{result.toArray(new IMutation[result.size()])};
+            return new Object[]{result};
         }
     }
 }

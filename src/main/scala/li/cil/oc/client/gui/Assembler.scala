@@ -12,13 +12,29 @@ import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.inventory.Slot
+import net.minecraft.util.IChatComponent
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 
 class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends DynamicGuiContainer(new container.Assembler(playerInventory, assembler)) {
   xSize = 176
   ySize = 192
+
+  for (slot <- inventorySlots.inventorySlots) slot match {
+    case component: ComponentSlot => component.changeListener = Option(onSlotChanged)
+    case _ =>
+  }
+
+  private def onSlotChanged(slot: Slot) {
+    runButton.enabled = canBuild
+    runButton.toggled = !runButton.enabled
+    info = validate
+  }
+
+  var info: Option[(Boolean, IChatComponent, Array[IChatComponent])] = None
 
   private def assemblerContainer = inventorySlots.asInstanceOf[container.Assembler]
 
@@ -38,22 +54,15 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     }
   }
 
-  override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
-    runButton.enabled = canBuild
-    runButton.toggled = !runButton.enabled
-    super.drawScreen(mouseX, mouseY, dt)
-  }
-
   override def initGui() {
     super.initGui()
     runButton = new ImageButton(0, guiLeft + 7, guiTop + 89, 18, 18, Textures.guiButtonRun, canToggle = true)
     add(buttonList, runButton)
   }
 
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (!assemblerContainer.isAssembling) {
-      val info = validate
       val message =
         if (!assemblerContainer.getSlot(0).getHasStack) {
           Localization.Assembler.InsertTemplate
@@ -86,8 +95,8 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   private def formatTime(seconds: Int) = {
     // Assembly times should not / rarely exceed one hour, so this is good enough.
-    if (seconds < 60) "0:%02d".format(seconds)
-    else "%d:%02d".format(seconds / 60, seconds % 60)
+    if (seconds < 60) f"0:$seconds%02d"
+    else f"${seconds / 60}:${seconds % 60}%02d"
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

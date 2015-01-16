@@ -17,18 +17,25 @@ import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.InventorySelection
+import li.cil.oc.common.inventory.MultiTank
+import li.cil.oc.common.inventory.TankSelection
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.component.robot.Inventory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
@@ -43,7 +50,8 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot {
+// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
+class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with internal.Tiered with MultiTank with InventorySelection with TankSelection {
   var proxy: RobotProxy = _
 
   val info = new ItemUtils.RobotData()
@@ -58,6 +66,37 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
+  override def tier = info.tier
+
+  // Wrapper for the part of the inventory that is mutable.
+  val dynamicInventory = new IInventory {
+    override def getSizeInventory = Robot.this.inventorySize
+
+    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
+
+    override def markDirty() = Robot.this.markDirty()
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(actualSlot(slot), stack)
+
+    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(actualSlot(slot))
+
+    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(actualSlot(slot), stack)
+
+    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(actualSlot(slot), amount)
+
+    override def getInventoryName = Robot.this.getInventoryName
+
+    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
+
+    override def openInventory() = Robot.this.openInventory()
+
+    override def closeInventory() = Robot.this.closeInventory()
+
+    override def getStackInSlotOnClosing(slot: Int) = Robot.this.getStackInSlotOnClosing(actualSlot(slot))
+
+    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
+  }
+
   val actualInventorySize = 86
 
   def maxInventorySize = actualInventorySize - 1 - containerCount - componentCount
@@ -65,6 +104,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   var inventorySize = -1
 
   var selectedSlot = actualSlot(0)
+
+  val tank = new MultiTank {
+    override def tankCount = Robot.this.tankCount
+
+    override def getFluidTank(index: Int) = Robot.this.getFluidTank(index)
+  }
 
   var selectedTank = 0
 
@@ -98,6 +143,11 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def inventorySlots = actualSlot(0) until actualSlot(0) + inventorySize
 
+  def setLightColor(value: Int): Unit = {
+    info.lightColor = value
+    ServerPacketSender.sendRobotLightChange(this)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def node = if (isServer) machine.node else null
@@ -129,7 +179,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     val randomUUID = UUID.randomUUID()
     try UUID.fromString(format.
       replaceAllLiterally("$random$", randomUUID.toString).
-      replaceAllLiterally("$player$", playerUUID.map(_.toString).getOrElse(randomUUID.toString))) catch {
+      replaceAllLiterally("$player$", playerUUID.getOrElse(randomUUID).toString)) catch {
       case t: Throwable =>
         OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
         randomUUID
@@ -155,9 +205,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   def actualSlot(n: Int) = n + 1 + containerCount
 
   def move(direction: ForgeDirection): Boolean = {
-    val (ox, oy, oz) = (x, y, z)
-    val (nx, ny, nz) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
-    if (!world.blockExists(nx, ny, nz)) {
+    val oldPosition = BlockPosition(this)
+    val newPosition = oldPosition.offset(direction)
+    if (!world.blockExists(newPosition)) {
       return false // Don't fall off the earth.
     }
 
@@ -169,9 +219,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
     val blockRobotProxy = api.Items.get("robot").block.asInstanceOf[common.block.RobotProxy]
     val blockRobotAfterImage = api.Items.get("robotAfterimage").block.asInstanceOf[common.block.RobotAfterimage]
-    val wasAir = world.isAirBlock(nx, ny, nz)
-    val block = world.getBlock(nx, ny, nz)
-    val metadata = world.getBlockMetadata(nx, ny, nz)
+    val wasAir = world.isAirBlock(newPosition)
+    val block = world.getBlock(newPosition)
+    val metadata = world.getBlockMetadata(newPosition)
     try {
       // Setting this will make the tile entity created via the following call
       // to setBlock to re-use our "real" instance as the inner object, instead
@@ -181,21 +231,21 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
-      world.setBlockToAir(nx, ny, nz)
+      world.setBlockToAir(newPosition)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = world.setBlock(nx, ny, nz, blockRobotProxy, 0, 1) &&
-        world.getTileEntity(nx, ny, nz) == proxy
+      val created = world.setBlock(newPosition, blockRobotProxy, 0, 1) &&
+        world.getTileEntity(newPosition) == proxy
       if (created) {
-        assert(x == nx && y == ny && z == nz)
-        world.setBlock(ox, oy, oz, net.minecraft.init.Blocks.air, 0, 1)
-        world.setBlock(ox, oy, oz, blockRobotAfterImage, 0, 1)
-        assert(world.getBlock(ox, oy, oz) == blockRobotAfterImage)
+        assert(BlockPosition(this) == newPosition)
+        world.setBlock(oldPosition, net.minecraft.init.Blocks.air, 0, 1)
+        world.setBlock(oldPosition, blockRobotAfterImage, 0, 1)
+        assert(world.getBlock(oldPosition) == blockRobotAfterImage)
         // Here instead of Lua callback so that it gets called on client, too.
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
-        setAnimateMove(ox, oy, oz, moveTicks)
+        setAnimateMove(oldPosition, moveTicks)
         if (isServer) {
-          ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
+          ServerPacketSender.sendRobotMove(this, oldPosition, direction)
           checkRedstoneInputChanged()
           MinecraftForge.EVENT_BUS.post(new RobotMoveEvent.Post(this, direction))
         }
@@ -206,21 +256,22 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
               if (FluidRegistry.lookupFluidForBlock(block) == null &&
                 !block.isInstanceOf[BlockFluidBase] &&
                 !block.isInstanceOf[BlockLiquid]) {
-                world.playAuxSFX(2001, nx, ny, nz, Block.getIdFromBlock(block) + (metadata << 12))
+                world.playAuxSFX(2001, newPosition, Block.getIdFromBlock(block) + (metadata << 12))
               }
               else {
-                world.playSound(nx + 0.5, ny + 0.5, nz + 0.5, "liquid.water",
+                val soundPos = newPosition.toVec3
+                world.playSound(soundPos.xCoord, soundPos.yCoord, soundPos.zCoord, "liquid.water",
                   world.rand.nextFloat * 0.25f + 0.75f, world.rand.nextFloat * 1.0f + 0.5f, false)
               }
             }
           }
-          world.markBlockForUpdate(ox, oy, oz)
-          world.markBlockForUpdate(nx, ny, nz)
+          world.markBlockForUpdate(oldPosition)
+          world.markBlockForUpdate(newPosition)
         }
         assert(!isInvalid)
       }
       else {
-        world.setBlockToAir(nx, ny, nz)
+        world.setBlockToAir(newPosition)
       }
       created
     }
@@ -247,12 +298,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     ServerPacketSender.sendRobotAnimateTurn(this)
   }
 
-  def setAnimateMove(fromX: Int, fromY: Int, fromZ: Int, ticks: Int) {
+  def setAnimateMove(fromPosition: BlockPosition, ticks: Int) {
     animationTicksTotal = ticks
     prepareForAnimation()
-    moveFromX = fromX
-    moveFromY = fromY
-    moveFromZ = fromZ
+    moveFromX = fromPosition.x
+    moveFromY = fromPosition.y
+    moveFromZ = fromPosition.z
   }
 
   def setAnimateSwing(ticks: Int) {
@@ -626,7 +677,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (world != null && isServer) {
         for (stack <- removed) {
           inventory.addItemStackToInventory(stack)
-          spawnStackInWorld(stack, facing)
+          spawnStackInWorld(stack, Option(facing))
         }
       } // else: save is screwed and we potentially lose items. Life is hard.
       selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
@@ -651,16 +702,17 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
-    if (slot < getSizeInventory - componentCount) {
+    if (slot < getSizeInventory - componentCount && (isItemValidForSlot(slot, stack) || stack == null)) {
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
           inventory.addItemStackToInventory(stack)
-          spawnStackInWorld(stack, facing)
+          spawnStackInWorld(stack, Option(facing))
         }
       }
       else super.setInventorySlotContents(slot, stack)
     }
+    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(ForgeDirection.UP))
   }
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
@@ -679,6 +731,19 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         driver.tier(stack) <= containerSlotTier(i)
     case (i, _) if isInventorySlot(i) => true // Normal inventory.
     case _ => false // Invalid slot.
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def dropSlot(slot: Int, count: Int, direction: Option[ForgeDirection]) =
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), dynamicInventory, slot, count, direction)
+
+  override def dropAllSlots() = {
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, 0, Int.MaxValue)
+    for (slot <- containerSlots) {
+      InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, Int.MaxValue)
+    }
+    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), dynamicInventory)
   }
 
   // ----------------------------------------------------------------------- //
@@ -718,42 +783,42 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def fill(from: ForgeDirection, resource: FluidStack, doFill: Boolean) =
     tryGetTank(selectedTank) match {
-      case Some(tank) =>
-        tank.fill(resource, doFill)
+      case Some(t) =>
+        t.fill(resource, doFill)
       case _ => 0
     }
 
   override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean) =
     tryGetTank(selectedTank) match {
-      case Some(tank) if tank.getFluid != null && tank.getFluid.isFluidEqual(resource) =>
-        tank.drain(resource.amount, doDrain)
+      case Some(t) if t.getFluid != null && t.getFluid.isFluidEqual(resource) =>
+        t.drain(resource.amount, doDrain)
       case _ => null
     }
 
   override def drain(from: ForgeDirection, maxDrain: Int, doDrain: Boolean) = {
     tryGetTank(selectedTank) match {
-      case Some(tank) =>
-        tank.drain(maxDrain, doDrain)
+      case Some(t) =>
+        t.drain(maxDrain, doDrain)
       case _ => null
     }
   }
 
   override def canFill(from: ForgeDirection, fluid: Fluid) = {
     tryGetTank(selectedTank) match {
-      case Some(tank) => tank.getFluid == null || tank.getFluid.getFluid == fluid
+      case Some(t) => t.getFluid == null || t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
   override def canDrain(from: ForgeDirection, fluid: Fluid): Boolean = {
     tryGetTank(selectedTank) match {
-      case Some(tank) => tank.getFluid != null && tank.getFluid.getFluid == fluid
+      case Some(t) => t.getFluid != null && t.getFluid.getFluid == fluid
       case _ => false
     }
   }
 
   override def getTankInfo(from: ForgeDirection) =
     components.collect {
-      case Some(tank: IFluidTank) => tank.getInfo
+      case Some(t: IFluidTank) => t.getInfo
     }.toArray
 }

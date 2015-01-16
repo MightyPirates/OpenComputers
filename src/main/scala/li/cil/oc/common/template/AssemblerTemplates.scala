@@ -1,10 +1,8 @@
 package li.cil.oc.common.template
 
 import java.lang.reflect.Method
-import java.lang.reflect.Modifier
 
 import com.google.common.base.Strings
-import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.IMC
@@ -24,7 +22,9 @@ object AssemblerTemplates {
 
   private val templates = mutable.ArrayBuffer.empty[Template]
 
-  def add(template: NBTTagCompound): Unit = try {
+  private val templateFilters = mutable.ArrayBuffer.empty[Method]
+
+  def add(template: NBTTagCompound): Unit = {
     val selector = IMC.getStaticMethod(template.getString("select"), classOf[ItemStack])
     val validator = IMC.getStaticMethod(template.getString("validate"), classOf[IInventory])
     val assembler = IMC.getStaticMethod(template.getString("assemble"), classOf[IInventory])
@@ -35,11 +35,17 @@ object AssemblerTemplates {
 
     templates += new Template(selector, validator, assembler, containerSlots, upgradeSlots, componentSlots)
   }
-  catch {
-    case t: Throwable => OpenComputers.log.warn("Failed registering assembler template.", t)
+
+  def addFilter(method: String): Unit = {
+    templateFilters += IMC.getStaticMethod(method, classOf[ItemStack])
   }
 
-  def select(stack: ItemStack) = templates.find(_.select(stack))
+  def select(stack: ItemStack) = {
+    if (stack != null && templateFilters.forall(IMC.tryInvokeStatic(_, stack)(true)))
+      templates.find(_.select(stack))
+    else
+      None
+  }
 
   class Template(val selector: Method,
                  val validator: Method,

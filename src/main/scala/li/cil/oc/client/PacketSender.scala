@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.CompressedPacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.SimplePacketBuilder
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import net.minecraft.client.Minecraft
@@ -20,6 +21,15 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.ComputerPower)
 
     pb.writeTileEntity(t)
+    pb.writeBoolean(power)
+
+    pb.sendToServer()
+  }
+
+  def sendDronePower(e: Drone, power: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.DronePower)
+
+    pb.writeEntity(e)
     pb.writeBoolean(power)
 
     pb.sendToServer()
@@ -66,35 +76,35 @@ object PacketSender {
     }
   }
 
-  def sendMouseClick(address: String, x: Int, y: Int, drag: Boolean, button: Int) {
+  def sendMouseClick(address: String, x: Double, y: Double, drag: Boolean, button: Int) {
     val pb = new SimplePacketBuilder(PacketType.MouseClickOrDrag)
 
     pb.writeUTF(address)
-    pb.writeShort(x)
-    pb.writeShort(y)
+    pb.writeFloat(x.toFloat)
+    pb.writeFloat(y.toFloat)
     pb.writeBoolean(drag)
     pb.writeByte(button.toByte)
 
     pb.sendToServer()
   }
 
-  def sendMouseScroll(address: String, x: Int, y: Int, scroll: Int) {
+  def sendMouseScroll(address: String, x: Double, y: Double, scroll: Int) {
     val pb = new SimplePacketBuilder(PacketType.MouseScroll)
 
     pb.writeUTF(address)
-    pb.writeShort(x)
-    pb.writeShort(y)
+    pb.writeFloat(x.toFloat)
+    pb.writeFloat(y.toFloat)
     pb.writeByte(scroll)
 
     pb.sendToServer()
   }
 
-  def sendMouseUp(address: String, x: Int, y: Int, button: Int) {
+  def sendMouseUp(address: String, x: Double, y: Double, button: Int) {
     val pb = new SimplePacketBuilder(PacketType.MouseUp)
 
     pb.writeUTF(address)
-    pb.writeShort(x)
-    pb.writeShort(y)
+    pb.writeFloat(x.toFloat)
+    pb.writeFloat(y.toFloat)
     pb.writeByte(button.toByte)
 
     pb.sendToServer()
@@ -151,7 +161,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerSide(t: ServerRack, number: Int, side: ForgeDirection) {
+  def sendServerSide(t: ServerRack, number: Int, side: Option[ForgeDirection]) {
     val pb = new SimplePacketBuilder(PacketType.ServerSide)
 
     pb.writeTileEntity(t)

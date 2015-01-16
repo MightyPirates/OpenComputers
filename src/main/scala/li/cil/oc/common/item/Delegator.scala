@@ -5,9 +5,11 @@ import java.util.Random
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.common.tileentity
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.common.tileentity
+import li.cil.oc.util.BlockPosition
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
@@ -26,6 +28,7 @@ class Delegator extends Item {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
   setUnlocalizedName("oc.multi")
+  iconString = Settings.resourceDomain + ":Microchip0"
 
   // ----------------------------------------------------------------------- //
   // SubItem
@@ -80,7 +83,7 @@ class Delegator extends Item {
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 
   override def getRarity(stack: ItemStack) = subItem(stack) match {
-    case Some(subItem) => subItem.rarity
+    case Some(subItem) => subItem.rarity(stack)
     case _ => EnumRarity.common
   }
 
@@ -103,13 +106,13 @@ class Delegator extends Item {
 
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     subItem(stack) match {
-      case Some(subItem) => subItem.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case Some(subItem) => subItem.onItemUseFirst(stack, player, BlockPosition(x, y, z, world), side, hitX, hitY, hitZ)
       case _ => super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     subItem(stack) match {
-      case Some(subItem) => subItem.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case Some(subItem) => subItem.onItemUse(stack, player, BlockPosition(x, y, z, world), side, hitX, hitY, hitZ)
       case _ => super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 

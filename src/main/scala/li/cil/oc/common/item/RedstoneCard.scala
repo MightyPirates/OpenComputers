@@ -4,8 +4,6 @@ import java.util
 
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.BundledRedstone
-import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.util.Tooltip
 import net.minecraft.item.ItemStack
 
@@ -14,7 +12,8 @@ class RedstoneCard(val parent: Delegator, val tier: Int) extends Delegate with I
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  showInItemList = tier == Tier.One || BundledRedstone.isAvailable || WirelessRedstone.isAvailable
+  // Note: T2 is enabled in mod integration, if it makes sense.
+  showInItemList = tier == Tier.One
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
     super.tooltipExtended(stack, tooltip)

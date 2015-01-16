@@ -10,8 +10,8 @@ local startNetwork
 
 local dataHandler --Layer 2 data handler
 
-local posix
-
+local accessibleHosts
+local nodes
 
 ------------------------
 --Layer 1
@@ -32,8 +32,8 @@ local function start()
     ---------
     
     
-    local accessibleHosts = {}
-    local nodes = {}
+    accessibleHosts = {}
+    nodes = {}
     
     --DRIVER INIT
     --print("Loading drivers")
@@ -103,6 +103,7 @@ local function start()
     print("Link Control initated")
     startNetwork()
     print("Network initated")
+    computer.pushSignal("network_ready")
 end
 
 ------------------------
@@ -200,7 +201,7 @@ startNetwork  = function()
                     sendRoutedData(addr, data)--We know route, try to send it that way
                 end
             else
-                --route is unknown, we have to request it if we havent did it already
+                --route is unknown, we have to request it if we haven't done so already
                 if not routeRequests[addr] then 
                     routeRequests[addr] = {}
                     routeRequests[addr][#routeRequests[addr]+1] = {type = "D", data = data}
@@ -353,12 +354,32 @@ startNetwork  = function()
         for k, node in pairs(getNodes())do
             res.interfaces[k] = {selfAddr = node.selfAddr, linkName = node.linkName}
         end
+        return res
+    end
+    
+    local function getRoutingTable()
+        local res = {}
         
+        for k,v in pairs (routes) do
+            if v.router then
+                res[k] = {router = v.router, interface = v.node}
+            end
+        end
+        return res
+    end
+    
+    local function getArpTable(interface)
+        local res = {}
+        for k in pairs(nodes[interface].hosts)do
+            table.insert(res, k)
+        end
         return res
     end
     
     network.core.setCallback("netstat", getInfo)
     network.core.setCallback("intstat", getInterfaceInfo)
+    network.core.setCallback("routetab", getRoutingTable)
+    network.core.setCallback("arptab", getArpTable)
     
     network.core.lockCore()
 end

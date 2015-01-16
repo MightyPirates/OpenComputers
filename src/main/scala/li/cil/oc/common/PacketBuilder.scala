@@ -10,6 +10,7 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket
 import io.netty.buffer.Unpooled
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.EnvironmentHost
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
@@ -21,14 +22,22 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
 abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stream) {
-  def writeTileEntity(t: TileEntity) = {
+  def writeTileEntity(t: TileEntity) {
     writeInt(t.getWorldObj.provider.dimensionId)
     writeInt(t.xCoord)
     writeInt(t.yCoord)
     writeInt(t.zCoord)
   }
 
-  def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)
+  def writeEntity(e: Entity) {
+    writeInt(e.worldObj.provider.dimensionId)
+    writeInt(e.getEntityId)
+  }
+
+  def writeDirection(d: Option[ForgeDirection]) = d match {
+    case Some(side) => writeByte(side.ordinal.toByte)
+    case _ => writeByte(-1: Byte)
+  }
 
   def writeItemStack(stack: ItemStack) = {
     val haveStack = stack != null && stack.stackSize > 0

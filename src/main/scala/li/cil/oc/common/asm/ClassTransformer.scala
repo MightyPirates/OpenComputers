@@ -11,8 +11,27 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree._
 
+import scala.annotation.tailrec
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+
+object ObfNames {
+  final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "ss")
+  final val Class_EntityLiving = Array("net/minecraft/entity/EntityLiving", "sw")
+  final val Class_RenderLiving = Array("net/minecraft/client/renderer/entity/RenderLiving", "bok")
+  final val Class_TileEntity = Array("net/minecraft/tileentity/TileEntity", "aor")
+  final val Field_leashNBTTag = Array("leashNBTTag", "field_110170_bx", "bx")
+  final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bw")
+  final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "bP")
+  final val Method_recreateLeashDesc = Array("()V")
+  final val Method_renderHanging = Array("func_110827_b", "b")
+  final val Method_renderHangingDesc = Array("(Lsw;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
+  final val Method_validate = Array("validate", "func_145829_t")
+  final val Method_invalidate = Array("invalidate", "func_145843_s")
+  final val Method_onChunkUnload = Array("onChunkUnload", "func_76623_d")
+  final val Method_readFromNBT = Array("readFromNBT", "func_145839_a")
+  final val Method_writeToNBT = Array("writeToNBT", "func_145841_b")
+}
 
 class ClassTransformer extends IClassTransformer {
   private val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
@@ -20,13 +39,10 @@ class ClassTransformer extends IClassTransformer {
   private val log = LogManager.getLogger("OpenComputers")
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
+    if (basicClass == null || name.startsWith("scala.")) return basicClass
     var transformedClass = basicClass
     try {
-      if (name == "li.cil.oc.common.tileentity.traits.Computer" || name == "li.cil.oc.common.tileentity.Rack") {
-        transformedClass = ensureStargateTechCompatibility(transformedClass)
-      }
-      if (transformedClass != null
-        && !name.startsWith("net.minecraft.")
+      if (!name.startsWith("net.minecraft.")
         && !name.startsWith("net.minecraftforge.")
         && !name.startsWith("li.cil.oc.common.asm.")
         && !name.startsWith("li.cil.oc.integration.")) {
@@ -123,12 +139,105 @@ class ClassTransformer extends IClassTransformer {
           }
         }
       }
+
+      // Inject some code into the EntityLiving classes recreateLeash method to allow
+      // proper loading of leashes tied to entities using the leash upgrade. This is
+      // necessary because entities only save the entity they are leashed to if that
+      // entity is an EntityLivingBase - which drones, for example, are not, for good
+      // reason. We work around this by re-leashing them in the load method of the
+      // leash upgrade. The leashed entity would then still unleash itself and, more
+      // problematically drop a leash item. To avoid this, we extend the
+      //    if (this.isLeashed && this.field_110170_bx != null)
+      // check to read
+      //    if (this.isLeashed && this.field_110170_bx != null && this.leashedToEntity == null)
+      // which should not interfere with any existing logic, but avoid leashing
+      // restored manually in the load phase to not be broken again.
+      if (ObfNames.Class_EntityLiving.contains(name.replace('.', '/'))) {
+        val classNode = newClassNode(transformedClass)
+        insertInto(classNode, ObfNames.Method_recreateLeash, ObfNames.Method_recreateLeashDesc, instructions => instructions.toArray.sliding(3, 1).exists {
+          case Array(varNode: VarInsnNode, fieldNode: FieldInsnNode, jumpNode: JumpInsnNode)
+            if varNode.getOpcode == Opcodes.ALOAD && varNode.`var` == 0 &&
+              fieldNode.getOpcode == Opcodes.GETFIELD && ObfNames.Field_leashNBTTag.contains(fieldNode.name) &&
+              jumpNode.getOpcode == Opcodes.IFNULL =>
+            classNode.fields.find(field => ObfNames.Field_leashedToEntity.contains(field.name)) match {
+              case Some(field) =>
+                val toInject = new InsnList()
+                toInject.add(new VarInsnNode(Opcodes.ALOAD, 0))
+                toInject.add(new FieldInsnNode(Opcodes.GETFIELD, classNode.name, field.name, field.desc))
+                toInject.add(new JumpInsnNode(Opcodes.IFNONNULL, jumpNode.label))
+                instructions.insert(jumpNode, toInject)
+                true
+              case _ =>
+                false
+            }
+          case _ =>
+            false
+        }) match {
+          case Some(data) => transformedClass = data
+          case _ =>
+        }
+      }
+
+      // Little change to the renderer used to render leashes to center it on drones.
+      // This injects the code
+      //   if (entity instanceof Drone) {
+      //     d5 = 0.0;
+      //     d6 = 0.0;
+      //     d7 = -0.75;
+      //   }
+      // before the `instanceof EntityHanging` check in func_110827_b.
+      if (ObfNames.Class_RenderLiving.contains(name.replace('.', '/'))) {
+        val classNode = newClassNode(transformedClass)
+        insertInto(classNode, ObfNames.Method_renderHanging, ObfNames.Method_renderHangingDesc, instructions => instructions.toArray.sliding(3, 1).exists {
+          case Array(varNode: VarInsnNode, typeNode: TypeInsnNode, jumpNode: JumpInsnNode)
+            if varNode.getOpcode == Opcodes.ALOAD && varNode.`var` == 10 &&
+              typeNode.getOpcode == Opcodes.INSTANCEOF && ObfNames.Class_EntityHanging.contains(typeNode.desc) &&
+              jumpNode.getOpcode == Opcodes.IFEQ =>
+            val toInject = new InsnList()
+            toInject.add(new VarInsnNode(Opcodes.ALOAD, 10))
+            toInject.add(new TypeInsnNode(Opcodes.INSTANCEOF, "li/cil/oc/common/entity/Drone"))
+            val skip = new LabelNode()
+            toInject.add(new JumpInsnNode(Opcodes.IFEQ, skip))
+            toInject.add(new LdcInsnNode(double2Double(0.0)))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 16))
+            toInject.add(new LdcInsnNode(double2Double(0.0)))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 18))
+            toInject.add(new LdcInsnNode(double2Double(-0.75)))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 20))
+            toInject.add(skip)
+            instructions.insertBefore(varNode, toInject)
+            true
+          case _ =>
+            false
+        }) match {
+          case Some(data) => transformedClass = data
+          case _ =>
+        }
+      }
+
       transformedClass
     }
     catch {
       case t: Throwable =>
         log.warn("Something went wrong!", t)
         basicClass
+    }
+  }
+
+  private def insertInto(classNode: ClassNode, methodNames: Array[String], methodDescs: Array[String], inserter: (InsnList) => Boolean): Option[Array[Byte]] = {
+    classNode.methods.find(method => methodNames.contains(method.name) && methodDescs.contains(method.desc)) match {
+      case Some(methodNode) =>
+        if (inserter(methodNode.instructions)) {
+          log.info(s"Successfully patched ${classNode.name}.${methodNames(0)}.")
+          Option(writeClass(classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES))
+        }
+        else {
+          log.warn(s"Failed patching ${classNode.name}.${methodNames(0)}, injection point not found.")
+          None
+        }
+      case _ =>
+        log.warn(s"Failed patching ${classNode.name}.${methodNames(0)}, method not found.")
+        None
     }
   }
 
@@ -142,16 +251,6 @@ class ClassTransformer extends IClassTransformer {
 
   private def missingFromSignature(desc: String) = {
     """L([^;]+);""".r.findAllMatchIn(desc).map(_.group(1)).filter(!classExists(_))
-  }
-
-  def ensureStargateTechCompatibility(basicClass: Array[Byte]): Array[Byte] = {
-    if (!Mods.StargateTech2.isAvailable) {
-      // No SGT2 or version is too old, abstract bus API doesn't exist.
-      val classNode = newClassNode(basicClass)
-      classNode.interfaces.remove("stargatetech2/api/bus/IBusDevice")
-      writeClass(classNode)
-    }
-    else basicClass
   }
 
   def injectEnvironmentImplementation(classNode: ClassNode): Array[Byte] = {
@@ -187,7 +286,7 @@ class ClassTransformer extends IClassTransformer {
       val mapper = FMLDeobfuscatingRemapper.INSTANCE
       def filter(method: MethodNode) = {
         val descDeObf = mapper.mapMethodDesc(method.desc)
-        val methodNameDeObf = mapper.mapMethodName(tileEntityNameObfed, method.name, method.desc)
+        val methodNameDeObf = mapper.mapMethodName(ObfNames.Class_TileEntity(1), method.name, method.desc)
         val areSamePlain = method.name + descDeObf == methodName + desc
         val areSameDeObf = methodNameDeObf + descDeObf == methodNameSrg + desc
         areSamePlain || areSameDeObf
@@ -201,7 +300,7 @@ class ClassTransformer extends IClassTransformer {
           method.name = methodName + SimpleComponentImpl.PostFix
         case _ =>
           log.trace(s"No original implementation of '$methodName', will inject override.")
-          def ensureNonFinalIn(name: String) {
+          @tailrec def ensureNonFinalIn(name: String) {
             if (name != null) {
               val node = classNodeFor(name)
               if (node != null) {
@@ -227,11 +326,11 @@ class ClassTransformer extends IClassTransformer {
         case _ => throw new AssertionError(s"Couldn't find '$methodName' in template implementation.")
       }
     }
-    replace("validate", "func_145829_t", "()V")
-    replace("invalidate", "func_145843_s", "()V")
-    replace("onChunkUnload", "func_76623_d", "()V")
-    replace("readFromNBT", "func_145839_a", "(Lnet/minecraft/nbt/NBTTagCompound;)V")
-    replace("writeToNBT", "func_145841_b", "(Lnet/minecraft/nbt/NBTTagCompound;)V")
+    replace(ObfNames.Method_validate(0), ObfNames.Method_validate(1), "()V")
+    replace(ObfNames.Method_invalidate(0), ObfNames.Method_invalidate(1), "()V")
+    replace(ObfNames.Method_onChunkUnload(0), ObfNames.Method_onChunkUnload(1), "()V")
+    replace(ObfNames.Method_readFromNBT(0), ObfNames.Method_readFromNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)V")
+    replace(ObfNames.Method_writeToNBT(0), ObfNames.Method_writeToNBT(1), "(Lnet/minecraft/nbt/NBTTagCompound;)V")
 
     log.trace("Injecting interface.")
     classNode.interfaces.add("li/cil/oc/common/asm/template/SimpleComponentImpl")
@@ -239,14 +338,11 @@ class ClassTransformer extends IClassTransformer {
     writeClass(classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES)
   }
 
-  val tileEntityNamePlain = "net/minecraft/tileentity/TileEntity"
-  val tileEntityNameObfed = FMLDeobfuscatingRemapper.INSTANCE.unmap(tileEntityNamePlain)
-
   def isTileEntity(classNode: ClassNode): Boolean = {
     if (classNode == null) false
     else {
       log.trace(s"Checking if class ${classNode.name} is a TileEntity...")
-      classNode.name == tileEntityNamePlain || classNode.name == tileEntityNameObfed ||
+      ObfNames.Class_TileEntity.contains(classNode.name) ||
         (classNode.superName != null && isTileEntity(classNodeFor(classNode.superName)))
     }
   }

@@ -3,14 +3,17 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.item.HostAware
+import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.DatabaseInventory
-import li.cil.oc.common.{Slot, Tier, item}
+import li.cil.oc.common.item
 import li.cil.oc.server.component
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-object DriverUpgradeDatabase extends Item with EnvironmentAware {
+object DriverUpgradeDatabase extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("databaseUpgrade1"), api.Items.get("databaseUpgrade2"), api.Items.get("databaseUpgrade3"))
 

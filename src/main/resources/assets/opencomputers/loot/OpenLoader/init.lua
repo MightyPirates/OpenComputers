@@ -76,7 +76,7 @@ local function boot(kernel)
     dofile(kernel.address, kernel.fpx .. kernel.file)
 end
 
-status("OpenLoader")
+status(_OSVERSION)
 status("Select what to boot:")
 
 local osList = {}

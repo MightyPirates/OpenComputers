@@ -90,13 +90,13 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def getBootAddress = bootAddress
 
-  override def setBootAddress(value: String) = bootAddress = Option(value).map(_.take(36)).getOrElse("")
+  override def setBootAddress(value: String) = bootAddress = Option(value).fold("")(_.take(36))
 
   override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
-  def componentCount = _components.count {
-    case (_, name) => name != "filesystem"
-  } + addedComponents.count(_.name != "filesystem") - 1 // -1 = this computer
+  def componentCount = (_components.foldLeft(0.0)((acc, entry) => entry match {
+    case (_, name) => acc + (if (name != "filesystem") 1.0 else 0.25)
+  }) + addedComponents.foldLeft(0.0)((acc, component) => acc + (if (component.name != "filesystem") 1 else 0.25)) - 1).toInt // -1 = this computer
 
   override def tmpAddress = tmp.fold(null: String)(_.node.address)
 
@@ -490,6 +490,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         if (canInteract(player.getCommandSenderName))
           signal(name, Seq(message.source.address) ++ args: _*)
       case _ =>
+        if (message.name == "computer.start" && !isPaused) start()
+        else if (message.name == "computer.stop") stop()
     }
   }
 

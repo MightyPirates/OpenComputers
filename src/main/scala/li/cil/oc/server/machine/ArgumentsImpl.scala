@@ -47,7 +47,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   def checkDouble(index: Int) = {
     checkIndex(index, "number")
     args(index) match {
-      case value: java.lang.Double => value
+      case value: java.lang.Number => value.doubleValue
       case value => throw typeError(index, value, "number")
     }
   }
@@ -60,7 +60,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   def checkInteger(index: Int) = {
     checkIndex(index, "number")
     args(index) match {
-      case value: java.lang.Double => value.intValue
+      case value: java.lang.Number => value.intValue
       case value => throw typeError(index, value, "number")
     }
   }
@@ -118,7 +118,7 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
     map.get("name") match {
       case name: String =>
         val damage = map.get("damage") match {
-          case number: Number => number.intValue()
+          case number: java.lang.Number => number.intValue
           case _ => 0
         }
         val tag = map.get("tag") match {
@@ -144,13 +144,17 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
 
   def isDouble(index: Int) =
     index >= 0 && index < count && (args(index) match {
+      case value: java.lang.Float => true
       case value: java.lang.Double => true
       case _ => false
     })
 
   def isInteger(index: Int) =
     index >= 0 && index < count && (args(index) match {
+      case value: java.lang.Byte => true
+      case value: java.lang.Short => true
       case value: java.lang.Integer => true
+      case value: java.lang.Long => true
       case value: java.lang.Double => true
       case _ => false
     })
@@ -197,18 +201,16 @@ class ArgumentsImpl(val args: Seq[AnyRef]) extends Arguments {
   private def checkIndex(index: Int, name: String) =
     if (index < 0) throw new IndexOutOfBoundsException()
     else if (args.length <= index) throw new IllegalArgumentException(
-      "bad arguments #%d (%s expected, got no value)".
-        format(index + 1, name))
+      s"bad arguments #${index + 1} ($name expected, got no value)")
 
   private def typeError(index: Int, have: AnyRef, want: String) =
     new IllegalArgumentException(
-      "bad argument #%d (%s expected, got %s)".
-        format(index + 1, want, typeName(have)))
+      s"bad argument #${index + 1} ($want expected, got ${typeName(have)})")
 
   private def typeName(value: AnyRef): String = value match {
     case null | Unit | None => "nil"
     case _: java.lang.Boolean => "boolean"
-    case _: java.lang.Double => "double"
+    case _: java.lang.Number => "double"
     case _: java.lang.String => "string"
     case _: Array[Byte] => "string"
     case value: java.util.Map[_, _] => "table"

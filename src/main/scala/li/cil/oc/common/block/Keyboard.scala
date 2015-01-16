@@ -4,6 +4,8 @@ import java.util.Random
 
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.IBlockAccess
@@ -90,40 +92,31 @@ class Keyboard extends SimpleBlock with traits.SpecialBlock {
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
-    adjacencyInfo(world, x, y, z) match {
-      case Some((keyboard, screen, sx, sy, sz, facing)) => screen.rightClick(world, sx, sy, sz, player, facing, 0, 0, 0, force = true)
+    adjacencyInfo(world, BlockPosition(x, y, z)) match {
+      case Some((keyboard, screen, position, facing)) => screen.rightClick(world, position.x, position.y, position.z, player, facing, 0, 0, 0, force = true)
       case _ => false
     }
 
-  def adjacencyInfo(world: World, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
+  def adjacencyInfo(world: World, position: BlockPosition) =
+    world.getTileEntity(position) match {
       case keyboard: tileentity.Keyboard =>
-        val (sx, sy, sz) = (
-          x + keyboard.facing.getOpposite.offsetX,
-          y + keyboard.facing.getOpposite.offsetY,
-          z + keyboard.facing.getOpposite.offsetZ)
-        world.getBlock(sx, sy, sz) match {
-          case screen: Screen => Some((keyboard, screen, sx, sy, sz, keyboard.facing.getOpposite))
+        val blockPos = position.offset(keyboard.facing.getOpposite)
+        world.getBlock(blockPos) match {
+          case screen: Screen => Some((keyboard, screen, blockPos, keyboard.facing.getOpposite))
           case _ =>
             // Special case #1: check for screen in front of the keyboard.
             val forward = keyboard.facing match {
               case ForgeDirection.UP | ForgeDirection.DOWN => keyboard.yaw
               case _ => ForgeDirection.UP
             }
-            val (sx, sy, sz) = (
-              x + forward.offsetX,
-              y + forward.offsetY,
-              z + forward.offsetZ)
-            world.getBlock(sx, sy, sz) match {
-              case screen: Screen => Some((keyboard, screen, sx, sy, sz, forward))
+            val blockPos = position.offset(forward)
+            world.getBlock(blockPos) match {
+              case screen: Screen => Some((keyboard, screen, blockPos, forward))
               case _ if keyboard.facing != ForgeDirection.UP && keyboard.facing != ForgeDirection.DOWN =>
                 // Special case #2: check for screen below keyboards on walls.
-                val (sx, sy, sz) = (
-                  x - forward.offsetX,
-                  y - forward.offsetY,
-                  z - forward.offsetZ)
-                world.getBlock(sx, sy, sz) match {
-                  case screen: Screen => Some((keyboard, screen, sx, sy, sz, forward.getOpposite))
+                val blockPos = position.offset(forward.getOpposite)
+                world.getBlock(blockPos) match {
+                  case screen: Screen => Some((keyboard, screen, blockPos, forward.getOpposite))
                   case _ => None
                 }
               case _ => None

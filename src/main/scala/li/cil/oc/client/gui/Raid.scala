@@ -8,8 +8,8 @@ import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
 
 class Raid(playerInventory: InventoryPlayer, val raid: tileentity.Raid) extends DynamicGuiContainer(new container.Raid(playerInventory, raid)) {
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
-    super.drawGuiContainerForegroundLayer(mouseX, mouseY)
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
+    super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
       Localization.localizeImmediately(raid.getInventoryName),
       8, 6, 0x404040)

@@ -1,5 +1,7 @@
 package li.cil.oc.common
 
+import java.util.Calendar
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
@@ -8,24 +10,23 @@ import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ItemUtils
-import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.SideTracker
-import li.cil.oc.util.UpdateCheck
+import li.cil.oc.util._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
-import universalelectricity.api.core.grid.electric.IEnergyNode
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -53,7 +54,7 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
+  @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def scheduleAE2Add(tileEntity: power.AppliedEnergistics2) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.isInvalid) {
@@ -62,7 +63,7 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.IndustrialCraft2API)
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
@@ -82,18 +83,9 @@ object EventHandler {
     }
   }
 
-  @Optional.Method(modid = Mods.IDs.UniversalElectricity)
-  def scheduleUEAdd(tileEntity: power.UniversalElectricity) {
-    if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!tileEntity.isInvalid) {
-        tileEntity.getNode(classOf[IEnergyNode], ForgeDirection.UNKNOWN).reconstruct()
-      })
-    }
-  }
-
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
     if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!rs.owner.isInvalid) {
+      pending += (() => if (rs.node.network != null) {
         util.WirelessRedstone.addReceiver(rs)
         util.WirelessRedstone.updateOutput(rs)
       })
@@ -138,14 +130,24 @@ object EventHandler {
 
   @SubscribeEvent
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
-    PetRenderer.hidden.clear()
-    if (Settings.get.hideOwnPet) {
-      PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+    try {
+      PetRenderer.hidden.clear()
+      if (Settings.get.hideOwnPet) {
+        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+      }
+      ClientPacketSender.sendPetVisibility()
     }
-    ClientPacketSender.sendPetVisibility()
+    catch {
+      case _: Throwable =>
+      // Reportedly, things can derp if this is called at inopportune moments,
+      // such as the server shutting down.
+    }
   }
 
-  private lazy val NavigationUpgrade = api.Items.get("navigationUpgrade")
+  lazy val drone = api.Items.get("drone")
+  lazy val eeprom = api.Items.get("eeprom")
+  lazy val mcu = api.Items.get("microcontroller")
+  lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   private lazy val Achievements = Map(
     api.Items.get("transistor") -> Achievement.Transistor,
     api.Items.get("case1") -> Achievement.Case,
@@ -172,23 +174,76 @@ object EventHandler {
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
-    if (api.Items.get(e.crafting) == NavigationUpgrade) {
-      Option(api.Driver.driverFor(e.crafting)).foreach(driver =>
-        for (i <- 0 until e.craftMatrix.getSizeInventory) {
-          val stack = e.craftMatrix.getStackInSlot(i)
-          if (stack != null && api.Items.get(stack) == NavigationUpgrade) {
-            // Restore the map currently used in the upgrade.
-            val nbt = driver.dataTag(stack)
-            val map = ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
-            if (map != null && !e.player.inventory.addItemStackToInventory(map)) {
-              e.player.dropPlayerItemWithRandomChoice(map, false)
+    var didRecraft = false
+
+    didRecraft = recraft(e, navigationUpgrade, stack => {
+      // Restore the map currently used in the upgrade.
+      Option(api.Driver.driverFor(e.crafting)) match {
+        case Some(driver) => Option(ItemUtils.loadStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
+        case _ => None
+      }
+    }) || didRecraft
+
+    didRecraft = recraft(e, mcu, stack => {
+      // Restore EEPROM currently used in microcontroller.
+      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+    }) || didRecraft
+
+    didRecraft = recraft(e, drone, stack => {
+      // Restore EEPROM currently used in drone.
+      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+    }) || didRecraft
+
+    // Presents?
+    if (!e.player.worldObj.isRemote) e.player match {
+      case _: FakePlayer => // No presents for you, automaton. Such discrimination. Much bad conscience.
+      case player: EntityPlayerMP =>
+        // Presents!? If we didn't recraft, it's an OC item, and the time is right...
+        if (Settings.get.presentChance > 0 && !didRecraft && api.Items.get(e.crafting) != null &&
+          e.player.getRNG.nextFloat() < Settings.get.presentChance && timeForPresents) {
+          // Presents!
+          val present = api.Items.get("present").createItemStack(1)
+          e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
+          if (e.player.inventory.addItemStackToInventory(present)) {
+            e.player.inventory.markDirty()
+            if (e.player.openContainer != null) {
+              e.player.openContainer.detectAndSendChanges()
             }
           }
-        })
+          else {
+            e.player.dropPlayerItemWithRandomChoice(present, false)
+          }
+        }
+      case _ => // Nope.
     }
 
     // Achievements.
     Achievements.get(api.Items.get(e.crafting)).foreach(e.player.addStat(_, 1))
+  }
+
+  private def timeForPresents = {
+    val now = Calendar.getInstance()
+    val month = now.get(Calendar.MONTH)
+    val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
+    // On the 12th day of Christmas, my robot brought to me~
+    (month == Calendar.DECEMBER && dayOfMonth > 24) || (month == Calendar.JANUARY && dayOfMonth < 7) ||
+      // OC's release-birthday!
+      (month == Calendar.DECEMBER && dayOfMonth == 14)
+  }
+
+  private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {
+    if (api.Items.get(e.crafting) == item) {
+      for (slot <- 0 until e.craftMatrix.getSizeInventory) {
+        val stack = e.craftMatrix.getStackInSlot(slot)
+        if (api.Items.get(stack) == item) {
+          callback(stack).foreach(extra => if (!e.player.inventory.addItemStackToInventory(extra)) {
+            e.player.dropPlayerItemWithRandomChoice(extra, false)
+          })
+        }
+      }
+      true
+    }
+    else false
   }
 
   @SubscribeEvent

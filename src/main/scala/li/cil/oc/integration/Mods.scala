@@ -19,8 +19,9 @@ object Mods {
 
   def All = knownMods.clone()
 
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)")
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
@@ -39,12 +40,7 @@ object Mods {
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new SimpleMod(IDs.GregTech)
-  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2)
-  val IndustrialCraft2API = new ClassBasedMod(IDs.IndustrialCraft2API,
-    "ic2.api.energy.tile.IEnergySink",
-    "ic2.api.energy.tile.IEnergyTile",
-    "ic2.api.energy.event.EnergyTileLoadEvent",
-    "ic2.api.energy.event.EnergyTileUnloadEvent")(providesPower = true)
+  val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val Minecraft = new SimpleMod(IDs.Minecraft)
@@ -68,7 +64,6 @@ object Mods {
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
   val TMechWorks = new SimpleMod(IDs.TMechWorks)
-  val UniversalElectricity = new SimpleMod(IDs.UniversalElectricity, providesPower = true)
   val VersionChecker = new SimpleMod(IDs.VersionChecker)
   val Waila = new SimpleMod(IDs.Waila)
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
@@ -76,39 +71,49 @@ object Mods {
 
   // ----------------------------------------------------------------------- //
 
-  def init() {
-    tryInit(integration.appeng.ModAppEng)
-    tryInit(integration.buildcraft.tools.ModBuildCraftAPITools)
-    tryInit(integration.buildcraft.tiles.ModBuildCraftAPITiles)
-    tryInit(integration.buildcraft.transport.ModBuildCraftAPITransport)
-    tryInit(integration.cofh.energy.ModCoFHEnergy)
-    tryInit(integration.cofh.item.ModCoFHItem)
-    tryInit(integration.cofh.tileentity.ModCoFHTileEntity)
-    tryInit(integration.cofh.transport.ModCoFHTransport)
-    tryInit(integration.enderstorage.ModEnderStorage)
-    tryInit(integration.forestry.ModForestry)
-    tryInit(integration.fmp.ModForgeMultipart)
-    tryInit(integration.gregtech.ModGregtech)
-    tryInit(integration.ic2.ModIndustrialCraft2)
-    tryInit(integration.mfr.ModMineFactoryReloaded)
-    tryInit(integration.mystcraft.ModMystcraft)
-    tryInit(integration.opencomputers.ModOpenComputers)
-    tryInit(integration.railcraft.ModRailcraft)
-    tryInit(integration.stargatetech2.ModStargateTech2)
-    tryInit(integration.thaumcraft.ModThaumcraft)
-    tryInit(integration.thermalexpansion.ModThermalExpansion)
-    tryInit(integration.tcon.ModTinkersConstruct)
-    tryInit(integration.tmechworks.ModTMechworks)
-    tryInit(integration.ue.ModUniversalElectricity)
-    tryInit(integration.vanilla.ModVanilla)
-    tryInit(integration.versionchecker.ModVersionChecker)
-    tryInit(integration.waila.ModWaila)
-    tryInit(integration.wrcbe.ModWRCBE)
-    tryInit(integration.wrsve.ModWRSVE)
+  val Proxies = Array(
+    integration.appeng.ModAppEng,
+    integration.bloodmagic.ModBloodMagic,
+    integration.buildcraft.tools.ModBuildCraftAPITools,
+    integration.buildcraft.tiles.ModBuildCraftAPITiles,
+    integration.buildcraft.transport.ModBuildCraftAPITransport,
+    integration.cofh.energy.ModCoFHEnergy,
+    integration.cofh.item.ModCoFHItem,
+    integration.cofh.tileentity.ModCoFHTileEntity,
+    integration.cofh.transport.ModCoFHTransport,
+    integration.enderstorage.ModEnderStorage,
+    integration.forestry.ModForestry,
+    integration.fmp.ModForgeMultipart,
+    integration.gc.ModGalacticraft,
+    integration.gregtech.ModGregtech,
+    integration.ic2.ModIndustrialCraft2,
+    integration.mfr.ModMineFactoryReloaded,
+    integration.mystcraft.ModMystcraft,
+    integration.railcraft.ModRailcraft,
+    integration.stargatetech2.ModStargateTech2,
+    integration.thaumcraft.ModThaumcraft,
+    integration.thermalexpansion.ModThermalExpansion,
+    integration.tcon.ModTinkersConstruct,
+    integration.tmechworks.ModTMechworks,
+    integration.vanilla.ModVanilla,
+    integration.versionchecker.ModVersionChecker,
+    integration.waila.ModWaila,
+    integration.wrcbe.ModWRCBE,
+    integration.wrsve.ModWRSVE,
 
     // Register the general IPeripheral driver last, if at all, to avoid it
     // being used rather than other more concrete implementations.
-    tryInit(integration.computercraft.ModComputerCraft)
+    integration.computercraft.ModComputerCraft,
+
+    // We go last to ensure all other mod integration is done, e.g. to
+    // allow properly checking if wireless redstone is present.
+    integration.opencomputers.ModOpenComputers
+  )
+
+  def init(): Unit = {
+    for (proxy <- Proxies) {
+      tryInit(proxy)
+    }
   }
 
   private def tryInit(mod: ModProxy) {
@@ -128,6 +133,7 @@ object Mods {
   object IDs {
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
+    final val BloodMagic = "AWWayofTime"
     final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftPower = "BuildCraftAPI|power"
     final val BuildCraftTiles = "BuildCraftAPI|tiles"
@@ -148,7 +154,6 @@ object Mods {
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
-    final val IndustrialCraft2API = "IC2API"
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val Mekanism = "Mekanism"
     final val Minecraft = "Minecraft"
@@ -165,7 +170,6 @@ object Mods {
     final val ThermalExpansion = "ThermalExpansion"
     final val TinkersConstruct = "TConstruct"
     final val TMechWorks = "TMechworks"
-    final val UniversalElectricity = "UniversalElectricity"
     final val VersionChecker = "VersionChecker"
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"

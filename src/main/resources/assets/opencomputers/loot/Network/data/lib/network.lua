@@ -208,7 +208,10 @@ end)
 network.info = {}
 network.info.getInfo = function(...)return driver.netstat(...) end
 network.info.getInterfaceInfo = function(...)return driver.intstat(...) end
+network.info.getRoutes = function(...)return driver.routetab(...) end
+network.info.getArpTable = function(...)return driver.arptab(...) end
 
 ------------
 
 return network
+

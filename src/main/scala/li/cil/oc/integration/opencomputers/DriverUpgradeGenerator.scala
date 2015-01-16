@@ -14,9 +14,6 @@ object DriverUpgradeGenerator extends Item with HostAware with EnvironmentAware 
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("generatorUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && isRobot(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
       case robot: Robot => new component.UpgradeGenerator(robot)

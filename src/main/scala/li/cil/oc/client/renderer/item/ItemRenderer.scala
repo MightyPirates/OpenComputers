@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
@@ -24,26 +25,39 @@ object ItemRenderer extends IItemRenderer {
   val renderItem = new RenderItem()
   renderItem.setRenderManager(RenderManager.instance)
 
+  lazy val craftingUpgrade = api.Items.get("craftingUpgrade")
+  lazy val generatorUpgrade = api.Items.get("generatorUpgrade")
+  lazy val inventoryUpgrade = api.Items.get("inventoryUpgrade")
+  lazy val drone = api.Items.get("drone")
+
+  lazy val floppy = api.Items.get("floppy")
+  lazy val lootDisk = api.Items.get("lootDisk")
+  lazy val openOS = api.Items.get("openOS")
+
   def bounds = AxisAlignedBB.getBoundingBox(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
 
   def isUpgrade(descriptor: ItemInfo) =
-    descriptor == api.Items.get("craftingUpgrade") ||
-      descriptor == api.Items.get("generatorUpgrade") ||
-      descriptor == api.Items.get("inventoryUpgrade")
+    descriptor == craftingUpgrade ||
+      descriptor == generatorUpgrade ||
+      descriptor == inventoryUpgrade
 
   def isFloppy(descriptor: ItemInfo) =
-    descriptor == api.Items.get("floppy") ||
-      descriptor == api.Items.get("lootDisk") ||
-      descriptor == api.Items.get("openOS")
+    descriptor == floppy ||
+      descriptor == lootDisk ||
+      descriptor == openOS
 
-  override def handleRenderType(stack: ItemStack, renderType: ItemRenderType) =
+  override def handleRenderType(stack: ItemStack, renderType: ItemRenderType) = {
+    val descriptor = api.Items.get(stack)
     (renderType == ItemRenderType.EQUIPPED && isUpgrade(api.Items.get(stack))) ||
-      (renderType == ItemRenderType.INVENTORY && isFloppy(api.Items.get(stack)))
+      (renderType == ItemRenderType.INVENTORY && isFloppy(api.Items.get(stack))) ||
+      ((renderType == ItemRenderType.INVENTORY || renderType == ItemRenderType.ENTITY || renderType == ItemRenderType.EQUIPPED || renderType == ItemRenderType.EQUIPPED_FIRST_PERSON) && descriptor == drone)
+  }
 
   override def shouldUseRenderHelper(renderType: ItemRenderType, stack: ItemStack, helper: ItemRendererHelper) =
-  // Note: it's easier to revert changes introduced by this "helper" than by
-  // the code that applies if no helper is used...
-    helper == ItemRendererHelper.EQUIPPED_BLOCK
+    if (renderType == ItemRenderType.ENTITY) true
+    // Note: it's easier to revert changes introduced by this "helper" than by
+    // the code that applies if no helper is used...
+    else helper == ItemRendererHelper.EQUIPPED_BLOCK
 
   override def renderItem(renderType: ItemRenderType, stack: ItemStack, data: AnyRef*) {
     RenderState.checkError(getClass.getName + ".renderItem: entering (aka: wasntme)")
@@ -103,6 +117,34 @@ object ItemRenderer extends IItemRenderer {
       GL11.glPopAttrib()
 
       RenderState.checkError("ItemRenderer.renderItem: floppy")
+    }
+    else if (descriptor == drone) {
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      GL11.glPushMatrix()
+
+      Minecraft.getMinecraft.renderEngine.bindTexture(DroneRenderer.model.texture)
+      RenderState.makeItBlend()
+      GL11.glDisable(GL11.GL_CULL_FACE)
+
+      if (renderType == ItemRenderType.INVENTORY) {
+        GL11.glTranslatef(8f, 9f, 0)
+        GL11.glRotatef(-30, 1, 0, 0)
+        GL11.glRotatef(60, 0, 1, 0)
+        GL11.glScalef(13, -13, 13)
+      }
+      else if (renderType == ItemRenderType.EQUIPPED || renderType == ItemRenderType.EQUIPPED_FIRST_PERSON) {
+        GL11.glTranslatef(0.4f, 1.05f, 0.75f)
+        GL11.glRotatef(-30, 0, 1, 0)
+        GL11.glRotatef(80, 0, 0, 1)
+        GL11.glScalef(1.5f, 1.5f, 1.5f)
+      }
+
+      DroneRenderer.model.render()
+
+      GL11.glPopMatrix()
+      GL11.glPopAttrib()
+
+      RenderState.checkError("ItemRenderer.renderItem: drone")
     }
 
     RenderState.checkError("ItemRenderer.renderItem: leaving")

@@ -11,7 +11,6 @@ import li.cil.oc.api
 import li.cil.oc.common.block.RobotAfterimage
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -51,7 +50,6 @@ abstract class PacketHandler {
 
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
       world(player, dimension) match {
-        case None => // Invalid dimension.
         case Some(world) if world.blockExists(x, y, z) =>
           val t = world.getTileEntity(x, y, z)
           if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass)) {
@@ -68,6 +66,19 @@ abstract class PacketHandler {
             }
             case _ =>
           }
+        case _ => // Invalid dimension.
+      }
+      None
+    }
+
+    def getEntity[T: ClassTag](dimension: Int, id: Int): Option[T] = {
+      world(player, dimension) match {
+        case Some(world) =>
+          val e = world.getEntityByID(id)
+          if (e != null && classTag[T].runtimeClass.isAssignableFrom(e.getClass)) {
+            return Some(e.asInstanceOf[T])
+          }
+        case _ =>
       }
       None
     }
@@ -80,7 +91,16 @@ abstract class PacketHandler {
       getTileEntity(dimension, x, y, z)
     }
 
-    def readDirection() = ForgeDirection.getOrientation(readInt())
+    def readEntity[T: ClassTag](): Option[T] = {
+      val dimension = readInt()
+      val id = readInt()
+      getEntity[T](dimension, id)
+    }
+
+    def readDirection() = readByte() match {
+      case id if id < 0 => None
+      case id => Option(ForgeDirection.getOrientation(id))
+    }
 
     def readItemStack() = {
       val haveStack = readBoolean()

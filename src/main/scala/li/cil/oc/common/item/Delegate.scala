@@ -4,13 +4,14 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.client.KeyBindings
-import li.cil.oc.util.ItemCosts
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.client.KeyBindings
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ItemCosts
+import li.cil.oc.util.Rarity
+import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -21,7 +22,7 @@ trait Delegate {
   type Icon = net.minecraft.util.IIcon
   type IconRegister = net.minecraft.client.renderer.texture.IIconRegister
 
-  val parent: Delegator
+  def parent: Delegator
 
   def unlocalizedName = getClass.getSimpleName
 
@@ -41,9 +42,9 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
   def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (player.isSneaking) {
@@ -59,15 +60,13 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def rarity = Rarity.byTier(tierFromDriver)
+  def rarity(stack: ItemStack) = Rarity.byTier(tierFromDriver(stack))
 
-  protected def tierFromDriver = {
-    val stack = createItemStack()
+  protected def tierFromDriver(stack: ItemStack) =
     api.Driver.driverFor(stack) match {
       case driver: api.driver.Item => driver.tier(stack)
       case _ => 0
     }
-  }
 
   def color(stack: ItemStack, pass: Int) = 0xFFFFFF
 

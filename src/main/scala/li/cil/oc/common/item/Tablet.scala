@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
@@ -24,6 +25,7 @@ import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
@@ -32,6 +34,7 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.RotationHelper
+import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -40,6 +43,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 class Tablet(val parent: Delegator) extends Delegate {
@@ -67,6 +71,20 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
+    if (KeyBindings.showExtendedTooltips) {
+      val info = new ItemUtils.TabletData(stack)
+      // Ignore/hide the screen.
+      val components = info.items.drop(1)
+      if (components.length > 1) {
+        tooltip.addAll(Tooltip.get("Server.Components"))
+        components.collect {
+          case Some(component) => tooltip.add("- " + component.getDisplayName)
+        }
+      }
+    }
+  }
 
   override def isDamageable = true
 
@@ -119,11 +137,16 @@ class Tablet(val parent: Delegator) extends Delegate {
 }
 
 class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends ComponentInventory with MachineHost with internal.Tablet {
-  lazy val machine = if (player.worldObj.isRemote) null else Machine.create(this)
+  // Remember our *original* world, so we know which tablets to clear on dimension
+  // changes of players holding tablets - since the player entity instance may be
+  // kept the same and components are not required to properly handle world changes.
+  val world = player.worldObj
+
+  lazy val machine = if (world.isRemote) null else Machine.create(this)
 
   val data = new TabletData()
 
-  val tablet = if (player.worldObj.isRemote) null else new component.Tablet(this)
+  val tablet = if (world.isRemote) null else new component.Tablet(this)
 
   private var isInitialized = !world.isRemote
 
@@ -228,8 +251,6 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   override def yPosition = player.posY + player.getEyeHeight
 
   override def zPosition = player.posZ
-
-  override def world = player.worldObj
 
   override def markChanged() {}
 
@@ -338,8 +359,8 @@ object Tablet {
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
-    Client.clear()
-    Server.clear()
+    Client.clear(e.world)
+    Server.clear(e.world)
   }
 
   @SubscribeEvent
@@ -371,7 +392,16 @@ object Tablet {
       cache.synchronized {
         currentStack = stack
         currentHolder = holder
-        val wrapper = cache.get(id, this)
+        var wrapper = cache.get(id, this)
+
+        // Force re-load on world change, in case some components store a
+        // reference to the world object.
+        if (holder.worldObj != wrapper.world) {
+          cache.invalidate(id)
+          cache.cleanUp()
+          wrapper = cache.get(id, this)
+        }
+
         wrapper.stack = stack
         wrapper.player = holder
         wrapper
@@ -395,9 +425,10 @@ object Tablet {
       }
     }
 
-    def clear() {
+    def clear(world: World) {
       cache.synchronized {
-        cache.invalidateAll()
+        val tabletsInWorld = cache.asMap.filter(_._2.world == world)
+        cache.invalidateAll(asJavaIterable(tabletsInWorld.keys))
         cache.cleanUp()
       }
     }

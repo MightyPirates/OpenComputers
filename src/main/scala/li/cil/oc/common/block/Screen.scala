@@ -9,15 +9,12 @@ import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.Color
-import li.cil.oc.util.PackedColor
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util._
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
-import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
@@ -32,7 +29,7 @@ class Screen(val tier: Int) extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
@@ -331,8 +328,8 @@ class Screen(val tier: Int) extends RedstoneAware {
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, x, y, z, player, side, hitX, hitY, hitZ, force = false)
 
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) =
-    if (Wrench.holdsApplicableWrench(player, x, y, z)) false
+                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) = {
+    if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z)) && getValidRotations(world, x, y, z).contains(side) && !force) false
     else world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
@@ -346,6 +343,7 @@ class Screen(val tier: Int) extends RedstoneAware {
         screen.click(player, hitX, hitY, hitZ)
       case _ => false
     }
+  }
 
   override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity) =
     if (!world.isRemote) world.getTileEntity(x, y, z) match {

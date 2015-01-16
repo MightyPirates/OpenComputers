@@ -14,9 +14,6 @@ object DriverUpgradeCrafting extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("craftingUpgrade"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && isRobot(host)
-
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
       case robot: EnvironmentHost with Robot => new component.UpgradeCrafting(robot)

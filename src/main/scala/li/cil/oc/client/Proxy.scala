@@ -14,9 +14,11 @@ import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.BlockRenderer
+import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
@@ -24,6 +26,7 @@ import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
+import org.lwjgl.opengl.GLContext
 
 private[oc] class Proxy extends CommonProxy {
   override def preInit(e: FMLPreInitializationEvent) {
@@ -44,6 +47,7 @@ private[oc] class Proxy extends CommonProxy {
 
     Settings.blockRenderId = RenderingRegistry.getNextAvailableRenderId
     RenderingRegistry.registerBlockHandler(BlockRenderer)
+    RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Assembler], AssemblerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
@@ -51,7 +55,11 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.DiskDrive], DiskDriveRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Geolyzer], GeolyzerRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
+    if (GLContext.getCapabilities.OpenGL15)
+      ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
+    else
+      ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRendererFallback)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Microcontroller], MicrocontrollerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], RaidRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.ServerRack], ServerRackRenderer)
@@ -62,7 +70,6 @@ private[oc] class Proxy extends CommonProxy {
 
     MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
 
-    ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 

@@ -2,13 +2,14 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.GuiType
-import li.cil.oc.common.Tier
-import li.cil.oc.util.Rarity
-import li.cil.oc.util.Tooltip
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.client.KeyBindings
+import li.cil.oc.common.GuiType
+import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.util.Rarity
+import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -22,7 +23,7 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
 
   override protected def tooltipData = Seq(Settings.get.terminalsPerTier(math.min(Tier.Three, tier)))
 
-  override def rarity = Rarity.byTier(tier)
+  override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override def maxStackSize = 1
 
@@ -34,17 +35,19 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]) {
     super.tooltipExtended(stack, tooltip)
-    HelperInventory.container = stack
-    HelperInventory.reinitialize()
-    val items = mutable.Map.empty[String, Int]
-    for (item <- (0 until HelperInventory.getSizeInventory).map(HelperInventory.getStackInSlot) if item != null) {
-      val itemName = item.getDisplayName
-      items += itemName -> (if (items.contains(itemName)) items(itemName) + 1 else 1)
-    }
-    if (items.size > 0) {
-      tooltip.addAll(Tooltip.get("Server.Components"))
-      for (itemName <- items.keys.toArray.sorted) {
-        tooltip.add("- " + items(itemName) + "x " + itemName)
+    if (KeyBindings.showExtendedTooltips) {
+      HelperInventory.container = stack
+      HelperInventory.reinitialize()
+      val items = mutable.Map.empty[String, Int]
+      for (item <- (0 until HelperInventory.getSizeInventory).map(HelperInventory.getStackInSlot) if item != null) {
+        val itemName = item.getDisplayName
+        items += itemName -> (if (items.contains(itemName)) items(itemName) + 1 else 1)
+      }
+      if (items.size > 0) {
+        tooltip.addAll(Tooltip.get("Server.Components"))
+        for (itemName <- items.keys.toArray.sorted) {
+          tooltip.add("- " + items(itemName) + "x " + itemName)
+        }
       }
     }
   }

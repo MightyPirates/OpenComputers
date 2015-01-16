@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.machine.Arguments
+import li.cil.oc.common.inventory.MultiTank
 import net.minecraft.inventory.IInventory
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -45,9 +46,9 @@ object ExtendedArguments {
       slot + 1 + robot.containerCount
     }
 
-    def checkTank(robot: Robot, n: Int) = {
+    def checkTank(multi: MultiTank, n: Int) = {
       val tank = args.checkInteger(n) - 1
-      if (tank < 0 || tank >= robot.tankCount) {
+      if (tank < 0 || tank >= multi.tankCount) {
         throw new IllegalArgumentException("invalid tank index")
       }
       tank

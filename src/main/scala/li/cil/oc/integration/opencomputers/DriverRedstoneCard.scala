@@ -19,19 +19,22 @@ import net.minecraft.item.ItemStack
 object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("redstoneCard1"), api.Items.get("redstoneCard2"))
 
-  override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
-    worksWith(stack) && (isComputer(host) || isRobot(host) || isServer(host))
-
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
+    val isAdvanced = tier(stack) == Tier.Two
+    val hasBundled = BundledRedstone.isAvailable && isAdvanced
+    val hasWireless = WirelessRedstone.isAvailable && isAdvanced
     host match {
-      case redstone: BundledRedstoneAware if BundledRedstone.isAvailable && tier(stack) == Tier.Two =>
-        if (WirelessRedstone.isAvailable) new component.Redstone.BundledWireless(redstone)
+      case redstone: BundledRedstoneAware if hasBundled =>
+        if (hasWireless) new component.Redstone.BundledWireless(redstone)
         else new component.Redstone.Bundled(redstone)
       case redstone: RedstoneAware =>
-        if (tier(stack) == Tier.Two && WirelessRedstone.isAvailable) new component.Redstone.Wireless(redstone)
-        else new component.Redstone.Simple(redstone)
-      case _ => null
+        if (hasWireless) new component.Redstone.VanillaWireless(redstone)
+        else new component.Redstone.Vanilla(redstone)
+      case _ =>
+        if (hasWireless) new component.Redstone.Wireless(host)
+        else null
     }
+  }
 
   override def slot(stack: ItemStack) = Slot.Card
 
@@ -41,15 +44,16 @@ object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {
       case _ => Tier.One
     }
 
-  override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] =
-    if (stack.getItemDamage == api.Items.get("redstoneCard1").createItemStack(1).getItemDamage)
-      classOf[component.Redstone[RedstoneAware]]
-    else if (BundledRedstone.isAvailable) {
-      if (WirelessRedstone.isAvailable) classOf[component.Redstone.BundledWireless]
+  override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] = {
+    val isAdvanced = tier(stack) == Tier.Two
+    val hasBundled = BundledRedstone.isAvailable && isAdvanced
+    val hasWireless = WirelessRedstone.isAvailable && isAdvanced
+    if (hasBundled) {
+      if (hasWireless) classOf[component.Redstone.BundledWireless]
       else classOf[component.Redstone.Bundled]
     }
     else {
-      if (WirelessRedstone.isAvailable) classOf[component.Redstone.Wireless]
-      else classOf[component.Redstone.Simple]
+      classOf[component.Redstone.Vanilla]
     }
+  }
 }

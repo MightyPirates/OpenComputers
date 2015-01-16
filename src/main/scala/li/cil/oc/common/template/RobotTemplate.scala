@@ -16,13 +16,13 @@ import net.minecraft.nbt.NBTTagList
 object RobotTemplate extends Template {
   override protected def hostClass = classOf[internal.Robot]
 
-  def selectTier1(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.One
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case1")
 
-  def selectTier2(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Two
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case2")
 
-  def selectTier3(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Three
+  def selectTier3(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case3")
 
-  def selectCreative(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Four
+  def selectCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("caseCreative")
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
@@ -40,6 +40,15 @@ object RobotTemplate extends Template {
     val energy = Settings.get.robotBaseCost + complexity(inventory) * Settings.get.robotComplexityCost
 
     Array(stack, double2Double(energy))
+  }
+
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("robot")
+
+  def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
+    val info = new ItemUtils.RobotData(stack)
+    val itemName = ItemUtils.caseNameWithTierSuffix("case", info.tier)
+
+    Array(api.Items.get(itemName).createItemStack(1)) ++ info.containers ++ info.components
   }
 
   def register() {
@@ -71,7 +80,7 @@ object RobotTemplate extends Template {
       componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.One))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.One))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.One))
-      componentSlots.appendTag(Map("type" -> Slot.Floppy, "tier" -> Tier.Any))
+      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
       componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.One))
       nbt.setTag("componentSlots", componentSlots)
 
@@ -109,7 +118,7 @@ object RobotTemplate extends Template {
       componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Two))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Two))
-      componentSlots.appendTag(Map("type" -> Slot.Floppy, "tier" -> Tier.Any))
+      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
       componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Two))
       nbt.setTag("componentSlots", componentSlots)
 
@@ -150,7 +159,7 @@ object RobotTemplate extends Template {
       componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Three))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Floppy, "tier" -> Tier.Any))
+      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
       componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Three))
       componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Two))
       nbt.setTag("componentSlots", componentSlots)
@@ -192,12 +201,22 @@ object RobotTemplate extends Template {
       componentSlots.appendTag(Map("type" -> Slot.CPU, "tier" -> Tier.Three))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
       componentSlots.appendTag(Map("type" -> Slot.Memory, "tier" -> Tier.Three))
-      componentSlots.appendTag(Map("type" -> Slot.Floppy, "tier" -> Tier.Any))
+      componentSlots.appendTag(Map("type" -> Slot.EEPROM, "tier" -> Tier.Any))
       componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Three))
       componentSlots.appendTag(Map("type" -> Slot.HDD, "tier" -> Tier.Three))
       nbt.setTag("componentSlots", componentSlots)
 
       FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerTemplate", nbt)
+    }
+
+    // Disassembler
+    {
+      val nbt = new NBTTagCompound()
+      nbt.setString("name", "Robot")
+      nbt.setString("select", "li.cil.oc.common.template.RobotTemplate.selectDisassembler")
+      nbt.setString("disassemble", "li.cil.oc.common.template.RobotTemplate.disassemble")
+
+      FMLInterModComms.sendMessage("OpenComputers", "registerDisassemblerTemplate", nbt)
     }
   }
 
