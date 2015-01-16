@@ -41,13 +41,15 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     withConnector().
     create()
 
-  private var maxResolution = Settings.screenResolutionsByTier(0)
+  private var maxResolution = Settings.screenResolutionsByTier(Tier.One)
 
-  private var maxDepth = Settings.screenDepthsByTier(0)
+  private var maxDepth = Settings.screenDepthsByTier(Tier.One)
 
   private var aspectRatio = (1.0, 1.0)
 
   private var powerConsumptionPerTick = Settings.get.screenCost
+
+  private var precisionMode = false
 
   // For client side only.
   private var isRendering = true
@@ -160,6 +162,21 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       case _ =>
         Array(node.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address).toArray)
     }
+  }
+
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the screen is in high precision mode (sub-pixel mouse event positions).""")
+  def isPrecise(computer: Context, args: Arguments): Array[AnyRef] = result(precisionMode)
+
+  @Callback(doc = """function(enabled:boolean):boolean -- Set whether to use high precision mode (sub-pixel mouse event positions).""")
+  def setPrecise(computer: Context, args: Arguments): Array[AnyRef] = {
+    // Available for T3 screens only... easiest way to check for us is to
+    // base it off of the maximum color depth.
+    if (maxDepth == Settings.screenDepthsByTier(Tier.Three)) {
+      val oldValue = precisionMode
+      precisionMode = args.checkBoolean(0)
+      result(oldValue)
+    }
+    else result(Unit, "unsupported operation")
   }
 
   // ----------------------------------------------------------------------- //
@@ -386,17 +403,31 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def clipboard(value: String, player: EntityPlayer) =
     proxy.clipboard(value, player)
 
-  override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) =
+  override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) =
     proxy.mouseDown(x, y, button, player)
 
-  override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) =
+  override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) =
     proxy.mouseDrag(x, y, button, player)
 
-  override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) =
+  override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) =
     proxy.mouseUp(x, y, button, player)
 
-  override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) =
+  override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) =
     proxy.mouseScroll(x, y, delta, player)
+
+  // TODO Remove in 1.5
+
+  override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) =
+    mouseDown(x, y, button, player)
+
+  override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) =
+    mouseDrag(x, y, button, player)
+
+  override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) =
+    mouseUp(x, y, button, player)
+
+  override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) =
+    mouseScroll(x, y, delta, player)
 
   // ----------------------------------------------------------------------- //
 
@@ -443,6 +474,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       val maxHeight = nbt.getInteger(Settings.namespace + "maxHeight")
       maxResolution = (maxWidth, maxHeight)
     }
+    precisionMode = nbt.getBoolean(Settings.namespace + "precise")
   }
 
   // Null check for Waila (and other mods that may call this client side).
@@ -470,6 +502,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
     nbt.setInteger(Settings.namespace + "maxWidth", maxResolution._1)
     nbt.setInteger(Settings.namespace + "maxHeight", maxResolution._2)
+    nbt.setBoolean(Settings.namespace + "precise", precisionMode)
   }
 }
 
@@ -562,13 +595,13 @@ object TextBuffer {
 
     def clipboard(value: String, player: EntityPlayer): Unit
 
-    def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
+    def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
-    def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
+    def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
-    def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
+    def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
-    def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer): Unit
+    def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit
   }
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
@@ -633,22 +666,22 @@ object TextBuffer {
       ClientPacketSender.sendClipboard(nodeAddress, value)
     }
 
-    override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
+    override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
       debug(s"{type = mouseDown, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = false, button)
     }
 
-    override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) {
+    override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) {
       debug(s"{type = mouseDrag, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = true, button)
     }
 
-    override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) {
+    override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) {
       debug(s"{type = mouseUp, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseUp(nodeAddress, x, y, button)
     }
 
-    override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
+    override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
       debug(s"{type = mouseScroll, x = $x, y = $y, delta = $delta}")
       ClientPacketSender.sendMouseScroll(nodeAddress, x, y, delta)
     }
@@ -740,24 +773,41 @@ object TextBuffer {
       sendToKeyboards("keyboard.clipboard", player, value)
     }
 
-    override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button))
+    override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "touch", x, y, button)
     }
 
-    override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button))
+    override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "drag", x, y, button)
     }
 
-    override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button))
+    override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "drop", x, y, button)
     }
 
-    override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta), player.getCommandSenderName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta))
+    override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "scroll", x, y, delta)
+    }
+
+    private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int) = {
+      val args = mutable.ArrayBuffer.empty[AnyRef]
+
+      args += player
+      args += name
+      if (owner.precisionMode) {
+        args += double2Double(x)
+        args += double2Double(y)
+      }
+      else {
+        args += int2Integer(x.toInt + 1)
+        args += int2Integer(y.toInt + 1)
+      }
+      args += int2Integer(data)
+      if (Settings.get.inputUsername) {
+        args += player.getCommandSenderName
+      }
+
+      owner.node.sendToReachable("computer.checked_signal", args: _*)
     }
 
     private def sendToKeyboards(name: String, values: AnyRef*) {

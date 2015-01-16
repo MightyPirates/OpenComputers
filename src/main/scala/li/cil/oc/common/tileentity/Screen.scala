@@ -137,7 +137,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
 
     // Convert to absolute coordinates and send the packet to the server.
-    origin.buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
+    origin.buffer.mouseDown(brx * bw, bry * bh, 0, null)
 
     true
   }
