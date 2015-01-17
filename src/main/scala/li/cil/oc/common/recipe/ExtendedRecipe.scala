@@ -5,6 +5,7 @@ import java.util.UUID
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.common.init.Items
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
@@ -20,6 +21,7 @@ import scala.util.control.Breaks._
 object ExtendedRecipe {
   private lazy val drone = api.Items.get("drone")
   private lazy val eeprom = api.Items.get("eeprom")
+  private lazy val luaBios = Items.createLuaBios()
   private lazy val mcu = api.Items.get("microcontroller")
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   private lazy val linkedCard = api.Items.get("linkedCard")
@@ -71,7 +73,7 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == eeprom) breakable {
+    if (api.Items.get(craftedStack) == eeprom && !ItemStack.areItemStackTagsEqual(craftedStack, luaBios)) breakable {
       for (slot <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(slot)
         if (stack != null && api.Items.get(stack) == eeprom && stack.hasTagCompound) {
