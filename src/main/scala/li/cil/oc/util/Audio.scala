@@ -6,6 +6,7 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
 import org.lwjgl.BufferUtils
@@ -23,7 +24,7 @@ import scala.collection.mutable
  * tick handler.
  */
 object Audio {
-  private def sampleRate = 8000
+  private def sampleRate = Settings.get.beepSampleRate
 
   private val sources = mutable.Set.empty[Source]
 

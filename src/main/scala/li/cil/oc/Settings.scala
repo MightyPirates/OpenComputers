@@ -49,6 +49,7 @@ class Settings(val config: Config) {
   }
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
   val fontRenderer = config.getString("client.fontRenderer")
+  val beepSampleRate = config.getInt("client.beepSampleRate")
 
   // ----------------------------------------------------------------------- //
   // computer
