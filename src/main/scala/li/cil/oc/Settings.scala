@@ -50,6 +50,7 @@ class Settings(val config: Config) {
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
   val fontRenderer = config.getString("client.fontRenderer")
   val beepSampleRate = config.getInt("client.beepSampleRate")
+  val beepAmplitude = config.getInt("client.beepVolume") max 0 min Byte.MaxValue
 
   // ----------------------------------------------------------------------- //
   // computer
