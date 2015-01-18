@@ -351,8 +351,8 @@ function filesystem.list(path)
       table.remove(result, i)
     else
       f = result[i]
+      i = i + 1
     end
-    i = i + 1
   end
   local i = 0
   return function()
