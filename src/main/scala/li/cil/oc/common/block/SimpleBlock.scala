@@ -247,8 +247,6 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
 
-  override def shouldCheckWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = true
-
   // ----------------------------------------------------------------------- //
 
   // NOTE: must not be final for immibis microblocks to work.
