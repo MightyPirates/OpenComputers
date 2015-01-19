@@ -304,6 +304,11 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         if (cobwebOverride) Settings.get.swingDelay
         else hardness * 1.5 / strength
 
+      // TODO Remove before release (how much that I'll forget about it?)
+      if (breakTime > 10) {
+        OpenComputers.log.info(s"Slow block break: block=${block.getUnlocalizedName}, meta=$metadata, hardness=$hardness, strength=$strength, time=$breakTime")
+      }
+
       val preEvent = new RobotBreakBlockEvent.Pre(robot, world, x, y, z, breakTime * Settings.get.harvestRatio)
       MinecraftForge.EVENT_BUS.post(preEvent)
       if (preEvent.isCanceled) return 0
