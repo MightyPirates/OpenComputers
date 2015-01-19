@@ -57,6 +57,8 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
   override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()

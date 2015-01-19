@@ -41,6 +41,8 @@ class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
   override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     findMovingRobot(world, x, y, z) match {
       case Some(robot) => robot.info.createItemStack()

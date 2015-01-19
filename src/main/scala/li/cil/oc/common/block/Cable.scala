@@ -52,6 +52,8 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
   // ----------------------------------------------------------------------- //
 
   override def hasTileEntity(metadata: Int) = true
