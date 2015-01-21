@@ -79,7 +79,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
         if (buffer >= Settings.get.disassemblerItemCost) {
           buffer -= Settings.get.disassemblerItemCost
           val stack = queue.remove(0)
-          if (world.rand.nextDouble > Settings.get.disassemblerBreakChance) {
+          if (world.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
             drop(stack)
           }
         }
