@@ -9,11 +9,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.SidedEnvironment
-import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.network.WirelessEndpoint
-import li.cil.oc.api.network.{Node => ImmutableNode}
+import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
@@ -439,7 +435,10 @@ object Network extends api.detail.NetworkAPI {
   private def getNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
-      case host: Environment => Some(host.node)
+      case host: Environment with SidedComponent =>
+        if (host.canConnectNode(side)) Option(host.node)
+        else None
+      case host: Environment => Option(host.node)
       case host if Mods.ForgeMultipart.isAvailable => getMultiPartNode(host)
       case _ => None
     }
