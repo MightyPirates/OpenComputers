@@ -14,6 +14,7 @@ import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
@@ -234,6 +235,37 @@ object Items extends ItemAPI {
     stack
   }
 
+  def createConfiguredTablet() = {
+    val data = new TabletData()
+
+    data.energy = Settings.get.bufferTablet
+    data.maxEnergy = data.energy
+    data.items = Array(
+      Option(get("screen1").createItemStack(1)),
+      Option(get("keyboard").createItemStack(1)),
+
+      Option(get("signUpgrade").createItemStack(1)),
+      Option(get("pistonUpgrade").createItemStack(1)),
+
+      Option(get("graphicsCard2").createItemStack(1)),
+      Option(get("redstoneCard2").createItemStack(1)),
+      Option(get("wlanCard").createItemStack(1)),
+
+      Option(get("cpu3").createItemStack(1)),
+      Option(get("ram6").createItemStack(1)),
+      Option(get("ram6").createItemStack(1)),
+
+      Option(createLuaBios()),
+      Option(createOpenOS()),
+      Option(get("hdd3").createItemStack(1))
+    )
+
+    val stack = get("tablet").createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
   // ----------------------------------------------------------------------- //
 
   var multi: item.Delegator = _
@@ -249,7 +281,8 @@ object Items extends ItemAPI {
         createLuaBios(),
         createConfiguredDrone(),
         createConfiguredMicrocontroller(),
-        createConfiguredRobot()
+        createConfiguredRobot(),
+        createConfiguredTablet()
       )
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
