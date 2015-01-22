@@ -20,6 +20,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.common.inventory.TankSelection
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
@@ -30,7 +31,6 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
@@ -54,7 +54,7 @@ import scala.collection.mutable
 class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with internal.Tiered with MultiTank with InventorySelection with TankSelection {
   var proxy: RobotProxy = _
 
-  val info = new ItemUtils.RobotData()
+  val info = new RobotData()
 
   val bot = if (isServer) new robot.Robot(this) else null
 

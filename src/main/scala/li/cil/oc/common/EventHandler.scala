@@ -13,6 +13,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
@@ -163,12 +164,12 @@ object EventHandler {
 
     didRecraft = recraft(e, mcu, stack => {
       // Restore EEPROM currently used in microcontroller.
-      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     didRecraft = recraft(e, drone, stack => {
       // Restore EEPROM currently used in drone.
-      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     // Presents?

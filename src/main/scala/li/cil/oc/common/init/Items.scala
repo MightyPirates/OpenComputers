@@ -12,10 +12,11 @@ import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.UpgradeLeash
+import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -141,7 +142,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredDrone() = {
-    val data = new ItemUtils.MicrocontrollerData()
+    val data = new MicrocontrollerData()
 
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferDrone.toInt
@@ -167,7 +168,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredMicrocontroller() = {
-    val data = new ItemUtils.MicrocontrollerData()
+    val data = new MicrocontrollerData()
 
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
@@ -190,7 +191,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredRobot() = {
-    val data = new ItemUtils.RobotData()
+    val data = new RobotData()
 
     data.name = "Creatix"
     data.tier = Tier.Four

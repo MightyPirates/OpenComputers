@@ -6,8 +6,8 @@ import li.cil.oc.api
 import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -32,7 +32,7 @@ object TabletTemplate extends Template {
     val items = mutable.ArrayBuffer(
       Option(api.Items.get("screen1").createItemStack(1))
     ) ++ (1 until inventory.getSizeInventory).map(slot => Option(inventory.getStackInSlot(slot)))
-    val data = new ItemUtils.TabletData()
+    val data = new TabletData()
     data.items = items.filter(_.isDefined).toArray
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
@@ -46,7 +46,7 @@ object TabletTemplate extends Template {
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tablet")
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
-    val info = new ItemUtils.TabletData(stack)
+    val info = new TabletData(stack)
     Array(api.Items.get("tabletCase").createItemStack(1)) ++ info.items.collect {
       case Some(item) => item
     }.drop(1) // Screen.

@@ -20,12 +20,12 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.common.inventory.MultiTank
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
@@ -62,7 +62,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   var lastEnergyUpdate = 0
 
   // Logic stuff, components, machine and such.
-  val info = new ItemUtils.MicrocontrollerData()
+  val info = new MicrocontrollerData()
   val machine = if (!world.isRemote) {
     val m = Machine.create(this)
     m.node.asInstanceOf[Connector].setLocalBufferSize(0)
@@ -276,28 +276,48 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+
   def targetX = dataWatcher.getWatchableObjectFloat(3)
+
   def targetY = dataWatcher.getWatchableObjectFloat(4)
+
   def targetZ = dataWatcher.getWatchableObjectFloat(5)
+
   def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
+
   def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+
   def globalBuffer = dataWatcher.getWatchableObjectInt(8)
+
   def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
+
   def statusText = dataWatcher.getWatchableObjectString(10)
+
   def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+
   def lightColor = dataWatcher.getWatchableObjectInt(12)
 
   def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+
   // Round target values to low accuracy to avoid floating point errors accumulating.
   def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 4) / 4f))
+
   def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 4) / 4f))
+
   def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 4) / 4f))
+
   def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
+
   def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+
   def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
+
   def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
+
   def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
+
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
+
   def lightColor_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
 
   @SideOnly(Side.CLIENT)

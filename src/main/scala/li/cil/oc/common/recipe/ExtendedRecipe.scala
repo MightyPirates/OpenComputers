@@ -6,9 +6,9 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.SideTracker
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.InventoryCrafting
@@ -97,7 +97,7 @@ object ExtendedRecipe {
       // Find old Microcontroller.
       (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).find(api.Items.get(_) == descriptor) match {
         case Some(oldMcu) =>
-          val data = new ItemUtils.MicrocontrollerData(oldMcu)
+          val data = new MicrocontrollerData(oldMcu)
 
           // Remove old EEPROM.
           val oldRom = data.components.filter(api.Items.get(_) == eeprom)

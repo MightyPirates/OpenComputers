@@ -5,11 +5,11 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.Rarity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -18,7 +18,9 @@ import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Microcontroller extends RedstoneAware with traits.PowerAcceptor with traits.StateAware {
+import scala.reflect.ClassTag
+
+class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microcontroller]) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
   setCreativeTab(null)
   NEI.hide(this)
 
@@ -39,17 +41,12 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor with trait
       case _ => null
     }
 
-  // Custom drop logic for NBT tagged item stack.
-  override def getDrops(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) = new java.util.ArrayList[ItemStack]()
-
-  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) {}
-
   // ----------------------------------------------------------------------- //
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.MicrocontrollerData(stack)
+      val info = new MicrocontrollerData(stack)
       for (component <- info.components) {
         tooltip.add("- " + component.getDisplayName)
       }
@@ -57,7 +54,7 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor with trait
   }
 
   override def rarity(stack: ItemStack) = {
-    val data = new ItemUtils.MicrocontrollerData(stack)
+    val data = new MicrocontrollerData(stack)
     Rarity.byTier(data.tier)
   }
 
@@ -85,26 +82,16 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor with trait
     else false
   }
 
-  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, stack: ItemStack) {
-    super.onBlockPlacedBy(world, x, y, z, entity, stack)
-    if (!world.isRemote) world.getTileEntity(x, y, z) match {
-      case mcu: tileentity.Microcontroller =>
-        mcu.info.load(stack)
-        mcu.snooperNode.changeBuffer(mcu.info.storedEnergy - mcu.snooperNode.localBuffer)
-      case _ =>
-    }
+  override protected def doCustomInit(tileEntity: tileentity.Microcontroller, player: EntityLivingBase, stack: ItemStack): Unit = {
+    super.doCustomInit(tileEntity, player, stack)
+    tileEntity.info.load(stack)
+    tileEntity.snooperNode.changeBuffer(tileEntity.info.storedEnergy - tileEntity.snooperNode.localBuffer)
   }
 
-  override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int, willHarvest: Boolean): Boolean = {
-    if (!world.isRemote) {
-      world.getTileEntity(x, y, z) match {
-        case mcu: tileentity.Microcontroller =>
-          mcu.saveComponents()
-          mcu.info.storedEnergy = mcu.snooperNode.localBuffer.toInt
-          dropBlockAsItem(world, x, y, z, mcu.info.createItemStack())
-        case _ =>
-      }
-    }
-    super.removedByPlayer(world, player, x, y, z, willHarvest)
+  override protected def doCustomDrops(tileEntity: tileentity.Microcontroller, player: EntityPlayer, willHarvest: Boolean): Unit = {
+    super.doCustomDrops(tileEntity, player, willHarvest)
+    tileEntity.saveComponents()
+    tileEntity.info.storedEnergy = tileEntity.snooperNode.localBuffer.toInt
+    dropBlockAsItem(tileEntity.world, tileEntity.x, tileEntity.y, tileEntity.z, tileEntity.info.createItemStack())
   }
 }
