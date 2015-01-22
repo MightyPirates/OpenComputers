@@ -63,9 +63,17 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
         "busy" -> cpu.isBusy)))
 
     @Callback(doc = "function():table -- Get a list of known item recipes. These can be used to issue crafting requests.")
-    def getCraftables(context: Context, args: Arguments): Array[AnyRef] =
+    def getCraftables(context: Context, args: Arguments): Array[AnyRef] = {
       result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.
-        filter(_.isCraftable).map(new Craftable(tileEntity, _)).toArray)
+        filter(_.isCraftable).map(stack => {
+        val patterns = tileEntity.getProxy.getCrafting.getCraftingFor(stack, null, 0, tileEntity.getWorld)
+        val result = patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(stack))) match {
+          case Some(pattern) => pattern.getOutputs.find(_.isSameType(stack)).get
+          case _ => stack.copy.setStackSize(0) // Should not be possible, but hey...
+        }
+        new Craftable(tileEntity, result)
+      }).toArray)
+    }
 
     @Callback(doc = "function():table -- Get a list of the stored items in the network.")
     def getItemsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
