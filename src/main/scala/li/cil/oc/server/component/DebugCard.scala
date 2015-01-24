@@ -45,6 +45,9 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   // Used for delayed connecting to remote node again after loading.
   private var remoteNodePosition: Option[(Int, Int, Int)] = None
 
+  // Player this card is bound to (if any) to use for permissions.
+  var player: Option[String] = None
+
   // ----------------------------------------------------------------------- //
 
   import li.cil.oc.server.component.DebugCard.checkEnabled
@@ -89,7 +92,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def runCommand(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
     val command = args.checkString(0)
-    val sender = new CommandSender(host)
+    val sender = new CommandSender(host, player)
     val value = MinecraftServer.getServer.getCommandManager.executeCommand(sender, command)
     result(value, sender.messages.orNull)
   }
@@ -157,6 +160,9 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
       val z = nbt.getInteger(Settings.namespace + "remoteZ")
       remoteNodePosition = Some((x, y, z))
     }
+    if (nbt.hasKey(Settings.namespace + "player")) {
+      player = Option(nbt.getString(Settings.namespace + "player"))
+    }
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
@@ -167,6 +173,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
         nbt.setInteger(Settings.namespace + "remoteY", y)
         nbt.setInteger(Settings.namespace + "remoteZ", z)
     }
+    player.foreach(nbt.setString(Settings.namespace + "player", _))
   }
 }
 
@@ -427,8 +434,17 @@ object DebugCard {
     }
   }
 
-  class CommandSender(val host: EnvironmentHost) extends ICommandSender {
-    val fakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+  class CommandSender(val host: EnvironmentHost, val playerName: Option[String]) extends ICommandSender {
+    val fakePlayer = {
+      def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+      playerName match {
+        case Some(name) => Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(name)) match {
+          case Some(player) => player
+          case _ => defaultFakePlayer
+        }
+        case _ => defaultFakePlayer
+      }
+    }
 
     var messages: Option[String] = None
 
