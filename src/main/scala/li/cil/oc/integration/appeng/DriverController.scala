@@ -1,5 +1,6 @@
 package li.cil.oc.integration.appeng
 
+import appeng.api.AEApi
 import appeng.api.config.Actionable
 import appeng.api.networking.crafting.ICraftingLink
 import appeng.api.networking.crafting.ICraftingRequester
@@ -44,10 +45,13 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
   private type AETile = TileEntity with IGridProxyable with IActionHost
 
   def getTileEntityClass = {
-    if (Api.instance.blocks.blockController != null && Api.instance.blocks.blockController.item != null)
-      classOf[TileController]
-    else
-      classOf[TileInterface]
+    if (AEApi.instance != null && AEApi.instance.blocks != null) {
+      if (AEApi.instance.blocks.blockController != null && AEApi.instance.blocks.blockController.item != null)
+        classOf[TileController]
+      else
+        classOf[TileInterface]
+    }
+    else null
   }
 
   def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
@@ -55,10 +59,11 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
 
   override def providedEnvironment(stack: ItemStack) =
     if (stack != null &&
-      Api.instance != null &&
-      Api.instance.blocks != null &&
-      Api.instance.blocks.blockController != null &&
-      Block.getBlockFromItem(stack.getItem) == Api.instance.blocks.blockController.block) classOf[Environment] else null
+      AEApi.instance != null &&
+      AEApi.instance.blocks != null &&
+      AEApi.instance.blocks.blockController != null &&
+      Block.getBlockFromItem(stack.getItem) == AEApi.instance.blocks.blockController.block) classOf[Environment]
+    else null
 
   class Environment(tileEntity: AETile) extends ManagedTileEntityEnvironment[AETile](tileEntity, "me_controller") with NamedBlock {
     override def preferredName = "me_controller"
