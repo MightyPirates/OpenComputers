@@ -3,9 +3,12 @@ package li.cil.oc.integration.appeng
 import appeng.api.config.Actionable
 import appeng.api.networking.crafting.ICraftingLink
 import appeng.api.networking.crafting.ICraftingRequester
+import appeng.api.networking.security.IActionHost
 import appeng.api.networking.security.MachineSource
 import appeng.api.storage.data.IAEItemStack
 import appeng.core.Api
+import appeng.me.helpers.IGridProxyable
+import appeng.tile.misc.TileInterface
 import appeng.tile.networking.TileController
 import appeng.util.item.AEItemStack
 import com.google.common.collect.ImmutableSet
@@ -25,6 +28,7 @@ import li.cil.oc.util.ResultWrapper._
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.Constants.NBT
@@ -37,10 +41,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object DriverController extends DriverTileEntity with EnvironmentAware {
-  def getTileEntityClass = classOf[TileController]
+  private type AETile = TileEntity with IGridProxyable with IActionHost
+
+  def getTileEntityClass = {
+    if (Api.instance.blocks.blockController != null && Api.instance.blocks.blockController.item != null)
+      classOf[TileController]
+    else
+      classOf[TileInterface]
+  }
 
   def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
-    new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileController])
+    new Environment(world.getTileEntity(x, y, z).asInstanceOf[AETile])
 
   override def providedEnvironment(stack: ItemStack) =
     if (stack != null &&
@@ -49,7 +60,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
       Api.instance.blocks.blockController != null &&
       Block.getBlockFromItem(stack.getItem) == Api.instance.blocks.blockController.block) classOf[Environment] else null
 
-  class Environment(tileEntity: TileController) extends ManagedTileEntityEnvironment[TileController](tileEntity, "me_controller") with NamedBlock {
+  class Environment(tileEntity: AETile) extends ManagedTileEntityEnvironment[AETile](tileEntity, "me_controller") with NamedBlock {
     override def preferredName = "me_controller"
 
     override def priority = 0
@@ -66,7 +77,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
     def getCraftables(context: Context, args: Arguments): Array[AnyRef] = {
       result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.
         filter(_.isCraftable).map(stack => {
-        val patterns = tileEntity.getProxy.getCrafting.getCraftingFor(stack, null, 0, tileEntity.getWorld)
+        val patterns = tileEntity.getProxy.getCrafting.getCraftingFor(stack, null, 0, tileEntity.getWorldObj)
         val result = patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(stack))) match {
           case Some(pattern) => pattern.getOutputs.find(_.isSameType(stack)).get
           case _ => stack.copy.setStackSize(0) // Should not be possible, but hey...
@@ -104,7 +115,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
       result(tileEntity.getProxy.getEnergy.getStoredPower)
   }
 
-  class Craftable(var controller: TileController, var stack: IAEItemStack) extends AbstractValue with ICraftingRequester {
+  class Craftable(var controller: AETile, var stack: IAEItemStack) extends AbstractValue with ICraftingRequester {
     def this() = this(null, null)
 
     private val links = mutable.Set.empty[ICraftingLink]
@@ -188,8 +199,8 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
         EventHandler.schedule(() => {
           val world = DimensionManager.getWorld(dimension)
           val tileEntity = world.getTileEntity(x, y, z)
-          if (tileEntity != null && tileEntity.isInstanceOf[TileController]) {
-            controller = tileEntity.asInstanceOf[TileController]
+          if (tileEntity != null && tileEntity.isInstanceOf[AETile]) {
+            controller = tileEntity.asInstanceOf[AETile]
           }
         })
       }
