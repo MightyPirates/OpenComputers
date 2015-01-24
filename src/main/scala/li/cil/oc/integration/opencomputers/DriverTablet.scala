@@ -4,7 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.common.Slot
-import li.cil.oc.util.ItemUtils
+import li.cil.oc.common.item.data.TabletData
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -14,7 +14,7 @@ object DriverTablet extends Item {
     isOneOf(stack, api.Items.get("tablet"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
-    val data = new ItemUtils.TabletData(stack)
+    val data = new TabletData(stack)
     data.items.collect {
       case Some(fs) if DriverFileSystem.worksWith(fs) => fs
     }.headOption.map(DriverFileSystem.createEnvironment(_, host)).orNull
@@ -23,7 +23,7 @@ object DriverTablet extends Item {
   override def slot(stack: ItemStack) = Slot.Tablet
 
   override def dataTag(stack: ItemStack) = {
-    val data = new ItemUtils.TabletData(stack)
+    val data = new TabletData(stack)
     val index = data.items.indexWhere {
       case Some(fs) => DriverFileSystem.worksWith(fs)
       case _ => false

@@ -5,8 +5,6 @@ import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.util.ForgeDirection
 
 trait SpecialBlock extends SimpleBlock {
-  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = false
-
   override def isOpaqueCube = false
 
   override def renderAsNormalBlock = false

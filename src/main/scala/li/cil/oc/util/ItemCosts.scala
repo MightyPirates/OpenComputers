@@ -19,7 +19,11 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object ItemCosts {
-  protected val cache = mutable.Map.empty[ItemStackWrapper, Iterable[(ItemStack, Double)]]
+  private final val Timeout = 500
+
+  private val cache = mutable.Map.empty[ItemStackWrapper, Iterable[(ItemStack, Double)]]
+
+  private var started = 0L
 
   cache += new ItemStackWrapper(init.Items.ironNugget.createItemStack()) -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
 
@@ -67,7 +71,8 @@ object ItemCosts {
     }
   }
 
-  protected def computeIngredients(what: ItemStack): Iterable[(ItemStack, Double)] = {
+  protected def computeIngredients(what: ItemStack): Iterable[(ItemStack, Double)] = cache.synchronized {
+    started = System.currentTimeMillis()
     def deflate(list: Iterable[(ItemStack, Double)]): Iterable[(ItemStack, Double)] = {
       val counts = mutable.Map.empty[ItemStack, Double]
       for ((stack, count) <- list) {
@@ -80,53 +85,57 @@ object ItemCosts {
       }
       counts
     }
-    def accumulate(input: Any, path: Seq[ItemStack] = Seq.empty): Iterable[(ItemStack, Double)] = input match {
-      case stack: ItemStack =>
-        cache.find {
-          case (key, value) => fuzzyEquals(key.inner, stack)
-        } match {
-          case Some((_, value)) => value
-          case _ =>
-            if (path.exists(value => fuzzyEquals(value, stack))) {
-              Iterable((stack, 1.0))
-            }
-            else {
-              val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
-              val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && fuzzyEquals(stack, recipe.getRecipeOutput))
-              val (ingredients, output) = recipe match {
-                case Some(recipe: ShapedRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                case _ => FurnaceRecipes.smelting.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
-                  case (_, value) => fuzzyEquals(stack, value)
-                } match {
-                  case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)
-                  case _ => (Iterable((stack, 1.0)), 1)
-                }
-              }
-              val scaled = deflate(ingredients.map {
-                case (ingredient, count) => (ingredient.copy(), count / output)
-              }).toArray.sortBy(_._1.getUnlocalizedName)
-              cache += new ItemStackWrapper(stack.copy()) -> scaled
-              scaled
-            }
-        }
-      case list: util.ArrayList[ItemStack]@unchecked if !list.isEmpty =>
-        var result = Iterable.empty[(ItemStack, Double)]
-        for (stack <- list if result.isEmpty) {
+    def accumulate(input: Any, path: Seq[ItemStack] = Seq.empty): Iterable[(ItemStack, Double)] = {
+      val passed = System.currentTimeMillis() - started
+      if (passed > Timeout) Iterable.empty
+      else input match {
+        case stack: ItemStack =>
           cache.find {
             case (key, value) => fuzzyEquals(key.inner, stack)
           } match {
-            case Some((_, value)) => result = value
+            case Some((_, value)) => value
             case _ =>
+              if (path.exists(value => fuzzyEquals(value, stack))) {
+                Iterable((stack, 1.0))
+              }
+              else {
+                val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
+                val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && fuzzyEquals(stack, recipe.getRecipeOutput))
+                val (ingredients, output) = recipe match {
+                  case Some(recipe: ShapedRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                  case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                  case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                  case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                  case _ => FurnaceRecipes.smelting.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
+                    case (_, value) => fuzzyEquals(stack, value)
+                  } match {
+                    case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)
+                    case _ => (Iterable((stack, 1.0)), 1)
+                  }
+                }
+                val scaled = deflate(ingredients.map {
+                  case (ingredient, count) => (ingredient.copy(), count / output)
+                }).toArray.sortBy(_._1.getUnlocalizedName)
+                cache += new ItemStackWrapper(stack.copy()) -> scaled
+                scaled
+              }
           }
-        }
-        if (result.isEmpty) {
-          result = accumulate(list.get(0), path)
-        }
-        result
-      case _ => Iterable.empty
+        case list: util.ArrayList[ItemStack]@unchecked if !list.isEmpty =>
+          var result = Iterable.empty[(ItemStack, Double)]
+          for (stack <- list if result.isEmpty) {
+            cache.find {
+              case (key, value) => fuzzyEquals(key.inner, stack)
+            } match {
+              case Some((_, value)) => result = value
+              case _ =>
+            }
+          }
+          if (result.isEmpty) {
+            result = accumulate(list.get(0), path)
+          }
+          result
+        case _ => Iterable.empty
+      }
     }
     accumulate(what)
   }

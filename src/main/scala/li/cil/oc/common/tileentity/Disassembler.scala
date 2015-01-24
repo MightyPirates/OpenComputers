@@ -13,6 +13,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -20,7 +21,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware {
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.StateAware with traits.PlayerInputAware {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -32,6 +33,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   var totalRequiredEnergy = 0.0
 
   var buffer = 0.0
+
+  var disassembleNextInstantly = false
 
   def progress = if (queue.isEmpty) 0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
 
@@ -64,7 +67,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     super.updateEntity()
     if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
-        disassemble(decrStackSize(0, 1))
+        val instant = disassembleNextInstantly // Is reset via decrStackSize
+        disassemble(decrStackSize(0, 1), instant)
         setActive(queue.nonEmpty)
       }
       else {
@@ -76,10 +80,10 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
             buffer += want
           }
         }
-        if (buffer >= Settings.get.disassemblerItemCost) {
+        while (buffer >= Settings.get.disassemblerItemCost && queue.nonEmpty) {
           buffer -= Settings.get.disassemblerItemCost
           val stack = queue.remove(0)
-          if (world.rand.nextDouble > Settings.get.disassemblerBreakChance) {
+          if (world.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
             drop(stack)
           }
         }
@@ -87,7 +91,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     }
   }
 
-  def disassemble(stack: ItemStack) {
+  def disassemble(stack: ItemStack, instant: Boolean = false) {
     // Validate the item, never trust Minecraft / other Mods on anything!
     if (stack != null && isItemValidForSlot(0, stack)) {
       val ingredients = ItemUtils.getIngredients(stack)
@@ -99,6 +103,10 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
         case _ => queue ++= ingredients
       }
       totalRequiredEnergy = queue.size * Settings.get.disassemblerItemCost
+      if (instant) {
+        buffer = totalRequiredEnergy
+        disassembleNextInstantly = false // Just to be sure...
+      }
     }
   }
 
@@ -152,4 +160,17 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
       DisassemblerTemplates.select(stack) != None
+
+  override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
+    super.setInventorySlotContents(slot, stack)
+    if (!world.isRemote) {
+      disassembleNextInstantly = false
+    }
+  }
+
+  override def onSetInventorySlotContents(player: EntityPlayer, slot: Int, stack: ItemStack): Unit = {
+    if (!world.isRemote) {
+      disassembleNextInstantly = stack != null && slot == 0 && player.capabilities.isCreativeMode
+    }
+  }
 }

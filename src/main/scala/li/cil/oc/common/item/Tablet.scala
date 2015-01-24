@@ -29,10 +29,9 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
-import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
@@ -58,7 +57,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   @SideOnly(Side.CLIENT)
   override def icon(stack: ItemStack, pass: Int) = {
     if (stack.hasTagCompound) {
-      val data = new ItemUtils.TabletData(stack)
+      val data = new TabletData(stack)
       if (data.isRunning) iconOn else iconOff
     } else super.icon(stack, pass)
   }
@@ -74,7 +73,7 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.TabletData(stack)
+      val info = new TabletData(stack)
       // Ignore/hide the screen.
       val components = info.items.drop(1)
       if (components.length > 1) {
@@ -91,7 +90,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   override def damage(stack: ItemStack) = {
     val nbt = stack.getTagCompound
     if (nbt != null) {
-      val data = new ItemUtils.TabletData()
+      val data = new TabletData()
       data.load(nbt)
       (data.maxEnergy - data.energy).toInt
     }
@@ -101,7 +100,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   override def maxDamage(stack: ItemStack) = {
     val nbt = stack.getTagCompound
     if (nbt != null) {
-      val data = new ItemUtils.TabletData()
+      val data = new TabletData()
       data.load(nbt)
       data.maxEnergy.toInt max 1
     }

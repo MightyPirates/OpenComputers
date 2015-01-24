@@ -6,9 +6,9 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.entity
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.Rarity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -20,7 +20,7 @@ class Drone(val parent: Delegator) extends Delegate {
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.MicrocontrollerData(stack)
+      val info = new MicrocontrollerData(stack)
       for (component <- info.components) {
         tooltip.add("- " + component.getDisplayName)
       }
@@ -28,7 +28,7 @@ class Drone(val parent: Delegator) extends Delegate {
   }
 
   override def rarity(stack: ItemStack) = {
-    val data = new ItemUtils.MicrocontrollerData(stack)
+    val data = new MicrocontrollerData(stack)
     Rarity.byTier(data.tier)
   }
 

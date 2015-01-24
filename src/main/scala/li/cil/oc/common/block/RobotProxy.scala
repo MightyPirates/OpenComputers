@@ -9,11 +9,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -57,6 +57,8 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
   override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
@@ -66,7 +68,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
   // ----------------------------------------------------------------------- //
 
   override def rarity(stack: ItemStack) = {
-    val data = new ItemUtils.RobotData(stack)
+    val data = new RobotData(stack)
     Rarity.byTier(data.tier)
   }
 
@@ -82,7 +84,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.RobotData(stack)
+      val info = new RobotData(stack)
       val components = info.containers ++ info.components
       if (components.length > 0) {
         tooltip.addAll(Tooltip.get("Server.Components"))

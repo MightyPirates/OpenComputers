@@ -9,7 +9,7 @@ DESCRIPTION
 
 EXAMPLES
   echo test
-    Print `test` to the terminal.
+    Print `test` to the standard output (which is usually the terminal).
 
-  echo "a   b" > test
-    Writes the string `a   b` to the standard output, which is redirected into file `test`.
+  echo "a   b"
+    Writes the string `a   b`.

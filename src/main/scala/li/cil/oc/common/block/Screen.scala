@@ -24,6 +24,8 @@ import net.minecraftforge.common.util.ForgeDirection
 class Screen(val tier: Int) extends RedstoneAware {
   setLightLevel(0.34f)
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = toLocal(world, x, y, z, side) != ForgeDirection.SOUTH
+
   @SideOnly(Side.CLIENT)
   override def getRenderColor(metadata: Int) = Color.byTier(tier)
 

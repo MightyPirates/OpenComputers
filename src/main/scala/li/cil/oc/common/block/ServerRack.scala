@@ -39,7 +39,9 @@ class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.Powe
     }
   }
 
-  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.SOUTH
+  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side != ForgeDirection.SOUTH
+
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = toLocal(world, x, y, z, side) != ForgeDirection.SOUTH
 
   // ----------------------------------------------------------------------- //
 

@@ -9,6 +9,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.SidedComponent
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
@@ -51,6 +52,8 @@ class Cable extends SimpleBlock with traits.SpecialBlock {
     colorMultiplierOverride.getOrElse(super.colorMultiplier(world, x, y, z))
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   // ----------------------------------------------------------------------- //
 
@@ -122,6 +125,8 @@ object Cable {
       case host: SidedEnvironment =>
         if (host.getWorldObj.isRemote) host.canConnect(side)
         else host.sidedNode(side) != null
+      case host: Environment with SidedComponent =>
+        host.canConnectNode(side)
       case host: Environment => true
       case host if Mods.ForgeMultipart.isAvailable => hasMultiPartNode(tileEntity)
       case _ => false

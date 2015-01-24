@@ -27,9 +27,6 @@ abstract class RedstoneAware extends SimpleBlock with IRedNetOmniNode {
       case _ => false
     }
 
-  override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    isProvidingWeakPower(world, x, y, z, side)
-
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
       case redstone: tileentity.traits.RedstoneAware => math.min(math.max(redstone.output(side), 0), 15)
