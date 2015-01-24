@@ -155,6 +155,12 @@ object InventoryUtils {
       var remaining = limit
       val range = slots.getOrElse(0 until inventory.getSizeInventory)
 
+      val stackSize = stack.stackSize
+      if ((inventory.getStackInSlot(range.head) == null) && insertIntoInventorySlot(stack, inventory, side, range.head, remaining, simulate)) {
+        remaining -= stackSize - stack.stackSize
+        success = true
+      }
+
       val shouldTryMerge = !stack.isItemStackDamageable && stack.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
       if (shouldTryMerge) {
         for (slot <- range) {
@@ -166,7 +172,7 @@ object InventoryUtils {
         }
       }
 
-      for (slot <- range) {
+      for (slot <- range.tail) {
         val stackSize = stack.stackSize
         if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
           remaining -= stackSize - stack.stackSize
