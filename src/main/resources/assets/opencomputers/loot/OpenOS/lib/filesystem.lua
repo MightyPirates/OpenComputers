@@ -376,22 +376,31 @@ function filesystem.makeDirectory(path)
 end
 
 function filesystem.remove(path)
-  local node, rest, vnode, vrest = findNode(filesystem.path(path))
-  local name = filesystem.name(path)
-  if vnode.children[name] then
-    vnode.children[name] = nil
-    removeEmptyNodes(vnode)
-    return true
-  elseif vnode.links[name] then
-    vnode.links[name] = nil
-    removeEmptyNodes(vnode)
-    return true
-  else
+  local function removeVirtual()
+    local node, rest, vnode, vrest = findNode(filesystem.path(path))
+    local name = filesystem.name(path)
+    if vnode.children[name] then
+      vnode.children[name] = nil
+      removeEmptyNodes(vnode)
+      return true
+    elseif vnode.links[name] then
+      vnode.links[name] = nil
+      removeEmptyNodes(vnode)
+      return true
+    end
+    return false
+  end
+  local function removePhysical()
     node, rest = findNode(path)
     if node.fs and rest then
       return component.proxy(node.fs).remove(rest)
     end
-    return nil, "no such file or directory"
+    return false
+  end
+  local success = removeVirtual()
+  success = removePhysical() or success -- Always run.
+  if success then return true
+  else return nil, "no such file or directory"
   end
 end
 
