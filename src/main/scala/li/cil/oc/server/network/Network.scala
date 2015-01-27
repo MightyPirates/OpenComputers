@@ -589,7 +589,7 @@ object Network extends api.detail.NetworkAPI {
     def create() = if (SideTracker.isServer) new Connector with NodeVarargPart {
       val host = _host
       val reachability = _reachability
-      var localBufferSize = _bufferSize
+      localBufferSize = _bufferSize
     }
     else null
   }
@@ -599,7 +599,7 @@ object Network extends api.detail.NetworkAPI {
       val host = _host
       val reachability = _reachability
       val name = _name
-      var localBufferSize = _bufferSize
+      localBufferSize = _bufferSize
       setVisibility(_visibility)
     }
     else null
