@@ -25,7 +25,7 @@ local nick = args[1]
 local host = args[2] or "irc.esper.net:6667"
 
 if not host:find(":") then
- host = host .. ":6667"
+  host = host .. ":6667"
 end
 
 -- try to connect to server.
