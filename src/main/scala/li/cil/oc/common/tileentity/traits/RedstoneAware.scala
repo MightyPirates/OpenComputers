@@ -84,8 +84,8 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     val oldInput = _input(side.ordinal())
     val newInput = computeInput(side)
     _input(side.ordinal()) = newInput
-    if (oldInput >= 0 && input(side) != oldInput) {
-      onRedstoneInputChanged(side)
+    if (oldInput >= 0 && newInput != oldInput) {
+      onRedstoneInputChanged(side, oldInput, newInput)
     }
   }
 
@@ -148,7 +148,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     }
   }
 
-  protected def onRedstoneInputChanged(side: EnumFacing) {}
+  protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {}
 
   protected def onRedstoneOutputEnabledChanged() {
     world.notifyNeighborsOfStateChange(getPos, getBlockType)

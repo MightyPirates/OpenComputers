@@ -5,9 +5,13 @@ import net.minecraftforge.fml.client.FMLClientHandler
 import org.lwjgl.input.Keyboard
 
 object KeyBindings {
-  def showExtendedTooltips = Keyboard.isCreated && Keyboard.isKeyDown(extendedTooltip.getKeyCode)
+  def showExtendedTooltips = Keyboard.isCreated && (try Keyboard.isKeyDown(extendedTooltip.getKeyCode) catch {
+    case _: Throwable => false // Don't ask me, sometimes things can apparently screw up LWJGL's keyboard handling.
+  })
 
-  def showMaterialCosts = Keyboard.isCreated && Keyboard.isKeyDown(materialCosts.getKeyCode)
+  def showMaterialCosts = Keyboard.isCreated && (try Keyboard.isKeyDown(materialCosts.getKeyCode) catch {
+    case _: Throwable => false // Don't ask me, sometimes things can apparently screw up LWJGL's keyboard handling.
+  })
 
   def extendedTooltip = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
 

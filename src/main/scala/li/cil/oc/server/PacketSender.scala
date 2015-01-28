@@ -394,6 +394,51 @@ object PacketSender {
     pb.writeBoolean(vertical)
   }
 
+  def appendTextBufferRawSetText(pb: PacketBuilder, col: Int, row: Int, text: Array[Array[Char]]) {
+    pb.writePacketType(PacketType.TextBufferMultiRawSetText)
+
+    pb.writeInt(col)
+    pb.writeInt(row)
+    pb.writeShort(text.length.toShort)
+    for (y <- 0 until text.length.toShort) {
+      val line = text(y)
+      pb.writeShort(line.length.toShort)
+      for (x <- 0 until line.length.toShort) {
+        pb.writeChar(line(x))
+      }
+    }
+  }
+
+  def appendTextBufferRawSetBackground(pb: PacketBuilder, col: Int, row: Int, color: Array[Array[Int]]) {
+    pb.writePacketType(PacketType.TextBufferMultiRawSetBackground)
+
+    pb.writeInt(col)
+    pb.writeInt(row)
+    pb.writeShort(color.length.toShort)
+    for (y <- 0 until color.length.toShort) {
+      val line = color(y)
+      pb.writeShort(line.length.toShort)
+      for (x <- 0 until line.length.toShort) {
+        pb.writeInt(line(x))
+      }
+    }
+  }
+
+  def appendTextBufferRawSetForeground(pb: PacketBuilder, col: Int, row: Int, color: Array[Array[Int]]) {
+    pb.writePacketType(PacketType.TextBufferMultiRawSetForeground)
+
+    pb.writeInt(col)
+    pb.writeInt(row)
+    pb.writeShort(color.length.toShort)
+    for (y <- 0 until color.length.toShort) {
+      val line = color(y)
+      pb.writeShort(line.length.toShort)
+      for (x <- 0 until line.length.toShort) {
+        pb.writeInt(line(x))
+      }
+    }
+  }
+
   def sendTextBufferInit(address: String, value: NBTTagCompound, player: EntityPlayerMP) {
     val pb = new CompressedPacketBuilder(PacketType.TextBufferInit)
 

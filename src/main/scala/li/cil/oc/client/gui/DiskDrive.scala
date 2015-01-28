@@ -6,8 +6,8 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 
 class DiskDrive(playerInventory: InventoryPlayer, val drive: tileentity.DiskDrive) extends DynamicGuiContainer(new container.DiskDrive(playerInventory, drive)) {
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
-    super.drawGuiContainerForegroundLayer(mouseX, mouseY)
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
+    super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
       Localization.localizeImmediately(drive.getName),
       8, 6, 0x404040)

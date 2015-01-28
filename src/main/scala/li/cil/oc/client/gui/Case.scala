@@ -33,9 +33,8 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
     add(buttonList, powerButton)
   }
 
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
-    super.drawGuiContainerForegroundLayer(mouseX, mouseY)
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
+  override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
+    super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
       Localization.localizeImmediately(computer.getName),
       8, 6, 0x404040)
@@ -44,7 +43,6 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
       tooltip.add(if (computer.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GL11.glPopAttrib()
   }
 
   override def drawSecondaryBackgroundLayer() {

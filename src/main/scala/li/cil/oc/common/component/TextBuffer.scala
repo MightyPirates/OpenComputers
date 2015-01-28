@@ -41,13 +41,15 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     withConnector().
     create()
 
-  private var maxResolution = Settings.screenResolutionsByTier(0)
+  private var maxResolution = Settings.screenResolutionsByTier(Tier.One)
 
-  private var maxDepth = Settings.screenDepthsByTier(0)
+  private var maxDepth = Settings.screenDepthsByTier(Tier.One)
 
   private var aspectRatio = (1.0, 1.0)
 
   private var powerConsumptionPerTick = Settings.get.screenCost
+
+  private var precisionMode = false
 
   // For client side only.
   private var isRendering = true
@@ -162,6 +164,21 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     }
   }
 
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the screen is in high precision mode (sub-pixel mouse event positions).""")
+  def isPrecise(computer: Context, args: Arguments): Array[AnyRef] = result(precisionMode)
+
+  @Callback(doc = """function(enabled:boolean):boolean -- Set whether to use high precision mode (sub-pixel mouse event positions).""")
+  def setPrecise(computer: Context, args: Arguments): Array[AnyRef] = {
+    // Available for T3 screens only... easiest way to check for us is to
+    // base it off of the maximum color depth.
+    if (maxDepth == Settings.screenDepthsByTier(Tier.Three)) {
+      val oldValue = precisionMode
+      precisionMode = args.checkBoolean(0)
+      result(oldValue)
+    }
+    else result(Unit, "unsupported operation")
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def setEnergyCostPerTick(value: Double) {
@@ -189,7 +206,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     if (height < 1) throw new IllegalArgumentException("height must be larger or equal to one")
     maxResolution = (width, height)
     fullyLitCost = computeFullyLitCost()
-    proxy.onScreenMaxResolutionChange(width, width)
+    proxy.onBufferMaxResolutionChange(width, width)
   }
 
   override def getMaximumWidth = maxResolution._1
@@ -205,7 +222,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
       throw new IllegalArgumentException("unsupported resolution")
     // Always send to clients, their state might be dirty.
-    proxy.onScreenResolutionChange(w, h)
+    proxy.onBufferResolutionChange(w, h)
     if (data.size = (w, h)) {
       if (node != null) {
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
@@ -227,7 +244,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     if (depth.ordinal > maxDepth.ordinal)
       throw new IllegalArgumentException("unsupported depth")
     // Always send to clients, their state might be dirty.
-    proxy.onScreenDepthChange(depth)
+    proxy.onBufferDepthChange(depth)
     data.format = PackedColor.Depth.format(depth)
   }
 
@@ -236,7 +253,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def setPaletteColor(index: Int, color: Int) = data.format match {
     case palette: PackedColor.MutablePaletteFormat =>
       palette(index) = color
-      proxy.onScreenPaletteChange(index)
+      proxy.onBufferPaletteChange(index)
     case _ => throw new Exception("palette not available")
   }
 
@@ -251,7 +268,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     val value = PackedColor.Color(color, isFromPalette)
     if (data.foreground != value) {
       data.foreground = value
-      proxy.onScreenColorChange()
+      proxy.onBufferColorChange()
     }
   }
 
@@ -265,7 +282,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     val value = PackedColor.Color(color, isFromPalette)
     if (data.background != value) {
       data.background = value
-      proxy.onScreenColorChange()
+      proxy.onBufferColorChange()
     }
   }
 
@@ -275,27 +292,28 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   def copy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) =
     if (data.copy(col, row, w, h, tx, ty))
-      proxy.onScreenCopy(col, row, w, h, tx, ty)
+      proxy.onBufferCopy(col, row, w, h, tx, ty)
 
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char) =
     if (data.fill(col, row, w, h, c))
-      proxy.onScreenFill(col, row, w, h, c)
+      proxy.onBufferFill(col, row, w, h, c)
 
-  def set(col: Int, row: Int, s: String, vertical: Boolean) = if (col < data.width && (col >= 0 || -col < s.length)) {
-    // Make sure the string isn't longer than it needs to be, in particular to
-    // avoid sending too much data to our clients.
-    val (x, y, truncated) =
-      if (vertical) {
-        if (row < 0) (col, 0, s.substring(-row))
-        else (col, row, s.substring(0, math.min(s.length, data.height - row)))
-      }
-      else {
-        if (col < 0) (0, row, s.substring(-col))
-        else (col, row, s.substring(0, math.min(s.length, data.width - col)))
-      }
-    if (data.set(x, y, truncated, vertical))
-      proxy.onScreenSet(x, row, truncated, vertical)
-  }
+  def set(col: Int, row: Int, s: String, vertical: Boolean): Unit =
+    if (col < data.width && (col >= 0 || -col < s.length)) {
+      // Make sure the string isn't longer than it needs to be, in particular to
+      // avoid sending too much data to our clients.
+      val (x, y, truncated) =
+        if (vertical) {
+          if (row < 0) (col, 0, s.substring(-row))
+          else (col, row, s.substring(0, math.min(s.length, data.height - row)))
+        }
+        else {
+          if (col < 0) (0, row, s.substring(-col))
+          else (col, row, s.substring(0, math.min(s.length, data.width - col)))
+        }
+      if (data.set(x, y, truncated, vertical))
+        proxy.onBufferSet(x, row, truncated, vertical)
+    }
 
   def get(col: Int, row: Int) = data.get(col, row)
 
@@ -320,6 +338,40 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   override def isBackgroundFromPalette(column: Int, row: Int) =
     data.format.isFromPalette(PackedColor.extractBackground(color(column, row)))
+
+  override def rawSetText(col: Int, row: Int, text: Array[Array[Char]]): Unit = {
+    for (y <- row until ((row + text.length) min data.height)) {
+      val line = text(y - row)
+      Array.copy(line, 0, data.buffer(y), col, line.length min data.width)
+    }
+    proxy.onBufferRawSetText(col, row, text)
+  }
+
+  override def rawSetBackground(col: Int, row: Int, color: Array[Array[Int]]): Unit = {
+    for (y <- row until ((row + color.length) min data.height)) {
+      val line = color(y - row)
+      for (x <- col until ((col + line.length) min data.width)) {
+        val packedBackground = data.color(row)(col) & 0x00FF
+        val packedForeground = (data.format.deflate(PackedColor.Color(line(x - col))) << PackedColor.ForegroundShift) & 0xFF00
+        data.color(row)(col) = (packedForeground | packedBackground).toShort
+      }
+    }
+    // TODO Better for bandwidth to send packed shorts here. Would need a special case for handling on client, though...
+    proxy.onBufferRawSetBackground(col, row, color)
+  }
+
+  override def rawSetForeground(col: Int, row: Int, color: Array[Array[Int]]): Unit = {
+    for (y <- row until ((row + color.length) min data.height)) {
+      val line = color(y - row)
+      for (x <- col until ((col + line.length) min data.width)) {
+        val packedBackground = data.format.deflate(PackedColor.Color(line(x - col))) & 0x00FF
+        val packedForeground = data.color(row)(col) & 0xFF00
+        data.color(row)(col) = (packedForeground | packedBackground).toShort
+      }
+    }
+    // TODO Better for bandwidth to send packed shorts here. Would need a special case for handling on client, though...
+    proxy.onBufferRawSetForeground(col, row, color)
+  }
 
   private def color(column: Int, row: Int) = {
     if (column < 0 || column >= getWidth || row < 0 || row >= getHeight)
@@ -351,16 +403,16 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def clipboard(value: String, player: EntityPlayer) =
     proxy.clipboard(value, player)
 
-  override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) =
+  override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) =
     proxy.mouseDown(x, y, button, player)
 
-  override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) =
+  override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) =
     proxy.mouseDrag(x, y, button, player)
 
-  override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) =
+  override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) =
     proxy.mouseUp(x, y, button, player)
 
-  override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) =
+  override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) =
     proxy.mouseScroll(x, y, delta, player)
 
   // ----------------------------------------------------------------------- //
@@ -403,6 +455,12 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     if (nbt.hasKey(Settings.namespace + "hasPower")) {
       hasPower = nbt.getBoolean(Settings.namespace + "hasPower")
     }
+    if (nbt.hasKey(Settings.namespace + "maxWidth") && nbt.hasKey(Settings.namespace + "maxHeight")) {
+      val maxWidth = nbt.getInteger(Settings.namespace + "maxWidth")
+      val maxHeight = nbt.getInteger(Settings.namespace + "maxHeight")
+      maxResolution = (maxWidth, maxHeight)
+    }
+    precisionMode = nbt.getBoolean(Settings.namespace + "precise")
   }
 
   // Null check for Waila (and other mods that may call this client side).
@@ -428,6 +486,9 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     SaveHandler.scheduleSave(host, nbt, node.address + "_buffer", data.save _)
     nbt.setBoolean(Settings.namespace + "isOn", isDisplaying)
     nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
+    nbt.setInteger(Settings.namespace + "maxWidth", maxResolution._1)
+    nbt.setInteger(Settings.namespace + "maxHeight", maxResolution._2)
+    nbt.setBoolean(Settings.namespace + "precise", precisionMode)
   }
 }
 
@@ -477,28 +538,40 @@ object TextBuffer {
 
     def render() = false
 
-    def onScreenColorChange(): Unit
+    def onBufferColorChange(): Unit
 
-    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+    def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       owner.relativeLitArea = -1
     }
 
-    def onScreenDepthChange(depth: ColorDepth): Unit
+    def onBufferDepthChange(depth: ColorDepth): Unit
 
-    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       owner.relativeLitArea = -1
     }
 
-    def onScreenPaletteChange(index: Int): Unit
+    def onBufferPaletteChange(index: Int): Unit
 
-    def onScreenResolutionChange(w: Int, h: Int) {
+    def onBufferResolutionChange(w: Int, h: Int) {
       owner.relativeLitArea = -1
     }
 
-    def onScreenMaxResolutionChange(w: Int, h: Int) {
+    def onBufferMaxResolutionChange(w: Int, h: Int) {
     }
 
-    def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
+    def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
+      owner.relativeLitArea = -1
+    }
+
+    def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
+      owner.relativeLitArea = -1
+    }
+
+    def onBufferRawSetBackground(col: Int, row: Int, color: Array[Array[Int]]) {
+      owner.relativeLitArea = -1
+    }
+
+    def onBufferRawSetForeground(col: Int, row: Int, color: Array[Array[Int]]) {
       owner.relativeLitArea = -1
     }
 
@@ -508,13 +581,13 @@ object TextBuffer {
 
     def clipboard(value: String, player: EntityPlayer): Unit
 
-    def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
+    def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
-    def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
+    def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
-    def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer): Unit
+    def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
-    def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer): Unit
+    def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit
   }
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
@@ -532,35 +605,35 @@ object TextBuffer {
       wasDirty
     }
 
-    override def onScreenColorChange() {
+    override def onBufferColorChange() {
       markDirty()
     }
 
-    override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-      super.onScreenCopy(col, row, w, h, tx, ty)
+    override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+      super.onBufferCopy(col, row, w, h, tx, ty)
       markDirty()
     }
 
-    override def onScreenDepthChange(depth: ColorDepth) {
+    override def onBufferDepthChange(depth: ColorDepth) {
       markDirty()
     }
 
-    override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
-      super.onScreenFill(col, row, w, h, c)
+    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+      super.onBufferFill(col, row, w, h, c)
       markDirty()
     }
 
-    override def onScreenPaletteChange(index: Int) {
+    override def onBufferPaletteChange(index: Int) {
       markDirty()
     }
 
-    override def onScreenResolutionChange(w: Int, h: Int) {
-      super.onScreenResolutionChange(w, h)
+    override def onBufferResolutionChange(w: Int, h: Int) {
+      super.onBufferResolutionChange(w, h)
       markDirty()
     }
 
-    override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
-      super.onScreenSet(col, row, s, vertical)
+    override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
+      super.onBufferSet(col, row, s, vertical)
       dirty = true
     }
 
@@ -579,22 +652,22 @@ object TextBuffer {
       ClientPacketSender.sendClipboard(nodeAddress, value)
     }
 
-    override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
+    override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
       debug(s"{type = mouseDown, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = false, button)
     }
 
-    override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) {
+    override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) {
       debug(s"{type = mouseDrag, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseClick(nodeAddress, x, y, drag = true, button)
     }
 
-    override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) {
+    override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) {
       debug(s"{type = mouseUp, x = $x, y = $y, button = $button}")
       ClientPacketSender.sendMouseUp(nodeAddress, x, y, button)
     }
 
-    override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
+    override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
       debug(s"{type = mouseScroll, x = $x, y = $y, delta = $delta}")
       ClientPacketSender.sendMouseScroll(nodeAddress, x, y, delta)
     }
@@ -609,51 +682,69 @@ object TextBuffer {
   }
 
   class ServerProxy(val owner: TextBuffer) extends Proxy {
-    override def onScreenColorChange() {
+    override def onBufferColorChange() {
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferColorChange(owner.pendingCommands, owner.data.foreground, owner.data.background))
     }
 
-    override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-      super.onScreenCopy(col, row, w, h, tx, ty)
+    override def onBufferCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+      super.onBufferCopy(col, row, w, h, tx, ty)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferCopy(owner.pendingCommands, col, row, w, h, tx, ty))
     }
 
-    override def onScreenDepthChange(depth: ColorDepth) {
+    override def onBufferDepthChange(depth: ColorDepth) {
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferDepthChange(owner.pendingCommands, depth))
     }
 
-    override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
-      super.onScreenFill(col, row, w, h, c)
+    override def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+      super.onBufferFill(col, row, w, h, c)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferFill(owner.pendingCommands, col, row, w, h, c))
     }
 
-    override def onScreenPaletteChange(index: Int) {
+    override def onBufferPaletteChange(index: Int) {
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferPaletteChange(owner.pendingCommands, index, owner.getPaletteColor(index)))
     }
 
-    override def onScreenResolutionChange(w: Int, h: Int) {
-      super.onScreenResolutionChange(w, h)
+    override def onBufferResolutionChange(w: Int, h: Int) {
+      super.onBufferResolutionChange(w, h)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferResolutionChange(owner.pendingCommands, w, h))
     }
 
-    override def onScreenMaxResolutionChange(w: Int, h: Int) {
+    override def onBufferMaxResolutionChange(w: Int, h: Int) {
       if (owner.node.network != null) {
-        super.onScreenMaxResolutionChange(w, h)
+        super.onBufferMaxResolutionChange(w, h)
         owner.host.markChanged()
         owner.synchronized(ServerPacketSender.appendTextBufferMaxResolutionChange(owner.pendingCommands, w, h))
       }
     }
 
-    override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
-      super.onScreenSet(col, row, s, vertical)
+    override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
+      super.onBufferSet(col, row, s, vertical)
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferSet(owner.pendingCommands, col, row, s, vertical))
+    }
+
+    override def onBufferRawSetText(col: Int, row: Int, text: Array[Array[Char]]) {
+      super.onBufferRawSetText(col, row, text)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferRawSetText(owner.pendingCommands, col, row, text))
+    }
+
+    override def onBufferRawSetBackground(col: Int, row: Int, color: Array[Array[Int]]) {
+      super.onBufferRawSetBackground(col, row, color)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferRawSetBackground(owner.pendingCommands, col, row, color))
+    }
+
+    override def onBufferRawSetForeground(col: Int, row: Int, color: Array[Array[Int]]) {
+      super.onBufferRawSetForeground(col, row, color)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferRawSetForeground(owner.pendingCommands, col, row, color))
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
@@ -668,24 +759,41 @@ object TextBuffer {
       sendToKeyboards("keyboard.clipboard", player, value)
     }
 
-    override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button), player.getName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button))
+    override def mouseDown(x: Double, y: Double, button: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "touch", x, y, button)
     }
 
-    override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button), player.getName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button))
+    override def mouseDrag(x: Double, y: Double, button: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "drag", x, y, button)
     }
 
-    override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button), player.getName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button))
+    override def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "drop", x, y, button)
     }
 
-    override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta), player.getName)
-      else owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta))
+    override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
+      sendMouseEvent(player, "scroll", x, y, delta)
+    }
+
+    private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int) = {
+      val args = mutable.ArrayBuffer.empty[AnyRef]
+
+      args += player
+      args += name
+      if (owner.precisionMode) {
+        args += double2Double(x)
+        args += double2Double(y)
+      }
+      else {
+        args += int2Integer(x.toInt + 1)
+        args += int2Integer(y.toInt + 1)
+      }
+      args += int2Integer(data)
+      if (Settings.get.inputUsername) {
+        args += player.getName
+      }
+
+      owner.node.sendToReachable("computer.checked_signal", args: _*)
     }
 
     private def sendToKeyboards(name: String, values: AnyRef*) {

@@ -4,9 +4,9 @@ import java.util.Random
 
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.Rarity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -30,6 +30,8 @@ class RobotAfterimage extends SimpleBlock {
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+
   override def getPickBlock(target: MovingObjectPosition, world: World, pos: BlockPos) =
     findMovingRobot(world, pos) match {
       case Some(robot) => robot.info.createItemStack()
@@ -43,7 +45,7 @@ class RobotAfterimage extends SimpleBlock {
   // ----------------------------------------------------------------------- //
 
   override def rarity(stack: ItemStack) = {
-    val data = new ItemUtils.RobotData(stack)
+    val data = new RobotData(stack)
     Rarity.byTier(data.tier)
   }
 

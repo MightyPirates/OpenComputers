@@ -18,12 +18,12 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.common.inventory.MultiTank
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
@@ -61,7 +61,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   var lastEnergyUpdate = 0
 
   // Logic stuff, components, machine and such.
-  val info = new ItemUtils.MicrocontrollerData()
+  val info = new MicrocontrollerData()
   val machine = if (!world.isRemote) {
     val m = Machine.create(this)
     m.node.asInstanceOf[Connector].setLocalBufferSize(0)
@@ -295,6 +295,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def lightColor = dataWatcher.getWatchableObjectInt(15)
 
   def setRunning(value: Boolean) = dataWatcher.updateObject(5, byte2Byte(if (value) 1: Byte else 0: Byte))
+
 
   // Round target values to low accuracy to avoid floating point errors accumulating.
   def targetX_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.round(value * 4) / 4f))

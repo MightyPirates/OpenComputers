@@ -355,6 +355,9 @@ object PacketHandler extends CommonPacketHandler {
             case PacketType.TextBufferMultiResolutionChange => onTextBufferMultiResolutionChange(p, buffer)
             case PacketType.TextBufferMultiMaxResolutionChange => onTextBufferMultiMaxResolutionChange(p, buffer)
             case PacketType.TextBufferMultiSet => onTextBufferMultiSet(p, buffer)
+            case PacketType.TextBufferMultiRawSetText => onTextBufferMultiRawSetText(p, buffer)
+            case PacketType.TextBufferMultiRawSetBackground => onTextBufferMultiRawSetBackground(p, buffer)
+            case PacketType.TextBufferMultiRawSetForeground => onTextBufferMultiRawSetForeground(p, buffer)
             case _ => // Invalid packet.
           }
         }
@@ -424,6 +427,60 @@ object PacketHandler extends CommonPacketHandler {
     val s = p.readUTF()
     val vertical = p.readBoolean()
     buffer.set(col, row, s, vertical)
+  }
+
+  def onTextBufferMultiRawSetText(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+
+    val rows = p.readShort()
+    val text = new Array[Array[Char]](rows)
+    for (y <- 0 until rows) {
+      val cols = p.readShort()
+      val line = new Array[Char](cols)
+      for (x <- 0 until cols) {
+        line(x) = p.readChar()
+      }
+      text(y) = line
+    }
+
+    buffer.rawSetText(col, row, text)
+  }
+
+  def onTextBufferMultiRawSetBackground(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+
+    val rows = p.readShort()
+    val color = new Array[Array[Int]](rows)
+    for (y <- 0 until rows) {
+      val cols = p.readShort()
+      val line = new Array[Int](cols)
+      for (x <- 0 until cols) {
+        line(x) = p.readInt()
+      }
+      color(y) = line
+    }
+
+    buffer.rawSetBackground(col, row, color)
+  }
+
+  def onTextBufferMultiRawSetForeground(p: PacketParser, buffer: component.TextBuffer) {
+    val col = p.readInt()
+    val row = p.readInt()
+
+    val rows = p.readShort()
+    val color = new Array[Array[Int]](rows)
+    for (y <- 0 until rows) {
+      val cols = p.readShort()
+      val line = new Array[Int](cols)
+      for (x <- 0 until cols) {
+        line(x) = p.readInt()
+      }
+      color(y) = line
+    }
+
+    buffer.rawSetForeground(col, row, color)
   }
 
   def onScreenTouchMode(p: PacketParser) =

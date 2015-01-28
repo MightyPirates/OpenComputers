@@ -11,8 +11,8 @@ class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) ex
   private val switchContainer = inventorySlots.asInstanceOf[container.Switch]
   private val format = new DecimalFormat("#.##hz")
 
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
-    super.drawGuiContainerForegroundLayer(mouseX, mouseY)
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
+    super.drawSecondaryForegroundLayer(mouseX, mouseY)
     fontRendererObj.drawString(
       Localization.localizeImmediately(switch.getName),
       8, 6, 0x404040)

@@ -5,6 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
@@ -16,21 +17,21 @@ import net.minecraftforge.fml.common.event.FMLInterModComms
 object RobotTemplate extends Template {
   override protected def hostClass = classOf[internal.Robot]
 
-  def selectTier1(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.One
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case1")
 
-  def selectTier2(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Two
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case2")
 
-  def selectTier3(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Three
+  def selectTier3(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case3")
 
-  def selectCreative(stack: ItemStack) = ItemUtils.caseTier(stack) == Tier.Four
+  def selectCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("caseCreative")
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory) = {
     val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
-    val data = new ItemUtils.RobotData()
+    val data = new RobotData()
     data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
-    data.name = ItemUtils.RobotData.randomName
+    data.name = RobotData.randomName
     data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy
     data.containers = items.slice(1, 4).filter(_ != null).toArray
@@ -45,7 +46,7 @@ object RobotTemplate extends Template {
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("robot")
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
-    val info = new ItemUtils.RobotData(stack)
+    val info = new RobotData(stack)
     val itemName = ItemUtils.caseNameWithTierSuffix("case", info.tier)
 
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.containers ++ info.components

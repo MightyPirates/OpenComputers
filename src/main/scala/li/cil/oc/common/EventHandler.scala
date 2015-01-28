@@ -7,6 +7,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -45,7 +46,7 @@ object EventHandler {
 
   def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) {
     if (SideTracker.isServer) pending.synchronized {
-      pending += (() => if (!rs.owner.isInvalid) {
+      pending += (() => if (rs.node.network != null) {
         util.WirelessRedstone.addReceiver(rs)
         util.WirelessRedstone.updateOutput(rs)
       })
@@ -90,11 +91,18 @@ object EventHandler {
 
   @SubscribeEvent
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
-    PetRenderer.hidden.clear()
-    if (Settings.get.hideOwnPet) {
-      PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getName
+    try {
+      PetRenderer.hidden.clear()
+      if (Settings.get.hideOwnPet) {
+        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getName
+      }
+      ClientPacketSender.sendPetVisibility()
     }
-    ClientPacketSender.sendPetVisibility()
+    catch {
+      case _: Throwable =>
+      // Reportedly, things can derp if this is called at inopportune moments,
+      // such as the server shutting down.
+    }
   }
 
   lazy val drone = api.Items.get("drone")
@@ -116,12 +124,12 @@ object EventHandler {
 
     didRecraft = recraft(e, mcu, stack => {
       // Restore EEPROM currently used in microcontroller.
-      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     didRecraft = recraft(e, drone, stack => {
       // Restore EEPROM currently used in drone.
-      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     // Presents?

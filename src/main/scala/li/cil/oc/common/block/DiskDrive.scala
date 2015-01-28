@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
@@ -12,7 +11,7 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
-class DiskDrive extends SimpleBlock with traits.Rotatable {
+class DiskDrive extends SimpleBlock with traits.Rotatable with traits.GUI {
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
@@ -23,6 +22,8 @@ class DiskDrive extends SimpleBlock with traits.Rotatable {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def guiType = GuiType.DiskDrive
 
   override def hasTileEntity(state: IBlockState) = true
 
@@ -41,30 +42,23 @@ class DiskDrive extends SimpleBlock with traits.Rotatable {
   // ----------------------------------------------------------------------- //
 
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    world.getTileEntity(pos) match {
+    // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
+    if (player.isSneaking) world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive =>
-        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
-        if (!player.isSneaking) {
+        val isDiskInDrive = drive.getStackInSlot(0) != null
+        val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
+        if (isDiskInDrive) {
           if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, pos.getX, pos.getY, pos.getZ)
+            drive.dropSlot(0, 1, Option(drive.facing))
           }
-          true
         }
-        else {
-          val isDiskInDrive = drive.getStackInSlot(0) != null
-          val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
-          if (isDiskInDrive) {
-            if (!world.isRemote) {
-              drive.dropSlot(0, 1, Option(drive.facing))
-            }
-          }
-          if (isHoldingDisk) {
-            // Insert the disk.
-            drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
-          }
-          isDiskInDrive || isHoldingDisk
+        if (isHoldingDisk) {
+          // Insert the disk.
+          drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
         }
+        isDiskInDrive || isHoldingDisk
       case _ => false
     }
+    else super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
   }
 }

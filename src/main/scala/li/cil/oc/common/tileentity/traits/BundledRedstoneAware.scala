@@ -55,13 +55,15 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
   def bundledInput(side: EnumFacing, color: Int) =
     math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
 
-  def rednetInput(side: EnumFacing, color: Int, value: Int) =
-    if (_rednetInput(side.ordinal())(color) != value) {
-      if (_rednetInput(side.ordinal())(color) != -1) {
-        onRedstoneInputChanged(side)
+  def rednetInput(side: EnumFacing, color: Int, value: Int): Unit = {
+    val oldValue = _rednetInput(side.ordinal())(color)
+    if (oldValue != value) {
+      if (oldValue != -1) {
+        onRedstoneInputChanged(side, oldValue, value)
       }
       _rednetInput(side.ordinal())(color) = value
     }
+  }
 
   def bundledOutput(side: EnumFacing) = _bundledOutput(toLocal(side).ordinal())
 
@@ -87,19 +89,20 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
 
   override protected def updateRedstoneInput(side: EnumFacing) {
     super.updateRedstoneInput(side)
-    val oldBundledInput = _bundledInput(side.ordinal())
+    val ownBundledInput = _bundledInput(side.ordinal())
     val newBundledInput = computeBundledInput(side)
+    val oldMaxValue = ownBundledInput.max
     var changed = false
     if (newBundledInput != null) for (color <- 0 until 16) {
-      changed = changed || (oldBundledInput(color) >= 0 && oldBundledInput(color) != newBundledInput(color))
-      oldBundledInput(color) = newBundledInput(color)
+      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
+      ownBundledInput(color) = newBundledInput(color)
     }
     else for (color <- 0 until 16) {
-      changed = changed || oldBundledInput(color) > 0
-      oldBundledInput(color) = 0
+      changed = changed || ownBundledInput(color) > 0
+      ownBundledInput(color) = 0
     }
     if (changed) {
-      onRedstoneInputChanged(side)
+      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
     }
   }
 

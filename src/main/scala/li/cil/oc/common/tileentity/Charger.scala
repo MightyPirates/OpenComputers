@@ -10,10 +10,10 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.item.Tablet
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -101,7 +101,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
             handler(itemCharge)
           }
         }
-        val data = new ItemUtils.TabletData(stack)
+        val data = new TabletData(stack)
         tryCharge(data.energy, data.maxEnergy, (amount) => {
           data.energy = math.min(data.maxEnergy, data.energy + amount)
           data.save(stack)

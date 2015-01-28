@@ -17,6 +17,7 @@ buildscript {
 
 apply plugin: 'scala'
 apply plugin: 'forge'
+apply plugin: 'idea'
 apply plugin: 'maven-publish'
 
 file "build.properties" withReader {
@@ -136,6 +137,10 @@ repositories {
         name 'Railcraft'
         artifactPattern "http://addons.cursecdn.com/files/${config.rc.cf}/[module]_[revision].[ext]"
     }
+    ivy {
+        name 'BloodMagic'
+        artifactPattern "http://addons.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
+    }
     */
 }
 
@@ -173,6 +178,8 @@ dependencies {
     provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
+    provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
+
 */
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
@@ -317,8 +324,8 @@ publishing {
 }
 
 // this is needed for IntelliJ so we don't have to copy over the assets manually every time
-sourceSets {
-    main {
-        output.resourcesDir = output.classesDir
+idea {
+    module {
+        outputDir = file('build/classes/main')
     }
 }

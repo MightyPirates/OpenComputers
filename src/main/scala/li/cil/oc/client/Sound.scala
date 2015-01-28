@@ -8,6 +8,7 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.UUID
 
+import com.google.common.base.Charsets
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
@@ -19,11 +20,13 @@ import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.client.FMLClientHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import net.minecraftforge.fml.relauncher.ReflectionHelper
 import paulscode.sound.SoundSystem
 import paulscode.sound.SoundSystemConfig
 
 import scala.collection.mutable
+import scala.io.Source
 
 object Sound {
   private val sources = mutable.Map.empty[TileEntity, PseudoLoopingStream]
@@ -98,6 +101,33 @@ object Sound {
   @SubscribeEvent
   def onSoundLoad(event: SoundLoadEvent) {
     manager = event.manager
+  }
+
+  private var hasPreloaded = Settings.get.soundVolume <= 0
+
+  @SubscribeEvent
+  def onTick(e: ClientTickEvent) {
+    if (!hasPreloaded && soundSystem != null) {
+      hasPreloaded = true
+      new Thread(new Runnable() {
+        override def run(): Unit = {
+          val preloadConfigLocation = new ResourceLocation(Settings.resourceDomain, "sounds/preload.cfg")
+          val preloadConfigResource = Minecraft.getMinecraft.getResourceManager.getResource(preloadConfigLocation)
+          for (location <- Source.fromInputStream(preloadConfigResource.getInputStream)(Charsets.UTF_8).getLines()) {
+            val url = getClass.getClassLoader.getResource(location)
+            if (url != null) try {
+              val sourceName = "preload_" + location
+              soundSystem.newSource(false, sourceName, url, location, true, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 16)
+              soundSystem.activate(sourceName)
+              soundSystem.removeSource(sourceName)
+            } catch {
+              case _: Throwable => // Meh.
+            }
+            else OpenComputers.log.warn(s"Couldn't preload sound $location!")
+          }
+        }
+      })
+    }
   }
 
   @SubscribeEvent

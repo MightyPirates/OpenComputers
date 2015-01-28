@@ -90,7 +90,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def getBootAddress = bootAddress
 
-  override def setBootAddress(value: String) = bootAddress = Option(value).map(_.take(36)).getOrElse("")
+  override def setBootAddress(value: String) = bootAddress = Option(value).fold("")(_.take(36))
 
   override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
@@ -255,7 +255,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   })
 
   override def invoke(address: String, method: String, args: Array[AnyRef]) =
-    Option(node.network.node(address)) match {
+    if (node != null && node.network != null) Option(node.network.node(address)) match {
       case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
         val direct = component.annotation(method).direct
         if (direct && architecture.isInitialized) {
@@ -263,6 +263,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         }
         component.invoke(method, this, args: _*)
       case _ => throw new IllegalArgumentException("no such component")
+    }
+    else {
+      // Not really, but makes the VM stop, which is what we want in this case,
+      // because it means we've been disconnected / disposed already.
+      throw new LimitReachedException()
     }
 
   override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
@@ -490,6 +495,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         if (canInteract(player.getName))
           signal(name, Seq(message.source.address) ++ args: _*)
       case _ =>
+        if (message.name == "computer.start" && !isPaused) start()
+        else if (message.name == "computer.stop") stop()
     }
   }
 

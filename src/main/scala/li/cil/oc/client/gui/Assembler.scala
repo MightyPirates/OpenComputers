@@ -60,7 +60,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     add(buttonList, runButton)
   }
 
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
+  override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (!assemblerContainer.isAssembling) {
       val message =

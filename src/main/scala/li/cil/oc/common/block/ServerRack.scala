@@ -1,11 +1,9 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import net.minecraft.block.state.IBlockState
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
@@ -13,7 +11,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
+class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware with traits.GUI {
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   @SideOnly(Side.CLIENT)
@@ -31,23 +29,15 @@ class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rot
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.SOUTH
 
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
+
   // ----------------------------------------------------------------------- //
 
   override def energyThroughput = Settings.get.serverRackRate
 
+  override def guiType = GuiType.Rack
+
   override def hasTileEntity(state: IBlockState) = true
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.ServerRack()
-
-  // ----------------------------------------------------------------------- //
-
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Rack.id, world, pos.getX, pos.getY, pos.getZ)
-      }
-      true
-    }
-    else false
-  }
 }

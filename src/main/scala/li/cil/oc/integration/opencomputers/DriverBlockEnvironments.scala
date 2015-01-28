@@ -33,7 +33,7 @@ object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
       else if (isOneOf(block.getBlock, "case1", "case2", "case3", "caseCreative", "microcontroller")) classOf[Machine]
       else if (isOneOf(block.getBlock, "hologram1", "hologram2")) classOf[tileentity.Hologram]
       else if (isOneOf(block.getBlock, "motionSensor")) classOf[tileentity.MotionSensor]
-      else if (isOneOf(block.getBlock, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Simple]
+      else if (isOneOf(block.getBlock, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
       else if (isOneOf(block.getBlock, "screen1")) classOf[common.component.TextBuffer].asInstanceOf[Class[_ <: Environment]]
       else if (isOneOf(block.getBlock, "screen2", "screen3")) classOf[common.component.Screen]
       else if (isOneOf(block.getBlock, "robot")) classOf[component.robot.Robot].asInstanceOf[Class[_ <: Environment]]

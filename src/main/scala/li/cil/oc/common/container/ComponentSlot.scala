@@ -39,6 +39,15 @@ abstract class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int) 
     }
   }
 
+  override def putStack(stack: ItemStack): Unit = {
+    super.putStack(stack)
+    inventory match {
+      case playerAware: common.tileentity.traits.PlayerInputAware =>
+        playerAware.onSetInventorySlotContents(container.playerInventory.player, getSlotIndex, stack)
+      case _ =>
+    }
+  }
+
   override def onSlotChanged() {
     super.onSlotChanged()
     for (slot <- container.inventorySlots) slot match {

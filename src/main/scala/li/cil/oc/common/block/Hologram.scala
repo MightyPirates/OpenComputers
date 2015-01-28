@@ -32,6 +32,8 @@ class Hologram(val tier: Int) extends SimpleBlock {
     super.shouldSideBeRendered(world, pos, side) || side == EnumFacing.UP
   }
 
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.DOWN
+
   // ----------------------------------------------------------------------- //
 
   override def rarity(stack: ItemStack) = Rarity.byTier(tier)

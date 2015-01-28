@@ -8,7 +8,9 @@ import codechicken.multipart.TFacePart
 import codechicken.multipart.TileMultipart
 import li.cil.oc.integration.fmp.CablePart
 */
+
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.SidedComponent
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
@@ -64,6 +66,8 @@ class Cable extends SimpleBlock with traits.Extended {
   def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) = colorMultiplierOverride.getOrElse(super.colorMultiplier(world, pos, renderPass))
 
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
+
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
   // ----------------------------------------------------------------------- //
 
@@ -142,12 +146,15 @@ object Cable {
       case host: SidedEnvironment =>
         if (host.getWorld.isRemote) host.canConnect(side)
         else host.sidedNode(side) != null
+      case host: Environment with SidedComponent =>
+        host.canConnectNode(side)
       case host: Environment => true
       case host if Mods.ForgeMultipart.isAvailable => hasMultiPartNode(tileEntity)
       case _ => false
     }
 
   private def hasMultiPartNode(tileEntity: TileEntity) = false
+
   /* TODO FMP
     tileEntity match {
       case host: TileMultipart => host.partList.exists(_.isInstanceOf[CablePart])
@@ -164,6 +171,7 @@ object Cable {
     }
 
   private def cableColorFMP(tileEntity: TileEntity) = EnumDyeColor.SILVER
+
   /* TODO FMP
     tileEntity match {
       case host: TileMultipart => (host.partList collect {
@@ -179,6 +187,7 @@ object Cable {
   }
 
   private def canConnectFromSideFMP(tileEntity: TileEntity, side: EnumFacing) = true
+
   /* TODO FMP
     tileEntity match {
       case host: TileMultipart =>

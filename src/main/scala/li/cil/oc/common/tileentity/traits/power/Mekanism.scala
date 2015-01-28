@@ -14,7 +14,7 @@
 //  @Optional.Method(modid = Mods.IDs.Mekanism)
 //  def transferEnergyToAcceptor(side: EnumFacing, amount: Double) =
 //    if (!Mods.Mekanism.isAvailable) 0
-//    else amount - tryChangeBuffer(side, amount * Settings.get.ratioMekanism) / Settings.get.ratioMekanism
+//    else tryChangeBuffer(side, amount * Settings.get.ratioMekanism) / Settings.get.ratioMekanism
 //
 //  @Optional.Method(modid = Mods.IDs.Mekanism)
 //  def getMaxEnergy = EnumFacing.values.map(globalBufferSize).max / Settings.get.ratioMekanism

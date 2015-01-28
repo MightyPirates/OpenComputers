@@ -156,7 +156,7 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
   // Block
   // ----------------------------------------------------------------------- //
 
-  override def isNormalCube(world: IBlockAccess, pos: BlockPos) = true
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
   override def canHarvestBlock(world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = true
 

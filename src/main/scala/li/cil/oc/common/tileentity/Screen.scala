@@ -139,7 +139,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
 
     // Convert to absolute coordinates and send the packet to the server.
-    origin.buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
+    origin.buffer.mouseDown(brx * bw, bry * bh, 0, null)
 
     true
   }
@@ -319,8 +319,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
 
-  override protected def onRedstoneInputChanged(side: EnumFacing) {
-    super.onRedstoneInputChanged(side)
+  override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {
+    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     val hasRedstoneInput = screens.map(_.maxInput).max > 0
     if (hasRedstoneInput != hadRedstoneInput) {
       hadRedstoneInput = hasRedstoneInput

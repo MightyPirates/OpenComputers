@@ -77,7 +77,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     }
   }
 
-  private def tryCreateRaid(id: String) {
+  def tryCreateRaid(id: String) {
     if (items.count(_.isDefined) == items.length) {
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),

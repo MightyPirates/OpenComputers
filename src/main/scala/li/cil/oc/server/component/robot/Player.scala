@@ -309,6 +309,8 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         if (cobwebOverride) Settings.get.swingDelay
         else hardness * 1.5 / strength
 
+      if (breakTime.isInfinity) return 0
+
       val preEvent = new RobotBreakBlockEvent.Pre(robot, world, pos, breakTime * Settings.get.harvestRatio)
       MinecraftForge.EVENT_BUS.post(preEvent)
       if (preEvent.isCanceled) return 0

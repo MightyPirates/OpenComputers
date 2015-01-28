@@ -13,10 +13,12 @@ import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.SimpleItem
+import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.Item
@@ -149,7 +151,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredDrone() = {
-    val data = new ItemUtils.MicrocontrollerData()
+    val data = new MicrocontrollerData()
 
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferDrone.toInt
@@ -175,7 +177,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredMicrocontroller() = {
-    val data = new ItemUtils.MicrocontrollerData()
+    val data = new MicrocontrollerData()
 
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
@@ -198,7 +200,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredRobot() = {
-    val data = new ItemUtils.RobotData()
+    val data = new RobotData()
 
     data.name = "Creatix"
     data.tier = Tier.Four
@@ -236,6 +238,37 @@ object Items extends ItemAPI {
     )
 
     val stack = get("robot").createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
+  def createConfiguredTablet() = {
+    val data = new TabletData()
+
+    data.energy = Settings.get.bufferTablet
+    data.maxEnergy = data.energy
+    data.items = Array(
+      Option(get("screen1").createItemStack(1)),
+      Option(get("keyboard").createItemStack(1)),
+
+      Option(get("signUpgrade").createItemStack(1)),
+      Option(get("pistonUpgrade").createItemStack(1)),
+
+      Option(get("graphicsCard2").createItemStack(1)),
+      Option(get("redstoneCard2").createItemStack(1)),
+      Option(get("wlanCard").createItemStack(1)),
+
+      Option(get("cpu3").createItemStack(1)),
+      Option(get("ram6").createItemStack(1)),
+      Option(get("ram6").createItemStack(1)),
+
+      Option(createLuaBios()),
+      Option(createOpenOS()),
+      Option(get("hdd3").createItemStack(1))
+    )
+
+    val stack = get("tablet").createItemStack(1)
     data.save(stack)
 
     stack
@@ -397,7 +430,8 @@ object Items extends ItemAPI {
         Items.createLuaBios(),
         Items.createConfiguredDrone(),
         Items.createConfiguredMicrocontroller(),
-        Items.createConfiguredRobot()
+        Items.createConfiguredRobot(),
+        Items.createConfiguredTablet()
       )
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[_]): Unit = {

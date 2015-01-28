@@ -24,10 +24,9 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
-import li.cil.oc.util.ItemUtils.TabletData
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
@@ -54,7 +53,7 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.TabletData(stack)
+      val info = new TabletData(stack)
       // Ignore/hide the screen.
       val components = info.items.drop(1)
       if (components.length > 1) {
@@ -70,7 +69,7 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override def durability(stack: ItemStack) = {
     if (stack.hasTagCompound) {
-      val data = new ItemUtils.TabletData()
+      val data = new TabletData()
       data.load(stack.getTagCompound)
       data.energy / data.maxEnergy
     }

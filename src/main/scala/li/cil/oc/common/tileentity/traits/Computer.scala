@@ -180,9 +180,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     checkRedstoneInputChanged()
   }
 
-  override protected def onRedstoneInputChanged(side: EnumFacing) {
-    super.onRedstoneInputChanged(side)
-    machine.signal("redstone_changed", machine.node.address, Int.box(toLocal(side).ordinal()))
+  override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {
+    super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
+    machine.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
   }
 
   // ----------------------------------------------------------------------- //

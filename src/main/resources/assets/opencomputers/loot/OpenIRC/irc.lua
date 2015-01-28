@@ -17,12 +17,16 @@ local text = require("text")
 
 local args, options = shell.parse(...)
 if #args < 1 then
-  print("Usage: irc <nickname> [server:port]")
+  print("Usage: irc <nickname> [server[:port]]")
   return
 end
 
 local nick = args[1]
 local host = args[2] or "irc.esper.net:6667"
+
+if not host:find(":") then
+  host = host .. ":6667"
+end
 
 -- try to connect to server.
 local sock, reason = internet.open(host)

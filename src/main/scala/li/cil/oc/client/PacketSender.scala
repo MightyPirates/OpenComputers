@@ -76,35 +76,35 @@ object PacketSender {
     }
   }
 
-  def sendMouseClick(address: String, x: Int, y: Int, drag: Boolean, button: Int) {
+  def sendMouseClick(address: String, x: Double, y: Double, drag: Boolean, button: Int) {
     val pb = new SimplePacketBuilder(PacketType.MouseClickOrDrag)
 
     pb.writeUTF(address)
-    pb.writeShort(x)
-    pb.writeShort(y)
+    pb.writeFloat(x.toFloat)
+    pb.writeFloat(y.toFloat)
     pb.writeBoolean(drag)
     pb.writeByte(button.toByte)
 
     pb.sendToServer()
   }
 
-  def sendMouseScroll(address: String, x: Int, y: Int, scroll: Int) {
+  def sendMouseScroll(address: String, x: Double, y: Double, scroll: Int) {
     val pb = new SimplePacketBuilder(PacketType.MouseScroll)
 
     pb.writeUTF(address)
-    pb.writeShort(x)
-    pb.writeShort(y)
+    pb.writeFloat(x.toFloat)
+    pb.writeFloat(y.toFloat)
     pb.writeByte(scroll)
 
     pb.sendToServer()
   }
 
-  def sendMouseUp(address: String, x: Int, y: Int, button: Int) {
+  def sendMouseUp(address: String, x: Double, y: Double, button: Int) {
     val pb = new SimplePacketBuilder(PacketType.MouseUp)
 
     pb.writeUTF(address)
-    pb.writeShort(x)
-    pb.writeShort(y)
+    pb.writeFloat(x.toFloat)
+    pb.writeFloat(y.toFloat)
     pb.writeByte(button.toByte)
 
     pb.sendToServer()

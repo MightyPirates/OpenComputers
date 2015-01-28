@@ -18,6 +18,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.common.inventory.TankSelection
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
@@ -28,7 +29,6 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
@@ -37,7 +37,6 @@ import net.minecraft.init.Blocks
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
@@ -56,7 +55,7 @@ import scala.collection.mutable
 class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with MultiTank with InventorySelection with TankSelection {
   var proxy: RobotProxy = _
 
-  val info = new ItemUtils.RobotData()
+  val info = new RobotData()
 
   val bot = if (isServer) new robot.Robot(this) else null
 
@@ -244,7 +243,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
-//      world.setBlockToAir(newPosition)
+      //      world.setBlockToAir(newPosition)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
       val created = world.setBlockState(newPosition, blockRobotProxy.getDefaultState, 1)
@@ -751,8 +750,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   override def dropSlot(slot: Int, count: Int, direction: Option[EnumFacing]) =
     InventoryUtils.dropSlot(BlockPosition(x, y, z, world), dynamicInventory, slot, count, direction)
 
-  override def dropAllSlots() =
+  override def dropAllSlots() = {
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, 0, Int.MaxValue)
+    for (slot <- containerSlots) {
+      InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, Int.MaxValue)
+    }
     InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), dynamicInventory)
+  }
 
   // ----------------------------------------------------------------------- //
 

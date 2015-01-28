@@ -87,7 +87,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
 
-  override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+  override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {

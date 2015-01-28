@@ -124,26 +124,37 @@ object PacketHandler extends CommonPacketHandler {
   def onMouseClick(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
       case Some(buffer: api.component.TextBuffer) =>
-        val x = p.readShort()
-        val y = p.readShort()
+        val x = p.readFloat()
+        val y = p.readFloat()
         val dragging = p.readBoolean()
         val button = p.readByte()
-        if (dragging) buffer.mouseDrag(x, y, button, p.player.asInstanceOf[EntityPlayer])
-        else buffer.mouseDown(x, y, button, p.player.asInstanceOf[EntityPlayer])
+        val player = p.player.asInstanceOf[EntityPlayer]
+        if (dragging) buffer.mouseDrag(x, y, button, player)
+        else buffer.mouseDown(x, y, button, player)
       case _ => // Invalid Packet
     }
   }
 
   def onMouseUp(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) => buffer.mouseUp(p.readShort(), p.readShort(), p.readByte(), p.player.asInstanceOf[EntityPlayer])
+      case Some(buffer: api.component.TextBuffer) =>
+        val x = p.readFloat()
+        val y = p.readFloat()
+        val button = p.readByte()
+        val player = p.player.asInstanceOf[EntityPlayer]
+        buffer.mouseUp(x, y, button, player)
       case _ => // Invalid Packet
     }
   }
 
   def onMouseScroll(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) => buffer.mouseScroll(p.readShort(), p.readShort(), p.readByte(), p.player.asInstanceOf[EntityPlayer])
+      case Some(buffer: api.component.TextBuffer) =>
+        val x = p.readFloat()
+        val y = p.readFloat()
+        val button = p.readByte()
+        val player = p.player.asInstanceOf[EntityPlayer]
+        buffer.mouseScroll(x, y, button, player)
       case _ => // Invalid Packet
     }
   }

@@ -5,13 +5,12 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.Wrench
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.Rarity
+import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -19,10 +18,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition
-import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Microcontroller extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
+import scala.reflect.ClassTag
+
+class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microcontroller]) extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
   setCreativeTab(null)
   NEI.hide(this)
 
@@ -36,17 +36,12 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor with trait
       case _ => null
     }
 
-  // Custom drop logic for NBT tagged item stack.
-  override def getDrops(world: IBlockAccess, pos: BlockPos, state: IBlockState, fortune: Int) = new java.util.ArrayList[ItemStack]()
-
-  override def onBlockHarvested(worldIn: World, pos: BlockPos, state: IBlockState, player: EntityPlayer) {}
-
   // ----------------------------------------------------------------------- //
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.MicrocontrollerData(stack)
+      val info = new MicrocontrollerData(stack)
       for (component <- info.components) {
         tooltip.add("- " + component.getDisplayName)
       }
@@ -54,7 +49,7 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor with trait
   }
 
   override def rarity(stack: ItemStack) = {
-    val data = new ItemUtils.MicrocontrollerData(stack)
+    val data = new MicrocontrollerData(stack)
     Rarity.byTier(data.tier)
   }
 
@@ -81,26 +76,16 @@ class Microcontroller extends RedstoneAware with traits.PowerAcceptor with trait
     else false
   }
 
-  override def onBlockPlacedBy(world: World, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, stack: ItemStack) {
-    super.onBlockPlacedBy(world, pos, state, placer, stack)
-    if (!world.isRemote) world.getTileEntity(pos) match {
-      case mcu: tileentity.Microcontroller =>
-        mcu.info.load(stack)
-        mcu.snooperNode.changeBuffer(mcu.info.storedEnergy - mcu.snooperNode.localBuffer)
-      case _ =>
-    }
+  override protected def doCustomInit(tileEntity: tileentity.Microcontroller, player: EntityLivingBase, stack: ItemStack): Unit = {
+    super.doCustomInit(tileEntity, player, stack)
+    tileEntity.info.load(stack)
+    tileEntity.snooperNode.changeBuffer(tileEntity.info.storedEnergy - tileEntity.snooperNode.localBuffer)
   }
 
-  override def removedByPlayer(world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean) = {
-    if (!world.isRemote) {
-      world.getTileEntity(pos) match {
-        case mcu: tileentity.Microcontroller =>
-          mcu.saveComponents()
-          mcu.info.storedEnergy = mcu.snooperNode.localBuffer.toInt
-          InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), mcu.info.createItemStack())
-        case _ =>
-      }
-    }
-    super.removedByPlayer(world, pos, player, willHarvest)
+  override protected def doCustomDrops(tileEntity: tileentity.Microcontroller, player: EntityPlayer, willHarvest: Boolean): Unit = {
+    super.doCustomDrops(tileEntity, player, willHarvest)
+    tileEntity.saveComponents()
+    tileEntity.info.storedEnergy = tileEntity.snooperNode.localBuffer.toInt
+    Block.spawnAsEntity(tileEntity.world, tileEntity.getPos, tileEntity.info.createItemStack())
   }
 }

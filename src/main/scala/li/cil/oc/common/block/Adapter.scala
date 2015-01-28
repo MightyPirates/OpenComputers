@@ -1,32 +1,22 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Adapter extends SimpleBlock {
+class Adapter extends SimpleBlock with traits.GUI {
+  override def guiType = GuiType.Adapter
+
   override def hasTileEntity(state: IBlockState) = true
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Adapter()
 
   // ----------------------------------------------------------------------- //
-
-  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Adapter.id, world, pos.getX, pos.getY, pos.getZ)
-      }
-      true
-    }
-    else false
-  }
 
   override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) =
     world.getTileEntity(pos) match {

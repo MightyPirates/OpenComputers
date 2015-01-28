@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
@@ -14,10 +13,12 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware {
+class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware with traits.GUI {
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override def energyThroughput = Settings.get.chargerRate
+
+  override def guiType = GuiType.Charger
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Charger()
 
@@ -28,26 +29,18 @@ class Charger extends RedstoneAware with traits.PowerAcceptor with traits.Rotata
   // ----------------------------------------------------------------------- //
 
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
-    world.getTileEntity(pos) match {
+    if (Wrench.holdsApplicableWrench(player, pos)) world.getTileEntity(pos) match {
       case charger: tileentity.Charger =>
-        if (Wrench.holdsApplicableWrench(player, pos)) {
-          if (!world.isRemote) {
-            charger.invertSignal = !charger.invertSignal
-            charger.chargeSpeed = 1.0 - charger.chargeSpeed
-            PacketSender.sendChargerState(charger)
-            Wrench.wrenchUsed(player, pos)
-          }
-          true
+        if (!world.isRemote) {
+          charger.invertSignal = !charger.invertSignal
+          charger.chargeSpeed = 1.0 - charger.chargeSpeed
+          PacketSender.sendChargerState(charger)
+          Wrench.wrenchUsed(player, pos)
         }
-        else if (!player.isSneaking) {
-          if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.Charger.id, world, pos.getX, pos.getY, pos.getZ)
-          }
-          true
-        }
-        else false
-      case _ => super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
+        true
+      case _ => false
     }
+    else super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
 
   override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) {
     world.getTileEntity(pos) match {

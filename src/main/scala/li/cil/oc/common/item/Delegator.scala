@@ -25,10 +25,11 @@ import scala.collection.mutable
 
 object Delegator {
   def subItem(stack: ItemStack) =
-    stack.getItem match {
+    if (stack != null) stack.getItem match {
       case delegator: Delegator => delegator.subItem(stack.getItemDamage)
       case _ => None
     }
+    else None
 }
 
 class Delegator extends Item {

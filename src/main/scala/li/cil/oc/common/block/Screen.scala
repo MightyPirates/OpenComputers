@@ -36,6 +36,8 @@ object Screen {
 class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
   setLightLevel(0.34f)
 
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
+
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
@@ -83,8 +85,9 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
 
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = rightClick(world, pos, player, side, hitX, hitY, hitZ, force = false)
 
-  def rightClick(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) =
-    if (Wrench.holdsApplicableWrench(player, pos)) false
+  def rightClick(world: World, pos: BlockPos, player: EntityPlayer,
+                 side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) = {
+    if (Wrench.holdsApplicableWrench(player, pos) && getValidRotations(world, pos).contains(side) && !force) false
     else world.getTileEntity(pos) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
@@ -98,6 +101,7 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
         screen.click(player, hitX, hitY, hitZ)
       case _ => false
     }
+  }
 
   override def onEntityCollidedWithBlock(world: World, pos: BlockPos, entity: Entity) =
     if (world.isRemote) (entity, world.getTileEntity(pos)) match {

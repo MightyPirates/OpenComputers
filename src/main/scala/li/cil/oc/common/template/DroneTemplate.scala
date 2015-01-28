@@ -5,6 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
@@ -29,7 +30,7 @@ object DroneTemplate extends Template {
 
   def assemble(inventory: IInventory) = {
     val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
-    val data = new ItemUtils.MicrocontrollerData()
+    val data = new MicrocontrollerData()
     data.tier = caseTier(inventory)
     data.components = items.drop(1).filter(_ != null).toArray
     data.storedEnergy = Settings.get.bufferDrone.toInt
@@ -43,7 +44,7 @@ object DroneTemplate extends Template {
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("drone")
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
-    val info = new ItemUtils.MicrocontrollerData(stack)
+    val info = new MicrocontrollerData(stack)
     val itemName = ItemUtils.caseNameWithTierSuffix("droneCase", info.tier)
 
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.components

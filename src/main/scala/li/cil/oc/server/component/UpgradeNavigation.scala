@@ -8,7 +8,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.util.ItemUtils.NavigationUpgradeData
+import li.cil.oc.common.item.data.NavigationUpgradeData
 import net.minecraft.nbt.NBTTagCompound
 
 class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment {

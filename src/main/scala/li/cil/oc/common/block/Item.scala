@@ -5,6 +5,7 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemCosts
@@ -83,7 +84,7 @@ class Item(value: Block) extends ItemBlock(value) {
     // manually before it's placed to ensure different component addresses
     // in the different robots, to avoid interference of screens e.g.
     val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get("robot")
-    val stackToUse = if (needsCopying) new ItemUtils.RobotData(stack).copyItemStack() else stack
+    val stackToUse = if (needsCopying) new RobotData(stack).copyItemStack() else stack
     if (super.placeBlockAt(stackToUse, player, world, pos, side, hitX, hitY, hitZ, newState)) {
       // If it's a rotatable block try to make it face the player.
       world.getTileEntity(pos) match {
