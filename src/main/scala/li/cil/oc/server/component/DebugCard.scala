@@ -421,6 +421,20 @@ object DebugCard {
       }
     }
 
+    @Callback(doc = """function(x:number, y:number, z:number, slot:number[, count:number]):number - Reduce the size of an item stack in the inventory at the specified location.""")
+    def removeItem(context: Context, args: Arguments): Array[AnyRef] = {
+      val position = BlockPosition(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2), world)
+      InventoryUtils.inventoryAt(position) match {
+        case Some(inventory) =>
+          val slot = args.checkSlot(inventory, 3)
+          val count = args.optInteger(4, inventory.getInventoryStackLimit)
+          val removed = inventory.decrStackSize(slot, count)
+          if (removed == null) result(0)
+          else result(removed.stackSize)
+        case _ => result(null, "no inventory")
+      }
+    }
+
     // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) {
