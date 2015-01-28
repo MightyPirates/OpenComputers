@@ -4,6 +4,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.common.block
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.util.EnumFacing
 
@@ -66,8 +67,14 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   }
 
   // ----------------------------------------------------------------------- //
-  // State
+  // State - stored either in metadata or locally
   // ----------------------------------------------------------------------- //
+
+  /** One of Up, Down and North (where north means forward/no pitch). */
+  private var _pitch = EnumFacing.NORTH
+
+  /** One of the four cardinal directions. */
+  private var _yaw = EnumFacing.SOUTH
 
   /** Translation for facings based on current pitch and yaw. */
   private var cachedTranslation: Array[EnumFacing] = null
@@ -83,7 +90,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
 
   def pitch = getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getPitch(world.getBlockState(getPos))
-    case _ => EnumFacing.NORTH
+    case _ => _pitch
   }
 
   def pitch_=(value: EnumFacing): Unit =
@@ -95,7 +102,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   def yaw = getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getYaw(world.getBlockState(getPos))
     case rotatable: block.traits.Rotatable => rotatable.getFacing(world.getBlockState(getPos))
-    case _ => EnumFacing.SOUTH
+    case _ => _yaw
   }
 
   def yaw_=(value: EnumFacing): Unit =
@@ -196,17 +203,35 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   /** Validates new values against the allowed rotations as set in our block. */
   private def trySetPitchYaw(pitch: EnumFacing, yaw: EnumFacing) = {
     val oldState = world.getBlockState(getPos)
-    val newState = getBlockType match {
-      case rotatable: block.traits.OmniRotatable => rotatable.withPitchAndYaw(oldState, pitch, yaw)
-      case rotatable: block.traits.Rotatable => rotatable.withFacing(oldState, yaw)
-      case _ => oldState
+    def setState(newState: IBlockState): Boolean = {
+      if (oldState.hashCode() != newState.hashCode()) {
+        world.setBlockState(getPos, newState)
+        cacheDirty = true
+        true
+      }
+      else false
     }
-    if (oldState.hashCode() != newState.hashCode()) {
-      world.setBlockState(getPos, newState)
-      cacheDirty = true
-      true
+    getBlockType match {
+      case rotatable: block.traits.OmniRotatable =>
+        setState(rotatable.withPitchAndYaw(oldState, pitch, yaw))
+      case rotatable: block.traits.Rotatable =>
+        setState(rotatable.withFacing(oldState, yaw))
+      case _ =>
+        var changed = false
+        if (pitch != _pitch) {
+          changed = true
+          _pitch = pitch
+        }
+        if (yaw != _yaw) {
+          changed = true
+          _yaw = yaw
+        }
+        if (changed) {
+          cacheDirty = true
+          updateTranslation()
+        }
+        changed
     }
-    else false
   }
 
   private def invert(t: Array[EnumFacing]) =

@@ -13,6 +13,7 @@ import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.internal
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.InventorySelection
@@ -243,15 +244,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
-      //      world.setBlockToAir(newPosition)
+      world.setBlockToAir(newPosition)
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
-      val created = world.setBlockState(newPosition, blockRobotProxy.getDefaultState, 1)
-      val newProxy = world.getTileEntity(newPosition)
-      if (created && newProxy != null) {
-        assert(newProxy.getPos == newPosition)
-        proxy = newProxy.asInstanceOf[RobotProxy]
-        setPos(newPosition)
+      val created = world.setBlockState(newPosition, world.getBlockState(oldPosition), 1) &&
+        world.getTileEntity(newPosition) == proxy
+      if (created) {
+        assert(getPos == newPosition)
         world.setBlockState(oldPosition, net.minecraft.init.Blocks.air.getDefaultState, 1)
         world.setBlockState(oldPosition, blockRobotAfterImage.getDefaultState, 1)
         assert(world.getBlockState(oldPosition).getBlock == blockRobotAfterImage)
@@ -383,6 +382,16 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     inventory.decrementAnimations()
   }
 
+  // The robot's machine is updated in a tick handler, to avoid delayed tile
+  // entity creation when moving, which would screw over all the things...
+  override protected def updateComputer(): Unit = {}
+
+  override protected def onRunningChanged(): Unit = {
+    super.onRunningChanged()
+    if (isRunning) EventHandler.onRobotStart(this)
+    else EventHandler.onRobotStopped(this)
+  }
+
   override protected def initialize() {
     if (isServer) {
       // Ensure we have a node address, because the proxy needs this to initialize
@@ -400,6 +409,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         case _ =>
       }
     }
+    else EventHandler.onRobotStopped(this)
   }
 
   // ----------------------------------------------------------------------- //
@@ -422,10 +432,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
-      val moveFromX = nbt.getInteger(Settings.namespace + "moveFromX")
-      val moveFromY = nbt.getInteger(Settings.namespace + "moveFromY")
-      val moveFromZ = nbt.getInteger(Settings.namespace + "moveFromZ")
-      moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
+      if (nbt.hasKey(Settings.namespace + "moveFromX")) {
+        val moveFromX = nbt.getInteger(Settings.namespace + "moveFromX")
+        val moveFromY = nbt.getInteger(Settings.namespace + "moveFromY")
+        val moveFromZ = nbt.getInteger(Settings.namespace + "moveFromZ")
+        moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
+      }
       swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
       turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
@@ -445,9 +457,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
       nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
-      nbt.setInteger(Settings.namespace + "moveFromX", moveFrom.get.getX)
-      nbt.setInteger(Settings.namespace + "moveFromY", moveFrom.get.getY)
-      nbt.setInteger(Settings.namespace + "moveFromZ", moveFrom.get.getZ)
+      moveFrom match {
+        case Some(blockPos) =>
+          nbt.setInteger(Settings.namespace + "moveFromX", blockPos.getX)
+          nbt.setInteger(Settings.namespace + "moveFromY", blockPos.getY)
+          nbt.setInteger(Settings.namespace + "moveFromZ", blockPos.getZ)
+        case _ =>
+      }
       nbt.setBoolean(Settings.namespace + "swingingTool", swingingTool)
       nbt.setByte(Settings.namespace + "turnAxis", turnAxis.toByte)
     }
@@ -465,10 +481,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
     if (animationTicksLeft > 0) {
-      val moveFromX = nbt.getInteger("moveFromX")
-      val moveFromY = nbt.getInteger("moveFromY")
-      val moveFromZ = nbt.getInteger("moveFromZ")
-      moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
+      if (nbt.hasKey("moveFromX")) {
+        val moveFromX = nbt.getInteger("moveFromX")
+        val moveFromY = nbt.getInteger("moveFromY")
+        val moveFromZ = nbt.getInteger("moveFromZ")
+        moveFrom = Some(new BlockPos(moveFromX, moveFromY, moveFromZ))
+      }
       swingingTool = nbt.getBoolean("swingingTool")
       turnAxis = nbt.getByte("turnAxis")
     }
@@ -484,9 +502,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger("animationTicksTotal", animationTicksTotal)
       nbt.setInteger("animationTicksLeft", animationTicksLeft)
-      nbt.setInteger("moveFromX", moveFrom.get.getX)
-      nbt.setInteger("moveFromY", moveFrom.get.getY)
-      nbt.setInteger("moveFromZ", moveFrom.get.getZ)
+      moveFrom match {
+        case Some(blockPos) =>
+          nbt.setInteger("moveFromX", blockPos.getX)
+          nbt.setInteger("moveFromY", blockPos.getY)
+          nbt.setInteger("moveFromZ", blockPos.getZ)
+        case _ =>
+      }
       nbt.setBoolean("swingingTool", swingingTool)
       nbt.setByte("turnAxis", turnAxis.toByte)
     }

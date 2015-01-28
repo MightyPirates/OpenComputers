@@ -8,6 +8,7 @@ import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -31,6 +32,12 @@ import scala.concurrent.Future
 
 object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
+
+  private val runningRobots = mutable.Set.empty[Robot]
+
+  def onRobotStart(robot: Robot): Unit = runningRobots += robot
+
+  def onRobotStopped(robot: Robot): Unit = runningRobots -= robot
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -64,6 +71,8 @@ object EventHandler {
         case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
+
+    runningRobots.foreach(_.machine.update())
   }
 
   @SubscribeEvent
