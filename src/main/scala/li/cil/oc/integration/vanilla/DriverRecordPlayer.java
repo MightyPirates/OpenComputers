@@ -61,18 +61,18 @@ public final class DriverRecordPlayer extends DriverTileEntity implements Enviro
 
         @Callback(doc = "function() -- Start playing the record currently in the jukebox.")
         public Object[] play(final Context context, final Arguments args) {
-            final ItemStack record = tileEntity.func_145856_a();
+            final ItemStack record = tileEntity.getRecord();
             if (record == null || !(record.getItem() instanceof ItemRecord)) {
                 return null;
             }
-            tileEntity.getWorldObj().playAuxSFXAtEntity(null, 1005, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, Item.getIdFromItem(record.getItem()));
+            tileEntity.getWorld().playAuxSFXAtEntity(null, 1005, tileEntity.getPos(), Item.getIdFromItem(record.getItem()));
             return new Object[]{true};
         }
 
         @Callback(doc = "function() -- Stop playing the record currently in the jukebox.")
         public Object[] stop(final Context context, final Arguments args) {
-            tileEntity.getWorldObj().playAuxSFX(1005, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, 0);
-            tileEntity.getWorldObj().playRecord(null, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
+            tileEntity.getWorld().playAuxSFX(1005, tileEntity.getPos(), 0);
+            tileEntity.getWorld().playRecord(tileEntity.getPos(), null);
             return null;
         }
     }
