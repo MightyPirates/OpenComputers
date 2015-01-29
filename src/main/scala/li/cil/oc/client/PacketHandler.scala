@@ -105,8 +105,19 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t: Computer) => t.setRunning(p.readBoolean())
       case Some(t: ServerRack) =>
         val number = p.readInt()
-        t.setRunning(number, p.readBoolean())
-        t.sides(number) = p.readDirection()
+        if (number == -1) {
+          t.range = p.readInt()
+        }
+        else {
+          t.setRunning(number, p.readBoolean())
+          t.sides(number) = p.readDirection()
+          val keyCount = p.readInt()
+          val keys = t.terminals(number).keys
+          keys.clear()
+          for (i <- 0 until keyCount) {
+            keys += p.readUTF()
+          }
+        }
       case _ => // Invalid packet.
     }
 

@@ -96,6 +96,7 @@ object Present {
     add("ram3", 10)
     add("server1", 10)
     add("internetCard", 9)
+    add("terminal", 9)
     add("solarGeneratorUpgrade", 9)
     add("hdd2", 7)
     add("navigationUpgrade", 7)

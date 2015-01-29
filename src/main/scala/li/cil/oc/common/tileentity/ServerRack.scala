@@ -33,6 +33,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   val sides = Seq(Option(EnumFacing.UP), Option(EnumFacing.EAST), Option(EnumFacing.WEST), Option(EnumFacing.DOWN)).
     padTo(servers.length, None).toArray
 
+  val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
+
+  var range = 16
+
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
 
@@ -219,9 +223,26 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override def updateEntity() {
     super.updateEntity()
     if (isServer && isConnected) {
+      val shouldUpdatePower = world.getTotalWorldTime % Settings.get.tickFrequency == 0
+      if (shouldUpdatePower && range > 0 && !Settings.get.ignorePower) {
+        val countRunning = servers.count {
+          case Some(server) => server.machine.isRunning
+          case _ => false
+        }
+        if (countRunning > 0) {
+          var cost = -(countRunning * range * Settings.get.wirelessCostPerRange * Settings.get.tickFrequency)
+          for (side <- EnumFacing.values if cost < 0) {
+            sidedNode(side) match {
+              case connector: Connector => cost = connector.changeBuffer(cost)
+              case _ =>
+            }
+          }
+        }
+      }
+
       servers collect {
         case Some(server) =>
-          if (server.tier == Tier.Four && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+          if (shouldUpdatePower && server.tier == Tier.Four) {
             server.machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
           }
           server.machine.update()
@@ -245,6 +266,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       servers collect {
         case Some(server) =>
           server.inventory.updateComponents()
+          terminals(server.slot).buffer.update()
       }
     }
   }
@@ -290,6 +312,15 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       case _ => None
     }
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
+    nbt.getTagList(Settings.namespace + "terminals", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) if index < terminals.length =>
+        try terminals(index).load(tag) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed restoring terminal state. Please report this!", t)
+        }
+      case _ =>
+    }
+    range = nbt.getInteger(Settings.namespace + "range")
     internalSwitch = nbt.getBoolean(Settings.namespace + "internalSwitch")
 
     // Kickstart initialization to avoid values getting overwritten by
@@ -317,6 +348,14 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       case Some(side) => side.ordinal.toByte
       case _ => -1: Byte
     })
+    nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {
+      val terminalNbt = new NBTTagCompound()
+      try t.save(terminalNbt) catch {
+        case t: Throwable => OpenComputers.log.warn("Failed saving terminal state. Please report this!", t)
+      }
+      terminalNbt
+    }))
+    nbt.setInteger(Settings.namespace + "range", range)
     nbt.setBoolean(Settings.namespace + "internalSwitch", internalSwitch)
   }
 
@@ -326,7 +365,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     val isRunningNbt = nbt.getByteArray("isServerRunning").map(_ == 1)
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
     val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((tag: NBTTagString) => {
-      val value = tag.getString
+      val value = tag.getString()
       if (Strings.isNullOrEmpty(value)) None else Some(value)
     }).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
@@ -335,6 +374,12 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       case _ => None
     }
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
+    nbt.getTagList("terminals", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) if index < terminals.length => terminals(index).readFromNBTForClient(tag)
+      case _ =>
+    }
+    range = nbt.getInteger("range")
     if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f, 1000 + world.rand.nextInt(2000))
   }
 
@@ -346,6 +391,12 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       case Some(side) => side.ordinal.toByte
       case _ => -1: Byte
     })
+    nbt.setNewTagList("terminals", terminals.map(t => {
+      val terminalNbt = new NBTTagCompound()
+      t.writeToNBTForClient(terminalNbt)
+      terminalNbt
+    }))
+    nbt.setInteger("range", range)
   }
 
   // ----------------------------------------------------------------------- //
@@ -358,6 +409,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
           case Some(server) =>
             if (serverSide == Option(plug.side)) plug.node.connect(server.machine.node)
             else api.Network.joinNewNetwork(server.machine.node)
+            terminals(number).connect(server.machine.node)
           case _ =>
         }
       }
@@ -375,6 +427,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       servers(slot) = Some(server)
       reconnectServer(slot, server)
       Network.joinNewNetwork(server.machine.node)
+      terminals(slot).connect(server.machine.node)
     }
   }
 
@@ -390,6 +443,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         case _ =>
       }
       servers(slot) = None
+      terminals(slot).keys.clear()
     }
   }
 

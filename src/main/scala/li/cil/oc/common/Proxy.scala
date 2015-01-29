@@ -39,7 +39,7 @@ class Proxy {
     registerExclusive("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch))
     registerExclusive("nuggetGold", new ItemStack(net.minecraft.init.Items.gold_nugget))
 
-    val nuggetIron = Items.get("ironNugget").createItemStack(1)
+    val nuggetIron = api.Items.get("ironNugget").createItemStack(1)
     registerExclusive("nuggetIron", nuggetIron)
 
     Delegator.subItem(nuggetIron) match {

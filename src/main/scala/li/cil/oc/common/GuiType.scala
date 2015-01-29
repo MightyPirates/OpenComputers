@@ -8,85 +8,90 @@ object GuiType extends ScalaEnum {
   val Categories = mutable.Map.empty[Int, Category.Value]
 
   sealed trait EnumVal extends Value {
-    Categories += ordinal -> subType
-
-    final val id = ordinal
+    def id = ordinal
 
     def subType: GuiType.Category.Value
+
+    Categories += ordinal -> subType
   }
 
   val Adapter = new EnumVal {
-    def name = "Adapter"
+    def name = "Adapter";
 
     def subType = GuiType.Category.Block
   }
   val Assembler = new EnumVal {
-    def name = "Assembler"
+    def name = "Assembler";
 
     def subType = GuiType.Category.Block
   }
   val Case = new EnumVal {
-    def name = "Case"
+    def name = "Case";
 
     def subType = GuiType.Category.Block
   }
   val Charger = new EnumVal {
-    def name = "Charger"
+    def name = "Charger";
 
     def subType = GuiType.Category.Block
   }
   val Database = new EnumVal {
-    def name = "Database"
+    def name = "Database";
 
     def subType = GuiType.Category.Item
   }
   val Disassembler = new EnumVal {
-    def name = "Disassembler"
+    def name = "Disassembler";
 
     def subType = GuiType.Category.Block
   }
   val DiskDrive = new EnumVal {
-    def name = "DiskDrive"
+    def name = "DiskDrive";
 
     def subType = GuiType.Category.Block
   }
   val Drone = new EnumVal {
-    def name = "Drone"
+    def name = "Drone";
 
     def subType = GuiType.Category.Entity
   }
   val Rack = new EnumVal {
-    def name = "Rack"
+    def name = "Rack";
 
     def subType = GuiType.Category.Block
   }
   val Raid = new EnumVal {
-    def name = "Raid"
+    def name = "Raid";
 
     def subType = GuiType.Category.Block
   }
   val Robot = new EnumVal {
-    def name = "Robot"
+    def name = "Robot";
 
     def subType = GuiType.Category.Block
   }
   val Screen = new EnumVal {
-    def name = "Screen"
+    def name = "Screen";
 
     def subType = GuiType.Category.Block
   }
   val Server = new EnumVal {
-    def name = "Server"
+    def name = "Server";
 
     def subType = GuiType.Category.Item
   }
   val Switch = new EnumVal {
-    def name = "Switch"
+    def name = "Switch";
 
     def subType = GuiType.Category.Block
   }
   val Tablet = new EnumVal {
-    def name = "Tablet"
+    def name = "Tablet";
+
+    def subType = GuiType.Category.Item
+  }
+  val Terminal = new EnumVal {
+    def name = "Terminal";
 
     def subType = GuiType.Category.Item
   }
@@ -96,13 +101,13 @@ object GuiType extends ScalaEnum {
     sealed trait EnumVal extends Value
 
     val Block = new EnumVal {
-      final val name = "Block"
+      def name = "Block"
     }
     val Entity = new EnumVal {
-      final val name = "Entity"
+      def name = "Entity"
     }
     val Item = new EnumVal {
-      final val name = "Item"
+      def name = "Item"
     }
   }
 

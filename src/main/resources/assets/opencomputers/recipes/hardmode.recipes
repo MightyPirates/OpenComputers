@@ -8,6 +8,11 @@ analyzer {
           ["oc:materialTransistor", "oc:circuitChip1", nuggetGold]
           ["oc:materialTransistor", "oc:materialCircuitBoardPrinted", nuggetGold]]
 }
+terminal {
+  input: [[nuggetIron, "oc:solarGeneratorUpgrade", nuggetIron]
+          ["oc:circuitChip3", "oc:screen2", "oc:wlanCard"]
+          [nuggetIron, "oc:keyboard", nuggetIron]]
+}
 
 server1 {
   input: [["oc:circuitChip1", "oc:ram4", "oc:circuitChip1"]
