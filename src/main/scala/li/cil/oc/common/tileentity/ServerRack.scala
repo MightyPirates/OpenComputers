@@ -365,7 +365,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     val isRunningNbt = nbt.getByteArray("isServerRunning").map(_ == 1)
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
     val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((tag: NBTTagString) => {
-      val value = tag.getString()
+      val value = tag.getString
       if (Strings.isNullOrEmpty(value)) None else Some(value)
     }).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))

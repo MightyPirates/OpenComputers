@@ -325,6 +325,7 @@ object Items extends ItemAPI {
 
     Recipes.addSubItem(new item.Analyzer(tools), "analyzer", "oc:analyzer")
     registerItem(new item.Debugger(tools), "debugger")
+    Recipes.addSubItem(new item.Terminal(tools), "terminal", "oc:terminal")
   }
 
   // General purpose components.
@@ -443,7 +444,6 @@ object Items extends ItemAPI {
     registerItem(new item.Tablet(misc), "tablet")
     registerItem(new item.Drone(misc), "drone")
     registerItem(new item.Present(misc), "present")
-    Recipes.addMultiItem(new item.Terminal(multi), "terminal", "oc:terminal")
   }
 
   // Items used for integration with other mods.
