@@ -59,7 +59,6 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       }
 
       t.draw()
-      Textures.Block.unbind()
     }
 
     GL11.glPopMatrix()

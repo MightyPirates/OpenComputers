@@ -4,11 +4,11 @@ import li.cil.oc.Settings
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import org.lwjgl.opengl.GL11
 
 import scala.collection.mutable
 
@@ -279,7 +279,8 @@ object Textures {
               L("screen/btr"),
               L("screen/bvb"),
               L("screen/bvt")
-            ),Array(
+            ),
+            Array(
               L("screen/bhm"),
               L("screen/bhm"),
               L("screen/btm"),
@@ -479,11 +480,20 @@ object Textures {
       // The hacks I do for namespacing...
       private[Block] def makeSureThisIsInitialized() {}
     }
+
     Screen.makeSureThisIsInitialized()
 
-    def bind(): Unit = Minecraft.getMinecraft.renderEngine.bindTexture(TextureMap.locationBlocksTexture)
-
-    def unbind(): Unit = GlStateManager.bindTexture(0)
+    def bind(): Unit = {
+      // IMPORTANT: manager.bindTexture uses GlStateManager.bindTexture, and
+      // that has borked caching, so binding textures will sometimes fail,
+      // because it'll think the texture is already bound although it isn't.
+      // So we do it manually.
+      val manager = Minecraft.getMinecraft.renderEngine
+      val texture = manager.getTexture(TextureMap.locationBlocksTexture)
+      if (texture != null) {
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getGlTextureId)
+      }
+    }
 
     def getSprite(location: ResourceLocation) = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location.toString)
 

@@ -126,7 +126,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
         r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
 
         t.draw()
-        Textures.Block.unbind()
 
         GL11.glDepthMask(true)
         GL11.glPopMatrix()

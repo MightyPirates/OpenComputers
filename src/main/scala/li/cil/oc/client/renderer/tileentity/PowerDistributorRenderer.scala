@@ -66,7 +66,6 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       }
 
       t.draw()
-      Textures.Block.unbind()
 
       GL11.glPopMatrix()
       GL11.glPopAttrib()

@@ -52,7 +52,7 @@ class Terminal(val parent: Delegator) extends Delegate {
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     world.getTileEntity(position) match {
-      case rack: tileentity.ServerRack if side == rack.facing.ordinal() =>
+      case rack: tileentity.ServerRack if side == rack.facing =>
         val l = 2 / 16.0
         val h = 14 / 16.0
         val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
