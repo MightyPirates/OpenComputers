@@ -298,6 +298,7 @@ class Settings(val config: Config) {
   // integration.vanilla
   val enableInventoryDriver = config.getBoolean("integration.vanilla.enableInventoryDriver")
   val enableTankDriver = config.getBoolean("integration.vanilla.enableTankDriver")
+  val enableCommandBlockDriver = config.getBoolean("integration.vanilla.enableCommandBlockDriver")
   val allowItemStackNBTTags = config.getBoolean("integration.vanilla.allowItemStackNBTTags")
 
   // ----------------------------------------------------------------------- //
