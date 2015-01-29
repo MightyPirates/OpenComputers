@@ -7,12 +7,16 @@ import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
+import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
 import net.minecraft.client.renderer.entity.RendererLivingEntity
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.init.Items
+import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
@@ -331,65 +335,36 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
             }
 
-            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.NONE)
+            val item = stack.getItem
+            val minecraft = Minecraft.getMinecraft
 
-            // TODO remove
-            //            val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
-            //            val is3D = customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, stack, BLOCK_3D)
-            //
-            //            if (is3D || (stack.getItem.isInstanceOf[ItemBlock] && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem).getRenderType))) {
-            //              val scale = 0.375f
-            //              GL11.glTranslatef(0, 0.1875f, -0.3125f)
-            //              GL11.glRotatef(20, 1, 0, 0)
-            //              GL11.glRotatef(45, 0, 1, 0)
-            //              GL11.glScalef(-scale, -scale, scale)
-            //            }
-            //            else if (stack.getItem == Items.bow) {
-            //              val scale = 0.375f
-            //              GL11.glTranslatef(0, 0.2f, -0.2f)
-            //              GL11.glRotatef(-10, 0, 1, 0)
-            //              GL11.glScalef(scale, -scale, scale)
-            //              GL11.glRotatef(-20, 1, 0, 0)
-            //              GL11.glRotatef(45, 0, 1, 0)
-            //            }
-            //            else if (stack.getItem.isFull3D) {
-            //              val scale = 0.375f
-            //              if (stack.getItem.shouldRotateAroundWhenRendering) {
-            //                GL11.glRotatef(180, 0, 0, 1)
-            //                GL11.glTranslatef(0, -0.125f, 0)
-            //              }
-            //              GL11.glTranslatef(0, 0.1f, 0)
-            //              GL11.glScalef(scale, -scale, scale)
-            //              GL11.glRotatef(-100, 1, 0, 0)
-            //              GL11.glRotatef(45, 0, 1, 0)
-            //            }
-            //            else {
-            //              val scale = 0.375f
-            //              GL11.glTranslatef(0.25f, 0.1875f, -0.1875f)
-            //              GL11.glScalef(scale, scale, scale)
-            //              GL11.glRotatef(60, 0, 0, 1)
-            //              GL11.glRotatef(-90, 1, 0, 0)
-            //              GL11.glRotatef(20, 0, 0, 1)
-            //            }
-            //
-            //            if (stack.getItem.requiresMultipleRenderPasses) {
-            //              for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
-            //                val tint = stack.getItem.getColorFromItemStack(stack, pass)
-            //                val r = ((tint >> 16) & 0xFF) / 255f
-            //                val g = ((tint >> 8) & 0xFF) / 255f
-            //                val b = ((tint >> 0) & 0xFF) / 255f
-            //                GL11.glColor4f(r, g, b, 1)
-            //                itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
-            //              }
-            //            }
-            //            else {
-            //              val tint = stack.getItem.getColorFromItemStack(stack, 0)
-            //              val r = ((tint >> 16) & 0xFF) / 255f
-            //              val g = ((tint >> 8) & 0xFF) / 255f
-            //              val b = ((tint >> 0) & 0xFF) / 255f
-            //              GL11.glColor4f(r, g, b, 1)
-            //              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.NONE)
-            //            }
+            if (item.isInstanceOf[ItemBlock] && minecraft.getBlockRendererDispatcher.isRenderTypeChest(Block.getBlockFromItem(item), stack.getMetadata)) {
+              GlStateManager.translate(0.0F, 0.1875F, -0.3125F)
+              GlStateManager.rotate(20.0F, 1.0F, 0.0F, 0.0F)
+              GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F)
+              val scale = 0.375F
+              GlStateManager.scale(scale, -scale, scale)
+            }
+            else if (item eq Items.bow) {
+              GlStateManager.translate(-0.1F, -0.125F, -0.1f)
+              val scale = 0.625F
+              GlStateManager.scale(scale, -scale, scale)
+              GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F)
+              GlStateManager.rotate(10.0F, 0.0F, 1.0F, 0.0F)
+            }
+            else if (item.isFull3D) {
+              if (item.shouldRotateAroundWhenRendering) {
+                GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F)
+                GlStateManager.translate(0.0F, -0.125F, 0.0F)
+              }
+              GlStateManager.translate(0.0F, 0.1F, 0.0F)
+              val scale = 0.625F
+              GlStateManager.scale(scale, -scale, scale)
+              GlStateManager.rotate(-2.0F, 0.0F, 1.0F, 0.0F)
+              GlStateManager.rotate(-5.0F, 0.0F, 0.0F, 1.0F)
+            }
+
+            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.THIRD_PERSON)
           }
           catch {
             case e: Throwable =>
