@@ -67,14 +67,8 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   }
 
   // ----------------------------------------------------------------------- //
-  // State - stored either in metadata or locally
+  // State
   // ----------------------------------------------------------------------- //
-
-  /** One of Up, Down and North (where north means forward/no pitch). */
-  private var _pitch = EnumFacing.NORTH
-
-  /** One of the four cardinal directions. */
-  private var _yaw = EnumFacing.SOUTH
 
   /** Translation for facings based on current pitch and yaw. */
   private var cachedTranslation: Array[EnumFacing] = null
@@ -82,7 +76,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   /** Translation from local to global coordinates. */
   private var cachedInverseTranslation: Array[EnumFacing] = null
 
-  private var cacheDirty = true
+  protected var cacheDirty = true
 
   // ----------------------------------------------------------------------- //
   // Accessors
@@ -90,7 +84,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
 
   def pitch = getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getPitch(world.getBlockState(getPos))
-    case _ => _pitch
+    case _ => EnumFacing.NORTH
   }
 
   def pitch_=(value: EnumFacing): Unit =
@@ -102,7 +96,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   def yaw = getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getYaw(world.getBlockState(getPos))
     case rotatable: block.traits.Rotatable => rotatable.getFacing(world.getBlockState(getPos))
-    case _ => _yaw
+    case _ => EnumFacing.SOUTH
   }
 
   def yaw_=(value: EnumFacing): Unit =
@@ -187,7 +181,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // ----------------------------------------------------------------------- //
 
   /** Updates cached translation array and sends notification to clients. */
-  private def updateTranslation(): Unit = if (cacheDirty) {
+  protected def updateTranslation(): Unit = if (cacheDirty) {
     cacheDirty = false
 
     val newTranslation = translations(pitch.ordinal)(yaw.ordinal - 2)
@@ -201,7 +195,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   }
 
   /** Validates new values against the allowed rotations as set in our block. */
-  private def trySetPitchYaw(pitch: EnumFacing, yaw: EnumFacing) = {
+  protected def trySetPitchYaw(pitch: EnumFacing, yaw: EnumFacing) = {
     val oldState = world.getBlockState(getPos)
     def setState(newState: IBlockState): Boolean = {
       if (oldState.hashCode() != newState.hashCode()) {
@@ -216,21 +210,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
         setState(rotatable.withPitchAndYaw(oldState, pitch, yaw))
       case rotatable: block.traits.Rotatable =>
         setState(rotatable.withFacing(oldState, yaw))
-      case _ =>
-        var changed = false
-        if (pitch != _pitch) {
-          changed = true
-          _pitch = pitch
-        }
-        if (yaw != _yaw) {
-          changed = true
-          _yaw = yaw
-        }
-        if (changed) {
-          cacheDirty = true
-          updateTranslation()
-        }
-        changed
+      case _ => false
     }
   }
 

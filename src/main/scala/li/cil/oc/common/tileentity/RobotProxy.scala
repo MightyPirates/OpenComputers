@@ -24,7 +24,7 @@ import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with ISidedInventory with IFluidHandler with internal.Robot with MultiTank {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with traits.RotatableTile with ISidedInventory with IFluidHandler with internal.Robot with MultiTank {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //
