@@ -101,7 +101,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       facing.getFrontOffsetZ + side.getFrontOffsetZ + robot.facing.getFrontOffsetZ * 0.01).normalize()
     val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
     val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
-    setLocationAndAngles(robot.x + 0.5, robot.y, robot.z + 0.5, yaw, pitch)
+    setLocationAndAngles(robot.x + 0.5, robot.y + 0.5, robot.z + 0.5, yaw, pitch)
     prevRotationPitch = rotationPitch
     prevRotationYaw = rotationYaw
   }
@@ -341,12 +341,11 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       }
 
       val te = world.getTileEntity(pos)
+      val canHarvest = block.canHarvestBlock(world, pos, this)
       block.onBlockHarvested(world, pos, state, this)
       if (block.removedByPlayer(world, pos, this, block.canHarvestBlock(world, pos, this))) {
         block.onBlockDestroyedByPlayer(world, pos, state)
-        // Note: the block has been destroyed by `removeBlockByPlayer`. This
-        // check only serves to test whether the block can drop anything at all.
-        if (block.canHarvestBlock(world, pos, this)) {
+        if (canHarvest) {
           block.harvestBlock(world, this, pos, state, te)
           MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(robot, breakEvent.getExpToDrop))
         }
