@@ -367,7 +367,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-    if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip) {
+    if (!Waila.isSavingForTooltip) {
       SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
         tag.setIntArray("volume", volume)
         tag.setIntArray("colors", colors.map(convertColor))

@@ -371,7 +371,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // Side check for Waila (and other mods that may call this client side).
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
-    if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip) {
+    if (!Waila.isSavingForTooltip) {
       nbt.setNewTagList(Settings.namespace + "servers", servers map {
         case Some(server) =>
           val serverNbt = new NBTTagCompound()
