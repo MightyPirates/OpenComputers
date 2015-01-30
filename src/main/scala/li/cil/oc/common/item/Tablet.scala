@@ -19,6 +19,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
+import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Architecture
@@ -28,10 +29,14 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.integration.opencomputers.DriverKeyboard
+import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
@@ -85,6 +90,11 @@ class Tablet(val parent: Delegator) extends Delegate {
     }
   }
 
+  override def rarity(stack: ItemStack) = {
+    val data = new TabletData(stack)
+    Rarity.byTier(data.tier)
+  }
+
   override def isDamageable = true
 
   override def damage(stack: ItemStack) = {
@@ -129,7 +139,13 @@ class Tablet(val parent: Delegator) extends Delegate {
         }
       }
     }
-    else if (!world.isRemote) Tablet.Server.get(stack, player).machine.stop()
+    else if (!world.isRemote) {
+      val tablet = Tablet.Server.get(stack, player)
+      tablet.machine.stop()
+      if (tablet.data.tier > Tier.One) {
+        player.openGui(OpenComputers, GuiType.TabletInner.id, world, 0, 0, 0)
+      }
+    }
     player.swingItem()
     stack
   }
@@ -148,6 +164,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   val tablet = if (world.isRemote) null else new component.Tablet(this)
 
   private var isInitialized = !world.isRemote
+
+  private var lastRunning = false
 
   def items = data.items
 
@@ -237,11 +255,22 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def getSizeInventory = items.length
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = slot == getSizeInventory - 1 && (Option(Driver.driverFor(stack, getClass)) match {
+    case Some(driver) =>
+      // Same special cases, similar as in robot, but allow keyboards,
+      // because clip-on keyboards kinda seem to make sense, I guess.
+      driver != DriverScreen &&
+        driver.slot(stack) == containerSlotType &&
+        driver.tier(stack) <= containerSlotTier
+    case _ => false
+  })
 
   override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getCommandSenderName)
 
-  override def markDirty() {}
+  override def markDirty(): Unit = {
+    data.save(stack)
+    player.inventory.markDirty()
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -254,6 +283,18 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   override def markChanged() {}
 
   // ----------------------------------------------------------------------- //
+
+  def containerSlotType = data.container.fold(Slot.None)(stack =>
+    Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Container) => driver.providedSlot(stack)
+      case _ => Slot.None
+    })
+
+  def containerSlotTier = data.container.fold(Tier.None)(stack =>
+    Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Container) => driver.providedTier(stack)
+      case _ => Tier.None
+    })
 
   override def cpuArchitecture: Class[_ <: Architecture] = {
     for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
@@ -319,6 +360,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       data.isRunning = machine.isRunning
       data.energy = tablet.node.globalBuffer()
       data.maxEnergy = tablet.node.globalBufferSize()
+
+      if (lastRunning != machine.isRunning) {
+        lastRunning = machine.isRunning
+        markDirty()
+      }
     }
   }
 

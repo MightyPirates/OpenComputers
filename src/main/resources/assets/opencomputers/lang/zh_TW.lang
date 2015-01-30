@@ -81,7 +81,9 @@ item.oc.Server1.name=伺服器 (2級)
 item.oc.Server2.name=伺服器 (3級)
 item.oc.Server3.name=伺服器 (創造模式)
 item.oc.Tablet.name=平板電腦
-item.oc.TabletCase.name=平板電腦保護套
+item.oc.TabletCase0.name=平板電腦保護套 (1級)
+item.oc.TabletCase1.name=平板電腦保護套 (2級)
+item.oc.TabletCase3.name=平板電腦保護套 (創造模式)
 item.oc.Terminal.name=遠端終端機
 item.oc.Transistor.name=電晶體
 item.oc.UpgradeAngel.name=天使升級
@@ -174,6 +176,7 @@ oc:container.DiskDrive=硬碟
 oc:container.Server=伺服器
 oc:container.ServerRack=伺服器機架
 oc:container.Switch=路由器
+oc:container.TabletWrapper=平板電腦
 
 # Keybinds
 key.materialCosts=顯示材料成本

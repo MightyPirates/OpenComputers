@@ -28,14 +28,14 @@ object RobotTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory) = {
-    val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
+    val items = (1 until inventory.getSizeInventory).map(inventory.getStackInSlot)
     val data = new RobotData()
     data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
     data.name = RobotData.randomName
     data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy
-    data.containers = items.slice(1, 4).filter(_ != null).toArray
-    data.components = items.drop(4).filter(_ != null).toArray
+    data.containers = items.take(3).filter(_ != null).toArray
+    data.components = items.drop(3).filter(_ != null).toArray
     val stack = api.Items.get("robot").createItemStack(1)
     data.save(stack)
     val energy = Settings.get.robotBaseCost + complexity(inventory) * Settings.get.robotComplexityCost

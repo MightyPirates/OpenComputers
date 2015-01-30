@@ -238,6 +238,7 @@ object Items extends ItemAPI {
   def createConfiguredTablet() = {
     val data = new TabletData()
 
+    data.tier = Tier.Four
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     data.items = Array(
@@ -428,7 +429,7 @@ object Items extends ItemAPI {
     registerItem(new item.DebugCard(multi), "debugCard")
 
     // 1.3.5
-    Recipes.addMultiItem(new item.TabletCase(multi), "tabletCase", "oc:tabletCase")
+    Recipes.addMultiItem(new item.TabletCase(multi, Tier.One), "tabletCase1", "oc:tabletCase1")
     Recipes.addMultiItem(new item.UpgradePiston(multi), "pistonUpgrade", "oc:pistonUpgrade")
     Recipes.addMultiItem(new item.UpgradeTank(multi), "tankUpgrade", "oc:tankUpgrade")
     Recipes.addMultiItem(new item.UpgradeTankController(multi), "tankControllerUpgrade", "oc:tankControllerUpgrade")
@@ -462,5 +463,9 @@ object Items extends ItemAPI {
     // 1.4.4
     registerItem(new item.MicrocontrollerCase(multi, Tier.Four), "microcontrollerCaseCreative")
     registerItem(new item.DroneCase(multi, Tier.Four), "droneCaseCreative")
+
+    // 1.4.7
+    Recipes.addMultiItem(new item.TabletCase(multi, Tier.Two), "tabletCase2", "oc:tabletCase2")
+    registerItem(new item.TabletCase(multi, Tier.Four), "tabletCaseCreative")
   }
 }

@@ -166,6 +166,7 @@ oc:container.DiskDrive=Дисковод
 oc:container.Server=Сервер
 oc:container.ServerRack=Серверная стойка
 oc:container.Switch=Коммутатор
+oc:container.TabletWrapper=Планшет
 
 # Keybinds
 key.materialCosts=Показать стоимость материала

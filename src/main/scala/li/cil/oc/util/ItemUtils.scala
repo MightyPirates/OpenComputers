@@ -36,6 +36,9 @@ object ItemUtils {
     else if (descriptor == api.Items.get("server2")) Tier.Two
     else if (descriptor == api.Items.get("server3")) Tier.Three
     else if (descriptor == api.Items.get("serverCreative")) Tier.Four
+    else if (descriptor == api.Items.get("tabletCase1")) Tier.One
+    else if (descriptor == api.Items.get("tabletCase2")) Tier.Two
+    else if (descriptor == api.Items.get("tabletCaseCreative")) Tier.Four
     else Tier.None
   }
 
