@@ -12,6 +12,7 @@ import li.cil.oc.api.FileSystem;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.BlacklistedPeripheral;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
@@ -28,6 +29,11 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
     private static Set<Class<?>> blacklist;
 
     private boolean isBlacklisted(final Object o) {
+        // Check for our interface first, as that has priority.
+        if (o instanceof BlacklistedPeripheral) {
+            return ((BlacklistedPeripheral) o).isPeripheralBlacklisted();
+        }
+
         // Delayed initialization of the resolved classes to allow registering
         // additional entries via IMC.
         if (blacklist == null) {
