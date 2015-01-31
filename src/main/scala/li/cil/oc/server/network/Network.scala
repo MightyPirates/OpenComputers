@@ -668,8 +668,8 @@ object Network extends api.detail.NetworkAPI {
         case _: java.lang.Boolean => 4
         case _: java.lang.Integer => 4
         case _: java.lang.Double => 8
-        case value: java.lang.String => value.length
-        case value: Array[Byte] => value.length
+        case value: java.lang.String => value.length max 1
+        case value: Array[Byte] => value.length max 1
         case _ => throw new IllegalArgumentException("unsupported data type")
       })
     }))
