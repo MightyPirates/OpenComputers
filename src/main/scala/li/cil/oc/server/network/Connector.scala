@@ -93,7 +93,7 @@ trait Connector extends network.Connector with Node {
         // we get ignored if our size is zero.
         localBufferSize = clampedSize
         if (network != null) {
-          if (localBufferSize <= 0 && clampedSize > 0) d.addConnector(this)
+          if (oldSize <= 0 && clampedSize > 0) d.addConnector(this)
           else if (oldSize > 0 && clampedSize == 0) d.removeConnector(this)
           else d.globalBufferSize = math.max(d.globalBufferSize - oldSize + clampedSize, 0)
         }
