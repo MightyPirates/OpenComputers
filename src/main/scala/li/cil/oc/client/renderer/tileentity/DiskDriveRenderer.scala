@@ -43,8 +43,8 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
         // This is very 'meh', but item frames do it like this, too!
         val entity = new EntityItem(drive.world, 0, 0, 0, stack)
         entity.hoverStart = 0
-        val rm = Minecraft.getMinecraft.getRenderManager
-        rm.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 0)
+        Textures.Block.bind()
+        Minecraft.getMinecraft.getRenderItem.renderItemModel(entity.getEntityItem)
         GL11.glPopMatrix()
       case _ =>
     }

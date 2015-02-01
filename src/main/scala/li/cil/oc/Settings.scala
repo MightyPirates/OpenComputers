@@ -394,36 +394,9 @@ object Settings {
     }
   }
 
-  private val configPatches = Array(
-    // Upgrading to version 1.3, increased lower bounds for default RAM sizes
-    // and reworked the way black- and whitelisting works (IP based).
-    VersionRange.createFromVersionSpec("[0.0,1.3-alpha)") -> Array(
-      "computer.ramSizes",
-      "internet.blacklist",
-      "internet.whitelist"
-    ),
-    // Upgrading to version 1.3.3, default power consumption of chunk loader
-    // reduced as discussed in #447.
-    VersionRange.createFromVersionSpec("[1.3.0,1.3.3)") -> Array(
-      "power.cost.chunkloaderCost"
-    ),
-    // Upgrading to version 1.3.4+, computer.debug category was moved to top
-    // level debug category for more flexibility and some other settings merged
-    // into that new category.
-    VersionRange.createFromVersionSpec("1.3.3") -> Array(
-      "computer.debug",
-      "misc.alwaysTryNative",
-      "misc.verbosePersistenceErrors"
-    ),
-    // Upgrading to version 1.3.5, added forgotten check for item stack,
-    // inspection, patch to true to avoid stuff suddenly breaking.
-    VersionRange.createFromVersionSpec("1.3.4") -> Array(
-      "misc.allowItemStackInspection"
-    ),
-    // Upgrading to version 1.4.7, reduce default geolyzer noise.
-    VersionRange.createFromVersionSpec("[0.0, 1.4.7)") -> Array(
-      "misc.geolyzerNoise"
-    )
+  // Usage: VersionRange.createFromVersionSpec("[0.0,1.5)") -> Array("computer.ramSizes") will
+  // re-set the value of `computer.ramSizes` if a config saved with a version < 1.5 is loaded.
+  private val configPatches = Array[(VersionRange, Array[String])](
   )
 
   // Checks the config version (i.e. the version of the mod the config was
