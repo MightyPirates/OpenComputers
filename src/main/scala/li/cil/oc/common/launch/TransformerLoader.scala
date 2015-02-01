@@ -12,7 +12,7 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
-@MCVersion("1.7.10")
+@MCVersion("1.8")
 class TransformerLoader extends DummyModContainer({
   val md = new ModMetadata()
   md.authorList.add("Sangar")
