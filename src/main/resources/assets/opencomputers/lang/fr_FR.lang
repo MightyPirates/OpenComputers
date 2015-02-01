@@ -87,7 +87,9 @@ item.oc.Server1.name=Serveur (Niveau 2)
 item.oc.Server2.name=Serveur (Niveau 3)
 item.oc.Server3.name=Serveur (Créatif)
 item.oc.Tablet.name=Tablette
-item.oc.TabletCase.name=Boitier de tablette
+item.oc.TabletCase.name=Boitier de tablette (Niveau 1)
+item.oc.TabletCase.name=Boitier de tablette (Niveau 2)
+item.oc.TabletCase.name=Boitier de tablette (Créatif)
 item.oc.Terminal.name=Terminal à distance
 item.oc.Transistor.name=Transistor
 item.oc.UpgradeAngel.name=Amélioration ange
@@ -187,6 +189,7 @@ oc:container.Raid=Raid
 oc:container.Server=Serveur
 oc:container.ServerRack=Support de serveur
 oc:container.Switch=Routeur
+oc:container.TabletWrapper=Tablette
 
 # Keybinds
 key.materialCosts=Montrer les coût en matériaux

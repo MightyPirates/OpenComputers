@@ -16,6 +16,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
+import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -147,7 +148,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (machine != null) {
-      nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)
+      if (!Waila.isSavingForTooltip)
+        nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)
     }
   }
 

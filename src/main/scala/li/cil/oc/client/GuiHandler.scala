@@ -9,7 +9,6 @@ import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
 import li.cil.oc.util.BlockPosition
@@ -74,14 +73,20 @@ object GuiHandler extends CommonGuiHandler {
           case Some(tablet: item.Tablet) if id == GuiType.Tablet.id =>
             val stack = player.getCurrentEquippedItem
             if (stack.hasTagCompound) {
-              Tablet.get(stack, player).components.collect {
+              item.Tablet.get(stack, player).components.collect {
                 case Some(buffer: TextBuffer) => buffer
               }.headOption match {
-                case Some(buffer: TextBuffer) => return new gui.Screen(buffer, true, () => true, () => true)
-                case _ =>
+                case Some(buffer: TextBuffer) => new gui.Screen(buffer, true, () => true, () => true)
+                case _ => null
               }
             }
-            null
+            else null
+          case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
+            val stack = player.getCurrentEquippedItem
+            if (stack.hasTagCompound) {
+              new gui.Tablet(player.inventory, item.Tablet.get(stack, player))
+            }
+            else null
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
             val stack = player.getCurrentEquippedItem
             if (stack.hasTagCompound) {

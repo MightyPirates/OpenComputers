@@ -3,6 +3,9 @@ package li.cil.oc.server
 import li.cil.oc.Settings
 import net.minecraft.command.CommandBase
 import net.minecraft.command.ICommandSender
+import net.minecraft.command.WrongUsageException
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent
 
@@ -12,6 +15,7 @@ import scala.collection.mutable
 object CommandHandler {
   def register(e: FMLServerStartingEvent) {
     e.registerServerCommand(WirelessRenderingCommand)
+    e.registerServerCommand(NonDisassemblyAgreementCommand)
   }
 
   // OP levels for reference:
@@ -31,6 +35,39 @@ object CommandHandler {
           CommandBase.parseBoolean(command(0))
         else
           !Settings.rTreeDebugRenderer
+    }
+
+    override def getRequiredPermissionLevel = 2
+  }
+
+  object NonDisassemblyAgreementCommand extends SimpleCommand("oc_preventDisassembling") {
+    aliases += "oc_nodis"
+    aliases += "oc_prevdis"
+
+    override def getCommandUsage(source: ICommandSender) = name + " <boolean>"
+
+    override def execute(sender: ICommandSender, command: Array[String]) {
+      sender match {
+        case player: EntityPlayer =>
+          val stack = player.getHeldItem
+          if (stack != null) {
+            if (!stack.hasTagCompound) {
+              stack.setTagCompound(new NBTTagCompound())
+            }
+            val nbt = stack.getTagCompound
+            val preventDisassembly =
+              if (command != null && command.length > 0)
+                CommandBase.parseBoolean(command(0))
+              else
+                !nbt.getBoolean(Settings.namespace + "undisassemblable")
+            if (preventDisassembly)
+              nbt.setBoolean(Settings.namespace + "undisassemblable", true)
+            else
+              nbt.removeTag(Settings.namespace + "undisassemblable")
+            if (nbt.hasNoTags) stack.setTagCompound(null)
+          }
+        case _ => throw new WrongUsageException("Can only be used by players.")
+      }
     }
 
     override def getRequiredPermissionLevel = 2

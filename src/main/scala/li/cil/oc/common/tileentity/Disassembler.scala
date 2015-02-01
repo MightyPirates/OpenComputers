@@ -93,7 +93,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   def disassemble(stack: ItemStack, instant: Boolean = false) {
     // Validate the item, never trust Minecraft / other Mods on anything!
-    if (stack != null && isItemValidForSlot(0, stack)) {
+    if (isItemValidForSlot(0, stack)) {
       val ingredients = ItemUtils.getIngredients(stack)
       DisassemblerTemplates.select(stack) match {
         case Some(template) =>
@@ -158,8 +158,11 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def getInventoryStackLimit = 64
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
-    ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
-      DisassemblerTemplates.select(stack) != None
+    allowDisassembling(stack) &&
+      (((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
+        DisassemblerTemplates.select(stack) != None)
+
+  private def allowDisassembling(stack: ItemStack) = stack != null && (!stack.hasTagCompound || !stack.getTagCompound.getBoolean(Settings.namespace + "undisassemblable"))
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
     super.setInventorySlotContents(slot, stack)

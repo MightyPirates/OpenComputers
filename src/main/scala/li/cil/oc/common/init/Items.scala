@@ -246,6 +246,7 @@ object Items extends ItemAPI {
   def createConfiguredTablet() = {
     val data = new TabletData()
 
+    data.tier = Tier.Four
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     data.items = Array(
@@ -310,7 +311,9 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.ArrowKeys(materials), "arrowKeys", "oc:materialArrowKey")
     Recipes.addSubItem(new item.NumPad(materials), "numPad", "oc:materialNumPad")
 
-    Recipes.addSubItem(new item.TabletCase(materials), "tabletCase", "oc:tabletCase")
+    Recipes.addSubItem(new item.TabletCase(materials, Tier.One), "tabletCase1", "oc:tabletCase1")
+    Recipes.addSubItem(new item.TabletCase(materials, Tier.Two), "tabletCase2", "oc:tabletCase2")
+    registerItem(new item.TabletCase(materials, Tier.Four), "tabletCaseCreative")
     Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.One), "microcontrollerCase1", "oc:microcontrollerCase1")
     Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.Two), "microcontrollerCase2", "oc:microcontrollerCase2")
     registerItem(new item.MicrocontrollerCase(materials, Tier.Four), "microcontrollerCaseCreative")

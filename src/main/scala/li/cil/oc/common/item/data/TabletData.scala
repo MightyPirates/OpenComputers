@@ -1,6 +1,7 @@
 package li.cil.oc.common.item.data
 
 import li.cil.oc.Settings
+import li.cil.oc.common.Tier
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
@@ -17,6 +18,8 @@ class TabletData extends ItemData {
   var isRunning = false
   var energy = 0.0
   var maxEnergy = 0.0
+  var tier = Tier.One
+  var container: Option[ItemStack] = None
 
   override def load(nbt: NBTTagCompound) {
     nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
@@ -28,6 +31,10 @@ class TabletData extends ItemData {
     isRunning = nbt.getBoolean(Settings.namespace + "isRunning")
     energy = nbt.getDouble(Settings.namespace + "energy")
     maxEnergy = nbt.getDouble(Settings.namespace + "maxEnergy")
+    tier = nbt.getInteger(Settings.namespace + "tier")
+    if (nbt.hasKey(Settings.namespace + "container")) {
+      container = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "container")))
+    }
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -43,5 +50,7 @@ class TabletData extends ItemData {
     nbt.setBoolean(Settings.namespace + "isRunning", isRunning)
     nbt.setDouble(Settings.namespace + "energy", energy)
     nbt.setDouble(Settings.namespace + "maxEnergy", maxEnergy)
+    nbt.setInteger(Settings.namespace + "tier", tier)
+    container.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "container", stack.writeToNBT))
   }
 }

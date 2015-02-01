@@ -81,7 +81,9 @@ item.oc.Server1.name=Server (Stufe 2)
 item.oc.Server2.name=Server (Stufe 3)
 item.oc.Server3.name=Server (Kreativ)
 item.oc.Tablet.name=Tablet
-item.oc.TabletCase.name=Tablet-Gehäuse
+item.oc.TabletCase0.name=Tablet-Gehäuse (Stufe 1)
+item.oc.TabletCase1.name=Tablet-Gehäuse (Stufe 2)
+item.oc.TabletCase3.name=Tablet-Gehäuse (Kreativ)
 item.oc.Terminal.name=Fernbedienung
 item.oc.Transistor.name=Transistor
 item.oc.UpgradeAngel.name=Schwebe-Upgrade
@@ -175,6 +177,7 @@ oc:container.DiskDrive=Diskettenlaufwerk
 oc:container.Server=Server
 oc:container.ServerRack=Serverschrank
 oc:container.Switch=Switch
+oc:container.TabletWrapper=Tablet
 
 # Keybinds
 key.materialCosts=Materialkosten anzeigen

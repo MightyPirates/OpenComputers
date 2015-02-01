@@ -419,6 +419,10 @@ object Settings {
     // inspection, patch to true to avoid stuff suddenly breaking.
     VersionRange.createFromVersionSpec("1.3.4") -> Array(
       "misc.allowItemStackInspection"
+    ),
+    // Upgrading to version 1.4.7, reduce default geolyzer noise.
+    VersionRange.createFromVersionSpec("[0.0, 1.4.7)") -> Array(
+      "misc.geolyzerNoise"
     )
   )
 

@@ -11,6 +11,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
+import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -334,15 +335,17 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
-    nbt.setNewTagList(Settings.namespace + "servers", servers map {
-      case Some(server) =>
-        val serverNbt = new NBTTagCompound()
-        try server.save(serverNbt) catch {
-          case t: Throwable => OpenComputers.log.warn("Failed saving server state. Please report this!", t)
-        }
-        serverNbt
-      case _ => new NBTTagCompound()
-    })
+    if (!Waila.isSavingForTooltip) {
+      nbt.setNewTagList(Settings.namespace + "servers", servers map {
+        case Some(server) =>
+          val serverNbt = new NBTTagCompound()
+          try server.save(serverNbt) catch {
+            case t: Throwable => OpenComputers.log.warn("Failed saving server state. Please report this!", t)
+          }
+          serverNbt
+        case _ => new NBTTagCompound()
+      })
+    }
     super.writeToNBT(nbt)
     nbt.setByteArray(Settings.namespace + "sides", sides.map {
       case Some(side) => side.ordinal.toByte
