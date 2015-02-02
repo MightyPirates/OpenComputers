@@ -7,7 +7,6 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.server.component.result
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraft.item.ItemStack
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
   @Callback(doc = """function([slot:number]):table -- Get a description of the stack in the specified slot or the selected slot.""")
@@ -21,12 +20,24 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
   def storeInternal(context: Context, args: Arguments): Array[AnyRef] = {
     val localSlot = args.checkSlot(inventory, 0)
     val dbAddress = args.checkString(1)
-    def store(stack: ItemStack) = DatabaseAccess.withDatabase(node, dbAddress, database => {
+    val localStack = inventory.getStackInSlot(localSlot)
+    DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
       val nonEmpty = database.data.getStackInSlot(dbSlot) != null
-      database.data.setInventorySlotContents(dbSlot, stack.copy())
+      database.data.setInventorySlotContents(dbSlot, localStack.copy())
       result(nonEmpty)
     })
-    store(inventory.getStackInSlot(localSlot))
+  }
+
+  @Callback(doc = """function(slot:number, dbAddress:string, dbSlot:number):boolean -- Compare an item in the specified slot with one in the database with the specified address.""")
+  def compareToDatabase(context: Context, args: Arguments): Array[AnyRef] = {
+    val localSlot = args.checkSlot(inventory, 0)
+    val dbAddress = args.checkString(1)
+    val localStack = inventory.getStackInSlot(localSlot)
+    DatabaseAccess.withDatabase(node, dbAddress, database => {
+      val dbSlot = args.checkSlot(database.data, 2)
+      val dbStack = database.data.getStackInSlot(dbSlot)
+      result(haveSameItemType(localStack, dbStack))
+    })
   }
 }
