@@ -11,7 +11,7 @@ import li.cil.oc.api.detail.*;
  */
 public class API {
     public static final String ID_OWNER = "OpenComputers|Core";
-    public static final String VERSION = "4.2.3";
+    public static final String VERSION = "4.2.4";
 
     public static DriverAPI driver = null;
     public static FileSystemAPI fileSystem = null;

@@ -244,6 +244,11 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
+        // Only allow breaking creative tier robots by allowed users.
+        // Unlike normal robots, griefing isn't really a valid concern
+        // here, because to get a creative robot you need creative
+        // mode in the first place.
+        if (robot.isCreative && (!player.capabilities.isCreativeMode || !robot.canInteract(player.getCommandSenderName))) return false
         if (!world.isRemote) {
           if (robot.player == player) return false
           robot.node.remove()

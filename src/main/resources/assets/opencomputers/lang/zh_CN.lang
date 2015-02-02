@@ -81,7 +81,9 @@ item.oc.Server1.name=高级服务器
 item.oc.Server2.name=超级服务器
 item.oc.Server3.name=创造模式服务器
 item.oc.Tablet.name=平板电脑
-item.oc.TabletCase.name=平板电脑保护套
+item.oc.TabletCase0.name=平板电脑保护套
+item.oc.TabletCase1.name=平板电脑保护套
+item.oc.TabletCase3.name=平板电脑保护套
 item.oc.Terminal.name=远程终端
 item.oc.Transistor.name=晶体管
 item.oc.UpgradeAngel.name=天使方块升级
@@ -175,6 +177,7 @@ oc:container.DiskDrive=磁盘驱动器
 oc:container.Server=服务器
 oc:container.ServerRack=服务器机架
 oc:container.Switch=交换机
+oc:container.TabletWrapper=平板电脑
 
 # Keybinds
 key.materialCosts=显示材料需求

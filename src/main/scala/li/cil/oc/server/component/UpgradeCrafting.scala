@@ -39,50 +39,45 @@ class UpgradeCrafting(val host: EnvironmentHost with Robot) extends prefab.Manag
 
     def craft(wantedCount: Int): Seq[_] = {
       load()
-      CraftingManager.getInstance.getRecipeList.find {
-        case recipe: IRecipe => recipe.matches(CraftingInventory, host.world)
-        case _ => false // Shouldn't ever happen, but...
-      } match {
-        case Some(recipe: IRecipe) =>
-          var countCrafted = 0
-          breakable {
-            while (countCrafted < wantedCount && recipe.matches(this, host.world)) {
-              val result = recipe.getCraftingResult(CraftingInventory)
-              if (result == null || result.stackSize < 1) break()
-              countCrafted += result.stackSize
-              FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
-              val surplus = mutable.ArrayBuffer.empty[ItemStack]
-              for (slot <- 0 until getSizeInventory) {
-                val stack = getStackInSlot(slot)
-                if (stack != null) {
-                  decrStackSize(slot, 1)
-                  val item = stack.getItem
-                  if (item.hasContainerItem(stack)) {
-                    val container = item.getContainerItem(stack)
-                    if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
-                      MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container))
-                    }
-                    else if (container.getItem.doesContainerItemLeaveCraftingGrid(container) || getStackInSlot(slot) != null) {
-                      surplus += container
-                    }
-                    else {
-                      setInventorySlotContents(slot, container)
-                    }
-                  }
+      val cm = CraftingManager.getInstance
+      var countCrafted = 0
+      val canCraft = cm.findMatchingRecipe(CraftingInventory, host.world) != null
+      breakable {
+        while (countCrafted < wantedCount) {
+          val result = cm.findMatchingRecipe(CraftingInventory, host.world)
+          if (result == null || result.stackSize < 1) break()
+          countCrafted += result.stackSize
+          FMLCommonHandler.instance.firePlayerCraftingEvent(host.player, result, this)
+          val surplus = mutable.ArrayBuffer.empty[ItemStack]
+          for (slot <- 0 until getSizeInventory) {
+            val stack = getStackInSlot(slot)
+            if (stack != null) {
+              decrStackSize(slot, 1)
+              val item = stack.getItem
+              if (item.hasContainerItem(stack)) {
+                val container = item.getContainerItem(stack)
+                if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
+                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container))
+                }
+                else if (container.getItem.doesContainerItemLeaveCraftingGrid(container) || getStackInSlot(slot) != null) {
+                  surplus += container
+                }
+                else {
+                  setInventorySlotContents(slot, container)
                 }
               }
-              save()
-              val inventory = host.player.inventory
-              inventory.addItemStackToInventory(result)
-              for (stack <- surplus) {
-                inventory.addItemStackToInventory(stack)
-              }
-              load()
             }
           }
-          Seq(true, countCrafted)
-        case _ => Seq(false, 0)
+          save()
+          val inventory = host.player.inventory
+          inventory.addItemStackToInventory(result)
+          for (stack <- surplus) {
+            inventory.addItemStackToInventory(stack)
+          }
+          load()
+        }
       }
+      Seq(canCraft, countCrafted)
     }
 
     def load() {

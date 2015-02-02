@@ -32,6 +32,31 @@ local sides = {
   forward = 3
 }
 
+local metatable = getmetatable(sides) or {}
+
+-- sides[0..5] are mapped to itertable[1..6].
+local itertable = {
+  sides[0],
+  sides[1],
+  sides[2],
+  sides[3],
+  sides[4],
+  sides[5]
+}
+
+-- Future-proofing against the possible introduction of additional
+-- logical sides (e.g. [7] = "all", [8] = "none", etc.).
+function metatable.__len(sides)
+  return #itertable
+end
+
+-- Allow `sides` to be iterated over like a normal (1-based) array.
+function metatable.__ipairs(sides)
+  return ipairs(itertable)
+end
+
+setmetatable(sides, metatable)
+
 -------------------------------------------------------------------------------
 
 return sides

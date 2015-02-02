@@ -27,6 +27,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
@@ -142,6 +143,22 @@ object EventHandler {
       case _: Throwable =>
       // Reportedly, things can derp if this is called at inopportune moments,
       // such as the server shutting down.
+    }
+  }
+
+  @SubscribeEvent
+  def onBlockBreak(e: BlockEvent.BreakEvent): Unit = {
+    e.world.getTileEntity(e.x, e.y, e.z) match {
+      case c: tileentity.Case =>
+        if (c.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !c.canInteract(e.getPlayer.getCommandSenderName))) {
+          e.setCanceled(true)
+        }
+      case r: tileentity.RobotProxy =>
+        val robot = r.robot
+        if (robot.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !robot.canInteract(e.getPlayer.getCommandSenderName))) {
+          e.setCanceled(true)
+        }
+      case _ =>
     }
   }
 

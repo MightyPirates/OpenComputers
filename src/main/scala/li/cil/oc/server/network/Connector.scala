@@ -6,7 +6,7 @@ import li.cil.oc.api.network.{Node => ImmutableNode}
 import net.minecraft.nbt.NBTTagCompound
 
 trait Connector extends network.Connector with Node {
-  var localBufferSize: Double
+  var localBufferSize = 0.0
 
   var localBuffer = 0.0
 
@@ -85,20 +85,24 @@ trait Connector extends network.Connector with Node {
   }
 
   def setLocalBufferSize(size: Double) {
+    val clampedSize = math.max(size, 0)
     this.synchronized(distributor match {
       case Some(d) => d.synchronized {
+        val oldSize = localBufferSize
+        // Must apply new size before trying to register with distributor, else
+        // we get ignored if our size is zero.
+        localBufferSize = clampedSize
         if (network != null) {
-          if (localBufferSize <= 0 && size > 0) d.addConnector(this)
-          else if (localBufferSize > 0 && size == 0) d.removeConnector(this)
-          else d.globalBufferSize = math.max(d.globalBufferSize - localBufferSize + size, 0)
+          if (oldSize <= 0 && clampedSize > 0) d.addConnector(this)
+          else if (oldSize > 0 && clampedSize == 0) d.removeConnector(this)
+          else d.globalBufferSize = math.max(d.globalBufferSize - oldSize + clampedSize, 0)
         }
-        localBufferSize = math.max(size, 0)
-        val surplus = math.max(localBuffer - localBufferSize, 0)
+        val surplus = math.max(localBuffer - clampedSize, 0)
         changeBuffer(-surplus)
         d.changeBuffer(surplus)
       }
       case _ =>
-        localBufferSize = math.max(size, 0)
+        localBufferSize = clampedSize
         localBuffer = math.min(localBuffer, localBufferSize)
     })
   }

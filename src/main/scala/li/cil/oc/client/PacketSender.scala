@@ -110,6 +110,15 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendCopyToAnalyzer(address: String, line: Int): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.CopyToAnalyzer)
+
+    pb.writeUTF(address)
+    pb.writeInt(line)
+
+    pb.sendToServer()
+  }
+
   def sendMultiPlace() {
     val pb = new SimplePacketBuilder(PacketType.MultiPartPlace)
     pb.sendToServer()

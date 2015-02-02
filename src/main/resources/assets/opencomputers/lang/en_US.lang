@@ -94,7 +94,9 @@ item.oc.Server1.name=Server (Tier 2)
 item.oc.Server2.name=Server (Tier 3)
 item.oc.Server3.name=Server (Creative)
 item.oc.Tablet.name=Tablet
-item.oc.TabletCase.name=Tablet Case
+item.oc.TabletCase0.name=Tablet Case (Tier 1)
+item.oc.TabletCase1.name=Tablet Case (Tier 2)
+item.oc.TabletCase3.name=Tablet Case (Creative)
 item.oc.Terminal.name=Remote Terminal
 item.oc.Transistor.name=Transistor
 item.oc.UpgradeAngel.name=Angel Upgrade
@@ -199,6 +201,7 @@ oc:container.Raid=Raid
 oc:container.Server=Server
 oc:container.ServerRack=Server Rack
 oc:container.Switch=Switch
+oc:container.TabletWrapper=Tablet
 
 # Keybinds
 key.materialCosts=Show Material Costs

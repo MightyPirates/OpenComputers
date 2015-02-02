@@ -17,7 +17,6 @@ import li.cil.oc.client.Sound
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.common.tileentity.traits
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
 import li.cil.oc.integration.util.Waila
@@ -163,7 +162,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (machine != null) {
-      if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip)
+      if (!Waila.isSavingForTooltip)
         nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)
       else if (machine.node.address != null)
         nbt.setString(Settings.namespace + "address", machine.node.address)

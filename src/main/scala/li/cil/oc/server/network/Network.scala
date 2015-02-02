@@ -589,7 +589,7 @@ object Network extends api.detail.NetworkAPI {
     def create() = if (SideTracker.isServer) new Connector with NodeVarargPart {
       val host = _host
       val reachability = _reachability
-      var localBufferSize = _bufferSize
+      localBufferSize = _bufferSize
     }
     else null
   }
@@ -599,7 +599,7 @@ object Network extends api.detail.NetworkAPI {
       val host = _host
       val reachability = _reachability
       val name = _name
-      var localBufferSize = _bufferSize
+      localBufferSize = _bufferSize
       setVisibility(_visibility)
     }
     else null
@@ -662,17 +662,22 @@ object Network extends api.detail.NetworkAPI {
   // ----------------------------------------------------------------------- //
 
   class Packet(var source: String, var destination: String, var port: Int, var data: Array[AnyRef], var ttl: Int = 5) extends api.network.Packet {
-    val size = Option(data).fold(0)(_.foldLeft(0)((acc, arg) => {
-      acc + (arg match {
-        case null | Unit | None => 4
-        case _: java.lang.Boolean => 4
-        case _: java.lang.Integer => 4
-        case _: java.lang.Double => 8
-        case value: java.lang.String => value.length
-        case value: Array[Byte] => value.length
-        case _ => throw new IllegalArgumentException("unsupported data type")
+    val size = Option(data).fold(0)(values => {
+      if (values.length > Settings.get.maxNetworkPacketParts) {
+        throw new IllegalArgumentException("packet has too many parts")
+      }
+      values.length * 2 + values.foldLeft(0)((acc, arg) => {
+        acc + (arg match {
+          case null | Unit | None => 4
+          case _: java.lang.Boolean => 4
+          case _: java.lang.Integer => 4
+          case _: java.lang.Double => 8
+          case value: java.lang.String => value.length max 1
+          case value: Array[Byte] => value.length max 1
+          case _ => throw new IllegalArgumentException("unsupported data type")
+        })
       })
-    }))
+    })
 
     override def hop() = new Packet(source, destination, port, data, ttl - 1)
 

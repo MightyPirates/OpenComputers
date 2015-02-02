@@ -114,7 +114,8 @@ class Proxy {
     OpenComputers.ID + ":rack" -> "serverRack",
     OpenComputers.ID + ":appengTunnel" -> "", // Avoid breaking worlds for people that used the dev builds.
     OpenComputers.ID + ":microcontrollerCase" -> "microcontrollerCase1",
-    OpenComputers.ID + ":droneCase" -> "droneCase1"
+    OpenComputers.ID + ":droneCase" -> "droneCase1",
+    OpenComputers.ID + ":tabletCase" -> "tabletCase1"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

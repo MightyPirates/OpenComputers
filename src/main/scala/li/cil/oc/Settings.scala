@@ -271,6 +271,7 @@ class Settings(val config: Config) {
   val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
+  val maxNetworkPacketParts = config.getInt("misc.maxNetworkPacketParts") max 0
   val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
   val rTreeMaxEntries = 10
@@ -304,6 +305,7 @@ class Settings(val config: Config) {
   // integration.vanilla
   val enableInventoryDriver = config.getBoolean("integration.vanilla.enableInventoryDriver")
   val enableTankDriver = config.getBoolean("integration.vanilla.enableTankDriver")
+  val enableCommandBlockDriver = config.getBoolean("integration.vanilla.enableCommandBlockDriver")
   val allowItemStackNBTTags = config.getBoolean("integration.vanilla.allowItemStackNBTTags")
 
   // ----------------------------------------------------------------------- //
@@ -417,6 +419,10 @@ object Settings {
     // inspection, patch to true to avoid stuff suddenly breaking.
     VersionRange.createFromVersionSpec("1.3.4") -> Array(
       "misc.allowItemStackInspection"
+    ),
+    // Upgrading to version 1.4.7, reduce default geolyzer noise.
+    VersionRange.createFromVersionSpec("[0.0, 1.4.7)") -> Array(
+      "misc.geolyzerNoise"
     )
   )
 

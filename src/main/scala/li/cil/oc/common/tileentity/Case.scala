@@ -38,7 +38,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   var maxComponents = 0
 
-  private def isCreativeCase = tier == Tier.Four
+  def isCreative = tier == Tier.Four
 
   // ----------------------------------------------------------------------- //
 
@@ -77,7 +77,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def canUpdate = isServer
 
   override def updateEntity() {
-    if (isServer && isCreativeCase && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
@@ -139,7 +139,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    super.isUseableByPlayer(player) && (!isCreativeCase || player.capabilities.isCreativeMode)
+    super.isUseableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     Option(Driver.driverFor(stack, getClass)).fold(false)(driver => {

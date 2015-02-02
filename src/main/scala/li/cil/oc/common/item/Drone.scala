@@ -21,7 +21,7 @@ class Drone(val parent: Delegator) extends Delegate {
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
       val info = new MicrocontrollerData(stack)
-      for (component <- info.components) {
+      for (component <- info.components if component != null) {
         tooltip.add("- " + component.getDisplayName)
       }
     }

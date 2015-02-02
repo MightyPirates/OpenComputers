@@ -429,6 +429,10 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) =
     mouseScroll(x, y, delta, player)
 
+  def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
+    proxy.copyToAnalyzer(line, player)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {
@@ -602,6 +606,8 @@ object TextBuffer {
     def mouseUp(x: Double, y: Double, button: Int, player: EntityPlayer): Unit
 
     def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer): Unit
+
+    def copyToAnalyzer(line: Int, player: EntityPlayer): Unit
   }
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
@@ -684,6 +690,10 @@ object TextBuffer {
     override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
       debug(s"{type = mouseScroll, x = $x, y = $y, delta = $delta}")
       ClientPacketSender.sendMouseScroll(nodeAddress, x, y, delta)
+    }
+
+    override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
+      ClientPacketSender.sendCopyToAnalyzer(nodeAddress, line)
     }
 
     private lazy val Debugger = api.Items.get("debugger")
@@ -787,6 +797,27 @@ object TextBuffer {
 
     override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) {
       sendMouseEvent(player, "scroll", x, y, delta)
+    }
+
+    override def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
+      val stack = player.getHeldItem
+      if (stack != null) {
+        if (!stack.hasTagCompound) {
+          stack.setTagCompound(new NBTTagCompound())
+        }
+        stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
+
+        if (line >= 0 && line < owner.data.height) {
+          val text = new String(owner.data.buffer(line)).trim
+          if (!Strings.isNullOrEmpty(text)) {
+            stack.getTagCompound.setString(Settings.namespace + "clipboard", text)
+          }
+        }
+
+        if (stack.getTagCompound.hasNoTags) {
+          stack.setTagCompound(null)
+        }
+      }
     }
 
     private def sendMouseEvent(player: EntityPlayer, name: String, x: Double, y: Double, data: Int) = {
