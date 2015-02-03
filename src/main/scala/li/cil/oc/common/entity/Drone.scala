@@ -12,13 +12,13 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item
 import li.cil.oc.api.internal
+import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
-import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition

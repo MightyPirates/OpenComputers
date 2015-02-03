@@ -24,6 +24,11 @@ public interface Drone extends Agent, EnvironmentHost, Rotatable, Tiered {
     IInventory inventory();
 
     /**
+     * Provides access to the tanks of the drone.
+     */
+    MultiTank tank();
+
+    /**
      * Get the current target coordinates of the drone.
      */
     Vec3 getTarget();

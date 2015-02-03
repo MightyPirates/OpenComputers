@@ -1,8 +1,8 @@
 package li.cil.oc.util
 
+import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.machine.Arguments
-import li.cil.oc.common.inventory.MultiTank
 import net.minecraft.inventory.IInventory
 import net.minecraftforge.common.util.ForgeDirection
 

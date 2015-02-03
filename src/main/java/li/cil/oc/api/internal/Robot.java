@@ -3,9 +3,7 @@ package li.cil.oc.api.internal;
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.IFluidHandler;
-import net.minecraftforge.fluids.IFluidTank;
 
 /**
  * This interface allows interaction with robots.
@@ -29,7 +27,7 @@ import net.minecraftforge.fluids.IFluidTank;
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
-public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
+public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler, MultiTank {
     /**
      * The number of hot-swappable component slots in this robot.
      * <p/>
@@ -51,24 +49,6 @@ public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, T
     int inventorySize();
 
     /**
-     * The number of tanks currently installed in the robot.
-     */
-    int tankCount();
-
-    /**
-     * Get the item stack in the specified inventory slot.
-     * <p/>
-     * This operates on the underlying, real inventory, as described in the
-     * comment on top of this class.
-     * <p/>
-     * This will return <tt>null</tt> for empty slots.
-     *
-     * @param index the index of the slot from which to get the stack.
-     * @return the content of that slot, or <tt>null</tt>.
-     */
-    ItemStack getStackInSlot(int index);
-
-    /**
      * Get the environment for the component in the specified slot.
      * <p/>
      * This operates on the underlying, real inventory, as described in the
@@ -81,14 +61,6 @@ public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, T
      * @return the environment for that slot, or <tt>null</tt>.
      */
     Environment getComponentInSlot(int index);
-
-    /**
-     * Get the installed fluid tank with the specified index.
-     *
-     * @param index the index of the tank to get.
-     * @return the tank with the specified index.
-     */
-    IFluidTank getFluidTank(int index);
 
     /**
      * Gets the index of the currently selected slot in the robot's inventory.
