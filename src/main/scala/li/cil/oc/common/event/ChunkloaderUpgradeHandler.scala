@@ -55,13 +55,11 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
 
   @SubscribeEvent
   def onMove(e: RobotMoveEvent.Post) {
-    // TODO Generalize Agent interface for access to their components.
-//    for (slot <- 0 until e.robot.getSizeInventory) {
-//      e.robot.getComponentInSlot(slot) match {
-//        case loader: UpgradeChunkloader => updateLoadedChunk(loader)
-//        case _ =>
-//      }
-//    }
+    val machineNode = e.agent.machine.node
+    machineNode.reachableNodes.foreach(_.host match {
+      case loader: UpgradeChunkloader => updateLoadedChunk(loader)
+      case _ =>
+    })
   }
 
   def updateLoadedChunk(loader: UpgradeChunkloader) {

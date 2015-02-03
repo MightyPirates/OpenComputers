@@ -258,7 +258,6 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         return 0
       }
 
-      // TODO Is this already handled via the event?
       if (MinecraftServer.getServer.isBlockProtected(world, x, y, z, this)) {
         return 0
       }

@@ -6,8 +6,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.internal.Agent
 import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.network.Node
 import li.cil.oc.server.component
 import org.lwjgl.opengl.GL11
+
+import scala.collection.convert.WrapAsScala._
 
 object ExperienceUpgradeHandler {
   @SubscribeEvent
@@ -32,10 +35,13 @@ object ExperienceUpgradeHandler {
 
   @SubscribeEvent
   def onRobotAttackEntityPost(e: RobotAttackEntityEvent.Post) {
-    // TODO Generalize Agent interface for access to their components.
-//    if (e.robot.getComponentInSlot(e.robot.selectedSlot()) != null && e.target.isDead) {
-//      addExperience(e.robot, Settings.get.robotActionXp)
-//    }
+    e.agent match {
+      case robot: Robot =>
+        if (robot.getComponentInSlot(robot.selectedSlot()) != null && e.target.isDead) {
+          addExperience(robot, Settings.get.robotActionXp)
+        }
+      case _ =>
+    }
   }
 
   @SubscribeEvent
@@ -74,40 +80,28 @@ object ExperienceUpgradeHandler {
 
   private def getLevel(agent: Agent) = {
     var level = 0
-    // TODO Generalize Agent interface for access to their components.
-//    for (index <- 0 until agent.getSizeInventory) {
-//      agent.getComponentInSlot(index) match {
-//        case upgrade: component.UpgradeExperience =>
-//          level += upgrade.level
-//        case _ =>
-//      }
-//    }
+    foreachUpgrade(agent.machine.node, upgrade => level += upgrade.level)
     level
   }
 
   private def getLevelAndExperience(agent: Agent) = {
     var level = 0
     var experience = 0.0
-    // TODO Generalize Agent interface for access to their components.
-//    for (index <- 0 until agent.getSizeInventory) {
-//      agent.getComponentInSlot(index) match {
-//        case upgrade: component.UpgradeExperience =>
-//          level += upgrade.level
-//          experience += upgrade.experience
-//        case _ =>
-//      }
-//    }
+    foreachUpgrade(agent.machine.node, upgrade => {
+      level += upgrade.level
+      experience += upgrade.experience
+    })
     (level, experience)
   }
 
   private def addExperience(agent: Agent, amount: Double) {
-    // TODO Generalize Agent interface for access to their components.
-//    for (index <- 0 until agent.getSizeInventory) {
-//      agent.getComponentInSlot(index) match {
-//        case upgrade: component.UpgradeExperience =>
-//          upgrade.addExperience(amount)
-//        case _ =>
-//      }
-//    }
+    foreachUpgrade(agent.machine.node, upgrade => upgrade.addExperience(amount))
+  }
+
+  private def foreachUpgrade(node: Node, f: (component.UpgradeExperience) => Unit): Unit = {
+    node.reachableNodes.foreach(_.host match {
+      case upgrade: component.UpgradeExperience => f(upgrade)
+      case _ =>
+    })
   }
 }
