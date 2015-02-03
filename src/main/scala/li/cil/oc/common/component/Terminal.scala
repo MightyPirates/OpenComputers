@@ -6,6 +6,7 @@ import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
@@ -23,9 +24,9 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
   val buffer = {
     val screenItem = api.Items.get("screen1").createItemStack(1)
     val buffer = api.Driver.driverFor(screenItem, rack.getClass).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
-    val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(1)
+    val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(Tier.Three)
     buffer.setMaximumResolution(maxWidth, maxHeight)
-    buffer.setMaximumColorDepth(Settings.screenDepthsByTier(1))
+    buffer.setMaximumColorDepth(Settings.screenDepthsByTier(Tier.Three))
     buffer
   }
 

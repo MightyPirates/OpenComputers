@@ -36,6 +36,7 @@ object PacketHandler extends CommonPacketHandler {
   override def dispatch(p: PacketParser) {
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
+      case PacketType.CopyToAnalyzer => onCopyToAnalyzer(p)
       case PacketType.DronePower => onDronePower(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
@@ -72,6 +73,13 @@ object PacketHandler extends CommonPacketHandler {
       }
       case _ => // Invalid packet.
     }
+
+  def onCopyToAnalyzer(p: PacketParser) {
+    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+      case Some(buffer: TextBuffer) => buffer.copyToAnalyzer(p.readInt(), p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
+    }
+  }
 
   def onDronePower(p: PacketParser) =
     p.readEntity[Drone]() match {

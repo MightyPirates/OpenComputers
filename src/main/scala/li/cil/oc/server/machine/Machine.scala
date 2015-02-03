@@ -238,6 +238,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           case arg: java.lang.String => arg
           case arg: Array[Byte] => arg
           case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
+          case arg: NBTTagCompound => arg
           case arg =>
             OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
             null
@@ -247,7 +248,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
   })
 
-  override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue())
+  override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue().convert())
 
   override def methods(value: scala.AnyRef) = Callbacks(value).map(entry => {
     val (name, callback) = entry
@@ -628,6 +629,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
                 data += tag.getStringTagAt(i) -> tag.getStringTagAt(i + 1)
               }
               data
+            case tag: NBTTagCompound => tag
             case _ => null
           }.toArray[AnyRef])
       })
@@ -705,6 +707,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
                 list.append(value.toString)
               }
               args.setTag("arg" + i, list)
+            case (arg: NBTTagCompound, i) => args.setTag("arg" + i, arg)
             case (_, i) => args.setByte("arg" + i, -1)
           }
         })
@@ -936,7 +939,9 @@ object Machine extends MachineAPI {
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
-  private[machine] class Signal(val name: String, val args: Array[AnyRef]) extends machine.Signal
+  private[machine] class Signal(val name: String, val args: Array[AnyRef]) extends machine.Signal {
+    def convert() = new Signal(name, Registry.convert(args))
+  }
 
   private val threadPool = ThreadPoolFactory.create("Computer", Settings.get.threads)
 }

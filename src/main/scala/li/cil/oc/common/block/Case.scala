@@ -86,7 +86,9 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override def removedByPlayer(world: World, pos: BlockPos, player: EntityPlayer, willHarvest: Boolean) =
     world.getTileEntity(pos) match {
-      case c: tileentity.Case => c.canInteract(player.getName) && super.removedByPlayer(world, pos, player, willHarvest)
+      case c: tileentity.Case =>
+        if (c.isCreative && (!player.capabilities.isCreativeMode || !c.canInteract(player.getName))) false
+        else c.canInteract(player.getName) && super.removedByPlayer(world, pos, player, willHarvest)
       case _ => super.removedByPlayer(world, pos, player, willHarvest)
     }
 }

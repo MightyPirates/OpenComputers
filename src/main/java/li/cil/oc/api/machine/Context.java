@@ -153,6 +153,7 @@ public interface Context {
      * <li>Strings.</li>
      * <li>Byte arrays (which appear as strings on the Lua side, e.g.).</li>
      * <li>Maps if and only if both keys and values are strings.</li>
+     * <li>NBTTagCompounds.</li>
      * </ul>
      * If an unsupported type is specified the method will enqueue nothing
      * instead, resulting in a <tt>nil</tt> on the Lua side, e.g., and log a

@@ -4,6 +4,7 @@ import java.util
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.Wrench
@@ -13,6 +14,7 @@ import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -88,6 +90,7 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
   def rightClick(world: World, pos: BlockPos, player: EntityPlayer,
                  side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) = {
     if (Wrench.holdsApplicableWrench(player, pos) && getValidRotations(world, pos).contains(side) && !force) false
+    else if (api.Items.get(player.getHeldItem) == api.Items.get("analyzer")) false
     else world.getTileEntity(pos) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
@@ -98,7 +101,10 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
         }
         true
       case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
-        screen.click(player, hitX, hitY, hitZ)
+        if (world.isRemote && player == Minecraft.getMinecraft.thePlayer) {
+          screen.click(hitX, hitY, hitZ)
+        }
+        else true
       case _ => false
     }
   }

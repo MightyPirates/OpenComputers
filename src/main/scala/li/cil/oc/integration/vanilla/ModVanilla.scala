@@ -31,5 +31,6 @@ object ModVanilla extends ModProxy {
     Driver.add(ConverterFluidStack)
     Driver.add(ConverterFluidTankInfo)
     Driver.add(ConverterItemStack)
+    Driver.add(ConverterNBT)
   }
 }

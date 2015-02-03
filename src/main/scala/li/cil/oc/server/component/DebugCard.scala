@@ -35,6 +35,9 @@ import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.FakePlayerFactory
+import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.IFluidHandler
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
@@ -426,6 +429,7 @@ object DebugCard {
 
     @Callback(doc = """function(x:number, y:number, z:number, slot:number[, count:number]):number - Reduce the size of an item stack in the inventory at the specified location.""")
     def removeItem(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
       val position = BlockPosition(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2), world)
       InventoryUtils.inventoryAt(position) match {
         case Some(inventory) =>
@@ -435,6 +439,34 @@ object DebugCard {
           if (removed == null) result(0)
           else result(removed.stackSize)
         case _ => result(null, "no inventory")
+      }
+    }
+
+    @Callback(doc = """function(id:string, amount:number, x:number, y:number, z:number, side:number):boolean - Insert some fluid into the tank at the specified location.""")
+    def insertFluid(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val fluid = FluidRegistry.getFluid(args.checkString(0))
+      if (fluid == null) {
+        throw new IllegalArgumentException("invalid fluid id")
+      }
+      val amount = args.checkInteger(1)
+      val position = BlockPosition(args.checkDouble(2), args.checkDouble(3), args.checkDouble(4), world)
+      val side = args.checkSide(5, EnumFacing.values: _*)
+      world.getTileEntity(position) match {
+        case handler: IFluidHandler => result(handler.fill(side, new FluidStack(fluid, amount), true))
+        case _ => result(null, "no tank")
+      }
+    }
+
+    @Callback(doc = """function(amount:number, x:number, y:number, z:number, side:number):boolean - Remove some fluid from a tank at the specified location.""")
+    def removeFluid(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val amount = args.checkInteger(0)
+      val position = BlockPosition(args.checkDouble(1), args.checkDouble(2), args.checkDouble(3), world)
+      val side = args.checkSide(4, EnumFacing.values: _*)
+      world.getTileEntity(position) match {
+        case handler: IFluidHandler => result(handler.drain(side, amount, true))
+        case _ => result(null, "no tank")
       }
     }
 

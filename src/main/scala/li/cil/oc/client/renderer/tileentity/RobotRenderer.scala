@@ -284,7 +284,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     val timeJitter = robot.hashCode ^ 0xFF
     val hover =
-      if (robot.isRunning) (Math.sin(timeJitter + (worldTime + f) / 20.0) * 0.03).toFloat
+      if (robot.isRunning) (Math.sin(timeJitter + worldTime / 20.0) * 0.03).toFloat
       else -0.03f
     GL11.glTranslatef(0, hover, 0)
 

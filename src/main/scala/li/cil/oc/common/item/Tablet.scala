@@ -29,6 +29,7 @@ import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
@@ -92,6 +93,24 @@ class Tablet(val parent: Delegator) extends Delegate {
       case player: EntityPlayer => Tablet.get(stack, player).update(world, player, slot, selected)
       case _ =>
     }
+
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    val world = player.getEntityWorld
+    if (!world.isRemote) try {
+      val computer = Tablet.get(stack, player).machine
+      if (computer.isRunning) {
+        val data = new NBTTagCompound()
+        computer.node.sendToReachable("tablet.use", data, stack, player, position, side, float2Float(hitX), float2Float(hitY), float2Float(hitZ))
+        if (!data.hasNoTags) {
+          computer.signal("tablet_use", data)
+        }
+      }
+    }
+    catch {
+      case t: Throwable => OpenComputers.log.warn("Block analysis on tablet right click failed gloriously!", t)
+    }
+    true
+  }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
     if (!player.isSneaking) {

@@ -70,6 +70,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def tier = info.tier
 
+  def isCreative = tier == Tier.Four
+
   // Wrapper for the part of the inventory that is mutable.
   val dynamicInventory = new IInventory {
     override def getSizeInventory = Robot.this.inventorySize
@@ -748,6 +750,9 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
     else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(EnumFacing.UP))
   }
+
+  override def isUseableByPlayer(player: EntityPlayer) =
+    super.isUseableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, _) => true // Allow anything in the tool slot.

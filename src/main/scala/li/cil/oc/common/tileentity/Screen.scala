@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
+import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
@@ -95,7 +96,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     invertTouchMode = false
   }
 
-  def click(player: EntityPlayer, hitX: Double, hitY: Double, hitZ: Double): Boolean = {
+  def toScreenCoordinates(hitX: Double, hitY: Double, hitZ: Double): (Boolean, Option[(Double, Double)]) = {
     // Compute absolute position of the click on the face, measured in blocks.
     def dot(f: EnumFacing) = f.getFrontOffsetX * hitX + f.getFrontOffsetY * hitY + f.getFrontOffsetZ * hitZ
     val (hx, hy) = (dot(toGlobal(EnumFacing.EAST)), dot(toGlobal(EnumFacing.UP)))
@@ -107,9 +108,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     // Get the relative position in the *display area* of the face.
     val border = 2.25 / 16.0
     if (ax <= border || ay <= border || ax >= width - border || ay >= height - border) {
-      return false
+      return (false, None)
     }
-    if (!world.isRemote) return true
+    if (!world.isRemote) return (true, None)
 
     val (iw, ih) = (width - border * 2, height - border * 2)
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
@@ -121,27 +122,43 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
       val bry = (ry - (1 - rh) * 0.5) / rh
-      if (bry <= 0 || bry >= 1) {
-        return true
-      }
       (rx, bry)
     }
     else if (bph > bpw) {
       val rw = bpw.toDouble / bph.toDouble
       val brx = (rx - (1 - rw) * 0.5) / rw
-      if (brx <= 0 || brx >= 1) {
-        return true
-      }
       (brx, ry)
     }
     else {
       (rx, ry)
     }
 
-    // Convert to absolute coordinates and send the packet to the server.
-    origin.buffer.mouseDown(brx * bw, bry * bh, 0, null)
+    val inBounds = bry >= 0 && bry <= 1 && brx >= 0 || brx <= 1
+    (inBounds, Some((brx * bw, bry * bh)))
+  }
 
-    true
+  def copyToAnalyzer(hitX: Double, hitY: Double, hitZ: Double): Boolean = {
+    val (inBounds, coordinates) = toScreenCoordinates(hitX, hitY, hitZ)
+    coordinates match {
+      case Some((x, y)) => origin.buffer match {
+        case buffer: TextBuffer =>
+          buffer.copyToAnalyzer(y.toInt, null)
+          true
+        case _ => false
+      }
+      case _ => inBounds
+    }
+  }
+
+  def click(hitX: Double, hitY: Double, hitZ: Double): Boolean = {
+    val (inBounds, coordinates) = toScreenCoordinates(hitX, hitY, hitZ)
+    coordinates match {
+      case Some((x, y)) =>
+        // Send the packet to the server (manually, for accuracy).
+        origin.buffer.mouseDown(x, y, 0, null)
+        true
+      case _ => inBounds
+    }
   }
 
   def walk(entity: Entity) {
@@ -238,7 +255,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
           hitXInner && !hitYInner && hitZInner ||
           !hitXInner && hitYInner && hitZInner) {
           arrow.shootingEntity match {
-            case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(player, hitX, hitY, hitZ)
+            case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(hitX, hitY, hitZ)
             case _ =>
           }
         }

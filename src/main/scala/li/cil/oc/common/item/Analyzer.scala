@@ -1,9 +1,11 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
+import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
@@ -11,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraft.world.World
 import net.minecraftforge.event.entity.player.EntityInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
@@ -79,7 +82,31 @@ object Analyzer {
 }
 
 class Analyzer(val parent: Delegator) extends Delegate {
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
+    if (player.isSneaking && stack.hasTagCompound) {
+      stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
+      if (stack.getTagCompound.hasNoTags) {
+        stack.setTagCompound(null)
+      }
+    }
+    super.onItemRightClick(stack, world, player)
+  }
+
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    Analyzer.analyze(position.world.get.getTileEntity(position), player, side, hitX, hitY, hitZ)
+    val world = player.getEntityWorld
+    world.getTileEntity(position) match {
+      case screen: tileentity.Screen if side == screen.facing =>
+        if (player.isSneaking) {
+          screen.copyToAnalyzer(hitX, hitY, hitZ)
+        }
+        else if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "clipboard")) {
+          if (!world.isRemote) {
+            screen.origin.buffer.clipboard(stack.getTagCompound.getString(Settings.namespace + "clipboard"), player)
+          }
+          true
+        }
+        else false
+      case _ => Analyzer.analyze(position.world.get.getTileEntity(position), player, side, hitX, hitY, hitZ)
+    }
   }
 }
