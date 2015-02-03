@@ -10,7 +10,7 @@ object RobotCommonHandler {
       val damage = e.toolAfterUse.getItemDamage - e.toolBeforeUse.getItemDamage
       if (damage > 0) {
         val actualDamage = damage * e.getDamageRate
-        val repairedDamage = if (e.robot.player.getRNG.nextDouble() > 0.5) damage - math.floor(actualDamage).toInt else damage - math.ceil(actualDamage).toInt
+        val repairedDamage = if (e.agent.player.getRNG.nextDouble() > 0.5) damage - math.floor(actualDamage).toInt else damage - math.ceil(actualDamage).toInt
         e.toolAfterUse.setItemDamage(e.toolAfterUse.getItemDamage - repairedDamage)
       }
     }

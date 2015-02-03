@@ -94,8 +94,6 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
 
   override def world = rack.world
 
-  override def markForSaving() = rack.markForSaving()
-
   override def markChanged() = rack.markChanged()
 
   // ----------------------------------------------------------------------- //

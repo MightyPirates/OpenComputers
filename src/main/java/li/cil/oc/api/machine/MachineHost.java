@@ -73,16 +73,6 @@ public interface MachineHost extends EnvironmentHost {
     int componentSlot(String address);
 
     /**
-     * This is called by the machine when its state changed (which can be
-     * multiple times per actual game tick), to notify the owner that it should
-     * save its state on the next world save.
-     * <p/>
-     * This method is called from executor threads, so it must be thread-safe.
-     */
-    // TODO Merge with {@link EnvironmentHost#markChanged} in 1.5
-    void markForSaving();
-
-    /**
      * This is called on the owner when the machine's {@link Environment#onConnect(Node)}
      * method gets called. This can be useful for reacting to network events
      * when the owner does not have its own node (for example, computer cases

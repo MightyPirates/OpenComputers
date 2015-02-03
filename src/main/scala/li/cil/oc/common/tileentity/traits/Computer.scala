@@ -39,8 +39,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   private var _isRunning = false
 
-  private var markChunkDirty = false
-
   private val _users = mutable.Set.empty[String]
 
   protected def runSound = Option("computer_running")
@@ -87,8 +85,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     null
   }
 
-  override def markForSaving() = markChunkDirty = true
-
   override def installedComponents = components collect {
     case Some(component) => component
   }
@@ -117,11 +113,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       // to join the network, too, avoiding issues of missing nodes (e.g. in the
       // GPU which would otherwise loose track of its screen).
       machine.update()
-
-      if (markChunkDirty) {
-        markChunkDirty = false
-        world.markTileEntityChunkModified(x, y, z, this)
-      }
 
       if (_isRunning != machine.isRunning) {
         _isRunning = machine.isRunning

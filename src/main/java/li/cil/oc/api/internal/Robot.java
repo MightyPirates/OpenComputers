@@ -31,24 +31,11 @@ import net.minecraftforge.fluids.IFluidTank;
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
-public interface Robot extends Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
+public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
     /**
      * The machine currently hosted by this robot.
      */
     Machine machine();
-
-    /**
-     * Returns the fake player used to represent the robot as an entity for
-     * certain actions that require one.
-     * <p/>
-     * This will automatically be positioned and rotated to represent the
-     * robot's current position and rotation in the world. Use this to trigger
-     * events involving the robot that require a player entity, and for more
-     * in-depth interaction with the robots' inventory.
-     *
-     * @return the fake player for the robot.
-     */
-    EntityPlayer player();
 
     /**
      * The number of hot-swappable component slots in this robot.

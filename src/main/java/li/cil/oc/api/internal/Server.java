@@ -20,7 +20,7 @@ import li.cil.oc.api.machine.Machine;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Server extends EnvironmentHost {
+public interface Server extends EnvironmentHost, Tiered {
     /**
      * The machine currently hosted by this server.
      */
@@ -35,9 +35,4 @@ public interface Server extends EnvironmentHost {
      * The slot of the server rack this server is in.
      */
     int slot();
-
-    /**
-     * The tier of the server.
-     */
-    int tier();
 }

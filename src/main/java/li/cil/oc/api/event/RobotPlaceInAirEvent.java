@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.internal.Robot;
+import li.cil.oc.api.internal.Agent;
 
 /**
  * This event is fired when a robot tries to place a block and has no point of
@@ -13,8 +13,8 @@ import li.cil.oc.api.internal.Robot;
 public class RobotPlaceInAirEvent extends RobotEvent {
     private boolean isAllowed = false;
 
-    public RobotPlaceInAirEvent(Robot robot) {
-        super(robot);
+    public RobotPlaceInAirEvent(Agent agent) {
+        super(agent);
     }
 
     /**

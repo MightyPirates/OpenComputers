@@ -1,6 +1,10 @@
 package li.cil.oc.api.detail;
 
-import li.cil.oc.api.network.*;
+import li.cil.oc.api.network.Component;
+import li.cil.oc.api.network.ComponentConnector;
+import li.cil.oc.api.network.Connector;
+import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.Visibility;
 
 /**
  * Used for building {@link Node}s via {@link li.cil.oc.api.Network#newNode}.

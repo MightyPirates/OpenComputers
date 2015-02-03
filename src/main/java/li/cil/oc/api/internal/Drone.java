@@ -18,7 +18,7 @@ import net.minecraft.util.Vec3;
  * i.e. without having to link against internal classes. This also means
  * that <em>you should not implement this</em>.
  */
-public interface Drone extends EnvironmentHost, Rotatable, Tiered {
+public interface Drone extends Agent, EnvironmentHost, Rotatable, Tiered {
     /**
      * The machine currently hosted by this drone.
      */

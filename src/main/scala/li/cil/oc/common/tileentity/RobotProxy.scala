@@ -262,8 +262,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  override def markForSaving() = robot.markForSaving()
-
   override def hasRedstoneCard = robot.hasRedstoneCard
 
   // ----------------------------------------------------------------------- //

@@ -415,20 +415,6 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) =
     proxy.mouseScroll(x, y, delta, player)
 
-  // TODO Remove in 1.5
-
-  override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) =
-    mouseDown(x, y, button, player)
-
-  override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) =
-    mouseDrag(x, y, button, player)
-
-  override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) =
-    mouseUp(x, y, button, player)
-
-  override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) =
-    mouseScroll(x, y, delta, player)
-
   def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
     proxy.copyToAnalyzer(line, player)
   }

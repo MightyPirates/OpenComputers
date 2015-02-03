@@ -34,6 +34,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
+import net.minecraft.world.WorldServer
+import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.IFluidTank
 
@@ -116,6 +118,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   var selectedTank = 0
 
   override def tier = info.tier
+
+  override def player(): EntityPlayer = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
 
   // ----------------------------------------------------------------------- //
   // Forward context stuff to our machine. Interface needed for some components
@@ -212,8 +216,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def maxComponents = 32
 
   override def componentSlot(address: String) = -1 // TODO
-
-  override def markForSaving() {}
 
   override def onMachineConnect(node: Node) {}
 
