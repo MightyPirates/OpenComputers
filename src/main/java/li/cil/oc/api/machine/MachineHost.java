@@ -12,6 +12,11 @@ import li.cil.oc.api.network.Node;
  */
 public interface MachineHost extends EnvironmentHost {
     /**
+     * The machine currently hosted.
+     */
+    Machine machine();
+
+    /**
      * Get the architecture to use in the hosted machine.
      * <p/>
      * This can be a static architecture type, but will usually be based on the

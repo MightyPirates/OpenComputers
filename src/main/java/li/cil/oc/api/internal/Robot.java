@@ -1,9 +1,7 @@
 package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
-import li.cil.oc.api.machine.Machine;
 import li.cil.oc.api.network.Environment;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.IFluidHandler;
@@ -32,11 +30,6 @@ import net.minecraftforge.fluids.IFluidTank;
  * This interface is <em>not meant to be implemented</em>, just used.
  */
 public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
-    /**
-     * The machine currently hosted by this robot.
-     */
-    Machine machine();
-
     /**
      * The number of hot-swappable component slots in this robot.
      * <p/>

@@ -1,11 +1,12 @@
 package li.cil.oc.api.internal;
 
+import li.cil.oc.api.machine.MachineHost;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
  * General marker interface for autonomous agents such as robots and drones.
  */
-public interface Agent {
+public interface Agent extends MachineHost {
     /**
      * Returns the fake player used to represent the agent as an entity for
      * certain actions that require one.
