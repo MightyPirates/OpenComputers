@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.robot
+package li.cil.oc.server.agent
 
 object ActivationType extends Enumeration {
   val None, ItemUsed, ItemPlaced, BlockActivated = Value

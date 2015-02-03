@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.robot
+package li.cil.oc.server.component
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -11,13 +11,13 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component.traits
+import li.cil.oc.server.agent.ActivationType
+import li.cil.oc.server.agent.Player
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
-import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart

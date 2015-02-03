@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.robot
+package li.cil.oc.server.agent
 
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper

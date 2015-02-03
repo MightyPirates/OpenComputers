@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.robot
+package li.cil.oc.server.agent
 
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block

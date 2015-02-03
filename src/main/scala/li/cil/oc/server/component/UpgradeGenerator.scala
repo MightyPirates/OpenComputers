@@ -5,7 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -18,7 +18,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityFurnace
 
-class UpgradeGenerator(val host: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
+class UpgradeGenerator(val host: EnvironmentHost with internal.Robot) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().

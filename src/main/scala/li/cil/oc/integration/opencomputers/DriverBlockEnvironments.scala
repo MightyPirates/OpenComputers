@@ -8,6 +8,7 @@ import li.cil.oc.common
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.component
+import li.cil.oc.server.component.Robot
 import li.cil.oc.server.machine.Machine
 import net.minecraft.block.Block
 import net.minecraft.item.ItemBlock
@@ -35,7 +36,7 @@ object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
       else if (isOneOf(block.field_150939_a, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
       else if (isOneOf(block.field_150939_a, "screen1")) classOf[common.component.TextBuffer].asInstanceOf[Class[_ <: Environment]]
       else if (isOneOf(block.field_150939_a, "screen2", "screen3")) classOf[common.component.Screen]
-      else if (isOneOf(block.field_150939_a, "robot")) classOf[component.robot.Robot].asInstanceOf[Class[_ <: Environment]]
+      else if (isOneOf(block.field_150939_a, "robot")) classOf[Robot].asInstanceOf[Class[_ <: Environment]]
       else if (isOneOf(block.field_150939_a, "drone")) classOf[component.Drone].asInstanceOf[Class[_ <: Environment]]
       else null
     case _ => null

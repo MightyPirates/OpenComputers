@@ -21,8 +21,11 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
-import li.cil.oc.server.component.robot
-import li.cil.oc.server.component.robot.Inventory
+import li.cil.oc.server.agent.Inventory
+import li.cil.oc.server.agent
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.server.component
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -52,7 +55,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   val info = new RobotData()
 
-  val bot = if (isServer) new robot.Robot(this) else null
+  val bot = if (isServer) new component.Robot(this) else null
 
   val inventory = new Inventory(this)
 
@@ -170,7 +173,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   var appliedToolEnchantments = false
 
-  private lazy val player_ = new robot.Player(this)
+  private lazy val player_ = new agent.Player(this)
 
   def determineUUID(playerUUID: Option[UUID] = None) = {
     val format = Settings.get.uuidFormat

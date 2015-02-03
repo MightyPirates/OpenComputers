@@ -3,7 +3,7 @@ package li.cil.oc.server.component
 import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.internal
 import li.cil.oc.api.prefab
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
@@ -29,7 +29,7 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
     tileEntity match {
       case Some(sign) =>
         val player = host match {
-          case robot: Robot => robot.player
+          case robot: internal.Robot => robot.player
           case _ => FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
         }
         if (!canChangeSign(player, sign)) {
