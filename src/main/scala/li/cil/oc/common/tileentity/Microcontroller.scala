@@ -20,8 +20,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
-class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller with internal.Tiered {
+class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller {
   val info = new MicrocontrollerData()
 
   override val node = api.Network.newNode(this, Visibility.Network).

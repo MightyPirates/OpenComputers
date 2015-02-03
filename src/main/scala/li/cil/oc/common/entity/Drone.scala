@@ -42,8 +42,7 @@ import net.minecraftforge.fluids.IFluidTank
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with internal.Tiered with Analyzable with Context {
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -316,7 +315,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
 
-  def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
+  def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).fold("")(_.lines.map(_.take(10)).take(2).mkString("\n")))
 
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
 

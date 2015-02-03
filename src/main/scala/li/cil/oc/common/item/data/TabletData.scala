@@ -2,7 +2,6 @@ package li.cil.oc.common.item.data
 
 import li.cil.oc.Settings
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
@@ -36,13 +35,6 @@ class TabletData extends ItemData {
     if (nbt.hasKey(Settings.namespace + "container")) {
       container = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "container")))
     }
-
-    // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-    // TODO Remove in 1.5
-    if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-      val firstEmpty = items.indexWhere(_.isEmpty)
-      items(firstEmpty) = Option(Items.createLuaBios())
-    }
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -60,8 +52,5 @@ class TabletData extends ItemData {
     nbt.setDouble(Settings.namespace + "maxEnergy", maxEnergy)
     nbt.setInteger(Settings.namespace + "tier", tier)
     container.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "container", stack.writeToNBT))
-
-    // TODO Remove in 1.5
-    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 }

@@ -5,7 +5,6 @@ import java.util.Random
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.common.Tier
-import li.cil.oc.common.block.DelegatorConverter
 import net.minecraft.item.ItemBucket
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
@@ -44,7 +43,7 @@ object ItemUtils {
 
   def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
 
-  def loadStack(nbt: NBTTagCompound) = DelegatorConverter.convert(ItemStack.loadItemStackFromNBT(nbt))
+  def loadStack(nbt: NBTTagCompound) = ItemStack.loadItemStackFromNBT(nbt)
 
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
     val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])

@@ -5,7 +5,6 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.common.init.Items
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
@@ -69,12 +68,6 @@ class RobotData extends ItemData {
     if (nbt.hasKey(Settings.namespace + "lightColor")) {
       lightColor = nbt.getInteger(Settings.namespace + "lightColor")
     }
-
-    // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-    // TODO Remove in 1.5
-    if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-      components :+= Items.createLuaBios()
-    }
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -90,9 +83,6 @@ class RobotData extends ItemData {
     nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
     nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
     nbt.setInteger(Settings.namespace + "lightColor", lightColor)
-
-    // TODO Remove in 1.5
-    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   def createItemStack() = {

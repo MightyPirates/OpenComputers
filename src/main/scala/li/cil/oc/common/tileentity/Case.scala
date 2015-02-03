@@ -12,7 +12,6 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -91,20 +90,11 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     color = Color.byTier(tier)
     super.readFromNBT(nbt)
     recomputeMaxComponents()
-
-    // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-    // TODO Remove in 1.5
-    if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-      items(items.length - 1) = Option(Items.createLuaBios())
-    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-
-    // TODO Remove in 1.5
-    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   // ----------------------------------------------------------------------- //

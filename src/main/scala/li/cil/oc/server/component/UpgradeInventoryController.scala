@@ -9,7 +9,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.entity
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.machine.ArgumentsImpl
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.entity.Entity
@@ -74,22 +73,6 @@ object UpgradeInventoryController {
         result(true)
       }
       else result(false)
-    }
-
-    // TODO Remove in 1.5
-    @Callback(doc = """function(side:number):number -- Get the number of slots in the inventory on the specified side of the robot.""")
-    override def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
-      if (args.optInteger(0, -1) == ForgeDirection.NORTH.ordinal) // sides.back
-        getInventorySize(context, new ArgumentsImpl(args.toArray.drop(1))) // drop side, just pass slot
-      else super.getInventorySize(context, args)
-    }
-
-    // TODO Remove in 1.5
-    @Callback(doc = """function(side:number, slot:number):table -- Get a description of the stack in the the inventory on the specified side of the robot.""")
-    override def getStackInSlot(context: Context, args: Arguments) = {
-      if (args.optInteger(0, -1) == ForgeDirection.NORTH.ordinal) // sides.back
-        getStackInInternalSlot(context, new ArgumentsImpl(args.toArray.drop(1))) // drop side, just pass slot
-      else super.getStackInSlot(context, args) // normal call
     }
   }
 
