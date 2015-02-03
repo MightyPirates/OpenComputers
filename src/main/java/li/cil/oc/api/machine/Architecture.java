@@ -1,5 +1,6 @@
 package li.cil.oc.api.machine;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import java.lang.annotation.ElementType;
@@ -35,8 +36,14 @@ public interface Architecture {
      * This is called when the amount of memory in the machine may have changed.
      * This is usually triggered by the owner when its composition changes. For
      * example this is called from computer cases' onInventoryChanged method.
+     * <p/>
+     * The amount of memory should be computed from the list of components given.
+     * The architecture should immediately apply the new memory size
+     *
+     * @param components the components to use for computing the total memory.
+     * @return whether any memory is present at all.
      */
-    void recomputeMemory();
+    boolean recomputeMemory(Iterable<ItemStack> components);
 
     /**
      * Called when a machine starts up. Used to (re-)initialize the underlying

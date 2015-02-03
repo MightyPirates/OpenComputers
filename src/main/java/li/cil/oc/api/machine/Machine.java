@@ -78,6 +78,16 @@ public interface Machine extends ManagedEnvironment, Context {
     int componentCount();
 
     /**
+     * The maximum number of components this machine can currently support.
+     * <p/>
+     * This is automatically recomputed based on the hosts internal components
+     * whenever the host calls {@link li.cil.oc.api.machine.Machine#onHostChanged()}.
+     *
+     * @return the maximum number of components supported.
+     */
+    int maxComponents();
+
+    /**
      * Gets the amount of energy this machine consumes per tick when it is
      * running.
      *

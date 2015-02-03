@@ -3,6 +3,7 @@ package li.cil.oc.api.machine;
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
+import net.minecraft.item.ItemStack;
 
 /**
  * This interface has to be implemented by 'hosts' of machine instances.
@@ -17,53 +18,11 @@ public interface MachineHost extends EnvironmentHost {
     Machine machine();
 
     /**
-     * Get the architecture to use in the hosted machine.
+     * List of all components that are built into this machine directly.
      * <p/>
-     * This can be a static architecture type, but will usually be based on the
-     * CPU installed in the host (for example, this is true for computer cases,
-     * servers, robots and tablets).
-     *
-     * @return the architecture of the installed CPU, or <tt>null</tt>.
+     * This is used to find CPUs, component buses and memory.
      */
-    Class<? extends Architecture> cpuArchitecture();
-
-    /**
-     * This determines how many direct calls the machine can make per tick.
-     * <p/>
-     * A call to a direct method with a limit will consume <tt>1 / limit</tt>
-     * of the available call budget. When the budget reaches zero, the machine
-     * is forced into a synchronized call to make it wait for the next tick.
-     * <p/>
-     * The default values used by OC are 0.5, 1.0 and 1.5 for a tier one, two
-     * and three CPU, respectively.
-     * <p/>
-     * The call budget is reset to this value each tick.
-     *
-     * @return the direct call budget, per tick.
-     */
-    double callBudget();
-
-    /**
-     * The amount of memory (RAM) made available to the machine, in bytes.
-     * <p/>
-     * This is usually determined by the components installed in the owner, for
-     * example the memory sticks in a computer case.
-     *
-     * @return the amount of memory that can be used by the machine, in bytes.
-     */
-    int installedMemory();
-
-    /**
-     * The number of components the machine can address without crashing.
-     * <p/>
-     * This is usually determined by the components installed in the owner, for
-     * example the CPUs in a server.
-     * <p/>
-     * Note that the component count does <em>not</em> include file systems.
-     *
-     * @return the number of supported components.
-     */
-    int maxComponents();
+    Iterable<ItemStack> internalComponents();
 
     /**
      * Get the slot a component with the specified address is in.

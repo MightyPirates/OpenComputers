@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.lang
 import java.util
 
 import cpw.mods.fml.relauncher.Side
@@ -23,11 +24,13 @@ import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with MachineHost with StateAware {
@@ -74,15 +77,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture: Class[_ <: Architecture] = {
-    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
-        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
-        case _ =>
-      }
-      case _ =>
-    }
-    null
+  override def internalComponents(): lang.Iterable[ItemStack] = (0 until getSizeInventory).collect {
+    case i if isComponentSlot(i) && getStackInSlot(i) != null => getStackInSlot(i)
   }
 
   override def installedComponents = components collect {
@@ -207,7 +203,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
         player.addChatMessage(Localization.Analyzer.LastError(value))
       case _ =>
     }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
     val list = machine.users
     if (list.size > 0) {
       player.addChatMessage(Localization.Analyzer.Users(list))

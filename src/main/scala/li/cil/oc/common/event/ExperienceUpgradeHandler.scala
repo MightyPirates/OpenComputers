@@ -66,7 +66,19 @@ object ExperienceUpgradeHandler {
 
   @SubscribeEvent
   def onRobotRender(e: RobotRenderEvent) {
-    val level = if (e.agent != null) getLevel(e.agent) else 0
+    val level = e.agent match {
+      case robot: Robot =>
+        var acc = 0
+        for (index <- 0 until robot.getSizeInventory) {
+          robot.getComponentInSlot(index) match {
+            case upgrade: component.UpgradeExperience =>
+              acc += upgrade.level
+            case _ =>
+          }
+        }
+        acc
+      case _ => 0
+    }
     if (level > 19) {
       GL11.glColor3f(0.4f, 1, 1)
     }

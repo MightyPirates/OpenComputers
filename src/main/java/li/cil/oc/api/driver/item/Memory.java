@@ -12,10 +12,15 @@ import net.minecraft.item.ItemStack;
  */
 public interface Memory extends Item {
     /**
-     * The amount of RAM this component provides, in bytes.
+     * The amount of RAM this component provides, as a generic scaling factor.
+     * <p/>
+     * This factor has to be interpreted by each individual architecture to fit
+     * its own memory needs. The actual values returned here should roughly be
+     * equivalent to the item's tier. For example, the built-in memory modules
+     * provide 1 for tier one, 2 for tier 1.5, 3 for tier 2, etc.
      *
      * @param stack the item to get the provided memory for.
      * @return the amount of memory the specified component provides.
      */
-    int amount(ItemStack stack);
+    double amount(ItemStack stack);
 }

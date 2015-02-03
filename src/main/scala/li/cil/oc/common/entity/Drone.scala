@@ -1,5 +1,7 @@
 package li.cil.oc.common.entity
 
+import java.lang.Iterable
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
@@ -9,14 +11,11 @@ import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.common.inventory.MultiTank
@@ -38,6 +37,8 @@ import net.minecraft.world.WorldServer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.IFluidTank
+
+import scala.collection.convert.WrapAsJava._
 
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
@@ -182,7 +183,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
         player.addChatMessage(Localization.Analyzer.LastError(value))
       case _ =>
     }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
     val list = machine.users
     if (list.size > 0) {
       player.addChatMessage(Localization.Analyzer.Users(list))
@@ -192,27 +193,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture = info.components.map(stack => (stack, Driver.driverFor(stack, getClass))).collectFirst {
-    case (stack, driver: Processor) if driver.slot(stack) == Slot.CPU => driver.architecture(stack)
-  }.orNull
-
-  override def callBudget = info.components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = info.components.foldLeft(0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Memory) => driver.amount(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def maxComponents = 32
+  override def internalComponents(): Iterable[ItemStack] = asJavaIterable(info.components)
 
   override def componentSlot(address: String) = -1 // TODO
 

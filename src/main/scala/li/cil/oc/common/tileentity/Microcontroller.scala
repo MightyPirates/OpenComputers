@@ -4,21 +4,19 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
+
+import scala.collection.convert.WrapAsJava._
 
 class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller {
   val info = new MicrocontrollerData()
@@ -58,29 +56,9 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture = info.components.map(stack => (stack, Driver.driverFor(stack, getClass))).collectFirst {
-    case (stack, driver: Processor) if driver.slot(stack) == Slot.CPU => driver.architecture(stack)
-  }.orNull
-
-  override def callBudget = info.components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = info.components.foldLeft(0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Memory) => driver.amount(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
+  override def internalComponents(): java.lang.Iterable[ItemStack] = asJavaIterable(info.components)
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
-
-  def maxComponents = 32
 
   // ----------------------------------------------------------------------- //
 

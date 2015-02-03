@@ -33,8 +33,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def machine = robot.machine
 
-  override def maxComponents = robot.maxComponents
-
   override def tier = robot.tier
 
   // ----------------------------------------------------------------------- //
@@ -238,10 +236,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   override def dropAllSlots() = robot.dropAllSlots()
 
   override def getInventoryStackLimit = robot.getInventoryStackLimit
-
-  override def callBudget = robot.callBudget
-
-  override def installedMemory = robot.installedMemory
 
   override def componentSlot(address: String) = robot.componentSlot(address)
 

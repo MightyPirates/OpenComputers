@@ -58,14 +58,6 @@ class Settings(val config: Config) {
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
   val eepromSize = config.getInt("computer.eepromSize") max 0
-  val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
-    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
-      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
-    case _ =>
-      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
-      Array(192, 256, 384, 512, 768, 1024)
-  }
-  val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
   val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Int, tier2: Int, tier3: Int)
@@ -88,6 +80,14 @@ class Settings(val config: Config) {
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
+  val ramSizes = Array(config.getIntList("computer.lua.ramSizes"): _*) match {
+    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
+      Array(192, 256, 384, 512, 768, 1024)
+  }
+  val ramScaleFor64Bit = config.getDouble("computer.lua.ramScaleFor64Bit") max 1
 
   // ----------------------------------------------------------------------- //
   // robot
