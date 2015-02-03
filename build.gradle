@@ -74,6 +74,10 @@ repositories {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
     }
+    maven {
+        name = "mobius"
+        url = "http://mobiusstrip.eu/maven"
+    }
     /*
     maven {
         name = "bc"
@@ -82,10 +86,6 @@ repositories {
     maven {
         name = "ic2, forestry"
         url = "http://maven.ic2.player.to/"
-    }
-    maven {
-        name = "mobius"
-        url = "http://mobiusstrip.eu/maven"
     }
     maven {
         name = "ue"
@@ -154,6 +154,7 @@ dependencies {
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
     provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
+    provided "mcp.mobius.waila:Waila:${config.waila.version}:dev"
 /*
     provided "api:rotarycraft:${config.rotc.version}"
     provided "appeng:appliedenergistics2:${config.ae2.version}:dev"
@@ -163,7 +164,6 @@ dependencies {
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "dev.calclavia.resonantengine:resonant-engine:${config.re.version}:dev"
-    provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
@@ -193,9 +193,11 @@ sourceSets {
     main {
         scala {
             exclude 'li/cil/oc/integration/appeng/**'
+            exclude 'li/cil/oc/integration/bloodmagic/**'
             exclude 'li/cil/oc/integration/buildcraft/**'
             exclude 'li/cil/oc/integration/cofh/**'
             exclude 'li/cil/oc/integration/computercraft/**'
+            exclude 'li/cil/oc/integration/dsu/**'
             exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
             exclude 'li/cil/oc/integration/forestry/**'
@@ -210,8 +212,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/thermalexpansion/**'
             exclude 'li/cil/oc/integration/thaumcraft/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
-            exclude 'li/cil/oc/integration/versionchecker/**'
-            exclude 'li/cil/oc/integration/waila/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
             exclude 'li/cil/oc/integration/wrsve/**'
         }

@@ -1,11 +1,11 @@
 package li.cil.oc.integration.versionchecker
 
-import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.OpenComputers
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.UpdateCheck
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fml.common.event.FMLInterModComms
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

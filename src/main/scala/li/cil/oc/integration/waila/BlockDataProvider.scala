@@ -1,7 +1,5 @@
 package li.cil.oc.integration.waila
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.network.Component
@@ -12,13 +10,13 @@ import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits.NotAnalyzable
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayerMP
+import mcp.mobius.waila.api.ITaggedList.ITipList
+import mcp.mobius.waila.api._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
-import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 
 object BlockDataProvider extends IWailaDataProvider {
@@ -37,7 +35,7 @@ object BlockDataProvider extends IWailaDataProvider {
     registrar.addConfig(OpenComputers.Name, ConfigComponentName)
   }
 
-  override def getNBTData(player: EntityPlayerMP, tileEntity: TileEntity, tag: NBTTagCompound, world: World, x: Int, y: Int, z: Int) = {
+  override def getNBTData(tileEntity: TileEntity, tag: NBTTagCompound, accessor: IWailaDataAccessorServer): NBTTagCompound = {
     def writeNode(node: Node, tag: NBTTagCompound) = {
       if (node != null && node.reachability != Visibility.None && !tileEntity.isInstanceOf[NotAnalyzable]) {
         if (node.address != null) {
@@ -60,7 +58,7 @@ object BlockDataProvider extends IWailaDataProvider {
 
     tileEntity match {
       case te: li.cil.oc.api.network.SidedEnvironment =>
-        tag.setNewTagList("nodes", ForgeDirection.VALID_DIRECTIONS.
+        tag.setNewTagList("nodes", EnumFacing.values.
           map(te.sidedNode).
           map(writeNode(_, new NBTTagCompound())))
       case te: li.cil.oc.api.network.Environment =>
@@ -108,7 +106,7 @@ object BlockDataProvider extends IWailaDataProvider {
     tag
   }
 
-  override def getWailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler): util.List[String] = {
+  override def getWailaBody(stack: ItemStack, tooltip: ITipList, accessor: IWailaDataAccessor, config: IWailaConfigHandler): ITipList = {
     val tag = accessor.getNBTData
     if (tag == null || tag.hasNoTags) return tooltip
 
@@ -134,14 +132,14 @@ object BlockDataProvider extends IWailaDataProvider {
         val chargeSpeed = tag.getDouble("chargeSpeed")
         tooltip.add(Localization.Analyzer.ChargerSpeed(chargeSpeed).getUnformattedText)
       case te: tileentity.ServerRack =>
-        val servers = tag.getTagList("servers", NBT.TAG_STRING).map((t: NBTTagString) => t.func_150285_a_()).toArray
-        val hitPos = accessor.getPosition.hitVec
-        val address = te.slotAt(accessor.getSide, (hitPos.xCoord - accessor.getPosition.blockX).toFloat, (hitPos.yCoord - accessor.getPosition.blockY).toFloat, (hitPos.zCoord - accessor.getPosition.blockZ).toFloat) match {
+        val servers = tag.getTagList("servers", NBT.TAG_STRING).map((t: NBTTagString) => t.getString).toArray
+        val hitPos = accessor.getMOP.hitVec
+        val address = te.slotAt(accessor.getSide, (hitPos.xCoord - accessor.getMOP.getBlockPos.getX).toFloat, (hitPos.yCoord - accessor.getMOP.getBlockPos.getY).toFloat, (hitPos.zCoord - accessor.getMOP.getBlockPos.getZ).toFloat) match {
           case Some(slot) => servers(slot)
           case _ => tag.getByteArray("sideIndexes").map(index => if (index >= 0) servers(index) else "").apply(te.toLocal(accessor.getSide).ordinal)
         }
         if (address.nonEmpty && config.getConfig(ConfigAddress)) {
-            tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
         }
       case _ =>
     }
@@ -181,9 +179,9 @@ object BlockDataProvider extends IWailaDataProvider {
 
   override def getWailaStack(accessor: IWailaDataAccessor, config: IWailaConfigHandler) = accessor.getStack
 
-  override def getWailaHead(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) = tooltip
+  override def getWailaHead(stack: ItemStack, tooltip: ITipList, accessor: IWailaDataAccessor, config: IWailaConfigHandler): ITipList = tooltip
 
-  override def getWailaTail(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) = tooltip
+  override def getWailaTail(stack: ItemStack, tooltip: ITipList, accessor: IWailaDataAccessor, config: IWailaConfigHandler): ITipList = tooltip
 
   private def formatTime(seconds: Int) = {
     // Assembly times should not / rarely exceed one hour, so this is good enough.

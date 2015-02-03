@@ -1,8 +1,8 @@
 package li.cil.oc.integration.waila
 
-import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
+import net.minecraftforge.fml.common.event.FMLInterModComms
 
 object ModWaila extends ModProxy {
   override def getMod = Mods.Waila
