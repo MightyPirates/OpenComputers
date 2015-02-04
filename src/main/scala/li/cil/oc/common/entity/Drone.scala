@@ -29,6 +29,7 @@ import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.Vec3
@@ -92,7 +93,20 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
     override def onMessage(message: Message) {}
   }
-  val inventory = new Inventory {
+  val equipmentInventory = new Inventory {
+    val items = Array.empty[Option[ItemStack]]
+
+    override def getSizeInventory = 0
+
+    override def getInventoryStackLimit = 0
+
+    override def markDirty(): Unit = {}
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = false
+
+    override def isUseableByPlayer(player: EntityPlayer) = false
+  }
+  val mainInventory = new Inventory {
     val items = Array.fill[Option[ItemStack]](8)(None)
 
     override def getSizeInventory = inventorySize
@@ -116,6 +130,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     }.apply(index)
   }
   var selectedTank = 0
+
+  override def setSelectedTank(index: Int): Unit = selectedTank = index
 
   override def tier = info.tier
 
@@ -290,7 +306,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
 
-  def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+  def setSelectedSlot(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
 
   def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
 
@@ -330,7 +346,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       val entity = new EntityItem(world, posX, posY, posZ, stack)
       entity.delayBeforeCanPickup = 15
       world.spawnEntityInWorld(entity)
-      InventoryUtils.dropAllSlots(BlockPosition(this: Entity), inventory)
+      InventoryUtils.dropAllSlots(BlockPosition(this: Entity), mainInventory)
     }
   }
 
@@ -496,7 +512,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       machine.load(nbt.getCompoundTag("machine"))
       control.load(nbt.getCompoundTag("control"))
       components.load(nbt.getCompoundTag("components"))
-      inventory.load(nbt.getCompoundTag("inventory"))
+      mainInventory.load(nbt.getCompoundTag("inventory"))
 
       wireThingsTogether()
     }
@@ -504,8 +520,8 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     targetY = nbt.getFloat("targetY")
     targetZ = nbt.getFloat("targetZ")
     targetAcceleration = nbt.getFloat("targetAcceleration")
-    selectedSlot = nbt.getByte("selectedSlot") & 0xFF
-    selectedTank = nbt.getByte("selectedTank") & 0xFF
+    setSelectedSlot(nbt.getByte("selectedSlot") & 0xFF)
+    setSelectedTank(nbt.getByte("selectedTank") & 0xFF)
     statusText = nbt.getString("statusText")
     lightColor = nbt.getInteger("lightColor")
   }
@@ -518,7 +534,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       nbt.setNewCompoundTag("machine", machine.save)
       nbt.setNewCompoundTag("control", control.save)
       nbt.setNewCompoundTag("components", components.save)
-      nbt.setNewCompoundTag("inventory", inventory.save)
+      nbt.setNewCompoundTag("inventory", mainInventory.save)
     }
     nbt.setFloat("targetX", targetX)
     nbt.setFloat("targetY", targetY)

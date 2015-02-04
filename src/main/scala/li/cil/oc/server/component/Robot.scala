@@ -45,7 +45,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   def actualSlot(n: Int) = robot.actualSlot(n)
 
-  override def inventory = robot.dynamicInventory
+  override def inventory = robot.mainInventory
 
   override def selectedSlot = robot.selectedSlot - actualSlot(0)
 

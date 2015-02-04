@@ -27,7 +27,7 @@ import net.minecraftforge.fluids.IFluidHandler;
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
-public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler, MultiTank {
+public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
     /**
      * The number of hot-swappable component slots in this robot.
      * <p/>
@@ -61,24 +61,6 @@ public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, T
      * @return the environment for that slot, or <tt>null</tt>.
      */
     Environment getComponentInSlot(int index);
-
-    /**
-     * Gets the index of the currently selected slot in the robot's inventory.
-     * <p/>
-     * This is the index in the underlying, <em>real</em> inventory. To get
-     * the 'local' index, i.e. the way the robot itself addresses it, add
-     * one for the tool and <tt>containerCount</tt> to this value.
-     *
-     * @return the index of the currently selected slot.
-     */
-    int selectedSlot();
-
-    /**
-     * Get the index of the currently selected tank.
-     *
-     * @return the index of the currently selected tank.
-     */
-    int selectedTank();
 
     /**
      * Sends the state of the <em>item</em> in the specified slot to the client

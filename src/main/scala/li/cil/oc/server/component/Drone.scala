@@ -23,11 +23,11 @@ class Drone(val host: entity.Drone) extends prefab.ManagedEnvironment with trait
 
   override def position = BlockPosition(host: Entity)
 
-  override def inventory = host.inventory
+  override def inventory = host.mainInventory
 
   override def selectedSlot = host.selectedSlot
 
-  override def selectedSlot_=(value: Int) = host.selectedSlot = value
+  override def selectedSlot_=(value: Int) = host.setSelectedSlot(value)
 
   override def tank = host.tank
 

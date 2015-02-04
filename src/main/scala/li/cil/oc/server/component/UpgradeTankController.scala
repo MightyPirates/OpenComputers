@@ -2,14 +2,13 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.common.entity
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraft.entity.Entity
 import net.minecraftforge.common.util.ForgeDirection
 
 object UpgradeTankController {
@@ -26,24 +25,24 @@ object UpgradeTankController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
   }
 
-  class Drone(val host: EnvironmentHost with entity.Drone) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics {
+  class Drone(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics {
     override val node = Network.newNode(this, Visibility.Network).
       withComponent("tank_controller", Visibility.Neighbors).
       create()
 
-    override def position = BlockPosition(host: Entity)
+    override def position = BlockPosition(host)
 
-    override def inventory = host.inventory
+    override def inventory = host.mainInventory
 
     override def selectedSlot = host.selectedSlot
 
-    override def selectedSlot_=(value: Int) = host.selectedSlot = value
+    override def selectedSlot_=(value: Int) = host.setSelectedSlot(value)
 
     override def tank = host.tank
 
     override def selectedTank = host.selectedTank
 
-    override def selectedTank_=(value: Int) = host.selectedTank = value
+    override def selectedTank_=(value: Int) = host.setSelectedTank(value)
 
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
   }
@@ -55,7 +54,7 @@ object UpgradeTankController {
 
     override def position = BlockPosition(host)
 
-    override def inventory = host.dynamicInventory
+    override def inventory = host.mainInventory
 
     override def selectedSlot = host.selectedSlot - host.actualSlot(0)
 

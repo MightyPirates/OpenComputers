@@ -7,7 +7,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.common.entity
+import li.cil.oc.api.internal
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
@@ -28,20 +28,20 @@ object UpgradeInventoryController {
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
   }
 
-  class Drone(val host: EnvironmentHost with entity.Drone) extends prefab.ManagedEnvironment with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics {
+  class Drone(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics {
     override val node = Network.newNode(this, Visibility.Network).
       withComponent("inventory_controller", Visibility.Neighbors).
       create()
 
     // ----------------------------------------------------------------------- //
 
-    override def position = BlockPosition(host: Entity)
+    override def position = BlockPosition(host)
 
-    override def inventory = host.inventory
+    override def inventory = host.mainInventory
 
     override def selectedSlot = host.selectedSlot
 
-    override def selectedSlot_=(value: Int) = host.selectedSlot = value
+    override def selectedSlot_=(value: Int) = host.setSelectedSlot(value)
 
     override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
   }
@@ -55,7 +55,7 @@ object UpgradeInventoryController {
 
     override def position = BlockPosition(host)
 
-    override def inventory = host.dynamicInventory
+    override def inventory = host.mainInventory
 
     override def selectedSlot = host.selectedSlot - host.actualSlot(0)
 

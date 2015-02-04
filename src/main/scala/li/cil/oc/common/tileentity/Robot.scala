@@ -21,11 +21,8 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
-import li.cil.oc.server.agent.Inventory
 import li.cil.oc.server.agent
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.server.component
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -57,7 +54,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   val bot = if (isServer) new component.Robot(this) else null
 
-  val inventory = new Inventory(this)
+  val inventory = new agent.Inventory(this)
 
   if (isServer) {
     machine.setCostPerTick(Settings.get.robotCost)
@@ -69,8 +66,42 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def isCreative = tier == Tier.Four
 
+  val equipmentInventory = new IInventory {
+    override def getSizeInventory = 4
+
+    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
+
+    override def markDirty() = Robot.this.markDirty()
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+      slot >= 0 && slot < getSizeInventory && Robot.this.isItemValidForSlot(slot, stack)
+
+    override def getStackInSlot(slot: Int) =
+      if (slot >= 0 && slot < getSizeInventory) Robot.this.getStackInSlot(slot)
+      else null
+
+    override def setInventorySlotContents(slot: Int, stack: ItemStack) =
+      if (slot >= 0 && slot < getSizeInventory) Robot.this.setInventorySlotContents(slot, stack)
+
+    override def decrStackSize(slot: Int, amount: Int) =
+      if (slot >= 0 && slot < getSizeInventory) Robot.this.decrStackSize(slot, amount)
+      else null
+
+    override def getInventoryName = Robot.this.getInventoryName
+
+    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
+
+    override def openInventory() {}
+
+    override def closeInventory() {}
+
+    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
+
+    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
+  }
+
   // Wrapper for the part of the inventory that is mutable.
-  val dynamicInventory = new IInventory {
+  val mainInventory = new IInventory {
     override def getSizeInventory = Robot.this.inventorySize
 
     override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
@@ -89,11 +120,11 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
     override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
 
-    override def openInventory() = Robot.this.openInventory()
+    override def openInventory() {}
 
-    override def closeInventory() = Robot.this.closeInventory()
+    override def closeInventory() {}
 
-    override def getStackInSlotOnClosing(slot: Int) = Robot.this.getStackInSlotOnClosing(actualSlot(slot))
+    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
 
     override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
   }
@@ -106,6 +137,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   var selectedSlot = actualSlot(0)
 
+  override def setSelectedSlot(index: Int): Unit = selectedSlot = index + actualSlot(0)
+
   val tank = new internal.MultiTank {
     override def tankCount = Robot.this.tankCount
 
@@ -113,6 +146,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   var selectedTank = 0
+
+  override def setSelectedTank(index: Int): Unit = selectedTank = index
 
   // For client.
   var renderingErrored = false
@@ -724,14 +759,14 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   // ----------------------------------------------------------------------- //
 
   override def dropSlot(slot: Int, count: Int, direction: Option[ForgeDirection]) =
-    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), dynamicInventory, slot, count, direction)
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), mainInventory, slot, count, direction)
 
   override def dropAllSlots() = {
     InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, 0, Int.MaxValue)
     for (slot <- containerSlots) {
       InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, Int.MaxValue)
     }
-    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), dynamicInventory)
+    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), mainInventory)
   }
 
   // ----------------------------------------------------------------------- //
