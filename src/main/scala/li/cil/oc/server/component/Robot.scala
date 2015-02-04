@@ -3,7 +3,6 @@ package li.cil.oc.server.component
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -13,7 +12,6 @@ import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.agent.ActivationType
 import li.cil.oc.server.agent.Player
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
@@ -24,12 +22,11 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraft.util.Vec3
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 
-class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with traits.WorldControl with traits.InventoryControl with traits.InventoryWorldControl with traits.TankControl with traits.TankWorldControl {
+class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
@@ -38,53 +35,25 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
 
-  override def position = BlockPosition(robot)
-
   // ----------------------------------------------------------------------- //
 
-  override def inventory = robot.mainInventory
+  override protected def checkSideForAction(args: Arguments, n: Int) = agent.toGlobal(args.checkSideForAction(n))
 
-  override def selectedSlot = robot.selectedSlot
-
-  override def selectedSlot_=(value: Int): Unit = robot.setSelectedSlot(value)
-
-  // ----------------------------------------------------------------------- //
-
-  override def tank = robot.tank
-
-  def selectedTank = robot.selectedTank
-
-  override def selectedTank_=(value: Int) = robot.selectedTank = value
-
-  // ----------------------------------------------------------------------- //
-
-  override def fakePlayer = robot.player()
-
-  override protected def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
-
-  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = robot.toGlobal(args.checkSideForFace(n, robot.toLocal(facing)))
-
-  // ----------------------------------------------------------------------- //
-
-  def canPlaceInAir = {
-    val event = new RobotPlaceInAirEvent(robot)
-    MinecraftForge.EVENT_BUS.post(event)
-    event.isAllowed
-  }
+  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = agent.toGlobal(args.checkSideForFace(n, agent.toLocal(facing)))
 
   // ----------------------------------------------------------------------- //
 
   @Callback
-  def name(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
+  def name(context: Context, args: Arguments): Array[AnyRef] = result(agent.name)
 
   @Callback(doc = "function():number -- Get the current color of the activity light as an integer encoded RGB value (0xRRGGBB).")
-  def getLightColor(context: Context, args: Arguments): Array[AnyRef] = result(robot.info.lightColor)
+  def getLightColor(context: Context, args: Arguments): Array[AnyRef] = result(agent.info.lightColor)
 
   @Callback(doc = "function(value:number):number -- Set the color of the activity light to the specified integer encoded RGB value (0xRRGGBB).")
   def setLightColor(context: Context, args: Arguments): Array[AnyRef] = {
-    robot.setLightColor(args.checkInteger(0))
+    agent.setLightColor(args.checkInteger(0))
     context.pause(0.1)
-    result(robot.info.lightColor)
+    result(agent.info.lightColor)
   }
 
   // ----------------------------------------------------------------------- //
@@ -101,27 +70,27 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
         Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
-    val stack = robot.mainInventory.getStackInSlot(robot.selectedSlot)
+    val stack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
     if (stack == null || stack.stackSize == 0) {
       return result(Unit, "nothing selected")
     }
 
     for (side <- sides) {
-      val player = robot.player(facing, side)
+      val player = agent.player(facing, side)
       player.setSneaking(sneaky)
       val success = Option(pick(player, Settings.get.useAndPlaceRange)) match {
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-          player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
+          player.placeBlock(agent.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
         case None if canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
-          player.placeBlock(robot.selectedSlot, bx, by, bz, facing.ordinal, hx, hy, hz)
+          player.placeBlock(agent.selectedSlot, bx, by, bz, facing.ordinal, hx, hy, hz)
         case _ => false
       }
       player.setSneaking(false)
       if (success) {
         context.pause(Settings.get.placeDelay)
-        robot.animateSwing(Settings.get.placeDelay)
+        agent.animateSwing(Settings.get.placeDelay)
         return result(true)
       }
     }
@@ -147,7 +116,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
     def triggerDelay(delay: Double = Settings.get.swingDelay) = {
       context.pause(delay)
-      robot.animateSwing(Settings.get.swingDelay)
+      agent.animateSwing(Settings.get.swingDelay)
     }
     def attack(player: Player, entity: Entity) = {
       beginConsumeDrops(entity)
@@ -178,7 +147,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
     var reason: Option[String] = None
     for (side <- sides) {
-      val player = robot.player(facing, side)
+      val player = agent.player(facing, side)
       player.setSneaking(sneaky)
 
       val (success, what) = {
@@ -234,7 +203,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
     def triggerDelay() {
       context.pause(Settings.get.useDelay)
-      robot.animateSwing(Settings.get.useDelay)
+      agent.animateSwing(Settings.get.useDelay)
     }
     def activationResult(activationType: ActivationType.Value) =
       activationType match {
@@ -257,7 +226,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
     }
 
     for (side <- sides) {
-      val player = robot.player(facing, side)
+      val player = agent.player(facing, side)
       player.setSneaking(sneaky)
 
       val (success, what) = Option(pick(player, Settings.get.useAndPlaceRange)) match {
@@ -298,7 +267,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   @Callback
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
-    Option(robot.getStackInSlot(0)) match {
+    Option(agent.getStackInSlot(0)) match {
       case Some(item) =>
         ToolDurabilityProviders.getDurability(item) match {
           case Some(durability) => result(durability)
@@ -312,8 +281,8 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   @Callback
   def move(context: Context, args: Arguments): Array[AnyRef] = {
-    val direction = robot.toGlobal(args.checkSideForMovement(0))
-    if (robot.isAnimatingMove) {
+    val direction = agent.toGlobal(args.checkSideForMovement(0))
+    if (agent.isAnimatingMove) {
       // This shouldn't really happen due to delays being enforced, but just to
       // be on the safe side...
       result(Unit, "already moving")
@@ -327,7 +296,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
         if (!node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
           result(Unit, "not enough energy")
         }
-        else if (robot.move(direction)) {
+        else if (agent.move(direction)) {
           context.pause(Settings.get.moveDelay)
           result(true)
         }
@@ -343,9 +312,9 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
     if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
-      if (clockwise) robot.rotate(ForgeDirection.UP)
-      else robot.rotate(ForgeDirection.DOWN)
-      robot.animateTurn(clockwise, Settings.get.turnDelay)
+      if (clockwise) agent.rotate(ForgeDirection.UP)
+      else agent.rotate(ForgeDirection.DOWN)
+      agent.animateTurn(clockwise, Settings.get.turnDelay)
       context.pause(Settings.get.turnDelay)
       result(true)
     }
@@ -368,8 +337,8 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "network.message" && message.source != robot.node) message.data match {
-      case Array(packet: Packet) => robot.proxy.node.sendToReachable(message.name, packet)
+    if (message.name == "network.message" && message.source != agent.node) message.data match {
+      case Array(packet: Packet) => agent.proxy.node.sendToReachable(message.name, packet)
       case _ =>
     }
   }
