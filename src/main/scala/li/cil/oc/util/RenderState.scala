@@ -10,8 +10,6 @@ import org.lwjgl.util.glu.GLU
 object RenderState {
   val arb = GLContext.getCapabilities.GL_ARB_multitexture && !GLContext.getCapabilities.OpenGL13
 
-  private val canUseBlendColor = GLContext.getCapabilities.OpenGL14
-
   def checkError(where: String) {
     val error = GL11.glGetError
     if (error != 0 && Settings.get.logOpenGLErrors) {
@@ -42,7 +40,7 @@ object RenderState {
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
   }
 
-  def setBlendAlpha(alpha: Float) = if (canUseBlendColor) {
+  def setBlendAlpha(alpha: Float) = {
     GL11.glColor4f(1, 1, 1, alpha)
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
   }
