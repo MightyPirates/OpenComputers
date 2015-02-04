@@ -139,7 +139,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def setSelectedSlot(index: Int): Unit = {
     selectedSlot = index max 0 min mainInventory.getSizeInventory - 1
-    ServerPacketSender.sendRobotSelectedSlotChange(this)
+    if (world != null) {
+      ServerPacketSender.sendRobotSelectedSlotChange(this)
+    }
   }
 
   val tank = new internal.MultiTank {
@@ -157,7 +159,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // Fixed number of containers (mostly due to GUI limitation, but also because
   // I find three to be a large enough number for sufficient flexibility).
-  override def containerCount = 3
+  def containerCount = 3
 
   override def componentCount = info.components.length
 

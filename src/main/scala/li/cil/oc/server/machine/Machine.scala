@@ -188,6 +188,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def start(): Boolean = state.synchronized(state.top match {
     case Machine.State.Stopped =>
+      onHostChanged()
       processAddedComponents()
       verifyComponents()
       if (!Settings.get.ignorePower && node.globalBuffer < cost) {

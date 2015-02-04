@@ -17,8 +17,8 @@ import net.minecraftforge.fluids.IFluidHandler;
  * follows:
  * <ul>
  * <li>Tool</li>
- * <li><tt>containerCount</tt> hot-swappable components.</li>
- * <li><tt>inventorySize</tt> internal inventory slots.</li>
+ * <li><tt>equipmentInventory.getSizeInventory</tt> hot-swappable components.</li>
+ * <li><tt>mainInventory.getSizeInventory</tt> internal inventory slots.</li>
  * <li><tt>componentCount</tt> hard-wired components.</li>
  * </ul>
  * Note that there may be no hot-swappable (or even built-in) components or
@@ -29,24 +29,9 @@ import net.minecraftforge.fluids.IFluidHandler;
  */
 public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
     /**
-     * The number of hot-swappable component slots in this robot.
-     * <p/>
-     * <em>Note</em>: this will always be three, regardless of the number of
-     * installed containers. For unused slots the inventory will simply be
-     * empty at that slot.
-     */
-    int containerCount();
-
-    /**
      * The number of built-in components in this robot.
      */
     int componentCount();
-
-    /**
-     * The size of the internal inventory in this robot, excluding tool and
-     * component slots.
-     */
-    int inventorySize();
 
     /**
      * Get the environment for the component in the specified slot.

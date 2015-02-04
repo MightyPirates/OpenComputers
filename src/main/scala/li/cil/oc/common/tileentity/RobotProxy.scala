@@ -40,9 +40,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def tank = robot.tank
 
+  override def selectedSlot = robot.selectedSlot
+
   override def setSelectedSlot(index: Int) = robot.setSelectedSlot(index)
 
+  override def selectedTank = robot.selectedTank
+
   override def setSelectedTank(index: Int) = robot.setSelectedTank(index)
+
+  override def player() = robot.player()
 
   // ----------------------------------------------------------------------- //
 
@@ -56,19 +62,11 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   @SideOnly(Side.CLIENT)
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
-  override def player() = robot.player()
-
-  override def containerCount = robot.containerCount
+  // ----------------------------------------------------------------------- //
 
   override def componentCount = robot.componentCount
 
-  override def inventorySize = robot.inventorySize
-
   override def getComponentInSlot(index: Int) = robot.getComponentInSlot(index)
-
-  override def selectedSlot = robot.selectedSlot
-
-  override def selectedTank = robot.selectedTank
 
   override def synchronizeSlot(slot: Int) = robot.synchronizeSlot(slot)
 
