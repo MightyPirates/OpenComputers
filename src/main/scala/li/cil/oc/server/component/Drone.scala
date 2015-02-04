@@ -30,6 +30,10 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
     }
   }
 
+  override def onWorldInteraction(context: Context, duration: Double): Unit = {
+    super.onWorldInteraction(context, duration * 2)
+  }
+
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = "function():string -- Get the status text currently being displayed in the GUI.")

@@ -72,6 +72,20 @@ object Player {
         randomUUID
     }
   }
+
+  def updatePositionAndRotation(player: Player, facing: ForgeDirection, side: ForgeDirection) {
+    player.facing = facing
+    player.side = side
+    val direction = Vec3.createVectorHelper(
+      facing.offsetX + side.offsetX,
+      facing.offsetY + side.offsetY,
+      facing.offsetZ + side.offsetZ).normalize()
+    val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
+    val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
+    player.setLocationAndAngles(player.agent.xPosition, player.agent.yPosition - player.yOffset, player.agent.zPosition, yaw, pitch)
+    player.prevRotationPitch = player.rotationPitch
+    player.prevRotationYaw = player.rotationYaw
+  }
 }
 
 class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanceOf[WorldServer], Player.profileFor(agent)) {
@@ -108,21 +122,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   theItemInWorldManager.setBlockReachDistance(1)
 
   // ----------------------------------------------------------------------- //
-
-  def updatePositionAndRotation(facing: ForgeDirection, side: ForgeDirection) {
-    this.facing = facing
-    this.side = side
-    // Slightly offset in robot's facing to avoid glitches (e.g. Portal Gun).
-    val direction = Vec3.createVectorHelper(
-      facing.offsetX + side.offsetX + agent.facing.offsetX * 0.01,
-      facing.offsetY + side.offsetY + agent.facing.offsetY * 0.01,
-      facing.offsetZ + side.offsetZ + agent.facing.offsetZ * 0.01).normalize()
-    val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
-    val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
-    setLocationAndAngles(agent.xPosition, agent.yPosition - yOffset, agent.zPosition, yaw, pitch)
-    prevRotationPitch = rotationPitch
-    prevRotationYaw = rotationYaw
-  }
 
   def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection = facing) = {
     val bounds = BlockPosition(agent).offset(side).bounds

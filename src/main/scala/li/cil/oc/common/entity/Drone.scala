@@ -21,6 +21,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.server.agent
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -34,8 +35,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
-import net.minecraft.world.WorldServer
-import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.IFluidTank
 
@@ -135,11 +134,16 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def tier = info.tier
 
-  override def player(): EntityPlayer = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+  override def player(): EntityPlayer = {
+    agent.Player.updatePositionAndRotation(player_, facing, facing)
+    player_
+  }
 
   var ownerName = Settings.get.fakePlayerName
 
   var ownerUUID = Settings.get.fakePlayerProfile.getId
+
+  private lazy val player_ = new agent.Player(this)
 
   // ----------------------------------------------------------------------- //
   // Forward context stuff to our machine. Interface needed for some components
@@ -189,7 +193,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def facing() = ForgeDirection.SOUTH
+  override def facing = ForgeDirection.SOUTH
 
   override def toLocal(value: ForgeDirection) = value
 

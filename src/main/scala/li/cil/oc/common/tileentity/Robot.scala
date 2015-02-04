@@ -163,7 +163,10 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def getComponentInSlot(index: Int) = components(index).orNull
 
-  override def player() = player(facing, facing)
+  override def player = {
+    agent.Player.updatePositionAndRotation(player_, facing, facing)
+    player_
+  }
 
   override def synchronizeSlot(slot: Int) = if (slot >= 0 && slot < getSizeInventory) this.synchronized {
     val stack = getStackInSlot(slot)
@@ -222,11 +225,6 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     player.addChatMessage(Localization.Analyzer.RobotName(player_.getCommandSenderName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
-  }
-
-  def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
-    player_.updatePositionAndRotation(facing, side)
-    player_
   }
 
   def actualSlot(n: Int) = n + 1 + containerCount
@@ -400,7 +398,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
     for (slot <- 0 until equipmentInventory.getSizeInventory + mainInventory.getSizeInventory) {
       getStackInSlot(slot) match {
-        case stack: ItemStack => try stack.updateAnimation(world, if (!world.isRemote) player() else null, slot, slot == 0) catch {
+        case stack: ItemStack => try stack.updateAnimation(world, if (!world.isRemote) player_ else null, slot, slot == 0) catch {
           case ignored: NullPointerException => // Client side item updates that need a player instance...
         }
         case _ =>
