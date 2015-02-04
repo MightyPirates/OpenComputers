@@ -37,20 +37,6 @@ public interface Machine extends ManagedEnvironment, Context {
     Architecture architecture();
 
     /**
-     * Get the address of the file system component from which to try to boot.
-     * <p/>
-     * The underlying architecture may choose to ignore this setting.
-     */
-    String getBootAddress();
-
-    /**
-     * Set the address of the file system component from which to try to boot.
-     *
-     * @param value the new address to try to boot from.
-     */
-    void setBootAddress(String value);
-
-    /**
      * The list of components attached to this machine.
      * <p/>
      * This maps address to component type/name. Note that the list may not

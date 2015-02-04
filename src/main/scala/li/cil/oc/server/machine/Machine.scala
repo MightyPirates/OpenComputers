@@ -57,8 +57,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   var architecture: Architecture = _
 
-  private var bootAddress = ""
-
   private[machine] val state = mutable.Stack(Machine.State.Stopped)
 
   private val _components = mutable.Map.empty[String, String]
@@ -141,10 +139,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
     hasMemory = Option(architecture).fold(false)(_.recomputeMemory(components))
   }
-
-  override def getBootAddress = bootAddress
-
-  override def setBootAddress(value: String) = bootAddress = Option(value).fold("")(_.take(36))
 
   override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
@@ -649,8 +643,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     super.load(nbt)
 
-    bootAddress = nbt.getString("bootAddress")
-
     state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
     nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.func_150285_a_())
     if (nbt.hasKey("message")) {
@@ -717,10 +709,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     pause(0.05)
 
     super.save(nbt)
-
-    if (bootAddress != null) {
-      nbt.setString("bootAddress", bootAddress)
-    }
 
     // Make sure the component list is up-to-date.
     processAddedComponents()
