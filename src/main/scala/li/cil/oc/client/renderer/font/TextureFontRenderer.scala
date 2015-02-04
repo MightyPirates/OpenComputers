@@ -118,11 +118,11 @@ abstract class TextureFontRenderer {
 
   protected def textureCount: Int
 
-  protected def bindTexture(index: Int)
+  protected def bindTexture(index: Int): Unit
 
-  protected def generateChar(char: Char)
+  protected def generateChar(char: Char): Unit
 
-  protected def drawChar(tx: Float, ty: Float, char: Char)
+  protected def drawChar(tx: Float, ty: Float, char: Char): Unit
 
   private def drawQuad(color: Int, x: Int, y: Int, width: Int) = if (color != 0 && width > 0) {
     val x0 = x * charWidth
