@@ -269,7 +269,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   private def drawSelection() {
-    val slot = robot.selectedSlot - robot.actualSlot(0) - inventoryOffset * 4
+    val slot = robot.selectedSlot - inventoryOffset * 4
     if (slot >= 0 && slot < 16) {
       RenderState.makeItBlend()
       Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)

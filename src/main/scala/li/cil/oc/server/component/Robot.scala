@@ -13,7 +13,6 @@ import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.agent.ActivationType
 import li.cil.oc.server.agent.Player
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
@@ -43,16 +42,11 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
-  def actualSlot(n: Int) = robot.actualSlot(n)
-
   override def inventory = robot.mainInventory
 
-  override def selectedSlot = robot.selectedSlot - actualSlot(0)
+  override def selectedSlot = robot.selectedSlot
 
-  override def selectedSlot_=(value: Int) {
-    robot.selectedSlot = value + actualSlot(0)
-    ServerPacketSender.sendRobotSelectedSlotChange(robot)
-  }
+  override def selectedSlot_=(value: Int): Unit = robot.setSelectedSlot(value)
 
   // ----------------------------------------------------------------------- //
 

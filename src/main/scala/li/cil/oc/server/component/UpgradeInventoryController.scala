@@ -2,16 +2,15 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.api.internal
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraft.entity.Entity
 import net.minecraftforge.common.util.ForgeDirection
 
 object UpgradeInventoryController {
@@ -57,9 +56,9 @@ object UpgradeInventoryController {
 
     override def inventory = host.mainInventory
 
-    override def selectedSlot = host.selectedSlot - host.actualSlot(0)
+    override def selectedSlot = host.selectedSlot
 
-    override def selectedSlot_=(value: Int) = host.selectedSlot = host.actualSlot(value)
+    override def selectedSlot_=(value: Int) = host.setSelectedSlot(value)
 
     override protected def checkSideForAction(args: Arguments, n: Int) = host.toGlobal(args.checkSideForAction(n))
 

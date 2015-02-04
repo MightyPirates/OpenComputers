@@ -113,7 +113,10 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     }
   }
 
-  private def updateClient() = host.synchronizeSlot(host.componentSlot(node.address))
+  private def updateClient() = host match {
+    case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(node.address))
+    case _ =>
+  }
 
   // ----------------------------------------------------------------------- //
 

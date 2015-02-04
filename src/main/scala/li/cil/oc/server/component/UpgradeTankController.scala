@@ -56,9 +56,9 @@ object UpgradeTankController {
 
     override def inventory = host.mainInventory
 
-    override def selectedSlot = host.selectedSlot - host.actualSlot(0)
+    override def selectedSlot = host.selectedSlot
 
-    override def selectedSlot_=(value: Int) = host.selectedSlot = host.actualSlot(value)
+    override def selectedSlot_=(value: Int) = host.setSelectedSlot(value)
 
     override def tank = host.tank
 

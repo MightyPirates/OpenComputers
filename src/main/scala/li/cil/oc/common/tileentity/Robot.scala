@@ -135,9 +135,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   var inventorySize = -1
 
-  var selectedSlot = actualSlot(0)
+  var selectedSlot = 0
 
-  override def setSelectedSlot(index: Int): Unit = selectedSlot = index + actualSlot(0)
+  override def setSelectedSlot(index: Int): Unit = {
+    selectedSlot = index max 0 min mainInventory.getSizeInventory - 1
+    ServerPacketSender.sendRobotSelectedSlotChange(this)
+  }
 
   val tank = new internal.MultiTank {
     override def tankCount = Robot.this.tankCount
@@ -177,7 +180,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def componentSlots = getSizeInventory - componentCount until getSizeInventory
 
-  def inventorySlots = actualSlot(0) until actualSlot(0) + inventorySize
+  def inventorySlots = 0 until inventorySize
 
   def setLightColor(value: Int): Unit = {
     info.lightColor = value
@@ -442,7 +445,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       ownerUuid = Option(UUID.fromString(nbt.getString(Settings.namespace + "ownerUuid")))
     }
     if (inventorySize > 0) {
-      selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
+      selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max 0 min mainInventory.getSizeInventory - 1
     }
     selectedTank = nbt.getInteger(Settings.namespace + "selectedTank")
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
@@ -681,7 +684,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     if (newInventorySize != inventorySize) {
       inventorySize = newInventorySize
       val realSize = 1 + containerCount + inventorySize
-      val oldSelected = selectedSlot - actualSlot(0)
+      val oldSelected = selectedSlot
       val removed = mutable.ArrayBuffer.empty[ItemStack]
       for (slot <- realSize until getSizeInventory - componentCount) {
         val stack = getStackInSlot(slot)
@@ -700,7 +703,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
           spawnStackInWorld(stack, Option(facing))
         }
       } // else: save is screwed and we potentially lose items. Life is hard.
-      selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
+      setSelectedSlot(oldSelected)
     }
   }
   finally {
