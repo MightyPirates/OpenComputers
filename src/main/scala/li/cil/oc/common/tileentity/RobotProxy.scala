@@ -48,7 +48,11 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def setSelectedTank(index: Int) = robot.setSelectedTank(index)
 
-  override def player() = robot.player()
+  override def player = robot.player()
+
+  override def ownerName = robot.ownerName
+
+  override def ownerUUID = robot.ownerUUID
 
   // ----------------------------------------------------------------------- //
 

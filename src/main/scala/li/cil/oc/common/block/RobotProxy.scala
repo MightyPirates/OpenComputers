@@ -225,14 +225,14 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
     super.onBlockPlacedBy(world, x, y, z, entity, stack)
     if (!world.isRemote) ((entity, world.getTileEntity(x, y, z)) match {
       case (player: agent.Player, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.robot.owner, player.robot.ownerUuid))
+        Some((proxy.robot, player.agent.ownerName, player.agent.ownerUUID))
       case (player: EntityPlayer, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.getCommandSenderName, Option(player.getGameProfile.getId)))
+        Some((proxy.robot, player.getCommandSenderName, player.getGameProfile.getId))
       case _ => None
     }) match {
       case Some((robot, owner, uuid)) =>
-        robot.owner = owner
-        robot.ownerUuid = Option(robot.determineUUID(uuid))
+        robot.ownerName = owner
+        robot.ownerUUID = agent.Player.determineUUID(Option(uuid))
         robot.info.load(stack)
         robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
         robot.updateInventorySize()

@@ -110,7 +110,13 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     }
   }
 
-  override def func_146023_a(p_146023_1_ : Block) = getStrVsBlock(p_146023_1_)
+  override def func_146025_b(block: Block) = canHarvestBlock(block)
+
+  def canHarvestBlock(block: Block): Boolean = {
+    block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.func_150998_b(block))
+  }
+
+  override def func_146023_a(block: Block) = getStrVsBlock(block)
 
   def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.func_150997_a(block))
 

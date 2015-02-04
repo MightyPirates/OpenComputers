@@ -101,7 +101,7 @@ class Robot(val robot: tileentity.Robot) extends prefab.ManagedEnvironment with 
         Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
-    val stack = robot.inventory.selectedItemStack
+    val stack = robot.mainInventory.getStackInSlot(robot.selectedSlot)
     if (stack == null || stack.stackSize == 0) {
       return result(Unit, "nothing selected")
     }

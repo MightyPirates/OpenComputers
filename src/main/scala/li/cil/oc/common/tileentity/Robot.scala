@@ -54,8 +54,6 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   val bot = if (isServer) new component.Robot(this) else null
 
-  val inventory = new agent.Inventory(this)
-
   if (isServer) {
     machine.setCostPerTick(Settings.get.robotCost)
   }
@@ -197,9 +195,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   val maxComponents = 32
 
-  var owner = "OpenComputers"
+  var ownerName = Settings.get.fakePlayerName
 
-  var ownerUuid: Option[UUID] = None
+  var ownerUUID = Settings.get.fakePlayerProfile.getId
 
   var animationTicksLeft = 0
 
@@ -215,24 +213,12 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   private lazy val player_ = new agent.Player(this)
 
-  def determineUUID(playerUUID: Option[UUID] = None) = {
-    val format = Settings.get.uuidFormat
-    val randomUUID = UUID.randomUUID()
-    try UUID.fromString(format.
-      replaceAllLiterally("$random$", randomUUID.toString).
-      replaceAllLiterally("$player$", playerUUID.getOrElse(randomUUID).toString)) catch {
-      case t: Throwable =>
-        OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
-        randomUUID
-    }
-  }
-
   // ----------------------------------------------------------------------- //
 
   def name = info.name
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.addChatMessage(Localization.Analyzer.RobotOwner(owner))
+    player.addChatMessage(Localization.Analyzer.RobotOwner(ownerName))
     player.addChatMessage(Localization.Analyzer.RobotName(player_.getCommandSenderName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
@@ -411,7 +397,15 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
-    inventory.decrementAnimations()
+
+    for (slot <- 0 until equipmentInventory.getSizeInventory + mainInventory.getSizeInventory) {
+      getStackInSlot(slot) match {
+        case stack: ItemStack => try stack.updateAnimation(world, if (!world.isRemote) player() else null, slot, slot == 0) catch {
+          case ignored: NullPointerException => // Client side item updates that need a player instance...
+        }
+        case _ =>
+      }
+    }
   }
 
   override protected def initialize() {
@@ -441,10 +435,10 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {
-      owner = nbt.getString(Settings.namespace + "owner")
+      ownerName = nbt.getString(Settings.namespace + "owner")
     }
     if (nbt.hasKey(Settings.namespace + "ownerUuid")) {
-      ownerUuid = Option(UUID.fromString(nbt.getString(Settings.namespace + "ownerUuid")))
+      ownerUUID = UUID.fromString(nbt.getString(Settings.namespace + "ownerUuid"))
     }
     if (inventorySize > 0) {
       selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max 0 min mainInventory.getSizeInventory - 1
@@ -468,8 +462,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)
     // which is a bit ugly, and may be refactored some day, but it works.
     nbt.setNewCompoundTag(Settings.namespace + "robot", bot.save)
-    nbt.setString(Settings.namespace + "owner", owner)
-    ownerUuid.foreach(uuid => nbt.setString(Settings.namespace + "ownerUuid", uuid.toString))
+    nbt.setString(Settings.namespace + "owner", ownerName)
+    nbt.setString(Settings.namespace + "ownerUuid", ownerUUID.toString)
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
     nbt.setInteger(Settings.namespace + "selectedTank", selectedTank)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
@@ -701,7 +695,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       getSizeInventory = realSize + componentCount
       if (world != null && isServer) {
         for (stack <- removed) {
-          inventory.addItemStackToInventory(stack)
+          player().inventory.addItemStackToInventory(stack)
           spawnStackInWorld(stack, Option(facing))
         }
       } // else: save is screwed and we potentially lose items. Life is hard.
@@ -731,7 +725,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
-          inventory.addItemStackToInventory(stack)
+          player().inventory.addItemStackToInventory(stack)
           spawnStackInWorld(stack, Option(facing))
         }
       }

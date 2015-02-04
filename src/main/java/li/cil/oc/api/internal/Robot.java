@@ -27,7 +27,7 @@ import net.minecraftforge.fluids.IFluidHandler;
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.
  */
-public interface Robot extends Agent, Environment, EnvironmentHost, Rotatable, Tiered, ISidedInventory, IFluidHandler {
+public interface Robot extends Agent, Environment, EnvironmentHost, Tiered, ISidedInventory, IFluidHandler {
     /**
      * The number of built-in components in this robot.
      */

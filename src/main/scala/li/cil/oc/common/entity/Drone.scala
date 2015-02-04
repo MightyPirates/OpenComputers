@@ -1,6 +1,7 @@
 package li.cil.oc.common.entity
 
 import java.lang.Iterable
+import java.util.UUID
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
@@ -29,7 +30,6 @@ import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.Vec3
@@ -136,6 +136,10 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   override def tier = info.tier
 
   override def player(): EntityPlayer = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+
+  var ownerName = Settings.get.fakePlayerName
+
+  var ownerUUID = Settings.get.fakePlayerProfile.getId
 
   // ----------------------------------------------------------------------- //
   // Forward context stuff to our machine. Interface needed for some components
@@ -524,6 +528,12 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     setSelectedTank(nbt.getByte("selectedTank") & 0xFF)
     statusText = nbt.getString("statusText")
     lightColor = nbt.getInteger("lightColor")
+    if (nbt.hasKey("owner")) {
+      ownerName = nbt.getString("owner")
+    }
+    if (nbt.hasKey("ownerUuid")) {
+      ownerUUID = UUID.fromString(nbt.getString("ownerUuid"))
+    }
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
@@ -544,5 +554,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     nbt.setByte("selectedTank", selectedTank.toByte)
     nbt.setString("statusText", statusText)
     nbt.setInteger("lightColor", lightColor)
+    nbt.setString("owner", ownerName)
+    nbt.setString("ownerUuid", ownerUUID.toString)
   }
 }

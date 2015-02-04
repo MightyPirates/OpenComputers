@@ -4,10 +4,12 @@ import li.cil.oc.api.machine.MachineHost;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 
+import java.util.UUID;
+
 /**
  * General marker interface for autonomous agents such as robots and drones.
  */
-public interface Agent extends MachineHost {
+public interface Agent extends MachineHost, Rotatable {
     /**
      * The equipment inventory of this agent.
      * <p/>
@@ -66,4 +68,14 @@ public interface Agent extends MachineHost {
      * @return the fake player for the agent.
      */
     EntityPlayer player();
+
+    /**
+     * The name of the player owning this agent, e.g. the player that placed it.
+     */
+    String ownerName();
+
+    /**
+     * The UUID of the player owning this agent, e.g. the player that placed it.
+     */
+    UUID ownerUUID();
 }
