@@ -106,13 +106,13 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
     override def markDirty() = Robot.this.markDirty()
 
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(actualSlot(slot), stack)
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(equipmentInventory.getSizeInventory + slot, stack)
 
-    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(actualSlot(slot))
+    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(equipmentInventory.getSizeInventory + slot)
 
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(actualSlot(slot), stack)
+    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(equipmentInventory.getSizeInventory + slot, stack)
 
-    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(actualSlot(slot), amount)
+    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(equipmentInventory.getSizeInventory + slot, amount)
 
     override def getInventoryName = Robot.this.getInventoryName
 
@@ -129,7 +129,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   val actualInventorySize = 86
 
-  def maxInventorySize = actualInventorySize - 1 - containerCount - componentCount
+  def maxInventorySize = actualInventorySize - equipmentInventory.getSizeInventory - componentCount
 
   var inventorySize = -1
 
@@ -154,10 +154,6 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // For client.
   var renderingErrored = false
-
-  // Fixed number of containers (mostly due to GUI limitation, but also because
-  // I find three to be a large enough number for sufficient flexibility).
-  def containerCount = 3
 
   override def componentCount = info.components.length
 
@@ -226,8 +222,6 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
-
-  def actualSlot(n: Int) = n + 1 + containerCount
 
   def move(direction: ForgeDirection): Boolean = {
     val oldPosition = BlockPosition(this)
@@ -553,7 +547,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
       if (isInventorySlot(slot)) {
-        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
     }
   }
@@ -572,7 +566,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         common.Sound.playDiskEject(this)
       }
       if (isInventorySlot(slot)) {
-        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
       if (isComponentSlot(slot)) {
         world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
@@ -677,7 +671,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     val newInventorySize = computeInventorySize()
     if (newInventorySize != inventorySize) {
       inventorySize = newInventorySize
-      val realSize = 1 + containerCount + inventorySize
+      val realSize = equipmentInventory.getSizeInventory + mainInventory.getSizeInventory
       val oldSelected = selectedSlot
       val removed = mutable.ArrayBuffer.empty[ItemStack]
       for (slot <- realSize until getSizeInventory - componentCount) {
