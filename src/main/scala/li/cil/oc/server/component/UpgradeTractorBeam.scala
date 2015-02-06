@@ -3,15 +3,14 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
-import li.cil.oc.common.entity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
@@ -26,14 +25,14 @@ object UpgradeTractorBeam {
     override protected def collectItem(item: EntityItem) = item.onCollideWithPlayer(player())
   }
 
-  class Drone(val owner: entity.Drone) extends UpgradeTractorBeam {
-    override protected def position = BlockPosition(owner: Entity)
+  class Drone(val owner: internal.Agent) extends UpgradeTractorBeam {
+    override protected def position = BlockPosition(owner)
 
     override protected def collectItem(item: EntityItem) = {
-      InventoryUtils.insertIntoInventory(item.getEntityItem, owner.inventory, None, 64, simulate = false, Some(insertionSlots))
+      InventoryUtils.insertIntoInventory(item.getEntityItem, owner.mainInventory, None, 64, simulate = false, Some(insertionSlots))
     }
 
-    private def insertionSlots = (owner.selectedSlot until owner.inventory.getSizeInventory) ++ (0 until owner.selectedSlot)
+    private def insertionSlots = (owner.selectedSlot until owner.mainInventory.getSizeInventory) ++ (0 until owner.selectedSlot)
   }
 
 }

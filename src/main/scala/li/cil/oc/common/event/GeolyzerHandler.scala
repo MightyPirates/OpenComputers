@@ -45,7 +45,7 @@ object GeolyzerHandler {
   @SubscribeEvent
   def onGeolyzerAnalyze(e: GeolyzerEvent.Analyze) {
     val world = e.host.world
-    val blockPos = BlockPosition(e.host).offset(e.side).toBlockPos
+    val blockPos = e.pos
     val state = world.getBlockState(blockPos)
     val block = state.getBlock
     val metadata = block.getMetaFromState(state)

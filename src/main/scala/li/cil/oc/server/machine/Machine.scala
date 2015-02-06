@@ -4,14 +4,27 @@ import java.util.concurrent.TimeUnit
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api.Driver
 import li.cil.oc.api.FileSystem
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine
-import li.cil.oc.api.machine._
-import li.cil.oc.api.network._
+import li.cil.oc.api.machine.Architecture
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.machine.ExecutionResult
+import li.cil.oc.api.machine.LimitReachedException
+import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.machine.Value
+import li.cil.oc.api.network.Component
+import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.common.SaveHandler
+import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
@@ -20,6 +33,7 @@ import li.cil.oc.util.ResultWrapper.result
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
@@ -27,6 +41,7 @@ import net.minecraftforge.common.util.Constants.NBT
 
 import scala.Array.canBuildFrom
 import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with machine.Machine with Runnable {
@@ -42,8 +57,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   var architecture: Architecture = _
 
-  private var bootAddress = ""
-
   private[machine] val state = mutable.Stack(Machine.State.Stopped)
 
   private val _components = mutable.Map.empty[String, String]
@@ -54,7 +67,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   private val signals = mutable.Queue.empty[Machine.Signal]
 
+  var maxComponents = 0
+
   private var maxCallBudget = 1.0
+
+  private var hasMemory = false
 
   @volatile private var callBudget = 0.0
 
@@ -83,14 +100,45 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  override def onHostChanged() = {
-    maxCallBudget = host.callBudget
-    Option(architecture).foreach(_.recomputeMemory())
+  override def onHostChanged(): Unit = {
+    val components = host.internalComponents
+    maxComponents = components.foldLeft(0)((sum, item) => sum + (Option(item) match {
+      case Some(stack) => Option(Driver.driverFor(stack, host.getClass)) match {
+        case Some(driver: Processor) => driver.supportedComponents(stack)
+        case _ => 0
+      }
+      case _ => 0
+    }))
+    maxCallBudget = components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
+      case Some(stack) => Option(Driver.driverFor(stack, host.getClass)) match {
+        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
+        case _ => 0
+      }
+      case _ => 0
+    }))
+    val oldArchitecture = architecture
+    architecture = null
+    components.find {
+      case stack: ItemStack => Option(Driver.driverFor(stack, host.getClass)) match {
+        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU =>
+          Option(driver.architecture(stack)) match {
+            case Some(clazz) =>
+              if (oldArchitecture == null || oldArchitecture.getClass != clazz) {
+                architecture = clazz.getConstructor(classOf[machine.Machine]).newInstance(this)
+                if (node.network != null) architecture.onConnect()
+              }
+              else {
+                architecture = oldArchitecture
+              }
+              true
+            case _ => false
+          }
+        case _ => false
+      }
+      case _ => false
+    }
+    hasMemory = Option(architecture).fold(false)(_.recomputeMemory(components))
   }
-
-  override def getBootAddress = bootAddress
-
-  override def setBootAddress(value: String) = bootAddress = Option(value).fold("")(_.take(36))
 
   override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
@@ -134,6 +182,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def start(): Boolean = state.synchronized(state.top match {
     case Machine.State.Stopped =>
+      onHostChanged()
       processAddedComponents()
       verifyComponents()
       if (!Settings.get.ignorePower && node.globalBuffer < cost) {
@@ -141,17 +190,17 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         crash("gui.Error.NoEnergy")
         false
       }
-      else if (host.cpuArchitecture() == null || host.maxComponents == 0) {
+      else if (architecture == null || maxComponents == 0) {
         beep("-")
         crash("gui.Error.NoCPU")
         false
       }
-      else if (componentCount > host.maxComponents) {
+      else if (componentCount > maxComponents) {
         beep("-..")
         crash("gui.Error.ComponentOverflow")
         false
       }
-      else if (host.installedMemory < 1) {
+      else if (!hasMemory) {
         beep("-.")
         crash("gui.Error.NoRAM")
         false
@@ -358,7 +407,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
-    if (componentCount > host.maxComponents) {
+    if (componentCount > maxComponents) {
       crash("gui.Error.ComponentOverflow")
     }
 
@@ -594,8 +643,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     super.load(nbt)
 
-    bootAddress = nbt.getString("bootAddress")
-
     state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
     nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.getString)
     if (nbt.hasKey("message")) {
@@ -663,10 +710,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     super.save(nbt)
 
-    if (bootAddress != null) {
-      nbt.setString("bootAddress", bootAddress)
-    }
-
     // Make sure the component list is up-to-date.
     processAddedComponents()
 
@@ -729,13 +772,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   // ----------------------------------------------------------------------- //
 
   private def init(): Boolean = {
-    // Recreate architecture if necessary.
-    val hostArchitecture = host.cpuArchitecture
-    if (architecture == null || architecture.getClass != hostArchitecture) {
-      if (hostArchitecture == null) return false
-      architecture = hostArchitecture.getConstructor(classOf[machine.Machine]).newInstance(this)
-      if (node.network != null) architecture.onConnect()
-    }
+    onHostChanged()
+    if (architecture == null) return false
 
     // Reset error state.
     message = None

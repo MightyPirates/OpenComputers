@@ -13,12 +13,14 @@ class BlockPosition(val x: Int, val y: Int, val z: Int, val world: Option[World]
     world
   )
 
-  def offset(direction: EnumFacing) = new BlockPosition(
-    x + direction.getFrontOffsetX,
-    y + direction.getFrontOffsetY,
-    z + direction.getFrontOffsetZ,
+  def offset(direction: EnumFacing, n: Int) = new BlockPosition(
+    x + direction.getFrontOffsetX * n,
+    y + direction.getFrontOffsetY * n,
+    z + direction.getFrontOffsetZ * n,
     world
   )
+
+  def offset(direction: EnumFacing): BlockPosition = offset(direction, 1)
 
   def offset(x: Double, y: Double, z: Double) = new Vec3(this.x + x, this.y + y, this.z + z)
 

@@ -1,19 +1,15 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Settings
+import java.lang.Iterable
+
 import li.cil.oc.api
-import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
@@ -22,6 +18,8 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+
+import scala.collection.convert.WrapAsJava._
 
 class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment with MachineHost with internal.Server {
   val machine = Machine.create(this)
@@ -40,51 +38,11 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture: Class[_ <: Architecture] = {
-    for (i <- 0 until inventory.getSizeInventory if inventory.isComponentSlot(i)) Option(inventory.getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, rack.getClass)) match {
-        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
-        case _ =>
-      }
-      case _ =>
-    }
-    null
+  override def internalComponents(): Iterable[ItemStack] = (0 until inventory.getSizeInventory).collect {
+    case i if inventory.isComponentSlot(i) && inventory.getStackInSlot(i) != null => inventory.getStackInSlot(i)
   }
-
-  override def callBudget = inventory.items.foldLeft(0.0)((sum, item) => sum + (item match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = inventory.items.foldLeft(0)((sum, item) => sum + (item match {
-    case Some(stack) => Option(Driver.driverFor(stack, rack.getClass)) match {
-      case Some(driver: Memory) => driver.amount(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  lazy val maxComponents = if (!hasCPU) 0
-  else inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Option(Driver.driverFor(item, rack.getClass)) match {
-      case Some(driver: Processor) => driver.supportedComponents(item)
-      case _ => 0
-    }
-    case _ => 0
-  }))
 
   override def componentSlot(address: String) = inventory.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
-
-  def hasCPU = inventory.items.exists {
-    case Some(stack) => Option(Driver.driverFor(stack, rack.getClass)) match {
-      case Some(driver) => driver.slot(stack) == Slot.CPU
-      case _ => false
-    }
-    case _ => false
-  }
 
   override def xPosition = rack.x + 0.5
 

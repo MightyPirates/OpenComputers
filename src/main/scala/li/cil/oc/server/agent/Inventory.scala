@@ -1,7 +1,8 @@
-package li.cil.oc.server.component.robot
+package li.cil.oc.server.agent
 
-import li.cil.oc.common.tileentity
+import li.cil.oc.api.internal
 import net.minecraft.block.Block
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -10,24 +11,20 @@ import net.minecraft.nbt.NBTTagList
 
 import scala.util.control.Breaks._
 
-class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
-  def selectedSlot = robot.selectedSlot
+class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
+  def selectedItemStack = agent.mainInventory.getStackInSlot(agent.selectedSlot)
 
-  def selectedItemStack = robot.getStackInSlot(selectedSlot)
+  def inventorySlots = (agent.selectedSlot until getSizeInventory) ++ (0 until agent.selectedSlot)
 
-  def firstInventorySlot = robot.actualSlot(0)
-
-  def inventorySlots = (robot.selectedSlot until getSizeInventory) ++ (firstInventorySlot until robot.selectedSlot)
-
-  override def getCurrentItem = getStackInSlot(0)
+  override def getCurrentItem = agent.equipmentInventory.getStackInSlot(0)
 
   override def getFirstEmptyStack = {
-    if (selectedItemStack == null) selectedSlot
+    if (selectedItemStack == null) agent.selectedSlot
     else inventorySlots.find(getStackInSlot(_) == null).getOrElse(-1)
   }
 
   def getFirstEmptyStackAccepting(stack: ItemStack) = {
-    if (selectedItemStack == null && isItemValidForSlot(selectedSlot, stack)) selectedSlot
+    if (selectedItemStack == null && isItemValidForSlot(agent.selectedSlot, stack)) agent.selectedSlot
     else inventorySlots.find(slot => getStackInSlot(slot) == null && isItemValidForSlot(slot, stack)).getOrElse(-1)
   }
 
@@ -40,7 +37,7 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
   override def decrementAnimations() {
     for (slot <- 0 until getSizeInventory) {
       Option(getStackInSlot(slot)) match {
-        case Some(stack) => try stack.updateAnimation(robot.world, if (robot.isServer) robot.player() else null, slot, slot == 0) catch {
+        case Some(stack) => try stack.updateAnimation(agent.world, if (!agent.world.isRemote) agent.player else null, slot, slot == 0) catch {
           case ignored: NullPointerException => // Client side item updates that need a player instance...
         }
         case _ =>
@@ -59,13 +56,11 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
     false
   }
 
-  override def hasItem(item: Item) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.getItem == item)
-
   override def addItemStackToInventory(stack: ItemStack) = {
     if (stack == null || stack.stackSize == 0) false
     else if (stack.isItemDamaged || (stack.stackSize == 1 && stack.getMaxStackSize == 1)) {
       val slot = getFirstEmptyStackAccepting(stack)
-      if (slot >= firstInventorySlot) {
+      if (slot >= 0) {
         setInventorySlotContents(slot, stack.splitStack(1))
         true
       }
@@ -77,21 +72,21 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
         while (stack.stackSize > 0) {
           if (stack.getMaxStackSize == 1) {
             val slot = getFirstEmptyStackAccepting(stack)
-            if (slot >= firstInventorySlot) {
+            if (slot >= 0) {
               setInventorySlotContents(slot, stack.splitStack(1))
             }
             else break()
           }
           else {
             val slot =
-              if (selectedItemStack == null) selectedSlot
+              if (selectedItemStack == null) agent.selectedSlot
               else inventorySlots.find(slot => {
                 val existing = getStackInSlot(slot)
                 existing != null && existing.isItemEqual(stack) &&
                   (!existing.getHasSubtypes || (existing.getItemDamage == stack.getItemDamage && ItemStack.areItemStackTagsEqual(existing, stack))) &&
                   (existing.stackSize < math.min(existing.getMaxStackSize, getInventoryStackLimit))
               }).getOrElse(getFirstEmptyStackAccepting(stack))
-            if (slot >= firstInventorySlot) {
+            if (slot >= 0) {
               if (getStackInSlot(slot) == null) {
                 val amount = math.min(stack.stackSize, math.min(getInventoryStackLimit, stack.getMaxStackSize))
                 setInventorySlotContents(slot, stack.splitStack(amount))
@@ -112,11 +107,11 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
     }
   }
 
-  override def decrStackSize(slot: Int, amount: Int) = robot.decrStackSize(slot, amount)
+  override def func_146025_b(block: Block) = canHarvestBlock(block)
 
-  override def getStackInSlotOnClosing(slot: Int) = robot.getStackInSlotOnClosing(slot)
-
-  override def setInventorySlotContents(slot: Int, stack: ItemStack) = robot.setInventorySlotContents(slot, stack)
+  def canHarvestBlock(block: Block): Boolean = {
+    block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(block))
+  }
 
   override def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.getStrVsBlock(block))
 
@@ -124,27 +119,39 @@ class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
 
   override def readFromNBT(nbt: NBTTagList) {}
 
-  override def getSizeInventory = 1 + robot.containerCount + robot.inventorySize
-
-  override def getStackInSlot(slot: Int) = robot.getStackInSlot(slot)
-
-  override def getName = robot.getName
-
-  override def getInventoryStackLimit = robot.getInventoryStackLimit
-
   override def armorItemInSlot(slot: Int) = null
 
   override def getTotalArmorValue = 0
 
   override def damageArmor(damage: Float) {}
 
-  override def dropAllItems() = robot.dropAllSlots()
+  override def dropAllItems() = {} // TODO 1.5 agent.dropAllSlots()
 
-  override def markDirty() = robot.markDirty()
+  override def hasItem(item: Item) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.getItem == item)
 
-  override def hasItemStack(stack: ItemStack) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
-
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = robot.isItemValidForSlot(slot, stack)
+  override def hasItemStack(stack: ItemStack) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
 
   override def copyInventory(from: InventoryPlayer) {}
+
+  // IInventory
+
+  override def getSizeInventory = agent.mainInventory.getSizeInventory
+
+  override def getStackInSlot(slot: Int) = agent.mainInventory.getStackInSlot(slot)
+
+  override def decrStackSize(slot: Int, amount: Int) = agent.mainInventory.decrStackSize(slot, amount)
+
+  override def getStackInSlotOnClosing(slot: Int) = agent.mainInventory.getStackInSlotOnClosing(slot)
+
+  override def setInventorySlotContents(slot: Int, stack: ItemStack) = agent.mainInventory.setInventorySlotContents(slot, stack)
+
+  override def getName = agent.mainInventory.getName
+
+  override def getInventoryStackLimit = agent.mainInventory.getInventoryStackLimit
+
+  override def markDirty() = agent.mainInventory.markDirty()
+
+  override def isUseableByPlayer(player: EntityPlayer) = agent.mainInventory.isUseableByPlayer(player)
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = agent.mainInventory.isItemValidForSlot(slot, stack)
 }

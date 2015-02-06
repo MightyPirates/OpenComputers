@@ -1,18 +1,15 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.lang
 import java.util
 
 import li.cil.oc.Localization
 import li.cil.oc.Settings
-import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.item.Processor
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
-import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
@@ -20,6 +17,7 @@ import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraft.util.EnumFacing
@@ -27,6 +25,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable with MachineHost with StateAware {
@@ -73,15 +72,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture: Class[_ <: Architecture] = {
-    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
-        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
-        case _ =>
-      }
-      case _ =>
-    }
-    null
+  override def internalComponents(): lang.Iterable[ItemStack] = (0 until getSizeInventory).collect {
+    case i if isComponentSlot(i) && getStackInSlot(i) != null => getStackInSlot(i)
   }
 
 
@@ -199,7 +191,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
         player.addChatMessage(Localization.Analyzer.LastError(value))
       case _ =>
     }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
     val list = machine.users
     if (list.size > 0) {
       player.addChatMessage(Localization.Analyzer.Users(list))

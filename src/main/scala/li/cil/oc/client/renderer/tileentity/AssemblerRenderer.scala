@@ -67,6 +67,8 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
       GL11.glRotatef(90, 0, 1, 0)
     }
 
+    RenderState.enableLighting()
+
     GL11.glPopMatrix()
     GL11.glPopAttrib()
 

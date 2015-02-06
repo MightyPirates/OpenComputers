@@ -39,6 +39,8 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer {
 
     t.draw()
 
+    RenderState.enableLighting()
+
     GL11.glPopMatrix()
     GL11.glPopAttrib()
     GL11.glPopClientAttrib()

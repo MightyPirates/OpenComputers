@@ -3,7 +3,6 @@ package li.cil.oc.common.event
 import java.util
 
 import li.cil.oc.api.event.RobotMoveEvent
-import li.cil.oc.api.internal
 import li.cil.oc.server.component.UpgradeChunkloader
 import li.cil.oc.util.BlockPosition
 import net.minecraft.world.ChunkCoordIntPair
@@ -56,16 +55,11 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
 
   @SubscribeEvent
   def onMove(e: RobotMoveEvent.Post) {
-    e.agent match {
-      case robot: internal.Robot =>
-        for (slot <- 0 until robot.getSizeInventory) {
-          robot.getComponentInSlot(slot) match {
-            case loader: UpgradeChunkloader => updateLoadedChunk(loader)
-            case _ =>
-          }
-        }
+    val machineNode = e.agent.machine.node
+    machineNode.reachableNodes.foreach(_.host match {
+      case loader: UpgradeChunkloader => updateLoadedChunk(loader)
       case _ =>
-    }
+    })
   }
 
   def updateLoadedChunk(loader: UpgradeChunkloader) {

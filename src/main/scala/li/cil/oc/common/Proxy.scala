@@ -111,12 +111,12 @@ class Proxy {
   // explicit like this, because it makes it a) clearer, b) easier to
   // extend, in case that should ever be needed.
 
-  private val blockRenames = Map(
-    OpenComputers.ID + ":server_rack" -> "serverRack"
+  // Example usage: OpenComputers.ID + ":rack" -> "serverRack"
+  private val blockRenames = Map[String, String](
   )
 
-  private val itemRenames = Map(
-    OpenComputers.ID + ":server_rack" -> "serverRack"
+  // Example usage: OpenComputers.ID + ":tabletCase" -> "tabletCase1"
+  private val itemRenames = Map[String, String](
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

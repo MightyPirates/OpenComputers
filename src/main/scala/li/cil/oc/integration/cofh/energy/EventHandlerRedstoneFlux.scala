@@ -1,7 +1,5 @@
 package li.cil.oc.integration.cofh.energy
 
-import cofh.api.energy.IEnergyContainerItem
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraft.item.ItemStack
 
@@ -14,7 +12,7 @@ object EventHandlerRedstoneFlux {
         if (damage > 0) {
           val actualDamage = damage * e.getDamageRate
           val repairedDamage =
-            if (e.robot.player.getRNG.nextDouble() > 0.5)
+            if (e.agent.player.getRNG.nextDouble() > 0.5)
               damage - math.floor(actualDamage).toInt
             else
               damage - math.ceil(actualDamage).toInt

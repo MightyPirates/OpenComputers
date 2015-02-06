@@ -16,18 +16,20 @@ class EEPROM extends prefab.ManagedEnvironment {
     withConnector().
     create()
 
-  var data = Array.empty[Byte]
+  var codeData = Array.empty[Byte]
+
+  var volatileData = Array.empty[Byte]
 
   var readonly = false
 
   var label = "EEPROM"
 
-  def checksum = Hashing.crc32().hashBytes(data).toString
+  def checksum = Hashing.crc32().hashBytes(codeData).toString
 
   // ----------------------------------------------------------------------- //
 
   @Callback(direct = true, doc = """function():string -- Get the currently stored byte array.""")
-  def get(context: Context, args: Arguments): Array[AnyRef] = result(data)
+  def get(context: Context, args: Arguments): Array[AnyRef] = result(codeData)
 
   @Callback(doc = """function(data:string) -- Overwrite the currently stored byte array.""")
   def set(context: Context, args: Arguments): Array[AnyRef] = {
@@ -37,9 +39,9 @@ class EEPROM extends prefab.ManagedEnvironment {
     if (!node.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
       return result(Unit, "not enough energy")
     }
-    val newData = args.checkByteArray(0)
+    val newData = args.optByteArray(0, Array.empty)
     if (newData.length > Settings.get.eepromSize) throw new IllegalArgumentException("not enough space")
-    data = newData
+    codeData = newData
     context.pause(2) // deliberately slow to discourage use as normal storage medium
     null
   }
@@ -72,21 +74,41 @@ class EEPROM extends prefab.ManagedEnvironment {
     else result(Unit, "incorrect checksum")
   }
 
+  @Callback(direct = true, doc = """function():string -- Get the storage capacity of this EEPROM.""")
+  def getDataSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.eepromDataSize)
+
+  @Callback(direct = true, doc = """function():string -- Get the currently stored byte array.""")
+  def getData(context: Context, args: Arguments): Array[AnyRef] = result(volatileData)
+
+  @Callback(doc = """function(data:string) -- Overwrite the currently stored byte array.""")
+  def setData(context: Context, args: Arguments): Array[AnyRef] = {
+    if (!node.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
+      return result(Unit, "not enough energy")
+    }
+    val newData = args.optByteArray(0, Array.empty)
+    if (newData.length > Settings.get.eepromDataSize) throw new IllegalArgumentException("not enough space")
+    volatileData = newData
+    context.pause(1) // deliberately slow to discourage use as normal storage medium
+    null
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    data = nbt.getByteArray(Settings.namespace + "eeprom")
+    codeData = nbt.getByteArray(Settings.namespace + "eeprom")
     if (nbt.hasKey(Settings.namespace + "label")) {
       label = nbt.getString(Settings.namespace + "label")
     }
     readonly = nbt.getBoolean(Settings.namespace + "readonly")
+    volatileData = nbt.getByteArray(Settings.namespace + "userdata")
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setByteArray(Settings.namespace + "eeprom", data)
+    nbt.setByteArray(Settings.namespace + "eeprom", codeData)
     nbt.setString(Settings.namespace + "label", label)
     nbt.setBoolean(Settings.namespace + "readonly", readonly)
+    nbt.setByteArray(Settings.namespace + "userdata", volatileData)
   }
 }

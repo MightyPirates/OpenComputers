@@ -54,7 +54,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
           // No inventory to drop into, drop into the world.
           val dropped = inventory.decrStackSize(selectedSlot, count)
           if (dropped != null && dropped.stackSize > 0) {
-            InventoryUtils.spawnStackInWorld(position, stack, Some(facing))
+            InventoryUtils.spawnStackInWorld(position, dropped, Some(facing))
           }
       }
 

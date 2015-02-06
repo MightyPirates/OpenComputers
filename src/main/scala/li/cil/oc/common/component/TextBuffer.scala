@@ -356,7 +356,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         data.color(row)(col) = (packedForeground | packedBackground).toShort
       }
     }
-    // TODO Better for bandwidth to send packed shorts here. Would need a special case for handling on client, though...
+    // Better for bandwidth to send packed shorts here. Would need a special case for handling on client,
+    // though, so let's be wasteful for once...
     proxy.onBufferRawSetBackground(col, row, color)
   }
 
@@ -369,7 +370,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         data.color(row)(col) = (packedForeground | packedBackground).toShort
       }
     }
-    // TODO Better for bandwidth to send packed shorts here. Would need a special case for handling on client, though...
+    // Better for bandwidth to send packed shorts here. Would need a special case for handling on client,
+    // though, so let's be wasteful for once...
     proxy.onBufferRawSetForeground(col, row, color)
   }
 

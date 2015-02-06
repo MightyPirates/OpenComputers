@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -19,7 +19,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler
 import scala.collection.mutable
 import scala.util.control.Breaks._
 
-class UpgradeCrafting(val host: EnvironmentHost with Robot) extends prefab.ManagedEnvironment {
+class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("crafting").
     create()

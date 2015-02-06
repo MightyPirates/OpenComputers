@@ -3,50 +3,41 @@ package li.cil.oc.common.event
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
-import li.cil.oc.api.internal
+import li.cil.oc.api.internal.Agent
 import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.network.Node
 import li.cil.oc.server.component
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
 
+import scala.collection.convert.WrapAsScala._
+
 object ExperienceUpgradeHandler {
   @SubscribeEvent
   def onRobotAnalyze(e: RobotAnalyzeEvent) {
-    e.agent match {
-      case robot: internal.Robot =>
-        val (level, experience) = getLevelAndExperience(robot)
-        // This is basically a 'does it have an experience upgrade' check.
-        if (experience != 0.0) {
-          e.player.addChatMessage(Localization.Analyzer.RobotXp(experience, level))
-        }
-      case _ =>
+    val (level, experience) = getLevelAndExperience(e.agent)
+    // This is basically a 'does it have an experience upgrade' check.
+    if (experience != 0.0) {
+      e.player.addChatMessage(Localization.Analyzer.RobotXp(experience, level))
     }
   }
 
   @SubscribeEvent
   def onRobotComputeDamageRate(e: RobotUsedToolEvent.ComputeDamageRate) {
-    e.agent match {
-      case robot: internal.Robot =>
-        e.setDamageRate(e.getDamageRate * math.max(0, 1 - getLevel(robot) * Settings.get.toolEfficiencyPerLevel))
-      case _ =>
-    }
+    e.setDamageRate(e.getDamageRate * math.max(0, 1 - getLevel(e.agent) * Settings.get.toolEfficiencyPerLevel))
   }
 
   @SubscribeEvent
   def onRobotBreakBlockPre(e: RobotBreakBlockEvent.Pre) {
-    e.agent match {
-      case robot: internal.Robot =>
-        val boost = math.max(0, 1 - getLevel(robot) * Settings.get.harvestSpeedBoostPerLevel)
-        e.setBreakTime(e.getBreakTime * boost)
-      case _ =>
-    }
+    val boost = math.max(0, 1 - getLevel(e.agent) * Settings.get.harvestSpeedBoostPerLevel)
+    e.setBreakTime(e.getBreakTime * boost)
   }
 
   @SubscribeEvent
   def onRobotAttackEntityPost(e: RobotAttackEntityEvent.Post) {
     e.agent match {
-      case robot: internal.Robot =>
-        if (robot.getComponentInSlot(robot.selectedSlot()) != null && e.target.isDead) {
+      case robot: Robot =>
+        if (robot.equipmentInventory.getStackInSlot(0) != null && e.target.isDead) {
           addExperience(robot, Settings.get.robotActionXp)
         }
       case _ =>
@@ -55,91 +46,74 @@ object ExperienceUpgradeHandler {
 
   @SubscribeEvent
   def onRobotBreakBlockPost(e: RobotBreakBlockEvent.Post) {
-    e.agent match {
-      case robot: internal.Robot =>
-        addExperience(robot, e.experience * Settings.get.robotOreXpRate + Settings.get.robotActionXp)
-      case _ =>
-    }
+    addExperience(e.agent, e.experience * Settings.get.robotOreXpRate + Settings.get.robotActionXp)
   }
 
   @SubscribeEvent
   def onRobotPlaceBlockPost(e: RobotPlaceBlockEvent.Post) {
-    e.agent match {
-      case robot: internal.Robot =>
-        addExperience(robot, Settings.get.robotActionXp)
-      case _ =>
-    }
+    addExperience(e.agent, Settings.get.robotActionXp)
   }
 
   @SubscribeEvent
   def onRobotMovePost(e: RobotMoveEvent.Post) {
-    e.agent match {
-      case robot: internal.Robot =>
-        addExperience(robot, Settings.get.robotExhaustionXpRate * 0.01)
-      case _ =>
-    }
+    addExperience(e.agent, Settings.get.robotExhaustionXpRate * 0.01)
   }
 
   @SubscribeEvent
   def onRobotExhaustion(e: RobotExhaustionEvent) {
-    e.agent match {
-      case robot: internal.Robot =>
-        addExperience(robot, Settings.get.robotExhaustionXpRate * e.exhaustion)
-      case _ =>
-    }
+    addExperience(e.agent, Settings.get.robotExhaustionXpRate * e.exhaustion)
   }
 
   @SubscribeEvent
   def onRobotRender(e: RobotRenderEvent) {
-    e.agent match {
-      case robot: internal.Robot =>
-        val level = getLevel(robot)
-        if (level > 19) {
-          GL11.glColor3f(0.4f, 1, 1)
+    val level = e.agent match {
+      case robot: Robot =>
+        var acc = 0
+        for (index <- 0 until robot.getSizeInventory) {
+          robot.getComponentInSlot(index) match {
+            case upgrade: component.UpgradeExperience =>
+              acc += upgrade.level
+            case _ =>
+          }
         }
-        else if (level > 9) {
-          GL11.glColor3f(1, 1, 0.4f)
-        }
-        else {
-          GL11.glColor3f(0.5f, 0.5f, 0.5f)
-        }
-      case _ =>
+        acc
+      case _ => 0
+    }
+    if (level > 19) {
+      GL11.glColor3f(0.4f, 1, 1)
+    }
+    else if (level > 9) {
+      GL11.glColor3f(1, 1, 0.4f)
+    }
+    else {
+      GL11.glColor3f(0.5f, 0.5f, 0.5f)
     }
   }
 
-  private def getLevel(robot: Robot) = {
+  private def getLevel(agent: Agent) = {
     var level = 0
-    for (index <- 0 until robot.getSizeInventory) {
-      robot.getComponentInSlot(index) match {
-        case upgrade: component.UpgradeExperience =>
-          level += upgrade.level
-        case _ =>
-      }
-    }
+    foreachUpgrade(agent.machine.node, upgrade => level += upgrade.level)
     level
   }
 
-  private def getLevelAndExperience(robot: Robot) = {
+  private def getLevelAndExperience(agent: Agent) = {
     var level = 0
     var experience = 0.0
-    for (index <- 0 until robot.getSizeInventory) {
-      robot.getComponentInSlot(index) match {
-        case upgrade: component.UpgradeExperience =>
-          level += upgrade.level
-          experience += upgrade.experience
-        case _ =>
-      }
-    }
+    foreachUpgrade(agent.machine.node, upgrade => {
+      level += upgrade.level
+      experience += upgrade.experience
+    })
     (level, experience)
   }
 
-  private def addExperience(robot: Robot, amount: Double) {
-    for (index <- 0 until robot.getSizeInventory) {
-      robot.getComponentInSlot(index) match {
-        case upgrade: component.UpgradeExperience =>
-          upgrade.addExperience(amount)
-        case _ =>
-      }
-    }
+  private def addExperience(agent: Agent, amount: Double) {
+    foreachUpgrade(agent.machine.node, upgrade => upgrade.addExperience(amount))
+  }
+
+  private def foreachUpgrade(node: Node, f: (component.UpgradeExperience) => Unit): Unit = {
+    node.reachableNodes.foreach(_.host match {
+      case upgrade: component.UpgradeExperience => f(upgrade)
+      case _ =>
+    })
   }
 }

@@ -25,20 +25,16 @@ function internet.request(url, data)
     end
   end
 
-  local result, reason = inet.request(url, post)
-  if not result then
+  local request, reason = inet.request(url, post)
+  if not request then
     error(reason, 2)
   end
 
-  local handle = setmetatable({value=result}, {__gc=function(self)
-    pcall(inet.close, self.value)
-  end})
-
   return function()
     while true do
-      local data, reason = inet.read(handle.value)
+      local data, reason = request.read()
       if not data then
-        inet.close(handle.value)
+        request.close()
         if reason then
           error(reason, 2)
         else
@@ -48,6 +44,7 @@ function internet.request(url, data)
         return data
       end
       -- else: no data, block
+      os.sleep(0)
     end
   end
 end
@@ -57,9 +54,9 @@ end
 local socketStream = {}
 
 function socketStream:close()
-  if self.handle then
-    self.inet.close(self.handle)
-    self.handle = nil
+  if self.socket then
+    self.socket.close()
+    self.socket = nil
   end
 end
 
@@ -68,18 +65,18 @@ function socketStream:seek()
 end
 
 function socketStream:read(n)
-  if not self.handle then
+  if not self.socket then
     return nil, "connection is closed"
   end
-  return self.inet.read(self.handle, n)
+  return self.socket.read(n)
 end
 
 function socketStream:write(value)
-  if not self.handle then
+  if not self.socket then
     return nil, "connection is closed"
   end
   while #value > 0 do
-    local written, reason = self.inet.write(self.handle, value)
+    local written, reason = self.socket.write(value)
     if not written then
       return nil, reason
     end
@@ -96,18 +93,18 @@ function internet.socket(address, port)
   end
 
   local inet = component.internet
-  local handle, reason = inet.connect(address)
-  if not handle then
+  local socket, reason = inet.connect(address)
+  if not socket then
     return nil, reason
   end
 
-  local stream = {inet = inet, handle = handle}
+  local stream = {inet = inet, socket = socket}
 
   -- stream:close does a syscall, which yields, and that's not possible in
   -- the __gc metamethod. So we start a timer to do the yield/cleanup.
   local function cleanup(self)
-    if not self.handle then return end
-    pcall(self.inet.close, self.handle)
+    if not self.socket then return end
+    pcall(self.socket.close)
   end
   local metatable = {__index = socketStream,
                      __gc = cleanup,

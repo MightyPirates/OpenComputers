@@ -60,6 +60,8 @@ object ExtendedWorld {
     def setBlock(position: BlockPosition, block: Block, metadata: Int, flag: Int) = world.setBlockState(position.toBlockPos, block.getStateFromMeta(metadata), flag)
 
     def setBlockToAir(position: BlockPosition) = world.setBlockToAir(position.toBlockPos)
+
+    def isSideSolid(position: BlockPosition, side: EnumFacing) = world.isSideSolid(position.toBlockPos, side)
   }
 
 }

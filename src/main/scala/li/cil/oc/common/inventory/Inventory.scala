@@ -15,47 +15,55 @@ trait Inventory extends IInventory {
 
   // ----------------------------------------------------------------------- //
 
-  override def getStackInSlot(slot: Int) = items(slot).orNull
+  override def getStackInSlot(slot: Int) =
+    if (slot >= 0 && slot < getSizeInventory) items(slot).orNull
+    else null
 
-  override def decrStackSize(slot: Int, amount: Int) = (items(slot) match {
-    case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
-      setInventorySlotContents(slot, null)
-      stack
-    case Some(stack) =>
-      val result = stack.splitStack(amount)
-      markDirty()
-      result
-    case _ => null
-  }) match {
-    case stack: ItemStack if stack.stackSize > 0 => stack
-    case _ => null
-  }
-
-  override def setInventorySlotContents(slot: Int, stack: ItemStack) {
-    if (stack == null && items(slot).isEmpty) {
-      return
-    }
-    if (items(slot).contains(stack)) {
-      return
-    }
-
-    val oldStack = items(slot)
-    items(slot) = None
-    if (oldStack.isDefined) {
-      onItemRemoved(slot, oldStack.get)
-    }
-    if (stack != null && stack.stackSize >= getInventoryStackRequired) {
-      if (stack.stackSize > getInventoryStackLimit) {
-        stack.stackSize = getInventoryStackLimit
+  override def decrStackSize(slot: Int, amount: Int) =
+    if (slot >= 0 && slot < getSizeInventory) {
+      (items(slot) match {
+        case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
+          setInventorySlotContents(slot, null)
+          stack
+        case Some(stack) =>
+          val result = stack.splitStack(amount)
+          markDirty()
+          result
+        case _ => null
+      }) match {
+        case stack: ItemStack if stack.stackSize > 0 => stack
+        case _ => null
       }
-      items(slot) = Some(stack)
     }
+    else null
 
-    if (items(slot).isDefined) {
-      onItemAdded(slot, items(slot).get)
+  override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
+    if (slot >= 0 && slot < getSizeInventory) {
+      if (stack == null && items(slot).isEmpty) {
+        return
+      }
+      if (items(slot).contains(stack)) {
+        return
+      }
+
+      val oldStack = items(slot)
+      items(slot) = None
+      if (oldStack.isDefined) {
+        onItemRemoved(slot, oldStack.get)
+      }
+      if (stack != null && stack.stackSize >= getInventoryStackRequired) {
+        if (stack.stackSize > getInventoryStackLimit) {
+          stack.stackSize = getInventoryStackLimit
+        }
+        items(slot) = Some(stack)
+      }
+
+      if (items(slot).isDefined) {
+        onItemAdded(slot, items(slot).get)
+      }
+
+      markDirty()
     }
-
-    markDirty()
   }
 
   def getInventoryStackRequired = 1

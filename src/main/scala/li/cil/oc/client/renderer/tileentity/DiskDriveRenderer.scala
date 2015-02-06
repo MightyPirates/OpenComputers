@@ -70,6 +70,8 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
       r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
 
       t.draw()
+
+      RenderState.enableLighting()
     }
 
     GL11.glPopMatrix()

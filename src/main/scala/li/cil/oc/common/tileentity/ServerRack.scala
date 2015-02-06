@@ -195,7 +195,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
               player.addChatMessage(Localization.Analyzer.LastError(value))
             case _ =>
           }
-          player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, servers(slot).get.maxComponents))
+          player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, computer.maxComponents))
           val list = computer.users
           if (list.size > 0) {
             player.addChatMessage(Localization.Analyzer.Users(list))

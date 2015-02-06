@@ -1,0 +1,142 @@
+package li.cil.oc.server.component
+
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network._
+import li.cil.oc.api.prefab
+import li.cil.oc.common.ToolDurabilityProviders
+import li.cil.oc.common.tileentity
+import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+
+class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent {
+  override val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("robot").
+    withConnector(Settings.get.bufferRobot).
+    create()
+
+  val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def checkSideForAction(args: Arguments, n: Int) = agent.toGlobal(args.checkSideForAction(n))
+
+  override def onWorldInteraction(context: Context, duration: Double): Unit = {
+    super.onWorldInteraction(context, duration)
+    agent.animateSwing(duration)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  @Callback
+  def name(context: Context, args: Arguments): Array[AnyRef] = result(agent.name)
+
+  @Callback(doc = "function():number -- Get the current color of the activity light as an integer encoded RGB value (0xRRGGBB).")
+  def getLightColor(context: Context, args: Arguments): Array[AnyRef] = result(agent.info.lightColor)
+
+  @Callback(doc = "function(value:number):number -- Set the color of the activity light to the specified integer encoded RGB value (0xRRGGBB).")
+  def setLightColor(context: Context, args: Arguments): Array[AnyRef] = {
+    agent.setLightColor(args.checkInteger(0))
+    context.pause(0.1)
+    result(agent.info.lightColor)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  @Callback
+  def durability(context: Context, args: Arguments): Array[AnyRef] = {
+    Option(agent.equipmentInventory.getStackInSlot(0)) match {
+      case Some(item) =>
+        ToolDurabilityProviders.getDurability(item) match {
+          case Some(durability) => result(durability)
+          case _ => result(Unit, "tool cannot be damaged")
+        }
+      case _ => result(Unit, "no tool equipped")
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  @Callback
+  def move(context: Context, args: Arguments): Array[AnyRef] = {
+    val direction = agent.toGlobal(args.checkSideForMovement(0))
+    if (agent.isAnimatingMove) {
+      // This shouldn't really happen due to delays being enforced, but just to
+      // be on the safe side...
+      result(Unit, "already moving")
+    }
+    else {
+      val (something, what) = blockContent(direction)
+      if (something) {
+        result(Unit, what)
+      }
+      else {
+        if (!node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+          result(Unit, "not enough energy")
+        }
+        else if (agent.move(direction)) {
+          context.pause(Settings.get.moveDelay)
+          result(true)
+        }
+        else {
+          node.changeBuffer(Settings.get.robotMoveCost)
+          result(Unit, "impossible move")
+        }
+      }
+    }
+  }
+
+  @Callback
+  def turn(context: Context, args: Arguments): Array[AnyRef] = {
+    val clockwise = args.checkBoolean(0)
+    if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
+      if (clockwise) agent.rotate(EnumFacing.UP)
+      else agent.rotate(EnumFacing.DOWN)
+      agent.animateTurn(clockwise, Settings.get.turnDelay)
+      context.pause(Settings.get.turnDelay)
+      result(true)
+    }
+    else {
+      result(Unit, "not enough energy")
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      romRobot.foreach(fs => {
+        fs.node.asInstanceOf[Component].setVisibility(Visibility.Network)
+        node.connect(fs.node)
+      })
+    }
+  }
+
+  override def onMessage(message: Message) {
+    super.onMessage(message)
+    if (message.name == "network.message" && message.source != agent.node) message.data match {
+      case Array(packet: Packet) => agent.proxy.node.sendToReachable(message.name, packet)
+      case _ =>
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    romRobot.foreach(_.load(nbt.getCompoundTag("romRobot")))
+  }
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+    romRobot.foreach(fs => nbt.setNewCompoundTag("romRobot", fs.save))
+  }
+}

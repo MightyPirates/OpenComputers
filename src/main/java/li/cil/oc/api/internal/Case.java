@@ -1,7 +1,7 @@
 package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
-import li.cil.oc.api.machine.Machine;
+import li.cil.oc.api.machine.MachineHost;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.inventory.IInventory;
 
@@ -18,9 +18,5 @@ import net.minecraft.inventory.IInventory;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Case extends Environment, EnvironmentHost, Colored, Rotatable, Tiered, IInventory {
-    /**
-     * The machine currently hosted by this computer case.
-     */
-    Machine machine();
+public interface Case extends Environment, EnvironmentHost, MachineHost, Colored, Rotatable, Tiered, IInventory {
 }

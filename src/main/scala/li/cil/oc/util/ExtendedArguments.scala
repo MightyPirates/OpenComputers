@@ -1,8 +1,7 @@
 package li.cil.oc.util
 
-import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Arguments
-import li.cil.oc.common.inventory.MultiTank
 import net.minecraft.inventory.IInventory
 import net.minecraft.util.EnumFacing
 
@@ -36,14 +35,6 @@ object ExtendedArguments {
     def optSlot(inventory: IInventory, n: Int, default: Int) = {
       if (n >= 0 && n < args.count()) checkSlot(inventory, n)
       else default
-    }
-
-    def checkSlot(robot: Robot, n: Int) = {
-      val slot = args.checkInteger(n) - 1
-      if (slot < 0 || slot >= robot.inventorySize) {
-        throw new IllegalArgumentException("invalid slot")
-      }
-      slot + 1 + robot.containerCount
     }
 
     def checkTank(multi: MultiTank, n: Int) = {

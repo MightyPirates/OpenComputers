@@ -58,14 +58,7 @@ class Settings(val config: Config) {
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
   val eepromSize = config.getInt("computer.eepromSize") max 0
-  val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
-    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
-      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
-    case _ =>
-      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
-      Array(192, 256, 384, 512, 768, 1024)
-  }
-  val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
+  val eepromDataSize = config.getInt("computer.eepromDataSize") max 0
   val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Int, tier2: Int, tier3: Int)
@@ -88,12 +81,21 @@ class Settings(val config: Config) {
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
+  val ramSizes = Array(config.getIntList("computer.lua.ramSizes"): _*) match {
+    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
+      Array(192, 256, 384, 512, 768, 1024)
+  }
+  val ramScaleFor64Bit = config.getDouble("computer.lua.ramScaleFor64Bit") max 1
 
   // ----------------------------------------------------------------------- //
   // robot
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")
+  val limitFlightHeight = config.getInt("robot.limitFlightHeight") max 0
   val screwCobwebs = config.getBoolean("robot.notAfraidOfSpiders")
   val swingRange = config.getDouble("robot.swingRange")
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
@@ -209,24 +211,20 @@ class Settings(val config: Config) {
 
   // power.value
   private val valueAppliedEnergistics2 = config.getDouble("power.value.AppliedEnergistics2")
-  private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
   private val valueFactorization = config.getDouble("power.value.Factorization")
   private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
   private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
   private val valueMekanism = config.getDouble("power.value.Mekanism")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
-  private val valueResonantEngine = config.getDouble("power.value.ResonantEngine")
 
-  private val valueInternal = valueBuildCraft
+  private val valueInternal = 1000
 
   val ratioAppliedEnergistics2 = valueAppliedEnergistics2 / valueInternal
-  val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioFactorization = valueFactorization / valueInternal
   val ratioGalacticraft = valueGalacticraft / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
-  val ratioResonantEngine = valueResonantEngine / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem

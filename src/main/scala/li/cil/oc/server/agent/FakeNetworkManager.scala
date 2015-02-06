@@ -1,4 +1,4 @@
-package li.cil.oc.server.component.robot
+package li.cil.oc.server.agent
 
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener

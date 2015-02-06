@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import java.lang.Iterable
 import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
@@ -15,9 +16,7 @@ import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item.Container
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
@@ -158,9 +157,9 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: EnumFacing) = value // TODO do we care?
+  override def toLocal(value: EnumFacing) = value // -T-O-D-O- do we care? no we don't
 
-  override def toGlobal(value: EnumFacing) = value // TODO do we care?
+  override def toGlobal(value: EnumFacing) = value // -T-O-D-O- do we care? no we don't
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
@@ -283,34 +282,9 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       case _ => Tier.None
     })
 
-  override def cpuArchitecture: Class[_ <: Architecture] = {
-    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
-        case Some(driver: api.driver.item.Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
-        case _ =>
-      }
-      case _ =>
-    }
-    null
+  override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
+    case slot if isComponentSlot(slot) && getStackInSlot(slot) != null => getStackInSlot(slot)
   }
-
-  override def callBudget = items.foldLeft(0.0)((acc, item) => acc + (item match {
-    case Some(itemStack) => Option(Driver.driverFor(itemStack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(itemStack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = items.foldLeft(0)((acc, item) => acc + (item match {
-    case Some(itemStack) => Option(api.Driver.driverFor(itemStack, getClass)) match {
-      case Some(driver: api.driver.item.Memory) => driver.amount(itemStack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def maxComponents = 32
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 

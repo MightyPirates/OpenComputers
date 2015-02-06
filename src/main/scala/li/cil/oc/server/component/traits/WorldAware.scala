@@ -7,11 +7,11 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
@@ -25,7 +25,7 @@ trait WorldAware {
 
   def world = position.world.get
 
-  def fakePlayer: FakePlayer = {
+  def fakePlayer: EntityPlayer = {
     val player = FakePlayerFactory.get(world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
     player.posX = position.x + 0.5
     player.posY = position.y + 0.5

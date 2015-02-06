@@ -1,7 +1,7 @@
 package li.cil.oc.server.component.traits
 
+import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Arguments
-import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.util.ExtendedArguments._
 import net.minecraftforge.fluids.FluidStack
 

@@ -113,7 +113,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     power.level = drone.globalBuffer.toDouble / math.max(drone.globalBufferSize.toDouble, 1.0)
     drawWidgets()
-    if (drone.inventory.getSizeInventory > 0) {
+    if (drone.mainInventory.getSizeInventory > 0) {
       drawSelection()
     }
 

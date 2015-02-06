@@ -1,7 +1,7 @@
 package li.cil.oc.api.event;
 
 import li.cil.oc.api.driver.EnvironmentHost;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
@@ -71,18 +71,20 @@ public abstract class GeolyzerEvent extends Event {
      */
     public static class Analyze extends GeolyzerEvent {
         /**
-         * The side of the geolyzer on which the block to scan is located.
+         * The position of the block to scan.
+         * <p/>
+         * Note: get the world via the host if you need it.
          */
-        public final EnumFacing side;
+        public final BlockPos pos;
 
         /**
          * The retrieved data for the block being scanned.
          */
         public final Map<String, Object> data = new HashMap<String, Object>();
 
-        public Analyze(EnvironmentHost host, Map<?, ?> options, EnumFacing side) {
+        public Analyze(EnvironmentHost host, Map<?, ?> options, BlockPos pos) {
             super(host, options);
-            this.side = side;
+            this.pos = pos;
         }
     }
 }

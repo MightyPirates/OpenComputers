@@ -11,7 +11,7 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.PacketSender
-import li.cil.oc.server.component.robot
+import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
@@ -210,15 +210,15 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
   override def onBlockPlacedBy(world: World, pos: BlockPos, state: IBlockState, entity: EntityLivingBase, stack: ItemStack) {
     super.onBlockPlacedBy(world, pos, state, entity, stack)
     if (!world.isRemote) ((entity, world.getTileEntity(pos)) match {
-      case (player: robot.Player, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.robot.owner, player.robot.ownerUuid))
+      case (player: agent.Player, proxy: tileentity.RobotProxy) =>
+        Some((proxy.robot, player.agent.ownerName, player.agent.ownerUUID))
       case (player: EntityPlayer, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.getName, Option(player.getGameProfile.getId)))
+        Some((proxy.robot, player.getName, player.getGameProfile.getId))
       case _ => None
     }) match {
       case Some((robot, owner, uuid)) =>
-        robot.owner = owner
-        robot.ownerUuid = Option(robot.determineUUID(uuid))
+        robot.ownerName = owner
+        robot.ownerUUID = agent.Player.determineUUID(Option(uuid))
         robot.info.load(stack)
         robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
         robot.updateInventorySize()

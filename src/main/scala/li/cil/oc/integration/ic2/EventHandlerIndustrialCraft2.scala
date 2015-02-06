@@ -1,10 +1,5 @@
 package li.cil.oc.integration.ic2
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import ic2.api.item.ElectricItem
-import ic2.api.item.IElectricItem
-import ic2.api.item.ISpecialElectricItem
-import ic2.core.item.tool.ItemToolWrench
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -28,7 +23,7 @@ object EventHandlerIndustrialCraft2 {
         if (damage > 0) {
           val actualDamage = damage * e.getDamageRate
           val repairedDamage =
-            if (e.robot.player.getRNG.nextDouble() > 0.5)
+            if (e.agent.player.getRNG.nextDouble() > 0.5)
               damage - math.floor(actualDamage).toInt
             else
               damage - math.ceil(actualDamage).toInt
