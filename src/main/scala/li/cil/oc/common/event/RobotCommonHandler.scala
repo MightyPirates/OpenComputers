@@ -36,7 +36,7 @@ object RobotCommonHandler {
         val maxFlyingHeight = Settings.get.limitFlightHeight
         def isMovingDown = e.direction == EnumFacing.DOWN
         def hasAdjacentBlock(pos: BlockPosition) = EnumFacing.values.exists(side => world.isSideSolid(pos.offset(side), side.getOpposite))
-        def isWithinFlyingHeight(pos: BlockPosition) = (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(e.direction.getOpposite, n)))
+        def isWithinFlyingHeight(pos: BlockPosition) = (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(EnumFacing.DOWN, n)))
         val startPos = BlockPosition(robot)
         val targetPos = startPos.offset(e.direction)
         // New movement rules as of 1.5:
