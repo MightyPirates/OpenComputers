@@ -211,24 +211,20 @@ class Settings(val config: Config) {
 
   // power.value
   private val valueAppliedEnergistics2 = config.getDouble("power.value.AppliedEnergistics2")
-  private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
   private val valueFactorization = config.getDouble("power.value.Factorization")
   private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
   private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
   private val valueMekanism = config.getDouble("power.value.Mekanism")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
-  private val valueResonantEngine = config.getDouble("power.value.ResonantEngine")
 
-  private val valueInternal = valueBuildCraft
+  private val valueInternal = 1000
 
   val ratioAppliedEnergistics2 = valueAppliedEnergistics2 / valueInternal
-  val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioFactorization = valueFactorization / valueInternal
   val ratioGalacticraft = valueGalacticraft / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
-  val ratioResonantEngine = valueResonantEngine / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem

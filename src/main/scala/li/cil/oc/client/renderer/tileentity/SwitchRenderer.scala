@@ -55,6 +55,8 @@ object SwitchRenderer extends TileEntitySpecialRenderer {
 
       t.draw()
 
+      RenderState.enableLighting()
+
       GL11.glPopMatrix()
       GL11.glPopAttrib()
     }
