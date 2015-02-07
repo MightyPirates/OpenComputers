@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.entity.RendererLivingEntity
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.init.Items
@@ -364,7 +364,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               GlStateManager.rotate(-5.0F, 0.0F, 0.0F, 1.0F)
             }
 
-            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.THIRD_PERSON)
+            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, ItemCameraTransforms.TransformType.THIRD_PERSON)
           }
           catch {
             case e: Throwable =>
@@ -390,7 +390,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             GL11.glTranslatef(0.5f, 0.5f, 0.5f)
             GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
             GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
-            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.NONE)
+            itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, ItemCameraTransforms.TransformType.NONE)
             GL11.glPopMatrix()
           }
         }
