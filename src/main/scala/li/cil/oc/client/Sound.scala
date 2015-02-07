@@ -14,6 +14,7 @@ import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
 import net.minecraft.client.audio.SoundManager
+import net.minecraft.client.audio.SoundPoolEntry
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.sound.SoundLoadEvent
@@ -194,7 +195,7 @@ object Sound {
     def play(name: String) {
       val resourceName = s"${Settings.resourceDomain}:$name"
       val sound = Minecraft.getMinecraft.getSoundHandler.getSound(new ResourceLocation(resourceName))
-      val resource = sound.cloneEntry.getSoundPoolEntryLocation
+      val resource = (sound.cloneEntry(): SoundPoolEntry).getSoundPoolEntryLocation
       if (!initialized) {
         initialized = true
         soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.getPos.getX, tileEntity.getPos.getY, tileEntity.getPos.getZ, SoundSystemConfig.ATTENUATION_LINEAR, 16)
