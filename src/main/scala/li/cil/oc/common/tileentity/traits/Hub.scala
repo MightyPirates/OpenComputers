@@ -19,7 +19,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)
 
-  protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
+  protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => createPlug(side))
 
   val queue = mutable.Queue.empty[(Option[ForgeDirection], Packet)]
 
@@ -137,6 +137,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   // ----------------------------------------------------------------------- //
+
+  protected def createPlug(side: ForgeDirection) = new Plug(side)
 
   protected class Plug(val side: ForgeDirection) extends api.network.Environment {
     val node = createNode(this)

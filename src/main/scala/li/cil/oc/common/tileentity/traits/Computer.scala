@@ -7,15 +7,11 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
-import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.item.Processor
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
-import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard

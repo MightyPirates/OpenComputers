@@ -394,7 +394,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    val isRunningNbt = nbt.getByteArray("isServerRunning").map(_ == 1)
+    val isRunningNbt = nbt.getBooleanArray("isServerRunning")
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
     val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((tag: NBTTagString) => {
       val value = tag.func_150285_a_()
@@ -417,7 +417,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setByteArray("isServerRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
+    nbt.setBooleanArray("isServerRunning", _isRunning)
     nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value.fold("")(_.machine.node.address))))
     nbt.setByteArray("sides", sides.map {
       case Some(side) => side.ordinal.toByte

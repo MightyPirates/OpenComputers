@@ -6,7 +6,9 @@ import li.cil.oc.api
 import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
@@ -30,8 +32,9 @@ object DroneTemplate extends Template {
 
   def assemble(inventory: IInventory) = {
     val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
-    val data = new MicrocontrollerData()
+    val data = new DroneData()
     data.tier = caseTier(inventory)
+    data.name = RobotData.randomName
     data.components = items.drop(1).filter(_ != null).toArray
     data.storedEnergy = Settings.get.bufferDrone.toInt
     val stack = api.Items.get("drone").createItemStack(1)

@@ -214,7 +214,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  def name = info.name
+  override def name = info.name
+
+  override def setName(name: String): Unit = info.name = name
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(Localization.Analyzer.RobotOwner(ownerName))

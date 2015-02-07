@@ -35,9 +35,6 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
-  def name(context: Context, args: Arguments): Array[AnyRef] = result(agent.name)
-
   @Callback(doc = "function():number -- Get the current color of the activity light as an integer encoded RGB value (0xRRGGBB).")
   def getLightColor(context: Context, args: Arguments): Array[AnyRef] = result(agent.info.lightColor)
 
@@ -50,7 +47,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = "function():number -- Get the durability of the currently equipped tool.")
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
     Option(agent.equipmentInventory.getStackInSlot(0)) match {
       case Some(item) =>
@@ -64,7 +61,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = "function(direction:number):boolean -- Move in the specified direction.")
   def move(context: Context, args: Arguments): Array[AnyRef] = {
     val direction = agent.toGlobal(args.checkSideForMovement(0))
     if (agent.isAnimatingMove) {
@@ -93,7 +90,7 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
     }
   }
 
-  @Callback
+  @Callback(doc = "function(clockwise:boolean):boolean -- Rotate in the specified direction.")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
     if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {

@@ -20,7 +20,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
-import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.server.agent
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
@@ -64,7 +64,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   var lastEnergyUpdate = 0
 
   // Logic stuff, components, machine and such.
-  val info = new MicrocontrollerData()
+  val info = new DroneData()
   val machine = if (!world.isRemote) {
     val m = Machine.create(this)
     m.node.asInstanceOf[Connector].setLocalBufferSize(0)
@@ -138,6 +138,10 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     agent.Player.updatePositionAndRotation(player_, facing, facing)
     player_
   }
+
+  override def name = info.name
+
+  override def setName(name: String): Unit = info.name = name
 
   var ownerName = Settings.get.fakePlayerName
 
@@ -219,7 +223,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def internalComponents(): Iterable[ItemStack] = asJavaIterable(info.components)
 
-  override def componentSlot(address: String) = -1 // TODO
+  override def componentSlot(address: String) = components.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   override def onMachineConnect(node: Node) {}
 
