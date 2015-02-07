@@ -7,6 +7,7 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.ExecutionResult
 import li.cil.oc.api.machine.LimitReachedException
@@ -15,7 +16,10 @@ import li.cil.oc.util.ScalaClosure
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2._
 import li.cil.repack.org.luaj.vm2.lib.jse.JsePlatform
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+
+import scala.collection.convert.WrapAsScala._
 
 @Architecture.Name("LuaJ")
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
@@ -93,7 +97,18 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   override def isInitialized = doneWithInitRun
 
-  override def recomputeMemory() = memory = machine.host.installedMemory
+  override def recomputeMemory(components: java.lang.Iterable[ItemStack]) = {
+    memory = memoryInBytes(components)
+    memory > 0
+  }
+
+  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => Option(api.Driver.driverFor(stack)) match {
+    case Some(driver: Memory) =>
+      val sizes = Settings.get.ramSizes
+      val tier = math.round(driver.amount(stack)).toInt - 1
+      sizes(tier max 0 min (sizes.length - 1)) * 1024
+    case _ => 0
+  })
 
   // ----------------------------------------------------------------------- //
 
@@ -216,7 +231,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
     apis.foreach(_.initialize())
 
-    recomputeMemory()
+    recomputeMemory(machine.host.internalComponents)
 
     val kernel = lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=kernel", "t", lua)
     thread = new LuaThread(lua, kernel) // Left as the first value on the stack.

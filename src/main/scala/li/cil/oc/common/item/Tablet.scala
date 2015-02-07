@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import java.lang.Iterable
 import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
@@ -189,9 +190,9 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: ForgeDirection) = value // TODO do we care?
+  override def toLocal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
 
-  override def toGlobal(value: ForgeDirection) = value // TODO do we care?
+  override def toGlobal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
@@ -314,38 +315,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       case _ => Tier.None
     })
 
-  override def cpuArchitecture: Class[_ <: Architecture] = {
-    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
-        case Some(driver: api.driver.item.Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
-        case _ =>
-      }
-      case _ =>
-    }
-    null
+  override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
+    case slot if isComponentSlot(slot) && getStackInSlot(slot) != null => getStackInSlot(slot)
   }
 
-  override def callBudget = items.foldLeft(0.0)((acc, item) => acc + (item match {
-    case Some(itemStack) => Option(Driver.driverFor(itemStack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(itemStack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = items.foldLeft(0)((acc, item) => acc + (item match {
-    case Some(itemStack) => Option(api.Driver.driverFor(itemStack, getClass)) match {
-      case Some(driver: api.driver.item.Memory) => driver.amount(itemStack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def maxComponents = 32
-
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
-
-  override def markForSaving() {}
 
   override def onMachineConnect(node: Node) = onConnect(node)
 

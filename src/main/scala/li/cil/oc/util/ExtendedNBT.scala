@@ -128,6 +128,10 @@ object ExtendedNBT {
         case _ => nbt.setByte(name, -1: Byte)
       }
     }
+
+    def getBooleanArray(name: String) = nbt.getByteArray(name).map(_ == 1)
+
+    def setBooleanArray(name: String, value: Array[Boolean]) = nbt.setTag(name, toNbt(value))
   }
 
   class ExtendedNBTTagList(val nbt: NBTTagList) {

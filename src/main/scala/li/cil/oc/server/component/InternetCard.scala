@@ -3,12 +3,15 @@ package li.cil.oc.server.component
 import java.io.BufferedWriter
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.Future
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -19,6 +22,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.nbt.NBTTagCompound
@@ -36,11 +40,7 @@ class InternetCard extends prefab.ManagedEnvironment {
 
   protected var owner: Option[Context] = None
 
-  protected val connections = mutable.Map.empty[Int, InternetCard.Connection]
-
-  private def newHandle() = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).
-    filterNot(connections.contains).
-    next()
+  protected val connections = mutable.Set.empty[InternetCard.Closable]
 
   // ----------------------------------------------------------------------- //
 
@@ -58,9 +58,9 @@ class InternetCard extends prefab.ManagedEnvironment {
       throw new IOException("too many open connections")
     }
     val post = if (args.isString(1)) Option(args.checkString(1)) else None
-    val handle = newHandle()
-    connections += handle -> new InternetCard.Request(checkAddress(address), post)
-    result(handle)
+    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post)
+    connections += request
+    result(request)
   }
 
   @Callback(direct = true, doc = """function():boolean -- Returns whether TCP connections can be made (config setting).""")
@@ -78,52 +78,9 @@ class InternetCard extends prefab.ManagedEnvironment {
       throw new IOException("too many open connections")
     }
     val uri = checkUri(address, port)
-    val handle = newHandle()
-    connections += handle -> new InternetCard.Socket(uri, port)
-    result(handle)
-  }
-
-  @Callback(doc = """function(handle:number):boolean -- Ensures a socket is connected. Errors if the connection failed.""")
-  def finishConnect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    checkOwner(context)
-    val handle = args.checkInteger(0)
-    connections.get(handle) match {
-      case Some(connection) => result(connection.checkConnected())
-      case _ => throw new IOException("bad connection descriptor")
-    }
-  }
-
-  @Callback(direct = true, doc = """function(handle:number) -- Closes an open socket stream.""")
-  def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    checkOwner(context)
-    val handle = args.checkInteger(0)
-    connections.remove(handle) match {
-      case Some(socket) => socket.close()
-      case _ => throw new IllegalArgumentException("bad connection descriptor")
-    }
-    null
-  }
-
-  @Callback(doc = """function(handle:number, data:string):number -- Tries to write data to the socket stream. Returns the number of bytes written.""")
-  def write(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    checkOwner(context)
-    val handle = args.checkInteger(0)
-    val value = args.checkByteArray(1)
-    connections.get(handle) match {
-      case Some(connection) => result(connection.write(value))
-      case _ => throw new IOException("bad connection descriptor")
-    }
-  }
-
-  @Callback(doc = """function(handle:number[, n:number]):string -- Tries to read data from the socket stream. Returns the read byte array.""")
-  def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    checkOwner(context)
-    val handle = args.checkInteger(0)
-    val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
-    connections.get(handle) match {
-      case Some(connection) => result(connection.read(n))
-      case _ => throw new IOException("bad connection descriptor")
-    }
+    val socket = new InternetCard.TCPSocket(this, uri, port)
+    connections += socket
+    result(socket)
   }
 
   private def checkOwner(context: Context) {
@@ -147,9 +104,7 @@ class InternetCard extends prefab.ManagedEnvironment {
     if (owner.isDefined && (node == this.node || node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get))) {
       owner = None
       this.synchronized {
-        for ((_, socket) <- connections) {
-          socket.close()
-        }
+        connections.foreach(_.close())
         connections.clear()
       }
       romInternet.foreach(_.node.remove())
@@ -161,7 +116,7 @@ class InternetCard extends prefab.ManagedEnvironment {
     message.data match {
       case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && owner.isDefined && message.source.address == owner.get.node.address =>
         this.synchronized {
-          connections.values.foreach(_.close())
+          connections.foreach(_.close())
           connections.clear()
         }
       case _ =>
@@ -220,6 +175,107 @@ class InternetCard extends prefab.ManagedEnvironment {
 object InternetCard {
   private val threadPool = ThreadPoolFactory.create("Internet", Settings.get.internetThreads)
 
+  trait Closable {
+    def close(): Unit
+  }
+
+  class TCPSocket extends AbstractValue with Closable {
+    def this(owner: InternetCard, uri: URI, port: Int) {
+      this()
+      this.owner = Some(owner)
+      channel = SocketChannel.open()
+      channel.configureBlocking(false)
+      address = threadPool.submit(new AddressResolver(uri, port))
+    }
+
+    private var owner: Option[InternetCard] = None
+    private var address: Future[InetAddress] = null
+    private var channel: SocketChannel = null
+    private var isAddressResolved = false
+
+    @Callback(doc = """function():boolean -- Ensures a socket is connected. Errors if the connection failed.""")
+    def finishConnect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized(result(checkConnected()))
+
+    @Callback(doc = """function([n:number]):string -- Tries to read data from the socket stream. Returns the read byte array.""")
+    def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
+      if (checkConnected()) {
+        val buffer = ByteBuffer.allocate(n)
+        val read = channel.read(buffer)
+        if (read == -1) result(null)
+        else result(buffer.array.view(0, read).toArray)
+      }
+      else result(Array.empty[Byte])
+    }
+
+    @Callback(doc = """function(data:string):number -- Tries to write data to the socket stream. Returns the number of bytes written.""")
+    def write(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      if (checkConnected()) {
+        val value = args.checkByteArray(0)
+        result(channel.write(ByteBuffer.wrap(value)))
+      }
+      else result(0)
+    }
+
+    @Callback(direct = true, doc = """function() -- Closes an open socket stream.""")
+    def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      close()
+      null
+    }
+
+    override def dispose(context: Context): Unit = {
+      super.dispose(context)
+      close()
+    }
+
+    override def close(): Unit = {
+      owner.foreach(card => {
+        card.connections.remove(this)
+        address.cancel(true)
+        channel.close()
+        owner = None
+        address = null
+        channel = null
+      })
+    }
+
+    private def checkConnected() = try {
+      if (owner.isEmpty) throw new IOException("connection lost")
+      if (isAddressResolved) channel.finishConnect()
+      else if (address.isCancelled) {
+        // I don't think this can ever happen, Justin Case.
+        channel.close()
+        throw new IOException("bad connection descriptor")
+      }
+      else if (address.isDone) {
+        // Check for errors.
+        try address.get catch {
+          case e: ExecutionException => throw e.getCause
+        }
+        isAddressResolved = true
+        false
+      }
+      else false
+    }
+    catch {
+      case t: Throwable =>
+        close()
+        false
+    }
+
+    // This has to be an explicit internal class instead of an anonymous one
+    // because the scala compiler breaks otherwise. Yay for compiler bugs.
+    private class AddressResolver(val uri: URI, val port: Int) extends Callable[InetAddress] {
+      override def call(): InetAddress = {
+        val resolved = InetAddress.getByName(uri.getHost)
+        checkLists(resolved, uri.getHost)
+        val address = new InetSocketAddress(resolved, if (uri.getPort != -1) uri.getPort else port)
+        channel.connect(address)
+        resolved
+      }
+    }
+  }
+
   def checkLists(inetAddress: InetAddress, host: String) {
     if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_(inetAddress, host))) {
       throw new FileNotFoundException("address is not whitelisted")
@@ -229,150 +285,150 @@ object InternetCard {
     }
   }
 
-  trait Connection {
-    def close()
-
-    def read(n: Int): Array[Byte]
-
-    def write(value: Array[Byte]): Int
-
-    def checkConnected(): Boolean
-  }
-
-  class Socket(val uri: URI, val port: Int) extends Connection {
-    val address = threadPool.submit(new Callable[InetAddress] {
-      override def call() = {
-        val resolved = InetAddress.getByName(uri.getHost)
-        checkLists(resolved, uri.getHost)
-        resolved
-      }
-    })
-    val channel = SocketChannel.open()
-    channel.configureBlocking(false)
-    var isConnecting = false
-
-    def close() {
-      channel.close()
+  class HTTPRequest extends AbstractValue with Closable {
+    def this(owner: InternetCard, url: URL, post: Option[String]) {
+      this()
+      this.owner = Some(owner)
+      this.stream = threadPool.submit(new RequestSender(url, post))
     }
 
-    def read(n: Int) = {
-      if (checkConnected()) {
-        val buffer = ByteBuffer.allocate(n)
-        val read = channel.read(buffer)
-        if (read == -1) null
-        else buffer.array.view(0, read).toArray
+    private var owner: Option[InternetCard] = None
+    private var response: Option[(Int, String, AnyRef)] = None
+    private var stream: Future[InputStream] = null
+    private val queue = new ConcurrentLinkedQueue[Byte]()
+    private var reader: Future[_] = null
+    private var eof = false
+
+    @Callback(doc = """function():boolean -- Ensures a response is available. Errors if the connection failed.""")
+    def finishConnect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized(result(checkResponse()))
+
+    @Callback(direct = true, doc = """function():number, string, table -- Get response code, message and headers.""")
+    def response(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      response match {
+        case Some((code, message, headers)) => result(code, message, headers)
+        case _ => result(null)
       }
-      else Array.empty[Byte]
     }
 
-    def write(value: Array[Byte]) = {
-      if (checkConnected()) channel.write(ByteBuffer.wrap(value))
-      else 0
+    @Callback(doc = """function([n:number]):string -- Tries to read data from the response. Returns the read byte array.""")
+    def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
+      if (checkResponse()) {
+        if (eof && queue.isEmpty) result(null)
+        else {
+          val buffer = ByteBuffer.allocate(n)
+          var read = 0
+          while (!queue.isEmpty && read < n) {
+            buffer.put(queue.poll())
+            read += 1
+          }
+          if (read == 0) {
+            readMore()
+          }
+          result(buffer.array.view(0, read).toArray)
+        }
+      }
+      else result(Array.empty[Byte])
     }
 
-    def checkConnected() = {
-      if (isConnecting) channel.finishConnect()
-      else if (address.isCancelled) {
-        // I don't think this can ever happen, Justin Case.
-        close()
-        throw new IOException("bad connection descriptor")
-      }
-      else if (address.isDone) try {
-        val socketAddress = new InetSocketAddress(address.get, if (uri.getPort != -1) uri.getPort else port)
-        channel.connect(socketAddress)
-        isConnecting = true
-        false
-      }
-      catch {
-        case e: ExecutionException => throw e.getCause
+    @Callback(direct = true, doc = """function() -- Closes an open socket stream.""")
+    def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+      close()
+      null
+    }
+
+    override def dispose(context: Context): Unit = {
+      super.dispose(context)
+      close()
+    }
+
+    override def close(): Unit = {
+      owner.foreach(card => {
+        card.connections.remove(this)
+        stream.cancel(true)
+        if (reader != null) {
+          reader.cancel(true)
+        }
+        owner = None
+        stream = null
+        reader = null
+      })
+    }
+
+    private def checkResponse() = this.synchronized {
+      if (owner.isEmpty) throw new IOException("connection lost")
+      if (stream.isDone) {
+        if (reader == null) {
+          // Check for errors.
+          try stream.get catch {
+            case e: ExecutionException => throw e.getCause
+          }
+          readMore()
+        }
+        true
       }
       else false
     }
-  }
 
-  class Request(val url: URL, val post: Option[String]) extends Connection with Runnable {
-    private var data: Option[Array[Byte]] = None
-    private var error: Option[String] = None
-
-    // Perform actual request in a separate thread.
-    InternetCard.threadPool.submit(this)
-
-    override def close() {}
-
-    override def read(n: Int) = this.synchronized {
-      if (checkConnected()) {
-        val buffer = data.get
-        if (buffer.length == 0) null
-        else {
-          val count = math.min(n, buffer.length)
-          val result = buffer.take(count)
-          data = Option(buffer.drop(count))
-          result
-        }
-      }
-      else Array()
-    }
-
-    override def write(value: Array[Byte]) = throw new IOException("unsupported operation")
-
-    override def checkConnected() = this.synchronized {
-      if (data.isDefined) true
-      else error match {
-        case Some(reason) => throw new IOException(reason)
-        case _ => false
-      }
-    }
-
-    override def run() = try {
-      checkLists(InetAddress.getByName(url.getHost), url.getHost)
-      val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
-      url.openConnection(proxy) match {
-        case http: HttpURLConnection => try {
-          http.setDoInput(true)
-          if (post.isDefined) {
-            http.setRequestMethod("POST")
-            http.setDoOutput(true)
-            http.setReadTimeout(Settings.get.httpTimeout)
-
-            val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
-            out.write(post.get)
-            out.close()
-          }
-          else {
-            http.setRequestMethod("GET")
-            http.setDoOutput(false)
-          }
-
-          val input = http.getInputStream
-          val data = mutable.ArrayBuffer.empty[Byte]
-          val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
-          var count = 0
-          do {
-            count = input.read(buffer)
-            if (count > 0) {
-              data ++= buffer.take(count)
+    private def readMore(): Unit = {
+      if (reader == null || reader.isCancelled || reader.isDone) {
+        if (!eof) reader = threadPool.submit(new Runnable {
+          override def run(): Unit = {
+            val buffer = new Array[Byte](Settings.get.maxReadBuffer)
+            val count = stream.get.read(buffer)
+            if (count < 0) {
+              eof = true
             }
-          } while (count != -1 && data.length < Settings.get.httpMaxDownloadSize)
-          input.close()
-          this.synchronized {
-            Request.this.data = Some(data.toArray)
+            for (i <- 0 until count) {
+              queue.add(buffer(i))
+            }
           }
-        }
-        finally {
-          http.disconnect()
-        }
-        case other => this.synchronized(error = Some("connection failed"))
+        })
       }
     }
-    catch {
-      case e: FileNotFoundException =>
-        this.synchronized(error = Some("not found: " + Option(e.getMessage).getOrElse(e.toString)))
-      case e: UnknownHostException =>
-        this.synchronized(error = Some("unknown host: " + Option(e.getMessage).getOrElse(e.toString)))
-      case _: SocketTimeoutException =>
-        this.synchronized(error = Some("timeout"))
-      case e: Throwable =>
-        this.synchronized(error = Some(Option(e.getMessage).getOrElse(e.toString)))
+
+    // This one doesn't (see comment in TCP socket), but I like to keep it consistent.
+    private class RequestSender(val url: URL, val post: Option[String]) extends Callable[InputStream] {
+      override def call() = try {
+        checkLists(InetAddress.getByName(url.getHost), url.getHost)
+        val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
+        url.openConnection(proxy) match {
+          case http: HttpURLConnection => try {
+            http.setDoInput(true)
+            if (post.isDefined) {
+              http.setRequestMethod("POST")
+              http.setDoOutput(true)
+              http.setReadTimeout(Settings.get.httpTimeout)
+
+              val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
+              out.write(post.get)
+              out.close()
+            }
+            else {
+              http.setRequestMethod("GET")
+              http.setDoOutput(false)
+            }
+
+            val input = http.getInputStream
+            HTTPRequest.this.synchronized {
+              response = Some((http.getResponseCode, http.getResponseMessage, http.getHeaderFields))
+            }
+            input
+          }
+          catch {
+            case t: Throwable =>
+              http.disconnect()
+              throw t
+          }
+          case other => throw new IOException("unexpected connection type")
+        }
+      }
+      catch {
+        case e: UnknownHostException =>
+          throw new IOException("unknown host: " + Option(e.getMessage).getOrElse(e.toString))
+        case e: Throwable =>
+          throw new IOException(Option(e.getMessage).getOrElse(e.toString))
+      }
     }
   }
 

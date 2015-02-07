@@ -1,4 +1,6 @@
-package li.cil.oc.server.component.robot
+package li.cil.oc.server.agent
+
+import java.util.UUID
 
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
@@ -6,10 +8,13 @@ import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
-import li.cil.oc.common.tileentity
+import li.cil.oc.api.internal
+import li.cil.oc.api.network.Connector
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.PortalGun
 import li.cil.oc.integration.util.TinkersConstruct
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.block.BlockPistonBase
 import net.minecraft.entity.Entity
@@ -44,20 +49,47 @@ import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 
 import scala.collection.convert.WrapAsScala._
-import scala.reflect._
+import scala.reflect.ClassTag
+import scala.reflect.classTag
 
 object Player {
-  def profileFor(robot: tileentity.Robot) = {
-    val uuid = robot.ownerUuid.getOrElse(robot.determineUUID())
-    val randomId = (robot.world.rand.nextInt(0xFFFFFF) + 1).toString
+  def profileFor(agent: internal.Agent) = {
+    val uuid = agent.ownerUUID
+    val randomId = (agent.world.rand.nextInt(0xFFFFFF) + 1).toString
     val name = Settings.get.nameFormat.
-      replace("$player$", robot.owner).
+      replace("$player$", agent.ownerName).
       replace("$random$", randomId)
     new GameProfile(uuid, name)
   }
+
+  def determineUUID(playerUUID: Option[UUID] = None) = {
+    val format = Settings.get.uuidFormat
+    val randomUUID = UUID.randomUUID()
+    try UUID.fromString(format.
+      replaceAllLiterally("$random$", randomUUID.toString).
+      replaceAllLiterally("$player$", playerUUID.getOrElse(randomUUID).toString)) catch {
+      case t: Throwable =>
+        OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
+        randomUUID
+    }
+  }
+
+  def updatePositionAndRotation(player: Player, facing: ForgeDirection, side: ForgeDirection) {
+    player.facing = facing
+    player.side = side
+    val direction = Vec3.createVectorHelper(
+      facing.offsetX + side.offsetX,
+      facing.offsetY + side.offsetY,
+      facing.offsetZ + side.offsetZ).normalize()
+    val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
+    val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
+    player.setLocationAndAngles(player.agent.xPosition, player.agent.yPosition - player.yOffset, player.agent.zPosition, yaw, pitch)
+    player.prevRotationPitch = player.rotationPitch
+    player.prevRotationYaw = player.rotationYaw
+  }
 }
 
-class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInstanceOf[WorldServer], Player.profileFor(robot)) {
+class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanceOf[WorldServer], Player.profileFor(agent)) {
   playerNetServerHandler = new NetHandlerPlayServer(mcServer, FakeNetworkManager, this)
 
   capabilities.allowFlying = true
@@ -68,61 +100,45 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   eyeHeight = 0f
   setSize(1, 1)
 
-  if (Mods.BattleGear2.isAvailable) {
-    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robot.inventory, "inventory", "field_71071_by")
+  {
+    val inventory = new Inventory(agent)
+    if (Mods.BattleGear2.isAvailable) {
+      ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, inventory, "inventory", "field_71071_by", "bm")
+    }
+    else this.inventory = inventory
   }
-  else inventory = robot.inventory
 
   var facing, side = ForgeDirection.SOUTH
 
   var customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided: ItemStack = _
 
-  def world = robot.world
+  def world = agent.world
 
-  override def getPlayerCoordinates = new ChunkCoordinates(robot.x, robot.y, robot.z)
+  override def getPlayerCoordinates = BlockPosition(agent).toChunkCoordinates
 
   override def getDefaultEyeHeight = 0f
 
-  override def getDisplayName = robot.name
+  override def getDisplayName = agent.name
 
   theItemInWorldManager.setBlockReachDistance(1)
 
   // ----------------------------------------------------------------------- //
 
-  def updatePositionAndRotation(facing: ForgeDirection, side: ForgeDirection) {
-    this.facing = facing
-    this.side = side
-    // Slightly offset in robot's facing to avoid glitches (e.g. Portal Gun).
-    val direction = Vec3.createVectorHelper(
-      facing.offsetX + side.offsetX + robot.facing.offsetX * 0.01,
-      facing.offsetY + side.offsetY + robot.facing.offsetY * 0.01,
-      facing.offsetZ + side.offsetZ + robot.facing.offsetZ * 0.01).normalize()
-    val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
-    val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
-    setLocationAndAngles(robot.x + 0.5, robot.y, robot.z + 0.5, yaw, pitch)
-    prevRotationPitch = rotationPitch
-    prevRotationYaw = rotationYaw
-  }
-
   def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection = facing) = {
-    val (x, y, z) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-    val bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
+    val bounds = BlockPosition(agent).offset(side).bounds
     Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, bounds, this)).map(_.asInstanceOf[Type])
   }
 
   def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    val (x, y, z) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-    entitiesInBlock[Type](x, y, z)
+    entitiesInBlock[Type](BlockPosition(agent).offset(side))
   }
 
-  def entitiesInBlock[Type <: Entity : ClassTag](x: Int, y: Int, z: Int) = {
-    val bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
-    world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
+  def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
+    world.getEntitiesWithinAABB(classTag[Type].runtimeClass, blockPos.bounds).map(_.asInstanceOf[Type])
   }
 
   private def adjacentItems = {
-    val bounds = AxisAlignedBB.getBoundingBox(robot.x - 2, robot.y - 2, robot.z - 2, robot.x + 3, robot.y + 3, robot.z + 3)
-    world.getEntitiesWithinAABB(classOf[EntityItem], bounds).map(_.asInstanceOf[EntityItem])
+    world.getEntitiesWithinAABB(classOf[EntityItem], BlockPosition(agent).bounds.expand(2, 2, 2)).map(_.asInstanceOf[EntityItem])
   }
 
   private def collectDroppedItems(itemsBefore: Iterable[EntityItem]) {
@@ -140,11 +156,11 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
     callUsingItemInSlot(0, stack => entity match {
       case player: EntityPlayer if !canAttackPlayer(player) => // Avoid player damage.
       case _ =>
-        val event = new RobotAttackEntityEvent.Pre(robot, entity)
+        val event = new RobotAttackEntityEvent.Pre(agent, entity)
         MinecraftForge.EVENT_BUS.post(event)
         if (!event.isCanceled) {
           super.attackTargetEntityWithCurrentItem(entity)
-          MinecraftForge.EVENT_BUS.post(new RobotAttackEntityEvent.Post(robot, entity))
+          MinecraftForge.EVENT_BUS.post(new RobotAttackEntityEvent.Post(agent, entity))
         }
     })
   }
@@ -230,14 +246,14 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       posX -= offset.offsetX * 0.6
       posY -= offset.offsetY * 0.6
       posZ -= offset.offsetZ * 0.6
-      robot.machine.pause(heldTicks / 20.0)
+      agent.machine.pause(heldTicks / 20.0)
       // These are functions to avoid null pointers if newStack is null.
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
       val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
       if (stackChanged) {
-        robot.setInventorySlotContents(0, newStack)
+        agent.equipmentInventory.setInventorySlotContents(0, newStack)
       }
       stackChanged
     }
@@ -259,7 +275,6 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         return 0
       }
 
-      // TODO Is this already handled via the event?
       if (MinecraftServer.getServer.isBlockProtected(world, x, y, z, this)) {
         return 0
       }
@@ -307,7 +322,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
       if (breakTime.isInfinity) return 0
 
-      val preEvent = new RobotBreakBlockEvent.Pre(robot, world, x, y, z, breakTime * Settings.get.harvestRatio)
+      val preEvent = new RobotBreakBlockEvent.Pre(agent, world, x, y, z, breakTime * Settings.get.harvestRatio)
       MinecraftForge.EVENT_BUS.post(preEvent)
       if (preEvent.isCanceled) return 0
       val adjustedBreakTime = math.max(0.05, preEvent.getBreakTime)
@@ -343,10 +358,10 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         // check only serves to test whether the block can drop anything at all.
         if (block.canHarvestBlock(this, metadata)) {
           block.harvestBlock(world, this, x, y, z, metadata)
-          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(robot, breakEvent.getExpToDrop))
+          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, breakEvent.getExpToDrop))
         }
         else if (stack != null) {
-          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(robot, 0))
+          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(agent, 0))
         }
         return adjustedBreakTime
       }
@@ -361,7 +376,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   }
 
   override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =
-    robot.spawnStackInWorld(stack, if (inPlace) None else Option(facing))
+    InventoryUtils.spawnStackInWorld(BlockPosition(agent), stack, if (inPlace) None else Option(facing))
 
   private def shouldCancel(f: () => PlayerInteractEvent) = {
     try {
@@ -402,17 +417,17 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
     // Only if the underlying type didn't change.
     if (stack != null && oldStack != null && stack.getItem == oldStack.getItem) {
-      val damageRate = new RobotUsedToolEvent.ComputeDamageRate(robot, oldStack, stack, Settings.get.itemDamageRate)
+      val damageRate = new RobotUsedToolEvent.ComputeDamageRate(agent, oldStack, stack, Settings.get.itemDamageRate)
       MinecraftForge.EVENT_BUS.post(damageRate)
       if (damageRate.getDamageRate < 1) {
-        MinecraftForge.EVENT_BUS.post(new RobotUsedToolEvent.ApplyDamageRate(robot, oldStack, stack, damageRate.getDamageRate))
+        MinecraftForge.EVENT_BUS.post(new RobotUsedToolEvent.ApplyDamageRate(agent, oldStack, stack, damageRate.getDamageRate))
       }
     }
   }
 
   private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     stack != null && stack.stackSize > 0 && {
-      val event = new RobotPlaceBlockEvent.Pre(robot, stack, world, x, y, z)
+      val event = new RobotPlaceBlockEvent.Pre(agent, stack, world, x, y, z)
       MinecraftForge.EVENT_BUS.post(event)
       if (event.isCanceled) false
       else {
@@ -421,7 +436,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
         val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
         setPosition(posX, posY + fakeEyeHeight, posZ)
         if (didPlace) {
-          MinecraftForge.EVENT_BUS.post(new RobotPlaceBlockEvent.Post(robot, stack, world, x, y, z))
+          MinecraftForge.EVENT_BUS.post(new RobotPlaceBlockEvent.Post(agent, stack, world, x, y, z))
         }
         didPlace
       }
@@ -450,9 +465,12 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   override def addExhaustion(amount: Float) {
     if (Settings.get.robotExhaustionCost > 0) {
-      robot.bot.node.changeBuffer(-Settings.get.robotExhaustionCost * amount)
+      agent.machine.node match {
+        case connector: Connector => connector.changeBuffer(-Settings.get.robotExhaustionCost * amount)
+        case _ => // This shouldn't happen... oh well.
+      }
     }
-    MinecraftForge.EVENT_BUS.post(new RobotExhaustionEvent(robot, amount))
+    MinecraftForge.EVENT_BUS.post(new RobotExhaustionEvent(agent, amount))
   }
 
   override def displayGUIMerchant(merchant: IMerchant, name: String) {

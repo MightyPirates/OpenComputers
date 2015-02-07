@@ -155,22 +155,36 @@ object InventoryUtils {
       var remaining = limit
       val range = slots.getOrElse(0 until inventory.getSizeInventory)
 
-      val shouldTryMerge = !stack.isItemStackDamageable && stack.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
-      if (shouldTryMerge) {
-        for (slot <- range) {
+      if (range.nonEmpty) {
+        // This is a special case for inserting with an explicit ordering,
+        // such as when inserting into robots, where the range starts at the
+        // selected slot. In that case we want to prefer inserting into that
+        // slot, if at all possible, over merging.
+        if (slots.isDefined) {
           val stackSize = stack.stackSize
-          if ((inventory.getStackInSlot(slot) != null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
+          if ((inventory.getStackInSlot(range.head) == null) && insertIntoInventorySlot(stack, inventory, side, range.head, remaining, simulate)) {
             remaining -= stackSize - stack.stackSize
             success = true
           }
         }
-      }
 
-      for (slot <- range) {
-        val stackSize = stack.stackSize
-        if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
-          remaining -= stackSize - stack.stackSize
-          success = true
+        val shouldTryMerge = !stack.isItemStackDamageable && stack.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
+        if (shouldTryMerge) {
+          for (slot <- range) {
+            val stackSize = stack.stackSize
+            if ((inventory.getStackInSlot(slot) != null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
+              remaining -= stackSize - stack.stackSize
+              success = true
+            }
+          }
+        }
+
+        for (slot <- range) {
+          val stackSize = stack.stackSize
+          if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
+            remaining -= stackSize - stack.stackSize
+            success = true
+          }
         }
       }
 

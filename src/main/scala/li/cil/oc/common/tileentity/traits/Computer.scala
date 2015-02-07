@@ -1,20 +1,17 @@
 package li.cil.oc.common.tileentity.traits
 
+import java.lang
 import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
-import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.item.Processor
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
-import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
@@ -23,11 +20,13 @@ import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with MachineHost with StateAware {
@@ -38,8 +37,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def node = if (isServer) machine.node else null
 
   private var _isRunning = false
-
-  private var markChunkDirty = false
 
   private val _users = mutable.Set.empty[String]
 
@@ -76,18 +73,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture: Class[_ <: Architecture] = {
-    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
-        case Some(driver: Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
-        case _ =>
-      }
-      case _ =>
-    }
-    null
+  override def internalComponents(): lang.Iterable[ItemStack] = (0 until getSizeInventory).collect {
+    case i if isComponentSlot(i) && getStackInSlot(i) != null => getStackInSlot(i)
   }
-
-  override def markForSaving() = markChunkDirty = true
 
   override def installedComponents = components collect {
     case Some(component) => component
@@ -117,11 +105,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       // to join the network, too, avoiding issues of missing nodes (e.g. in the
       // GPU which would otherwise loose track of its screen).
       machine.update()
-
-      if (markChunkDirty) {
-        markChunkDirty = false
-        world.markTileEntityChunkModified(x, y, z, this)
-      }
 
       if (_isRunning != machine.isRunning) {
         _isRunning = machine.isRunning
@@ -216,7 +199,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
         player.addChatMessage(Localization.Analyzer.LastError(value))
       case _ =>
     }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
     val list = machine.users
     if (list.size > 0) {
       player.addChatMessage(Localization.Analyzer.Users(list))

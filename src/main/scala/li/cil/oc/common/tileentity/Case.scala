@@ -4,15 +4,12 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -36,41 +33,12 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def getWorld = world
 
-  var maxComponents = 0
 
   def isCreative = tier == Tier.Four
 
   // ----------------------------------------------------------------------- //
 
-  def recomputeMaxComponents() {
-    maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
-      case Some(item) => Option(Driver.driverFor(item, getClass)) match {
-        case Some(driver: Processor) => driver.supportedComponents(item)
-        case _ => 0
-      }
-      case _ => 0
-    }))
-  }
-
-  override def callBudget = items.foldLeft(0.0)((sum, item) => sum + (item match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = items.foldLeft(0)((sum, item) => sum + (item match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Memory) => driver.amount(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
-
-  def hasCPU = cpuArchitecture != null
 
   // ----------------------------------------------------------------------- //
 
@@ -90,21 +58,11 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 3
     color = Color.byTier(tier)
     super.readFromNBT(nbt)
-    recomputeMaxComponents()
-
-    // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-    // TODO Remove in 1.5
-    if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-      items(items.length - 1) = Option(Items.createLuaBios())
-    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-
-    // TODO Remove in 1.5
-    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   // ----------------------------------------------------------------------- //
@@ -129,11 +87,6 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
         machine.stop()
       }
     }
-  }
-
-  override def markDirty() {
-    super.markDirty()
-    recomputeMaxComponents()
   }
 
   override def getSizeInventory = if (tier < 0 || tier >= InventorySlots.computer.length) 0 else InventorySlots.computer(tier).length

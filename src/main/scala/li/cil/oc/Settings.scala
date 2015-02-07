@@ -58,14 +58,7 @@ class Settings(val config: Config) {
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
   val eepromSize = config.getInt("computer.eepromSize") max 0
-  val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
-    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
-      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
-    case _ =>
-      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
-      Array(192, 256, 384, 512, 768, 1024)
-  }
-  val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
+  val eepromDataSize = config.getInt("computer.eepromDataSize") max 0
   val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Int, tier2: Int, tier3: Int)
@@ -88,12 +81,21 @@ class Settings(val config: Config) {
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
+  val ramSizes = Array(config.getIntList("computer.lua.ramSizes"): _*) match {
+    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
+      Array(192, 256, 384, 512, 768, 1024)
+  }
+  val ramScaleFor64Bit = config.getDouble("computer.lua.ramScaleFor64Bit") max 1
 
   // ----------------------------------------------------------------------- //
   // robot
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")
+  val limitFlightHeight = config.getInt("robot.limitFlightHeight") max 0
   val screwCobwebs = config.getBoolean("robot.notAfraidOfSpiders")
   val swingRange = config.getDouble("robot.swingRange")
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
@@ -391,31 +393,6 @@ object Settings {
   }
 
   private val configPatches = Array(
-    // Upgrading to version 1.3, increased lower bounds for default RAM sizes
-    // and reworked the way black- and whitelisting works (IP based).
-    VersionRange.createFromVersionSpec("[0.0,1.3-alpha)") -> Array(
-      "computer.ramSizes",
-      "internet.blacklist",
-      "internet.whitelist"
-    ),
-    // Upgrading to version 1.3.3, default power consumption of chunk loader
-    // reduced as discussed in #447.
-    VersionRange.createFromVersionSpec("[1.3.0,1.3.3)") -> Array(
-      "power.cost.chunkloaderCost"
-    ),
-    // Upgrading to version 1.3.4+, computer.debug category was moved to top
-    // level debug category for more flexibility and some other settings merged
-    // into that new category.
-    VersionRange.createFromVersionSpec("1.3.3") -> Array(
-      "computer.debug",
-      "misc.alwaysTryNative",
-      "misc.verbosePersistenceErrors"
-    ),
-    // Upgrading to version 1.3.5, added forgotten check for item stack,
-    // inspection, patch to true to avoid stuff suddenly breaking.
-    VersionRange.createFromVersionSpec("1.3.4") -> Array(
-      "misc.allowItemStackInspection"
-    ),
     // Upgrading to version 1.4.7, reduce default geolyzer noise.
     VersionRange.createFromVersionSpec("[0.0, 1.4.7)") -> Array(
       "misc.geolyzerNoise"

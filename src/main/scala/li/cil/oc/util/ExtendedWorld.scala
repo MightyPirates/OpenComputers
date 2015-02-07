@@ -60,6 +60,8 @@ object ExtendedWorld {
     def setBlock(position: BlockPosition, block: Block, metadata: Int, flag: Int) = world.setBlock(position.x, position.y, position.z, block, metadata, flag)
 
     def setBlockToAir(position: BlockPosition) = world.setBlockToAir(position.x, position.y, position.z)
+
+    def isSideSolid(position: BlockPosition, side: ForgeDirection) = world.isSideSolid(position.x, position.y, position.z, side)
   }
 
 }

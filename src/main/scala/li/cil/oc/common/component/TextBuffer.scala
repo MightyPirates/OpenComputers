@@ -356,7 +356,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         data.color(row)(col) = (packedForeground | packedBackground).toShort
       }
     }
-    // TODO Better for bandwidth to send packed shorts here. Would need a special case for handling on client, though...
+    // Better for bandwidth to send packed shorts here. Would need a special case for handling on client,
+    // though, so let's be wasteful for once...
     proxy.onBufferRawSetBackground(col, row, color)
   }
 
@@ -369,7 +370,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         data.color(row)(col) = (packedForeground | packedBackground).toShort
       }
     }
-    // TODO Better for bandwidth to send packed shorts here. Would need a special case for handling on client, though...
+    // Better for bandwidth to send packed shorts here. Would need a special case for handling on client,
+    // though, so let's be wasteful for once...
     proxy.onBufferRawSetForeground(col, row, color)
   }
 
@@ -414,20 +416,6 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   override def mouseScroll(x: Double, y: Double, delta: Int, player: EntityPlayer) =
     proxy.mouseScroll(x, y, delta, player)
-
-  // TODO Remove in 1.5
-
-  override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) =
-    mouseDown(x, y, button, player)
-
-  override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) =
-    mouseDrag(x, y, button, player)
-
-  override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) =
-    mouseUp(x, y, button, player)
-
-  override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) =
-    mouseScroll(x, y, delta, player)
 
   def copyToAnalyzer(line: Int, player: EntityPlayer): Unit = {
     proxy.copyToAnalyzer(line, player)

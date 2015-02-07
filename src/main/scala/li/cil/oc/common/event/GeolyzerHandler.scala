@@ -43,7 +43,7 @@ object GeolyzerHandler {
   @SubscribeEvent
   def onGeolyzerAnalyze(e: GeolyzerEvent.Analyze) {
     val world = e.host.world
-    val blockPos = BlockPosition(e.host).offset(e.side)
+    val blockPos = BlockPosition(e.x, e.y, e.z, world)
     val block = world.getBlock(blockPos)
 
     e.data += "name" -> Block.blockRegistry.getNameForObject(block)

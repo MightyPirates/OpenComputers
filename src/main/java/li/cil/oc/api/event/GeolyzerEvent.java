@@ -3,7 +3,6 @@ package li.cil.oc.api.event;
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
 import li.cil.oc.api.driver.EnvironmentHost;
-import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,18 +70,22 @@ public abstract class GeolyzerEvent extends Event {
      */
     public static class Analyze extends GeolyzerEvent {
         /**
-         * The side of the geolyzer on which the block to scan is located.
+         * The position of the block to scan.
+         * <p/>
+         * Note: get the world via the host if you need it.
          */
-        public final ForgeDirection side;
+        public final int x, y, z;
 
         /**
          * The retrieved data for the block being scanned.
          */
         public final Map<String, Object> data = new HashMap<String, Object>();
 
-        public Analyze(EnvironmentHost host, Map<?, ?> options, ForgeDirection side) {
+        public Analyze(EnvironmentHost host, Map<?, ?> options, int x, int y, int z) {
             super(host, options);
-            this.side = side;
+            this.x = x;
+            this.y = y;
+            this.z = z;
         }
     }
 }

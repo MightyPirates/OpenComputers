@@ -1,8 +1,6 @@
 package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
-import li.cil.oc.api.machine.Machine;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.util.Vec3;
 
 /**
@@ -18,17 +16,7 @@ import net.minecraft.util.Vec3;
  * i.e. without having to link against internal classes. This also means
  * that <em>you should not implement this</em>.
  */
-public interface Drone extends EnvironmentHost, Rotatable, Tiered {
-    /**
-     * The machine currently hosted by this drone.
-     */
-    Machine machine();
-
-    /**
-     * Provides access to the inventory of the drone.
-     */
-    IInventory inventory();
-
+public interface Drone extends Agent, EnvironmentHost, Rotatable, Tiered {
     /**
      * Get the current target coordinates of the drone.
      */

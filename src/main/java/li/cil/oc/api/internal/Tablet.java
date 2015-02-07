@@ -1,7 +1,7 @@
 package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
-import li.cil.oc.api.machine.Machine;
+import li.cil.oc.api.machine.MachineHost;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
@@ -24,12 +24,7 @@ import net.minecraft.entity.player.EntityPlayer;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Tablet extends EnvironmentHost, Rotatable {
-    /**
-     * The machine currently hosted by this tablet.
-     */
-    Machine machine();
-
+public interface Tablet extends EnvironmentHost, MachineHost, Rotatable {
     /**
      * Returns the player last holding the tablet.
      * <p/>

@@ -1,7 +1,7 @@
 package li.cil.oc.api.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import li.cil.oc.api.internal.Robot;
+import li.cil.oc.api.internal.Agent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
@@ -21,8 +21,8 @@ public abstract class RobotPlaceBlockEvent extends RobotEvent {
      */
     public final int x, y, z;
 
-    protected RobotPlaceBlockEvent(Robot robot, ItemStack stack, World world, int x, int y, int z) {
-        super(robot);
+    protected RobotPlaceBlockEvent(Agent agent, ItemStack stack, World world, int x, int y, int z) {
+        super(agent);
         this.stack = stack;
         this.world = world;
         this.x = x;
@@ -37,8 +37,8 @@ public abstract class RobotPlaceBlockEvent extends RobotEvent {
      */
     @Cancelable
     public static class Pre extends RobotPlaceBlockEvent {
-        public Pre(Robot robot, ItemStack stack, World world, int x, int y, int z) {
-            super(robot, stack, world, x, y, z);
+        public Pre(Agent agent, ItemStack stack, World world, int x, int y, int z) {
+            super(agent, stack, world, x, y, z);
         }
     }
 
@@ -46,8 +46,8 @@ public abstract class RobotPlaceBlockEvent extends RobotEvent {
      * Fired after a robot placed a block.
      */
     public static class Post extends RobotPlaceBlockEvent {
-        public Post(Robot robot, ItemStack stack, World world, int x, int y, int z) {
-            super(robot, stack, world, x, y, z);
+        public Post(Agent agent, ItemStack stack, World world, int x, int y, int z) {
+            super(agent, stack, world, x, y, z);
         }
     }
 }

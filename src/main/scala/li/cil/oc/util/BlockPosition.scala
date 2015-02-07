@@ -19,12 +19,14 @@ class BlockPosition(val x: Int, val y: Int, val z: Int, val world: Option[World]
     world
   )
 
-  def offset(direction: ForgeDirection) = new BlockPosition(
-    x + direction.offsetX,
-    y + direction.offsetY,
-    z + direction.offsetZ,
+  def offset(direction: ForgeDirection, n: Int) = new BlockPosition(
+    x + direction.offsetX * n,
+    y + direction.offsetY * n,
+    z + direction.offsetZ * n,
     world
   )
+
+  def offset(direction: ForgeDirection): BlockPosition = offset(direction, 1)
 
   def offset(x: Double, y: Double, z: Double) = Vec3.createVectorHelper(this.x + x, this.y + y, this.z + z)
 

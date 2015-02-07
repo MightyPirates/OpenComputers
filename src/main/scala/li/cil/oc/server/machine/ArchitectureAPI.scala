@@ -8,7 +8,7 @@ abstract class ArchitectureAPI(val machine: api.machine.Machine) {
 
   protected def components = machine.components
 
-  def initialize()
+  def initialize(): Unit
 
   def load(nbt: NBTTagCompound) {}
 
