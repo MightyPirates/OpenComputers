@@ -419,6 +419,15 @@ object Settings {
     // Upgrading to version 1.4.7, reduce default geolyzer noise.
     VersionRange.createFromVersionSpec("[0.0, 1.4.7)") -> Array(
       "misc.geolyzerNoise"
+    ),
+    // Upgrading to version 1.4.8, changed power value defaults.
+    VersionRange.createFromVersionSpec("[0.0, 1.4.8)") -> Array(
+      "power.value.AppliedEnergistics2",
+      "power.value.Factorization",
+      "power.value.Galacticraft",
+      "power.value.IndustrialCraft2",
+      "power.value.Mekanism",
+      "power.value.RedstoneFlux"
     )
   )
 
