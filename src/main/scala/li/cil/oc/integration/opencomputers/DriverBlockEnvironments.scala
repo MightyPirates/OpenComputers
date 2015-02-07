@@ -34,12 +34,13 @@ object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
       else if (isOneOf(block.getBlock, "hologram1", "hologram2")) classOf[tileentity.Hologram]
       else if (isOneOf(block.getBlock, "motionSensor")) classOf[tileentity.MotionSensor]
       else if (isOneOf(block.getBlock, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
-      else if (isOneOf(block.getBlock, "screen1")) classOf[common.component.TextBuffer].asInstanceOf[Class[_ <: Environment]]
+      else if (isOneOf(block.getBlock, "screen1")) classOf[common.component.TextBuffer]: Class[_ <: Environment]
       else if (isOneOf(block.getBlock, "screen2", "screen3")) classOf[common.component.Screen]
-      else if (isOneOf(block.getBlock, "robot")) classOf[component.Robot].asInstanceOf[Class[_ <: Environment]]
-      else if (isOneOf(block.getBlock, "drone")) classOf[component.Drone].asInstanceOf[Class[_ <: Environment]]
+      else if (isOneOf(block.getBlock, "robot")) classOf[component.Robot]: Class[_ <: Environment]
       else null
-    case _ => null
+    case _ =>
+      if (api.Items.get(stack) == api.Items.get("drone")) classOf[component.Drone]: Class[_ <: Environment]
+      else null
   }
 
   private def isOneOf(block: Block, names: String*) = names.exists(api.Items.get(_).block == block)

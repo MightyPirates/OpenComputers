@@ -19,7 +19,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)
 
-  protected val plugs = EnumFacing.values.map(side => new Plug(side))
+  protected val plugs = EnumFacing.values.map(side => createPlug(side))
 
   val queue = mutable.Queue.empty[(Option[EnumFacing], Packet)]
 
@@ -137,6 +137,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   // ----------------------------------------------------------------------- //
+
+  protected def createPlug(side: EnumFacing) = new Plug(side)
 
   protected class Plug(val side: EnumFacing) extends api.network.Environment {
     val node = createNode(this)

@@ -52,6 +52,10 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def player = robot.player()
 
+  override def name = robot.name
+
+  override def setName(name: String): Unit = robot.setName(name)
+
   override def ownerName = robot.ownerName
 
   override def ownerUUID = robot.ownerUUID

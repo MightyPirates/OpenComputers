@@ -30,7 +30,7 @@ object RobotTemplate extends Template {
   def assemble(inventory: IInventory) = {
     val items = (1 until inventory.getSizeInventory).map(inventory.getStackInSlot)
     val data = new RobotData()
-    data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
+    data.tier = caseTier(inventory)
     data.name = RobotData.randomName
     data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy

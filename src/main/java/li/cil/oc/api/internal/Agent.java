@@ -70,6 +70,16 @@ public interface Agent extends MachineHost, Rotatable {
     EntityPlayer player();
 
     /**
+     * Get the name of this agent.
+     */
+    String name();
+
+    /**
+     * Set the name of the agent.
+     */
+    void setName(String name);
+
+    /**
      * The name of the player owning this agent, e.g. the player that placed it.
      */
     String ownerName();

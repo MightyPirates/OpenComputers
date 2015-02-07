@@ -30,6 +30,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.management.UserListOpsEntry
 import net.minecraft.tileentity._
 import net.minecraft.util.EnumFacing
 import net.minecraft.util._
@@ -120,7 +121,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def getDefaultEyeHeight = 0f
 
-  override def getDisplayName = new ChatComponentText("") // TODO 1.5 agent.name
+  override def getDisplayName = new ChatComponentText(agent.name)
 
   theItemInWorldManager.setBlockReachDistance(1)
 
@@ -480,6 +481,21 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   override def closeScreen() {}
 
   override def swingItem() {}
+
+  override def canUseCommand(level: Int, command: String): Boolean = {
+    ("seed" == command && !mcServer.isDedicatedServer) ||
+      "tell" == command ||
+      "help" == command ||
+      "me" == command || {
+      val config = mcServer.getConfigurationManager
+      config.canSendCommands(getGameProfile) && {
+        config.getOppedPlayers.getEntry(getGameProfile) match {
+          case opEntry: UserListOpsEntry => opEntry.getPermissionLevel >= level
+          case _ => mcServer.getOpPermissionLevel >= level
+        }
+      }
+    }
+  }
 
   override def canAttackPlayer(player: EntityPlayer) = Settings.get.canAttackPlayers
 

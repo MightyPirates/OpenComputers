@@ -125,7 +125,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def damageArmor(damage: Float) {}
 
-  override def dropAllItems() = {} // TODO 1.5 agent.dropAllSlots()
+  override def dropAllItems() = {}
 
   override def hasItem(item: Item) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.getItem == item)
 

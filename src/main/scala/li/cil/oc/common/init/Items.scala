@@ -13,6 +13,7 @@ import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.SimpleItem
+import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
@@ -151,8 +152,9 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredDrone() = {
-    val data = new MicrocontrollerData()
+    val data = new DroneData()
 
+    data.name = "Crecopter"
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferDrone.toInt
     data.components = Array(

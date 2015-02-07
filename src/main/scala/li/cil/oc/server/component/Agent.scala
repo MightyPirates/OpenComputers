@@ -66,6 +66,9 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
 
   // ----------------------------------------------------------------------- //
 
+  @Callback(doc = "function():string -- Get the name of the agent.")
+  def name(context: Context, args: Arguments): Array[AnyRef] = result(agent.name)
+
   @Callback
   def swing(context: Context, args: Arguments): Array[AnyRef] = {
     // Swing the equipped tool (left click).
