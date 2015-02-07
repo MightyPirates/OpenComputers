@@ -28,6 +28,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.management.UserListOpsEntry
 import net.minecraft.tileentity._
 import net.minecraft.util._
 import net.minecraft.world.WorldServer
@@ -461,6 +462,21 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   override def closeScreen() {}
 
   override def swingItem() {}
+
+  override def canCommandSenderUseCommand(level: Int, command: String): Boolean = {
+    ("seed" == command && !mcServer.isDedicatedServer) ||
+      "tell" == command ||
+      "help" == command ||
+      "me" == command || {
+      val config = mcServer.getConfigurationManager
+      config.func_152596_g(getGameProfile) && {
+        config.func_152603_m.func_152683_b(getGameProfile) match {
+          case opEntry: UserListOpsEntry => opEntry.func_152644_a >= level
+          case _ => mcServer.getOpPermissionLevel >= level
+        }
+      }
+    }
+  }
 
   override def canAttackPlayer(player: EntityPlayer) = Settings.get.canAttackPlayers
 

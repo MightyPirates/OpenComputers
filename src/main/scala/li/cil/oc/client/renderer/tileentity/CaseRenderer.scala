@@ -56,6 +56,8 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       }
     }
 
+    RenderState.enableLighting()
+
     GL11.glPopMatrix()
     GL11.glPopAttrib()
 

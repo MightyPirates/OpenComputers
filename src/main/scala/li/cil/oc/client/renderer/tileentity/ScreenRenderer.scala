@@ -12,6 +12,8 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL14
+import org.lwjgl.opengl.GLContext
 
 object ScreenRenderer extends TileEntitySpecialRenderer {
   private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
@@ -23,6 +25,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   private var screen: Screen = null
 
   private lazy val screens = Set(api.Items.get("screen1"), api.Items.get("screen2"), api.Items.get("screen3"))
+
+  private val canUseBlendColor = GLContext.getCapabilities.OpenGL14
 
   // ----------------------------------------------------------------------- //
   // Rendering
@@ -66,7 +70,11 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: overlay")
 
     if (distance > fadeDistanceSq) {
-      RenderState.setBlendAlpha(math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat))
+      val alpha = math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat)
+      if (canUseBlendColor) {
+        GL14.glBlendColor(0, 0, 0, alpha)
+        GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
+      }
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: fade")
@@ -74,6 +82,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     if (screen.buffer.isRenderingEnabled) {
       draw()
     }
+
+    RenderState.enableLighting()
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()

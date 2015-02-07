@@ -3,6 +3,7 @@ package li.cil.oc.integration.nei
 import codechicken.nei.recipe.IUsageHandler
 import com.google.common.base.Strings
 import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.prefab
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.machine.Callbacks
 import net.minecraft.item.ItemStack
@@ -27,6 +28,10 @@ class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler
             case Some(driver: EnvironmentAware) =>
               getCallbacks(driver.providedEnvironment(stack))
             case _ => Registry.blocks.collect {
+              case driver: prefab.DriverTileEntity with EnvironmentAware =>
+                if (driver.getTileEntityClass != null && !driver.getTileEntityClass.isInterface)
+                  driver.providedEnvironment(stack)
+                else null
               case driver: EnvironmentAware => driver.providedEnvironment(stack)
             }.filter(_ != null).map(getCallbacks).flatten
           }

@@ -36,9 +36,10 @@ object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
       else if (isOneOf(block.field_150939_a, "screen1")) classOf[common.component.TextBuffer].asInstanceOf[Class[_ <: Environment]]
       else if (isOneOf(block.field_150939_a, "screen2", "screen3")) classOf[common.component.Screen]
       else if (isOneOf(block.field_150939_a, "robot")) classOf[component.robot.Robot].asInstanceOf[Class[_ <: Environment]]
-      else if (isOneOf(block.field_150939_a, "drone")) classOf[component.Drone].asInstanceOf[Class[_ <: Environment]]
       else null
-    case _ => null
+    case _ =>
+      if (api.Items.get(stack) == api.Items.get("drone")) classOf[component.Drone].asInstanceOf[Class[_ <: Environment]]
+      else null
   }
 
   private def isOneOf(block: Block, names: String*) = names.exists(api.Items.get(_).block == block)

@@ -23,7 +23,7 @@ object PetRenderer {
   val hidden = mutable.Set.empty[String]
 
   private val entitledPlayers = Map(
-    "Kethtar" ->(0.3, 0.9, 0.6),
+    "Sangar" ->(0.3, 0.9, 0.6),
     "Jodarion" ->(1.0, 0.0, 0.0),
     "DaKaTotal" ->(0.5, 0.7, 1.0)
   )
