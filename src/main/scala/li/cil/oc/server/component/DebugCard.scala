@@ -566,4 +566,5 @@ object DebugCard {
       nbt.setString("value", value)
     }
   }
+
 }

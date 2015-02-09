@@ -12,6 +12,10 @@ object ExtendedBlock {
     def isAir(position: BlockPosition) = block.isAir(position.world.get, position.x, position.y, position.z)
 
     def isReplaceable(position: BlockPosition) = block.isReplaceable(position.world.get, position.x, position.y, position.z)
+
+    def setBlockBoundsBasedOnState(position: BlockPosition) = block.setBlockBoundsBasedOnState(position.world.get, position.x, position.y, position.z)
+
+    def getSelectedBoundingBoxFromPool(position: BlockPosition) = block.getSelectedBoundingBoxFromPool(position.world.get, position.x, position.y, position.z)
   }
 
 }

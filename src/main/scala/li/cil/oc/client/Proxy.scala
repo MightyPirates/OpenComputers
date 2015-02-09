@@ -10,6 +10,7 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client
+import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
@@ -38,6 +39,7 @@ private[oc] class Proxy extends CommonProxy {
 
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(gui.Icons)
+    MinecraftForge.EVENT_BUS.register(HighlightRenderer)
   }
 
   override def init(e: FMLInitializationEvent) {

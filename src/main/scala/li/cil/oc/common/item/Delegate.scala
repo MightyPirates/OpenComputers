@@ -56,6 +56,10 @@ trait Delegate {
     stack
   }
 
+  def getMaxItemUseDuration(stack: ItemStack) = 0
+
+  def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int) {}
+
   def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) {}
 
   // ----------------------------------------------------------------------- //
