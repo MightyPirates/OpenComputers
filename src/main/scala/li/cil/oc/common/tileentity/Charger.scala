@@ -96,8 +96,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         def tryCharge(energy: Double, maxEnergy: Double, handler: (Double) => Unit) {
           if (energy < maxEnergy) {
             val itemCharge = math.min(maxEnergy - energy, Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency)
-            node.tryChangeBuffer(-itemCharge)
-            handler(itemCharge)
+            if (node.tryChangeBuffer(-itemCharge))
+              handler(itemCharge)
           }
         }
         val data = new TabletData(stack)
