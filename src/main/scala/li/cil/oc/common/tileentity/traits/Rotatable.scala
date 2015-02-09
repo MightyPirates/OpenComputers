@@ -167,8 +167,8 @@ trait Rotatable extends RotationAware with internal.Rotatable {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) = {
+    super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "pitch")) {
       pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
     }
@@ -179,8 +179,8 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     updateTranslation()
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+    super.writeToNBTForServer(nbt)
     nbt.setInteger(Settings.namespace + "pitch", pitch.ordinal)
     nbt.setInteger(Settings.namespace + "yaw", yaw.ordinal)
   }

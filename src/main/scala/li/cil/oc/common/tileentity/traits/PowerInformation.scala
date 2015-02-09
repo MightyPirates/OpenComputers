@@ -10,11 +10,11 @@ trait PowerInformation extends TileEntity {
 
   def globalBuffer: Double
 
-  def globalBuffer_=(value: Double)
+  def globalBuffer_=(value: Double): Unit
 
   def globalBufferSize: Double
 
-  def globalBufferSize_=(value: Double)
+  def globalBufferSize_=(value: Double): Unit
 
   protected def updatePowerInformation() {
     val ratio = if (globalBufferSize > 0) globalBuffer / globalBufferSize else 0

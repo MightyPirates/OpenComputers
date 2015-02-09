@@ -55,15 +55,15 @@ trait Environment extends TileEntity with network.Environment with driver.Enviro
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     if (node != null && node.host == this) {
       node.load(nbt.getCompoundTag(Settings.namespace + "node"))
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     if (node != null && node.host == this) {
       nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
     }

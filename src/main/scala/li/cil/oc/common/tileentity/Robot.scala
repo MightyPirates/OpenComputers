@@ -423,7 +423,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     updateInventorySize()
     machine.onHostChanged()
 
@@ -450,7 +450,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   // Side check for Waila (and other mods that may call this client side).
-  override def writeToNBT(nbt: NBTTagCompound) = if (isServer) this.synchronized {
+  override def writeToNBTForServer(nbt: NBTTagCompound) = if (isServer) this.synchronized {
     info.save(nbt)
 
     // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)

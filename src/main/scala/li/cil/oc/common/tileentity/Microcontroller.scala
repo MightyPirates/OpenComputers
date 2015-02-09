@@ -156,16 +156,16 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     // Load info before inventory and such, to avoid initializing components
     // to empty inventory.
     info.load(nbt.getCompoundTag(Settings.namespace + "info"))
     nbt.getBooleanArray(Settings.namespace + "outputs")
-    super.readFromNBT(nbt)
+    super.readFromNBTForServer(nbt)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     nbt.setNewCompoundTag(Settings.namespace + "info", info.save)
     nbt.setBooleanArray(Settings.namespace + "outputs", outputSides)
   }

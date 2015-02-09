@@ -97,8 +97,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     nbt.getTagList(Settings.namespace + "plugs", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => plugs(index).node.load(tag)
@@ -114,8 +114,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = queue.synchronized {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) = queue.synchronized {
+    super.writeToNBTForServer(nbt)
     // Side check for Waila (and other mods that may call this client side).
     if (isServer) {
       nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {

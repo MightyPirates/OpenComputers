@@ -10,13 +10,13 @@ class Geolyzer extends traits.Environment {
 
   override def canUpdate = false
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     geolyzer.load(nbt)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     geolyzer.save(nbt)
   }
 }

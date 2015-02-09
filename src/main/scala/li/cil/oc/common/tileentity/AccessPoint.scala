@@ -120,8 +120,8 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) = {
+    super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "strength")) {
       strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange
     }
@@ -134,8 +134,8 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+    super.writeToNBTForServer(nbt)
     nbt.setDouble(Settings.namespace + "strength", strength)
     nbt.setBoolean(Settings.namespace + "isRepeater", isRepeater)
     nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {

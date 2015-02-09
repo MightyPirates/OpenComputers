@@ -86,8 +86,8 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) = {
+    super.readFromNBTForServer(nbt)
 
     val input = nbt.getIntArray(Settings.namespace + "rs.input")
     input.copyToArray(_input, 0, input.length min _input.length)
@@ -95,8 +95,8 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     output.copyToArray(_output, 0, output.length min _output.length)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+    super.writeToNBTForServer(nbt)
 
     nbt.setIntArray(Settings.namespace + "rs.input", _input)
     nbt.setIntArray(Settings.namespace + "rs.output", _output)
