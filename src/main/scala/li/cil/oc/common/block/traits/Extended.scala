@@ -29,7 +29,7 @@ trait Extended extends Block {
     listedProperties.map(property => (property, (propertySize(property), property.getAllowedValues.toArray.map(_.asInstanceOf[Comparable[AnyRef]]).sortWith((a, b) => a.compareTo(b.asInstanceOf[AnyRef]) < 0)))).toMap
 
   // Check if property<->meta conversions work as expected.
-  performSelfTest()
+  // performSelfTest()
 
   // Gnaah, implementation limitations :-/ Can't access protected methods from
   // traits, so we require subclasses to implement this methods which simply
