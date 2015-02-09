@@ -119,8 +119,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     // God, this is so ugly... will need to rework the robot architecture.
     // This is required for loading auxiliary data (kernel state), because the
     // coordinates in the actual robot won't be set properly, otherwise.
@@ -137,8 +137,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     _isOutputEnabled = hasRedstoneCard
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     if (machine != null) {
       if (!Waila.isSavingForTooltip)
         nbt.setNewCompoundTag(Settings.namespace + "computer", machine.save)

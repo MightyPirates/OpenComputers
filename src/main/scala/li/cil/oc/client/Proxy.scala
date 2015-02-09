@@ -1,6 +1,7 @@
 package li.cil.oc.client
 
 import li.cil.oc._
+import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
@@ -47,6 +48,7 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(ExtendedBlockModel)
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(Textures)
+    MinecraftForge.EVENT_BUS.register(HighlightRenderer)
   }
 
   override def registerModel(instance: Delegate, id: String): Unit = {

@@ -59,8 +59,8 @@
 //
 //  // ----------------------------------------------------------------------- //
 //
-//  override def readFromNBT(nbt: NBTTagCompound) {
-//    super.readFromNBT(nbt)
+//  override def readFromNBTForServer(nbt: NBTTagCompound) {
+//    super.readFromNBTForServer(nbt)
 //    if (useFactorizationPower) loadCharge(nbt)
 //  }
 //
@@ -69,8 +69,8 @@
 //    getCharge.readFromNBT(nbt, "fzpower")
 //  }
 //
-//  override def writeToNBT(nbt: NBTTagCompound) {
-//    super.writeToNBT(nbt)
+//  override def writeToNBTForServer(nbt: NBTTagCompound) {
+//    super.writeToNBTForServer(nbt)
 //    if (useFactorizationPower) saveCharge(nbt)
 //  }
 //

@@ -349,9 +349,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 1
-    super.readFromNBT(nbt)
+    super.readFromNBTForServer(nbt)
     val tag = SaveHandler.loadNBT(nbt, node.address + "_data")
     tag.getIntArray("volume").copyToArray(volume)
     tag.getIntArray("colors").map(convertColor).copyToArray(colors)
@@ -362,9 +362,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     translation = new Vec3(tx, ty, tz)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
+  override def writeToNBTForServer(nbt: NBTTagCompound) = this.synchronized {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
-    super.writeToNBT(nbt)
+    super.writeToNBTForServer(nbt)
     if (!Waila.isSavingForTooltip) {
       SaveHandler.scheduleSave(world, x, z, nbt, node.address + "_data", tag => {
         tag.setIntArray("volume", volume)

@@ -288,8 +288,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
         val server = new component.Server(this, slot)
@@ -334,7 +334,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     _isOutputEnabled = hasRedstoneCard
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
+  override def writeToNBTForServer(nbt: NBTTagCompound) = if (isServer) {
     if (!Waila.isSavingForTooltip) {
       nbt.setNewTagList(Settings.namespace + "servers", servers map {
         case Some(server) =>
@@ -346,7 +346,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         case _ => new NBTTagCompound()
       })
     }
-    super.writeToNBT(nbt)
+    super.writeToNBTForServer(nbt)
     nbt.setByteArray(Settings.namespace + "sides", sides.map {
       case Some(side) => side.ordinal.toByte
       case _ => -1: Byte

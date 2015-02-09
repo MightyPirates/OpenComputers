@@ -68,8 +68,8 @@ class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentI
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     for (slot <- 0 until items.length) items(slot) collect {
       case stack => updateLimits(slot, stack)
     }

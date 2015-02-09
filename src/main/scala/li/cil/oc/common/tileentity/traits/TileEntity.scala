@@ -73,12 +73,28 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerL
 
   override def shouldRefresh(world: World, pos: BlockPos, oldState: IBlockState, newSate: IBlockState) = oldState.getBlock != newSate.getBlock
 
+  def readFromNBTForServer(nbt: NBTTagCompound): Unit = super.readFromNBT(nbt)
+
+  def writeToNBTForServer(nbt: NBTTagCompound): Unit = super.writeToNBT(nbt)
+
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}
 
   def writeToNBTForClient(nbt: NBTTagCompound) {}
 
   // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound): Unit = {
+    if (isServer) {
+      readFromNBTForServer(nbt)
+    }
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound): Unit = {
+    if (isServer) {
+      writeToNBTForServer(nbt)
+    }
+  }
 
   override def getDescriptionPacket = {
     val nbt = new NBTTagCompound()

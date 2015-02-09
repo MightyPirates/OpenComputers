@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import com.google.common.base.Strings
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
@@ -12,6 +13,7 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
@@ -38,6 +40,8 @@ import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
+
+import scala.collection.mutable
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
@@ -130,6 +134,17 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
       }
     }
     else None
+
+  @Callback(doc = """function():userdata -- Test method for user-data and general value conversion.""")
+  def test(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+
+    val v1 = mutable.Map("a" -> true, "b" -> "test")
+    val v2 = Map(10 -> "zxc", false -> v1)
+    v1 += "c" -> v2
+
+    result(v2, new DebugCard.TestValue())
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -526,6 +541,40 @@ object DebugCard {
     override def getPositionVector = fakePlayer.getPositionVector
 
     override def sendCommandFeedback() = fakePlayer.sendCommandFeedback()
+  }
+
+  class TestValue extends AbstractValue {
+    var value = "hello"
+
+    override def apply(context: Context, arguments: Arguments): AnyRef = {
+      OpenComputers.log.info("TestValue.apply(" + arguments.toArray.mkString(", ") + ")")
+      value
+    }
+
+    override def unapply(context: Context, arguments: Arguments): Unit = {
+      OpenComputers.log.info("TestValue.unapply(" + arguments.toArray.mkString(", ") + ")")
+      value = arguments.checkString(1)
+    }
+
+    override def call(context: Context, arguments: Arguments): Array[AnyRef] = {
+      OpenComputers.log.info("TestValue.call(" + arguments.toArray.mkString(", ") + ")")
+      result(arguments.toArray: _*)
+    }
+
+    override def dispose(context: Context): Unit = {
+      super.dispose(context)
+      OpenComputers.log.info("TestValue.dispose()")
+    }
+
+    override def load(nbt: NBTTagCompound): Unit = {
+      super.load(nbt)
+      value = nbt.getString("value")
+    }
+
+    override def save(nbt: NBTTagCompound): Unit = {
+      super.save(nbt)
+      nbt.setString("value", value)
+    }
   }
 
 }

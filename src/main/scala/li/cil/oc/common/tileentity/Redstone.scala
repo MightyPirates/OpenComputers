@@ -29,13 +29,13 @@ class Redstone extends Environment with BundledRedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     instance.load(nbt.getCompoundTag(Settings.namespace + "redstone"))
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     nbt.setNewCompoundTag(Settings.namespace + "redstone", instance.save)
   }
 

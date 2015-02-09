@@ -147,11 +147,6 @@ private[oc] object Registry extends api.detail.DriverAPI {
           memo += arg -> null
           null
         }
-        else if (converted.size == 1 && converted.containsKey("oc:flatten")) {
-          val value = converted.get("oc:flatten")
-          memo += arg -> value // Update memoization map.
-          value
-        }
         else {
           // This is a little nasty but necessary because we need to keep the
           // 'converted' value up-to-date for any reference created to it in
@@ -164,7 +159,14 @@ private[oc] object Registry extends api.detail.DriverAPI {
           memo += converted -> converted // Makes convertMap re-use the map.
           convertRecursively(converted, memo, force = true)
           memo -= converted
-          converted
+          if (converted.size == 1 && converted.containsKey("oc:flatten")) {
+            val value = converted.get("oc:flatten")
+            memo += arg -> value // Update memoization map.
+            value
+          }
+          else {
+            converted
+          }
         }
     }
   }

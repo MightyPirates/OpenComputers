@@ -28,6 +28,7 @@ import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component
+import li.cil.oc.util.Audio
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Rarity
@@ -48,6 +49,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 class Tablet(val parent: Delegator) extends Delegate {
+  final val TimeToAnalyze = 10
+
   // Must be assembled to be usable so we hide it in the item list.
   showInItemList = false
 
@@ -89,51 +92,79 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
     entity match {
-      case player: EntityPlayer => Tablet.get(stack, player).update(world, player, slot, selected)
+      case player: EntityPlayer =>
+        // Play an audio cue to let players know when they finished analyzing a block.
+        if (world.isRemote && player.getItemInUseDuration == TimeToAnalyze && api.Items.get(player.getItemInUse) == api.Items.get("tablet")) {
+          Audio.play(player.posX.toFloat, player.posY.toFloat + 2, player.posZ.toFloat, ".")
+        }
+        Tablet.get(stack, player).update(world, player, slot, selected)
       case _ =>
     }
 
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    Tablet.currentlyAnalyzing = Some((position, side, hitX, hitY, hitZ))
+    super.onItemUseFirst(stack, player, position, side, hitX, hitY, hitZ)
+  }
+
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    val world = player.getEntityWorld
-    if (!world.isRemote) try {
-      val computer = Tablet.get(stack, player).machine
-      if (computer.isRunning) {
-        val data = new NBTTagCompound()
-        computer.node.sendToReachable("tablet.use", data, stack, player, position, side, float2Float(hitX), float2Float(hitY), float2Float(hitZ))
-        if (!data.hasNoTags) {
-          computer.signal("tablet_use", data)
-        }
-      }
-    }
-    catch {
-      case t: Throwable => OpenComputers.log.warn("Block analysis on tablet right click failed gloriously!", t)
-    }
+    player.setItemInUse(stack, getMaxItemUseDuration(stack))
     true
   }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
-    if (!player.isSneaking) {
-      if (world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
-      }
-      else {
-        val computer = Tablet.get(stack, player).machine
-        computer.start()
-        computer.lastError match {
-          case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+    player.setItemInUse(stack, getMaxItemUseDuration(stack))
+    stack
+  }
+
+  override def getMaxItemUseDuration(stack: ItemStack): Int = 72000
+
+  override def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int): Unit = {
+    val world = player.getEntityWorld
+    val didAnalyze = getMaxItemUseDuration(stack) - duration >= TimeToAnalyze
+    if (didAnalyze) {
+      if (!world.isRemote) {
+        Tablet.currentlyAnalyzing match {
+          case Some((position, side, hitX, hitY, hitZ)) => try {
+            val computer = Tablet.get(stack, player).machine
+            if (computer.isRunning) {
+              val data = new NBTTagCompound()
+              computer.node.sendToReachable("tablet.use", data, stack, player, position, side, float2Float(hitX), float2Float(hitY), float2Float(hitZ))
+              if (!data.hasNoTags) {
+                computer.signal("tablet_use", data)
+              }
+            }
+          }
+          catch {
+            case t: Throwable => OpenComputers.log.warn("Block analysis on tablet right click failed gloriously!", t)
+          }
           case _ =>
         }
       }
     }
-    else if (!world.isRemote) {
-      val tablet = Tablet.Server.get(stack, player)
-      tablet.machine.stop()
-      if (tablet.data.tier > Tier.One) {
-        player.openGui(OpenComputers, GuiType.TabletInner.id, world, 0, 0, 0)
+    else {
+      if (player.isSneaking) {
+        if (!world.isRemote) {
+          val tablet = Tablet.Server.get(stack, player)
+          tablet.machine.stop()
+          if (tablet.data.tier > Tier.One) {
+            player.openGui(OpenComputers, GuiType.TabletInner.id, world, 0, 0, 0)
+          }
+        }
+      }
+      else {
+        if (!world.isRemote) {
+          val computer = Tablet.get(stack, player).machine
+          computer.start()
+          computer.lastError match {
+            case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+            case _ =>
+          }
+        }
+        else {
+          player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
+        }
       }
     }
-    player.swingItem()
-    stack
   }
 }
 
@@ -340,6 +371,10 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 }
 
 object Tablet {
+  // This is super-hacky, but since it's only used on the client we get away
+  // with storing context information for analyzing a block in the singleton.
+  var currentlyAnalyzing: Option[(BlockPosition, EnumFacing, Float, Float, Float)] = None
+
   def getId(stack: ItemStack) = {
 
     if (!stack.hasTagCompound) {

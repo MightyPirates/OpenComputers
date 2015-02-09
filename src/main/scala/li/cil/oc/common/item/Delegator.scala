@@ -123,6 +123,18 @@ class Delegator extends Item {
 
   // ----------------------------------------------------------------------- //
 
+  override def getMaxItemUseDuration(stack: ItemStack): Int =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.getMaxItemUseDuration(stack)
+      case _ => super.getMaxItemUseDuration(stack)
+    }
+
+  override def onPlayerStoppedUsing(stack: ItemStack, world: World, player: EntityPlayer, duration: Int): Unit =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.onPlayerStoppedUsing(stack, player, duration)
+      case _ => super.onPlayerStoppedUsing(stack, world, player, duration)
+    }
+
   def internalGetItemStackDisplayName(stack: ItemStack) = super.getItemStackDisplayName(stack)
 
   override def getItemStackDisplayName(stack: ItemStack) =

@@ -61,13 +61,13 @@
 //
 //  // ----------------------------------------------------------------------- //
 //
-//  override def readFromNBT(nbt: NBTTagCompound) {
-//    super.readFromNBT(nbt)
+//  override def readFromNBTForServer(nbt: NBTTagCompound) {
+//    super.readFromNBTForServer(nbt)
 //    conversionBuffer = nbt.getDouble(Settings.namespace + "ic2cpower")
 //  }
 //
-//  override def writeToNBT(nbt: NBTTagCompound) {
-//    super.writeToNBT(nbt)
+//  override def writeToNBTForServer(nbt: NBTTagCompound) {
+//    super.writeToNBTForServer(nbt)
 //    nbt.setDouble(Settings.namespace + "ic2cpower", conversionBuffer)
 //  }
 //

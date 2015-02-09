@@ -30,16 +30,16 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     nbt.getTagList(Settings.namespace + "connector", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => nodes(index).load(tag)
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     // Side check for Waila (and other mods that may call this client side).
     if (isServer) {
       nbt.setNewTagList(Settings.namespace + "connector", nodes.map(connector => {

@@ -31,8 +31,8 @@ trait RotatableTile extends Rotatable {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) = {
+    super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "pitch")) {
       pitch = EnumFacing.getFront(nbt.getInteger(Settings.namespace + "pitch"))
     }
@@ -42,8 +42,8 @@ trait RotatableTile extends Rotatable {
     validatePitchAndYaw()
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) = {
+    super.writeToNBTForServer(nbt)
     nbt.setInteger(Settings.namespace + "pitch", pitch.ordinal)
     nbt.setInteger(Settings.namespace + "yaw", yaw.ordinal)
   }

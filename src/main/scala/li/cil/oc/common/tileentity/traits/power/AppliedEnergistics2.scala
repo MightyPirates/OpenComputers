@@ -66,8 +66,8 @@
 //
 //  // ----------------------------------------------------------------------- //
 //
-//  override def readFromNBT(nbt: NBTTagCompound) {
-//    super.readFromNBT(nbt)
+//  override def readFromNBTForServer(nbt: NBTTagCompound) {
+//    super.readFromNBTForServer(nbt)
 //    if (useAppliedEnergistics2Power) loadNode(nbt)
 //  }
 //
@@ -76,8 +76,8 @@
 //    getGridNode(EnumFacing.UNKNOWN).loadFromNBT(Settings.namespace + "ae2power", nbt)
 //  }
 //
-//  override def writeToNBT(nbt: NBTTagCompound) {
-//    super.writeToNBT(nbt)
+//  override def writeToNBTForServer(nbt: NBTTagCompound) {
+//    super.writeToNBTForServer(nbt)
 //    if (useAppliedEnergistics2Power) saveNode(nbt)
 //  }
 //
