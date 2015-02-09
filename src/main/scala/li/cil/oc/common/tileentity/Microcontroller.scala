@@ -15,6 +15,7 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
@@ -31,7 +32,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     withConnector(Settings.get.bufferMicrocontroller).
     create()
 
-  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Neighbors).
+  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withComponent("microcontroller").
     create())
 
@@ -161,6 +162,10 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     // to empty inventory.
     info.load(nbt.getCompoundTag(Settings.namespace + "info"))
     nbt.getBooleanArray(Settings.namespace + "outputs")
+    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) => componentNodes(index).load(tag)
+    }
     super.readFromNBTForServer(nbt)
   }
 
@@ -168,6 +173,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     super.writeToNBTForServer(nbt)
     nbt.setNewCompoundTag(Settings.namespace + "info", info.save)
     nbt.setBooleanArray(Settings.namespace + "outputs", outputSides)
+    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
+      case node: Node =>
+        val tag = new NBTTagCompound()
+        node.save(tag)
+        tag
+      case _ => new NBTTagCompound()
+    })
   }
 
   // ----------------------------------------------------------------------- //
