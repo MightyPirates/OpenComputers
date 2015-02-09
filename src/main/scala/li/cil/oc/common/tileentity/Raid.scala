@@ -112,8 +112,8 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "fs")) {
       val tag = nbt.getCompoundTag(Settings.namespace + "fs")
       tryCreateRaid(tag.getCompoundTag("node").getString("address"))
@@ -122,8 +122,8 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     label.load(nbt)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     filesystem.foreach(fs => nbt.setNewCompoundTag(Settings.namespace + "fs", fs.save))
     label.save(nbt)
   }

@@ -66,10 +66,12 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     EventHandler.schedule(() => DelegatorConverter.convert(world, x, y, z, Option(nbt)))
   }
+
+  def writeToNBTForServer(nbt: NBTTagCompound): Unit = super.writeToNBT(nbt)
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}
@@ -77,6 +79,18 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   def writeToNBTForClient(nbt: NBTTagCompound) {}
 
   // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound): Unit = {
+    if (isServer) {
+      readFromNBTForServer(nbt)
+    }
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound): Unit = {
+    if (isServer) {
+      writeToNBTForServer(nbt)
+    }
+  }
 
   override def getDescriptionPacket = {
     val nbt = new NBTTagCompound()

@@ -27,15 +27,15 @@ trait Colored extends TileEntity with internal.Colored {
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "renderColor")) {
       _color = nbt.getInteger(Settings.namespace + "renderColor")
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     nbt.setInteger(Settings.namespace + "renderColor", _color)
   }
 

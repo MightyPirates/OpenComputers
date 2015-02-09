@@ -124,15 +124,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     robot.info.load(nbt)
-    super.readFromNBT(nbt)
-    robot.readFromNBT(nbt)
+    super.readFromNBTForServer(nbt)
+    robot.readFromNBTForServer(nbt)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    robot.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
+    robot.writeToNBTForServer(nbt)
   }
 
   override def save(nbt: NBTTagCompound) = robot.save(nbt)

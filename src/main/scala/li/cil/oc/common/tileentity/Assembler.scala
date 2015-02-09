@@ -126,8 +126,8 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "output")) {
       output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
     }
@@ -139,8 +139,8 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
     requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
     nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
     nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)

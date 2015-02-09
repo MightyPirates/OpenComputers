@@ -123,8 +123,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     queue.clear()
     queue ++= nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).
       map((tag: NBTTagCompound) => ItemUtils.loadStack(tag))
@@ -133,8 +133,8 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     isActive = queue.nonEmpty
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     nbt.setNewTagList(Settings.namespace + "queue", queue)
     nbt.setDouble(Settings.namespace + "buffer", buffer)
     nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)

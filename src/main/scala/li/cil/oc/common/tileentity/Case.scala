@@ -86,10 +86,10 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 3
     color = Color.byTier(tier)
-    super.readFromNBT(nbt)
+    super.readFromNBTForServer(nbt)
     recomputeMaxComponents()
 
     // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
@@ -99,9 +99,9 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
-    super.writeToNBT(nbt)
+    super.writeToNBTForServer(nbt)
 
     // TODO Remove in 1.5
     nbt.setBoolean(Settings.namespace + "biosFlag", true)

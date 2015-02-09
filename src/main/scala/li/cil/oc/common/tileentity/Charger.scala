@@ -130,15 +130,15 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     chargeSpeed = nbt.getDouble("chargeSpeed") max 0 min 1
     hasPower = nbt.getBoolean("hasPower")
     invertSignal = nbt.getBoolean("invertSignal")
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     nbt.setDouble("chargeSpeed", chargeSpeed)
     nbt.setBoolean("hasPower", hasPower)
     nbt.setBoolean("invertSignal", invertSignal)
