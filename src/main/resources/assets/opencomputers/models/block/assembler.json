@@ -2,7 +2,8 @@
     "textures": {
         "bottom": "opencomputers:blocks/generic_top",
         "top": "opencomputers:blocks/assembler_top",
-        "side": "opencomputers:blocks/assembler_side"
+        "side": "opencomputers:blocks/assembler_side",
+        "particle": "opencomputers:blocks/generic_top"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],

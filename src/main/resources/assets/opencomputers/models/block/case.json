@@ -5,7 +5,8 @@
         "north": "opencomputers:blocks/case_front",
         "east": "opencomputers:blocks/case_side",
         "south": "opencomputers:blocks/case_back",
-        "west": "opencomputers:blocks/case_side"
+        "west": "opencomputers:blocks/case_side",
+        "particle": "opencomputers:blocks/generic_top"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],

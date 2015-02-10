@@ -1,6 +1,7 @@
 {
     "textures": {
-        "all": "opencomputers:blocks/keyboard"
+        "all": "opencomputers:blocks/keyboard",
+        "particle": "opencomputers:blocks/generic_top"
     },
     "elements": [
         {   "from": [ 1, 4, 15 ],

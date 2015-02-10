@@ -1,7 +1,8 @@
 {
     "textures": {
         "bottom": "opencomputers:blocks/generic_top",
-        "side": "opencomputers:blocks/hologram_side"
+        "side": "opencomputers:blocks/hologram_side",
+        "particle": "opencomputers:blocks/generic_top"
     },
     "elements": [
         {   "from": [ 4, 0, 4 ],
