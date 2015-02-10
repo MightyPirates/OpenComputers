@@ -4,6 +4,7 @@ import li.cil.oc.common.entity.Drone
 import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelRenderer
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraft.util.Vec3
 import org.lwjgl.opengl.GL11
@@ -106,7 +107,7 @@ final class ModelQuadcopter extends ModelBase {
       light3.rotateAngleZ = drone.flapAngles(3)(1)
 
       // Additive blending for the lights.
-      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+      GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
       // Light color.
       val lightColor = drone.lightColor
       val r = ((lightColor >>> 16) & 0xFF).toByte
@@ -141,7 +142,7 @@ final class ModelQuadcopter extends ModelBase {
     wing3.render(scale)
 
     RenderState.disableLighting()
-    GL11.glDepthFunc(GL11.GL_LEQUAL)
+    GlStateManager.depthFunc(GL11.GL_LEQUAL)
 
     light0.rotateAngleX = tilt
     light0.rotateAngleZ = tilt
@@ -152,7 +153,7 @@ final class ModelQuadcopter extends ModelBase {
     light3.rotateAngleX = tilt
     light3.rotateAngleZ = -tilt
 
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
     GL11.glColor3ub(0x66.toByte, 0xDD.toByte, 0x55.toByte)
 
     light0.render(scale)

@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Raid
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.WorldRenderer
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
@@ -16,11 +17,11 @@ object RaidRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val raid = tileEntity.asInstanceOf[Raid]
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GlStateManager.pushAttrib()
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
-    GL11.glColor4f(1, 1, 1, 1)
+    GlStateManager.color(1, 1, 1, 1)
 
     GL11.glPushMatrix()
 
@@ -65,7 +66,7 @@ object RaidRenderer extends TileEntitySpecialRenderer {
     RenderState.enableLighting()
 
     GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

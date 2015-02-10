@@ -43,10 +43,10 @@ class StaticFontRenderer extends TextureFontRenderer {
 
   override protected def bindTexture(index: Int) {
     if (Settings.get.textAntiAlias) {
-      Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.Font.AntiAliased)
+      Textures.bind(Textures.Font.AntiAliased)
     }
     else {
-      Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.Font.Aliased)
+      Textures.bind(Textures.Font.Aliased)
     }
   }
 

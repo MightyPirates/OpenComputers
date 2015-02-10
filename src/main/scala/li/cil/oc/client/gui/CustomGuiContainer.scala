@@ -3,13 +3,12 @@ package li.cil.oc.client.gui
 import java.util
 
 import li.cil.oc.client.gui.widget.WidgetContainer
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.inventory.Container
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL12
 
 import scala.collection.convert.WrapAsScala._
 
@@ -25,17 +24,16 @@ abstract class CustomGuiContainer(container: Container) extends GuiContainer(con
   override def windowZ = zLevel
 
   // Pretty much Scalaified copy-pasta from base-class.
-  override def drawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer) {
+  override def drawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer): Unit = {
     copiedDrawHoveringText(text, x, y, font)
   }
 
-  protected def copiedDrawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer) {
+  protected def copiedDrawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer): Unit = {
     if (!text.isEmpty) {
-      GlStateManager.pushAttrib()
-      GL11.glDisable(GL12.GL_RESCALE_NORMAL)
+      GlStateManager.disableRescaleNormal()
       RenderHelper.disableStandardItemLighting()
-      GL11.glDisable(GL11.GL_LIGHTING)
-      GL11.glDisable(GL11.GL_DEPTH_TEST)
+      GlStateManager.disableLighting()
+      GlStateManager.disableDepth()
 
       val textWidth = text.map(line => font.getStringWidth(line.asInstanceOf[String])).max
 
@@ -75,7 +73,15 @@ abstract class CustomGuiContainer(container: Container) extends GuiContainer(con
       }
       zLevel = 0f
 
-      GlStateManager.popAttrib()
+      GlStateManager.enableLighting()
+      GlStateManager.enableDepth()
+      RenderHelper.enableStandardItemLighting()
+      GlStateManager.enableRescaleNormal()
     }
+  }
+
+  override def drawGradientRect(left: Int, top: Int, right: Int, bottom: Int, startColor: Int, endColor: Int): Unit = {
+    super.drawGradientRect(left, top, right, bottom, startColor, endColor)
+    RenderState.makeItBlend()
   }
 }

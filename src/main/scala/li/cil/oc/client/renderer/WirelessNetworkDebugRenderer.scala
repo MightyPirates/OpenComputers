@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.world.World
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper
@@ -27,7 +28,7 @@ object WirelessNetworkDebugRenderer {
           val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks
           val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks
 
-          GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+          GlStateManager.pushAttrib()
           GL11.glPushMatrix()
           GL11.glTranslated(-px, -py, -pz)
           RenderState.makeItBlend()
@@ -90,8 +91,8 @@ object WirelessNetworkDebugRenderer {
           }
           GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL)
 
+          GlStateManager.popAttrib()
           GL11.glPopMatrix()
-          GL11.glPopAttrib()
         case _ =>
       }
 

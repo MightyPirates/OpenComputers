@@ -11,6 +11,7 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -64,9 +65,9 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     if (!hologram.hasPower) return
 
     GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GlStateManager.pushAttrib()
     RenderState.makeItBlend()
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
     GL11.glColor4f(1, 1, 1, 1)
 
     val playerDistSq = x * x + y * y + z * z
@@ -74,7 +75,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     val fadeDistSq = hologram.getFadeStartDistanceSquared
     RenderState.setBlendAlpha(0.75f * (if (playerDistSq > fadeDistSq) math.max(0, 1 - ((playerDistSq - fadeDistSq) / (maxDistSq - fadeDistSq)).toFloat) else 1))
 
-    GL11.glPushMatrix()
+    GlStateManager.pushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     hologram.yaw match {
@@ -128,15 +129,16 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     // angles (because some faces will shine through sometimes and sometimes
     // they won't), so a more... consistent look is desirable.
     val glBuffer = cache.get(hologram, this)
-    GL11.glColorMask(false, false, false, false)
-    GL11.glDepthMask(true)
+    GlStateManager.colorMask(false, false, false, false)
+    GlStateManager.depthMask(true)
     draw(glBuffer)
-    GL11.glColorMask(true, true, true, true)
-    GL11.glDepthFunc(GL11.GL_EQUAL)
+    GlStateManager.colorMask(true, true, true, true)
+    GlStateManager.depthFunc(GL11.GL_EQUAL)
     draw(glBuffer)
 
-    GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.depthFunc(GL11.GL_LEQUAL)
+    GlStateManager.popMatrix()
+    GlStateManager.popAttrib()
     GL11.glPopClientAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

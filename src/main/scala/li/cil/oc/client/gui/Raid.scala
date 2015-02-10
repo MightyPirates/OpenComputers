@@ -4,8 +4,8 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
-import org.lwjgl.opengl.GL11
 
 class Raid(playerInventory: InventoryPlayer, val raid: tileentity.Raid) extends DynamicGuiContainer(new container.Raid(playerInventory, raid)) {
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
@@ -20,8 +20,8 @@ class Raid(playerInventory: InventoryPlayer, val raid: tileentity.Raid) extends 
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.GUI.Raid)
+    GlStateManager.color(1, 1, 1) // Required under Linux.
+    Textures.bind(Textures.GUI.Raid)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 }

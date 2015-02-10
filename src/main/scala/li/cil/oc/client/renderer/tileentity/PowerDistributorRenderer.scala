@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -14,7 +15,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
 
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
     if (distributor.globalBuffer > 0) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      GlStateManager.pushAttrib()
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
@@ -70,7 +71,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       RenderState.enableLighting()
 
       GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      GlStateManager.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

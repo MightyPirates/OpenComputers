@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -15,12 +16,12 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
 
     val charger = tileEntity.asInstanceOf[Charger]
     if (charger.chargeSpeed > 0) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      GlStateManager.pushAttrib()
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
       RenderState.setBlendAlpha(1)
-      GL11.glColor4f(1, 1, 1, 1)
+      GlStateManager.color(1, 1, 1, 1)
 
       GL11.glPushMatrix()
 
@@ -75,7 +76,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
       RenderState.enableLighting()
 
       GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      GlStateManager.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

@@ -11,10 +11,10 @@ import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import net.minecraft.util.IChatComponent
-import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -61,7 +61,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   }
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
+    GlStateManager.pushAttrib()
     if (!assemblerContainer.isAssembling) {
       val message =
         if (!assemblerContainer.getSlot(0).getHasStack) {
@@ -90,7 +90,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
       tooltip.add(Localization.Assembler.Progress(assemblerContainer.assemblyProgress, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
   }
 
   private def formatTime(seconds: Int) = {
@@ -100,8 +100,8 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.GUI.RobotAssembler)
+    GlStateManager.color(1, 1, 1) // Required under Linux.
+    Textures.bind(Textures.GUI.RobotAssembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     if (assemblerContainer.isAssembling) progress.level = assemblerContainer.assemblyProgress / 100.0
     else progress.level = 0

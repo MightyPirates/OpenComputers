@@ -7,6 +7,7 @@ import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -54,11 +55,11 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: checks")
 
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GlStateManager.pushAttrib()
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
-    GL11.glColor4f(1, 1, 1, 1)
+    GlStateManager.color(1, 1, 1, 1)
 
     GL11.glPushMatrix()
 
@@ -74,7 +75,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       val alpha = math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat)
       if (canUseBlendColor) {
         GL14.glBlendColor(0, 0, 0, alpha)
-        GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
+        GlStateManager.blendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
       }
     }
 
@@ -87,7 +88,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     RenderState.enableLighting()
 
     GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
@@ -120,7 +121,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.getPos) || screens.contains(api.Items.get(stack))) {
         GL11.glPushMatrix()
         transform()
-        GL11.glDepthMask(false)
+        GlStateManager.depthMask(false)
         GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
 
         val t = Tessellator.getInstance
@@ -137,7 +138,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
         t.draw()
 
-        GL11.glDepthMask(true)
+        GlStateManager.depthMask(true)
         GL11.glPopMatrix()
       }
     }

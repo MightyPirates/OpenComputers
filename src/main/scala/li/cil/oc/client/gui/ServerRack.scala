@@ -10,10 +10,10 @@ import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.EnumFacing
-import org.lwjgl.opengl.GL11
 
 class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRack) extends DynamicGuiContainer(new container.ServerRack(playerInventory, rack)) {
   protected var switchButton: ImageButton = _
@@ -96,7 +96,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Prevents NEI render glitch.
+    GlStateManager.pushAttrib()
 
     fontRendererObj.drawString(
       Localization.localizeImmediately(rack.getName),
@@ -113,16 +113,16 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       val h = 18
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      mc.getTextureManager.bindTexture(Textures.GUI.Range)
-      GL11.glColor3f(1, 1, 1)
-      GL11.glDepthMask(false)
+      Textures.bind(Textures.GUI.Range)
+      GlStateManager.color(1, 1, 1)
+      GlStateManager.depthMask(false)
       r.startDrawingQuads()
       r.addVertexWithUV(tx, ty + h, zLevel, 0, 1)
       r.addVertexWithUV(tx + w, ty + h, zLevel, 1, 1)
       r.addVertexWithUV(tx + w, ty, zLevel, 1, 0)
       r.addVertexWithUV(tx, ty, zLevel, 0, 0)
       t.draw()
-      GL11.glDepthMask(true)
+      GlStateManager.depthMask(true)
     }
 
     drawCenteredString(fontRendererObj,
@@ -135,6 +135,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
   }
 }

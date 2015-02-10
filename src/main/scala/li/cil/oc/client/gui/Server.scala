@@ -4,9 +4,9 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.inventory.ServerInventory
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import org.lwjgl.opengl.GL11
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends DynamicGuiContainer(new container.Server(playerInventory, serverInventory)) {
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
@@ -17,8 +17,8 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
   }
 
   override def drawSecondaryBackgroundLayer() {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.GUI.Server)
+    GlStateManager.color(1, 1, 1)
+    Textures.bind(Textures.GUI.Server)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

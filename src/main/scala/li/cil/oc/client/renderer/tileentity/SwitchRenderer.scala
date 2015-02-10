@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -15,7 +16,7 @@ object SwitchRenderer extends TileEntitySpecialRenderer {
     val switch = tileEntity.asInstanceOf[tileentity.Switch]
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      GlStateManager.pushAttrib()
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
@@ -60,7 +61,7 @@ object SwitchRenderer extends TileEntitySpecialRenderer {
       RenderState.enableLighting()
 
       GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      GlStateManager.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

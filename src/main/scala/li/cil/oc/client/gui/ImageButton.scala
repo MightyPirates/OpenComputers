@@ -1,12 +1,13 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
-import org.lwjgl.opengl.GL11
 
 @SideOnly(Side.CLIENT)
 class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
@@ -23,8 +24,8 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
 
   override def drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
     if (visible) {
-      mc.renderEngine.bindTexture(image)
-      GL11.glColor4f(1, 1, 1, 1)
+      Textures.bind(image)
+      GlStateManager.color(1, 1, 1, 1)
       hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
 
       val x0 = xPosition
@@ -38,7 +39,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
       val v1 = v0 + 0.5
 
       val t = Tessellator.getInstance
-      var r = t.getWorldRenderer
+      val r = t.getWorldRenderer
       r.startDrawingQuads()
       r.addVertexWithUV(x0, y1, zLevel, u0, v1)
       r.addVertexWithUV(x1, y1, zLevel, u1, v1)

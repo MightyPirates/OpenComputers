@@ -4,6 +4,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
@@ -17,8 +18,8 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val drive = tileEntity.asInstanceOf[DiskDrive]
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-    GL11.glColor4f(1, 1, 1, 1)
+    GlStateManager.pushAttrib()
+    GlStateManager.color(1, 1, 1, 1)
 
     GL11.glPushMatrix()
 
@@ -75,7 +76,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
     }
 
     GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

@@ -7,7 +7,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
-import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.EnumFacing
@@ -38,13 +38,13 @@ object HighlightRenderer {
         val playerPos = e.player.getPositionEyes(e.partialTicks)
         val renderPos = blockPos.offset(-playerPos.xCoord, -playerPos.yCoord, -playerPos.zCoord)
 
-        GL11.glPushMatrix()
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+        GlStateManager.pushMatrix()
+        GlStateManager.pushAttrib()
         RenderState.makeItBlend()
-        Minecraft.getMinecraft.renderEngine.bindTexture(Textures.Model.HologramEffect)
+        Textures.bind(Textures.Model.HologramEffect)
 
-        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE, 1, 0)
-        GL11.glColor4f(0.0F, 1.0F, 0.0F, 0.4F)
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+        GlStateManager.color(0.0F, 1.0F, 0.0F, 0.4F)
 
         GL11.glTranslated(renderPos.xCoord, renderPos.yCoord, renderPos.zCoord)
         GL11.glScaled(1.002, 1.002, 1.002)
@@ -92,8 +92,8 @@ object HighlightRenderer {
         }
         t.draw()
 
-        GL11.glPopAttrib()
-        GL11.glPopMatrix()
+        GlStateManager.popAttrib()
+        GlStateManager.popMatrix()
       }
     }
   }

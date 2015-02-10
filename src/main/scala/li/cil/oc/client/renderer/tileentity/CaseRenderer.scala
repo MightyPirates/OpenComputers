@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Case
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -14,7 +15,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val computer = tileEntity.asInstanceOf[Case]
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GlStateManager.pushAttrib()
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
@@ -64,7 +65,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     RenderState.enableLighting()
 
     GL11.glPopMatrix()
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

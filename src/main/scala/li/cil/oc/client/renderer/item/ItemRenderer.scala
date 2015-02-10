@@ -9,6 +9,7 @@ import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumChatFormatting
@@ -68,21 +69,21 @@ object ItemRenderer extends IItemRenderer {
       GL11.glTranslatef(0.5f, 0.5f, 0.5f)
 
       if (descriptor == api.Items.get("craftingUpgrade")) {
-        tm.bindTexture(Textures.Model.UpgradeCrafting)
+        Textures.bind(Textures.Model.UpgradeCrafting)
         drawSimpleBlock()
 
         RenderState.checkError(getClass.getName + ".renderItem: crafting upgrade")
       }
 
       else if (descriptor == api.Items.get("generatorUpgrade")) {
-        tm.bindTexture(Textures.Model.UpgradeGenerator)
+        Textures.bind(Textures.Model.UpgradeGenerator)
         drawSimpleBlock(if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5f else 0)
 
         RenderState.checkError(getClass.getName + ".renderItem: generator upgrade")
       }
 
       else if (descriptor == api.Items.get("inventoryUpgrade")) {
-        tm.bindTexture(Textures.Model.UpgradeInventory)
+        Textures.bind(Textures.Model.UpgradeInventory)
         drawSimpleBlock()
 
         RenderState.checkError(getClass.getName + ".renderItem: inventory upgrade")
@@ -90,7 +91,7 @@ object ItemRenderer extends IItemRenderer {
     }
 
     else if (isFloppy(descriptor)) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      GlStateManager.pushAttrib()
       itemRenderer.renderItemIntoGUI(stack, 0, 0)
       val res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
       val fontRenderer = Minecraft.getMinecraft.fontRendererObj
@@ -111,15 +112,15 @@ object ItemRenderer extends IItemRenderer {
         }
         GL11.glPopMatrix()
       }
-      GL11.glPopAttrib()
+      GlStateManager.popAttrib()
 
       RenderState.checkError("ItemRenderer.renderItem: floppy")
     }
     else if (descriptor == drone) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      GlStateManager.pushAttrib()
       GL11.glPushMatrix()
 
-      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.Model.Drone)
+      Textures.bind(Textures.Model.Drone)
       RenderState.makeItBlend()
       GL11.glDisable(GL11.GL_CULL_FACE)
 
@@ -139,7 +140,7 @@ object ItemRenderer extends IItemRenderer {
       DroneRenderer.model.render()
 
       GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      GlStateManager.popAttrib()
 
       RenderState.checkError("ItemRenderer.renderItem: drone")
     }

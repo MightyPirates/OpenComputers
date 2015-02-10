@@ -13,8 +13,8 @@ import li.cil.oc.common.entity
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
@@ -79,16 +79,16 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     GL11.glScaled(scale, scale, 1)
     GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
     GL11.glDepthMask(false)
-    GL11.glColor3f(0.5f, 0.5f, 1f)
+    GlStateManager.color(0.5f, 0.5f, 1f)
     TextBufferRenderCache.render(bufferRenderer)
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
   }
 
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
+    GlStateManager.pushAttrib()
     if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
@@ -103,12 +103,12 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
       tooltip.add(if (drone.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
   }
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.GUI.Drone)
+    GlStateManager.color(1, 1, 1)
+    Textures.bind(Textures.GUI.Drone)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     power.level = drone.globalBuffer.toDouble / math.max(drone.globalBufferSize.toDouble, 1.0)
     drawWidgets()
@@ -119,11 +119,6 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     drawInventorySlots()
   }
 
-  protected override def drawGradientRect(par1: Int, par2: Int, par3: Int, par4: Int, par5: Int, par6: Int) {
-    super.drawGradientRect(par1, par2, par3, par4, par5, par6)
-    RenderState.makeItBlend()
-  }
-
   // No custom slots, we just extend DynamicGuiContainer for the highlighting.
   override protected def drawSlotBackground(x: Int, y: Int) {}
 
@@ -131,7 +126,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     val slot = drone.selectedSlot
     if (slot >= 0 && slot < 16) {
       RenderState.makeItBlend()
-      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.GUI.RobotSelection)
+      Textures.bind(Textures.GUI.RobotSelection)
       val now = System.currentTimeMillis() / 1000.0
       val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
       val x = guiLeft + inventoryX - 1 + (slot % 4) * (selectionSize - 2)

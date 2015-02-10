@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -11,13 +12,12 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-    GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
+    GlStateManager.pushAttrib()
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
-    GL11.glColor4f(1, 1, 1, 1)
+    GlStateManager.color(1, 1, 1, 1)
 
     GL11.glPushMatrix()
 
@@ -42,8 +42,7 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer {
     RenderState.enableLighting()
 
     GL11.glPopMatrix()
-    GL11.glPopAttrib()
-    GL11.glPopClientAttrib()
+    GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

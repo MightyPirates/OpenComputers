@@ -20,7 +20,7 @@ object Textures {
 
     override protected def basePath = "textures/font/%s.png"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
   object GUI extends TextureBundle {
@@ -51,7 +51,7 @@ object Textures {
 
     override protected def basePath = "textures/gui/%s.png"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
   object Icons extends TextureBundle {
@@ -64,7 +64,7 @@ object Textures {
 
     override protected def basePath = "textures/icons/%s.png"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
   object Model extends TextureBundle {
@@ -77,7 +77,7 @@ object Textures {
 
     override protected def basePath = "textures/model/%s.png"
 
-    override protected def loader(map: TextureMap, loc: ResourceLocation) = textureManager.bindTexture(loc)
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
   // These are kept in the block texture atlas to support animations.
@@ -483,23 +483,26 @@ object Textures {
 
     Screen.makeSureThisIsInitialized()
 
-    def bind(): Unit = {
-      // IMPORTANT: manager.bindTexture uses GlStateManager.bindTexture, and
-      // that has borked caching, so binding textures will sometimes fail,
-      // because it'll think the texture is already bound although it isn't.
-      // So we do it manually.
-      val manager = Minecraft.getMinecraft.renderEngine
-      val texture = manager.getTexture(TextureMap.locationBlocksTexture)
-      if (texture != null) {
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getGlTextureId)
-      }
-    }
+    def bind(): Unit = Textures.bind(TextureMap.locationBlocksTexture)
 
     def getSprite(location: ResourceLocation) = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location.toString)
 
     override protected def basePath = "blocks/%s"
 
     override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
+  }
+
+  def bind(location: ResourceLocation): Unit = {
+    val manager = Minecraft.getMinecraft.renderEngine
+    manager.bindTexture(location)
+    // IMPORTANT: manager.bindTexture uses GlStateManager.bindTexture, and
+    // that has borked caching, so binding textures will sometimes fail,
+    // because it'll think the texture is already bound although it isn't.
+    // So we do it manually.
+    val texture = manager.getTexture(location)
+    if (texture != null) {
+      GL11.glBindTexture (GL11.GL_TEXTURE_2D, texture.getGlTextureId)
+    }
   }
 
   @SubscribeEvent

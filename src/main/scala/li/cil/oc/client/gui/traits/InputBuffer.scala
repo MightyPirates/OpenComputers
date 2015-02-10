@@ -5,7 +5,6 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.Tessellator
 import org.lwjgl.input.Keyboard
@@ -37,7 +36,7 @@ trait InputBuffer extends DisplayBuffer {
     super.drawBufferLayer()
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
-      Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.GUI.KeyboardMissing)
+      Textures.bind(Textures.GUI.KeyboardMissing)
       GL11.glDisable(GL11.GL_DEPTH_TEST)
 
       val x = bufferX + buffer.renderWidth - 16

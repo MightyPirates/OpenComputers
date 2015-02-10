@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.entity
 
 import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.entity.Render
 import net.minecraft.entity.Entity
 import org.lwjgl.opengl.GL11
@@ -11,15 +12,15 @@ object DroneRenderer extends Render(Minecraft.getMinecraft.getRenderManager) {
 
   override def doRender(entity: Entity, x: Double, y: Double, z: Double, yaw: Float, dt: Float) {
     bindEntityTexture(entity)
-    GL11.glPushMatrix()
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GlStateManager.pushMatrix()
+    GlStateManager.pushAttrib()
 
     GL11.glTranslated(x, y + 2 / 16f, z)
 
     model.render(entity, 0, 0, 0, 0, 0, dt)
 
-    GL11.glPopAttrib()
-    GL11.glPopMatrix()
+    GlStateManager.popAttrib()
+    GlStateManager.popMatrix()
   }
 
   override def getEntityTexture(entity: Entity) = Textures.Model.Drone

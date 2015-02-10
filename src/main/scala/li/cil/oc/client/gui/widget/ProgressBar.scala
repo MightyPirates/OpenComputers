@@ -1,7 +1,6 @@
 package li.cil.oc.client.gui.widget
 
 import li.cil.oc.client.Textures
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
 
 class ProgressBar(val x: Int, val y: Int) extends Widget {
@@ -21,7 +20,7 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
       val ty = owner.windowY + y
       val w = width * level
 
-      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.GUI.Bar)
+      Textures.bind(Textures.GUI.Bar)
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
       r.startDrawingQuads()

@@ -219,7 +219,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
         {
           // Additive blending for the light.
-          GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+          GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
           // Light color.
           val lightColor = if (robot != null && robot.info != null) robot.info.lightColor else 0xF23030
           val r = ((lightColor >>> 16) & 0xFF).toByte
@@ -290,7 +290,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     GL11.glPushMatrix()
 
-    GL11.glDepthMask(true)
+    GlStateManager.depthMask(true)
     GL11.glEnable(GL11.GL_LIGHTING)
     GL11.glDisable(GL11.GL_BLEND)
     GL11.glColor4f(1, 1, 1, 1)
@@ -424,7 +424,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glScalef(-scale, -scale, scale)
 
       RenderState.makeItBlend()
-      GL11.glDepthMask(false)
+      GlStateManager.depthMask(false)
       GL11.glDisable(GL11.GL_LIGHTING)
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
@@ -439,7 +439,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
       f.drawString(name, -halfWidth, 0, 0xFFFFFFFF)
 
-      GL11.glDepthMask(true)
+      GlStateManager.depthMask(true)
       GL11.glEnable(GL11.GL_LIGHTING)
       GL11.glDisable(GL11.GL_BLEND)
 

@@ -3,6 +3,7 @@ package li.cil.oc.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
 import org.lwjgl.opengl._
 import org.lwjgl.util.glu.GLU
@@ -36,12 +37,12 @@ object RenderState {
   }
 
   def makeItBlend() {
-    GL11.glEnable(GL11.GL_BLEND)
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+    GlStateManager.enableBlend()
+    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
   }
 
   def setBlendAlpha(alpha: Float) = {
-    GL11.glColor4f(1, 1, 1, alpha)
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+    GlStateManager.color(1, 1, 1, alpha)
+    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
   }
 }
