@@ -17,7 +17,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Slot
 import org.lwjgl.opengl.GL11
 
 class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends DynamicGuiContainer(new container.Drone(playerInventory, drone)) with traits.DisplayBuffer {
@@ -117,14 +116,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
       drawSelection()
     }
 
-    GL11.glPushMatrix()
-    GL11.glTranslatef(guiLeft, guiTop, 0)
-    for (slot <- 0 until inventorySlots.inventorySlots.size()) {
-      drawSlotInventory(inventorySlots.inventorySlots.get(slot).asInstanceOf[Slot])
-    }
-    GL11.glPopMatrix()
-
-    RenderState.makeItBlend()
+    drawInventorySlots()
   }
 
   protected override def drawGradientRect(par1: Int, par2: Int, par3: Int, par4: Int, par5: Int, par6: Int) {

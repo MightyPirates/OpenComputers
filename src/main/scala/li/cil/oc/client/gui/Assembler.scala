@@ -101,12 +101,12 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
     mc.renderEngine.bindTexture(Textures.GUI.RobotAssembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     if (assemblerContainer.isAssembling) progress.level = assemblerContainer.assemblyProgress / 100.0
     else progress.level = 0
     drawWidgets()
+    drawInventorySlots()
   }
 
   override protected def drawDisabledSlot(slot: ComponentSlot) {}

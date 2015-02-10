@@ -42,7 +42,7 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val info = new MicrocontrollerData(stack)
-      for (component <- info.components) {
+      for (component <- info.components if component != null) {
         tooltip.add("- " + component.getDisplayName)
       }
     }

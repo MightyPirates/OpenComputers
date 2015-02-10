@@ -150,7 +150,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     override def getDisplayName = Robot.this.getDisplayName
   }
 
-  val actualInventorySize = 86
+  val actualInventorySize = 100
 
   def maxInventorySize = actualInventorySize - equipmentInventory.getSizeInventory - componentCount
 
@@ -202,7 +202,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   def componentSlots = getSizeInventory - componentCount until getSizeInventory
 
-  def inventorySlots = 0 until inventorySize
+  def inventorySlots: Range = equipmentInventory.getSizeInventory until (equipmentInventory.getSizeInventory + mainInventory.getSizeInventory)
 
   def setLightColor(value: Int): Unit = {
     info.lightColor = value
@@ -770,7 +770,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(EnumFacing.UP))
+    else if (stack != null && stack.stackSize > 0 && !world.isRemote) spawnStackInWorld(stack, Option(EnumFacing.UP))
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =

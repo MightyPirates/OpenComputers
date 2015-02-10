@@ -100,7 +100,7 @@ object ItemUtils {
     // Split items up again to 'disassemble them individually'.
     val distinct = mutable.ArrayBuffer.empty[ItemStack]
     for (ingredient <- merged) {
-      val size = ingredient.stackSize
+      val size = ingredient.stackSize max 1
       ingredient.stackSize = 1
       for (i <- 0 until size) {
         distinct += ingredient.copy()
