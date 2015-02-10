@@ -127,7 +127,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
   }
 
-  val actualInventorySize = 86
+  val actualInventorySize = 100
 
   def maxInventorySize = actualInventorySize - equipmentInventory.getSizeInventory - componentCount
 
@@ -179,7 +179,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def componentSlots = getSizeInventory - componentCount until getSizeInventory
 
-  def inventorySlots = 0 until inventorySize
+  def inventorySlots: Range = equipmentInventory.getSizeInventory until (equipmentInventory.getSizeInventory + mainInventory.getSizeInventory)
 
   def setLightColor(value: Int): Unit = {
     info.lightColor = value
@@ -725,7 +725,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(ForgeDirection.UP))
+    else if (stack != null && stack.stackSize > 0 && !world.isRemote) spawnStackInWorld(stack, Option(ForgeDirection.UP))
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =
