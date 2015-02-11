@@ -56,12 +56,12 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   // Standard faces for a unit cube.
   protected final val UnitCube = Array(
-    Array(new Vec3(0, 0, 0), new Vec3(1, 0, 0), new Vec3(1, 0, 1), new Vec3(0, 0, 1)),
-    Array(new Vec3(0, 1, 1), new Vec3(1, 1, 1), new Vec3(1, 1, 0), new Vec3(0, 1, 0)),
-    Array(new Vec3(0, 1, 0), new Vec3(1, 1, 0), new Vec3(1, 0, 0), new Vec3(0, 0, 0)),
-    Array(new Vec3(1, 1, 1), new Vec3(0, 1, 1), new Vec3(0, 0, 1), new Vec3(1, 0, 1)),
-    Array(new Vec3(0, 1, 1), new Vec3(0, 1, 0), new Vec3(0, 0, 0), new Vec3(0, 0, 1)),
-    Array(new Vec3(1, 1, 0), new Vec3(1, 1, 1), new Vec3(1, 0, 1), new Vec3(1, 0, 0))
+    Array(new Vec3(0, 0, 1), new Vec3(0, 0, 0), new Vec3(1, 0, 0), new Vec3(1, 0, 1)),
+    Array(new Vec3(0, 1, 0), new Vec3(0, 1, 1), new Vec3(1, 1, 1), new Vec3(1, 1, 0)),
+    Array(new Vec3(1, 1, 0), new Vec3(1, 0, 0), new Vec3(0, 0, 0), new Vec3(0, 1, 0)),
+    Array(new Vec3(0, 1, 1), new Vec3(0, 0, 1), new Vec3(1, 0, 1), new Vec3(1, 1, 1)),
+    Array(new Vec3(0, 1, 0), new Vec3(0, 0, 0), new Vec3(0, 0, 1), new Vec3(0, 1, 1)),
+    Array(new Vec3(1, 1, 1), new Vec3(1, 0, 1), new Vec3(1, 0, 0), new Vec3(1, 1, 0))
   )
 
   // Planes perpendicular to facings. Negative values mean we mirror along that,
@@ -136,20 +136,36 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
         u = v
         v = (-(tmp - 0.5)) + 0.5
       }
-      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, texture, u, v)
+      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, facing, texture, u, v)
     }).flatten
   }
 
   // See FaceBakery#storeVertexData.
-  private def rawData(x: Double, y: Double, z: Double, texture: TextureAtlasSprite, u: Double, v: Double) = {
+  private def rawData(x: Double, y: Double, z: Double, face: EnumFacing, texture: TextureAtlasSprite, u: Double, v: Double) = {
     Array(
       java.lang.Float.floatToRawIntBits(x.toFloat),
       java.lang.Float.floatToRawIntBits(y.toFloat),
       java.lang.Float.floatToRawIntBits(z.toFloat),
-      0xFFFFFFFF,
+      getFaceShadeColor(face),
       java.lang.Float.floatToRawIntBits(texture.getInterpolatedU(u * 16)),
       java.lang.Float.floatToRawIntBits(texture.getInterpolatedV(v * 16)),
       0
     )
+  }
+
+  // See FaceBakery.
+  private def getFaceShadeColor(face: EnumFacing): Int = {
+    val brightness = getFaceBrightness(face)
+    val color = (brightness * 255).toInt max 0 min 255
+    0xFF000000 | color << 16 | color << 8 | color
+  }
+
+  private def getFaceBrightness(face: EnumFacing): Float = {
+    face match {
+      case EnumFacing.DOWN => 0.5f
+      case EnumFacing.UP => 1.0f
+      case EnumFacing.NORTH | EnumFacing.SOUTH => 0.8f
+      case EnumFacing.WEST | EnumFacing.EAST => 0.6f
+    }
   }
 }

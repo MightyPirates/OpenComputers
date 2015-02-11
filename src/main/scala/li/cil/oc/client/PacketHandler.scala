@@ -36,7 +36,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   override def dispatch(p: PacketParser) {
-    p.packetType match {
+    if (p.player != null && p.player.getEntityWorld != null) p.packetType match {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ColorChange => onColorChange(p)
@@ -332,14 +332,14 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onTextBufferPowerChange(p: PacketParser) =
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
       case Some(buffer: component.TextBuffer) =>
         buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
 
   def onTextBufferInit(p: PacketParser) {
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
       case Some(buffer: li.cil.oc.common.component.TextBuffer) =>
         val nbt = p.readNBT()
         if (nbt.hasKey("maxWidth")) {
@@ -354,7 +354,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onTextBufferMulti(p: PacketParser) =
-    ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
+    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
       case Some(buffer: component.TextBuffer) =>
         try while (true) {
           p.readPacketType() match {

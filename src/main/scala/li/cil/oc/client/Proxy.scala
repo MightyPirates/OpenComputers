@@ -5,7 +5,7 @@ import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
-import li.cil.oc.client.renderer.block.ExtendedBlockModel
+import li.cil.oc.client.renderer.block.ModelInitialization
 import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
@@ -16,13 +16,7 @@ import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
 import net.minecraft.block.Block
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.ItemMeshDefinition
-import net.minecraft.client.resources.model.ModelBakery
-import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.client.registry.RenderingRegistry
@@ -33,12 +27,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.network.NetworkRegistry
 import org.lwjgl.opengl.GLContext
 
-import scala.collection.mutable
-
 private[oc] class Proxy extends CommonProxy {
-  private val meshableItems = mutable.ArrayBuffer.empty[Item]
-  private val itemDelegates = mutable.ArrayBuffer.empty[(String, Delegate)]
-
   override def preInit(e: FMLPreInitializationEvent) {
     if (Loader.isModLoaded("OpenComponents")) {
       throw new OpenComponentsPresentException()
@@ -50,20 +39,7 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(Textures)
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
 
-    ExtendedBlockModel.preInit()
-  }
-
-  override def registerModel(instance: Delegate, id: String): Unit = {
-    itemDelegates += id -> instance
-  }
-
-  override def registerModel(instance: Item, id: String): Unit = {
-    meshableItems += instance
-  }
-
-  override def registerModel(instance: Block, id: String): Unit = {
-    val item = Item.getItemFromBlock(instance)
-    registerModel(item, id)
+    ModelInitialization.preInit()
   }
 
   override def init(e: FMLInitializationEvent) {
@@ -71,25 +47,7 @@ private[oc] class Proxy extends CommonProxy {
 
     OpenComputers.channel.register(client.PacketHandler)
 
-    val mesher = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
-    val meshDefinition = new ItemMeshDefinition {
-      override def getModelLocation(stack: ItemStack) = {
-        Option(api.Items.get(stack)) match {
-          case Some(descriptor) => new ModelResourceLocation(Settings.resourceDomain + ":" + descriptor.name(), "inventory")
-          case _ => null
-        }
-      }
-    }
-    for (item <- meshableItems) {
-      mesher.register(item, meshDefinition)
-    }
-    meshableItems.clear()
-    for ((id, item) <- itemDelegates) {
-      val location = Settings.resourceDomain + ":" + id
-      mesher.register(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
-      ModelBakery.addVariantName(item.parent, location)
-    }
-    itemDelegates.clear()
+    ModelInitialization.init()
 
     RenderingRegistry.registerEntityRenderingHandler(classOf[Drone], DroneRenderer)
 
@@ -130,4 +88,10 @@ private[oc] class Proxy extends CommonProxy {
     FMLCommonHandler.instance.bus.register(PetRenderer)
     FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
   }
+
+  override def registerModel(instance: Delegate, id: String) = ModelInitialization.registerModel(instance, id)
+
+  override def registerModel(instance: Item, id: String) = ModelInitialization.registerModel(instance, id)
+
+  override def registerModel(instance: Block, id: String) = ModelInitialization.registerModel(instance, id)
 }

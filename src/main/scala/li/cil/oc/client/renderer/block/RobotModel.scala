@@ -9,13 +9,9 @@ import scala.collection.convert.WrapAsJava.bufferAsJavaList
 import scala.collection.mutable
 
 object RobotModel extends SmartBlockModelBase with ISmartItemModel {
-  override def handleBlockState(state: IBlockState) = new BlockModel()
+  override def handleBlockState(state: IBlockState) = new NullModel.Model()
 
   override def handleItemState(stack: ItemStack) = new ItemModel(stack)
-
-  class BlockModel extends SmartBlockModelBase {
-    // No faces, robots are exclusively rendered via their TESR.
-  }
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
     override def getGeneralQuads = {

@@ -32,8 +32,6 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.mutable.ArrayBuffer
 
 class Cable extends SimpleBlock with traits.Extended {
-  setLightOpacity(2)
-
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 

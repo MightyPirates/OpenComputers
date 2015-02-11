@@ -112,7 +112,7 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
   }
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
-    override def getFaceQuads(side: EnumFacing) = {
+    override def getGeneralQuads = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
       faces ++= bakeQuads(Middle, cableTexture, Some(EnumDyeColor.SILVER))

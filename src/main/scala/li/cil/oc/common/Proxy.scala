@@ -75,12 +75,6 @@ class Proxy {
       api.Machine.add(classOf[LuaJLuaArchitecture])
   }
 
-  def registerModel(instance: Delegate, id: String): Unit = {}
-
-  def registerModel(instance: Item, id: String): Unit = {}
-
-  def registerModel(instance: Block, id: String): Unit = {}
-
   def init(e: FMLInitializationEvent) {
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
     OpenComputers.channel.register(server.PacketHandler)
@@ -98,6 +92,12 @@ class Proxy {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
   }
+
+  def registerModel(instance: Delegate, id: String): Unit = {}
+
+  def registerModel(instance: Item, id: String): Unit = {}
+
+  def registerModel(instance: Block, id: String): Unit = {}
 
   private def registerExclusive(name: String, items: ItemStack*) {
     if (OreDictionary.getOres(name).isEmpty) {
