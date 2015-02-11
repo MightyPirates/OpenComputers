@@ -261,8 +261,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       if (event.isCanceled) return false
     }
 
-    val blockRobotProxy = api.Items.get("robot").block.asInstanceOf[common.block.RobotProxy]
-    val blockRobotAfterImage = api.Items.get("robotAfterimage").block.asInstanceOf[common.block.RobotAfterimage]
+    val blockRobotProxy = api.Items.get(Constants.BlockName.Robot).block.asInstanceOf[common.block.RobotProxy]
+    val blockRobotAfterImage = api.Items.get(Constants.BlockName.RobotAfterimage).block.asInstanceOf[common.block.RobotAfterimage]
     val wasAir = world.isAirBlock(newPosition)
     val state = world.getBlockState(newPosition)
     val block = state.getBlock

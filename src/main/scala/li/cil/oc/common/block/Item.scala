@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
@@ -27,16 +28,16 @@ class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
 
   private lazy val Cases = Set(
-    api.Items.get("case1"),
-    api.Items.get("case2"),
-    api.Items.get("case3"),
-    api.Items.get("caseCreative")
+    api.Items.get(Constants.BlockName.CaseTier1),
+    api.Items.get(Constants.BlockName.CaseTier2),
+    api.Items.get(Constants.BlockName.CaseTier3),
+    api.Items.get(Constants.BlockName.CaseCreative)
   )
 
   private lazy val Screens = Set(
-    api.Items.get("screen1"),
-    api.Items.get("screen2"),
-    api.Items.get("screen3")
+    api.Items.get(Constants.BlockName.ScreenTier1),
+    api.Items.get(Constants.BlockName.ScreenTier2),
+    api.Items.get(Constants.BlockName.ScreenTier3)
   )
 
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
@@ -83,7 +84,7 @@ class Item(value: Block) extends ItemBlock(value) {
     // When placing robots in creative mode, we have to copy the stack
     // manually before it's placed to ensure different component addresses
     // in the different robots, to avoid interference of screens e.g.
-    val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get("robot")
+    val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get(Constants.BlockName.Robot)
     val stackToUse = if (needsCopying) new RobotData(stack).copyItemStack() else stack
     if (super.placeBlockAt(stackToUse, player, world, pos, side, hitX, hitY, hitZ, newState)) {
       // If it's a rotatable block try to make it face the player.

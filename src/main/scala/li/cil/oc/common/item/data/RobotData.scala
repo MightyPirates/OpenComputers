@@ -2,6 +2,7 @@ package li.cil.oc.common.item.data
 
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -86,7 +87,7 @@ class RobotData extends ItemData {
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("robot").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Robot).createItemStack(1)
     save(stack)
     stack
   }

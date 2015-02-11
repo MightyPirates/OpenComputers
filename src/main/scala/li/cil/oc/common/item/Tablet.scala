@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import com.google.common.cache.RemovalNotification
+import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -94,7 +95,7 @@ class Tablet(val parent: Delegator) extends Delegate {
     entity match {
       case player: EntityPlayer =>
         // Play an audio cue to let players know when they finished analyzing a block.
-        if (world.isRemote && player.getItemInUseDuration == TimeToAnalyze && api.Items.get(player.getItemInUse) == api.Items.get("tablet")) {
+        if (world.isRemote && player.getItemInUseDuration == TimeToAnalyze && api.Items.get(player.getItemInUse) == api.Items.get(Constants.ItemName.Tablet)) {
           Audio.play(player.posX.toFloat, player.posY.toFloat + 2, player.posZ.toFloat, ".")
         }
         Tablet.get(stack, player).update(world, player, slot, selected)

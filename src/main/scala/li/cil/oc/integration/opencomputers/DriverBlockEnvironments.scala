@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentAware
@@ -28,18 +29,18 @@ object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
 
   override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] = stack.getItem match {
     case block: ItemBlock if block.getBlock != null =>
-      if (isOneOf(block.getBlock, "accessPoint")) classOf[tileentity.AccessPoint]
-      else if (isOneOf(block.getBlock, "assembler")) classOf[tileentity.Assembler]
-      else if (isOneOf(block.getBlock, "case1", "case2", "case3", "caseCreative", "microcontroller")) classOf[Machine]
-      else if (isOneOf(block.getBlock, "hologram1", "hologram2")) classOf[tileentity.Hologram]
-      else if (isOneOf(block.getBlock, "motionSensor")) classOf[tileentity.MotionSensor]
-      else if (isOneOf(block.getBlock, "redstone")) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
-      else if (isOneOf(block.getBlock, "screen1")) classOf[common.component.TextBuffer]: Class[_ <: Environment]
-      else if (isOneOf(block.getBlock, "screen2", "screen3")) classOf[common.component.Screen]
-      else if (isOneOf(block.getBlock, "robot")) classOf[component.Robot]: Class[_ <: Environment]
+      if (isOneOf(block.getBlock, Constants.BlockName.AccessPoint)) classOf[tileentity.AccessPoint]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]
+      else if (isOneOf(block.getBlock, Constants.BlockName.CaseTier1, Constants.BlockName.CaseTier2, Constants.BlockName.CaseTier3, Constants.BlockName.CaseCreative, Constants.BlockName.Microcontroller)) classOf[Machine]
+      else if (isOneOf(block.getBlock, Constants.BlockName.HologramTier1, Constants.BlockName.HologramTier2)) classOf[tileentity.Hologram]
+      else if (isOneOf(block.getBlock, Constants.BlockName.MotionSensor)) classOf[tileentity.MotionSensor]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Redstone)) if (BundledRedstone.isAvailable) classOf[component.Redstone.Bundled] else classOf[component.Redstone.Vanilla]
+      else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier1)) classOf[common.component.TextBuffer]: Class[_ <: Environment]
+      else if (isOneOf(block.getBlock, Constants.BlockName.ScreenTier2, Constants.BlockName.ScreenTier3)) classOf[common.component.Screen]
+      else if (isOneOf(block.getBlock, Constants.BlockName.Robot)) classOf[component.Robot]: Class[_ <: Environment]
       else null
     case _ =>
-      if (api.Items.get(stack) == api.Items.get("drone")) classOf[component.Drone]: Class[_ <: Environment]
+      if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Drone)) classOf[component.Drone]: Class[_ <: Environment]
       else null
   }
 

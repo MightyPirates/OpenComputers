@@ -1,5 +1,6 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.util.ExtendedNBT._
@@ -36,7 +37,7 @@ class RaidData extends ItemData {
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("raid").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Raid).createItemStack(1)
     save(stack)
     stack
   }

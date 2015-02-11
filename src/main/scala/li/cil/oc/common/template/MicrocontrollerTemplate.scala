@@ -1,5 +1,6 @@
 package li.cil.oc.common.template
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -20,11 +21,11 @@ object MicrocontrollerTemplate extends Template {
 
   override protected def hostClass = classOf[internal.Microcontroller]
 
-  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontrollerCase1")
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseTier1)
 
-  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontrollerCase2")
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseTier2)
 
-  def selectTierCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontrollerCaseCreative")
+  def selectTierCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.MicrocontrollerCaseCreative)
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
@@ -34,18 +35,17 @@ object MicrocontrollerTemplate extends Template {
     data.tier = caseTier(inventory)
     data.components = items.drop(1).filter(_ != null).toArray
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
-    val stack = api.Items.get("microcontroller").createItemStack(1)
-    data.save(stack)
+    val stack = data.createItemStack()
     val energy = Settings.get.microcontrollerBaseCost + complexity(inventory) * Settings.get.microcontrollerComplexityCost
 
     Array(stack, double2Double(energy))
   }
 
-  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("microcontroller")
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.Microcontroller)
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new MicrocontrollerData(stack)
-    val itemName = ItemUtils.caseNameWithTierSuffix("microcontrollerCase", info.tier)
+    val itemName = Constants.ItemName.MicrocontrollerCase(info.tier)
 
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.components
   }

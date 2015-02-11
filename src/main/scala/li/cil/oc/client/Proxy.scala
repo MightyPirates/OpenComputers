@@ -22,6 +22,7 @@ import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.client.registry.RenderingRegistry
@@ -45,10 +46,11 @@ private[oc] class Proxy extends CommonProxy {
 
     super.preInit(e)
 
-    MinecraftForge.EVENT_BUS.register(ExtendedBlockModel)
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(Textures)
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
+
+    ExtendedBlockModel.preInit()
   }
 
   override def registerModel(instance: Delegate, id: String): Unit = {

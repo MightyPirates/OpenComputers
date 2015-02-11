@@ -1,5 +1,6 @@
 package li.cil.oc.common.component
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
@@ -22,7 +23,7 @@ import scala.collection.mutable
 
 class Terminal(val rack: tileentity.ServerRack, val number: Int) {
   val buffer = {
-    val screenItem = api.Items.get("screen1").createItemStack(1)
+    val screenItem = api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1)
     val buffer = api.Driver.driverFor(screenItem, rack.getClass).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
     val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(Tier.Three)
     buffer.setMaximumResolution(maxWidth, maxHeight)
@@ -31,7 +32,7 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
   }
 
   val keyboard = {
-    val keyboardItem = api.Items.get("keyboard").createItemStack(1)
+    val keyboardItem = api.Items.get(Constants.BlockName.Keyboard).createItemStack(1)
     val keyboard = api.Driver.driverFor(keyboardItem, rack.getClass).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
     keyboard.setUsableOverride(new UsabilityChecker {
       override def isUsableByPlayer(keyboard: api.component.Keyboard, player: EntityPlayer) = {

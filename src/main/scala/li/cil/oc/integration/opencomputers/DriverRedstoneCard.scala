@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
@@ -17,7 +18,9 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("redstoneCard1"), api.Items.get("redstoneCard2"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.RedstoneCardTier1),
+    api.Items.get(Constants.ItemName.RedstoneCardTier2))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
     val isAdvanced = tier(stack) == Tier.Two

@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.Textures
@@ -8,7 +9,6 @@ import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
@@ -21,7 +21,7 @@ import scala.util.Random
 object HighlightRenderer {
   private val random = new Random()
 
-  lazy val tablet = api.Items.get("tablet")
+  lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
 
   @SubscribeEvent
   def onDrawBlockHighlight(e: DrawBlockHighlightEvent): Unit = {

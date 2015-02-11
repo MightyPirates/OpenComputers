@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -18,7 +19,7 @@ import net.minecraftforge.event.entity.player.EntityInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object Analyzer {
-  private lazy val analyzer = api.Items.get("analyzer")
+  private lazy val analyzer = api.Items.get(Constants.ItemName.Analyzer)
 
   @SubscribeEvent
   def onInteract(e: EntityInteractEvent): Unit = {

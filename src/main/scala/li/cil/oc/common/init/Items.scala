@@ -2,6 +2,7 @@ package li.cil.oc.common.init
 
 import java.util
 
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.detail.ItemAPI
@@ -129,7 +130,7 @@ object Items extends ItemAPI {
     nbt.setString(Settings.namespace + "lootPath", "OpenOS")
     nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
 
-    val stack = get("floppy").createItemStack(amount)
+    val stack = get(Constants.ItemName.Floppy).createItemStack(amount)
     stack.setTagCompound(nbt)
 
     stack
@@ -145,7 +146,7 @@ object Items extends ItemAPI {
     val nbt = new NBTTagCompound()
     nbt.setTag(Settings.namespace + "data", data)
 
-    val stack = get("eeprom").createItemStack(amount)
+    val stack = get(Constants.ItemName.EEPROM).createItemStack(amount)
     stack.setTagCompound(nbt)
 
     stack
@@ -158,21 +159,21 @@ object Items extends ItemAPI {
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferDrone.toInt
     data.components = Array(
-      get("inventoryUpgrade").createItemStack(1),
-      get("inventoryUpgrade").createItemStack(1),
-      get("inventoryControllerUpgrade").createItemStack(1),
-      get("tankUpgrade").createItemStack(1),
-      get("tankControllerUpgrade").createItemStack(1),
-      get("leashUpgrade").createItemStack(1),
+      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
+      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
+      get(Constants.ItemName.InventoryControllerUpgrade).createItemStack(1),
+      get(Constants.ItemName.TankUpgrade).createItemStack(1),
+      get(Constants.ItemName.TankControllerUpgrade).createItemStack(1),
+      get(Constants.ItemName.LeashUpgrade).createItemStack(1),
 
-      get("wlanCard").createItemStack(1),
+      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
 
-      get("cpu3").createItemStack(1),
-      get("ram6").createItemStack(1),
-      get("ram6").createItemStack(1)
+      get(Constants.ItemName.CPUTier3).createItemStack(1),
+      get(Constants.ItemName.RAMTier6).createItemStack(1),
+      get(Constants.ItemName.RAMTier6).createItemStack(1)
     )
 
-    val stack = get("drone").createItemStack(1)
+    val stack = get(Constants.ItemName.Drone).createItemStack(1)
     data.save(stack)
 
     stack
@@ -184,18 +185,18 @@ object Items extends ItemAPI {
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
     data.components = Array(
-      get("signUpgrade").createItemStack(1),
-      get("pistonUpgrade").createItemStack(1),
+      get(Constants.ItemName.SignUpgrade).createItemStack(1),
+      get(Constants.ItemName.PistonUpgrade).createItemStack(1),
 
-      get("redstoneCard2").createItemStack(1),
-      get("wlanCard").createItemStack(1),
+      get(Constants.ItemName.RedstoneCardTier2).createItemStack(1),
+      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
 
-      get("cpu3").createItemStack(1),
-      get("ram6").createItemStack(1),
-      get("ram6").createItemStack(1)
+      get(Constants.ItemName.CPUTier3).createItemStack(1),
+      get(Constants.ItemName.RAMTier6).createItemStack(1),
+      get(Constants.ItemName.RAMTier6).createItemStack(1)
     )
 
-    val stack = get("microcontroller").createItemStack(1)
+    val stack = get(Constants.BlockName.Microcontroller).createItemStack(1)
     data.save(stack)
 
     stack
@@ -209,34 +210,34 @@ object Items extends ItemAPI {
     data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy
     data.components = Array(
-      get("screen1").createItemStack(1),
-      get("keyboard").createItemStack(1),
-      get("inventoryUpgrade").createItemStack(1),
-      get("inventoryUpgrade").createItemStack(1),
-      get("inventoryUpgrade").createItemStack(1),
-      get("inventoryUpgrade").createItemStack(1),
-      get("inventoryControllerUpgrade").createItemStack(1),
-      get("tankUpgrade").createItemStack(1),
-      get("tankControllerUpgrade").createItemStack(1),
-      get("craftingUpgrade").createItemStack(1),
+      get(Constants.BlockName.ScreenTier1).createItemStack(1),
+      get(Constants.BlockName.Keyboard).createItemStack(1),
+      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
+      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
+      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
+      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
+      get(Constants.ItemName.InventoryControllerUpgrade).createItemStack(1),
+      get(Constants.ItemName.TankUpgrade).createItemStack(1),
+      get(Constants.ItemName.TankControllerUpgrade).createItemStack(1),
+      get(Constants.ItemName.CraftingUpgrade).createItemStack(1),
 
-      get("graphicsCard3").createItemStack(1),
-      get("redstoneCard2").createItemStack(1),
-      get("wlanCard").createItemStack(1),
-      get("internetCard").createItemStack(1),
+      get(Constants.ItemName.GraphicsCardTier3).createItemStack(1),
+      get(Constants.ItemName.RedstoneCardTier2).createItemStack(1),
+      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
+      get(Constants.ItemName.InternetCard).createItemStack(1),
 
-      get("cpu3").createItemStack(1),
-      get("ram6").createItemStack(1),
-      get("ram6").createItemStack(1),
+      get(Constants.ItemName.CPUTier3).createItemStack(1),
+      get(Constants.ItemName.RAMTier6).createItemStack(1),
+      get(Constants.ItemName.RAMTier6).createItemStack(1),
 
       createLuaBios(),
       createOpenOS(),
-      get("hdd3").createItemStack(1)
+      get(Constants.ItemName.HDDTier3).createItemStack(1)
     )
     data.containers = Array(
-      get("cardContainer3").createItemStack(1),
-      get("upgradeContainer3").createItemStack(1),
-      get("upgradeContainer3").createItemStack(1)
+      get(Constants.ItemName.CardContainerTier3).createItemStack(1),
+      get(Constants.ItemName.UpgradeContainerTier3).createItemStack(1),
+      get(Constants.ItemName.UpgradeContainerTier3).createItemStack(1)
     )
 
     val stack = get("robot").createItemStack(1)
@@ -252,26 +253,26 @@ object Items extends ItemAPI {
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     data.items = Array(
-      Option(get("screen1").createItemStack(1)),
-      Option(get("keyboard").createItemStack(1)),
+      Option(get(Constants.BlockName.ScreenTier1).createItemStack(1)),
+      Option(get(Constants.BlockName.Keyboard).createItemStack(1)),
 
-      Option(get("signUpgrade").createItemStack(1)),
-      Option(get("pistonUpgrade").createItemStack(1)),
+      Option(get(Constants.ItemName.SignUpgrade).createItemStack(1)),
+      Option(get(Constants.ItemName.PistonUpgrade).createItemStack(1)),
 
-      Option(get("graphicsCard2").createItemStack(1)),
-      Option(get("redstoneCard2").createItemStack(1)),
-      Option(get("wlanCard").createItemStack(1)),
+      Option(get(Constants.ItemName.GraphicsCardTier2).createItemStack(1)),
+      Option(get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)),
+      Option(get(Constants.ItemName.WirelessNetworkCard).createItemStack(1)),
 
-      Option(get("cpu3").createItemStack(1)),
-      Option(get("ram6").createItemStack(1)),
-      Option(get("ram6").createItemStack(1)),
+      Option(get(Constants.ItemName.CPUTier3).createItemStack(1)),
+      Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
+      Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
 
       Option(createLuaBios()),
       Option(createOpenOS()),
-      Option(get("hdd3").createItemStack(1))
+      Option(get(Constants.ItemName.HDDTier3).createItemStack(1))
     )
 
-    val stack = get("tablet").createItemStack(1)
+    val stack = get(Constants.ItemName.Tablet).createItemStack(1)
     data.save(stack)
 
     stack
@@ -294,117 +295,117 @@ object Items extends ItemAPI {
   private def initMaterials(): Unit = {
     val materials = newItem(new item.Delegator(), "material")
 
-    registerItem(new item.IronNugget(materials), "ironNugget")
-    Recipes.addSubItem(new item.CuttingWire(materials), "cuttingWire", "oc:materialCuttingWire")
-    Recipes.addSubItem(new item.Acid(materials), "acid", "oc:materialAcid")
-    Recipes.addSubItem(new item.RawCircuitBoard(materials), "rawCircuitBoard", "oc:materialCircuitBoardRaw")
-    Recipes.addSubItem(new item.CircuitBoard(materials), "circuitBoard", "oc:materialCircuitBoard")
-    Recipes.addSubItem(new item.PrintedCircuitBoard(materials), "printedCircuitBoard", "oc:materialCircuitBoardPrinted")
-    Recipes.addSubItem(new item.CardBase(materials), "card", "oc:materialCard")
-    Recipes.addSubItem(new item.Transistor(materials), "transistor", "oc:materialTransistor")
-    Recipes.addSubItem(new item.Microchip(materials, Tier.One), "chip1", "oc:circuitChip1")
-    Recipes.addSubItem(new item.Microchip(materials, Tier.Two), "chip2", "oc:circuitChip2")
-    Recipes.addSubItem(new item.Microchip(materials, Tier.Three), "chip3", "oc:circuitChip3")
-    Recipes.addSubItem(new item.ALU(materials), "alu", "oc:materialALU")
-    Recipes.addSubItem(new item.ControlUnit(materials), "cu", "oc:materialCU")
-    Recipes.addSubItem(new item.Disk(materials), "disk", "oc:materialDisk")
-    Recipes.addSubItem(new item.Interweb(materials), "interweb", "oc:materialInterweb")
-    Recipes.addSubItem(new item.ButtonGroup(materials), "buttonGroup", "oc:materialButtonGroup")
-    Recipes.addSubItem(new item.ArrowKeys(materials), "arrowKeys", "oc:materialArrowKey")
-    Recipes.addSubItem(new item.NumPad(materials), "numPad", "oc:materialNumPad")
+    registerItem(new item.IronNugget(materials), Constants.ItemName.IronNugget)
+    Recipes.addSubItem(new item.CuttingWire(materials), Constants.ItemName.CuttingWire, "oc:materialCuttingWire")
+    Recipes.addSubItem(new item.Acid(materials), Constants.ItemName.Acid, "oc:materialAcid")
+    Recipes.addSubItem(new item.RawCircuitBoard(materials), Constants.ItemName.RawCircuitBoard, "oc:materialCircuitBoardRaw")
+    Recipes.addSubItem(new item.CircuitBoard(materials), Constants.ItemName.CircuitBoard, "oc:materialCircuitBoard")
+    Recipes.addSubItem(new item.PrintedCircuitBoard(materials), Constants.ItemName.PrintedCircuitBoard, "oc:materialCircuitBoardPrinted")
+    Recipes.addSubItem(new item.CardBase(materials), Constants.ItemName.Card, "oc:materialCard")
+    Recipes.addSubItem(new item.Transistor(materials), Constants.ItemName.Transistor, "oc:materialTransistor")
+    Recipes.addSubItem(new item.Microchip(materials, Tier.One), Constants.ItemName.Chip1, "oc:circuitChip1")
+    Recipes.addSubItem(new item.Microchip(materials, Tier.Two), Constants.ItemName.Chip2, "oc:circuitChip2")
+    Recipes.addSubItem(new item.Microchip(materials, Tier.Three), Constants.ItemName.Chip3, "oc:circuitChip3")
+    Recipes.addSubItem(new item.ALU(materials), Constants.ItemName.Alu, "oc:materialALU")
+    Recipes.addSubItem(new item.ControlUnit(materials), Constants.ItemName.ControlUnit, "oc:materialCU")
+    Recipes.addSubItem(new item.Disk(materials), Constants.ItemName.Disk, "oc:materialDisk")
+    Recipes.addSubItem(new item.Interweb(materials), Constants.ItemName.Interweb, "oc:materialInterweb")
+    Recipes.addSubItem(new item.ButtonGroup(materials), Constants.ItemName.ButtonGroup, "oc:materialButtonGroup")
+    Recipes.addSubItem(new item.ArrowKeys(materials), Constants.ItemName.ArrowKeys, "oc:materialArrowKey")
+    Recipes.addSubItem(new item.NumPad(materials), Constants.ItemName.NumPad, "oc:materialNumPad")
 
-    Recipes.addSubItem(new item.TabletCase(materials, Tier.One), "tabletCase1", "oc:tabletCase1")
-    Recipes.addSubItem(new item.TabletCase(materials, Tier.Two), "tabletCase2", "oc:tabletCase2")
-    registerItem(new item.TabletCase(materials, Tier.Four), "tabletCaseCreative")
-    Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.One), "microcontrollerCase1", "oc:microcontrollerCase1")
-    Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.Two), "microcontrollerCase2", "oc:microcontrollerCase2")
-    registerItem(new item.MicrocontrollerCase(materials, Tier.Four), "microcontrollerCaseCreative")
-    Recipes.addSubItem(new item.DroneCase(materials, Tier.One), "droneCase1", "oc:droneCase1")
-    Recipes.addSubItem(new item.DroneCase(materials, Tier.Two), "droneCase2", "oc:droneCase2")
-    registerItem(new item.DroneCase(materials, Tier.Four), "droneCaseCreative")
+    Recipes.addSubItem(new item.TabletCase(materials, Tier.One), Constants.ItemName.TabletCaseTier1, "oc:tabletCase1")
+    Recipes.addSubItem(new item.TabletCase(materials, Tier.Two), Constants.ItemName.TabletCaseTier2, "oc:tabletCase2")
+    registerItem(new item.TabletCase(materials, Tier.Four), Constants.ItemName.TabletCaseCreative)
+    Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.One), Constants.ItemName.MicrocontrollerCaseTier1, "oc:microcontrollerCase1")
+    Recipes.addSubItem(new item.MicrocontrollerCase(materials, Tier.Two), Constants.ItemName.MicrocontrollerCaseTier2, "oc:microcontrollerCase2")
+    registerItem(new item.MicrocontrollerCase(materials, Tier.Four), Constants.ItemName.MicrocontrollerCaseCreative)
+    Recipes.addSubItem(new item.DroneCase(materials, Tier.One), Constants.ItemName.DroneCaseTier1, "oc:droneCase1")
+    Recipes.addSubItem(new item.DroneCase(materials, Tier.Two), Constants.ItemName.DroneCaseTier2, "oc:droneCase2")
+    registerItem(new item.DroneCase(materials, Tier.Four), Constants.ItemName.DroneCaseCreative)
   }
 
   // All kinds of tools.
   private def initTools(): Unit = {
     val tools = newItem(new item.Delegator(), "tool")
 
-    Recipes.addSubItem(new item.Analyzer(tools), "analyzer", "oc:analyzer")
-    registerItem(new item.Debugger(tools), "debugger")
-    Recipes.addSubItem(new item.Terminal(tools), "terminal", "oc:terminal")
+    Recipes.addSubItem(new item.Analyzer(tools), Constants.ItemName.Analyzer, "oc:analyzer")
+    registerItem(new item.Debugger(tools), Constants.ItemName.Debugger)
+    Recipes.addSubItem(new item.Terminal(tools), Constants.ItemName.Terminal, "oc:terminal")
   }
 
   // General purpose components.
   private def initComponents(): Unit = {
     val components = newItem(new item.Delegator(), "component")
 
-    Recipes.addSubItem(new item.CPU(components, Tier.One), "cpu1", "oc:cpu1")
-    Recipes.addSubItem(new item.CPU(components, Tier.Two), "cpu2", "oc:cpu2")
-    Recipes.addSubItem(new item.CPU(components, Tier.Three), "cpu3", "oc:cpu3")
+    Recipes.addSubItem(new item.CPU(components, Tier.One), Constants.ItemName.CPUTier1, "oc:cpu1")
+    Recipes.addSubItem(new item.CPU(components, Tier.Two), Constants.ItemName.CPUTier2, "oc:cpu2")
+    Recipes.addSubItem(new item.CPU(components, Tier.Three), Constants.ItemName.CPUTier3, "oc:cpu3")
 
-    Recipes.addSubItem(new item.ComponentBus(components, Tier.One), "componentBus1", "oc:componentBus1")
-    Recipes.addSubItem(new item.ComponentBus(components, Tier.Two), "componentBus2", "oc:componentBus2")
-    Recipes.addSubItem(new item.ComponentBus(components, Tier.Three), "componentBus3", "oc:componentBus3")
+    Recipes.addSubItem(new item.ComponentBus(components, Tier.One), Constants.ItemName.ComponentBusTier1, "oc:componentBus1")
+    Recipes.addSubItem(new item.ComponentBus(components, Tier.Two), Constants.ItemName.ComponentBusTier2, "oc:componentBus2")
+    Recipes.addSubItem(new item.ComponentBus(components, Tier.Three), Constants.ItemName.ComponentBusTier3, "oc:componentBus3")
 
-    Recipes.addSubItem(new item.Memory(components, Tier.One), "ram1", "oc:ram1")
-    Recipes.addSubItem(new item.Memory(components, Tier.Two), "ram2", "oc:ram2")
-    Recipes.addSubItem(new item.Memory(components, Tier.Three), "ram3", "oc:ram3")
-    Recipes.addSubItem(new item.Memory(components, Tier.Four), "ram4", "oc:ram4")
-    Recipes.addSubItem(new item.Memory(components, Tier.Five), "ram5", "oc:ram5")
-    Recipes.addSubItem(new item.Memory(components, Tier.Six), "ram6", "oc:ram6")
+    Recipes.addSubItem(new item.Memory(components, Tier.One), Constants.ItemName.RAMTier1, "oc:ram1")
+    Recipes.addSubItem(new item.Memory(components, Tier.Two), Constants.ItemName.RAMTier2, "oc:ram2")
+    Recipes.addSubItem(new item.Memory(components, Tier.Three), Constants.ItemName.RAMTier3, "oc:ram3")
+    Recipes.addSubItem(new item.Memory(components, Tier.Four), Constants.ItemName.RAMTier4, "oc:ram4")
+    Recipes.addSubItem(new item.Memory(components, Tier.Five), Constants.ItemName.RAMTier5, "oc:ram5")
+    Recipes.addSubItem(new item.Memory(components, Tier.Six), Constants.ItemName.RAMTier6, "oc:ram6")
 
-    registerItem(new item.Server(components, Tier.Four), "serverCreative")
-    Recipes.addSubItem(new item.Server(components, Tier.One), "server1", "oc:server1")
-    Recipes.addSubItem(new item.Server(components, Tier.Two), "server2", "oc:server2")
-    Recipes.addSubItem(new item.Server(components, Tier.Three), "server3", "oc:server3")
+    registerItem(new item.Server(components, Tier.Four), Constants.ItemName.ServerCreative)
+    Recipes.addSubItem(new item.Server(components, Tier.One), Constants.ItemName.ServerTier1, "oc:server1")
+    Recipes.addSubItem(new item.Server(components, Tier.Two), Constants.ItemName.ServerTier2, "oc:server2")
+    Recipes.addSubItem(new item.Server(components, Tier.Three), Constants.ItemName.ServerTier3, "oc:server3")
   }
 
   // Card components.
   private def initCards(): Unit = {
     val cards = newItem(new item.Delegator(), "card")
 
-    registerItem(new item.DebugCard(cards), "debugCard")
-    Recipes.addSubItem(new item.GraphicsCard(cards, Tier.One), "graphicsCard1", "oc:graphicsCard1")
-    Recipes.addSubItem(new item.GraphicsCard(cards, Tier.Two), "graphicsCard2", "oc:graphicsCard2")
-    Recipes.addSubItem(new item.GraphicsCard(cards, Tier.Three), "graphicsCard3", "oc:graphicsCard3")
-    Recipes.addSubItem(new item.RedstoneCard(cards, Tier.One), "redstoneCard1", "oc:redstoneCard1")
-    Recipes.addSubItem(new item.RedstoneCard(cards, Tier.Two), "redstoneCard2", "oc:redstoneCard2")
-    Recipes.addSubItem(new item.NetworkCard(cards), "lanCard", "oc:lanCard")
-    Recipes.addSubItem(new item.WirelessNetworkCard(cards), "wlanCard", "oc:wlanCard")
-    Recipes.addSubItem(new item.InternetCard(cards), "internetCard", "oc:internetCard")
-    Recipes.addSubItem(new item.LinkedCard(cards), "linkedCard", "oc:linkedCard")
+    registerItem(new item.DebugCard(cards), Constants.ItemName.DebugCard)
+    Recipes.addSubItem(new item.GraphicsCard(cards, Tier.One), Constants.ItemName.GraphicsCardTier1, "oc:graphicsCard1")
+    Recipes.addSubItem(new item.GraphicsCard(cards, Tier.Two), Constants.ItemName.GraphicsCardTier2, "oc:graphicsCard2")
+    Recipes.addSubItem(new item.GraphicsCard(cards, Tier.Three), Constants.ItemName.GraphicsCardTier3, "oc:graphicsCard3")
+    Recipes.addSubItem(new item.RedstoneCard(cards, Tier.One), Constants.ItemName.RedstoneCardTier1, "oc:redstoneCard1")
+    Recipes.addSubItem(new item.RedstoneCard(cards, Tier.Two), Constants.ItemName.RedstoneCardTier2, "oc:redstoneCard2")
+    Recipes.addSubItem(new item.NetworkCard(cards), Constants.ItemName.NetworkCard, "oc:lanCard")
+    Recipes.addSubItem(new item.WirelessNetworkCard(cards), Constants.ItemName.WirelessNetworkCard, "oc:wlanCard")
+    Recipes.addSubItem(new item.InternetCard(cards), Constants.ItemName.InternetCard, "oc:internetCard")
+    Recipes.addSubItem(new item.LinkedCard(cards), Constants.ItemName.LinkedCard, "oc:linkedCard")
   }
 
   // Upgrade components.
   private def initUpgrades(): Unit = {
     val upgrades = newItem(new item.Delegator(), "upgrade")
 
-    Recipes.addSubItem(new item.UpgradeAngel(upgrades), "angelUpgrade", "oc:angelUpgrade")
-    Recipes.addSubItem(new item.UpgradeBattery(upgrades, Tier.One), "batteryUpgrade1", "oc:batteryUpgrade1")
-    Recipes.addSubItem(new item.UpgradeBattery(upgrades, Tier.Two), "batteryUpgrade2", "oc:batteryUpgrade2")
-    Recipes.addSubItem(new item.UpgradeBattery(upgrades, Tier.Three), "batteryUpgrade3", "oc:batteryUpgrade3")
-    Recipes.addSubItem(new item.UpgradeChunkloader(upgrades), "chunkloaderUpgrade", "oc:chunkloaderUpgrade")
-    Recipes.addSubItem(new item.UpgradeContainerCard(upgrades, Tier.One), "cardContainer1", "oc:cardContainer1")
-    Recipes.addSubItem(new item.UpgradeContainerCard(upgrades, Tier.Two), "cardContainer2", "oc:cardContainer2")
-    Recipes.addSubItem(new item.UpgradeContainerCard(upgrades, Tier.Three), "cardContainer3", "oc:cardContainer3")
-    Recipes.addSubItem(new item.UpgradeContainerUpgrade(upgrades, Tier.One), "upgradeContainer1", "oc:upgradeContainer1")
-    Recipes.addSubItem(new item.UpgradeContainerUpgrade(upgrades, Tier.Two), "upgradeContainer2", "oc:upgradeContainer2")
-    Recipes.addSubItem(new item.UpgradeContainerUpgrade(upgrades, Tier.Three), "upgradeContainer3", "oc:upgradeContainer3")
-    Recipes.addSubItem(new item.UpgradeCrafting(upgrades), "craftingUpgrade", "oc:craftingUpgrade")
-    Recipes.addSubItem(new item.UpgradeDatabase(upgrades, Tier.One), "databaseUpgrade1", "oc:databaseUpgrade1")
-    Recipes.addSubItem(new item.UpgradeDatabase(upgrades, Tier.Two), "databaseUpgrade2", "oc:databaseUpgrade2")
-    Recipes.addSubItem(new item.UpgradeDatabase(upgrades, Tier.Three), "databaseUpgrade3", "oc:databaseUpgrade3")
-    Recipes.addSubItem(new item.UpgradeExperience(upgrades), "experienceUpgrade", "oc:experienceUpgrade")
-    Recipes.addSubItem(new item.UpgradeGenerator(upgrades), "generatorUpgrade", "oc:generatorUpgrade")
-    Recipes.addSubItem(new item.UpgradeInventory(upgrades), "inventoryUpgrade", "oc:inventoryUpgrade")
-    Recipes.addSubItem(new item.UpgradeInventoryController(upgrades), "inventoryControllerUpgrade", "oc:inventoryControllerUpgrade")
-    Recipes.addSubItem(new item.UpgradeNavigation(upgrades), "navigationUpgrade", "oc:navigationUpgrade")
-    Recipes.addSubItem(new item.UpgradePiston(upgrades), "pistonUpgrade", "oc:pistonUpgrade")
-    Recipes.addSubItem(new item.UpgradeSign(upgrades), "signUpgrade", "oc:signUpgrade")
-    Recipes.addSubItem(new item.UpgradeSolarGenerator(upgrades), "solarGeneratorUpgrade", "oc:solarGeneratorUpgrade")
-    Recipes.addSubItem(new item.UpgradeTank(upgrades), "tankUpgrade", "oc:tankUpgrade")
-    Recipes.addSubItem(new item.UpgradeTankController(upgrades), "tankControllerUpgrade", "oc:tankControllerUpgrade")
-    Recipes.addSubItem(new item.UpgradeTractorBeam(upgrades), "tractorBeamUpgrade", "oc:tractorBeamUpgrade")
-    Recipes.addSubItem(new item.UpgradeLeash(upgrades), "leashUpgrade", "oc:leashUpgrade")
+    Recipes.addSubItem(new item.UpgradeAngel(upgrades), Constants.ItemName.AngelUpgrade, "oc:angelUpgrade")
+    Recipes.addSubItem(new item.UpgradeBattery(upgrades, Tier.One), Constants.ItemName.BatteryUpgradeTier1, "oc:batteryUpgrade1")
+    Recipes.addSubItem(new item.UpgradeBattery(upgrades, Tier.Two), Constants.ItemName.BatteryUpgradeTier2, "oc:batteryUpgrade2")
+    Recipes.addSubItem(new item.UpgradeBattery(upgrades, Tier.Three), Constants.ItemName.BatteryUpgradeTier3, "oc:batteryUpgrade3")
+    Recipes.addSubItem(new item.UpgradeChunkloader(upgrades), Constants.ItemName.ChunkloaderUpgrade, "oc:chunkloaderUpgrade")
+    Recipes.addSubItem(new item.UpgradeContainerCard(upgrades, Tier.One), Constants.ItemName.CardContainerTier1, "oc:cardContainer1")
+    Recipes.addSubItem(new item.UpgradeContainerCard(upgrades, Tier.Two), Constants.ItemName.CardContainerTier2, "oc:cardContainer2")
+    Recipes.addSubItem(new item.UpgradeContainerCard(upgrades, Tier.Three), Constants.ItemName.CardContainerTier3, "oc:cardContainer3")
+    Recipes.addSubItem(new item.UpgradeContainerUpgrade(upgrades, Tier.One), Constants.ItemName.UpgradeContainerTier1, "oc:upgradeContainer1")
+    Recipes.addSubItem(new item.UpgradeContainerUpgrade(upgrades, Tier.Two), Constants.ItemName.UpgradeContainerTier2, "oc:upgradeContainer2")
+    Recipes.addSubItem(new item.UpgradeContainerUpgrade(upgrades, Tier.Three), Constants.ItemName.UpgradeContainerTier3, "oc:upgradeContainer3")
+    Recipes.addSubItem(new item.UpgradeCrafting(upgrades), Constants.ItemName.CraftingUpgrade, "oc:craftingUpgrade")
+    Recipes.addSubItem(new item.UpgradeDatabase(upgrades, Tier.One), Constants.ItemName.DatabaseUpgradeTier1, "oc:databaseUpgrade1")
+    Recipes.addSubItem(new item.UpgradeDatabase(upgrades, Tier.Two), Constants.ItemName.DatabaseUpgradeTier2, "oc:databaseUpgrade2")
+    Recipes.addSubItem(new item.UpgradeDatabase(upgrades, Tier.Three), Constants.ItemName.DatabaseUpgradeTier3, "oc:databaseUpgrade3")
+    Recipes.addSubItem(new item.UpgradeExperience(upgrades), Constants.ItemName.ExperienceUpgrade, "oc:experienceUpgrade")
+    Recipes.addSubItem(new item.UpgradeGenerator(upgrades), Constants.ItemName.GeneratorUpgrade, "oc:generatorUpgrade")
+    Recipes.addSubItem(new item.UpgradeInventory(upgrades), Constants.ItemName.InventoryUpgrade, "oc:inventoryUpgrade")
+    Recipes.addSubItem(new item.UpgradeInventoryController(upgrades), Constants.ItemName.InventoryControllerUpgrade, "oc:inventoryControllerUpgrade")
+    Recipes.addSubItem(new item.UpgradeNavigation(upgrades), Constants.ItemName.NavigationUpgrade, "oc:navigationUpgrade")
+    Recipes.addSubItem(new item.UpgradePiston(upgrades), Constants.ItemName.PistonUpgrade, "oc:pistonUpgrade")
+    Recipes.addSubItem(new item.UpgradeSign(upgrades), Constants.ItemName.SignUpgrade, "oc:signUpgrade")
+    Recipes.addSubItem(new item.UpgradeSolarGenerator(upgrades), Constants.ItemName.SolarGeneratorUpgrade, "oc:solarGeneratorUpgrade")
+    Recipes.addSubItem(new item.UpgradeTank(upgrades), Constants.ItemName.TankUpgrade, "oc:tankUpgrade")
+    Recipes.addSubItem(new item.UpgradeTankController(upgrades), Constants.ItemName.TankControllerUpgrade, "oc:tankControllerUpgrade")
+    Recipes.addSubItem(new item.UpgradeTractorBeam(upgrades), Constants.ItemName.TractorBeamUpgrade, "oc:tractorBeamUpgrade")
+    Recipes.addSubItem(new item.UpgradeLeash(upgrades), Constants.ItemName.LeashUpgrade, "oc:leashUpgrade")
   }
 
   // Storage media of all kinds.
@@ -418,14 +419,14 @@ object Items extends ItemAPI {
       }
     }, "storage")
 
-    Recipes.addSubItem(new item.EEPROM(storage), "eeprom", "oc:eeprom")
-    Recipes.addSubItem(new item.FloppyDisk(storage), "floppy", "oc:floppy")
-    Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.One), "hdd1", "oc:hdd1")
-    Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Two), "hdd2", "oc:hdd2")
-    Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Three), "hdd3", "oc:hdd3")
+    Recipes.addSubItem(new item.EEPROM(storage), Constants.ItemName.EEPROM, "oc:eeprom")
+    Recipes.addSubItem(new item.FloppyDisk(storage), Constants.ItemName.Floppy, "oc:floppy")
+    Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.One), Constants.ItemName.HDDTier1, "oc:hdd1")
+    Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Two), Constants.ItemName.HDDTier2, "oc:hdd2")
+    Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Three), Constants.ItemName.HDDTier3, "oc:hdd3")
 
-    Recipes.addRecipe(createLuaBios(), "luaBios")
-    Recipes.addRecipe(createOpenOS(), "openOS")
+    Recipes.addRecipe(createLuaBios(), Constants.ItemName.LuaBios)
+    Recipes.addRecipe(createOpenOS(), Constants.ItemName.OpenOS)
   }
 
   // Special purpose items that don't fit into any other category.
@@ -446,9 +447,9 @@ object Items extends ItemAPI {
       }
     }, "misc")
 
-    registerItem(new item.Tablet(misc), "tablet")
-    registerItem(new item.Drone(misc), "drone")
-    registerItem(new item.Present(misc), "present")
+    registerItem(new item.Tablet(misc), Constants.ItemName.Tablet)
+    registerItem(new item.Drone(misc), Constants.ItemName.Drone)
+    registerItem(new item.Present(misc), Constants.ItemName.Present)
   }
 
   // Items used for integration with other mods.
@@ -461,10 +462,10 @@ object Items extends ItemAPI {
 
     // Only register recipes if the related mods are present.
     if (Mods.StargateTech2.isAvailable) {
-      Recipes.addSubItem(abstractBus, "abstractBusCard", "oc:abstractBusCard")
+      Recipes.addSubItem(abstractBus, Constants.ItemName.AbstractBusCard, "oc:abstractBusCard")
     }
     if (Mods.Galacticraft.isAvailable) {
-      Recipes.addSubItem(worldSensorCard, "worldSensorCard", "oc:worldSensorCard")
+      Recipes.addSubItem(worldSensorCard, Constants.ItemName.WorldSensorCard, "oc:worldSensorCard")
     }
   }
 

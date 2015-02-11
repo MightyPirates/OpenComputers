@@ -131,10 +131,10 @@ object EventHandler {
     }
   }
 
-  lazy val drone = api.Items.get("drone")
-  lazy val eeprom = api.Items.get("eeprom")
-  lazy val mcu = api.Items.get("microcontroller")
-  lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
+  lazy val drone = api.Items.get(Constants.ItemName.Drone)
+  lazy val eeprom = api.Items.get(Constants.ItemName.EEPROM)
+  lazy val mcu = api.Items.get(Constants.BlockName.Microcontroller)
+  lazy val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
@@ -166,7 +166,7 @@ object EventHandler {
         if (Settings.get.presentChance > 0 && !didRecraft && api.Items.get(e.crafting) != null &&
           e.player.getRNG.nextFloat() < Settings.get.presentChance && timeForPresents) {
           // Presents!
-          val present = api.Items.get("present").createItemStack(1)
+          val present = api.Items.get(Constants.ItemName.Present).createItemStack(1)
           e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
           if (e.player.inventory.addItemStackToInventory(present)) {
             e.player.inventory.markDirty()

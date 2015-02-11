@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.common.Slot
@@ -14,8 +15,13 @@ object DriverMemory extends Item with driver.item.Memory {
     case _ => 0.0
   }
 
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("ram1"), api.Items.get("ram2"), api.Items.get("ram3"), api.Items.get("ram4"), api.Items.get("ram5"), api.Items.get("ram6"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.RAMTier1),
+    api.Items.get(Constants.ItemName.RAMTier2),
+    api.Items.get(Constants.ItemName.RAMTier3),
+    api.Items.get(Constants.ItemName.RAMTier4),
+    api.Items.get(Constants.ItemName.RAMTier5),
+    api.Items.get(Constants.ItemName.RAMTier6))
 
   override def createEnvironment(stack: ItemStack, host: driver.EnvironmentHost) = null
 

@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Container
@@ -10,8 +11,10 @@ import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
 object DriverContainerUpgrade extends Item with Container {
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("upgradeContainer1"), api.Items.get("upgradeContainer2"), api.Items.get("upgradeContainer3"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.UpgradeContainerTier1),
+    api.Items.get(Constants.ItemName.UpgradeContainerTier2),
+    api.Items.get(Constants.ItemName.UpgradeContainerTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 

@@ -1,5 +1,6 @@
 package li.cil.oc.common.template
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.ItemUtils
@@ -11,9 +12,9 @@ import scala.language.postfixOps
 
 object ServerTemplate {
   def selectDisassembler(stack: ItemStack) =
-    api.Items.get(stack) == api.Items.get("server1") ||
-      api.Items.get(stack) == api.Items.get("server2") ||
-      api.Items.get(stack) == api.Items.get("server3")
+    api.Items.get(stack) == api.Items.get(Constants.ItemName.ServerTier1) ||
+      api.Items.get(stack) == api.Items.get(Constants.ItemName.ServerTier2) ||
+      api.Items.get(stack) == api.Items.get(Constants.ItemName.ServerTier3)
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new ServerInventory {

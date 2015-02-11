@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -15,8 +16,10 @@ import net.minecraft.item.ItemStack
 import scala.collection.convert.WrapAsScala._
 
 object DriverCPU extends Item with Processor {
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("cpu1"), api.Items.get("cpu2"), api.Items.get("cpu3"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.CPUTier1),
+    api.Items.get(Constants.ItemName.CPUTier2),
+    api.Items.get(Constants.ItemName.CPUTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = null
 

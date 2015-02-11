@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -241,7 +242,7 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
           robot.saveComponents()
           InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), robot.info.createItemStack())
         }
-        robot.moveFrom.foreach(fromPos => if (world.getBlockState(fromPos).getBlock == api.Items.get("robotAfterimage").block) {
+        robot.moveFrom.foreach(fromPos => if (world.getBlockState(fromPos).getBlock == api.Items.get(Constants.BlockName.RobotAfterimage).block) {
           world.setBlockState(fromPos, net.minecraft.init.Blocks.air.getDefaultState, 1)
         })
       case _ =>

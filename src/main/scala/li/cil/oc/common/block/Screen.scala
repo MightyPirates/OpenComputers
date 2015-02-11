@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -90,7 +91,7 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
   def rightClick(world: World, pos: BlockPos, player: EntityPlayer,
                  side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) = {
     if (Wrench.holdsApplicableWrench(player, pos) && getValidRotations(world, pos).contains(side) && !force) false
-    else if (api.Items.get(player.getHeldItem) == api.Items.get("analyzer")) false
+    else if (api.Items.get(player.getHeldItem) == api.Items.get(Constants.ItemName.Analyzer)) false
     else world.getTileEntity(pos) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this

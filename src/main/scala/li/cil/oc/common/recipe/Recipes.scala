@@ -120,11 +120,11 @@ object Recipes {
       }
 
       // Recrafting operations.
-      val navigationUpgrade = api.Items.get("navigationUpgrade")
-      val mcu = api.Items.get("microcontroller")
-      val floppy = api.Items.get("floppy")
-      val drone = api.Items.get("drone")
-      val eeprom = api.Items.get("eeprom")
+      val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
+      val mcu = api.Items.get(Constants.BlockName.Microcontroller)
+      val floppy = api.Items.get(Constants.ItemName.Floppy)
+      val drone = api.Items.get(Constants.ItemName.Drone)
+      val eeprom = api.Items.get(Constants.ItemName.EEPROM)
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(

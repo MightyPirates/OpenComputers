@@ -3,6 +3,7 @@ package li.cil.oc.common.entity
 import java.lang.Iterable
 import java.util.UUID
 
+import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -353,7 +354,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       machine.node.remove()
       components.disconnectComponents()
       components.saveComponents()
-      val stack = api.Items.get("drone").createItemStack(1)
+      val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
       info.storedEnergy = control.node.localBuffer.toInt
       info.save(stack)
       val entity = new EntityItem(world, posX, posY, posZ, stack)

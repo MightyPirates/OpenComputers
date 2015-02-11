@@ -1,5 +1,6 @@
 package li.cil.oc.common.template
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -18,15 +19,15 @@ import net.minecraftforge.fml.common.event.FMLInterModComms
 
 object DroneTemplate extends Template {
   override protected val suggestedComponents = Array(
-    "BIOS" -> hasComponent("eeprom") _)
+    "BIOS" -> hasComponent(Constants.ItemName.EEPROM) _)
 
   override protected def hostClass = classOf[internal.Drone]
 
-  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("droneCase1")
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.DroneCaseTier1)
 
-  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("droneCase2")
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.DroneCaseTier2)
 
-  def selectTierCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("droneCaseCreative")
+  def selectTierCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.DroneCaseCreative)
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
@@ -37,18 +38,18 @@ object DroneTemplate extends Template {
     data.name = RobotData.randomName
     data.components = items.drop(1).filter(_ != null).toArray
     data.storedEnergy = Settings.get.bufferDrone.toInt
-    val stack = api.Items.get("drone").createItemStack(1)
+    val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
     data.save(stack)
     val energy = Settings.get.droneBaseCost + complexity(inventory) * Settings.get.droneComplexityCost
 
     Array(stack, double2Double(energy))
   }
 
-  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("drone")
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.Drone)
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new MicrocontrollerData(stack)
-    val itemName = ItemUtils.caseNameWithTierSuffix("droneCase", info.tier)
+    val itemName = Constants.ItemName.DroneCase(info.tier)
 
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.components
   }

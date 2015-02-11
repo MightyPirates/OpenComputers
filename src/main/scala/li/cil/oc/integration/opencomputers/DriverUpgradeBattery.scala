@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
@@ -11,8 +12,10 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object DriverUpgradeBattery extends Item with HostAware {
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("batteryUpgrade1"), api.Items.get("batteryUpgrade2"), api.Items.get("batteryUpgrade3"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.BatteryUpgradeTier1),
+    api.Items.get(Constants.ItemName.BatteryUpgradeTier2),
+    api.Items.get(Constants.ItemName.BatteryUpgradeTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.UpgradeBattery(tier(stack))
 
