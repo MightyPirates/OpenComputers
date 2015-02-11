@@ -14,7 +14,7 @@ class Assembler extends SimpleBlock with traits.PowerAcceptor with traits.StateA
 
   override def isOpaqueCube = false
 
-  override def isVisuallyOpaque = super.isVisuallyOpaque
+  override def isFullCube = false
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.DOWN || side == EnumFacing.UP
 

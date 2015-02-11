@@ -30,6 +30,10 @@ class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rot
     }
   }
 
+  override def isOpaqueCube = false
+
+  override def isFullCube = false
+
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.SOUTH
 
   override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
