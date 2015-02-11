@@ -1,6 +1,7 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.item.data.NavigationUpgradeData
 import net.minecraft.item.ItemStack
@@ -9,7 +10,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.language.postfixOps
 
 object NavigationUpgradeTemplate {
-  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("navigationUpgrade")
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.NavigationUpgrade)
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new NavigationUpgradeData(stack)

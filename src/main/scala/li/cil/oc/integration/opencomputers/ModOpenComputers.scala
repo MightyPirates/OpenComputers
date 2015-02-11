@@ -2,6 +2,7 @@ package li.cil.oc.integration.opencomputers
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event.FMLInterModComms
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -102,87 +103,87 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTractorBeam)
 
     blacklistHost(classOf[internal.Adapter],
-      "geolyzer",
-      "keyboard",
-      "screen1",
-      "angelUpgrade",
-      "batteryUpgrade1",
-      "batteryUpgrade2",
-      "batteryUpgrade3",
-      "chunkloaderUpgrade",
-      "craftingUpgrade",
-      "experienceUpgrade",
-      "generatorUpgrade",
-      "inventoryUpgrade",
-      "navigationUpgrade",
-      "pistonUpgrade",
-      "solarGeneratorUpgrade",
-      "tankUpgrade",
-      "tractorBeamUpgrade",
-      "leashUpgrade")
+      Constants.BlockName.Geolyzer,
+      Constants.BlockName.Keyboard,
+      Constants.BlockName.ScreenTier1,
+      Constants.ItemName.AngelUpgrade,
+      Constants.ItemName.BatteryUpgradeTier1,
+      Constants.ItemName.BatteryUpgradeTier2,
+      Constants.ItemName.BatteryUpgradeTier3,
+      Constants.ItemName.ChunkloaderUpgrade,
+      Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.ExperienceUpgrade,
+      Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.InventoryUpgrade,
+      Constants.ItemName.NavigationUpgrade,
+      Constants.ItemName.PistonUpgrade,
+      Constants.ItemName.SolarGeneratorUpgrade,
+      Constants.ItemName.TankUpgrade,
+      Constants.ItemName.TractorBeamUpgrade,
+      Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Drone],
-      "graphicsCard1",
-      "graphicsCard2",
-      "graphicsCard3",
-      "keyboard",
-      "lanCard",
-      "redstoneCard1",
-      "screen1",
-      "angelUpgrade",
-      "craftingUpgrade",
-      "experienceUpgrade")
+      Constants.ItemName.GraphicsCardTier1,
+      Constants.ItemName.GraphicsCardTier2,
+      Constants.ItemName.GraphicsCardTier3,
+      Constants.BlockName.Keyboard,
+      Constants.ItemName.NetworkCard,
+      Constants.ItemName.RedstoneCardTier1,
+      Constants.BlockName.ScreenTier1,
+      Constants.ItemName.AngelUpgrade,
+      Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.ExperienceUpgrade)
     blacklistHost(classOf[internal.Microcontroller],
-      "graphicsCard1",
-      "graphicsCard2",
-      "graphicsCard3",
-      "keyboard",
-      "screen1",
-      "angelUpgrade",
-      "chunkloaderUpgrade",
-      "craftingUpgrade",
-      "databaseUpgrade1",
-      "databaseUpgrade2",
-      "databaseUpgrade3",
-      "experienceUpgrade",
-      "generatorUpgrade",
-      "inventoryUpgrade",
-      "inventoryControllerUpgrade",
-      "navigationUpgrade",
-      "tankUpgrade",
-      "tankControllerUpgrade",
-      "tractorBeamUpgrade",
-      "leashUpgrade")
+      Constants.ItemName.GraphicsCardTier1,
+      Constants.ItemName.GraphicsCardTier2,
+      Constants.ItemName.GraphicsCardTier3,
+      Constants.BlockName.Keyboard,
+      Constants.BlockName.ScreenTier1,
+      Constants.ItemName.AngelUpgrade,
+      Constants.ItemName.ChunkloaderUpgrade,
+      Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.DatabaseUpgradeTier1,
+      Constants.ItemName.DatabaseUpgradeTier2,
+      Constants.ItemName.DatabaseUpgradeTier3,
+      Constants.ItemName.ExperienceUpgrade,
+      Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.InventoryUpgrade,
+      Constants.ItemName.InventoryControllerUpgrade,
+      Constants.ItemName.NavigationUpgrade,
+      Constants.ItemName.TankUpgrade,
+      Constants.ItemName.TankControllerUpgrade,
+      Constants.ItemName.TractorBeamUpgrade,
+      Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Robot],
-      "leashUpgrade")
+      Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Tablet],
-      "lanCard",
-      "redstoneCard1",
-      "screen1",
-      "angelUpgrade",
-      "chunkloaderUpgrade",
-      "craftingUpgrade",
-      "databaseUpgrade1",
-      "databaseUpgrade2",
-      "databaseUpgrade3",
-      "experienceUpgrade",
-      "generatorUpgrade",
-      "inventoryUpgrade",
-      "inventoryControllerUpgrade",
-      "tankUpgrade",
-      "tankControllerUpgrade",
-      "leashUpgrade")
+      Constants.ItemName.NetworkCard,
+      Constants.ItemName.RedstoneCardTier1,
+      Constants.BlockName.ScreenTier1,
+      Constants.ItemName.AngelUpgrade,
+      Constants.ItemName.ChunkloaderUpgrade,
+      Constants.ItemName.CraftingUpgrade,
+      Constants.ItemName.DatabaseUpgradeTier1,
+      Constants.ItemName.DatabaseUpgradeTier2,
+      Constants.ItemName.DatabaseUpgradeTier3,
+      Constants.ItemName.ExperienceUpgrade,
+      Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.InventoryUpgrade,
+      Constants.ItemName.InventoryControllerUpgrade,
+      Constants.ItemName.TankUpgrade,
+      Constants.ItemName.TankControllerUpgrade,
+      Constants.ItemName.LeashUpgrade)
 
     if (!WirelessRedstone.isAvailable) {
-      blacklistHost(classOf[internal.Drone], "redstoneCard2")
-      blacklistHost(classOf[internal.Tablet], "redstoneCard2")
+      blacklistHost(classOf[internal.Drone], Constants.ItemName.RedstoneCardTier2)
+      blacklistHost(classOf[internal.Tablet], Constants.ItemName.RedstoneCardTier2)
     }
 
-    // Note: kinda nasty, but we have to check for availabilty for extended
+    // Note: kinda nasty, but we have to check for availability for extended
     // redstone mods after integration init, so we have to set tier two
     // redstone card availability here, after all other mods were inited.
     if (BundledRedstone.isAvailable || WirelessRedstone.isAvailable) {
       OpenComputers.log.info("Found extended redstone mods, enabling tier two redstone card.")
-      Items.multi.subItem(api.Items.get("redstoneCard2").createItemStack(1)) match {
+      Items.multi.subItem(api.Items.get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)) match {
         case Some(redstone: RedstoneCard) => redstone.showInItemList = true
         case _ =>
       }

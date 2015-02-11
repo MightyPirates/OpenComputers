@@ -227,12 +227,12 @@ object EventHandler {
     keyboards.foreach(_.releasePressedKeys(e.player))
   }
 
-  lazy val drone = api.Items.get("drone")
-  lazy val eeprom = api.Items.get("eeprom")
-  lazy val mcu = api.Items.get("microcontroller")
-  lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
-  lazy val robot = api.Items.get("robot")
-  lazy val tablet = api.Items.get("tablet")
+  lazy val drone = api.Items.get(Constants.ItemName.Drone)
+  lazy val eeprom = api.Items.get(Constants.ItemName.EEPROM)
+  lazy val mcu = api.Items.get(Constants.BlockName.Microcontroller)
+  lazy val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
+  lazy val robot = api.Items.get(Constants.BlockName.Robot)
+  lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
@@ -274,7 +274,7 @@ object EventHandler {
         if (Settings.get.presentChance > 0 && !didRecraft && api.Items.get(e.crafting) != null &&
           e.player.getRNG.nextFloat() < Settings.get.presentChance && timeForPresents) {
           // Presents!
-          val present = api.Items.get("present").createItemStack(1)
+          val present = api.Items.get(Constants.ItemName.Present).createItemStack(1)
           e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
           InventoryUtils.addToPlayerInventory(present, e.player)
         }
@@ -295,6 +295,13 @@ object EventHandler {
       (month == Calendar.MAY && dayOfMonth == 1) ||
       (month == Calendar.OCTOBER && dayOfMonth == 3) ||
       (month == Calendar.DECEMBER && dayOfMonth == 14)
+  }
+
+  def isItTime = {
+    val now = Calendar.getInstance()
+    val month = now.get(Calendar.MONTH)
+    val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
+    month == Calendar.APRIL && dayOfMonth == 1
   }
 
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {

@@ -2,13 +2,14 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
 
 trait TextBuffer extends Environment {
   lazy val buffer = {
-    val screenItem = api.Items.get("screen1").createItemStack(1)
+    val screenItem = api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1)
     val buffer = api.Driver.driverFor(screenItem, getClass).createEnvironment(screenItem, this).asInstanceOf[api.component.TextBuffer]
     val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(tier)
     buffer.setMaximumResolution(maxWidth, maxHeight)

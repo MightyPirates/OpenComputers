@@ -1,6 +1,7 @@
 package li.cil.oc.integration.opencomputers
 
 import li.cil.oc
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
@@ -13,8 +14,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object DriverFileSystem extends Item {
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"), api.Items.get("floppy"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.HDDTier1),
+    api.Items.get(Constants.ItemName.HDDTier2),
+    api.Items.get(Constants.ItemName.HDDTier3),
+    api.Items.get(Constants.ItemName.Floppy))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     Items.multi.subItem(stack) match {
@@ -41,7 +45,7 @@ object DriverFileSystem extends Item {
     // node's address as the folder name... so we generate the address here,
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(dataTag(stack))
-    val isFloppy = api.Items.get(stack) == api.Items.get("floppy")
+    val isFloppy = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy)
     val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
     val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ReadWriteItemLabel(stack), host, Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access"))
     if (environment != null && environment.node != null) {

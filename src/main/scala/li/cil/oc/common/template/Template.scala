@@ -1,5 +1,6 @@
 package li.cil.oc.common.template
 
+import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -18,10 +19,10 @@ import scala.collection.mutable
 
 abstract class Template {
   protected val suggestedComponents = Array(
-    "BIOS" -> hasComponent("eeprom") _,
-    "Screen" -> hasComponent("screen1") _,
-    "Keyboard" -> hasComponent("keyboard") _,
-    "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
+    "BIOS" -> hasComponent(Constants.ItemName.EEPROM) _,
+    "Screen" -> hasComponent(Constants.BlockName.ScreenTier1) _,
+    "Keyboard" -> hasComponent(Constants.BlockName.Keyboard) _,
+    "GraphicsCard" -> ((inventory: IInventory) => Array(Constants.ItemName.GraphicsCardTier1, Constants.ItemName.GraphicsCardTier2, Constants.ItemName.GraphicsCardTier3).exists(name => hasComponent(name)(inventory))),
     "Inventory" -> hasInventory _,
     "OS" -> hasFileSystem _)
 

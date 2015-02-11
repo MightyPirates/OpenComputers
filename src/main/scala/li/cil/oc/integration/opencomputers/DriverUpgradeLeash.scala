@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
@@ -11,8 +12,8 @@ import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 
 object DriverUpgradeLeash extends Item with HostAware with EnvironmentAware {
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("leashUpgrade"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.LeashUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
     case entity: Entity => new component.UpgradeLeash(entity)

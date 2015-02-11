@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.Textures
@@ -24,7 +25,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
   private var screen: Screen = null
 
-  private lazy val screens = Set(api.Items.get("screen1"), api.Items.get("screen2"), api.Items.get("screen3"))
+  private lazy val screens = Set(
+    api.Items.get(Constants.BlockName.ScreenTier1),
+    api.Items.get(Constants.BlockName.ScreenTier2),
+    api.Items.get(Constants.BlockName.ScreenTier3))
 
   private val canUseBlendColor = GLContext.getCapabilities.OpenGL14
 

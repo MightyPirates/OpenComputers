@@ -2,6 +2,7 @@ package li.cil.oc.common.recipe
 
 import java.util.UUID
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
@@ -23,20 +24,20 @@ import scala.collection.convert.WrapAsScala._
 import scala.util.control.Breaks._
 
 object ExtendedRecipe {
-  private lazy val drone = api.Items.get("drone")
-  private lazy val eeprom = api.Items.get("eeprom")
+  private lazy val drone = api.Items.get(Constants.ItemName.Drone)
+  private lazy val eeprom = api.Items.get(Constants.ItemName.EEPROM)
   private lazy val luaBios = Items.createLuaBios()
-  private lazy val mcu = api.Items.get("microcontroller")
-  private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
-  private lazy val linkedCard = api.Items.get("linkedCard")
-  private lazy val floppy = api.Items.get("floppy")
+  private lazy val mcu = api.Items.get(Constants.BlockName.Microcontroller)
+  private lazy val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
+  private lazy val linkedCard = api.Items.get(Constants.ItemName.LinkedCard)
+  private lazy val floppy = api.Items.get(Constants.ItemName.Floppy)
   private lazy val hdds = Array(
-    api.Items.get("hdd1"),
-    api.Items.get("hdd2"),
-    api.Items.get("hdd3")
+    api.Items.get(Constants.ItemName.HDDTier1),
+    api.Items.get(Constants.ItemName.HDDTier2),
+    api.Items.get(Constants.ItemName.HDDTier3)
   )
-  private lazy val robot = api.Items.get("robot")
-  private lazy val tablet = api.Items.get("tablet")
+  private lazy val robot = api.Items.get(Constants.BlockName.Robot)
+  private lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
   private lazy val print = api.Items.get("print")
   private lazy val disabled = {
     val stack = new ItemStack(Blocks.dirt)

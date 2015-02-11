@@ -122,14 +122,14 @@ object Recipes {
       }
 
       // Recrafting operations.
-      val navigationUpgrade = api.Items.get("navigationUpgrade")
-      val mcu = api.Items.get("microcontroller")
-      val floppy = api.Items.get("floppy")
+      val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
+      val mcu = api.Items.get(Constants.BlockName.Microcontroller)
+      val floppy = api.Items.get(Constants.ItemName.Floppy)
       val lootDisk = api.Items.get("lootDisk")
-      val drone = api.Items.get("drone")
-      val eeprom = api.Items.get("eeprom")
-      val robot = api.Items.get("robot")
-      val tablet = api.Items.get("tablet")
+      val drone = api.Items.get(Constants.ItemName.Drone)
+      val eeprom = api.Items.get(Constants.ItemName.EEPROM)
+      val robot = api.Items.get(Constants.BlockName.Robot)
+      val tablet = api.Items.get(Constants.ItemName.Tablet)
       val chamelium = api.Items.get("chamelium")
       val chameliumBlock = api.Items.get("chameliumBlock")
       val print = api.Items.get("print")

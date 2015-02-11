@@ -1,5 +1,6 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.Tier
@@ -41,7 +42,7 @@ class MicrocontrollerData extends ItemData {
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("microcontroller").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Microcontroller).createItemStack(1)
     save(stack)
     stack
   }

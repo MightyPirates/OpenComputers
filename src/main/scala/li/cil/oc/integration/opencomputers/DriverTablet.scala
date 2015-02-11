@@ -1,5 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
@@ -10,8 +11,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
 object DriverTablet extends Item {
-  override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("tablet"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack,
+    api.Items.get(Constants.ItemName.Tablet))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
     val data = new TabletData(stack)
