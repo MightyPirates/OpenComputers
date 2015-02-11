@@ -40,6 +40,8 @@ class Item(value: Block) extends ItemBlock(value) {
     api.Items.get(Constants.BlockName.ScreenTier3)
   )
 
+  private lazy val Robot = api.Items.get(Constants.BlockName.Robot)
+
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
     (block, tooltip) match {
@@ -63,6 +65,8 @@ class Item(value: Block) extends ItemBlock(value) {
       Color.rgbValues(EnumDyeColor.byDyeDamage(tintIndex))
     else if (Cases.contains(api.Items.get(stack)))
       Color.rgbValues(Color.byTier(ItemUtils.caseTier(stack)))
+    else if (api.Items.get(stack) == Robot)
+      tintIndex
     else super.getColorFromItemStack(stack, tintIndex)
   }
 

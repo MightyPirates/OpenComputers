@@ -43,7 +43,7 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
     r.startDrawingQuads()
 
     {
-      val icon = Textures.Block.getSprite(Textures.Block.MicrocontrollerFrontLight)
+      val icon = Textures.getSprite(Textures.Block.MicrocontrollerFrontLight)
       r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
       r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
       r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
@@ -51,7 +51,7 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
     }
 
     if (mcu.isRunning) {
-      val icon = Textures.Block.getSprite(Textures.Block.MicrocontrollerFrontOn)
+      val icon = Textures.getSprite(Textures.Block.MicrocontrollerFrontOn)
       r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
       r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
       r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)

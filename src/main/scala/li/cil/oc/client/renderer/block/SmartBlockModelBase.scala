@@ -34,7 +34,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   // Note: we don't care about the actual texture here, we just need the block
   // texture atlas. So any of our textures we know is loaded into it will do.
-  override def getTexture = Textures.Block.getSprite(Textures.Block.CableCap)
+  override def getTexture = Textures.getSprite(Textures.Block.CableCap)
 
   override def getItemCameraTransforms = DefaultBlockCameraTransforms
 
@@ -76,7 +76,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     (new Vec3(0, 0, -1), new Vec3(0, -1, 0))
   )
 
-  private final val NoTint = -1
+  protected final val NoTint = -1
 
   /**
    * Generates a list of arrays, each containing the four vertices making up a
@@ -136,31 +136,31 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
         u = v
         v = (-(tmp - 0.5)) + 0.5
       }
-      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, facing, texture, u, v)
+      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, facing, texture, texture.getInterpolatedU(u * 16), texture.getInterpolatedV(v * 16))
     }).flatten
   }
 
   // See FaceBakery#storeVertexData.
-  private def rawData(x: Double, y: Double, z: Double, face: EnumFacing, texture: TextureAtlasSprite, u: Double, v: Double) = {
+  protected def rawData(x: Double, y: Double, z: Double, face: EnumFacing, texture: TextureAtlasSprite, u: Float, v: Float) = {
     Array(
       java.lang.Float.floatToRawIntBits(x.toFloat),
       java.lang.Float.floatToRawIntBits(y.toFloat),
       java.lang.Float.floatToRawIntBits(z.toFloat),
       getFaceShadeColor(face),
-      java.lang.Float.floatToRawIntBits(texture.getInterpolatedU(u * 16)),
-      java.lang.Float.floatToRawIntBits(texture.getInterpolatedV(v * 16)),
+      java.lang.Float.floatToRawIntBits(u),
+      java.lang.Float.floatToRawIntBits(v),
       0
     )
   }
 
   // See FaceBakery.
-  private def getFaceShadeColor(face: EnumFacing): Int = {
+  protected def getFaceShadeColor(face: EnumFacing): Int = {
     val brightness = getFaceBrightness(face)
     val color = (brightness * 255).toInt max 0 min 255
     0xFF000000 | color << 16 | color << 8 | color
   }
 
-  private def getFaceBrightness(face: EnumFacing): Float = {
+  protected def getFaceBrightness(face: EnumFacing): Float = {
     face match {
       case EnumFacing.DOWN => 0.5f
       case EnumFacing.UP => 1.0f

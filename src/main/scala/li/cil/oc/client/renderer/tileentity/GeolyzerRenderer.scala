@@ -31,7 +31,7 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer {
     Textures.Block.bind()
     r.startDrawingQuads()
 
-    val icon = Textures.Block.getSprite(Textures.Block.GeolyzerTopOn)
+    val icon = Textures.getSprite(Textures.Block.GeolyzerTopOn)
     r.addVertexWithUV(0, 0, 1, icon.getMinU, icon.getMaxV)
     r.addVertexWithUV(1, 0, 1, icon.getMaxU, icon.getMaxV)
     r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)

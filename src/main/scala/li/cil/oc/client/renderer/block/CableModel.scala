@@ -62,9 +62,9 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
     makeBox(new Vec3(10 / 16f, 6 / 16f, 6 / 16f), new Vec3(11 / 16f, 10 / 16f, 10 / 16f))
   )
 
-  protected def cableTexture = Textures.Block.getSprite(Textures.Block.Cable)
+  protected def cableTexture = Textures.getSprite(Textures.Block.Cable)
 
-  protected def cableCapTexture = Textures.Block.getSprite(Textures.Block.CableCap)
+  protected def cableCapTexture = Textures.getSprite(Textures.Block.CableCap)
 
   class BlockModel(val state: IExtendedBlockState) extends SmartBlockModelBase {
     override def getGeneralQuads =

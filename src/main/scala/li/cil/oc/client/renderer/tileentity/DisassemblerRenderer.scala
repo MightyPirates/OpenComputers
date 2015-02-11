@@ -33,7 +33,7 @@ object DisassemblerRenderer extends TileEntitySpecialRenderer {
       r.startDrawingQuads()
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.DisassemblerTopOn)
+        val icon = Textures.getSprite(Textures.Block.DisassemblerTopOn)
         r.addVertexWithUV(0, 0, 1, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(1, 0, 1, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
@@ -41,7 +41,7 @@ object DisassemblerRenderer extends TileEntitySpecialRenderer {
       }
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.DisassemblerSideOn)
+        val icon = Textures.getSprite(Textures.Block.DisassemblerSideOn)
         r.addVertexWithUV(1, 1, 0, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(0, 1, 0, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(0, 0, 0, icon.getMaxU, icon.getMinV)

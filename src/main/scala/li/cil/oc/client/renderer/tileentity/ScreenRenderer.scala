@@ -134,7 +134,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
         Textures.Block.bind()
         r.startDrawingQuads()
 
-        val icon = Textures.Block.getSprite(Textures.Block.ScreenUpIndicator)
+        val icon = Textures.getSprite(Textures.Block.ScreenUpIndicator)
         r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)

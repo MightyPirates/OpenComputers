@@ -46,7 +46,7 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
       val fs = 3 / 16f
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.RackFrontOn)
+        val icon = Textures.getSprite(Textures.Block.RackFrontOn)
         for (i <- 0 until 4 if rack.isRunning(i)) {
           val l = v1 + i * fs
           val h = v1 + (i + 1) * fs
@@ -59,7 +59,7 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
       }
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.RackFrontActivity)
+        val icon = Textures.getSprite(Textures.Block.RackFrontActivity)
         for (i <- 0 until 4 if System.currentTimeMillis() - rack.lastAccess(i) < 400 && rack.world.rand.nextDouble() > 0.1) {
           val l = v1 + i * fs
           val h = v1 + (i + 1) * fs

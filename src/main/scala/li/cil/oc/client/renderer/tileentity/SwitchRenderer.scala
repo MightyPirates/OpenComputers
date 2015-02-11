@@ -35,7 +35,7 @@ object SwitchRenderer extends TileEntitySpecialRenderer {
       Textures.Block.bind()
       r.startDrawingQuads()
 
-      val icon = Textures.Block.getSprite(Textures.Block.SwitchSideOn)
+      val icon = Textures.getSprite(Textures.Block.SwitchSideOn)
       r.addVertexWithUV(1, 1, 0, icon.getMinU, icon.getMaxV)
       r.addVertexWithUV(0, 1, 0, icon.getMaxU, icon.getMaxV)
       r.addVertexWithUV(0, 0, 0, icon.getMaxU, icon.getMinV)

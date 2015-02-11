@@ -35,7 +35,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       r.startDrawingQuads()
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.PowerDistributorTopOn)
+        val icon = Textures.getSprite(Textures.Block.PowerDistributorTopOn)
         r.addVertexWithUV(0, 0, 1, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(1, 0, 1, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
@@ -43,7 +43,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       }
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.PowerDistributorSideOn)
+        val icon = Textures.getSprite(Textures.Block.PowerDistributorSideOn)
         r.startDrawingQuads()
         r.addVertexWithUV(1, 1, 0, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(0, 1, 0, icon.getMaxU, icon.getMaxV)

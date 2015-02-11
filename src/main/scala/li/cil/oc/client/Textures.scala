@@ -485,8 +485,6 @@ object Textures {
 
     def bind(): Unit = Textures.bind(TextureMap.locationBlocksTexture)
 
-    def getSprite(location: ResourceLocation) = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location.toString)
-
     override protected def basePath = "blocks/%s"
 
     override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
@@ -504,6 +502,8 @@ object Textures {
       GL11.glBindTexture (GL11.GL_TEXTURE_2D, texture.getGlTextureId)
     }
   }
+
+  def getSprite(location: ResourceLocation) = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location.toString)
 
   @SubscribeEvent
   def onTextureStitchPre(e: TextureStitchEvent.Pre): Unit = {

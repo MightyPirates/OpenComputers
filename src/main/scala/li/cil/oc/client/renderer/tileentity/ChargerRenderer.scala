@@ -45,7 +45,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
 
       {
         val inverse = 1 - charger.chargeSpeed
-        val icon = Textures.Block.getSprite(Textures.Block.ChargerFrontOn)
+        val icon = Textures.getSprite(Textures.Block.ChargerFrontOn)
         r.addVertexWithUV(0, 1, 0.005, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(1, 1, 0.005, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(1, inverse, 0.005, icon.getMaxU, icon.getInterpolatedV(inverse * 16))
@@ -53,7 +53,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
       }
 
       if (charger.hasPower) {
-        val icon = Textures.Block.getSprite(Textures.Block.ChargerSideOn)
+        val icon = Textures.getSprite(Textures.Block.ChargerSideOn)
 
         r.addVertexWithUV(-0.005, 1, -1, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(-0.005, 1, 0, icon.getMaxU, icon.getMaxV)

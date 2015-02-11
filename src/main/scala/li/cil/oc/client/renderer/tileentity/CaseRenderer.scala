@@ -44,7 +44,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       r.startDrawingQuads()
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.CaseFrontOn)
+        val icon = Textures.getSprite(Textures.Block.CaseFrontOn)
         r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
@@ -52,7 +52,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       }
 
       if (System.currentTimeMillis() - computer.lastAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
-        val icon = Textures.Block.getSprite(Textures.Block.CaseFrontActivity)
+        val icon = Textures.getSprite(Textures.Block.CaseFrontActivity)
         r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)

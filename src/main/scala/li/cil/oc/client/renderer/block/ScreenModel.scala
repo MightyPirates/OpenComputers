@@ -7,7 +7,6 @@ import li.cil.oc.common.block
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
 import net.minecraft.block.state.IBlockState
-import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.client.model.ISmartItemModel
@@ -68,7 +67,7 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
                 Textures.Block.Screen.Multi(pitch)(py)(px)(facing.getIndex)
             }
 
-          seqAsJavaList(Seq(bakeQuad(side, Textures.Block.getSprite(texture), Some(screen.color), rotation)))
+          seqAsJavaList(Seq(bakeQuad(side, Textures.getSprite(texture), Some(screen.color), rotation)))
         case _ => super.getFaceQuads(side)
       }
 
@@ -88,7 +87,7 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
           Textures.Block.Screen.SingleFront(0)
         else
           Textures.Block.Screen.Single(side.ordinal())
-      seqAsJavaList(Seq(bakeQuad(side, Textures.Block.getSprite(result), Some(color), 0)))
+      seqAsJavaList(Seq(bakeQuad(side, Textures.getSprite(result), Some(color), 0)))
     }
   }
 

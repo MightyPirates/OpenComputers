@@ -33,7 +33,7 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
     r.startDrawingQuads()
 
     {
-      val icon = Textures.Block.getSprite(Textures.Block.AssemblerTopOn)
+      val icon = Textures.getSprite(Textures.Block.AssemblerTopOn)
       r.addVertexWithUV(-0.5, 0.55, 0.5, icon.getMinU, icon.getMaxV)
       r.addVertexWithUV(0.5, 0.55, 0.5, icon.getMaxU, icon.getMaxV)
       r.addVertexWithUV(0.5, 0.55, -0.5, icon.getMaxU, icon.getMinV)
@@ -48,7 +48,7 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
       r.startDrawingQuads()
 
       if (assembler.isAssembling) {
-        val icon = Textures.Block.getSprite(Textures.Block.AssemblerSideAssembling)
+        val icon = Textures.getSprite(Textures.Block.AssemblerSideAssembling)
         r.addVertexWithUV(indent, 0.5, -indent, icon.getInterpolatedU((0.5 - indent) * 16), icon.getMaxV)
         r.addVertexWithUV(indent, 0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMaxV)
         r.addVertexWithUV(indent, -0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMinV)
@@ -56,7 +56,7 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
       }
 
       {
-        val icon = Textures.Block.getSprite(Textures.Block.AssemblerSideOn)
+        val icon = Textures.getSprite(Textures.Block.AssemblerSideOn)
         r.addVertexWithUV(0.5005, 0.5, -0.5, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(0.5005, 0.5, 0.5, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(0.5005, -0.5, 0.5, icon.getMaxU, icon.getMinV)
