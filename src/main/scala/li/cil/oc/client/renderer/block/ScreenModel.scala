@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.block
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.client.Textures
 import li.cil.oc.common.Tier
@@ -24,7 +25,7 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
 
   class BlockModel(val state: IExtendedBlockState) extends SmartBlockModelBase {
     override def getFaceQuads(side: EnumFacing) =
-      state.getValue(block.Screen.Tile) match {
+      state.getValue(block.property.PropertyTile.Tile) match {
         case screen: tileentity.Screen =>
           val facing = screen.toLocal(side)
 
@@ -76,8 +77,8 @@ object ScreenModel extends SmartBlockModelBase with ISmartItemModel {
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
     val color = api.Items.get(stack).name() match {
-      case "screen2" => Color.byTier(Tier.Two)
-      case "screen3" => Color.byTier(Tier.Three)
+      case Constants.BlockName.ScreenTier2 => Color.byTier(Tier.Two)
+      case Constants.BlockName.ScreenTier3 => Color.byTier(Tier.Three)
       case _ => Color.byTier(Tier.One)
     }
 

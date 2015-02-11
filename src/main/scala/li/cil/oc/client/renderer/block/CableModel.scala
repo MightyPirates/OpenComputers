@@ -21,12 +21,26 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 object CableModel extends SmartBlockModelBase with ISmartItemModel {
+  final val ItemModel = new SmartBlockModelBase {
+    override def getGeneralQuads = {
+      val faces = mutable.ArrayBuffer.empty[BakedQuad]
+
+      faces ++= bakeQuads(Middle, cableTexture, Some(EnumDyeColor.SILVER))
+      faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(EnumDyeColor.SILVER))
+      faces ++= bakeQuads(Connected(1)._2, cableTexture, Some(EnumDyeColor.SILVER))
+      faces ++= bakeQuads(Connected(0)._1, cableCapTexture, None)
+      faces ++= bakeQuads(Connected(1)._1, cableCapTexture, None)
+
+      bufferAsJavaList(faces)
+    }
+  }
+
   override def handleBlockState(state: IBlockState) = state match {
     case extended: IExtendedBlockState => new BlockModel(extended)
     case _ => missingModel
   }
 
-  override def handleItemState(stack: ItemStack) = new ItemModel(stack)
+  override def handleItemState(stack: ItemStack) = ItemModel
 
   protected final val Middle = makeBox(new Vec3(6 / 16f, 6 / 16f, 6 / 16f), new Vec3(10 / 16f, 10 / 16f, 10 / 16f))
 
@@ -62,9 +76,9 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
     makeBox(new Vec3(10 / 16f, 6 / 16f, 6 / 16f), new Vec3(11 / 16f, 10 / 16f, 10 / 16f))
   )
 
-  protected def cableTexture = Textures.getSprite(Textures.Block.Cable)
+  protected def cableTexture = Array.fill(6)(Textures.getSprite(Textures.Block.Cable))
 
-  protected def cableCapTexture = Textures.getSprite(Textures.Block.CableCap)
+  protected def cableCapTexture = Array.fill(6)(Textures.getSprite(Textures.Block.CableCap))
 
   class BlockModel(val state: IExtendedBlockState) extends SmartBlockModelBase {
     override def getGeneralQuads =
@@ -109,20 +123,6 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
     /* TODO FMP
       tileEntity.isInstanceOf[TileMultipart]
     */
-  }
-
-  class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
-    override def getGeneralQuads = {
-      val faces = mutable.ArrayBuffer.empty[BakedQuad]
-
-      faces ++= bakeQuads(Middle, cableTexture, Some(EnumDyeColor.SILVER))
-      faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(EnumDyeColor.SILVER))
-      faces ++= bakeQuads(Connected(1)._2, cableTexture, Some(EnumDyeColor.SILVER))
-      faces ++= bakeQuads(Connected(0)._1, cableCapTexture, None)
-      faces ++= bakeQuads(Connected(1)._1, cableCapTexture, None)
-
-      bufferAsJavaList(faces)
-    }
   }
 
 }

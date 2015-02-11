@@ -34,7 +34,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   // Note: we don't care about the actual texture here, we just need the block
   // texture atlas. So any of our textures we know is loaded into it will do.
-  override def getTexture = Textures.getSprite(Textures.Block.CableCap)
+  override def getTexture = Textures.getSprite(Textures.Block.GenericTop)
 
   override def getItemCameraTransforms = DefaultBlockCameraTransforms
 
@@ -100,11 +100,11 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
    * <p/>
    * Usually used to generate the quads for a cube previously generated using makeBox().
    */
-  protected def bakeQuads(box: Array[Array[Vec3]], texture: TextureAtlasSprite, color: Option[EnumDyeColor]) = {
+  protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], color: Option[EnumDyeColor]) = {
     val tintIndex = color.fold(NoTint)(_.getDyeDamage)
     EnumFacing.values.map(side => {
       val vertices = box(side.getIndex)
-      val data = quadData(vertices, side, texture, 0)
+      val data = quadData(vertices, side, texture(side.getIndex), 0)
       new BakedQuad(data, tintIndex, side)
     })
   }

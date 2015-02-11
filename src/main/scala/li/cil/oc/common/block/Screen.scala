@@ -32,10 +32,6 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.mutable.ArrayBuffer
 
-object Screen {
-  final val Tile = new property.PropertyTile()
-}
-
 class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
   setLightLevel(0.34f)
 
@@ -45,14 +41,14 @@ class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
 
   override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
     (state, world.getTileEntity(pos)) match {
-      case (extendedState: IExtendedBlockState, screen: tileentity.Screen) =>
-        super.addExtendedState(extendedState.withProperty(Screen.Tile, screen), world, pos)
+      case (extendedState: IExtendedBlockState, tile: tileentity.traits.TileEntity) =>
+        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, tile), world, pos)
       case _ => None
     }
 
   override protected def createProperties(listed: ArrayBuffer[IProperty], unlisted: ArrayBuffer[IUnlistedProperty[_]]) {
     super.createProperties(listed, unlisted)
-    unlisted += Screen.Tile
+    unlisted += property.PropertyTile.Tile
   }
 
   // ----------------------------------------------------------------------- //

@@ -106,6 +106,9 @@ object Textures {
 
     val Cable = L("cable")
     val CableCap = L("cableCap")
+    val GenericTop = L("generic_top", load = false)
+    val RackFront = L("serverRack_front", load = false)
+    val RackSide = L("serverRack_side", load = false)
 
     // Kill me now.
     object Screen {
@@ -523,9 +526,9 @@ object Textures {
       locations.foreach(loader(map, _))
     }
 
-    protected def L(name: String) = {
+    protected def L(name: String, load: Boolean = true) = {
       val location = new ResourceLocation(Settings.resourceDomain, String.format(basePath, name))
-      locations += location
+      if (load) locations += location
       location
     }
 

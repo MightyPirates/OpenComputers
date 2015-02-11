@@ -3,17 +3,20 @@ package li.cil.oc.common.block
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraftforge.common.property.IUnlistedProperty
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware with traits.GUI {
-  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+import scala.collection.mutable.ArrayBuffer
 
+class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware with traits.GUI {
   @SideOnly(Side.CLIENT)
   override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {
     world.getTileEntity(pos) match {
@@ -30,6 +33,20 @@ class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rot
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = side == EnumFacing.SOUTH
 
   override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
+
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+
+  override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
+    (state, world.getTileEntity(pos)) match {
+      case (extendedState: IExtendedBlockState, tile: tileentity.traits.TileEntity) =>
+        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, tile), world, pos)
+      case _ => None
+    }
+
+  override protected def createProperties(listed: ArrayBuffer[IProperty], unlisted: ArrayBuffer[IUnlistedProperty[_]]) {
+    super.createProperties(listed, unlisted)
+    unlisted += property.PropertyTile.Tile
+  }
 
   // ----------------------------------------------------------------------- //
 
