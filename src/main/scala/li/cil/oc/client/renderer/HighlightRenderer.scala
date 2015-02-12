@@ -11,6 +11,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
+import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.DrawBlockHighlightEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
@@ -32,9 +33,12 @@ object HighlightRenderer {
       if (!isAir) {
         val block = world.getBlock(blockPos)
         block.setBlockBoundsBasedOnState(blockPos)
-        val bounds = block.getSelectedBoundingBoxFromPool(blockPos).offset(-blockPos.x, -blockPos.y, -blockPos.z)
+        val bounds = block.getSelectedBoundingBox(world, hitInfo.getBlockPos).offset(-blockPos.x, -blockPos.y, -blockPos.z)
         val sideHit = hitInfo.sideHit
-        val playerPos = e.player.getPositionEyes(e.partialTicks)
+        val playerPos = new Vec3(
+          e.player.prevPosX + (e.player.posX - e.player.prevPosX) * e.partialTicks,
+          e.player.prevPosY + (e.player.posY - e.player.prevPosY) * e.partialTicks,
+          e.player.prevPosZ + (e.player.posZ - e.player.prevPosZ) * e.partialTicks)
         val renderPos = blockPos.offset(-playerPos.xCoord, -playerPos.yCoord, -playerPos.zCoord)
 
         RenderState.pushMatrix()
