@@ -4,7 +4,6 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
@@ -18,10 +17,10 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val drive = tileEntity.asInstanceOf[DiskDrive]
-    GlStateManager.pushAttrib()
-    GlStateManager.color(1, 1, 1, 1)
+    RenderState.pushAttrib()
+    RenderState.color(1, 1, 1, 1)
 
-    GL11.glPushMatrix()
+    RenderState.pushMatrix()
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
@@ -34,7 +33,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
 
     drive.items(0) match {
       case Some(stack) =>
-        GL11.glPushMatrix()
+        RenderState.pushMatrix()
         GL11.glTranslatef(0, 3.5f / 16, 9 / 16f)
         GL11.glRotatef(90, -1, 0, 0)
 
@@ -46,7 +45,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
         entity.hoverStart = 0
         Textures.Block.bind()
         Minecraft.getMinecraft.getRenderItem.renderItemModel(entity.getEntityItem)
-        GL11.glPopMatrix()
+        RenderState.popMatrix()
       case _ =>
     }
 
@@ -54,7 +53,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslated(-0.5, 0.5, 0.505)
       GL11.glScalef(1, -1, 1)
 
-      RenderState.disableLighting()
+      RenderState.disableEntityLighting()
       RenderState.makeItBlend()
       RenderState.setBlendAlpha(1)
 
@@ -72,11 +71,11 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
 
       t.draw()
 
-      RenderState.enableLighting()
+      RenderState.enableEntityLighting()
     }
 
-    GL11.glPopMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popMatrix()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

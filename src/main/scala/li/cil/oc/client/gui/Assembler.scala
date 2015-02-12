@@ -10,8 +10,8 @@ import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import net.minecraft.util.IChatComponent
@@ -61,7 +61,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   }
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     if (!assemblerContainer.isAssembling) {
       val message =
         if (!assemblerContainer.getSlot(0).getHasStack) {
@@ -90,7 +90,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
       tooltip.add(Localization.Assembler.Progress(assemblerContainer.assemblyProgress, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 
   private def formatTime(seconds: Int) = {
@@ -100,7 +100,7 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GlStateManager.color(1, 1, 1) // Required under Linux.
+    RenderState.color(1, 1, 1) // Required under Linux.
     Textures.bind(Textures.GUI.RobotAssembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     if (assemblerContainer.isAssembling) progress.level = assemblerContainer.assemblyProgress / 100.0

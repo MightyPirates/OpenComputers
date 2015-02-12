@@ -4,7 +4,6 @@ import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
-import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.opengl.GL11
 
 /**
@@ -34,12 +33,12 @@ abstract class TextureFontRenderer {
   def drawBuffer(buffer: TextBuffer) {
     val format = buffer.format
 
-    GL11.glPushMatrix()
-    GlStateManager.pushAttrib()
+    RenderState.pushMatrix()
+    RenderState.pushAttrib()
 
     GL11.glScalef(0.5f, 0.5f, 1)
 
-    GlStateManager.depthMask(false)
+    RenderState.disableDepthMask()
     GL11.glDisable(GL11.GL_TEXTURE_2D)
 
     RenderState.checkError(getClass.getName + ".drawBuffer: configure state")
@@ -107,9 +106,9 @@ abstract class TextureFontRenderer {
 
     RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
 
-    GlStateManager.depthMask(true)
-    GlStateManager.popAttrib()
-    GL11.glPopMatrix()
+    RenderState.enableDepthMask()
+    RenderState.popAttrib()
+    RenderState.popMatrix()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
   }

@@ -14,14 +14,14 @@ object HologramRendererFallback extends TileEntitySpecialRenderer {
 
     val fontRenderer = Minecraft.getMinecraft.fontRendererObj
 
-    GL11.glPushMatrix()
+    RenderState.pushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.75, z + 0.5)
 
     GL11.glScalef(1 / 128f, -1 / 128f, 1 / 128f)
-    GL11.glDisable(GL11.GL_CULL_FACE)
+    RenderState.disableCullFace()
     fontRenderer.drawString(text, -fontRenderer.getStringWidth(text) / 2, 0, 0xFFFFFFFF)
 
-    GL11.glPopMatrix()
+    RenderState.popMatrix()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

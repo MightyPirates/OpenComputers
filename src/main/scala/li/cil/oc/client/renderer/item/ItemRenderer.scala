@@ -10,7 +10,6 @@ import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.EnumChatFormatting
@@ -90,12 +89,12 @@ object ItemRenderer extends IItemRenderer {
     }
 
     else if (isFloppy(descriptor)) {
-      GlStateManager.pushAttrib()
+      RenderState.pushAttrib()
       itemRenderer.renderItemIntoGUI(stack, 0, 0)
       val res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
       val fontRenderer = Minecraft.getMinecraft.fontRendererObj
       if (fontRenderer != null && res.getScaleFactor > 1) {
-        GL11.glPushMatrix()
+        RenderState.pushMatrix()
         GL11.glTranslatef(4f + 2f / res.getScaleFactor, 9f + 2f / res.getScaleFactor, 0)
         GL11.glScalef(1f / res.getScaleFactor, 1f / res.getScaleFactor, 1f)
         val maxLength = (res.getScaleFactor * 7.5).toInt
@@ -109,19 +108,19 @@ object ItemRenderer extends IItemRenderer {
           fontRenderer.drawString(line.asInstanceOf[String], 0, 0, 0)
           GL11.glTranslatef(0, fontRenderer.FONT_HEIGHT, 0)
         }
-        GL11.glPopMatrix()
+        RenderState.popMatrix()
       }
-      GlStateManager.popAttrib()
+      RenderState.popAttrib()
 
       RenderState.checkError("ItemRenderer.renderItem: floppy")
     }
     else if (descriptor == drone) {
-      GlStateManager.pushAttrib()
-      GL11.glPushMatrix()
+      RenderState.pushAttrib()
+      RenderState.pushMatrix()
 
       Textures.bind(Textures.Model.Drone)
       RenderState.makeItBlend()
-      GL11.glDisable(GL11.GL_CULL_FACE)
+      RenderState.disableCullFace()
 
       if (renderType == ItemRenderType.INVENTORY) {
         GL11.glTranslatef(8f, 9f, 0)
@@ -138,8 +137,8 @@ object ItemRenderer extends IItemRenderer {
 
       DroneRenderer.model.render()
 
-      GL11.glPopMatrix()
-      GlStateManager.popAttrib()
+      RenderState.popMatrix()
+      RenderState.popAttrib()
 
       RenderState.checkError("ItemRenderer.renderItem: drone")
     }

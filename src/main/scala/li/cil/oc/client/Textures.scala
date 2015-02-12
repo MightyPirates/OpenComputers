@@ -502,7 +502,7 @@ object Textures {
     // So we do it manually.
     val texture = manager.getTexture(location)
     if (texture != null) {
-      GL11.glBindTexture (GL11.GL_TEXTURE_2D, texture.getGlTextureId)
+      GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getGlTextureId)
     }
   }
 

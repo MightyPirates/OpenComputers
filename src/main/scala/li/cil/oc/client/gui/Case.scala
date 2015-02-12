@@ -7,10 +7,9 @@ import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
-import org.lwjgl.opengl.GL11
 
 class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
   protected var powerButton: ImageButton = _
@@ -47,7 +46,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
   }
 
   override def drawSecondaryBackgroundLayer() {
-    GlStateManager.color(1, 1, 1)
+    RenderState.color(1, 1, 1)
     Textures.bind(Textures.GUI.Computer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }

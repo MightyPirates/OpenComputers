@@ -8,9 +8,9 @@ import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.EnumFacing
@@ -96,7 +96,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
     fontRendererObj.drawString(
       Localization.localizeImmediately(rack.getName),
@@ -114,15 +114,15 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
       Textures.bind(Textures.GUI.Range)
-      GlStateManager.color(1, 1, 1)
-      GlStateManager.depthMask(false)
+      RenderState.color(1, 1, 1)
+      RenderState.disableDepthMask()
       r.startDrawingQuads()
       r.addVertexWithUV(tx, ty + h, zLevel, 0, 1)
       r.addVertexWithUV(tx + w, ty + h, zLevel, 1, 1)
       r.addVertexWithUV(tx + w, ty, zLevel, 1, 0)
       r.addVertexWithUV(tx, ty, zLevel, 0, 0)
       t.draw()
-      GlStateManager.depthMask(true)
+      RenderState.enableDepthMask()
     }
 
     drawCenteredString(fontRendererObj,
@@ -135,6 +135,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 }

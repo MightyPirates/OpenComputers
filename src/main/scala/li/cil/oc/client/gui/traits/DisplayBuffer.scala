@@ -4,7 +4,6 @@ import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.renderer.GlStateManager
 
 trait DisplayBuffer extends GuiScreen {
   protected def bufferX: Int
@@ -36,10 +35,10 @@ trait DisplayBuffer extends GuiScreen {
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme)")
 
-    GlStateManager.pushMatrix()
-    RenderState.disableLighting()
+    RenderState.pushMatrix()
+    RenderState.disableEntityLighting()
     drawBuffer()
-    GlStateManager.popMatrix()
+    RenderState.popMatrix()
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: buffer layer")
   }

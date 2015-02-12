@@ -15,7 +15,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.input.Keyboard
@@ -105,12 +104,12 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   override def drawBuffer() {
     if (buffer != null) {
       GL11.glTranslatef(bufferX, bufferY, 0)
-      RenderState.disableLighting()
-      GlStateManager.pushMatrix()
+      RenderState.disableEntityLighting()
+      RenderState.pushMatrix()
       GL11.glTranslatef(-3, -3, 0)
-      GlStateManager.color(1, 1, 1, 1)
+      RenderState.color(1, 1, 1, 1)
       BufferRenderer.drawBackground()
-      GlStateManager.popMatrix()
+      RenderState.popMatrix()
       RenderState.makeItBlend()
       val scaleX = bufferRenderWidth / buffer.renderWidth
       val scaleY = bufferRenderHeight / buffer.renderHeight
@@ -129,7 +128,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
@@ -144,11 +143,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       tooltip.add(if (robot.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GlStateManager.color(1, 1, 1)
+    RenderState.color(1, 1, 1)
     if (buffer != null) Textures.bind(Textures.GUI.Robot)
     else Textures.bind(Textures.GUI.RobotNoScreen)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)

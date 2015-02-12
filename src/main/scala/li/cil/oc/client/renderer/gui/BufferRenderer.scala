@@ -4,7 +4,6 @@ import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.texture.TextureManager
 import org.lwjgl.opengl.GL11
 
@@ -89,11 +88,11 @@ object BufferRenderer {
 
   def drawText(screen: TextBuffer) =
     if (textureManager.isDefined) {
-      GlStateManager.pushAttrib()
-      GlStateManager.depthMask(false)
+      RenderState.pushAttrib()
+      RenderState.disableDepthMask()
       val changed = screen.renderText()
-      GlStateManager.depthMask(true)
-      GlStateManager.popAttrib()
+      RenderState.enableDepthMask()
+      RenderState.popAttrib()
       changed
     }
     else false

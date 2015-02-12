@@ -4,7 +4,7 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.inventory.ServerInventory
-import net.minecraft.client.renderer.GlStateManager
+import li.cil.oc.util.RenderState
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 
@@ -17,7 +17,7 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
   }
 
   override def drawSecondaryBackgroundLayer() {
-    GlStateManager.color(1, 1, 1)
+    RenderState.color(1, 1, 1)
     Textures.bind(Textures.GUI.Server)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }

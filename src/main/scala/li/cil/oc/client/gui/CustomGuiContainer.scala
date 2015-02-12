@@ -6,8 +6,6 @@ import li.cil.oc.client.gui.widget.WidgetContainer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.inventory.GuiContainer
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.inventory.Container
 
 import scala.collection.convert.WrapAsScala._
@@ -30,10 +28,9 @@ abstract class CustomGuiContainer(container: Container) extends GuiContainer(con
 
   protected def copiedDrawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer): Unit = {
     if (!text.isEmpty) {
-      GlStateManager.disableRescaleNormal()
-      RenderHelper.disableStandardItemLighting()
-      GlStateManager.disableLighting()
-      GlStateManager.disableDepth()
+      RenderState.disableRescaleNormal()
+      RenderState.disableEntityLighting()
+      RenderState.disableDepth()
 
       val textWidth = text.map(line => font.getStringWidth(line.asInstanceOf[String])).max
 
@@ -73,10 +70,9 @@ abstract class CustomGuiContainer(container: Container) extends GuiContainer(con
       }
       zLevel = 0f
 
-      GlStateManager.enableLighting()
-      GlStateManager.enableDepth()
-      RenderHelper.enableStandardItemLighting()
-      GlStateManager.enableRescaleNormal()
+      RenderState.enableEntityLighting()
+      RenderState.enableDepth()
+      RenderState.enableRescaleNormal()
     }
   }
 

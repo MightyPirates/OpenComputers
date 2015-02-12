@@ -6,16 +6,15 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.CacheBuilder
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL12
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -51,8 +50,8 @@ object PetRenderer {
       override def call() = new PetLocation(e.entityPlayer)
     })
 
-    GlStateManager.pushMatrix()
-    GlStateManager.pushAttrib()
+    RenderState.pushMatrix()
+    RenderState.pushAttrib()
     if (e.entityPlayer != Minecraft.getMinecraft.thePlayer) {
       val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.partialRenderTick)
       val playerPos = e.entityPlayer.getPositionEyes(e.partialRenderTick)
@@ -63,10 +62,10 @@ object PetRenderer {
         playerPos.zCoord - localPos.zCoord)
     }
 
-    GL11.glEnable(GL11.GL_LIGHTING)
-    GL11.glDisable(GL11.GL_BLEND)
-    GL11.glEnable(GL12.GL_RESCALE_NORMAL)
-    GlStateManager.color(1, 1, 1, 1)
+    RenderState.enableEntityLighting()
+    RenderState.disableBlend()
+    RenderState.enableRescaleNormal()
+    RenderState.color(1, 1, 1, 1)
 
     location.applyInterpolatedTransformations(e.partialRenderTick)
 
@@ -75,8 +74,8 @@ object PetRenderer {
 
     RobotRenderer.renderChassis(null, offset, isRunningOverride = true)
 
-    GlStateManager.popAttrib()
-    GlStateManager.popMatrix()
+    RenderState.popAttrib()
+    RenderState.popMatrix()
 
     rendering = None
   }
@@ -84,7 +83,7 @@ object PetRenderer {
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onRobotRender(e: RobotRenderEvent) {
     rendering match {
-      case Some((r, g, b)) => GlStateManager.color(r.toFloat, g.toFloat, b.toFloat)
+      case Some((r, g, b)) => RenderState.color(r.toFloat, g.toFloat, b.toFloat)
       case _ =>
     }
   }

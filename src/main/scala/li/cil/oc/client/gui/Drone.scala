@@ -14,7 +14,6 @@ import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
@@ -74,21 +73,21 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
   override protected def drawBuffer() {
     GL11.glTranslatef(bufferX, bufferY, 0)
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     GL11.glScaled(scale, scale, 1)
-    GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
-    GL11.glDepthMask(false)
-    GlStateManager.color(0.5f, 0.5f, 1f)
+    RenderState.pushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
+    RenderState.disableDepthMask()
+    RenderState.color(0.5f, 0.5f, 1f)
     TextBufferRenderCache.render(bufferRenderer)
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
@@ -103,11 +102,11 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
       tooltip.add(if (drone.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GlStateManager.popAttrib()
+    RenderState.popAttrib()
   }
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GlStateManager.color(1, 1, 1)
+    RenderState.color(1, 1, 1)
     Textures.bind(Textures.GUI.Drone)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     power.level = drone.globalBuffer.toDouble / math.max(drone.globalBufferSize.toDouble, 1.0)

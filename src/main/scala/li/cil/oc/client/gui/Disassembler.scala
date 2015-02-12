@@ -5,7 +5,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
-import net.minecraft.client.renderer.GlStateManager
+import li.cil.oc.util.RenderState
 import net.minecraft.entity.player.InventoryPlayer
 
 class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentity.Disassembler) extends DynamicGuiContainer(new container.Disassembler(playerInventory, disassembler)) {
@@ -20,7 +20,7 @@ class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentit
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GlStateManager.color(1, 1, 1)
+    RenderState.color(1, 1, 1)
     Textures.bind(Textures.GUI.Disassembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     progress.level = disassemblerContainer.disassemblyProgress / 100.0

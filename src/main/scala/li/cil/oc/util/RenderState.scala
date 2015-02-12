@@ -26,19 +26,121 @@ object RenderState {
     else false
   }
 
-  def disableLighting() {
+  def pushAttrib(mask: Int = 8256): Unit = {
+    GL11.glPushAttrib(mask)
+  }
+
+  def popAttrib(): Unit = {
+    GlStateManager.popAttrib()
+  }
+
+  def pushMatrix(): Unit = {
+    GlStateManager.pushMatrix()
+  }
+
+  def popMatrix(): Unit = {
+    GlStateManager.popMatrix()
+  }
+
+  def color(r: Float, g: Float, b: Float, a: Float = 1f): Unit = {
+    GlStateManager.color(r, g, b, a)
+    GL11.glColor4f(r, g, b, a)
+  }
+
+  def disableColorMask(): Unit = {
+    GlStateManager.colorMask(false, false, false, false)
+    GL11.glColorMask(false, false, false, false)
+  }
+
+  def enableColorMask(): Unit = {
+    GlStateManager.colorMask(true, true, true, true)
+    GL11.glColorMask(true, true, true, true)
+  }
+
+  def disableCullFace(): Unit = {
+    GlStateManager.disableCull()
+    GL11.glDisable(GL11.GL_CULL_FACE)
+  }
+
+  def enableCullFace(): Unit = {
+    GlStateManager.enableCull()
+    GL11.glEnable(GL11.GL_CULL_FACE)
+  }
+
+  def disableDepth(): Unit = {
+    GlStateManager.disableDepth()
+    GL11.glDisable(GL11.GL_DEPTH_TEST)
+  }
+
+  def enableDepth(): Unit = {
+    GlStateManager.enableDepth()
+    GL11.glEnable(GL11.GL_DEPTH_TEST)
+  }
+
+  def disableDepthMask(): Unit = {
+    GlStateManager.depthMask(false)
+    GL11.glDepthMask(false)
+  }
+
+  def enableDepthMask(): Unit = {
+    GlStateManager.depthMask(true)
+    GL11.glDepthMask(true)
+  }
+
+  def disableLighting(): Unit = {
+    GlStateManager.disableLighting()
+    GL11.glDisable(GL11.GL_LIGHTING)
+  }
+
+  def enableLighting(): Unit = {
+    GlStateManager.enableLighting()
+    GL11.glEnable(GL11.GL_LIGHTING)
+  }
+
+  def disableEntityLighting() {
     Minecraft.getMinecraft.entityRenderer.disableLightmap()
     RenderHelper.disableStandardItemLighting()
   }
 
-  def enableLighting() {
+  def enableEntityLighting() {
     Minecraft.getMinecraft.entityRenderer.enableLightmap()
     RenderHelper.enableStandardItemLighting()
   }
 
+  def disableRescaleNormal(): Unit = {
+    GlStateManager.disableRescaleNormal()
+    GL11.glDisable(GL12.GL_RESCALE_NORMAL)
+  }
+
+  def enableRescaleNormal(): Unit = {
+    GlStateManager.enableRescaleNormal()
+    GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+  }
+
   def makeItBlend() {
     GlStateManager.enableBlend()
+    GL11.glEnable(GL11.GL_BLEND)
     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+  }
+
+  def disableBlend(): Unit = {
+    GlStateManager.disableBlend()
+    GL11.glDisable(GL11.GL_BLEND)
+  }
+
+  def blendFunc(sFactor: Int, dFactor: Int): Unit = {
+    GlStateManager.blendFunc(sFactor, dFactor)
+    GL11.glBlendFunc(sFactor, dFactor)
+  }
+
+  def cullFace(mode: Int): Unit = {
+    GlStateManager.cullFace(mode)
+    GL11.glCullFace(mode)
+  }
+
+  def depthFunc(func: Int): Unit = {
+    GlStateManager.depthFunc(func)
+    GL11.glDepthFunc(func)
   }
 
   def setBlendAlpha(alpha: Float) = {

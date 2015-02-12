@@ -1,9 +1,9 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.relauncher.Side
@@ -25,7 +25,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
   override def drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
     if (visible) {
       Textures.bind(image)
-      GlStateManager.color(1, 1, 1, 1)
+      RenderState.color(1, 1, 1, 1)
       hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
 
       val x0 = xPosition

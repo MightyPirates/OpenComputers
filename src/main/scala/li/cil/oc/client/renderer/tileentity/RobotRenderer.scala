@@ -24,7 +24,6 @@ import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL12
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
@@ -214,12 +213,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
       if (isRunning) {
         if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.disableLighting()
+          RenderState.disableEntityLighting()
         }
 
         {
           // Additive blending for the light.
-          GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+          RenderState.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
           // Light color.
           val lightColor = if (robot != null && robot.info != null) robot.info.lightColor else 0xF23030
           val r = ((lightColor >>> 16) & 0xFF).toByte
@@ -253,8 +252,9 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         t.draw()
 
         if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.enableLighting()
+          RenderState.enableEntityLighting()
         }
+        RenderState.color(1, 1, 1, 1)
       }
     }
   }
@@ -266,7 +266,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     val robot = proxy.robot
     val worldTime = tileEntity.getWorld.getTotalWorldTime + f
 
-    GL11.glPushMatrix()
+    RenderState.pushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     // If the move started while we were rendering and we have a reference to
@@ -288,12 +288,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       else -0.03f
     GL11.glTranslatef(0, hover, 0)
 
-    GL11.glPushMatrix()
+    RenderState.pushMatrix()
 
-    GlStateManager.depthMask(true)
-    GL11.glEnable(GL11.GL_LIGHTING)
-    GL11.glDisable(GL11.GL_BLEND)
-    GL11.glColor4f(1, 1, 1, 1)
+    RenderState.enableDepthMask()
+    RenderState.enableEntityLighting()
+    RenderState.disableBlend()
 
     if (robot.isAnimatingTurn) {
       val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
@@ -319,13 +318,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
 
-          GL11.glPushMatrix()
+          RenderState.pushMatrix()
           try {
             // Copy-paste from player render code, with minor adjustments for
             // robot scale.
 
-            GL11.glDisable(GL11.GL_CULL_FACE)
-            GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+            RenderState.disableCullFace()
+            RenderState.enableRescaleNormal()
 
             GL11.glScalef(1, -1, -1)
             GL11.glTranslatef(0, -8 * 0.0625F - 0.0078125F, -0.5F)
@@ -371,9 +370,9 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               OpenComputers.log.warn("Failed rendering equipped item.", e)
               robot.renderingErrored = true
           }
-          GL11.glEnable(GL11.GL_CULL_FACE)
-          GL11.glDisable(GL12.GL_RESCALE_NORMAL)
-          GL11.glPopMatrix()
+          RenderState.enableCullFace()
+          RenderState.disableRescaleNormal()
+          RenderState.popMatrix()
         case _ =>
       }
 
@@ -385,13 +384,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             val r = ((tint >> 16) & 0xFF) / 255f
             val g = ((tint >> 8) & 0xFF) / 255f
             val b = ((tint >> 0) & 0xFF) / 255f
-            GL11.glColor4f(r, g, b, 1)
-            GL11.glPushMatrix()
+            RenderState.color(r, g, b, 1)
+            RenderState.pushMatrix()
             GL11.glTranslatef(0.5f, 0.5f, 0.5f)
             GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
             GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
             itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, TransformType.NONE)
-            GL11.glPopMatrix()
+            RenderState.popMatrix()
           }
         }
         catch {
@@ -401,11 +400,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         }
       }
     }
-    GL11.glPopMatrix()
+    RenderState.popMatrix()
 
     val name = robot.name
     if (Settings.get.robotLabels && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
-      GL11.glPushMatrix()
+      RenderState.pushMatrix()
 
       // This is pretty much copy-pasta from the entity's label renderer.
       val t = Tessellator.getInstance
@@ -424,8 +423,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glScalef(-scale, -scale, scale)
 
       RenderState.makeItBlend()
-      GlStateManager.depthMask(false)
-      GL11.glDisable(GL11.GL_LIGHTING)
+      RenderState.disableDepthMask()
+      RenderState.disableLighting()
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
       r.startDrawingQuads()
@@ -439,14 +438,14 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
       f.drawString(name, -halfWidth, 0, 0xFFFFFFFF)
 
-      GlStateManager.depthMask(true)
-      GL11.glEnable(GL11.GL_LIGHTING)
-      GL11.glDisable(GL11.GL_BLEND)
+      RenderState.enableDepthMask()
+      RenderState.enableLighting()
+      RenderState.disableBlend()
 
-      GL11.glPopMatrix()
+      RenderState.popMatrix()
     }
 
-    GL11.glPopMatrix()
+    RenderState.popMatrix()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

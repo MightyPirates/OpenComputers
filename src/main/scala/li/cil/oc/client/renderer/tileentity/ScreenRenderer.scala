@@ -8,7 +8,6 @@ import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -59,13 +58,13 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: checks")
 
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
-    GlStateManager.color(1, 1, 1, 1)
+    RenderState.color(1, 1, 1, 1)
 
-    GL11.glPushMatrix()
+    RenderState.pushMatrix()
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
@@ -79,7 +78,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       val alpha = math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat)
       if (canUseBlendColor) {
         GL14.glBlendColor(0, 0, 0, alpha)
-        GlStateManager.blendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
+        RenderState.blendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
       }
     }
 
@@ -89,10 +88,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       draw()
     }
 
-    RenderState.enableLighting()
+    RenderState.enableEntityLighting()
 
-    GL11.glPopMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popMatrix()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
@@ -123,9 +122,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
     if (stack != null) {
       if (Wrench.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.getPos) || screens.contains(api.Items.get(stack))) {
-        GL11.glPushMatrix()
+        RenderState.pushMatrix()
         transform()
-        GlStateManager.depthMask(false)
+        RenderState.disableDepthMask()
         GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
 
         val t = Tessellator.getInstance
@@ -142,8 +141,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
         t.draw()
 
-        GlStateManager.depthMask(true)
-        GL11.glPopMatrix()
+        RenderState.enableDepthMask()
+        RenderState.popMatrix()
       }
     }
   }

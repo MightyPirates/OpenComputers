@@ -11,7 +11,6 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -65,17 +64,16 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     if (!hologram.hasPower) return
 
     GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
     RenderState.makeItBlend()
-    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-    GL11.glColor4f(1, 1, 1, 1)
+    RenderState.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
 
     val playerDistSq = x * x + y * y + z * z
     val maxDistSq = hologram.getMaxRenderDistanceSquared
     val fadeDistSq = hologram.getFadeStartDistanceSquared
     RenderState.setBlendAlpha(0.75f * (if (playerDistSq > fadeDistSq) math.max(0, 1 - ((playerDistSq - fadeDistSq) / (maxDistSq - fadeDistSq)).toFloat) else 1))
 
-    GlStateManager.pushMatrix()
+    RenderState.pushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     hologram.yaw match {
@@ -115,12 +113,12 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     val sz = (z + 0.5) * hologram.scale
     if (sx >= -1.5 && sx <= 1.5 && sz >= -1.5 && sz <= 1.5 && sy >= 0 && sy <= 2) {
       // Camera is inside the hologram.
-      GL11.glDisable(GL11.GL_CULL_FACE)
+      RenderState.disableCullFace()
     }
     else {
       // Camera is outside the hologram.
-      GL11.glEnable(GL11.GL_CULL_FACE)
-      GL11.glCullFace(GL11.GL_BACK)
+      RenderState.enableCullFace()
+      RenderState.cullFace(GL11.GL_BACK)
     }
 
     // We do two passes here to avoid weird transparency effects: in the first
@@ -129,16 +127,16 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     // angles (because some faces will shine through sometimes and sometimes
     // they won't), so a more... consistent look is desirable.
     val glBuffer = cache.get(hologram, this)
-    GlStateManager.colorMask(false, false, false, false)
-    GlStateManager.depthMask(true)
+    RenderState.disableColorMask()
+    RenderState.enableDepthMask()
     draw(glBuffer)
-    GlStateManager.colorMask(true, true, true, true)
-    GlStateManager.depthFunc(GL11.GL_EQUAL)
+    RenderState.enableColorMask()
+    RenderState.depthFunc(GL11.GL_EQUAL)
     draw(glBuffer)
 
-    GlStateManager.depthFunc(GL11.GL_LEQUAL)
-    GlStateManager.popMatrix()
-    GlStateManager.popAttrib()
+    RenderState.depthFunc(GL11.GL_LEQUAL)
+    RenderState.popMatrix()
+    RenderState.popAttrib()
     GL11.glPopClientAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

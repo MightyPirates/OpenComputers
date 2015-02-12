@@ -3,7 +3,6 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Assembler
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -16,14 +15,13 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
 
     val assembler = tileEntity.asInstanceOf[Assembler]
 
-    GlStateManager.pushAttrib()
+    RenderState.pushAttrib()
 
-    RenderState.disableLighting()
+    RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
-    GL11.glColor4f(1, 1, 1, 1)
 
-    GL11.glPushMatrix()
+    RenderState.pushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     val t = Tessellator.getInstance
@@ -68,10 +66,10 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
       GL11.glRotatef(90, 0, 1, 0)
     }
 
-    RenderState.enableLighting()
+    RenderState.enableEntityLighting()
 
-    GL11.glPopMatrix()
-    GlStateManager.popAttrib()
+    RenderState.popMatrix()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
