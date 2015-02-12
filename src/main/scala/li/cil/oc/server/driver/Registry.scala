@@ -143,8 +143,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
           case t: Throwable => OpenComputers.log.warn("Type converter threw an exception.", t)
         })
         if (converted.isEmpty) {
-          memo += arg -> null
-          null
+          memo += arg -> arg.toString
+          arg.toString
         }
         else {
           // This is a little nasty but necessary because we need to keep the
