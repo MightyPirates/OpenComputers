@@ -1,6 +1,7 @@
 package li.cil.oc.client
 
-import li.cil.oc._
+import li.cil.oc.OpenComputers
+import li.cil.oc.client
 import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.renderer.TextBufferRenderCache
@@ -21,7 +22,6 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.client.registry.RenderingRegistry
 import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.network.NetworkRegistry
@@ -29,10 +29,6 @@ import org.lwjgl.opengl.GLContext
 
 private[oc] class Proxy extends CommonProxy {
   override def preInit(e: FMLPreInitializationEvent) {
-    if (Loader.isModLoaded("OpenComponents")) {
-      throw new OpenComponentsPresentException()
-    }
-
     super.preInit(e)
 
     MinecraftForge.EVENT_BUS.register(Sound)
