@@ -37,6 +37,8 @@ import scala.concurrent.Future
 object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
 
+  var totalWorldTicks = 0L
+
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
       pending += (() => Network.joinOrCreateNetwork(tileEntity))
@@ -105,6 +107,7 @@ object EventHandler {
         case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
+    totalWorldTicks += 1
   }
 
   @SubscribeEvent
