@@ -8,6 +8,14 @@ import net.minecraft.client.renderer.RenderHelper
 import org.lwjgl.opengl._
 import org.lwjgl.util.glu.GLU
 
+// This class has evolved into a wrapper for GlStateManager that basically does
+// nothing but call the corresponding GlStateManager methods and then also
+// forcefully applies whatever that call *should* do. This way the state
+// manager's internal state is kept up-to-date but we also avoid issues with
+// that state being incorrect causing wrong behavior (I've had too many render
+// bugs where textures were not bound correctly or state was not updated
+// because the state manager thought it already was in the state to change to,
+// so I frankly don't care if this is less performant anymore).
 object RenderState {
   val arb = GLContext.getCapabilities.GL_ARB_multitexture && !GLContext.getCapabilities.OpenGL13
 
@@ -146,5 +154,10 @@ object RenderState {
   def setBlendAlpha(alpha: Float) = {
     GlStateManager.color(1, 1, 1, alpha)
     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+  }
+
+  def bindTexture(id: Int): Unit = {
+    GlStateManager.bindTexture(id)
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
   }
 }

@@ -3,6 +3,7 @@ package li.cil.oc.client
 import li.cil.oc.Settings
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.ResourceLocation
@@ -502,7 +503,7 @@ object Textures {
     // So we do it manually.
     val texture = manager.getTexture(location)
     if (texture != null) {
-      GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getGlTextureId)
+      RenderState.bindTexture(texture.getGlTextureId)
     }
   }
 
