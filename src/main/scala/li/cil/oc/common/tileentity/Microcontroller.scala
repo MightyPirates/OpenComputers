@@ -11,6 +11,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -38,6 +39,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   if (machine != null) {
     machine.node.asInstanceOf[Connector].setLocalBufferSize(0)
+    machine.setCostPerTick(Settings.get.microcontrollerCost)
   }
 
   override def tier = info.tier
@@ -55,6 +57,16 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   override protected def connector(side: EnumFacing) = Option(if (side != facing) snooperNode else null)
 
   override protected def energyThroughput = Settings.get.caseRate(Tier.One)
+
+  // ----------------------------------------------------------------------- //
+
+  override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+    super.onAnalyze(player, side, hitX, hitY, hitZ)
+    if (side != facing)
+      Array(componentNodes(side.getIndex))
+    else
+      Array(machine.node)
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -130,13 +142,23 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     create()
 
   override protected def onPlugConnect(plug: Plug, node: Node): Unit = {
+    super.onPlugConnect(plug, node)
     if (node == plug.node) {
       api.Network.joinNewNetwork(machine.node)
       machine.node.connect(snooperNode)
-      machine.setCostPerTick(Settings.get.microcontrollerCost)
-      node.connect(componentNodes(plug.side.ordinal))
     }
-    super.onPlugConnect(plug, node)
+    if (plug.isPrimary)
+      plug.node.connect(componentNodes(plug.side.ordinal()))
+    else
+      componentNodes(plug.side.ordinal).remove()
+  }
+
+  override protected def onPlugDisconnect(plug: Plug, node: Node) {
+    super.onPlugDisconnect(plug, node)
+    if (plug.isPrimary && node != plug.node)
+      plug.node.connect(componentNodes(plug.side.ordinal()))
+    else
+      componentNodes(plug.side.ordinal).remove()
   }
 
   override protected def onPlugMessage(plug: Plug, message: Message): Unit = {
@@ -164,7 +186,10 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
       zipWithIndex.foreach {
       case (tag, index) => componentNodes(index).load(tag)
     }
+    snooperNode.load(nbt.getCompoundTag(Settings.namespace + "snooper"))
     super.readFromNBTForServer(nbt)
+    api.Network.joinNewNetwork(machine.node)
+    machine.node.connect(snooperNode)
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
@@ -178,6 +203,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
         tag
       case _ => new NBTTagCompound()
     })
+    nbt.setNewCompoundTag(Settings.namespace + "snooper", snooperNode.save)
   }
 
   // ----------------------------------------------------------------------- //

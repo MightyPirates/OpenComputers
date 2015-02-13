@@ -143,7 +143,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     val v2 = Map(10 -> "zxc", false -> v1)
     v1 += "c" -> v2
 
-    result(v2, new DebugCard.TestValue())
+    result(v2, new DebugCard.TestValue(), host.world)
   }
 
   // ----------------------------------------------------------------------- //

@@ -15,6 +15,8 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.EnumFacing
 
+import scala.collection.convert.WrapAsJava._
+
 class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRack) extends DynamicGuiContainer(new container.ServerRack(playerInventory, rack)) {
   protected var switchButton: ImageButton = _
 
@@ -131,7 +133,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
 
     for (i <- 0 to 3 if powerButtons(i).isMouseOver) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (rack.isRunning(i)) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
+      tooltip.addAll(asJavaCollection(if (rack.isRunning(i)) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 

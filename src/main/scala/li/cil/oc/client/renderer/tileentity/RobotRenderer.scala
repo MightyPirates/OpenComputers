@@ -5,6 +5,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
@@ -264,7 +265,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     val proxy = tileEntity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
-    val worldTime = tileEntity.getWorld.getTotalWorldTime + f
+    val worldTime = EventHandler.totalWorldTicks + f
 
     RenderState.pushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)

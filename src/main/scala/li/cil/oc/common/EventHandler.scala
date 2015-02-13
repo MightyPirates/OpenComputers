@@ -34,6 +34,8 @@ import scala.concurrent.Future
 object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
 
+  var totalWorldTicks = 0L
+
   private val runningRobots = mutable.Set.empty[Robot]
 
   def onRobotStart(robot: Robot): Unit = runningRobots += robot
@@ -74,6 +76,7 @@ object EventHandler {
     })
 
     runningRobots.foreach(_.machine.update())
+    totalWorldTicks += 1
   }
 
   @SubscribeEvent

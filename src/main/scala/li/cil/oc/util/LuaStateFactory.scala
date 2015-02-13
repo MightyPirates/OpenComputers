@@ -228,6 +228,14 @@ object LuaStateFactory {
         state.openLib(jnlua.LuaState.Library.TABLE)
         state.pop(8)
 
+        if (!Settings.get.disableLocaleChanging) {
+          state.openLib(jnlua.LuaState.Library.OS)
+          state.getField(-1, "setlocale")
+          state.pushString("C")
+          state.call(1, 0)
+          state.pop(1)
+        }
+
         // Prepare table for os stuff.
         state.newTable()
         state.setGlobal("os")

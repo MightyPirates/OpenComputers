@@ -326,6 +326,7 @@ class Settings(val config: Config) {
   val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
   val enableDebugCard = config.getBoolean("debug.enableDebugCard")
   val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
+  val disableLocaleChanging = config.getBoolean("debug.disableLocaleChanging")
 }
 
 object Settings {
