@@ -249,10 +249,13 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       // editing stuff or using mods to clone blocks (e.g. WorldEdit).
       otherNetwork.data.filter(entry => data.contains(entry._1)).toArray.foreach {
         case (address, node: Network.Vertex) =>
-          val neighbors = node.data.neighbors.toArray // Copy to be on the safe side.
+          val neighbors = node.edges.map(_.other(node))
           node.data.remove()
           node.data.address = java.util.UUID.randomUUID().toString
-          neighbors.foreach(_.connect(node.data))
+          if (neighbors.isEmpty)
+            otherNetwork.addNew(node.data)
+          else
+            neighbors.foreach(_.data.connect(node.data))
       }
 
       if (addedNode.reachability == Visibility.Neighbors)
