@@ -22,6 +22,8 @@ import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
+import scala.collection.convert.WrapAsJava._
+
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with traits.InputBuffer {
   override protected val buffer = robot.components.collect {
     case Some(buffer: api.component.TextBuffer) => buffer
@@ -141,7 +143,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
     if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (robot.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
+      tooltip.addAll(asJavaCollection(if (robot.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()

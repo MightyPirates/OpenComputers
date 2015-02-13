@@ -19,6 +19,8 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
 
+import scala.collection.convert.WrapAsJava._
+
 class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends DynamicGuiContainer(new container.Drone(playerInventory, drone)) with traits.DisplayBuffer {
   xSize = 176
   ySize = 148
@@ -100,7 +102,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     }
     if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (drone.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
+      tooltip.addAll(asJavaCollection(if (drone.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()

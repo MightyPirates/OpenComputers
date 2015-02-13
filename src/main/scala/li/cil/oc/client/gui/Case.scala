@@ -11,6 +11,8 @@ import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
 
+import scala.collection.convert.WrapAsJava._
+
 class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
   protected var powerButton: ImageButton = _
 
@@ -40,7 +42,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
       8, 6, 0x404040)
     if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (computer.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
+      tooltip.addAll(asJavaCollection(if (computer.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
   }
