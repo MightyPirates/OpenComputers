@@ -228,7 +228,7 @@ object Items extends ItemAPI {
     data.containers = Array(
       get("cardContainer3").createItemStack(1),
       get("upgradeContainer3").createItemStack(1),
-      get("upgradeContainer3").createItemStack(1)
+      get("diskDrive").createItemStack(1)
     )
 
     val stack = get("robot").createItemStack(1)
@@ -262,6 +262,7 @@ object Items extends ItemAPI {
       Option(createOpenOS()),
       Option(get("hdd3").createItemStack(1))
     )
+    data.container = Option(get("diskDrive").createItemStack(1))
 
     val stack = get("tablet").createItemStack(1)
     data.save(stack)
