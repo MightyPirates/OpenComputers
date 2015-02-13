@@ -16,8 +16,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
-import scala.collection.convert.WrapAsScala._
-
 class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor {
   var strength = Settings.get.maxWirelessRange
 
@@ -94,28 +92,32 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
   override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).
     withConnector(math.round(Settings.get.bufferAccessPoint)).
     create()
-
-  // ----------------------------------------------------------------------- //
 
   override protected def onPlugConnect(plug: Plug, node: Node) {
     super.onPlugConnect(plug, node)
     if (node == plug.node) {
       api.Network.joinWirelessNetwork(this)
     }
-    if (!node.network.nodes.exists(componentNodes.contains)) {
-      node.connect(componentNodes(plug.side.ordinal))
-    }
+    if (plug.isPrimary)
+      plug.node.connect(componentNodes(plug.side.ordinal()))
+    else
+      componentNodes(plug.side.ordinal).remove()
   }
 
   override protected def onPlugDisconnect(plug: Plug, node: Node) {
     super.onPlugDisconnect(plug, node)
     if (node == plug.node) {
       api.Network.leaveWirelessNetwork(this)
-      componentNodes(plug.side.ordinal).remove()
     }
+    if (plug.isPrimary && node != plug.node)
+      plug.node.connect(componentNodes(plug.side.ordinal()))
+    else
+      componentNodes(plug.side.ordinal).remove()
   }
 
   // ----------------------------------------------------------------------- //
