@@ -24,8 +24,8 @@ object ObfNames {
   final val Field_leashedToEntity = Array("leashedToEntity", "field_110168_bw", "bn")
   final val Method_recreateLeash = Array("recreateLeash", "func_110165_bF", "n")
   final val Method_recreateLeashDesc = Array("()V")
-  final val Method_renderHanging = Array("func_110827_b", "b")
-  final val Method_renderHangingDesc = Array("(Lxn;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
+  final val Method_renderLeash = Array("renderLeash", "func_110827_b", "b")
+  final val Method_renderLeashDesc = Array("(Lxn;DDDFF)V", "(Lnet/minecraft/entity/EntityLiving;DDDFF)V")
   final val Method_validate = Array("validate", "func_145829_t")
   final val Method_invalidate = Array("invalidate", "func_145843_s")
   final val Method_onChunkUnload = Array("onChunkUnload", "func_76623_d")
@@ -188,7 +188,7 @@ class ClassTransformer extends IClassTransformer {
       // before the `instanceof EntityHanging` check in func_110827_b.
       if (ObfNames.Class_RenderLiving.contains(name.replace('.', '/'))) {
         val classNode = newClassNode(transformedClass)
-        insertInto(classNode, ObfNames.Method_renderHanging, ObfNames.Method_renderHangingDesc, instructions => instructions.toArray.sliding(3, 1).exists {
+        insertInto(classNode, ObfNames.Method_renderLeash, ObfNames.Method_renderLeashDesc, instructions => instructions.toArray.sliding(3, 1).exists {
           case Array(varNode: VarInsnNode, typeNode: TypeInsnNode, jumpNode: JumpInsnNode)
             if varNode.getOpcode == Opcodes.ALOAD && varNode.`var` == 10 &&
               typeNode.getOpcode == Opcodes.INSTANCEOF && ObfNames.Class_EntityHanging.contains(typeNode.desc) &&
@@ -199,11 +199,11 @@ class ClassTransformer extends IClassTransformer {
             val skip = new LabelNode()
             toInject.add(new JumpInsnNode(Opcodes.IFEQ, skip))
             toInject.add(new LdcInsnNode(double2Double(0.0)))
-            toInject.add(new VarInsnNode(Opcodes.DSTORE, 16))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 17))
             toInject.add(new LdcInsnNode(double2Double(0.0)))
-            toInject.add(new VarInsnNode(Opcodes.DSTORE, 18))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 19))
             toInject.add(new LdcInsnNode(double2Double(-0.75)))
-            toInject.add(new VarInsnNode(Opcodes.DSTORE, 20))
+            toInject.add(new VarInsnNode(Opcodes.DSTORE, 21))
             toInject.add(skip)
             instructions.insertBefore(varNode, toInject)
             true
