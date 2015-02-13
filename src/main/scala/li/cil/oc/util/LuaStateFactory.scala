@@ -237,8 +237,7 @@ object LuaStateFactory {
         }
 
         // Prepare table for os stuff.
-        state.newTable()
-        state.setGlobal("os")
+        state.openLib(jnlua.LuaState.Library.OS)
 
         // Kill compat entries.
         state.pushNil()
