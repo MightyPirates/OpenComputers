@@ -258,7 +258,7 @@ elseif #args == 0 and (io.input() ~= io.stdin) then
     io.write(expand(os.getenv("PS1") or "$ "))
     local command = io.read("*l")
     if not command then
-      io:write("exit\n")
+      io.write("exit\n")
     end
     command = text.trim(command)
     if command == "exit" then
