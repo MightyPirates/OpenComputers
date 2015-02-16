@@ -34,8 +34,9 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
     drive.items(0) match {
       case Some(stack) =>
         RenderState.pushMatrix()
-        GL11.glTranslatef(0, 3.5f / 16, 9 / 16f)
+        GL11.glTranslatef(0, 3.5f / 16, 6 / 16f)
         GL11.glRotatef(90, -1, 0, 0)
+        GL11.glScalef(0.5f, 0.5f, 0.5f)
 
         val brightness = drive.world.getCombinedLight(drive.getPos.offset(drive.facing), 0)
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)

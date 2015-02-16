@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.block
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.common.item.CustomModel
 import li.cil.oc.common.item.Delegate
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
@@ -35,6 +36,7 @@ object ModelInitialization {
 
   private val meshableItems = mutable.ArrayBuffer.empty[Item]
   private val itemDelegates = mutable.ArrayBuffer.empty[(String, Delegate)]
+  private val itemDelegatesCustom = mutable.ArrayBuffer.empty[Delegate with CustomModel]
 
   def preInit(): Unit = {
     MinecraftForge.EVENT_BUS.register(this)
@@ -47,12 +49,16 @@ object ModelInitialization {
   def init(): Unit = {
     registerItems(meshableItems)
     registerSubItems(itemDelegates)
+    registerSubItemsCustom(itemDelegatesCustom)
   }
 
   // ----------------------------------------------------------------------- //
 
   def registerModel(instance: Delegate, id: String): Unit = {
-    itemDelegates += id -> instance
+    instance match {
+      case customModel: CustomModel => itemDelegatesCustom += customModel
+      case _ => itemDelegates += id -> instance
+    }
   }
 
   def registerModel(instance: Item, id: String): Unit = {
@@ -102,6 +108,17 @@ object ModelInitialization {
       val location = Settings.resourceDomain + ":" + id
       modelMeshes.register(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
       ModelBakery.addVariantName(item.parent, location)
+    }
+    items.clear()
+  }
+
+  private def registerSubItemsCustom(items: mutable.Buffer[Delegate with CustomModel]): Unit = {
+    val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
+    for (item <- items) {
+      modelMeshes.register(item.parent, new ItemMeshDefinition {
+        override def getModelLocation(stack: ItemStack): ModelResourceLocation = item.getModelLocation(stack)
+      })
+      item.registerModelLocations()
     }
     items.clear()
   }

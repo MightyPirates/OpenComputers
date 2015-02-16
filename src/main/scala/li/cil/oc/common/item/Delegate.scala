@@ -10,6 +10,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -107,9 +108,5 @@ trait Delegate {
 
   def durability(stack: ItemStack) = 0.0
 
-  // ----------------------------------------------------------------------- //
-
-  // TODO wat
-  def equals(stack: ItemStack) =
-    stack != null && stack.getItem == parent && parent.subItem(stack.getItemDamage).contains(this)
+  def getModel(stack: ItemStack, player: EntityPlayer, useRemaining: Int): ModelResourceLocation = null
 }

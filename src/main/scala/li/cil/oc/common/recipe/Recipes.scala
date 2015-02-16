@@ -52,10 +52,15 @@ object Recipes {
     instance
   }
 
-  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null, registerRecipe: Boolean = true) = {
     Items.registerItem(delegate, name)
-    addRecipe(delegate.createItemStack(), name)
-    register(oreDict, delegate.createItemStack())
+    if (registerRecipe) {
+      addRecipe(delegate.createItemStack(), name)
+      register(oreDict, delegate.createItemStack())
+    }
+    else {
+      NEI.hide(delegate)
+    }
     delegate
   }
 

@@ -7,6 +7,7 @@ import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
+import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -167,6 +168,12 @@ class Delegator extends Item {
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.showDurabilityBar(stack)
       case _ => super.showDurabilityBar(stack)
+    }
+
+  override def getModel(stack: ItemStack, player: EntityPlayer, useRemaining: Int): ModelResourceLocation =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.getModel(stack, player, useRemaining)
+      case _ => super.getModel(stack, player, useRemaining)
     }
 
   override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =

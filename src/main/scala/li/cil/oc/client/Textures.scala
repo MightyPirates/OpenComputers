@@ -81,6 +81,31 @@ object Textures {
     override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
+  object Item extends TextureBundle {
+    val Floppy = Array(
+      L("floppy_dyeBlack"),
+      L("floppy_dyeRed"),
+      L("floppy_dyeGreen"),
+      L("floppy_dyeBrown"),
+      L("floppy_dyeBlue"),
+      L("floppy_dyePurple"),
+      L("floppy_dyeCyan"),
+      L("floppy_dyeLightGray"),
+      L("floppy_dyeGray"),
+      L("floppy_dyePink"),
+      L("floppy_dyeLime"),
+      L("floppy_dyeYellow"),
+      L("floppy_dyeLightBlue"),
+      L("floppy_dyeMagenta"),
+      L("floppy_dyeOrange"),
+      L("floppy_dyeWhite")
+    )
+
+    override protected def basePath = "items/%s.png"
+
+    override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
+  }
+
   // These are kept in the block texture atlas to support animations.
   object Block extends TextureBundle {
     val AssemblerSideAssembling = L("overlay/assembler_side_assembling")

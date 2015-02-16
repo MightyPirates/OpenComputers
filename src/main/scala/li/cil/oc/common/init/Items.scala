@@ -434,8 +434,6 @@ object Items extends ItemAPI {
   private def initSpecial(): Unit = {
     val misc = newItem(new item.Delegator() {
       private lazy val configuredItems = Array(
-        Items.createOpenOS(),
-        Items.createLuaBios(),
         Items.createConfiguredDrone(),
         Items.createConfiguredMicrocontroller(),
         Items.createConfiguredRobot(),
@@ -457,17 +455,9 @@ object Items extends ItemAPI {
   private def initIntegration(): Unit = {
     val integration = newItem(new item.Delegator(), "integration")
 
-    // Always create, to avoid shifting IDs.
-    val abstractBus = new item.AbstractBusCard(integration)
-    val worldSensorCard = new item.WorldSensorCard(integration)
-
     // Only register recipes if the related mods are present.
-    if (Mods.StargateTech2.isAvailable) {
-      Recipes.addSubItem(abstractBus, Constants.ItemName.AbstractBusCard, "oc:abstractBusCard")
-    }
-    if (Mods.Galacticraft.isAvailable) {
-      Recipes.addSubItem(worldSensorCard, Constants.ItemName.WorldSensorCard, "oc:worldSensorCard")
-    }
+    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, "oc:abstractBusCard", Mods.StargateTech2.isAvailable)
+    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, "oc:worldSensorCard", Mods.Galacticraft.isAvailable)
   }
 
   private def newItem[T <: Item](item: T, name: String): T = {
