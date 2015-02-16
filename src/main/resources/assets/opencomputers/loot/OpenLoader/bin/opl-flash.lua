@@ -1,9 +1,18 @@
+local version = "OpenLoader 0.2EE"
+
 local eeprom = [[
-_G._OSVERSION = "OpenLoader 0.1EE"
+_G._OSVERSION = "]] .. version .. [["
 local component = component or require('component')
 local computer = computer or require('computer')
 local unicode = unicode or require('unicode')
 
+local eeprom = component.list("eeprom")()
+computer.getBootAddress = function()
+  return component.invoke(eeprom, "getData")
+end
+computer.setBootAddress = function(address)
+  return component.invoke(eeprom, "setData", address)
+end
 
 local gpu = component.list("gpu")()
 local w, h
@@ -147,7 +156,7 @@ say ("Do you really want to flash openloader to EEPROM("..tostring(#eeprom).." b
 if options.q or options.quiet or io.read():lower() == "y" then
 	say("Flashing... Do not reboot now!")
 	component.eeprom.set(eeprom)
-	component.eeprom.setLabel((type(options.label) == "string" and options.label) or "OpenLoader")
+	component.eeprom.setLabel((type(options.label) == "string" and options.label) or version)
 	if options.r or options.reboot then
 		computer.shutdown(true)
 	else
