@@ -20,7 +20,6 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
-import net.minecraft.command.ICommandSender
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -33,12 +32,14 @@ import net.minecraft.world.World
 import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
@@ -55,6 +56,17 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   // Player this card is bound to (if any) to use for permissions.
   var player: Option[String] = None
+
+  private lazy val CommandSender = {
+    def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+    new CommandSender(host, player match {
+      case Some(name) => Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(name)) match {
+        case Some(playerEntity) => playerEntity
+        case _ => defaultFakePlayer
+      }
+      case _ => defaultFakePlayer
+    })
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -99,10 +111,18 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")
   def runCommand(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
-    val command = args.checkString(0)
-    val sender = new CommandSender(host, player)
-    val value = MinecraftServer.getServer.getCommandManager.executeCommand(sender, command)
-    result(value, sender.messages.orNull)
+    val commands =
+      if (args.isTable(0)) collectionAsScalaIterable(args.checkTable(0).values())
+      else Iterable (args.checkString(0))
+
+    CommandSender.synchronized {
+      CommandSender.prepare()
+      var value = 0
+      for (command <- commands) {
+        value = MinecraftServer.getServer.getCommandManager.executeCommand(CommandSender, command.toString)
+      }
+      result(value, CommandSender.messages.orNull)
+    }
   }
 
   @Callback(doc = """function(x:number, y:number, z:number):boolean -- Connect the debug card to the block at the specified coordinates.""")
@@ -496,31 +516,28 @@ object DebugCard {
     }
   }
 
-  class CommandSender(val host: EnvironmentHost, val playerName: Option[String]) extends ICommandSender {
-    val fakePlayer = {
-      def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
-      playerName match {
-        case Some(name) => Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(name)) match {
-          case Some(player) => player
-          case _ => defaultFakePlayer
-        }
-        case _ => defaultFakePlayer
-      }
-    }
-
+  class CommandSender(val host: EnvironmentHost, val underlying: EntityPlayerMP) extends FakePlayer(underlying.getEntityWorld.asInstanceOf[WorldServer], underlying.getGameProfile) {
     var messages: Option[String] = None
 
-    override def getCommandSenderName = fakePlayer.getCommandSenderName
+    def prepare(): Unit = {
+      val blockPos = BlockPosition(host)
+      posX = blockPos.x
+      posY = blockPos.y
+      posZ = blockPos.z
+      messages = None
+    }
+
+    override def getCommandSenderName = underlying.getCommandSenderName
 
     override def getEntityWorld = host.world
 
     override def addChatMessage(message: IChatComponent) {
-      messages = Option(messages.getOrElse("") + message.getUnformattedText)
+      messages = Option(messages.fold("")(_ + "\n") + message.getUnformattedText)
     }
 
     override def canCommandSenderUseCommand(level: Int, command: String) = {
-      val profile = fakePlayer.getGameProfile
-      val server = fakePlayer.mcServer
+      val profile = underlying.getGameProfile
+      val server = underlying.mcServer
       val config = server.getConfigurationManager
       server.isSinglePlayer || (config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
         case entry: UserListOpsEntry => entry.func_152644_a >= level
@@ -530,7 +547,7 @@ object DebugCard {
 
     override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates
 
-    override def func_145748_c_() = fakePlayer.func_145748_c_()
+    override def func_145748_c_() = underlying.func_145748_c_()
   }
 
   class TestValue extends AbstractValue {
