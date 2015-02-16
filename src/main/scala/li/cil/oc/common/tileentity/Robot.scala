@@ -737,8 +737,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
           player().inventory.addItemStackToInventory(stack)
           spawnStackInWorld(stack, Option(facing))
         }
+        setSelectedSlot(oldSelected)
       } // else: save is screwed and we potentially lose items. Life is hard.
-      setSelectedSlot(oldSelected)
     }
   }
   finally {

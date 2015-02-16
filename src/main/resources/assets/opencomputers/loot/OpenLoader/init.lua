@@ -1,8 +1,15 @@
-_G._OSVERSION = "OpenLoader 0.1"
+_G._OSVERSION = "OpenLoader 0.2"
 local component = component or require('component')
 local computer = computer or require('computer')
 local unicode = unicode or require('unicode')
 
+local eeprom = component.list("eeprom")()
+computer.getBootAddress = function()
+  return component.invoke(eeprom, "getData")
+end
+computer.setBootAddress = function(address)
+  return component.invoke(eeprom, "setData", address)
+end
 
 local gpu = component.list("gpu")()
 local w, h
