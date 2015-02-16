@@ -88,7 +88,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
       val components = info.containers ++ info.components
       if (components.length > 0) {
         tooltip.addAll(Tooltip.get("Server.Components"))
-        for (component <- components) {
+        for (component <- components if component != null) {
           tooltip.add("- " + component.getDisplayName)
         }
       }
