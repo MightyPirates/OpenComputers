@@ -18,7 +18,6 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
-import org.lwjgl.input
 
 trait Delegate {
   def parent: Delegator
@@ -93,7 +92,7 @@ trait Delegate {
       else {
         tooltip.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
-          input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+          KeyBindings.getKeybindName(KeyBindings.materialCosts)))
       }
     }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {

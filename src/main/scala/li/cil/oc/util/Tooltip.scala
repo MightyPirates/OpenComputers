@@ -4,7 +4,6 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import net.minecraft.client.Minecraft
-import org.lwjgl.input.Keyboard
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -22,7 +21,7 @@ object Tooltip {
     val shouldShorten = (isSubTooltip || font.getStringWidth(tooltip) > maxWidth) && !KeyBindings.showExtendedTooltips
     if (shouldShorten) {
       if (isSubTooltip) Seq.empty[String]
-      else Seq(Localization.localizeImmediately("tooltip.TooLong", Keyboard.getKeyName(KeyBindings.extendedTooltip.getKeyCode)))
+      else Seq(Localization.localizeImmediately("tooltip.TooLong", KeyBindings.getKeybindName(KeyBindings.extendedTooltip)))
     }
     else tooltip.
       lines.

@@ -22,7 +22,6 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.StatCollector
 import net.minecraft.world.World
-import org.lwjgl.input
 
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
@@ -48,13 +47,13 @@ class Item(value: Block) extends ItemBlock(value) {
       case (simple: SimpleBlock, lines: util.List[String]@unchecked) =>
         simple.addInformation(getMetadata(stack.getItemDamage), stack, player, lines, advanced)
 
-        if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMENU)) {
+        if (KeyBindings.showMaterialCosts) {
           ItemCosts.addTooltip(stack, lines)
         }
         else {
           lines.add(StatCollector.translateToLocalFormatted(
             Settings.namespace + "tooltip.MaterialCosts",
-            input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+            KeyBindings.getKeybindName(KeyBindings.materialCosts)))
         }
       case _ =>
     }
