@@ -18,7 +18,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.WeightedRandomChestContent
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
-import org.lwjgl.input
 
 class SimpleItem extends Item {
   setCreativeTab(CreativeTab)
@@ -49,7 +48,7 @@ class SimpleItem extends Item {
       else {
         tt.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
-          input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+          KeyBindings.getKeybindName(KeyBindings.materialCosts)))
       }
     }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {

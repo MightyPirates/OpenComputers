@@ -82,7 +82,7 @@ trait InputBuffer extends DisplayBuffer {
           case _ => // Wasn't pressed while viewing the screen.
         }
 
-        if (Keyboard.isKeyDown(KeyBindings.clipboardPaste.getKeyCode) && Keyboard.getEventKeyState) {
+        if (KeyBindings.clipboardPaste.getKeyCode == code && Keyboard.getEventKeyState) {
           buffer.clipboard(GuiScreen.getClipboardString, null)
         }
       }
@@ -94,7 +94,9 @@ trait InputBuffer extends DisplayBuffer {
 
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
-    if (buffer != null && button == 2) {
+    val isMiddleMouseButton = button == 2
+    val isBoundMouseButton = KeyBindings.clipboardPaste.getKeyCode < 0 && button == KeyBindings.clipboardPaste.getKeyCode + 100
+    if (buffer != null && (isMiddleMouseButton || isBoundMouseButton)) {
       if (hasKeyboard) {
         buffer.clipboard(GuiScreen.getClipboardString, null)
       }

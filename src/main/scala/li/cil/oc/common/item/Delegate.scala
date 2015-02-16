@@ -16,7 +16,6 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
-import org.lwjgl.input
 
 trait Delegate {
   type Icon = net.minecraft.util.IIcon
@@ -96,7 +95,7 @@ trait Delegate {
       else {
         tooltip.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
-          input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+          KeyBindings.getKeybindName(KeyBindings.materialCosts)))
       }
     }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
