@@ -3,6 +3,7 @@ package li.cil.oc.common.item
 import java.util
 import java.util.UUID
 
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
@@ -11,6 +12,8 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.client.resources.model.ModelBakery
+import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -19,7 +22,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Terminal(val parent: Delegator) extends Delegate {
+class Terminal(val parent: Delegator) extends Delegate with CustomModel {
   override def maxStackSize = 1
 
   def hasServer(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")
@@ -33,21 +36,23 @@ class Terminal(val parent: Delegator) extends Delegate {
     }
   }
 
-  // TODO remove
-  //  private var iconOn: Option[Icon] = None
-  //  private var iconOff: Option[Icon] = None
-  //
-  //  // TODO check if server is in range and running
-  //  // Unlike in the GUI handler the result should definitely be cached here.
-  //  @SideOnly(Side.CLIENT)
-  //  override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
-  //
-  //  override def registerIcons(iconRegister: IconRegister) = {
-  //    super.getAtlasSprites(iconRegister)
-  //
-  //    iconOn = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOn"))
-  //    iconOff = Option(iconRegister.getAtlasSprite(Settings.resourceDomain + ":TerminalOff"))
-  //  }
+  @SideOnly(Side.CLIENT)
+  private def modelLocationFromState(running: Boolean) = {
+    new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Terminal + (if (running) "_on" else "_off"), "inventory")
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
+    modelLocationFromState(hasServer(stack))
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def registerModelLocations(): Unit = {
+    for (state <- Seq(true, false)) {
+      val location = modelLocationFromState(state)
+      ModelBakery.addVariantName(parent, location.getResourceDomain + ":" + location.getResourcePath)
+    }
+  }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get

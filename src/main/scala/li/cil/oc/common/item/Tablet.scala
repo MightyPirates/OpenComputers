@@ -35,6 +35,8 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.resources.model.ModelBakery
+import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -45,11 +47,13 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Tablet(val parent: Delegator) extends Delegate {
+class Tablet(val parent: Delegator) extends Delegate with CustomModel {
   final val TimeToAnalyze = 10
 
   // Must be assembled to be usable so we hide it in the item list.
@@ -90,6 +94,31 @@ class Tablet(val parent: Delegator) extends Delegate {
   }
 
   // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  private def modelLocationFromState(running: Option[Boolean]) = {
+    val suffix = running match {
+      case Some(state) => if (state) "_on" else "_off"
+      case _ => ""
+    }
+    new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Tablet + suffix, "inventory")
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
+    if (stack.hasTagCompound)
+      modelLocationFromState(Some(new TabletData(stack).isRunning))
+    else
+      modelLocationFromState(None)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def registerModelLocations(): Unit = {
+    for (state <- Seq(None, Some(true), Some(false))) {
+      val location = modelLocationFromState(state)
+      ModelBakery.addVariantName(parent, location.getResourceDomain + ":" + location.getResourcePath)
+    }
+  }
 
   override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
     entity match {

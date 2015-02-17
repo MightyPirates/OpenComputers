@@ -9,6 +9,8 @@ import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 class FloppyDisk(val parent: Delegator) extends Delegate with CustomModel {
   // Necessary for anonymous subclasses used for loot disks.
@@ -26,10 +28,12 @@ class FloppyDisk(val parent: Delegator) extends Delegate with CustomModel {
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
+  @SideOnly(Side.CLIENT)
   private def modelLocationFromDyeName(name: String) = {
     new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Floppy + "_" + name, "inventory")
   }
 
+  @SideOnly(Side.CLIENT)
   override def getModelLocation(stack: ItemStack): ModelResourceLocation = {
     val dyeIndex =
       if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "color"))
@@ -39,6 +43,7 @@ class FloppyDisk(val parent: Delegator) extends Delegate with CustomModel {
     modelLocationFromDyeName(Color.dyes(dyeIndex max 0 min 15))
   }
 
+  @SideOnly(Side.CLIENT)
   override def registerModelLocations(): Unit = {
     for (dyeName <- Color.dyes) {
       val location = modelLocationFromDyeName(dyeName)
