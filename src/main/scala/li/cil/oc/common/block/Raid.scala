@@ -29,7 +29,7 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
       val data = new RaidData(stack)
-      for (disk <- data.disks) {
+      for (disk <- data.disks if disk != null) {
         tooltip.add("- " + disk.getDisplayName)
       }
     }
