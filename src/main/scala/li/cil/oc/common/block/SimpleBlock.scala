@@ -195,14 +195,6 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
 
   // ----------------------------------------------------------------------- //
 
-  override def canConnectRedstone(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
-
-  override def isProvidingStrongPower(worldIn: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) = super.isProvidingWeakPower(worldIn, pos, state, side)
-
-  override def isProvidingWeakPower(worldIn: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) = 0
-
-  // ----------------------------------------------------------------------- //
-
   // NOTE: must not be final for immibis microblocks to work.
   override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
     world.getTileEntity(pos) match {

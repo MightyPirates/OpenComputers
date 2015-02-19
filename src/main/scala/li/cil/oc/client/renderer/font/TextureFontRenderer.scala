@@ -39,6 +39,7 @@ abstract class TextureFontRenderer {
     GL11.glScalef(0.5f, 0.5f, 1)
 
     RenderState.disableDepthMask()
+    RenderState.makeItBlend()
     GL11.glDisable(GL11.GL_TEXTURE_2D)
 
     RenderState.checkError(getClass.getName + ".drawBuffer: configure state")

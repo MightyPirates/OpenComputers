@@ -5,7 +5,9 @@ import li.cil.oc.common
 import net.minecraft.inventory.IInventory
 
 class StaticComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val slot: String, val tier: Int) extends ComponentSlot(inventory, index, x, y) {
-  setBackgroundLocation(Textures.Icons.get(slot))
+  if (!container.playerInventory.player.isServerWorld) {
+    setBackgroundLocation(Textures.Icons.get(slot))
+  }
 
   val tierIcon = Textures.Icons.get(tier)
 

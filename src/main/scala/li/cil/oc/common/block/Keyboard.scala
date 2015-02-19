@@ -67,12 +67,26 @@ class Keyboard extends SimpleBlock with traits.OmniRotatable {
       case _ =>
     }
 
+  // Copy-pasta from old Forge's ForgeDirection, because MC's equivalent in EnumFacing is client side only \o/
+  private val ROTATION_MATRIX = Array(
+    Array(0, 1, 4, 5, 3, 2, 6),
+    Array(0, 1, 5, 4, 2, 3, 6),
+    Array(5, 4, 2, 3, 0, 1, 6),
+    Array(4, 5, 2, 3, 1, 0, 6),
+    Array(2, 3, 1, 0, 4, 5, 6),
+    Array(3, 2, 0, 1, 4, 5, 6),
+    Array(0, 1, 2, 3, 4, 5, 6))
+
+  private def getRotation(facing: EnumFacing, axis: EnumFacing) = {
+    EnumFacing.getFront(ROTATION_MATRIX(axis.ordinal)(facing.ordinal))
+  }
+
   private def setBlockBounds(pitch: EnumFacing, yaw: EnumFacing) {
     val (forward, up) = pitch match {
       case side@(EnumFacing.DOWN | EnumFacing.UP) => (side, yaw)
       case _ => (yaw, EnumFacing.UP)
     }
-    val side = forward.rotateAround(up.getAxis)
+    val side = getRotation(forward, up)
     val sizes = Array(7f / 16f, 4f / 16f, 7f / 16f)
     val x0 = -up.getFrontOffsetX * sizes(1) - side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * sizes(0)
     val x1 = up.getFrontOffsetX * sizes(1) + side.getFrontOffsetX * sizes(2) - forward.getFrontOffsetX * 0.5f
