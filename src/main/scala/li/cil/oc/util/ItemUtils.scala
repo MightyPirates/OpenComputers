@@ -119,7 +119,7 @@ object ItemUtils {
 
   private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
     case stack: ItemStack => stack
-    case list: java.util.ArrayList[ItemStack]@unchecked if !list.isEmpty => list.get(rng.nextInt(list.size))
+    case list: java.util.List[ItemStack]@unchecked if !list.isEmpty => list.get(rng.nextInt(list.size))
   }
 
 }
