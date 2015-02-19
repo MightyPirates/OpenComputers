@@ -25,6 +25,7 @@ abstract class TextureFontRenderer {
    * be generated inside the draw call.
    */
   def generateChars(chars: Array[Char]) {
+    GL11.glEnable(GL11.GL_TEXTURE_2D)
     for (char <- chars) {
       generateChar(char)
     }
@@ -107,6 +108,7 @@ abstract class TextureFontRenderer {
 
     RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
 
+    RenderState.bindTexture(0)
     RenderState.enableDepthMask()
     RenderState.popAttrib()
     RenderState.popMatrix()
