@@ -38,7 +38,7 @@ object DriverFileSystem extends Item {
     case _ => 0
   }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost) = {
+  private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost) = if (!host.world.isRemote) {
     // We have a bit of a chicken-egg problem here, because we want to use the
     // node's address as the folder name... so we generate the address here,
     // if necessary. No one will know, right? Right!?
@@ -51,6 +51,7 @@ object DriverFileSystem extends Item {
     }
     environment
   }
+  else null
 
   private def addressFromTag(tag: NBTTagCompound) =
     if (tag.hasKey("node") && tag.getCompoundTag("node").hasKey("address")) {

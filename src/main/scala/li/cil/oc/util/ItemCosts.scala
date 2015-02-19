@@ -121,7 +121,7 @@ object ItemCosts {
                 scaled
               }
           }
-        case list: util.ArrayList[ItemStack]@unchecked if !list.isEmpty =>
+        case list: java.util.List[ItemStack]@unchecked if !list.isEmpty =>
           var result = Iterable.empty[(ItemStack, Double)]
           for (stack <- list if result.isEmpty) {
             cache.find {
