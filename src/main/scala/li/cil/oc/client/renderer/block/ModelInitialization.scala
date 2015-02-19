@@ -5,6 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.CustomModel
 import li.cil.oc.common.item.Delegate
+import li.cil.oc.common.item.Delegator
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
@@ -47,9 +48,9 @@ object ModelInitialization {
   }
 
   def init(): Unit = {
-    registerItems(meshableItems)
-    registerSubItems(itemDelegates)
-    registerSubItemsCustom(itemDelegatesCustom)
+    registerItems()
+    registerSubItems()
+    registerSubItemsCustom()
   }
 
   // ----------------------------------------------------------------------- //
@@ -83,7 +84,7 @@ object ModelInitialization {
     })
   }
 
-  private def registerItems(items: mutable.Buffer[Item]): Unit = {
+  private def registerItems(): Unit = {
     val meshDefinition = new ItemMeshDefinition {
       override def getModelLocation(stack: ItemStack) = {
         Option(api.Items.get(stack)) match {
@@ -96,31 +97,33 @@ object ModelInitialization {
     }
 
     val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
-    for (item <- items) {
+    for (item <- meshableItems) {
       modelMeshes.register(item, meshDefinition)
     }
-    items.clear()
+    meshableItems.clear()
   }
 
-  private def registerSubItems(items: mutable.Buffer[(String, Delegate)]): Unit = {
+  private def registerSubItems(): Unit = {
     val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
-    for ((id, item) <- items) {
+    for ((id, item) <- itemDelegates) {
       val location = Settings.resourceDomain + ":" + id
       modelMeshes.register(item.parent, item.itemId, new ModelResourceLocation(location, "inventory"))
       ModelBakery.addVariantName(item.parent, location)
     }
-    items.clear()
+    itemDelegates.clear()
   }
 
-  private def registerSubItemsCustom(items: mutable.Buffer[Delegate with CustomModel]): Unit = {
+  private def registerSubItemsCustom(): Unit = {
     val modelMeshes = Minecraft.getMinecraft.getRenderItem.getItemModelMesher
-    for (item <- items) {
+    for (item <- itemDelegatesCustom) {
       modelMeshes.register(item.parent, new ItemMeshDefinition {
-        override def getModelLocation(stack: ItemStack): ModelResourceLocation = item.getModelLocation(stack)
+        override def getModelLocation(stack: ItemStack): ModelResourceLocation = Delegator.subItem(stack) match {
+          case Some(subItem: CustomModel) => subItem.getModelLocation(stack)
+          case _ => null
+        }
       })
       item.registerModelLocations()
     }
-    items.clear()
   }
 
   // ----------------------------------------------------------------------- //
@@ -135,6 +138,10 @@ object ModelInitialization {
     registry.putObject(RobotItemLocation, RobotModel)
     registry.putObject(RobotAfterimageBlockLocation, NullModel)
     registry.putObject(RobotAfterimageItemLocation, NullModel)
+
+    for (item <- itemDelegatesCustom) {
+      item.bakeModels(e)
+    }
 
     val modelOverrides = Map[String, IFlexibleBakedModel => ISmartBlockModel](
       Constants.BlockName.ScreenTier1 -> (_ => ScreenModel),

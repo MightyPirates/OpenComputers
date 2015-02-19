@@ -78,6 +78,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   protected final val NoTint = -1
 
+  protected def textureScale = 1f
+
   /**
    * Generates a list of arrays, each containing the four vertices making up a
    * face of the box with the specified size.
@@ -93,6 +95,24 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
       math.max(minX, math.min(maxX, vertex.xCoord)),
       math.max(minY, math.min(maxY, vertex.yCoord)),
       math.max(minZ, math.min(maxZ, vertex.zCoord)))))
+  }
+
+  protected def rotateVector(v: Vec3, angle: Double, axis: Vec3) = {
+    // vrot = v * cos(angle) + (axis x v) * sin(angle) + axis * (axis dot v)(1 - cos(angle))
+    def scale(v: Vec3, s: Double) = new Vec3(v.xCoord * s, v.yCoord * s, v.zCoord * s)
+    val cosAngle = math.cos(angle)
+    val sinAngle = math.sin(angle)
+    scale(v, cosAngle).
+      add(scale(axis.crossProduct(v), sinAngle)).
+      add(scale(axis, axis.dotProduct(v) * (1 - cosAngle)))
+  }
+
+  protected def rotateFace(face: Array[Vec3], angle: Double, axis: Vec3, around: Vec3 = new Vec3(0.5, 0.5, 0.5)) = {
+    face.map(v => rotateVector(v.subtract(around), angle, axis).add(around))
+  }
+
+  protected def rotateBox(box: Array[Array[Vec3]], angle: Double, axis: Vec3 = new Vec3(0, 1, 0), around: Vec3 = new Vec3(0.5, 0.5, 0.5)) = {
+    box.map(face => rotateFace(face, angle, axis, around))
   }
 
   /**
@@ -147,8 +167,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
       java.lang.Float.floatToRawIntBits(y.toFloat),
       java.lang.Float.floatToRawIntBits(z.toFloat),
       getFaceShadeColor(face),
-      java.lang.Float.floatToRawIntBits(u),
-      java.lang.Float.floatToRawIntBits(v),
+      java.lang.Float.floatToRawIntBits(u * textureScale),
+      java.lang.Float.floatToRawIntBits(v * textureScale),
       0
     )
   }

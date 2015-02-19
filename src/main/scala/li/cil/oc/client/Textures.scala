@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import org.lwjgl.opengl.GL11
 
 import scala.collection.mutable
 
@@ -74,6 +73,7 @@ object Textures {
     val UpgradeInventory = L("inventory_upgrade")
     val HologramEffect = L("hologram_effect")
     val Drone = L("drone")
+    val DroneItem = L("drone_item")
     val Robot = L("robot")
 
     override protected def basePath = "textures/model/%s.png"

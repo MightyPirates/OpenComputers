@@ -2,21 +2,36 @@ package li.cil.oc.common.item
 
 import java.util
 
+import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.client.renderer.block.DroneModel
 import li.cil.oc.common.entity
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
+import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.client.event.ModelBakeEvent
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
-class Drone(val parent: Delegator) extends Delegate {
+class Drone(val parent: Delegator) extends Delegate with CustomModel {
   NEI.hide(this)
 
   showInItemList = false
+
+  @SideOnly(Side.CLIENT)
+  override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.ItemName.Drone, "inventory")
+
+  @SideOnly(Side.CLIENT)
+  override def bakeModels(bakeEvent: ModelBakeEvent): Unit = {
+    bakeEvent.modelRegistry.putObject(getModelLocation(createItemStack()), DroneModel)
+  }
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
