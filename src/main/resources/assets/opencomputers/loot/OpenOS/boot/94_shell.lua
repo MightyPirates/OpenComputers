@@ -15,7 +15,7 @@ shell.setAlias("help", "man")
 shell.setAlias("?", "man")
 shell.setAlias("cp", "cp -i")
 
-event.listen("init", function()
+require("event").listen("init", function()
   local file = io.open("/etc/hostname")
   if file then
     os.setenv("HOSTNAME", file:read("*l"))
