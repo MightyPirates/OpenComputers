@@ -64,13 +64,13 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
         RenderState.checkError(getClass.getName + ".compileOrDraw: glEndList")
       }
 
-      RenderState.bindTexture(0)
       RenderState.checkError(getClass.getName + ".compileOrDraw: leaving")
 
       true
     }
     else {
       GL11.glCallList(list)
+      RenderState.bindTexture(0)
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: glCallList")
     }
