@@ -156,7 +156,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   // ----------------------------------------------------------------------- //
 
   override def attackTargetEntityWithCurrentItem(entity: Entity) {
-    callUsingItemInSlot(0, stack => entity match {
+    callUsingItemInSlot(agent.equipmentInventory, 0, stack => entity match {
       case player: EntityPlayer if !canAttackPlayer(player) => // Avoid player damage.
       case _ =>
         val event = new RobotAttackEntityEvent.Pre(agent, entity)
@@ -176,7 +176,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         }
         false
     }
-    !cancel && callUsingItemInSlot(0, stack => {
+    !cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
         case living: EntityLivingBase if getCurrentEquippedItem != null => getCurrentEquippedItem.interactWithEntity(this, living)
         case _ => false
@@ -189,7 +189,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   def activateBlockOrUseItem(pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
-    callUsingItemInSlot(0, stack => {
+    callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, world, pos, side))) {
         return ActivationType.None
       }
@@ -220,7 +220,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   def useEquippedItem(duration: Double) = {
-    callUsingItemInSlot(0, stack => {
+    callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, world, getPosition, facing))) {
         tryUseItem(stack, duration)
       }
@@ -264,7 +264,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   def placeBlock(slot: Int, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    callUsingItemInSlot(slot, stack => {
+    callUsingItemInSlot(agent.mainInventory, slot, stack => {
       if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, world, pos, side))) {
         return false
       }
@@ -274,7 +274,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   }
 
   def clickBlock(pos: BlockPos, side: EnumFacing): Double = {
-    callUsingItemInSlot(0, stack => {
+    callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, world, pos, side))) {
         return 0
       }
@@ -397,7 +397,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
   }
 
-  private def callUsingItemInSlot[T](slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
+  private def callUsingItemInSlot[T](inventory: IInventory, slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
     val itemsBefore = adjacentItems
     val stack = inventory.getStackInSlot(slot)
     val oldStack = if (stack != null) stack.copy() else null
