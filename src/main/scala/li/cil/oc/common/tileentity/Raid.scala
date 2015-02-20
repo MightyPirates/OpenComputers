@@ -77,7 +77,8 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
   }
 
   def tryCreateRaid(id: String) {
-    if (items.count(_.isDefined) == items.length) {
+    if (items.count(_.isDefined) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {
+      filesystem.foreach(fs => if (fs.node != null) fs.node.remove())
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
         label, this, Settings.resourceDomain + ":hdd_access").

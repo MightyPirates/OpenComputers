@@ -6,6 +6,7 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
@@ -97,7 +98,7 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
+  def onServerTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
     pending.synchronized {
       val adds = pending.toArray
       pending.clear()
@@ -107,6 +108,10 @@ object EventHandler {
         case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
+  }
+
+  @SubscribeEvent
+  def onClientTick(e: ClientTickEvent) = if (e.phase == TickEvent.Phase.START) {
     totalWorldTicks += 1
   }
 

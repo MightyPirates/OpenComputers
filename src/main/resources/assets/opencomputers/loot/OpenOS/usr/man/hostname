@@ -1,0 +1,12 @@
+NAME
+  hostname - Display and modify hostname
+
+SYNOPIS
+  hostname [NEW NAME]
+
+EXAMPLES
+  hostname
+    Prints currently set hostname
+
+  hostname test
+    Sets hostname of this computer to test

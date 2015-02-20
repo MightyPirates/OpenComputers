@@ -50,14 +50,15 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   def isRunning = _isRunning
 
-  @SideOnly(Side.CLIENT)
   def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
-    world.markBlockForUpdate(x, y, z)
-    runSound.foreach(sound =>
-      if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
-      else Sound.stopLoop(this)
-    )
+    if (world != null) {
+      world.markBlockForUpdate(x, y, z)
+      runSound.foreach(sound =>
+        if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
+        else Sound.stopLoop(this)
+      )
+    }
   }
 
   @SideOnly(Side.CLIENT)
@@ -137,7 +138,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     // Kickstart initialization to avoid values getting overwritten by
     // readFromNBTForClient if that packet is handled after a manual
     // initialization / state change packet.
-    _isRunning = machine.isRunning
+    setRunning(machine.isRunning)
     _isOutputEnabled = hasRedstoneCard
     _isAbstractBusAvailable = hasAbstractBusCard
   }
@@ -155,7 +156,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    _isRunning = nbt.getBoolean("isRunning")
+    setRunning(nbt.getBoolean("isRunning"))
     _users.clear()
     _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
     if (_isRunning) runSound.foreach(sound => Sound.startLoop(this, sound, 0.5f, 1000 + world.rand.nextInt(2000)))

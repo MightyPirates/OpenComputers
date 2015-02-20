@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack
 
 object DriverMemory extends Item with driver.item.Memory {
   override def amount(stack: ItemStack) = Items.multi.subItem(stack) match {
-    case Some(memory: item.Memory) => memory.tier
+    case Some(memory: item.Memory) => memory.tier + 1
     case _ => 0.0
   }
 
