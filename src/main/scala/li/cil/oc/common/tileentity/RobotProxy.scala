@@ -66,10 +66,8 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def disconnectComponents() {}
 
-  @SideOnly(Side.CLIENT)
   override def isRunning = robot.isRunning
 
-  @SideOnly(Side.CLIENT)
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
   // ----------------------------------------------------------------------- //
