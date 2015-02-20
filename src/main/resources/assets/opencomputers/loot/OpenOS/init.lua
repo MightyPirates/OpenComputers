@@ -1,5 +1,5 @@
 do
-  _G._OSVERSION = "OpenOS 1.4"
+  _G._OSVERSION = "OpenOS 1.5"
 
   local component = component
   local computer = computer
