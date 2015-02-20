@@ -51,11 +51,13 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
-    world.markBlockForUpdate(getPos)
-    runSound.foreach(sound =>
-      if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
-      else Sound.stopLoop(this)
-    )
+    if (world != null) {
+      world.markBlockForUpdate(getPos)
+      runSound.foreach(sound =>
+        if (_isRunning) Sound.startLoop(this, sound, 0.5f, 50 + world.rand.nextInt(50))
+        else Sound.stopLoop(this)
+      )
+    }
   }
 
   @SideOnly(Side.CLIENT)
