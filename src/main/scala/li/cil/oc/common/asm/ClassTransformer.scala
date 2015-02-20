@@ -183,7 +183,7 @@ class ClassTransformer extends IClassTransformer {
       //   if (entity instanceof Drone) {
       //     d5 = 0.0;
       //     d6 = 0.0;
-      //     d7 = -0.75;
+      //     d7 = -0.25;
       //   }
       // before the `instanceof EntityHanging` check in func_110827_b.
       if (ObfNames.Class_RenderLiving.contains(name.replace('.', '/'))) {
@@ -202,7 +202,7 @@ class ClassTransformer extends IClassTransformer {
             toInject.add(new VarInsnNode(Opcodes.DSTORE, 17))
             toInject.add(new LdcInsnNode(double2Double(0.0)))
             toInject.add(new VarInsnNode(Opcodes.DSTORE, 19))
-            toInject.add(new LdcInsnNode(double2Double(-0.75)))
+            toInject.add(new LdcInsnNode(double2Double(-0.25)))
             toInject.add(new VarInsnNode(Opcodes.DSTORE, 21))
             toInject.add(skip)
             instructions.insertBefore(varNode, toInject)
