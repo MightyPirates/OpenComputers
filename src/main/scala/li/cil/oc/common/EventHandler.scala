@@ -24,6 +24,7 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent._
 import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 
@@ -64,7 +65,7 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
+  def onServerTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
     pending.synchronized {
       val adds = pending.toArray
       pending.clear()
@@ -76,6 +77,10 @@ object EventHandler {
     })
 
     runningRobots.foreach(_.machine.update())
+  }
+
+  @SubscribeEvent
+  def onClientTick(e: ClientTickEvent) = if (e.phase == TickEvent.Phase.START) {
     totalWorldTicks += 1
   }
 
