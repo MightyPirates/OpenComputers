@@ -53,19 +53,21 @@ object Loot {
   def initForWorld(e: WorldEvent.Load) {
     worldDisks.clear()
     disks.clear()
-    val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + "loot/")
-    if (path.exists && path.isDirectory) {
-      val listFile = new io.File(path, "loot.properties")
-      if (listFile.exists && listFile.isFile) {
-        try {
-          val listStream = new io.FileInputStream(listFile)
-          val list = new java.util.Properties()
-          list.load(listStream)
-          listStream.close()
-          parseLootDisks(list, worldDisks)
-        }
-        catch {
-          case t: Throwable => OpenComputers.log.warn("Failed opening loot descriptor file in saves folder.")
+    if (!e.world.isRemote) {
+      val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + "loot/")
+      if (path.exists && path.isDirectory) {
+        val listFile = new io.File(path, "loot.properties")
+        if (listFile.exists && listFile.isFile) {
+          try {
+            val listStream = new io.FileInputStream(listFile)
+            val list = new java.util.Properties()
+            list.load(listStream)
+            listStream.close()
+            parseLootDisks(list, worldDisks)
+          }
+          catch {
+            case t: Throwable => OpenComputers.log.warn("Failed opening loot descriptor file in saves folder.")
+          }
         }
       }
     }

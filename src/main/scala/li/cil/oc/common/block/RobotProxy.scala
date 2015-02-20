@@ -171,7 +171,9 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
         val bounds = AxisAlignedBB.fromBounds(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
         setBlockBounds(if (robot.isAnimatingMove) {
           val remaining = robot.animationTicksLeft.toDouble / robot.animationTicksTotal.toDouble
-          val delta = robot.moveFrom.get.subtract(robot.getPos)
+          val blockPos = robot.moveFrom.get
+          val vec = robot.getPos
+          val delta = new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
           bounds.offset(delta.getX * remaining, delta.getY * remaining, delta.getZ * remaining)
         }
         else bounds)

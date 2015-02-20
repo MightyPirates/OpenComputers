@@ -75,7 +75,10 @@ class RobotAfterimage extends SimpleBlock {
       case Some(robot) =>
         val block = robot.getBlockType
         block.setBlockBoundsBasedOnState(world, robot.getPos)
-        val delta = robot.moveFrom.fold(Vec3i.NULL_VECTOR)(robot.getPos.subtract(_))
+        val delta = robot.moveFrom.fold(Vec3i.NULL_VECTOR)(vec => {
+          val blockPos = robot.getPos
+          new BlockPos(blockPos.getX - vec.getX, blockPos.getY - vec.getY, blockPos.getZ - vec.getZ)
+        })
         setBlockBounds(new AxisAlignedBB(
           block.getBlockBoundsMinX, block.getBlockBoundsMinY, block.getBlockBoundsMinZ,
           block.getBlockBoundsMaxX, block.getBlockBoundsMaxY, block.getBlockBoundsMaxZ).

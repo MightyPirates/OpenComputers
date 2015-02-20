@@ -12,6 +12,7 @@ import li.cil.oc.common.item.HardDiskDrive
 import li.cil.oc.server.fs.FileSystem.ItemLabel
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.DimensionManager
 
 object DriverFileSystem extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
@@ -38,7 +39,7 @@ object DriverFileSystem extends Item {
     case _ => 0
   }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost) = if (!host.world.isRemote) {
+  private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost) = if (DimensionManager.getWorld(0) != null) {
     // We have a bit of a chicken-egg problem here, because we want to use the
     // node's address as the folder name... so we generate the address here,
     // if necessary. No one will know, right? Right!?
