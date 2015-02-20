@@ -67,7 +67,6 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     GL11.glEnable(GL11.GL_DEPTH_TEST)
     RenderState.popMatrix()
     RenderState.makeItBlend()
-    RenderState.makeItBlend()
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
@@ -80,6 +79,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
     if (Mods.NotEnoughItems.isAvailable) {
       RenderState.pushAttrib()
+      RenderState.makeItBlend()
       drawNEIHighlights()
       RenderState.popAttrib()
     }
@@ -184,7 +184,7 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
             drawGradientRect(
               rect.x1 + 1, rect.y1 + 1,
               rect.x2, rect.y2,
-              0x40FFFFFF, 0x40FFFFFF)
+              0x80FFFFFF, 0x80FFFFFF)
           }
         case _ =>
       }
