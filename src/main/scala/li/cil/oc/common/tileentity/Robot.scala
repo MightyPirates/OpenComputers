@@ -447,6 +447,11 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
       turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
+
+    // Normally set in superclass, but that's not called directly, only in the
+    // robot's proxy instance.
+    _isOutputEnabled = hasRedstoneCard
+    _isAbstractBusAvailable = hasAbstractBusCard
   }
 
   // Side check for Waila (and other mods that may call this client side).
