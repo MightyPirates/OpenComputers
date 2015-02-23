@@ -485,6 +485,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     // Normally set in superclass, but that's not called directly, only in the
     // robot's proxy instance.
     _isOutputEnabled = hasRedstoneCard
+    if (isRunning) EventHandler.onRobotStart(this)
   }
 
   // Side check for Waila (and other mods that may call this client side).

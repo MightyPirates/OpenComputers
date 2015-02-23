@@ -76,7 +76,12 @@ object EventHandler {
       }
     })
 
-    runningRobots.foreach(_.machine.update())
+    val invalid = mutable.ArrayBuffer.empty[Robot]
+    runningRobots.foreach(robot => {
+      if (robot.isInvalid) invalid += robot
+      else robot.machine.update()
+    })
+    runningRobots --= invalid
   }
 
   @SubscribeEvent
