@@ -6,7 +6,7 @@ SYNOPSIS
   primary TYPE ADDRESS
 
 DESCRIPTION
-  This program allows reading the address of the current primary component of the specified type. It also allows chaning the current primary component for a specified type by providing the (abbreviated) address of the new primary component.
+  This program allows reading the address of the current primary component of the specified type. It also allows changing the current primary component for a specified type by providing the (abbreviated) address of the new primary component.
 
 EXAMPLES
   primary gpu
