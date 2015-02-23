@@ -5,7 +5,7 @@ SYNOPSIS
   df [FILE]...
 
 DESCRIPTION
-  `cp` allows copying single files on a filesystem and across filesystems.
+  `df` outputs disk space information for the file systems containing the specified files. If no file names are given it returns the information for all currently mounted file systems.
 
 EXAMPLES
   df
