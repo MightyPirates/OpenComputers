@@ -13,6 +13,7 @@ import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.internal
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.InventorySelection
@@ -402,6 +403,16 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     }
   }
 
+  // The robot's machine is updated in a tick handler, to avoid delayed tile
+  // entity creation when moving, which would screw over all the things...
+  override protected def updateComputer(): Unit = {}
+
+  override protected def onRunningChanged(): Unit = {
+    super.onRunningChanged()
+    if (isRunning) EventHandler.onRobotStart(this)
+    else EventHandler.onRobotStopped(this)
+  }
+
   override protected def initialize() {
     if (isServer) {
       // Ensure we have a node address, because the proxy needs this to initialize
@@ -419,6 +430,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         case _ =>
       }
     }
+    else EventHandler.onRobotStopped(this)
   }
 
   // ----------------------------------------------------------------------- //
@@ -452,6 +464,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     // robot's proxy instance.
     _isOutputEnabled = hasRedstoneCard
     _isAbstractBusAvailable = hasAbstractBusCard
+    if (isRunning) EventHandler.onRobotStart(this)
   }
 
   // Side check for Waila (and other mods that may call this client side).
