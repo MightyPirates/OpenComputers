@@ -1,9 +1,13 @@
 package li.cil.oc.common.item
 
 import li.cil.oc.Settings
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.world.World
 
 class EEPROM extends SimpleItem {
+  override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer): Boolean = true
+
   override def getItemStackDisplayName(stack: ItemStack): String = {
     if (stack.hasTagCompound) {
       val tag = stack.getTagCompound

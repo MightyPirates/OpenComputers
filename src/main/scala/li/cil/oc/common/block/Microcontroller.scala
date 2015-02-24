@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item.data.MicrocontrollerData
@@ -10,6 +11,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -68,16 +70,32 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
-      if (!world.isRemote) {
-        world.getTileEntity(x, y, z) match {
-          case mcu: tileentity.Microcontroller =>
-            if (mcu.machine.isRunning) mcu.machine.stop()
-            else mcu.machine.start()
-          case _ =>
+    if (!Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
+      if (!player.isSneaking) {
+        if (!world.isRemote) {
+          world.getTileEntity(x, y, z) match {
+            case mcu: tileentity.Microcontroller =>
+              if (mcu.machine.isRunning) mcu.machine.stop()
+              else mcu.machine.start()
+            case _ =>
+          }
         }
+        true
       }
-      true
+      else if (api.Items.get(player.getHeldItem) == api.Items.get("eeprom")) {
+        if (!world.isRemote) {
+          world.getTileEntity(x, y, z) match {
+            case mcu: tileentity.Microcontroller =>
+              val newEeprom = player.inventory.decrStackSize(player.inventory.currentItem, 1)
+              mcu.changeEEPROM(newEeprom) match {
+                case Some(oldEeprom) => InventoryUtils.addToPlayerInventory(oldEeprom, player)
+                case _ =>
+              }
+          }
+        }
+        true
+      }
+      else false
     }
     else false
   }
