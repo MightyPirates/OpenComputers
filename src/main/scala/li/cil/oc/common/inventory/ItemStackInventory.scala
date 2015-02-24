@@ -11,7 +11,9 @@ trait ItemStackInventory extends Inventory {
   // The item stack that provides the inventory.
   def container: ItemStack
 
-  lazy val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+  private lazy val inventory = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+
+  override def items = inventory
 
   // Initialize the list automatically if we have a container.
   if (container != null) {
@@ -24,14 +26,14 @@ trait ItemStackInventory extends Inventory {
       container.setTagCompound(new NBTTagCompound())
     }
     for (i <- 0 until items.length) {
-      items(i) = None
+      updateItems(i, null)
     }
     if (container.getTagCompound.hasKey(Settings.namespace + "items")) {
       val list = container.getTagCompound.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND)
       for (i <- 0 until (list.tagCount min items.length)) {
         val tag = list.getCompoundTagAt(i)
         if (!tag.hasNoTags) {
-          items(i) = Option(ItemUtils.loadStack(tag))
+          updateItems(i, ItemUtils.loadStack(tag))
         }
       }
     }
