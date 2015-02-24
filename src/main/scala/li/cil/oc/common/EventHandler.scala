@@ -181,15 +181,7 @@ object EventHandler {
           // Presents!
           val present = api.Items.get(Constants.ItemName.Present).createItemStack(1)
           e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
-          if (e.player.inventory.addItemStackToInventory(present)) {
-            e.player.inventory.markDirty()
-            if (e.player.openContainer != null) {
-              e.player.openContainer.detectAndSendChanges()
-            }
-          }
-          else {
-            e.player.dropPlayerItemWithRandomChoice(present, false)
-          }
+          InventoryUtils.addToPlayerInventory(present, e.player)
         }
       case _ => // Nope.
     }
@@ -210,9 +202,8 @@ object EventHandler {
       for (slot <- 0 until e.craftMatrix.getSizeInventory) {
         val stack = e.craftMatrix.getStackInSlot(slot)
         if (api.Items.get(stack) == item) {
-          callback(stack).foreach(extra => if (!e.player.inventory.addItemStackToInventory(extra)) {
-            e.player.dropPlayerItemWithRandomChoice(extra, false)
-          })
+          callback(stack).foreach(extra =>
+            InventoryUtils.addToPlayerInventory(extra, e.player))
         }
       }
       true

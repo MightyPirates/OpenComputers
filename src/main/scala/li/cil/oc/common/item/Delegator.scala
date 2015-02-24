@@ -98,6 +98,7 @@ class Delegator extends Item {
   override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer) = {
     world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive => true
+      case drive: tileentity.Microcontroller => true
       case _ => super.doesSneakBypassUse(world, pos, player)
     }
   }

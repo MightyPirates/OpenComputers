@@ -9,7 +9,9 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 
 trait Inventory extends TileEntity with inventory.Inventory {
-  lazy val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+  private lazy val inventory = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+
+  def items = inventory
 
   // ----------------------------------------------------------------------- //
 
