@@ -13,6 +13,8 @@ import net.minecraftforge.common.util.Constants.NBT
 trait Inventory extends IInventory {
   def items: Array[Option[ItemStack]]
 
+  def updateItems(slot: Int, stack: ItemStack) = items(slot) = Option(stack)
+
   // ----------------------------------------------------------------------- //
 
   override def getStackInSlot(slot: Int) =
@@ -47,7 +49,7 @@ trait Inventory extends IInventory {
       }
 
       val oldStack = items(slot)
-      items(slot) = None
+      updateItems(slot, null)
       if (oldStack.isDefined) {
         onItemRemoved(slot, oldStack.get)
       }
@@ -55,7 +57,7 @@ trait Inventory extends IInventory {
         if (stack.stackSize > getInventoryStackLimit) {
           stack.stackSize = getInventoryStackLimit
         }
-        items(slot) = Some(stack)
+        updateItems(slot, stack)
       }
 
       if (items(slot).isDefined) {
@@ -96,7 +98,7 @@ trait Inventory extends IInventory {
     nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
-        items(slot) = Option(ItemUtils.loadStack(slotNbt.getCompoundTag("item")))
+        updateItems(slot, ItemUtils.loadStack(slotNbt.getCompoundTag("item")))
       }
     })
   }

@@ -3,12 +3,14 @@ package li.cil.oc.common.block
 import java.util
 
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.Wrench
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
@@ -62,16 +64,32 @@ class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microc
   // ----------------------------------------------------------------------- //
 
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking && !Wrench.holdsApplicableWrench(player, pos)) {
-      if (!world.isRemote) {
-        world.getTileEntity(pos) match {
-          case mcu: tileentity.Microcontroller =>
-            if (mcu.machine.isRunning) mcu.machine.stop()
-            else mcu.machine.start()
-          case _ =>
+    if (!Wrench.holdsApplicableWrench(player, pos)) {
+      if (!player.isSneaking) {
+        if (!world.isRemote) {
+          world.getTileEntity(pos) match {
+            case mcu: tileentity.Microcontroller =>
+              if (mcu.machine.isRunning) mcu.machine.stop()
+              else mcu.machine.start()
+            case _ =>
+          }
         }
+        true
       }
-      true
+      else if (api.Items.get(player.getHeldItem) == api.Items.get("eeprom")) {
+        if (!world.isRemote) {
+          world.getTileEntity(pos) match {
+            case mcu: tileentity.Microcontroller =>
+              val newEeprom = player.inventory.decrStackSize(player.inventory.currentItem, 1)
+              mcu.changeEEPROM(newEeprom) match {
+                case Some(oldEeprom) => InventoryUtils.addToPlayerInventory(oldEeprom, player)
+                case _ =>
+              }
+          }
+        }
+        true
+      }
+      else false
     }
     else false
   }

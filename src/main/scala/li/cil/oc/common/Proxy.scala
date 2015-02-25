@@ -1,5 +1,7 @@
 package li.cil.oc.common
 
+import java.io.File
+
 import com.google.common.base.Strings
 import li.cil.oc._
 import li.cil.oc.common.entity.Drone
@@ -26,7 +28,7 @@ import scala.collection.convert.WrapAsScala._
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
-    Settings.load(e.getSuggestedConfigurationFile)
+    Settings.load(new File(e.getModConfigurationDirectory, "opencomputers" + File.separator + "settings.conf"))
 
     OpenComputers.log.info("Initializing blocks and items.")
 

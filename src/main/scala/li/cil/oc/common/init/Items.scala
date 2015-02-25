@@ -433,7 +433,7 @@ object Items extends ItemAPI {
   // Special purpose items that don't fit into any other category.
   private def initSpecial(): Unit = {
     val misc = newItem(new item.Delegator() {
-      private lazy val configuredItems = Array(
+      private def configuredItems = Array(
         Items.createConfiguredDrone(),
         Items.createConfiguredMicrocontroller(),
         Items.createConfiguredRobot(),

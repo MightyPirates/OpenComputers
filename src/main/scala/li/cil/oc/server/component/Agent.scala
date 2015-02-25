@@ -11,6 +11,7 @@ import li.cil.oc.server.agent.Player
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
@@ -281,10 +282,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     entity.captureDrops = false
     for (drop <- entity.capturedDrops) {
       val stack = drop.getEntityItem
-      player.inventory.addItemStackToInventory(stack)
-      if (stack.stackSize > 0) {
-        player.dropPlayerItemWithRandomChoice(stack, inPlace = false)
-      }
+      InventoryUtils.addToPlayerInventory(stack, player)
     }
     entity.capturedDrops.clear()
   }

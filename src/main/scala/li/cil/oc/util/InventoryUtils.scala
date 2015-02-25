@@ -3,6 +3,7 @@ package li.cil.oc.util
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.item.EntityMinecartContainer
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
@@ -233,13 +234,30 @@ object InventoryUtils {
   /**
    * Utility method for dumping all inventory contents into the world.
    */
-  def dropAllSlots(position: BlockPosition, inventory: IInventory) {
+  def dropAllSlots(position: BlockPosition, inventory: IInventory): Unit = {
     for (slot <- 0 until inventory.getSizeInventory) {
       Option(inventory.getStackInSlot(slot)) match {
         case Some(stack) if stack.stackSize > 0 =>
           inventory.setInventorySlotContents(slot, null)
           spawnStackInWorld(position, stack)
         case _ => // Nothing.
+      }
+    }
+  }
+
+  /**
+   * Try inserting an item stack into a player inventory. If that fails, drop it into the world.
+   */
+  def addToPlayerInventory(stack: ItemStack, player: EntityPlayer): Unit = {
+    if (stack != null) {
+      if (player.inventory.addItemStackToInventory(stack)) {
+        player.inventory.markDirty()
+        if (player.openContainer != null) {
+          player.openContainer.detectAndSendChanges()
+        }
+      }
+      if (stack.stackSize > 0) {
+        player.dropPlayerItemWithRandomChoice(stack, false)
       }
     }
   }

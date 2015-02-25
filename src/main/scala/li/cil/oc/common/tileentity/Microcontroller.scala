@@ -219,7 +219,9 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
     nbt.setNewCompoundTag("info", info.save)
   }
 
-  override lazy val items = info.components.map(Option(_))
+  override def items = info.components.map(Option(_))
+
+  override def updateItems(slot: Int, stack: ItemStack): Unit = info.components(slot) = stack
 
   override def getSizeInventory = info.components.length
 
@@ -230,4 +232,19 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // Nope.
   override def decrStackSize(slot: Int, amount: Int) = null
+
+  // For hotswapping EEPROMs.
+  def changeEEPROM(newEeprom: ItemStack) = {
+    val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get("eeprom"))
+    if (oldEepromIndex >= 0) {
+      val oldEeprom = info.components(oldEepromIndex)
+      super.setInventorySlotContents(oldEepromIndex, newEeprom)
+      Some(oldEeprom)
+    }
+    else {
+      assert(info.components(getSizeInventory - 1) == null)
+      super.setInventorySlotContents(getSizeInventory - 1, newEeprom)
+      None
+    }
+  }
 }
