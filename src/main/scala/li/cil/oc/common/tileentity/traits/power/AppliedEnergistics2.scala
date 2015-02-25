@@ -91,10 +91,11 @@ trait AppliedEnergistics2 extends Common {
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def getGridNode(side: ForgeDirection) = node match {
     case Some(gridNode: IGridNode) => gridNode
-    case _ =>
+    case _ if isServer =>
       val gridNode = AEApi.instance.createGridNode(new AppliedEnergistics2GridBlock(this))
       node = Option(gridNode)
       gridNode
+    case _ => null
   }
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
