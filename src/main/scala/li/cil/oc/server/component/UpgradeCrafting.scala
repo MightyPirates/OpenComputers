@@ -9,6 +9,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
 import net.minecraft.item.ItemStack
@@ -67,10 +68,9 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
             }
           }
           save()
-          val inventory = host.player.inventory
-          inventory.addItemStackToInventory(result)
+          InventoryUtils.addToPlayerInventory(result, host.player)
           for (stack <- surplus) {
-            inventory.addItemStackToInventory(stack)
+            InventoryUtils.addToPlayerInventory(stack, host.player)
           }
           load()
         }
@@ -79,7 +79,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
     }
 
     def load() {
-      val inventory = host.player.inventory
+      val inventory = host.mainInventory()
       amountPossible = Int.MaxValue
       for (slot <- 0 until getSizeInventory) {
         val stack = inventory.getStackInSlot(toParentSlot(slot))
@@ -91,7 +91,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
     }
 
     def save() {
-      val inventory = host.player.inventory
+      val inventory = host.mainInventory()
       for (slot <- 0 until getSizeInventory) {
         inventory.setInventorySlotContents(toParentSlot(slot), getStackInSlot(slot))
       }
@@ -100,7 +100,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
     private def toParentSlot(slot: Int) = {
       val col = slot % 3
       val row = slot / 3
-      row * 4 + col + 4 // first four are always: tool, card, disk, upgrade
+      row * 4 + col
     }
   }
 

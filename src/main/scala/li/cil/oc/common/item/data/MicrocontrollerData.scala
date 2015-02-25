@@ -17,20 +17,26 @@ class MicrocontrollerData extends ItemData {
 
   var tier = Tier.One
 
-  var components = Array.empty[ItemStack]
+  var components = Array[ItemStack](null)
 
   var storedEnergy = 0
 
   override def load(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier")
     components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(ItemUtils.loadStack)
+      toArray[NBTTagCompound].map(ItemUtils.loadStack).filter(_ != null)
     storedEnergy = nbt.getInteger(Settings.namespace + "storedEnergy")
+
+    // Reserve slot for EEPROM if necessary, avoids having to resize the
+    // components array in the MCU tile entity, which isn't possible currently.
+    if (!components.exists(stack => api.Items.get(stack) == api.Items.get("eeprom"))) {
+      components :+= null
+    }
   }
 
   override def save(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
-    nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
+    nbt.setNewTagList(Settings.namespace + "components", components.filter(_ != null).toIterable)
     nbt.setInteger(Settings.namespace + "storedEnergy", storedEnergy)
   }
 

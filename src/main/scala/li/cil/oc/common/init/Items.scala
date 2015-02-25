@@ -280,7 +280,7 @@ object Items extends ItemAPI {
 
   def init() {
     multi = new item.Delegator() {
-      lazy val configuredItems = Array(
+      def configuredItems = Array(
         createOpenOS(),
         createLuaBios(),
         createConfiguredDrone(),

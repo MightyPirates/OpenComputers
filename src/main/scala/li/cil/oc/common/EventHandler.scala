@@ -15,6 +15,7 @@ import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
@@ -39,6 +40,12 @@ object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
 
   var totalWorldTicks = 0L
+
+  private val runningRobots = mutable.Set.empty[Robot]
+
+  def onRobotStart(robot: Robot): Unit = runningRobots += robot
+
+  def onRobotStopped(robot: Robot): Unit = runningRobots -= robot
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -108,6 +115,13 @@ object EventHandler {
         case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
+
+    val invalid = mutable.ArrayBuffer.empty[Robot]
+    runningRobots.foreach(robot => {
+      if (robot.isInvalid) invalid += robot
+      else robot.machine.update()
+    })
+    runningRobots --= invalid
   }
 
   @SubscribeEvent
@@ -207,15 +221,7 @@ object EventHandler {
           // Presents!
           val present = api.Items.get("present").createItemStack(1)
           e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
-          if (e.player.inventory.addItemStackToInventory(present)) {
-            e.player.inventory.markDirty()
-            if (e.player.openContainer != null) {
-              e.player.openContainer.detectAndSendChanges()
-            }
-          }
-          else {
-            e.player.dropPlayerItemWithRandomChoice(present, false)
-          }
+          InventoryUtils.addToPlayerInventory(present, e.player)
         }
       case _ => // Nope.
     }
@@ -236,9 +242,8 @@ object EventHandler {
       for (slot <- 0 until e.craftMatrix.getSizeInventory) {
         val stack = e.craftMatrix.getStackInSlot(slot)
         if (api.Items.get(stack) == item) {
-          callback(stack).foreach(extra => if (!e.player.inventory.addItemStackToInventory(extra)) {
-            e.player.dropPlayerItemWithRandomChoice(extra, false)
-          })
+          callback(stack).foreach(extra =>
+            InventoryUtils.addToPlayerInventory(extra, e.player))
         }
       }
       true

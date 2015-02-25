@@ -3,6 +3,7 @@ package li.cil.oc.common.container
 import li.cil.oc.client.gui.Icons
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
@@ -36,8 +37,7 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
     if (SideTracker.isServer && getHasStack && !isItemValid(getStack)) {
       val stack = getStack
       putStack(null)
-      player.inventory.addItemStackToInventory(stack)
-      player.dropPlayerItemWithRandomChoice(stack, false)
+      InventoryUtils.addToPlayerInventory(stack, player)
     }
   }
 }
