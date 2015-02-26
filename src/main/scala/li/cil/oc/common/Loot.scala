@@ -6,7 +6,7 @@ import java.util.Random
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
@@ -112,7 +112,7 @@ object Loot {
       case _ =>
     }
 
-    val disk = api.Items.get(Constants.ItemName.Floppy).createItemStack(1)
+    val disk = Items.get(Constants.ItemName.Floppy).createItemStack(1)
     disk.setTagCompound(tag)
 
     disk

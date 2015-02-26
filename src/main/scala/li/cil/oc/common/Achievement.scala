@@ -21,7 +21,7 @@ object Achievement {
   val Disassembler = new Achievement("oc.disassembler", "oc.disassembler",
     2, 2, Items.get(Constants.BlockName.Disassembler).createItemStack(1), Transistor, Constants.BlockName.Disassembler)
   val Microchip = new Achievement("oc.chip", "oc.chip",
-    4, 0, Items.get(Constants.ItemName.Chip1).createItemStack(1), Transistor, Constants.ItemName.Chip1, Constants.ItemName.Chip2, Constants.ItemName.Chip3)
+    4, 0, Items.get(Constants.ItemName.ChipTier1).createItemStack(1), Transistor, Constants.ItemName.ChipTier1, Constants.ItemName.ChipTier2, Constants.ItemName.ChipTier3)
   val Capacitor = new Achievement("oc.capacitor", "oc.capacitor",
     6, -1, Items.get(Constants.BlockName.Capacitor).createItemStack(1), Microchip, Constants.BlockName.Capacitor)
   val Assembler = new Achievement("oc.assembler", "oc.assembler",
