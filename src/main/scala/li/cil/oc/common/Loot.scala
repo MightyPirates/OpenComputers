@@ -7,6 +7,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.common.init.Items
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.util.Color
 import net.minecraft.inventory.IInventory
@@ -20,7 +21,7 @@ import net.minecraftforge.event.world.WorldEvent
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createItemStack(1), 1, 1, Settings.get.lootProbability) {
+object Loot extends WeightedRandomChestContent(Items.createOpenOS(), 1, 1, Settings.get.lootProbability) {
   val containers = Array(
     ChestGenHooks.DUNGEON_CHEST,
     ChestGenHooks.PYRAMID_DESERT_CHEST,
@@ -43,10 +44,6 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
     list.load(listStream)
     listStream.close()
     parseLootDisks(list, builtInDisks)
-
-    for ((name, (stack, _)) <- builtInDisks if name == "OpenOS") {
-      Recipes.addRecipe(stack, "openOS")
-    }
   }
 
   @SubscribeEvent

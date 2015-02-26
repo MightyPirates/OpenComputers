@@ -36,7 +36,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable")
       case proxy@(_: RobotProxy | _: RobotAfterimage) =>
         GL11.glScalef(1.5f, 1.5f, 1.5f)
-        GL11.glTranslatef(-0.5f, -0.45f, -0.5f)
+        GL11.glTranslatef(-0.5f, -0.4f, -0.5f)
         RobotRenderer.renderChassis()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")

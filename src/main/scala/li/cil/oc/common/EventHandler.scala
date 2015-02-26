@@ -192,29 +192,6 @@ object EventHandler {
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   lazy val robot = api.Items.get("robot")
   lazy val tablet = api.Items.get("tablet")
-  private lazy val Achievements = Map(
-    api.Items.get("transistor") -> Achievement.Transistor,
-    api.Items.get("case1") -> Achievement.Case,
-    api.Items.get("case2") -> Achievement.Case,
-    api.Items.get("case3") -> Achievement.Case,
-    api.Items.get("openOS") -> Achievement.OpenOS,
-    api.Items.get("chip1") -> Achievement.Microchip,
-    api.Items.get("chip2") -> Achievement.Microchip,
-    api.Items.get("chip3") -> Achievement.Microchip,
-    api.Items.get("ram1") -> Achievement.Memory,
-    api.Items.get("ram2") -> Achievement.Memory,
-    api.Items.get("ram3") -> Achievement.Memory,
-    api.Items.get("ram4") -> Achievement.Memory,
-    api.Items.get("ram5") -> Achievement.Memory,
-    api.Items.get("ram6") -> Achievement.Memory,
-    api.Items.get("cpu1") -> Achievement.CPU,
-    api.Items.get("cpu2") -> Achievement.CPU,
-    api.Items.get("cpu3") -> Achievement.CPU,
-    api.Items.get("screen1") -> Achievement.Screen,
-    api.Items.get("screen2") -> Achievement.Screen,
-    api.Items.get("screen3") -> Achievement.Screen,
-    api.Items.get("keyboard") -> Achievement.Keyboard
-  )
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
@@ -245,7 +222,7 @@ object EventHandler {
 
     didRecraft = recraft(e, tablet, stack => {
       // Restore EEPROM currently used in tablet.
-      new TabletData(stack).items.collect { case Some(item) => item }.find(api.Items.get(_) == eeprom)
+      new TabletData(stack).items.collect { case Some(item) => item}.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     // Presents?
@@ -259,12 +236,11 @@ object EventHandler {
           val present = api.Items.get("present").createItemStack(1)
           e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
           InventoryUtils.addToPlayerInventory(present, e.player)
-            }
+        }
       case _ => // Nope.
     }
 
-    // Achievements.
-    Achievements.get(api.Items.get(e.crafting)).foreach(e.player.addStat(_, 1))
+    Achievement.onCraft(e.crafting, e.player)
   }
 
   private def timeForPresents = {
