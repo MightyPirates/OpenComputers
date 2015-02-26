@@ -7,6 +7,7 @@ import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
@@ -65,7 +66,7 @@ trait InputBuffer extends DisplayBuffer {
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
 
-    if (NEI.isInputFocused) return
+    if (this.isInstanceOf[GuiContainer] && NEI.isInputFocused) return
 
     val code = Keyboard.getEventKey
     if (buffer != null && code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {

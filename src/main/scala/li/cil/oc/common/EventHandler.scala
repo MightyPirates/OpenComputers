@@ -15,6 +15,8 @@ import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
@@ -188,6 +190,8 @@ object EventHandler {
   lazy val eeprom = api.Items.get("eeprom")
   lazy val mcu = api.Items.get("microcontroller")
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
+  lazy val robot = api.Items.get("robot")
+  lazy val tablet = api.Items.get("tablet")
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
@@ -211,6 +215,16 @@ object EventHandler {
       new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
+    didRecraft = recraft(e, robot, stack => {
+      // Restore EEPROM currently used in robot.
+      new RobotData(stack).components.find(api.Items.get(_) == eeprom)
+    }) || didRecraft
+
+    didRecraft = recraft(e, tablet, stack => {
+      // Restore EEPROM currently used in tablet.
+      new TabletData(stack).items.collect { case Some(item) => item}.find(api.Items.get(_) == eeprom)
+    }) || didRecraft
+
     // Presents?
     if (!e.player.worldObj.isRemote) e.player match {
       case _: FakePlayer => // No presents for you, automaton. Such discrimination. Much bad conscience.
@@ -225,6 +239,8 @@ object EventHandler {
         }
       case _ => // Nope.
     }
+
+    Achievement.onCraft(e.crafting, e.player)
   }
 
   private def timeForPresents = {
@@ -233,7 +249,10 @@ object EventHandler {
     val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
     // On the 12th day of Christmas, my robot brought to me~
     (month == Calendar.DECEMBER && dayOfMonth > 24) || (month == Calendar.JANUARY && dayOfMonth < 7) ||
-      // OC's release-birthday!
+      (month == Calendar.FEBRUARY && dayOfMonth == 14) ||
+      (month == Calendar.APRIL && dayOfMonth == 22) ||
+      (month == Calendar.MAY && dayOfMonth == 1) ||
+      (month == Calendar.OCTOBER && dayOfMonth == 3) ||
       (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 

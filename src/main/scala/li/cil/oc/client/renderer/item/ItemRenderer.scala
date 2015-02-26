@@ -32,7 +32,6 @@ object ItemRenderer extends IItemRenderer {
 
   lazy val floppy = api.Items.get("floppy")
   lazy val lootDisk = api.Items.get("lootDisk")
-  lazy val openOS = api.Items.get("openOS")
 
   def bounds = AxisAlignedBB.getBoundingBox(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
 
@@ -43,8 +42,7 @@ object ItemRenderer extends IItemRenderer {
 
   def isFloppy(descriptor: ItemInfo) =
     descriptor == floppy ||
-      descriptor == lootDisk ||
-      descriptor == openOS
+      descriptor == lootDisk
 
   override def handleRenderType(stack: ItemStack, renderType: ItemRenderType) = {
     val descriptor = api.Items.get(stack)
@@ -124,7 +122,6 @@ object ItemRenderer extends IItemRenderer {
 
       Minecraft.getMinecraft.renderEngine.bindTexture(DroneRenderer.model.texture)
       RenderState.makeItBlend()
-      GL11.glDisable(GL11.GL_CULL_FACE)
 
       if (renderType == ItemRenderType.INVENTORY) {
         GL11.glTranslatef(8f, 9f, 0)

@@ -397,7 +397,7 @@ object Items extends ItemAPI {
     // the same item damage would confuse NEI and the item costs computation.
     // UPDATE: screw that, keeping it for compatibility for now, but using recipe
     // below now (creating "normal" loot disk).
-    registerItem(new item.FloppyDisk(multi) {
+    new item.FloppyDisk(multi) {
       showInItemList = false
 
       override def createItemStack(amount: Int) = createOpenOS(amount)
@@ -406,7 +406,7 @@ object Items extends ItemAPI {
         if (player.isSneaking) get("floppy").createItemStack(1)
         else super.onItemRightClick(stack, world, player)
       }
-    }, "openOS")
+    }
     Recipes.addRecipe(createOpenOS(), "openOS")
 
     Recipes.addMultiItem(new item.UpgradeInventoryController(multi), "inventoryControllerUpgrade", "oc:inventoryControllerUpgrade")
