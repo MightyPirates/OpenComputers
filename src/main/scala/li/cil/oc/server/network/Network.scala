@@ -9,10 +9,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network
-import li.cil.oc.api.network.Environment
-import li.cil.oc.api.network.SidedEnvironment
-import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.network.WirelessEndpoint
+import li.cil.oc.api.network._
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
@@ -25,8 +22,8 @@ import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
 
-import scala.collection.convert.WrapAsScala._
 import scala.collection.JavaConverters._
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -54,13 +51,21 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     node.data.network = wrapper
   })
 
-  // Called by nodes when they may have changed address from loading.
-  def remap(node: MutableNode) {
-    data.find(_._2.data == node) match {
-      case Some((address, vertex)) =>
-        data -= address
-        data += node.address -> vertex
-      case _ => // Eh?
+  // Called by nodes when they want to change address from loading.
+  def remap(remappedNode: MutableNode, newAddress: String) {
+    data.get(remappedNode.address) match {
+      case Some(node) =>
+        val neighbors = node.edges.map(_.other(node))
+        node.data.remove()
+        node.data.address = newAddress
+        while (data.contains(node.data.address)) {
+          node.data.address = java.util.UUID.randomUUID().toString
+        }
+        if (neighbors.isEmpty)
+          addNew(node.data)
+        else
+          neighbors.foreach(_.data.connect(node.data))
+      case _ => throw new AssertionError("Node believes it belongs to a network it doesn't.")
     }
   }
 
@@ -221,7 +226,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     newNode
   }
 
-  private def add(oldNode: Network.Vertex, addedNode: MutableNode) = {
+  private def add(oldNode: Network.Vertex, addedNode: MutableNode): Boolean = {
     // Queue onConnect calls to avoid side effects from callbacks.
     val connects = mutable.Buffer.empty[(ImmutableNode, Iterable[ImmutableNode])]
     // Check if the other node is new or if we have to merge networks.
@@ -252,41 +257,52 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       // never happen in normal operation anyway. It *can* happen when NBT
       // editing stuff or using mods to clone blocks (e.g. WorldEdit).
       otherNetwork.data.filter(entry => data.contains(entry._1)).toArray.foreach {
-        case (address, node: MutableNode) =>
-          val neighbors = node.neighbors.toArray // Copy to be on the safe side.
-          node.remove()
-          node.address = java.util.UUID.randomUUID().toString
-          neighbors.foreach(_.connect(node))
+        case (_, node: Network.Vertex) =>
+          val neighbors = node.edges.map(_.other(node))
+          node.data.remove()
+          do {
+            node.data.address = java.util.UUID.randomUUID().toString
+          } while (data.contains(node.data.address) || otherNetwork.data.contains(node.data.address))
+          if (neighbors.isEmpty)
+            otherNetwork.addNew(node.data)
+          else
+            neighbors.foreach(_.data.connect(node.data))
       }
 
-      if (addedNode.reachability == Visibility.Neighbors)
-        connects += ((addedNode, Iterable(oldNode.data)))
-      if (oldNode.data.reachability == Visibility.Neighbors)
-        connects += ((oldNode.data, Iterable(addedNode)))
+      // The address change can theoretically cause the node to be kicked from
+      // its old network (via onConnect callbacks), so we make sure it's still
+      // in the same network. If it isn't we start over.
+      if (addedNode.network != null && addedNode.network.asInstanceOf[Network.Wrapper].network == otherNetwork) {
+        if (addedNode.reachability == Visibility.Neighbors)
+          connects += ((addedNode, Iterable(oldNode.data)))
+        if (oldNode.data.reachability == Visibility.Neighbors)
+          connects += ((oldNode.data, Iterable(addedNode)))
 
-      val oldNodes = nodes
-      val newNodes = otherNetwork.nodes
-      val oldVisibleNodes = oldNodes.filter(_.reachability == Visibility.Network)
-      val newVisibleNodes = newNodes.filter(_.reachability == Visibility.Network)
+        val oldNodes = nodes
+        val newNodes = otherNetwork.nodes
+        val oldVisibleNodes = oldNodes.filter(_.reachability == Visibility.Network)
+        val newVisibleNodes = newNodes.filter(_.reachability == Visibility.Network)
 
-      newVisibleNodes.foreach(node => connects += ((node, oldNodes)))
-      oldVisibleNodes.foreach(node => connects += ((node, newNodes)))
+        newVisibleNodes.foreach(node => connects += ((node, oldNodes)))
+        oldVisibleNodes.foreach(node => connects += ((node, newNodes)))
 
-      data ++= otherNetwork.data
-      connectors ++= otherNetwork.connectors
-      globalBuffer += otherNetwork.globalBuffer
-      globalBufferSize += otherNetwork.globalBufferSize
-      otherNetwork.data.values.foreach(node => {
-        node.data match {
-          case connector: Connector => connector.distributor = Some(wrapper)
-          case _ =>
-        }
-        node.data.network = wrapper
-      })
-      otherNetwork.data.clear()
-      otherNetwork.connectors.clear()
+        data ++= otherNetwork.data
+        connectors ++= otherNetwork.connectors
+        globalBuffer += otherNetwork.globalBuffer
+        globalBufferSize += otherNetwork.globalBufferSize
+        otherNetwork.data.values.foreach(node => {
+          node.data match {
+            case connector: Connector => connector.distributor = Some(wrapper)
+            case _ =>
+          }
+          node.data.network = wrapper
+        })
+        otherNetwork.data.clear()
+        otherNetwork.connectors.clear()
 
-      Network.Edge(oldNode, node(addedNode))
+        Network.Edge(oldNode, node(addedNode))
+      }
+      else add(oldNode, addedNode)
     }
 
     for ((node, nodes) <- connects) nodes.foreach(_.asInstanceOf[MutableNode].onConnect(node))
@@ -439,7 +455,10 @@ object Network extends api.detail.NetworkAPI {
   private def getNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
-      case host: Environment => Some(host.node)
+      case host: Environment with SidedComponent =>
+        if (host.canConnectNode(side)) Option(host.node)
+        else None
+      case host: Environment => Option(host.node)
       case host if Mods.ForgeMultipart.isAvailable => getMultiPartNode(host)
       case _ => None
     }
@@ -590,7 +609,7 @@ object Network extends api.detail.NetworkAPI {
     def create() = if (SideTracker.isServer) new Connector with NodeVarargPart {
       val host = _host
       val reachability = _reachability
-      var localBufferSize = _bufferSize
+      localBufferSize = _bufferSize
     }
     else null
   }
@@ -600,7 +619,7 @@ object Network extends api.detail.NetworkAPI {
       val host = _host
       val reachability = _reachability
       val name = _name
-      var localBufferSize = _bufferSize
+      localBufferSize = _bufferSize
       setVisibility(_visibility)
     }
     else null
@@ -663,17 +682,22 @@ object Network extends api.detail.NetworkAPI {
   // ----------------------------------------------------------------------- //
 
   class Packet(var source: String, var destination: String, var port: Int, var data: Array[AnyRef], var ttl: Int = 5) extends api.network.Packet {
-    val size = Option(data).fold(0)(_.foldLeft(0)((acc, arg) => {
-      acc + (arg match {
-        case null | Unit | None => 4
-        case _: java.lang.Boolean => 4
-        case _: java.lang.Integer => 4
-        case _: java.lang.Double => 8
-        case value: java.lang.String => value.length
-        case value: Array[Byte] => value.length
-        case _ => throw new IllegalArgumentException("unsupported data type")
+    val size = Option(data).fold(0)(values => {
+      if (values.length > Settings.get.maxNetworkPacketParts) {
+        throw new IllegalArgumentException("packet has too many parts")
+      }
+      values.length * 2 + values.foldLeft(0)((acc, arg) => {
+        acc + (arg match {
+          case null | Unit | None => 4
+          case _: java.lang.Boolean => 4
+          case _: java.lang.Integer => 4
+          case _: java.lang.Double => 8
+          case value: java.lang.String => value.length max 1
+          case value: Array[Byte] => value.length max 1
+          case _ => throw new IllegalArgumentException("unsupported data type")
+        })
       })
-    }))
+    })
 
     override def hop() = new Packet(source, destination, port, data, ttl - 1)
 

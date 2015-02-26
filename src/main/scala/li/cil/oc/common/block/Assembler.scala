@@ -30,6 +30,8 @@ class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAc
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.DOWN || side == ForgeDirection.UP
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.DOWN || side == ForgeDirection.UP
+
   // ----------------------------------------------------------------------- //
 
   override def energyThroughput = Settings.get.assemblerRate

@@ -19,7 +19,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)
 
-  protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
+  protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => createPlug(side))
 
   val queue = mutable.Queue.empty[(Option[ForgeDirection], Packet)]
 
@@ -97,8 +97,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     nbt.getTagList(Settings.namespace + "plugs", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
       zipWithIndex.foreach {
       case (tag, index) => plugs(index).node.load(tag)
@@ -114,8 +114,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = queue.synchronized {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) = queue.synchronized {
+    super.writeToNBTForServer(nbt)
     // Side check for Waila (and other mods that may call this client side).
     if (isServer) {
       nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
@@ -137,6 +137,8 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   // ----------------------------------------------------------------------- //
+
+  protected def createPlug(side: ForgeDirection) = new Plug(side)
 
   protected class Plug(val side: ForgeDirection) extends api.network.Environment {
     val node = createNode(this)

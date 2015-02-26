@@ -17,8 +17,9 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Slot
 import org.lwjgl.opengl.GL11
+
+import scala.collection.convert.WrapAsJava._
 
 class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends DynamicGuiContainer(new container.Drone(playerInventory, drone)) with traits.DisplayBuffer {
   xSize = 176
@@ -101,7 +102,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     }
     if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(if (drone.isRunning) Localization.Computer.TurnOff else Localization.Computer.TurnOn)
+      tooltip.addAll(asJavaCollection(if (drone.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()
@@ -113,18 +114,11 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     power.level = drone.globalBuffer.toDouble / math.max(drone.globalBufferSize.toDouble, 1.0)
     drawWidgets()
-    if (drone.inventory.getSizeInventory > 0) {
+    if (drone.mainInventory.getSizeInventory > 0) {
       drawSelection()
     }
 
-    GL11.glPushMatrix()
-    GL11.glTranslatef(guiLeft, guiTop, 0)
-    for (slot <- 0 until inventorySlots.inventorySlots.size()) {
-      drawSlotInventory(inventorySlots.inventorySlots.get(slot).asInstanceOf[Slot])
-    }
-    GL11.glPopMatrix()
-
-    RenderState.makeItBlend()
+    drawInventorySlots()
   }
 
   protected override def drawGradientRect(par1: Int, par2: Int, par3: Int, par4: Int, par5: Int, par6: Int) {

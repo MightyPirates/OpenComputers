@@ -7,6 +7,7 @@ import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
@@ -65,7 +66,7 @@ trait InputBuffer extends DisplayBuffer {
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
 
-    if (NEI.isInputFocused) return
+    if (this.isInstanceOf[GuiContainer] && NEI.isInputFocused) return
 
     val code = Keyboard.getEventKey
     if (buffer != null && code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {
@@ -82,7 +83,7 @@ trait InputBuffer extends DisplayBuffer {
           case _ => // Wasn't pressed while viewing the screen.
         }
 
-        if (Keyboard.isKeyDown(KeyBindings.clipboardPaste.getKeyCode) && Keyboard.getEventKeyState) {
+        if (KeyBindings.clipboardPaste.getKeyCode == code && Keyboard.getEventKeyState) {
           buffer.clipboard(GuiScreen.getClipboardString, null)
         }
       }
@@ -94,7 +95,9 @@ trait InputBuffer extends DisplayBuffer {
 
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
-    if (buffer != null && button == 2) {
+    val isMiddleMouseButton = button == 2
+    val isBoundMouseButton = KeyBindings.clipboardPaste.getKeyCode < 0 && button == KeyBindings.clipboardPaste.getKeyCode + 100
+    if (buffer != null && (isMiddleMouseButton || isBoundMouseButton)) {
       if (hasKeyboard) {
         buffer.clipboard(GuiScreen.getClipboardString, null)
       }

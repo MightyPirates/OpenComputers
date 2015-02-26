@@ -143,13 +143,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
           case t: Throwable => OpenComputers.log.warn("Type converter threw an exception.", t)
         })
         if (converted.isEmpty) {
-          memo += arg -> null
-          null
-        }
-        else if (converted.size == 1 && converted.containsKey("oc:flatten")) {
-          val value = converted.get("oc:flatten")
-          memo += arg -> value // Update memoization map.
-          value
+          memo += arg -> arg.toString
+          arg.toString
         }
         else {
           // This is a little nasty but necessary because we need to keep the
@@ -163,7 +158,14 @@ private[oc] object Registry extends api.detail.DriverAPI {
           memo += converted -> converted // Makes convertMap re-use the map.
           convertRecursively(converted, memo, force = true)
           memo -= converted
-          converted
+          if (converted.size == 1 && converted.containsKey("oc:flatten")) {
+            val value = converted.get("oc:flatten")
+            memo += arg -> value // Update memoization map.
+            value
+          }
+          else {
+            converted
+          }
         }
     }
   }

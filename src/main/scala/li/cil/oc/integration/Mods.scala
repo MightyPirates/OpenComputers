@@ -32,6 +32,7 @@ object Mods {
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
+  val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
   val EnderIO = new SimpleMod(IDs.EnderIO)
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
@@ -82,6 +83,7 @@ object Mods {
     integration.cofh.tileentity.ModCoFHTileEntity,
     integration.cofh.transport.ModCoFHTransport,
     integration.enderstorage.ModEnderStorage,
+    integration.dsu.ModDeepStorageUnit,
     integration.forestry.ModForestry,
     integration.fmp.ModForgeMultipart,
     integration.gc.ModGalacticraft,
@@ -151,6 +153,7 @@ object Mods {
     final val Factorization = "factorization"
     final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
+    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
@@ -207,7 +210,7 @@ object Mods {
     }
   }
 
-  class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean) extends ModBase {
+  class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean = false) extends ModBase {
     override protected lazy val isModAvailable = classNames.forall(className => try Class.forName(className) != null catch {
       case _: Throwable => false
     })

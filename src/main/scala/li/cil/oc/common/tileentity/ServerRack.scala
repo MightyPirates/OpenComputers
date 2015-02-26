@@ -14,7 +14,6 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.client.Sound
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
@@ -222,7 +221,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
               player.addChatMessage(Localization.Analyzer.LastError(value))
             case _ =>
           }
-          player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, servers(slot).get.maxComponents))
+          player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, computer.maxComponents))
           val list = computer.users
           if (list.size > 0) {
             player.addChatMessage(Localization.Analyzer.Users(list))
@@ -316,8 +315,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
         val server = new component.Server(this, slot)
@@ -331,12 +330,6 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
           case Some(server) =>
             try server.load(tag) catch {
               case t: Throwable => OpenComputers.log.warn("Failed restoring server state. Please report this!", t)
-            }
-
-            // Code for migrating from 1.4.1 -> 1.4.2, add EEPROM.
-            // TODO Remove in 1.5
-            if (!nbt.hasKey(Settings.namespace + "biosFlag")) {
-              server.inventory.items(server.inventory.items.length - 1) = Option(Items.createLuaBios())
             }
           case _ =>
         }
@@ -370,8 +363,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   }
 
   // Side check for Waila (and other mods that may call this client side).
-  override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
-    if (!Mods.Waila.isAvailable || !Waila.isSavingForTooltip) {
+  override def writeToNBTForServer(nbt: NBTTagCompound) = if (isServer) {
+    if (!Waila.isSavingForTooltip) {
       nbt.setNewTagList(Settings.namespace + "servers", servers map {
         case Some(server) =>
           val serverNbt = new NBTTagCompound()
@@ -382,7 +375,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         case _ => new NBTTagCompound()
       })
     }
-    super.writeToNBT(nbt)
+    super.writeToNBTForServer(nbt)
     nbt.setByteArray(Settings.namespace + "sides", sides.map {
       case Some(side) => side.ordinal.toByte
       case _ => -1: Byte
@@ -396,15 +389,12 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     }))
     nbt.setInteger(Settings.namespace + "range", range)
     nbt.setBoolean(Settings.namespace + "internalSwitch", internalSwitch)
-
-    // TODO Remove in 1.5
-    nbt.setBoolean(Settings.namespace + "biosFlag", true)
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    val isRunningNbt = nbt.getByteArray("isServerRunning").map(_ == 1)
+    val isRunningNbt = nbt.getBooleanArray("isServerRunning")
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
     val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((tag: NBTTagString) => {
       val value = tag.func_150285_a_()
@@ -427,7 +417,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setByteArray("isServerRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
+    nbt.setBooleanArray("isServerRunning", _isRunning)
     nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value.fold("")(_.machine.node.address))))
     nbt.setByteArray("sides", sides.map {
       case Some(side) => side.ordinal.toByte

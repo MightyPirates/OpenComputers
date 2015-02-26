@@ -96,26 +96,15 @@ class Proxy {
   // explicit like this, because it makes it a) clearer, b) easier to
   // extend, in case that should ever be needed.
 
-  private val blockRenames = Map(
-    OpenComputers.ID + ":" + Settings.namespace + "simple" -> "simple",
-    OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
-    OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
-    OpenComputers.ID + ":rack" -> "serverRack"
+  // Example usage: OpenComputers.ID + ":rack" -> "serverRack"
+  private val blockRenames = Map[String, String](
   )
 
-  private val itemRenames = Map(
-    OpenComputers.ID + ":" + Settings.namespace + "item" -> "item",
-    OpenComputers.ID + ":" + Settings.namespace + "simple" -> "simple",
-    OpenComputers.ID + ":" + Settings.namespace + "simple_redstone" -> "simple_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "special" -> "special",
-    OpenComputers.ID + ":" + Settings.namespace + "special_redstone" -> "special_redstone",
-    OpenComputers.ID + ":" + Settings.namespace + "keyboard" -> "keyboard",
-    OpenComputers.ID + ":rack" -> "serverRack",
-    OpenComputers.ID + ":appengTunnel" -> "", // Avoid breaking worlds for people that used the dev builds.
+  // Example usage: OpenComputers.ID + ":tabletCase" -> "tabletCase1"
+  private val itemRenames = Map[String, String](
     OpenComputers.ID + ":microcontrollerCase" -> "microcontrollerCase1",
-    OpenComputers.ID + ":droneCase" -> "droneCase1"
+    OpenComputers.ID + ":droneCase" -> "droneCase1",
+    OpenComputers.ID + ":tabletCase" -> "tabletCase1"
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

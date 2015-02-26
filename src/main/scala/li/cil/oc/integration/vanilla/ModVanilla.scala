@@ -11,7 +11,6 @@ object ModVanilla extends ModProxy {
   def initialize() {
     Driver.add(new DriverBeacon)
     Driver.add(new DriverBrewingStand)
-    Driver.add(new DriverCommandBlock)
     Driver.add(new DriverComparator)
     Driver.add(new DriverFurnace)
     Driver.add(new DriverMobSpawner)
@@ -25,9 +24,15 @@ object ModVanilla extends ModProxy {
       Driver.add(new DriverFluidHandler)
       Driver.add(new DriverFluidTank)
     }
+    if (Settings.get.enableCommandBlockDriver) {
+      Driver.add(new DriverCommandBlock)
+    }
 
     Driver.add(ConverterFluidStack)
     Driver.add(ConverterFluidTankInfo)
     Driver.add(ConverterItemStack)
+    Driver.add(ConverterNBT)
+    Driver.add(ConverterWorld)
+    Driver.add(ConverterWorldProvider)
   }
 }

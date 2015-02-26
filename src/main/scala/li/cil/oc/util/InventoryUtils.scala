@@ -3,6 +3,7 @@ package li.cil.oc.util
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.item.EntityMinecartContainer
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
@@ -155,22 +156,36 @@ object InventoryUtils {
       var remaining = limit
       val range = slots.getOrElse(0 until inventory.getSizeInventory)
 
-      val shouldTryMerge = !stack.isItemStackDamageable && stack.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
-      if (shouldTryMerge) {
-        for (slot <- range) {
+      if (range.nonEmpty) {
+        // This is a special case for inserting with an explicit ordering,
+        // such as when inserting into robots, where the range starts at the
+        // selected slot. In that case we want to prefer inserting into that
+        // slot, if at all possible, over merging.
+        if (slots.isDefined) {
           val stackSize = stack.stackSize
-          if ((inventory.getStackInSlot(slot) != null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
+          if ((inventory.getStackInSlot(range.head) == null) && insertIntoInventorySlot(stack, inventory, side, range.head, remaining, simulate)) {
             remaining -= stackSize - stack.stackSize
             success = true
           }
         }
-      }
 
-      for (slot <- range) {
-        val stackSize = stack.stackSize
-        if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
-          remaining -= stackSize - stack.stackSize
-          success = true
+        val shouldTryMerge = !stack.isItemStackDamageable && stack.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
+        if (shouldTryMerge) {
+          for (slot <- range) {
+            val stackSize = stack.stackSize
+            if ((inventory.getStackInSlot(slot) != null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
+              remaining -= stackSize - stack.stackSize
+              success = true
+            }
+          }
+        }
+
+        for (slot <- range) {
+          val stackSize = stack.stackSize
+          if ((inventory.getStackInSlot(slot) == null) && insertIntoInventorySlot(stack, inventory, side, slot, remaining, simulate)) {
+            remaining -= stackSize - stack.stackSize
+            success = true
+          }
         }
       }
 
@@ -219,13 +234,30 @@ object InventoryUtils {
   /**
    * Utility method for dumping all inventory contents into the world.
    */
-  def dropAllSlots(position: BlockPosition, inventory: IInventory) {
+  def dropAllSlots(position: BlockPosition, inventory: IInventory): Unit = {
     for (slot <- 0 until inventory.getSizeInventory) {
       Option(inventory.getStackInSlot(slot)) match {
         case Some(stack) if stack.stackSize > 0 =>
           inventory.setInventorySlotContents(slot, null)
           spawnStackInWorld(position, stack)
         case _ => // Nothing.
+      }
+    }
+  }
+
+  /**
+   * Try inserting an item stack into a player inventory. If that fails, drop it into the world.
+   */
+  def addToPlayerInventory(stack: ItemStack, player: EntityPlayer): Unit = {
+    if (stack != null) {
+      if (player.inventory.addItemStackToInventory(stack)) {
+        player.inventory.markDirty()
+        if (player.openContainer != null) {
+          player.openContainer.detectAndSendChanges()
+        }
+      }
+      if (stack.stackSize > 0) {
+        player.dropPlayerItemWithRandomChoice(stack, false)
       }
     }
   }

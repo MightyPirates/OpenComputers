@@ -9,11 +9,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.PacketSender
-import li.cil.oc.server.component.robot
-import li.cil.oc.util.ItemUtils
+import li.cil.oc.server.agent
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -57,6 +57,8 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
   override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
@@ -66,7 +68,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
   // ----------------------------------------------------------------------- //
 
   override def rarity(stack: ItemStack) = {
-    val data = new ItemUtils.RobotData(stack)
+    val data = new RobotData(stack)
     Rarity.byTier(data.tier)
   }
 
@@ -82,11 +84,11 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.RobotData(stack)
+      val info = new RobotData(stack)
       val components = info.containers ++ info.components
       if (components.length > 0) {
         tooltip.addAll(Tooltip.get("Server.Components"))
-        for (component <- components) {
+        for (component <- components if component != null) {
           tooltip.add("- " + component.getDisplayName)
         }
       }
@@ -222,15 +224,15 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
   override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, stack: ItemStack) {
     super.onBlockPlacedBy(world, x, y, z, entity, stack)
     if (!world.isRemote) ((entity, world.getTileEntity(x, y, z)) match {
-      case (player: robot.Player, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.robot.owner, player.robot.ownerUuid))
+      case (player: agent.Player, proxy: tileentity.RobotProxy) =>
+        Some((proxy.robot, player.agent.ownerName, player.agent.ownerUUID))
       case (player: EntityPlayer, proxy: tileentity.RobotProxy) =>
-        Some((proxy.robot, player.getCommandSenderName, Option(player.getGameProfile.getId)))
+        Some((proxy.robot, player.getCommandSenderName, player.getGameProfile.getId))
       case _ => None
     }) match {
       case Some((robot, owner, uuid)) =>
-        robot.owner = owner
-        robot.ownerUuid = Option(robot.determineUUID(uuid))
+        robot.ownerName = owner
+        robot.ownerUUID = agent.Player.determineUUID(Option(uuid))
         robot.info.load(stack)
         robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
         robot.updateInventorySize()
@@ -242,6 +244,11 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
+        // Only allow breaking creative tier robots by allowed users.
+        // Unlike normal robots, griefing isn't really a valid concern
+        // here, because to get a creative robot you need creative
+        // mode in the first place.
+        if (robot.isCreative && (!player.capabilities.isCreativeMode || !robot.canInteract(player.getCommandSenderName))) return false
         if (!world.isRemote) {
           if (robot.player == player) return false
           robot.node.remove()

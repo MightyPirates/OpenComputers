@@ -1,5 +1,8 @@
 package li.cil.oc.common.entity
 
+import java.lang.Iterable
+import java.util.UUID
+
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
@@ -9,23 +12,21 @@ import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.item
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
+import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
-import li.cil.oc.common.inventory.MultiTank
+import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.server.agent
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
@@ -37,11 +38,12 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.IFluidTank
 
+import scala.collection.convert.WrapAsJava._
+
 // internal.Rotatable is also in internal.Drone, but it wasn't since the start
 // so this is to ensure it is implemented here, in the very unlikely case that
 // someone decides to ship that specific version of the API.
-// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
-class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with internal.Tiered with Analyzable with Context {
+class Drone(val world: World) extends Entity(world) with MachineHost with internal.Drone with internal.Rotatable with Analyzable with Context {
   // Some basic constants.
   val gravity = 0.05f
   // low for slow fall (float down)
@@ -62,7 +64,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   var lastEnergyUpdate = 0
 
   // Logic stuff, components, machine and such.
-  val info = new ItemUtils.MicrocontrollerData()
+  val info = new DroneData()
   val machine = if (!world.isRemote) {
     val m = Machine.create(this)
     m.node.asInstanceOf[Connector].setLocalBufferSize(0)
@@ -90,7 +92,20 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
     override def onMessage(message: Message) {}
   }
-  val inventory = new Inventory {
+  val equipmentInventory = new Inventory {
+    val items = Array.empty[Option[ItemStack]]
+
+    override def getSizeInventory = 0
+
+    override def getInventoryStackLimit = 0
+
+    override def markDirty(): Unit = {}
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = false
+
+    override def isUseableByPlayer(player: EntityPlayer) = false
+  }
+  val mainInventory = new Inventory {
     val items = Array.fill[Option[ItemStack]](8)(None)
 
     override def getSizeInventory = inventorySize
@@ -115,7 +130,24 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
   var selectedTank = 0
 
+  override def setSelectedTank(index: Int): Unit = selectedTank = index
+
   override def tier = info.tier
+
+  override def player(): EntityPlayer = {
+    agent.Player.updatePositionAndRotation(player_, facing, facing)
+    player_
+  }
+
+  override def name = info.name
+
+  override def setName(name: String): Unit = info.name = name
+
+  var ownerName = Settings.get.fakePlayerName
+
+  var ownerUUID = Settings.get.fakePlayerProfile.getId
+
+  private lazy val player_ = new agent.Player(this)
 
   // ----------------------------------------------------------------------- //
   // Forward context stuff to our machine. Interface needed for some components
@@ -165,7 +197,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def facing() = ForgeDirection.SOUTH
+  override def facing = ForgeDirection.SOUTH
 
   override def toLocal(value: ForgeDirection) = value
 
@@ -179,7 +211,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
         player.addChatMessage(Localization.Analyzer.LastError(value))
       case _ =>
     }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, maxComponents))
+    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
     val list = machine.users
     if (list.size > 0) {
       player.addChatMessage(Localization.Analyzer.Users(list))
@@ -189,31 +221,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture = info.components.map(stack => (stack, Driver.driverFor(stack, getClass))).collectFirst {
-    case (stack, driver: Processor) if driver.slot(stack) == Slot.CPU => driver.architecture(stack)
-  }.orNull
+  override def internalComponents(): Iterable[ItemStack] = asJavaIterable(info.components)
 
-  override def callBudget = info.components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = info.components.foldLeft(0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Memory) => driver.amount(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def maxComponents = 32
-
-  override def componentSlot(address: String) = -1 // TODO
-
-  override def markForSaving() {}
+  override def componentSlot(address: String) = components.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   override def onMachineConnect(node: Node) {}
 
@@ -276,28 +286,48 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   }
 
   def isRunning = dataWatcher.getWatchableObjectByte(2) != 0
+
   def targetX = dataWatcher.getWatchableObjectFloat(3)
+
   def targetY = dataWatcher.getWatchableObjectFloat(4)
+
   def targetZ = dataWatcher.getWatchableObjectFloat(5)
+
   def targetAcceleration = dataWatcher.getWatchableObjectFloat(6)
+
   def selectedSlot = dataWatcher.getWatchableObjectByte(7) & 0xFF
+
   def globalBuffer = dataWatcher.getWatchableObjectInt(8)
+
   def globalBufferSize = dataWatcher.getWatchableObjectInt(9)
+
   def statusText = dataWatcher.getWatchableObjectString(10)
+
   def inventorySize = dataWatcher.getWatchableObjectByte(11) & 0xFF
+
   def lightColor = dataWatcher.getWatchableObjectInt(12)
 
   def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+
   // Round target values to low accuracy to avoid floating point errors accumulating.
   def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 4) / 4f))
+
   def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 4) / 4f))
+
   def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 4) / 4f))
+
   def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
-  def selectedSlot_=(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+
+  def setSelectedSlot(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+
   def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
+
   def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
-  def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).map(_.lines.map(_.take(10)).take(2).mkString("\n")).getOrElse(""))
+
+  def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).fold("")(_.lines.map(_.take(10)).take(2).mkString("\n")))
+
   def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
+
   def lightColor_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
 
   @SideOnly(Side.CLIENT)
@@ -328,7 +358,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       val entity = new EntityItem(world, posX, posY, posZ, stack)
       entity.delayBeforeCanPickup = 15
       world.spawnEntityInWorld(entity)
-      InventoryUtils.dropAllSlots(BlockPosition(this: Entity), inventory)
+      InventoryUtils.dropAllSlots(BlockPosition(this: Entity), mainInventory)
     }
   }
 
@@ -494,7 +524,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       machine.load(nbt.getCompoundTag("machine"))
       control.load(nbt.getCompoundTag("control"))
       components.load(nbt.getCompoundTag("components"))
-      inventory.load(nbt.getCompoundTag("inventory"))
+      mainInventory.load(nbt.getCompoundTag("inventory"))
 
       wireThingsTogether()
     }
@@ -502,10 +532,16 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     targetY = nbt.getFloat("targetY")
     targetZ = nbt.getFloat("targetZ")
     targetAcceleration = nbt.getFloat("targetAcceleration")
-    selectedSlot = nbt.getByte("selectedSlot") & 0xFF
-    selectedTank = nbt.getByte("selectedTank") & 0xFF
+    setSelectedSlot(nbt.getByte("selectedSlot") & 0xFF)
+    setSelectedTank(nbt.getByte("selectedTank") & 0xFF)
     statusText = nbt.getString("statusText")
     lightColor = nbt.getInteger("lightColor")
+    if (nbt.hasKey("owner")) {
+      ownerName = nbt.getString("owner")
+    }
+    if (nbt.hasKey("ownerUuid")) {
+      ownerUUID = UUID.fromString(nbt.getString("ownerUuid"))
+    }
   }
 
   override def writeEntityToNBT(nbt: NBTTagCompound) {
@@ -516,7 +552,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       nbt.setNewCompoundTag("machine", machine.save)
       nbt.setNewCompoundTag("control", control.save)
       nbt.setNewCompoundTag("components", components.save)
-      nbt.setNewCompoundTag("inventory", inventory.save)
+      nbt.setNewCompoundTag("inventory", mainInventory.save)
     }
     nbt.setFloat("targetX", targetX)
     nbt.setFloat("targetY", targetY)
@@ -526,5 +562,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     nbt.setByte("selectedTank", selectedTank.toByte)
     nbt.setString("statusText", statusText)
     nbt.setInteger("lightColor", lightColor)
+    nbt.setString("owner", ownerName)
+    nbt.setString("ownerUuid", ownerUUID.toString)
   }
 }

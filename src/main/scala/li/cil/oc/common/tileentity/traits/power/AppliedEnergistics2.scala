@@ -66,8 +66,8 @@ trait AppliedEnergistics2 extends Common {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     if (useAppliedEnergistics2Power) loadNode(nbt)
   }
 
@@ -76,8 +76,8 @@ trait AppliedEnergistics2 extends Common {
     getGridNode(ForgeDirection.UNKNOWN).loadFromNBT(Settings.namespace + "ae2power", nbt)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     if (useAppliedEnergistics2Power) saveNode(nbt)
   }
 
@@ -91,10 +91,11 @@ trait AppliedEnergistics2 extends Common {
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def getGridNode(side: ForgeDirection) = node match {
     case Some(gridNode: IGridNode) => gridNode
-    case _ =>
+    case _ if isServer =>
       val gridNode = AEApi.instance.createGridNode(new AppliedEnergistics2GridBlock(this))
       node = Option(gridNode)
       gridNode
+    case _ => null
   }
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)

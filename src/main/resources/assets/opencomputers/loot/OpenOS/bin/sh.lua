@@ -253,6 +253,23 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       end
     end
   end
+elseif #args == 0 and (io.input() ~= io.stdin) then
+  while true do
+    io.write(expand(os.getenv("PS1") or "$ "))
+    local command = io.read("*l")
+    if not command then
+      io.write("exit\n")
+    end
+    command = text.trim(command)
+    if command == "exit" then
+      return
+    elseif command ~= "" then
+      local result, reason = os.execute(command)
+      if not result then
+        io.stderr:write((tostring(reason) or "unknown error").. "\n")
+      end
+    end
+  end
 else
   -- execute command.
   local result = table.pack(execute(...))

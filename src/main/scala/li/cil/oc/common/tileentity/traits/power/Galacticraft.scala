@@ -25,7 +25,7 @@ trait Galacticraft extends Common {
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)
   def receiveEnergyGC(from: EnergySource, amount: Float, simulate: Boolean) =
-    if (!Mods.Galacticraft.isAvailable) 0
+    if (!Mods.Galacticraft.isAvailable) 0f
     else (tryChangeBuffer(from, amount * Settings.get.ratioGalacticraft, !simulate) / Settings.get.ratioGalacticraft).toFloat
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)

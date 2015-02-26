@@ -1,6 +1,10 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.detail.*;
+import li.cil.oc.api.detail.DriverAPI;
+import li.cil.oc.api.detail.FileSystemAPI;
+import li.cil.oc.api.detail.ItemAPI;
+import li.cil.oc.api.detail.MachineAPI;
+import li.cil.oc.api.detail.NetworkAPI;
 
 /**
  * Central reference for the API.
@@ -11,7 +15,7 @@ import li.cil.oc.api.detail.*;
  */
 public class API {
     public static final String ID_OWNER = "OpenComputers|Core";
-    public static final String VERSION = "4.2.2";
+    public static final String VERSION = "5.0.0";
 
     public static DriverAPI driver = null;
     public static FileSystemAPI fileSystem = null;

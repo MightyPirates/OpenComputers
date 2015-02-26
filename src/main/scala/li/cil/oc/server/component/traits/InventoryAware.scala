@@ -23,6 +23,7 @@ trait InventoryAware {
   protected def stackInSlot(slot: Int) = Option(inventory.getStackInSlot(slot))
 
   protected def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-    stackA.getItem == stackB.getItem &&
+    stackA != null && stackB != null &&
+      stackA.getItem == stackB.getItem &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 }

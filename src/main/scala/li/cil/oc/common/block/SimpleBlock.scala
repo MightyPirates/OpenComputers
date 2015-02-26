@@ -148,7 +148,7 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   // Block
   // ----------------------------------------------------------------------- //
 
-  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = true
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   override def canHarvestBlock(player: EntityPlayer, meta: Int) = true
 

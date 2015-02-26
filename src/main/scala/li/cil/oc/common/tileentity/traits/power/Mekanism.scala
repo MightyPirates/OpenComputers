@@ -14,7 +14,7 @@ trait Mekanism extends Common {
   @Optional.Method(modid = Mods.IDs.Mekanism)
   def transferEnergyToAcceptor(side: ForgeDirection, amount: Double) =
     if (!Mods.Mekanism.isAvailable) 0
-    else amount - tryChangeBuffer(side, amount * Settings.get.ratioMekanism) / Settings.get.ratioMekanism
+    else tryChangeBuffer(side, amount * Settings.get.ratioMekanism) / Settings.get.ratioMekanism
 
   @Optional.Method(modid = Mods.IDs.Mekanism)
   def getMaxEnergy = ForgeDirection.VALID_DIRECTIONS.map(globalBufferSize).max / Settings.get.ratioMekanism

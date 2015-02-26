@@ -4,6 +4,7 @@ import java.util.Random
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -20,15 +21,7 @@ class Present(val parent: Delegator) extends Delegate {
       if (!world.isRemote) {
         world.playSoundAtEntity(player, "random.levelup", 0.2f, 1f)
         val present = Present.nextPresent()
-        if (player.inventory.addItemStackToInventory(present)) {
-          player.inventory.markDirty()
-          if (player.openContainer != null) {
-            player.openContainer.detectAndSendChanges()
-          }
-        }
-        else {
-          player.dropPlayerItemWithRandomChoice(present, false)
-        }
+        InventoryUtils.addToPlayerInventory(present, player)
       }
     }
     stack
@@ -105,7 +98,7 @@ object Present {
     add("cpu2", 6)
     add("microcontrollerCase2", 6)
     add("componentBus2", 6)
-    add("tabletCase", 5)
+    add("tabletCase1", 5)
     add("upgradeContainer2", 5)
     add("cardContainer2", 5)
     add("graphicsCard2", 4)
@@ -121,6 +114,7 @@ object Present {
     add("ram5", 2)
     add("upgradeContainer3", 2)
     add("cardContainer3", 2)
+    add("tabletCase2", 1)
     add("hdd3", 1)
     add("chunkloaderUpgrade", 1)
     add("cpu3", 1)

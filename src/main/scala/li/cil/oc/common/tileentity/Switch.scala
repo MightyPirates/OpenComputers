@@ -74,16 +74,17 @@ class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentI
   }
 
   private def updateLimits(slot: Int, stack: ItemStack) {
-    Driver.driverFor(stack, getClass) match {
-      case driver if driver.slot(stack) == Slot.CPU =>
+    Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver) if driver.slot(stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
-      case driver if driver.slot(stack) == Slot.Memory =>
+      case Some(driver) if driver.slot(stack) == Slot.Memory =>
         relayAmount = math.max(1, relayBaseAmount + (Items.multi.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         }))
-      case driver if driver.slot(stack) == Slot.HDD =>
+      case Some(driver) if driver.slot(stack) == Slot.HDD =>
         maxQueueSize = math.max(1, queueBaseSize + (driver.tier(stack) + 1) * queueSizePerUpgrade)
+      case _ => // Dafuq u doin.
     }
   }
 
@@ -106,8 +107,8 @@ class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentI
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     for (slot <- 0 until items.length) items(slot) collect {
       case stack => updateLimits(slot, stack)
     }

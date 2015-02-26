@@ -28,7 +28,7 @@ object EventHandlerIndustrialCraft2 {
         if (damage > 0) {
           val actualDamage = damage * e.getDamageRate
           val repairedDamage =
-            if (e.robot.player.getRNG.nextDouble() > 0.5)
+            if (e.agent.player.getRNG.nextDouble() > 0.5)
               damage - math.floor(actualDamage).toInt
             else
               damage - math.ceil(actualDamage).toInt

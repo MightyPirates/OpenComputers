@@ -55,12 +55,17 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
     RenderState.makeItBlend()
     GL11.glDisable(GL11.GL_LIGHTING)
 
+    drawInventorySlots()
+  }
+
+  protected def drawInventorySlots(): Unit = {
     GL11.glPushMatrix()
     GL11.glTranslatef(guiLeft, guiTop, 0)
     for (slot <- 0 until inventorySlots.inventorySlots.size()) {
       drawSlotInventory(inventorySlots.inventorySlots.get(slot).asInstanceOf[Slot])
     }
     GL11.glPopMatrix()
+    RenderState.makeItBlend()
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {

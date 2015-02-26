@@ -4,37 +4,42 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
-// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
-class Microcontroller extends traits.PowerAcceptor with traits.Computer with SidedEnvironment with internal.Microcontroller with internal.Tiered {
-  val info = new ItemUtils.MicrocontrollerData()
+import scala.collection.convert.WrapAsJava._
 
-  override val node = api.Network.newNode(this, Visibility.Network).
-    withComponent("microcontroller").
-    withConnector().
-    create()
+class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.Computer with internal.Microcontroller {
+  val info = new MicrocontrollerData()
+
+  override def node = null
+
+  val outputSides = Array.fill(6)(true)
 
   val snooperNode = api.Network.newNode(this, Visibility.Network).
+    withComponent("microcontroller").
     withConnector(Settings.get.bufferMicrocontroller).
     create()
 
+  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+    withComponent("microcontroller").
+    create())
+
   if (machine != null) {
     machine.node.asInstanceOf[Connector].setLocalBufferSize(0)
+    machine.setCostPerTick(Settings.get.microcontrollerCost)
   }
 
   override def tier = info.tier
@@ -43,15 +48,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   // ----------------------------------------------------------------------- //
 
-  override def sidedNode(side: ForgeDirection) = if (side != facing) node else null
-
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = side != facing
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
+  override protected def connector(side: ForgeDirection) = Option(if (side != facing) snooperNode else null)
 
   override protected def energyThroughput = Settings.get.caseRate(Tier.One)
 
@@ -59,29 +62,19 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture = info.components.map(stack => (stack, Driver.driverFor(stack, getClass))).collectFirst {
-    case (stack, driver: Processor) if driver.slot(stack) == Slot.CPU => driver.architecture(stack)
-  }.orNull
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+    super.onAnalyze(player, side, hitX, hitY, hitZ)
+    if (ForgeDirection.getOrientation(side) != facing)
+      Array(componentNodes(side))
+    else
+      Array(machine.node)
+  }
 
-  override def callBudget = info.components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
+  // ----------------------------------------------------------------------- //
 
-  override def installedMemory = info.components.foldLeft(0)((sum, item) => sum + (Option(item) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Memory) => driver.amount(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
+  override def internalComponents(): java.lang.Iterable[ItemStack] = asJavaIterable(info.components)
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
-
-  def maxComponents = 32
 
   // ----------------------------------------------------------------------- //
 
@@ -101,6 +94,20 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
   def lastError(context: Context, args: Arguments): Array[AnyRef] =
     result(machine.lastError)
 
+  @Callback(direct = true, doc = """function(side:number):boolean -- Get whether network messages are sent via the specified side.""")
+  def isSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
+    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing): _*)
+    result(outputSides(side.ordinal()))
+  }
+
+  @Callback(doc = """function(side:number, open:boolean):boolean -- Set whether network messages are sent via the specified side.""")
+  def setSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
+    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing): _*)
+    val oldValue = outputSides(side.ordinal())
+    outputSides(side.ordinal()) = args.checkBoolean(1)
+    result(oldValue)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def canUpdate = isServer
@@ -110,36 +117,19 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
     // Pump energy into the internal network.
     if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      machine.node match {
-        case connector: Connector =>
-          val demand = connector.globalBufferSize - connector.globalBuffer
-          val available = demand + node.changeBuffer(-demand)
-          connector.changeBuffer(available)
-        case _ =>
+      for (side <- ForgeDirection.VALID_DIRECTIONS if side != facing) {
+        sidedNode(side) match {
+          case connector: Connector =>
+            val demand = snooperNode.globalBufferSize - snooperNode.globalBuffer
+            val available = demand + connector.changeBuffer(-demand)
+            snooperNode.changeBuffer(available)
+          case _ =>
+        }
       }
     }
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def onConnect(node: Node) {
-    if (node == this.node) {
-      api.Network.joinNewNetwork(machine.node)
-      machine.node.connect(snooperNode)
-      machine.setCostPerTick(Settings.get.microcontrollerCost)
-    }
-    super.onConnect(node)
-  }
-
-  override def onMessage(message: Message) {
-    super.onMessage(message)
-    if (message.name == "network.message") {
-      if (message.source.network == snooperNode.network)
-        node.sendToReachable(message.name, message.data: _*)
-      else
-        snooperNode.sendToReachable(message.name, message.data: _*)
-    }
-  }
 
   override protected def connectItemNode(node: Node) {
     if (machine.node != null && node != null) {
@@ -147,16 +137,75 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  // ----------------------------------------------------------------------- //
+
+  override protected def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.Network).
+    withConnector().
+    create()
+
+  override protected def onPlugConnect(plug: Plug, node: Node): Unit = {
+    super.onPlugConnect(plug, node)
+    if (node == plug.node) {
+      api.Network.joinNewNetwork(machine.node)
+      machine.node.connect(snooperNode)
+    }
+    if (plug.isPrimary)
+      plug.node.connect(componentNodes(plug.side.ordinal()))
+    else
+      componentNodes(plug.side.ordinal).remove()
+  }
+
+  override protected def onPlugDisconnect(plug: Plug, node: Node) {
+    super.onPlugDisconnect(plug, node)
+    if (plug.isPrimary && node != plug.node)
+      plug.node.connect(componentNodes(plug.side.ordinal()))
+    else
+      componentNodes(plug.side.ordinal).remove()
+  }
+
+  override protected def onPlugMessage(plug: Plug, message: Message): Unit = {
+    if (message.name == "network.message" && message.source.network != snooperNode.network) {
+      snooperNode.sendToReachable(message.name, message.data: _*)
+    }
+  }
+
+  override def onMessage(message: Message): Unit = {
+    if (message.source.network == snooperNode.network) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS if outputSides(side.ordinal)) {
+        sidedNode(side).sendToReachable(message.name, message.data: _*)
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     // Load info before inventory and such, to avoid initializing components
     // to empty inventory.
     info.load(nbt.getCompoundTag(Settings.namespace + "info"))
-    super.readFromNBT(nbt)
+    nbt.getBooleanArray(Settings.namespace + "outputs")
+    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
+      zipWithIndex.foreach {
+      case (tag, index) => componentNodes(index).load(tag)
+    }
+    snooperNode.load(nbt.getCompoundTag(Settings.namespace + "snooper"))
+    super.readFromNBTForServer(nbt)
+    api.Network.joinNewNetwork(machine.node)
+    machine.node.connect(snooperNode)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     nbt.setNewCompoundTag(Settings.namespace + "info", info.save)
+    nbt.setBooleanArray(Settings.namespace + "outputs", outputSides)
+    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
+      case node: Node =>
+        val tag = new NBTTagCompound()
+        node.save(tag)
+        tag
+      case _ => new NBTTagCompound()
+    })
+    nbt.setNewCompoundTag(Settings.namespace + "snooper", snooperNode.save)
   }
 
   // ----------------------------------------------------------------------- //
@@ -172,7 +221,9 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
     nbt.setNewCompoundTag("info", info.save)
   }
 
-  override lazy val items = info.components.map(Option(_))
+  override def items = info.components.map(Option(_))
+
+  override def updateItems(slot: Int, stack: ItemStack): Unit = info.components(slot) = stack
 
   override def getSizeInventory = info.components.length
 
@@ -183,4 +234,19 @@ class Microcontroller extends traits.PowerAcceptor with traits.Computer with Sid
 
   // Nope.
   override def decrStackSize(slot: Int, amount: Int) = null
+
+  // For hotswapping EEPROMs.
+  def changeEEPROM(newEeprom: ItemStack) = {
+    val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get("eeprom"))
+    if (oldEepromIndex >= 0) {
+      val oldEeprom = info.components(oldEepromIndex)
+      super.setInventorySlotContents(oldEepromIndex, newEeprom)
+      Some(oldEeprom)
+    }
+    else {
+      assert(info.components(getSizeInventory - 1) == null)
+      super.setInventorySlotContents(getSizeInventory - 1, newEeprom)
+      None
+    }
+  }
 }

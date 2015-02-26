@@ -76,8 +76,9 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     }
   }
 
-  private def tryCreateRaid(id: String) {
-    if (items.count(_.isDefined) == items.length) {
+  def tryCreateRaid(id: String) {
+    if (items.count(_.isDefined) == items.length && filesystem.fold(true)(fs => fs.node == null || fs.node.address != id)) {
+      filesystem.foreach(fs => if (fs.node != null) fs.node.remove())
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
         label, this, Settings.resourceDomain + ":hdd_access").
@@ -112,8 +113,8 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "fs")) {
       val tag = nbt.getCompoundTag(Settings.namespace + "fs")
       tryCreateRaid(tag.getCompoundTag("node").getString("address"))
@@ -122,8 +123,8 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
     label.load(nbt)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     filesystem.foreach(fs => nbt.setNewCompoundTag(Settings.namespace + "fs", fs.save))
     label.save(nbt)
   }

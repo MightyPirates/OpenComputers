@@ -8,29 +8,27 @@ import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.item
 import li.cil.oc.api.driver.item.Container
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.event.RobotAnalyzeEvent
 import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.internal
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.InventorySelection
-import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.common.inventory.TankSelection
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.integration.opencomputers.DriverKeyboard
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.opencomputers.DriverScreen
-import li.cil.oc.server.component.robot
-import li.cil.oc.server.component.robot.Inventory
+import li.cil.oc.server.agent
+import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
@@ -50,15 +48,12 @@ import scala.collection.mutable
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
-class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with internal.Tiered with MultiTank with InventorySelection with TankSelection {
+class Robot extends traits.Computer with traits.PowerInformation with IFluidHandler with internal.Robot with InventorySelection with TankSelection {
   var proxy: RobotProxy = _
 
-  val info = new ItemUtils.RobotData()
+  val info = new RobotData()
 
-  val bot = if (isServer) new robot.Robot(this) else null
-
-  val inventory = new Inventory(this)
+  val bot = if (isServer) new component.Robot(this) else null
 
   if (isServer) {
     machine.setCostPerTick(Settings.get.robotCost)
@@ -68,44 +63,87 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   override def tier = info.tier
 
+  def isCreative = tier == Tier.Four
+
+  val equipmentInventory = new IInventory {
+    override def getSizeInventory = 4
+
+    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
+
+    override def markDirty() = Robot.this.markDirty()
+
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+      slot >= 0 && slot < getSizeInventory && Robot.this.isItemValidForSlot(slot, stack)
+
+    override def getStackInSlot(slot: Int) =
+      if (slot >= 0 && slot < getSizeInventory) Robot.this.getStackInSlot(slot)
+      else null
+
+    override def setInventorySlotContents(slot: Int, stack: ItemStack) =
+      if (slot >= 0 && slot < getSizeInventory) Robot.this.setInventorySlotContents(slot, stack)
+
+    override def decrStackSize(slot: Int, amount: Int) =
+      if (slot >= 0 && slot < getSizeInventory) Robot.this.decrStackSize(slot, amount)
+      else null
+
+    override def getInventoryName = Robot.this.getInventoryName
+
+    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
+
+    override def openInventory() {}
+
+    override def closeInventory() {}
+
+    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
+
+    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
+  }
+
   // Wrapper for the part of the inventory that is mutable.
-  val dynamicInventory = new IInventory {
+  val mainInventory = new IInventory {
     override def getSizeInventory = Robot.this.inventorySize
 
     override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
 
     override def markDirty() = Robot.this.markDirty()
 
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(actualSlot(slot), stack)
+    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(equipmentInventory.getSizeInventory + slot, stack)
 
-    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(actualSlot(slot))
+    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(equipmentInventory.getSizeInventory + slot)
 
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(actualSlot(slot), stack)
+    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(equipmentInventory.getSizeInventory + slot, stack)
 
-    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(actualSlot(slot), amount)
+    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(equipmentInventory.getSizeInventory + slot, amount)
 
     override def getInventoryName = Robot.this.getInventoryName
 
     override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
 
-    override def openInventory() = Robot.this.openInventory()
+    override def openInventory() {}
 
-    override def closeInventory() = Robot.this.closeInventory()
+    override def closeInventory() {}
 
-    override def getStackInSlotOnClosing(slot: Int) = Robot.this.getStackInSlotOnClosing(actualSlot(slot))
+    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
 
     override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
   }
 
-  val actualInventorySize = 86
+  val actualInventorySize = 100
 
-  def maxInventorySize = actualInventorySize - 1 - containerCount - componentCount
+  def maxInventorySize = actualInventorySize - equipmentInventory.getSizeInventory - componentCount
 
   var inventorySize = -1
 
-  var selectedSlot = actualSlot(0)
+  var selectedSlot = 0
 
-  val tank = new MultiTank {
+  override def setSelectedSlot(index: Int): Unit = {
+    selectedSlot = index max 0 min mainInventory.getSizeInventory - 1
+    if (world != null) {
+      ServerPacketSender.sendRobotSelectedSlotChange(this)
+    }
+  }
+
+  val tank = new internal.MultiTank {
     override def tankCount = Robot.this.tankCount
 
     override def getFluidTank(index: Int) = Robot.this.getFluidTank(index)
@@ -113,18 +151,19 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   var selectedTank = 0
 
+  override def setSelectedTank(index: Int): Unit = selectedTank = index
+
   // For client.
   var renderingErrored = false
-
-  // Fixed number of containers (mostly due to GUI limitation, but also because
-  // I find three to be a large enough number for sufficient flexibility).
-  override def containerCount = 3
 
   override def componentCount = info.components.length
 
   override def getComponentInSlot(index: Int) = components(index).orNull
 
-  override def player() = player(facing, facing)
+  override def player = {
+    agent.Player.updatePositionAndRotation(player_, facing, facing)
+    player_
+  }
 
   override def synchronizeSlot(slot: Int) = if (slot >= 0 && slot < getSizeInventory) this.synchronized {
     val stack = getStackInSlot(slot)
@@ -141,7 +180,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def componentSlots = getSizeInventory - componentCount until getSizeInventory
 
-  def inventorySlots = actualSlot(0) until actualSlot(0) + inventorySize
+  def inventorySlots: Range = equipmentInventory.getSizeInventory until (equipmentInventory.getSizeInventory + mainInventory.getSizeInventory)
 
   def setLightColor(value: Int): Unit = {
     info.lightColor = value
@@ -156,9 +195,9 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   val maxComponents = 32
 
-  var owner = "OpenComputers"
+  var ownerName = Settings.get.fakePlayerName
 
-  var ownerUuid: Option[UUID] = None
+  var ownerUUID = Settings.get.fakePlayerProfile.getId
 
   var animationTicksLeft = 0
 
@@ -172,37 +211,20 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   var appliedToolEnchantments = false
 
-  private lazy val player_ = new robot.Player(this)
-
-  def determineUUID(playerUUID: Option[UUID] = None) = {
-    val format = Settings.get.uuidFormat
-    val randomUUID = UUID.randomUUID()
-    try UUID.fromString(format.
-      replaceAllLiterally("$random$", randomUUID.toString).
-      replaceAllLiterally("$player$", playerUUID.getOrElse(randomUUID).toString)) catch {
-      case t: Throwable =>
-        OpenComputers.log.warn("Failed determining robot UUID, check your config's `uuidFormat` entry!", t)
-        randomUUID
-    }
-  }
+  private lazy val player_ = new agent.Player(this)
 
   // ----------------------------------------------------------------------- //
 
-  def name = info.name
+  override def name = info.name
+
+  override def setName(name: String): Unit = info.name = name
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.addChatMessage(Localization.Analyzer.RobotOwner(owner))
+    player.addChatMessage(Localization.Analyzer.RobotOwner(ownerName))
     player.addChatMessage(Localization.Analyzer.RobotName(player_.getCommandSenderName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
-
-  def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
-    player_.updatePositionAndRotation(facing, side)
-    player_
-  }
-
-  def actualSlot(n: Int) = n + 1 + containerCount
 
   def move(direction: ForgeDirection): Boolean = {
     val oldPosition = BlockPosition(this)
@@ -370,7 +392,25 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
-    inventory.decrementAnimations()
+
+    for (slot <- 0 until equipmentInventory.getSizeInventory + mainInventory.getSizeInventory) {
+      getStackInSlot(slot) match {
+        case stack: ItemStack => try stack.updateAnimation(world, if (!world.isRemote) player_ else null, slot, slot == 0) catch {
+          case ignored: NullPointerException => // Client side item updates that need a player instance...
+        }
+        case _ =>
+      }
+    }
+  }
+
+  // The robot's machine is updated in a tick handler, to avoid delayed tile
+  // entity creation when moving, which would screw over all the things...
+  override protected def updateComputer(): Unit = {}
+
+  override protected def onRunningChanged(): Unit = {
+    super.onRunningChanged()
+    if (isRunning) EventHandler.onRobotStart(this)
+    else EventHandler.onRobotStopped(this)
   }
 
   override protected def initialize() {
@@ -390,23 +430,24 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         case _ =>
       }
     }
+    else EventHandler.onRobotStopped(this)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     updateInventorySize()
     machine.onHostChanged()
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {
-      owner = nbt.getString(Settings.namespace + "owner")
+      ownerName = nbt.getString(Settings.namespace + "owner")
     }
     if (nbt.hasKey(Settings.namespace + "ownerUuid")) {
-      ownerUuid = Option(UUID.fromString(nbt.getString(Settings.namespace + "ownerUuid")))
+      ownerUUID = UUID.fromString(nbt.getString(Settings.namespace + "ownerUuid"))
     }
     if (inventorySize > 0) {
-      selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
+      selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max 0 min mainInventory.getSizeInventory - 1
     }
     selectedTank = nbt.getInteger(Settings.namespace + "selectedTank")
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
@@ -418,17 +459,23 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
       turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
+
+    // Normally set in superclass, but that's not called directly, only in the
+    // robot's proxy instance.
+    _isOutputEnabled = hasRedstoneCard
+    _isAbstractBusAvailable = hasAbstractBusCard
+    if (isRunning) EventHandler.onRobotStart(this)
   }
 
   // Side check for Waila (and other mods that may call this client side).
-  override def writeToNBT(nbt: NBTTagCompound) = if (isServer) this.synchronized {
+  override def writeToNBTForServer(nbt: NBTTagCompound) = if (isServer) this.synchronized {
     info.save(nbt)
 
     // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)
     // which is a bit ugly, and may be refactored some day, but it works.
     nbt.setNewCompoundTag(Settings.namespace + "robot", bot.save)
-    nbt.setString(Settings.namespace + "owner", owner)
-    ownerUuid.foreach(uuid => nbt.setString(Settings.namespace + "ownerUuid", uuid.toString))
+    nbt.setString(Settings.namespace + "owner", ownerName)
+    nbt.setString(Settings.namespace + "ownerUuid", ownerUUID.toString)
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
     nbt.setInteger(Settings.namespace + "selectedTank", selectedTank)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
@@ -520,7 +567,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
       }
       if (isInventorySlot(slot)) {
-        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
     }
   }
@@ -539,7 +586,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         common.Sound.playDiskEject(this)
       }
       if (isInventorySlot(slot)) {
-        machine.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+        machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
       if (isComponentSlot(slot)) {
         world.notifyBlocksOfNeighborChange(x, y, z, getBlockType)
@@ -625,22 +672,6 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  override def callBudget = (containerSlots ++ componentSlots).foldLeft(0.0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
-      case Some(driver: Memory) => driver.amount(stack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
   override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(DriverRedstoneCard.worksWith(_, getClass)))
@@ -660,8 +691,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     val newInventorySize = computeInventorySize()
     if (newInventorySize != inventorySize) {
       inventorySize = newInventorySize
-      val realSize = 1 + containerCount + inventorySize
-      val oldSelected = selectedSlot - actualSlot(0)
+      val realSize = equipmentInventory.getSizeInventory + mainInventory.getSizeInventory
+      val oldSelected = selectedSlot
       val removed = mutable.ArrayBuffer.empty[ItemStack]
       for (slot <- realSize until getSizeInventory - componentCount) {
         val stack = getStackInSlot(slot)
@@ -676,11 +707,11 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       getSizeInventory = realSize + componentCount
       if (world != null && isServer) {
         for (stack <- removed) {
-          inventory.addItemStackToInventory(stack)
+          player().inventory.addItemStackToInventory(stack)
           spawnStackInWorld(stack, Option(facing))
         }
+        setSelectedSlot(oldSelected)
       } // else: save is screwed and we potentially lose items. Life is hard.
-      selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
     }
   }
   finally {
@@ -706,14 +737,17 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
-          inventory.addItemStackToInventory(stack)
+          player().inventory.addItemStackToInventory(stack)
           spawnStackInWorld(stack, Option(facing))
         }
       }
       else super.setInventorySlotContents(slot, stack)
     }
-    else if (stack != null && stack.stackSize > 0) spawnStackInWorld(stack, Option(ForgeDirection.UP))
+    else if (stack != null && stack.stackSize > 0 && !world.isRemote) spawnStackInWorld(stack, Option(ForgeDirection.UP))
   }
+
+  override def isUseableByPlayer(player: EntityPlayer) =
+    super.isUseableByPlayer(player) && (!isCreative || player.capabilities.isCreativeMode)
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
     case (0, _) => true // Allow anything in the tool slot.
@@ -736,14 +770,14 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   // ----------------------------------------------------------------------- //
 
   override def dropSlot(slot: Int, count: Int, direction: Option[ForgeDirection]) =
-    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), dynamicInventory, slot, count, direction)
+    InventoryUtils.dropSlot(BlockPosition(x, y, z, world), mainInventory, slot, count, direction)
 
   override def dropAllSlots() = {
     InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, 0, Int.MaxValue)
     for (slot <- containerSlots) {
       InventoryUtils.dropSlot(BlockPosition(x, y, z, world), this, slot, Int.MaxValue)
     }
-    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), dynamicInventory)
+    InventoryUtils.dropAllSlots(BlockPosition(x, y, z, world), mainInventory)
   }
 
   // ----------------------------------------------------------------------- //
@@ -764,8 +798,6 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   // ----------------------------------------------------------------------- //
 
-  def getFluidTank(tank: Int) = tryGetTank(tank).orNull
-
   def tryGetTank(tank: Int) = {
     val tanks = components.collect {
       case Some(tank: IFluidTank) => tank
@@ -778,6 +810,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     case Some(tank: IFluidTank) => true
     case _ => false
   }
+
+  def getFluidTank(tank: Int) = tryGetTank(tank).orNull
 
   // ----------------------------------------------------------------------- //
 

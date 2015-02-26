@@ -1,11 +1,22 @@
+local component_invoke = component.invoke
 function boot_invoke(address, method, ...)
-  local result = table.pack(pcall(component.invoke, address, method, ...))
+  local result = table.pack(pcall(component_invoke, address, method, ...))
   if not result[1] then
     return nil, result[2]
   else
     return table.unpack(result, 2, result.n)
   end
 end
+
+-- backwards compatibility, may remove later
+local eeprom = component.list("eeprom")()
+computer.getBootAddress = function()
+  return boot_invoke(eeprom, "getData")
+end
+computer.setBootAddress = function(address)
+  return boot_invoke(eeprom, "setData", address)
+end
+
 do
   local screen = component.list("screen")()
   local gpu = component.list("gpu")()
@@ -27,7 +38,7 @@ local function tryLoadFrom(address)
     buffer = buffer .. (data or "")
   until not data
   boot_invoke(address, "close", handle)
-  return load(buffer, "=init", "t", sandbox)
+  return load(buffer, "=init")
 end
 local init, reason
 if computer.getBootAddress() then

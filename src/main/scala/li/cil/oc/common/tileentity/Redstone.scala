@@ -29,13 +29,13 @@ class Redstone extends Environment with BundledRedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
+    super.readFromNBTForServer(nbt)
     instance.load(nbt.getCompoundTag(Settings.namespace + "redstone"))
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
     nbt.setNewCompoundTag(Settings.namespace + "redstone", instance.save)
   }
 
@@ -43,7 +43,9 @@ class Redstone extends Environment with BundledRedstoneAware {
 
   override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    node.connect(dummyNode)
-    dummyNode.sendToNeighbors("redstone.changed", side, int2Integer(oldMaxValue), int2Integer(newMaxValue))
+    if (node != null && node.network != null) {
+      node.connect(dummyNode)
+      dummyNode.sendToNeighbors("redstone.changed", side, int2Integer(oldMaxValue), int2Integer(newMaxValue))
+    }
   }
 }

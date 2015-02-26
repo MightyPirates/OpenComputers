@@ -88,9 +88,11 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
     else super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
   }
 
-  override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int, willHarvest: Boolean) =
+  override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int, willHarvest: Boolean): Boolean =
     world.getTileEntity(x, y, z) match {
-      case c: tileentity.Case => c.canInteract(player.getCommandSenderName) && super.removedByPlayer(world, player, x, y, z, willHarvest)
+      case c: tileentity.Case =>
+        if (c.isCreative && (!player.capabilities.isCreativeMode || !c.canInteract(player.getCommandSenderName))) false
+        else c.canInteract(player.getCommandSenderName) && super.removedByPlayer(world, player, x, y, z, willHarvest)
       case _ => super.removedByPlayer(world, player, x, y, z, willHarvest)
     }
 }

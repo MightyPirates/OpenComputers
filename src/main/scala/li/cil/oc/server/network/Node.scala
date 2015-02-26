@@ -11,8 +11,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 trait Node extends ImmutableNode {
-  val host: Environment
-  val reachability: Visibility
+  def host: Environment
+  def reachability: Visibility
 
   final var address: String = null
 
@@ -66,11 +66,10 @@ trait Node extends ImmutableNode {
 
   def load(nbt: NBTTagCompound) = {
     if (nbt.hasKey("address")) {
-      val oldAddress = address
-      address = nbt.getString("address")
-      if (address != oldAddress) network match {
-        case wrapper: Network.Wrapper => wrapper.network.remap(this)
-        case _ =>
+      val newAddress = nbt.getString("address")
+      if (newAddress != address) network match {
+        case wrapper: Network.Wrapper => wrapper.network.remap(this, newAddress)
+        case _ => address = newAddress
       }
     }
   }

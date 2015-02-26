@@ -5,22 +5,26 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.event.GeolyzerEvent
 import li.cil.oc.api.event.GeolyzerEvent.Analyze
-import li.cil.oc.api.internal.Rotatable
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 
 class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -51,7 +55,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def analyze(computer: Context, args: Arguments): Array[AnyRef] = if (Settings.get.allowItemStackInspection) {
     val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
     val globalSide = host match {
-      case rotatable: Rotatable => rotatable.toGlobal(side)
+      case rotatable: internal.Rotatable => rotatable.toGlobal(side)
       case _ => side
     }
     val options = args.optTable(1, Map.empty[AnyRef, AnyRef])
@@ -59,7 +63,8 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
-    val event = new Analyze(host, options, globalSide)
+    val globalPos = BlockPosition(host).offset(globalSide)
+    val event = new Analyze(host, options, globalPos.x, globalPos.y, globalPos.z)
     MinecraftForge.EVENT_BUS.post(event)
     if (event.isCanceled) result(Unit, "scan was canceled")
     else result(event.data)
@@ -70,7 +75,7 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def store(computer: Context, args: Arguments): Array[AnyRef] = {
     val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
     val globalSide = host match {
-      case rotatable: Rotatable => rotatable.toGlobal(side)
+      case rotatable: internal.Rotatable => rotatable.toGlobal(side)
       case _ => side
     }
 
@@ -91,6 +96,28 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
         database.data.setInventorySlotContents(toSlot, stack)
         result(nonEmpty)
       })
+    }
+  }
+
+  override def onMessage(message: Message): Unit = {
+    super.onMessage(message)
+    if (message.name == "tablet.use") message.source.host match {
+      case machine: api.machine.Machine => (machine.host, message.data) match {
+        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: ForgeDirection, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+          if (node.tryChangeBuffer(-Settings.get.geolyzerScanCost)) {
+            val event = new Analyze(host, Map.empty[AnyRef, AnyRef], blockPos.x, blockPos.y, blockPos.z)
+            MinecraftForge.EVENT_BUS.post(event)
+            if (!event.isCanceled) {
+              for ((key, value) <- event.data) value match {
+                case number: java.lang.Number => nbt.setDouble(key, number.doubleValue())
+                case string: String if !string.isEmpty => nbt.setString(key, string)
+                case _ => // Unsupported, ignore.
+              }
+            }
+          }
+        case _ => // Ignore.
+      }
+      case _ => // Ignore.
     }
   }
 }

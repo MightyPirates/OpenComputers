@@ -35,6 +35,8 @@ class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {
     super.shouldSideBeRendered(world, x, y, z, side) || side == ForgeDirection.UP
   }
 
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.DOWN
+
   // ----------------------------------------------------------------------- //
 
   override def rarity(stack: ItemStack) = Rarity.byTier(tier)

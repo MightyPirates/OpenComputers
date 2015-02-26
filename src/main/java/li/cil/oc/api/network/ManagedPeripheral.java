@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.Context;
 /**
  * This interface can be used with an {@link li.cil.oc.api.network.Environment}
  * and is intended to be used for environments wrapping a ComputerCraft
- * peripheral. Tt could be used for other purposes as well, though. It allows
+ * peripheral. It could be used for other purposes as well, though. It allows
  * providing method names in addition to those defined via the
  * {@link li.cil.oc.api.machine.Callback} annotation, and invoking said methods.
  */

@@ -1,7 +1,7 @@
 package li.cil.oc.api.internal;
 
 import li.cil.oc.api.driver.EnvironmentHost;
-import li.cil.oc.api.machine.Machine;
+import li.cil.oc.api.machine.MachineHost;
 
 /**
  * This interface is implemented as a marker by servers in server racks.
@@ -20,12 +20,7 @@ import li.cil.oc.api.machine.Machine;
  * via the API, i.e. without having to link against internal classes. This
  * also means that <em>you should not implement this</em>.
  */
-public interface Server extends EnvironmentHost {
-    /**
-     * The machine currently hosted by this server.
-     */
-    Machine machine();
-
+public interface Server extends EnvironmentHost, MachineHost, Tiered {
     /**
      * The server rack this server is in.
      */
@@ -35,9 +30,4 @@ public interface Server extends EnvironmentHost {
      * The slot of the server rack this server is in.
      */
     int slot();
-
-    /**
-     * The tier of the server.
-     */
-    int tier();
 }

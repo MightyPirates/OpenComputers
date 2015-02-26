@@ -37,20 +37,6 @@ public interface Machine extends ManagedEnvironment, Context {
     Architecture architecture();
 
     /**
-     * Get the address of the file system component from which to try to boot.
-     * <p/>
-     * The underlying architecture may choose to ignore this setting.
-     */
-    String getBootAddress();
-
-    /**
-     * Set the address of the file system component from which to try to boot.
-     *
-     * @param value the new address to try to boot from.
-     */
-    void setBootAddress(String value);
-
-    /**
      * The list of components attached to this machine.
      * <p/>
      * This maps address to component type/name. Note that the list may not
@@ -76,6 +62,16 @@ public interface Machine extends ManagedEnvironment, Context {
      * @return the number of connected components.
      */
     int componentCount();
+
+    /**
+     * The maximum number of components this machine can currently support.
+     * <p/>
+     * This is automatically recomputed based on the hosts internal components
+     * whenever the host calls {@link li.cil.oc.api.machine.Machine#onHostChanged()}.
+     *
+     * @return the maximum number of components supported.
+     */
+    int maxComponents();
 
     /**
      * Gets the amount of energy this machine consumes per tick when it is

@@ -32,14 +32,6 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
 
-    // These are purely for converting existing blocks in delegator format to the new,
-    // one block type per block format.
-    // TODO Remove in 1.5
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple")
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "simple_redstone")
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "special")
-    GameRegistry.registerBlock(new DelegatorConverter(), classOf[DelegatorConverter.Item], "special_redstone")
-
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
     // must not be changed since that order determines their actual IDs.

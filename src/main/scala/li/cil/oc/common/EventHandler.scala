@@ -6,6 +6,7 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
@@ -13,6 +14,10 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
@@ -26,6 +31,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
@@ -34,6 +40,14 @@ import scala.concurrent.Future
 
 object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
+
+  var totalWorldTicks = 0L
+
+  private val runningRobots = mutable.Set.empty[Robot]
+
+  def onRobotStart(robot: Robot): Unit = runningRobots += robot
+
+  def onRobotStopped(robot: Robot): Unit = runningRobots -= robot
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -93,7 +107,7 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
+  def onServerTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
     pending.synchronized {
       val adds = pending.toArray
       pending.clear()
@@ -103,6 +117,18 @@ object EventHandler {
         case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
+
+    val invalid = mutable.ArrayBuffer.empty[Robot]
+    runningRobots.foreach(robot => {
+      if (robot.isInvalid) invalid += robot
+      else robot.machine.update()
+    })
+    runningRobots --= invalid
+  }
+
+  @SubscribeEvent
+  def onClientTick(e: ClientTickEvent) = if (e.phase == TickEvent.Phase.START) {
+    totalWorldTicks += 1
   }
 
   @SubscribeEvent
@@ -144,10 +170,28 @@ object EventHandler {
     }
   }
 
+  @SubscribeEvent
+  def onBlockBreak(e: BlockEvent.BreakEvent): Unit = {
+    e.world.getTileEntity(e.x, e.y, e.z) match {
+      case c: tileentity.Case =>
+        if (c.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !c.canInteract(e.getPlayer.getCommandSenderName))) {
+          e.setCanceled(true)
+        }
+      case r: tileentity.RobotProxy =>
+        val robot = r.robot
+        if (robot.isCreative && (!e.getPlayer.capabilities.isCreativeMode || !robot.canInteract(e.getPlayer.getCommandSenderName))) {
+          e.setCanceled(true)
+        }
+      case _ =>
+    }
+  }
+
   lazy val drone = api.Items.get("drone")
   lazy val eeprom = api.Items.get("eeprom")
   lazy val mcu = api.Items.get("microcontroller")
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
+  lazy val robot = api.Items.get("robot")
+  lazy val tablet = api.Items.get("tablet")
   private lazy val Achievements = Map(
     api.Items.get("transistor") -> Achievement.Transistor,
     api.Items.get("case1") -> Achievement.Case,
@@ -186,12 +230,22 @@ object EventHandler {
 
     didRecraft = recraft(e, mcu, stack => {
       // Restore EEPROM currently used in microcontroller.
-      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     didRecraft = recraft(e, drone, stack => {
       // Restore EEPROM currently used in drone.
-      new ItemUtils.MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+      new MicrocontrollerData(stack).components.find(api.Items.get(_) == eeprom)
+    }) || didRecraft
+
+    didRecraft = recraft(e, robot, stack => {
+      // Restore EEPROM currently used in robot.
+      new RobotData(stack).components.find(api.Items.get(_) == eeprom)
+    }) || didRecraft
+
+    didRecraft = recraft(e, tablet, stack => {
+      // Restore EEPROM currently used in tablet.
+      new TabletData(stack).items.collect { case Some(item) => item }.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     // Presents?
@@ -204,16 +258,8 @@ object EventHandler {
           // Presents!
           val present = api.Items.get("present").createItemStack(1)
           e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
-          if (e.player.inventory.addItemStackToInventory(present)) {
-            e.player.inventory.markDirty()
-            if (e.player.openContainer != null) {
-              e.player.openContainer.detectAndSendChanges()
+          InventoryUtils.addToPlayerInventory(present, e.player)
             }
-          }
-          else {
-            e.player.dropPlayerItemWithRandomChoice(present, false)
-          }
-        }
       case _ => // Nope.
     }
 
@@ -227,7 +273,10 @@ object EventHandler {
     val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
     // On the 12th day of Christmas, my robot brought to me~
     (month == Calendar.DECEMBER && dayOfMonth > 24) || (month == Calendar.JANUARY && dayOfMonth < 7) ||
-      // OC's release-birthday!
+      (month == Calendar.FEBRUARY && dayOfMonth == 14) ||
+      (month == Calendar.APRIL && dayOfMonth == 22) ||
+      (month == Calendar.MAY && dayOfMonth == 1) ||
+      (month == Calendar.OCTOBER && dayOfMonth == 3) ||
       (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
@@ -236,9 +285,8 @@ object EventHandler {
       for (slot <- 0 until e.craftMatrix.getSizeInventory) {
         val stack = e.craftMatrix.getStackInSlot(slot)
         if (api.Items.get(stack) == item) {
-          callback(stack).foreach(extra => if (!e.player.inventory.addItemStackToInventory(extra)) {
-            e.player.dropPlayerItemWithRandomChoice(extra, false)
-          })
+          callback(stack).foreach(extra =>
+            InventoryUtils.addToPlayerInventory(extra, e.player))
         }
       }
       true

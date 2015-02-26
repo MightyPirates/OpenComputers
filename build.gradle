@@ -17,6 +17,7 @@ buildscript {
 
 apply plugin: 'scala'
 apply plugin: 'forge'
+apply plugin: 'idea'
 apply plugin: 'maven-publish'
 
 file "build.properties" withReader {
@@ -211,7 +212,7 @@ processResources {
 jar {
     exclude "cofh/**"
     configurations.embedded.each { dep ->
-        from(project.zipTree(dep)){
+        from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
         }
     }
@@ -231,7 +232,7 @@ task deobfJar(type: Jar) {
     from sourceSets.main.output
     exclude "cofh/**"
     configurations.embedded.each { dep ->
-        from(project.zipTree(dep)){
+        from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
         }
     }
@@ -285,8 +286,8 @@ publishing {
 }
 
 // this is needed for IntelliJ so we don't have to copy over the assets manually every time
-sourceSets {
-    main {
-        output.resourcesDir = output.classesDir
+idea {
+    module {
+        outputDir = file('build/classes/main')
     }
 }

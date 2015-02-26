@@ -5,9 +5,9 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ItemCosts
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
@@ -16,7 +16,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-import org.lwjgl.input
 
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
@@ -29,13 +28,13 @@ class Item(value: Block) extends ItemBlock(value) {
       case (simple: SimpleBlock, lines: util.List[String]@unchecked) =>
         simple.addInformation(getMetadata(stack.getItemDamage), stack, player, lines, advanced)
 
-        if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMENU)) {
+        if (KeyBindings.showMaterialCosts) {
           ItemCosts.addTooltip(stack, lines)
         }
         else {
           lines.add(StatCollector.translateToLocalFormatted(
             Settings.namespace + "tooltip.MaterialCosts",
-            input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+            KeyBindings.getKeybindName(KeyBindings.materialCosts)))
         }
       case _ =>
     }
@@ -60,7 +59,7 @@ class Item(value: Block) extends ItemBlock(value) {
     // manually before it's placed to ensure different component addresses
     // in the different robots, to avoid interference of screens e.g.
     val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get("robot")
-    val stackToUse = if (needsCopying) new ItemUtils.RobotData(stack).copyItemStack() else stack
+    val stackToUse = if (needsCopying) new RobotData(stack).copyItemStack() else stack
     if (super.placeBlockAt(stackToUse, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
       // If it's a rotatable block try to make it face the player.
       world.getTileEntity(x, y, z) match {

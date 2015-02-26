@@ -97,7 +97,6 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
 
     @Override
     public void updateEntity() {
-        super.updateEntity();
         // On the first update, try to add our node to nearby networks. We do
         // this in the update logic, not in validate() because we need to access
         // neighboring tile entities, which isn't possible in validate().

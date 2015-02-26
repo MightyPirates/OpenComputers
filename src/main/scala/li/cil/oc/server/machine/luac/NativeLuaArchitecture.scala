@@ -7,6 +7,7 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.ExecutionResult
 import li.cil.oc.api.machine.LimitReachedException
@@ -15,7 +16,10 @@ import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
 import li.cil.repack.com.naef.jnlua._
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+
+import scala.collection.convert.WrapAsScala._
 
 @Architecture.Name("Lua")
 class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
@@ -130,14 +134,26 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
   override def isInitialized = kernelMemory > 0
 
-  override def recomputeMemory() = Option(lua) match {
-    case Some(l) if Settings.get.limitMemory =>
-      l.setTotalMemory(Int.MaxValue)
-      if (kernelMemory > 0) {
-        l.setTotalMemory(kernelMemory + math.ceil(machine.host.installedMemory * ramScale).toInt)
-      }
-    case _ =>
+  override def recomputeMemory(components: java.lang.Iterable[ItemStack]) = {
+    val memory = math.ceil(memoryInBytes(components) * ramScale).toInt
+    Option(lua) match {
+      case Some(l) if Settings.get.limitMemory =>
+        l.setTotalMemory(Int.MaxValue)
+        if (kernelMemory > 0) {
+          l.setTotalMemory(kernelMemory + memory)
+        }
+      case _ =>
+    }
+    memory > 0
   }
+
+  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
+    case Some(driver: Memory) =>
+      val sizes = Settings.get.ramSizes
+      val tier = math.round(driver.amount(stack)).toInt - 1
+      sizes(tier max 0 min (sizes.length - 1)) * 1024
+    case _ => 0
+  }))
 
   // ----------------------------------------------------------------------- //
 
@@ -191,7 +207,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
             // (which may change across releases).
             lua.gc(LuaState.GcAction.COLLECT, 0)
             kernelMemory = math.max(lua.getTotalMemory - lua.getFreeMemory, 1)
-            recomputeMemory()
+            recomputeMemory(machine.host.internalComponents)
 
             // Fake zero sleep to avoid stopping if there are no signals.
             lua.pushInteger(0)
@@ -359,7 +375,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     }
 
     // Limit memory again.
-    recomputeMemory()
+    recomputeMemory(machine.host.internalComponents)
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -402,6 +418,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     }
 
     // Limit memory again.
-    recomputeMemory()
+    recomputeMemory(machine.host.internalComponents)
   }
 }

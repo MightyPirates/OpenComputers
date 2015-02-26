@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import java.lang.Iterable
 import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
@@ -19,20 +20,23 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
-import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.server.component
+import li.cil.oc.util.Audio
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
-import li.cil.oc.util.ItemUtils.TabletData
+import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
@@ -47,6 +51,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 class Tablet(val parent: Delegator) extends Delegate {
+  final val TimeToAnalyze = 10
+
   // Must be assembled to be usable so we hide it in the item list.
   showInItemList = false
 
@@ -58,7 +64,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   @SideOnly(Side.CLIENT)
   override def icon(stack: ItemStack, pass: Int) = {
     if (stack.hasTagCompound) {
-      val data = new ItemUtils.TabletData(stack)
+      val data = new TabletData(stack)
       if (data.isRunning) iconOn else iconOff
     } else super.icon(stack, pass)
   }
@@ -74,7 +80,7 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
-      val info = new ItemUtils.TabletData(stack)
+      val info = new TabletData(stack)
       // Ignore/hide the screen.
       val components = info.items.drop(1)
       if (components.length > 1) {
@@ -86,12 +92,17 @@ class Tablet(val parent: Delegator) extends Delegate {
     }
   }
 
+  override def rarity(stack: ItemStack) = {
+    val data = new TabletData(stack)
+    Rarity.byTier(data.tier)
+  }
+
   override def isDamageable = true
 
   override def damage(stack: ItemStack) = {
     val nbt = stack.getTagCompound
     if (nbt != null) {
-      val data = new ItemUtils.TabletData()
+      val data = new TabletData()
       data.load(nbt)
       (data.maxEnergy - data.energy).toInt
     }
@@ -101,7 +112,7 @@ class Tablet(val parent: Delegator) extends Delegate {
   override def maxDamage(stack: ItemStack) = {
     val nbt = stack.getTagCompound
     if (nbt != null) {
-      val data = new ItemUtils.TabletData()
+      val data = new TabletData()
       data.load(nbt)
       data.maxEnergy.toInt max 1
     }
@@ -112,27 +123,79 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
     entity match {
-      case player: EntityPlayer => Tablet.get(stack, player).update(world, player, slot, selected)
+      case player: EntityPlayer =>
+        // Play an audio cue to let players know when they finished analyzing a block.
+        if (world.isRemote && player.getItemInUseDuration == TimeToAnalyze && api.Items.get(player.getItemInUse) == api.Items.get("tablet")) {
+          Audio.play(player.posX.toFloat, player.posY.toFloat + 2, player.posZ.toFloat, ".")
+        }
+        Tablet.get(stack, player).update(world, player, slot, selected)
       case _ =>
     }
 
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    Tablet.currentlyAnalyzing = Some((position, side, hitX, hitY, hitZ))
+    super.onItemUseFirst(stack, player, position, side, hitX, hitY, hitZ)
+  }
+
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    player.setItemInUse(stack, getMaxItemUseDuration(stack))
+    true
+  }
+
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
-    if (!player.isSneaking) {
-      if (world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
-      }
-      else {
-        val computer = Tablet.get(stack, player).machine
-        computer.start()
-        computer.lastError match {
-          case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+    player.setItemInUse(stack, getMaxItemUseDuration(stack))
+    stack
+  }
+
+  override def getMaxItemUseDuration(stack: ItemStack): Int = 72000
+
+  override def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int): Unit = {
+    val world = player.getEntityWorld
+    val didAnalyze = getMaxItemUseDuration(stack) - duration >= TimeToAnalyze
+    if (didAnalyze) {
+      if (!world.isRemote) {
+        Tablet.currentlyAnalyzing match {
+          case Some((position, side, hitX, hitY, hitZ)) => try {
+            val computer = Tablet.get(stack, player).machine
+            if (computer.isRunning) {
+              val data = new NBTTagCompound()
+              computer.node.sendToReachable("tablet.use", data, stack, player, position, ForgeDirection.getOrientation(side), float2Float(hitX), float2Float(hitY), float2Float(hitZ))
+              if (!data.hasNoTags) {
+                computer.signal("tablet_use", data)
+              }
+            }
+          }
+          catch {
+            case t: Throwable => OpenComputers.log.warn("Block analysis on tablet right click failed gloriously!", t)
+          }
           case _ =>
         }
       }
     }
-    else if (!world.isRemote) Tablet.Server.get(stack, player).machine.stop()
-    player.swingItem()
-    stack
+    else {
+      if (player.isSneaking) {
+        if (!world.isRemote) {
+          val tablet = Tablet.Server.get(stack, player)
+          tablet.machine.stop()
+          if (tablet.data.tier > Tier.One) {
+            player.openGui(OpenComputers, GuiType.TabletInner.id, world, 0, 0, 0)
+          }
+        }
+      }
+      else {
+        if (!world.isRemote) {
+          val computer = Tablet.get(stack, player).machine
+          computer.start()
+          computer.lastError match {
+            case message if message != null => player.addChatMessage(Localization.Analyzer.LastError(message))
+            case _ =>
+          }
+        }
+        else {
+          player.openGui(OpenComputers, GuiType.Tablet.id, world, 0, 0, 0)
+        }
+      }
+    }
   }
 }
 
@@ -150,13 +213,15 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   private var isInitialized = !world.isRemote
 
+  private var lastRunning = false
+
   def items = data.items
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: ForgeDirection) = value // TODO do we care?
+  override def toLocal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
 
-  override def toGlobal(value: ForgeDirection) = value // TODO do we care?
+  override def toGlobal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
@@ -238,11 +303,22 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def getSizeInventory = items.length
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = slot == getSizeInventory - 1 && (Option(Driver.driverFor(stack, getClass)) match {
+    case Some(driver) =>
+      // Same special cases, similar as in robot, but allow keyboards,
+      // because clip-on keyboards kinda seem to make sense, I guess.
+      driver != DriverScreen &&
+        driver.slot(stack) == containerSlotType &&
+        driver.tier(stack) <= containerSlotTier
+    case _ => false
+  })
 
   override def isUseableByPlayer(player: EntityPlayer) = machine.canInteract(player.getCommandSenderName)
 
-  override def markDirty() {}
+  override def markDirty(): Unit = {
+    data.save(stack)
+    player.inventory.markDirty()
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -256,38 +332,23 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   // ----------------------------------------------------------------------- //
 
-  override def cpuArchitecture: Class[_ <: Architecture] = {
-    for (i <- 0 until getSizeInventory if isComponentSlot(i)) Option(getStackInSlot(i)) match {
-      case Some(s) => Option(Driver.driverFor(s, getClass)) match {
-        case Some(driver: api.driver.item.Processor) if driver.slot(s) == Slot.CPU => return driver.architecture(s)
-        case _ =>
-      }
-      case _ =>
-    }
-    null
+  def containerSlotType = data.container.fold(Slot.None)(stack =>
+    Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Container) => driver.providedSlot(stack)
+      case _ => Slot.None
+    })
+
+  def containerSlotTier = data.container.fold(Tier.None)(stack =>
+    Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver: Container) => driver.providedTier(stack)
+      case _ => Tier.None
+    })
+
+  override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
+    case slot if isComponentSlot(slot) && getStackInSlot(slot) != null => getStackInSlot(slot)
   }
 
-  override def callBudget = items.foldLeft(0.0)((acc, item) => acc + (item match {
-    case Some(itemStack) => Option(Driver.driverFor(itemStack, getClass)) match {
-      case Some(driver: Processor) if driver.slot(itemStack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def installedMemory = items.foldLeft(0)((acc, item) => acc + (item match {
-    case Some(itemStack) => Option(api.Driver.driverFor(itemStack, getClass)) match {
-      case Some(driver: api.driver.item.Memory) => driver.amount(itemStack)
-      case _ => 0
-    }
-    case _ => 0
-  }))
-
-  override def maxComponents = 32
-
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
-
-  override def markForSaving() {}
 
   override def onMachineConnect(node: Node) = onConnect(node)
 
@@ -320,6 +381,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       data.isRunning = machine.isRunning
       data.energy = tablet.node.globalBuffer()
       data.maxEnergy = tablet.node.globalBufferSize()
+
+      if (lastRunning != machine.isRunning) {
+        lastRunning = machine.isRunning
+        markDirty()
+      }
     }
   }
 
@@ -336,6 +402,10 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 }
 
 object Tablet {
+  // This is super-hacky, but since it's only used on the client we get away
+  // with storing context information for analyzing a block in the singleton.
+  var currentlyAnalyzing: Option[(BlockPosition, Int, Float, Float, Float)] = None
+
   def getId(stack: ItemStack) = {
 
     if (!stack.hasTagCompound) {

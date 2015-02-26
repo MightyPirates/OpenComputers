@@ -79,7 +79,9 @@ item.oc.Server1.name=Server (Livello 2)
 item.oc.Server2.name=Server (Livello 3)
 item.oc.Server3.name=Server (Creativo)
 item.oc.Tablet.name=Tablet
-item.oc.TabletCase.name=Custodia Tablet
+item.oc.TabletCase0.name=Custodia Tablet (Livello 1)
+item.oc.TabletCase1.name=Custodia Tablet (Livello 2)
+item.oc.TabletCase3.name=Custodia Tablet (Creativo)
 item.oc.Terminal.name=Terminale Remoto
 item.oc.Transistor.name=Transistor
 item.oc.UpgradeAngel.name=Upgrade Angel
@@ -173,6 +175,7 @@ oc:container.DiskDrive=Unità Disco
 oc:container.Server=Server
 oc:container.ServerRack=Server Rack
 oc:container.Switch=Switch
+oc:container.TabletWrapper=Tablet
 
 # Keybinds
 key.materialCosts=Mostra Costi Materiali

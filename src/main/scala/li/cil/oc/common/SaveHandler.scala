@@ -83,10 +83,15 @@ object SaveHandler {
 
   def loadNBT(nbt: NBTTagCompound, name: String): NBTTagCompound = {
     val data = load(nbt, name)
-    if (data.length > 0) {
+    if (data.length > 0) try {
       val bais = new ByteArrayInputStream(data)
       val dis = new DataInputStream(bais)
       CompressedStreamTools.read(dis)
+    }
+    catch {
+      case t: Throwable =>
+        OpenComputers.log.warn("There was an error trying to restore a block's state from external data. This indicates that data was somehow corrupted.", t)
+        new NBTTagCompound()
     }
     else new NBTTagCompound()
   }

@@ -9,7 +9,6 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.common.inventory.MultiTank
 import li.cil.oc.integration.Mods
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
@@ -22,8 +21,7 @@ import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
 
-// TODO Remove internal.Tiered in 1.5, only here for compatibility if someone ships an older 1.4 API.
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with ISidedInventory with IFluidHandler with internal.Robot with internal.Tiered with MultiTank {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with ISidedInventory with IFluidHandler with internal.Robot {
   def this() = this(new Robot())
 
   // ----------------------------------------------------------------------- //
@@ -34,9 +32,31 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def machine = robot.machine
 
-  override def maxComponents = robot.maxComponents
-
   override def tier = robot.tier
+
+  override def equipmentInventory = robot.equipmentInventory
+
+  override def mainInventory = robot.mainInventory
+
+  override def tank = robot.tank
+
+  override def selectedSlot = robot.selectedSlot
+
+  override def setSelectedSlot(index: Int) = robot.setSelectedSlot(index)
+
+  override def selectedTank = robot.selectedTank
+
+  override def setSelectedTank(index: Int) = robot.setSelectedTank(index)
+
+  override def player = robot.player()
+
+  override def name = robot.name
+
+  override def setName(name: String): Unit = robot.setName(name)
+
+  override def ownerName = robot.ownerName
+
+  override def ownerUUID = robot.ownerUUID
 
   // ----------------------------------------------------------------------- //
 
@@ -44,29 +64,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def disconnectComponents() {}
 
-  @SideOnly(Side.CLIENT)
   override def isRunning = robot.isRunning
 
-  @SideOnly(Side.CLIENT)
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
-  override def player() = robot.player()
-
-  override def containerCount = robot.containerCount
+  // ----------------------------------------------------------------------- //
 
   override def componentCount = robot.componentCount
 
-  override def tankCount = robot.tankCount
-
-  override def inventorySize = robot.inventorySize
-
   override def getComponentInSlot(index: Int) = robot.getComponentInSlot(index)
-
-  override def getFluidTank(index: Int) = robot.getFluidTank(index)
-
-  override def selectedSlot = robot.selectedSlot
-
-  override def selectedTank = robot.selectedTank
 
   override def synchronizeSlot(slot: Int) = robot.synchronizeSlot(slot)
 
@@ -124,15 +130,15 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
     }
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  override def readFromNBTForServer(nbt: NBTTagCompound) {
     robot.info.load(nbt)
-    super.readFromNBT(nbt)
-    robot.readFromNBT(nbt)
+    super.readFromNBTForServer(nbt)
+    robot.readFromNBTForServer(nbt)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    robot.writeToNBT(nbt)
+  override def writeToNBTForServer(nbt: NBTTagCompound) {
+    super.writeToNBTForServer(nbt)
+    robot.writeToNBTForServer(nbt)
   }
 
   override def save(nbt: NBTTagCompound) = robot.save(nbt)
@@ -240,10 +246,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def getInventoryStackLimit = robot.getInventoryStackLimit
 
-  override def callBudget = robot.callBudget
-
-  override def installedMemory = robot.installedMemory
-
   override def componentSlot(address: String) = robot.componentSlot(address)
 
   override def getInventoryName = robot.getInventoryName
@@ -261,8 +263,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
   override def getAccessibleSlotsFromSide(side: Int) = robot.getAccessibleSlotsFromSide(side)
 
   // ----------------------------------------------------------------------- //
-
-  override def markForSaving() = robot.markForSaving()
 
   override def hasRedstoneCard = robot.hasRedstoneCard
 

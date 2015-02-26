@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import com.google.common.base.Strings
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
@@ -12,12 +13,13 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
-import net.minecraft.command.ICommandSender
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -30,8 +32,15 @@ import net.minecraft.world.World
 import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.IFluidHandler
+
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
@@ -44,6 +53,20 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   // Used for delayed connecting to remote node again after loading.
   private var remoteNodePosition: Option[(Int, Int, Int)] = None
+
+  // Player this card is bound to (if any) to use for permissions.
+  var player: Option[String] = None
+
+  private lazy val CommandSender = {
+    def defaultFakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
+    new CommandSender(host, player match {
+      case Some(name) => Option(MinecraftServer.getServer.getConfigurationManager.func_152612_a(name)) match {
+        case Some(playerEntity) => playerEntity
+        case _ => defaultFakePlayer
+      }
+      case _ => defaultFakePlayer
+    })
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -88,10 +111,18 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")
   def runCommand(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
-    val command = args.checkString(0)
-    val sender = new CommandSender(host)
-    val value = MinecraftServer.getServer.getCommandManager.executeCommand(sender, command)
-    result(value, sender.messages.orNull)
+    val commands =
+      if (args.isTable(0)) collectionAsScalaIterable(args.checkTable(0).values())
+      else Iterable (args.checkString(0))
+
+    CommandSender.synchronized {
+      CommandSender.prepare()
+      var value = 0
+      for (command <- commands) {
+        value = MinecraftServer.getServer.getCommandManager.executeCommand(CommandSender, command.toString)
+      }
+      result(value, CommandSender.messages.orNull)
+    }
   }
 
   @Callback(doc = """function(x:number, y:number, z:number):boolean -- Connect the debug card to the block at the specified coordinates.""")
@@ -121,6 +152,17 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
       }
     }
     else None
+
+  @Callback(doc = """function():userdata -- Test method for user-data and general value conversion.""")
+  def test(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+
+    val v1 = mutable.Map("a" -> true, "b" -> "test")
+    val v2 = Map(10 -> "zxc", false -> v1)
+    v1 += "c" -> v2
+
+    result(v2, new DebugCard.TestValue(), host.world)
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -157,6 +199,9 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
       val z = nbt.getInteger(Settings.namespace + "remoteZ")
       remoteNodePosition = Some((x, y, z))
     }
+    if (nbt.hasKey(Settings.namespace + "player")) {
+      player = Option(nbt.getString(Settings.namespace + "player"))
+    }
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
@@ -167,6 +212,7 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
         nbt.setInteger(Settings.namespace + "remoteY", y)
         nbt.setInteger(Settings.namespace + "remoteZ", z)
     }
+    player.foreach(nbt.setString(Settings.namespace + "player", _))
   }
 }
 
@@ -414,6 +460,49 @@ object DebugCard {
       }
     }
 
+    @Callback(doc = """function(x:number, y:number, z:number, slot:number[, count:number]):number - Reduce the size of an item stack in the inventory at the specified location.""")
+    def removeItem(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val position = BlockPosition(args.checkDouble(0), args.checkDouble(1), args.checkDouble(2), world)
+      InventoryUtils.inventoryAt(position) match {
+        case Some(inventory) =>
+          val slot = args.checkSlot(inventory, 3)
+          val count = args.optInteger(4, inventory.getInventoryStackLimit)
+          val removed = inventory.decrStackSize(slot, count)
+          if (removed == null) result(0)
+          else result(removed.stackSize)
+        case _ => result(null, "no inventory")
+      }
+    }
+
+    @Callback(doc = """function(id:string, amount:number, x:number, y:number, z:number, side:number):boolean - Insert some fluid into the tank at the specified location.""")
+    def insertFluid(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val fluid = FluidRegistry.getFluid(args.checkString(0))
+      if (fluid == null) {
+        throw new IllegalArgumentException("invalid fluid id")
+      }
+      val amount = args.checkInteger(1)
+      val position = BlockPosition(args.checkDouble(2), args.checkDouble(3), args.checkDouble(4), world)
+      val side = args.checkSide(5, ForgeDirection.VALID_DIRECTIONS: _*)
+      world.getTileEntity(position) match {
+        case handler: IFluidHandler => result(handler.fill(side, new FluidStack(fluid, amount), true))
+        case _ => result(null, "no tank")
+      }
+    }
+
+    @Callback(doc = """function(amount:number, x:number, y:number, z:number, side:number):boolean - Remove some fluid from a tank at the specified location.""")
+    def removeFluid(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val amount = args.checkInteger(0)
+      val position = BlockPosition(args.checkDouble(1), args.checkDouble(2), args.checkDouble(3), world)
+      val side = args.checkSide(4, ForgeDirection.VALID_DIRECTIONS: _*)
+      world.getTileEntity(position) match {
+        case handler: IFluidHandler => result(handler.drain(side, amount, true))
+        case _ => result(null, "no tank")
+      }
+    }
+
     // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) {
@@ -427,22 +516,28 @@ object DebugCard {
     }
   }
 
-  class CommandSender(val host: EnvironmentHost) extends ICommandSender {
-    val fakePlayer = FakePlayerFactory.get(host.world.asInstanceOf[WorldServer], Settings.get.fakePlayerProfile)
-
+  class CommandSender(val host: EnvironmentHost, val underlying: EntityPlayerMP) extends FakePlayer(underlying.getEntityWorld.asInstanceOf[WorldServer], underlying.getGameProfile) {
     var messages: Option[String] = None
 
-    override def getCommandSenderName = fakePlayer.getCommandSenderName
+    def prepare(): Unit = {
+      val blockPos = BlockPosition(host)
+      posX = blockPos.x
+      posY = blockPos.y
+      posZ = blockPos.z
+      messages = None
+    }
+
+    override def getCommandSenderName = underlying.getCommandSenderName
 
     override def getEntityWorld = host.world
 
     override def addChatMessage(message: IChatComponent) {
-      messages = Option(messages.getOrElse("") + message.getUnformattedText)
+      messages = Option(messages.fold("")(_ + "\n") + message.getUnformattedText)
     }
 
     override def canCommandSenderUseCommand(level: Int, command: String) = {
-      val profile = fakePlayer.getGameProfile
-      val server = fakePlayer.mcServer
+      val profile = underlying.getGameProfile
+      val server = underlying.mcServer
       val config = server.getConfigurationManager
       server.isSinglePlayer || (config.func_152596_g(profile) && (config.func_152603_m.func_152683_b(profile) match {
         case entry: UserListOpsEntry => entry.func_152644_a >= level
@@ -452,7 +547,41 @@ object DebugCard {
 
     override def getPlayerCoordinates = BlockPosition(host).toChunkCoordinates
 
-    override def func_145748_c_() = fakePlayer.func_145748_c_()
+    override def func_145748_c_() = underlying.func_145748_c_()
+  }
+
+  class TestValue extends AbstractValue {
+    var value = "hello"
+
+    override def apply(context: Context, arguments: Arguments): AnyRef = {
+      OpenComputers.log.info("TestValue.apply(" + arguments.toArray.mkString(", ") + ")")
+      value
+    }
+
+    override def unapply(context: Context, arguments: Arguments): Unit = {
+      OpenComputers.log.info("TestValue.unapply(" + arguments.toArray.mkString(", ") + ")")
+      value = arguments.checkString(1)
+    }
+
+    override def call(context: Context, arguments: Arguments): Array[AnyRef] = {
+      OpenComputers.log.info("TestValue.call(" + arguments.toArray.mkString(", ") + ")")
+      result(arguments.toArray: _*)
+    }
+
+    override def dispose(context: Context): Unit = {
+      super.dispose(context)
+      OpenComputers.log.info("TestValue.dispose()")
+    }
+
+    override def load(nbt: NBTTagCompound): Unit = {
+      super.load(nbt)
+      value = nbt.getString("value")
+    }
+
+    override def save(nbt: NBTTagCompound): Unit = {
+      super.save(nbt)
+      nbt.setString("value", value)
+    }
   }
 
 }

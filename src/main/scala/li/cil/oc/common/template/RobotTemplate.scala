@@ -6,6 +6,7 @@ import li.cil.oc.api
 import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
@@ -27,14 +28,14 @@ object RobotTemplate extends Template {
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
   def assemble(inventory: IInventory) = {
-    val items = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot)
-    val data = new ItemUtils.RobotData()
-    data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
-    data.name = ItemUtils.RobotData.randomName
+    val items = (1 until inventory.getSizeInventory).map(inventory.getStackInSlot)
+    val data = new RobotData()
+    data.tier = caseTier(inventory)
+    data.name = RobotData.randomName
     data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy
-    data.containers = items.slice(1, 4).filter(_ != null).toArray
-    data.components = items.drop(4).filter(_ != null).toArray
+    data.containers = items.take(3).filter(_ != null).toArray
+    data.components = items.drop(3).filter(_ != null).toArray
     val stack = api.Items.get("robot").createItemStack(1)
     data.save(stack)
     val energy = Settings.get.robotBaseCost + complexity(inventory) * Settings.get.robotComplexityCost
@@ -45,7 +46,7 @@ object RobotTemplate extends Template {
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("robot")
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
-    val info = new ItemUtils.RobotData(stack)
+    val info = new RobotData(stack)
     val itemName = ItemUtils.caseNameWithTierSuffix("case", info.tier)
 
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.containers ++ info.components

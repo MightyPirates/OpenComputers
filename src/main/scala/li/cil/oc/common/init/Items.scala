@@ -12,10 +12,13 @@ import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.UpgradeLeash
+import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.Color
-import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -141,8 +144,9 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredDrone() = {
-    val data = new ItemUtils.MicrocontrollerData()
+    val data = new DroneData()
 
+    data.name = "Crecopter"
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferDrone.toInt
     data.components = Array(
@@ -167,7 +171,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredMicrocontroller() = {
-    val data = new ItemUtils.MicrocontrollerData()
+    val data = new MicrocontrollerData()
 
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
@@ -190,7 +194,7 @@ object Items extends ItemAPI {
   }
 
   def createConfiguredRobot() = {
-    val data = new ItemUtils.RobotData()
+    val data = new RobotData()
 
     data.name = "Creatix"
     data.tier = Tier.Four
@@ -224,10 +228,43 @@ object Items extends ItemAPI {
     data.containers = Array(
       get("cardContainer3").createItemStack(1),
       get("upgradeContainer3").createItemStack(1),
-      get("upgradeContainer3").createItemStack(1)
+      get("diskDrive").createItemStack(1)
     )
 
     val stack = get("robot").createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
+  def createConfiguredTablet() = {
+    val data = new TabletData()
+
+    data.tier = Tier.Four
+    data.energy = Settings.get.bufferTablet
+    data.maxEnergy = data.energy
+    data.items = Array(
+      Option(get("screen1").createItemStack(1)),
+      Option(get("keyboard").createItemStack(1)),
+
+      Option(get("signUpgrade").createItemStack(1)),
+      Option(get("pistonUpgrade").createItemStack(1)),
+
+      Option(get("graphicsCard2").createItemStack(1)),
+      Option(get("redstoneCard2").createItemStack(1)),
+      Option(get("wlanCard").createItemStack(1)),
+
+      Option(get("cpu3").createItemStack(1)),
+      Option(get("ram6").createItemStack(1)),
+      Option(get("ram6").createItemStack(1)),
+
+      Option(createLuaBios()),
+      Option(createOpenOS()),
+      Option(get("hdd3").createItemStack(1))
+    )
+    data.container = Option(get("diskDrive").createItemStack(1))
+
+    val stack = get("tablet").createItemStack(1)
     data.save(stack)
 
     stack
@@ -243,12 +280,13 @@ object Items extends ItemAPI {
 
   def init() {
     multi = new item.Delegator() {
-      lazy val configuredItems = Array(
+      def configuredItems = Array(
         createOpenOS(),
         createLuaBios(),
         createConfiguredDrone(),
         createConfiguredMicrocontroller(),
-        createConfiguredRobot()
+        createConfiguredRobot(),
+        createConfiguredTablet()
       )
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
@@ -394,7 +432,7 @@ object Items extends ItemAPI {
     registerItem(new item.DebugCard(multi), "debugCard")
 
     // 1.3.5
-    Recipes.addMultiItem(new item.TabletCase(multi), "tabletCase", "oc:tabletCase")
+    Recipes.addMultiItem(new item.TabletCase(multi, Tier.One), "tabletCase1", "oc:tabletCase1")
     Recipes.addMultiItem(new item.UpgradePiston(multi), "pistonUpgrade", "oc:pistonUpgrade")
     Recipes.addMultiItem(new item.UpgradeTank(multi), "tankUpgrade", "oc:tankUpgrade")
     Recipes.addMultiItem(new item.UpgradeTankController(multi), "tankControllerUpgrade", "oc:tankControllerUpgrade")
@@ -428,5 +466,9 @@ object Items extends ItemAPI {
     // 1.4.4
     registerItem(new item.MicrocontrollerCase(multi, Tier.Four), "microcontrollerCaseCreative")
     registerItem(new item.DroneCase(multi, Tier.Four), "droneCaseCreative")
+
+    // 1.4.7
+    Recipes.addMultiItem(new item.TabletCase(multi, Tier.Two), "tabletCase2", "oc:tabletCase2")
+    registerItem(new item.TabletCase(multi, Tier.Four), "tabletCaseCreative")
   }
 }

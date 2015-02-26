@@ -49,6 +49,8 @@ class Settings(val config: Config) {
   }
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
   val fontRenderer = config.getString("client.fontRenderer")
+  val beepSampleRate = config.getInt("client.beepSampleRate")
+  val beepAmplitude = config.getInt("client.beepVolume") max 0 min Byte.MaxValue
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -56,14 +58,7 @@ class Settings(val config: Config) {
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
   val eepromSize = config.getInt("computer.eepromSize") max 0
-  val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
-    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
-      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
-    case _ =>
-      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
-      Array(192, 256, 384, 512, 768, 1024)
-  }
-  val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
+  val eepromDataSize = config.getInt("computer.eepromDataSize") max 0
   val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Int, tier2: Int, tier3: Int)
@@ -86,12 +81,21 @@ class Settings(val config: Config) {
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
+  val ramSizes = Array(config.getIntList("computer.lua.ramSizes"): _*) match {
+    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
+      Array(192, 256, 384, 512, 768, 1024)
+  }
+  val ramScaleFor64Bit = config.getDouble("computer.lua.ramScaleFor64Bit") max 1
 
   // ----------------------------------------------------------------------- //
   // robot
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")
+  val limitFlightHeight = config.getInt("robot.limitFlightHeight") max 0
   val screwCobwebs = config.getBoolean("robot.notAfraidOfSpiders")
   val swingRange = config.getDouble("robot.swingRange")
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
@@ -207,24 +211,20 @@ class Settings(val config: Config) {
 
   // power.value
   private val valueAppliedEnergistics2 = config.getDouble("power.value.AppliedEnergistics2")
-  private val valueBuildCraft = config.getDouble("power.value.BuildCraft")
   private val valueFactorization = config.getDouble("power.value.Factorization")
   private val valueGalacticraft = config.getDouble("power.value.Galacticraft")
   private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
   private val valueMekanism = config.getDouble("power.value.Mekanism")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
-  private val valueResonantEngine = config.getDouble("power.value.ResonantEngine")
 
-  private val valueInternal = valueBuildCraft
+  private val valueInternal = 1000
 
   val ratioAppliedEnergistics2 = valueAppliedEnergistics2 / valueInternal
-  val ratioBuildCraft = valueBuildCraft / valueInternal
   val ratioFactorization = valueFactorization / valueInternal
   val ratioGalacticraft = valueGalacticraft / valueInternal
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
-  val ratioResonantEngine = valueResonantEngine / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem
@@ -249,7 +249,6 @@ class Settings(val config: Config) {
   val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
   val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
   val httpTimeout = (config.getInt("internet.requestTimeout") max 0) * 1000
-  val httpMaxDownloadSize = config.getInt("internet.requestMaxDownloadSize") max 0
   val maxConnections = config.getInt("internet.maxTcpConnections") max 0
   val internetThreads = config.getInt("internet.threads") max 1
 
@@ -269,6 +268,7 @@ class Settings(val config: Config) {
   val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
+  val maxNetworkPacketParts = config.getInt("misc.maxNetworkPacketParts") max 0
   val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
   val rTreeMaxEntries = 10
@@ -302,6 +302,7 @@ class Settings(val config: Config) {
   // integration.vanilla
   val enableInventoryDriver = config.getBoolean("integration.vanilla.enableInventoryDriver")
   val enableTankDriver = config.getBoolean("integration.vanilla.enableTankDriver")
+  val enableCommandBlockDriver = config.getBoolean("integration.vanilla.enableCommandBlockDriver")
   val allowItemStackNBTTags = config.getBoolean("integration.vanilla.allowItemStackNBTTags")
 
   // ----------------------------------------------------------------------- //
@@ -323,6 +324,7 @@ class Settings(val config: Config) {
   val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
   val enableDebugCard = config.getBoolean("debug.enableDebugCard")
   val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
+  val disableLocaleChanging = config.getBoolean("debug.disableLocaleChanging")
 }
 
 object Settings {
@@ -391,30 +393,18 @@ object Settings {
   }
 
   private val configPatches = Array(
-    // Upgrading to version 1.3, increased lower bounds for default RAM sizes
-    // and reworked the way black- and whitelisting works (IP based).
-    VersionRange.createFromVersionSpec("[0.0,1.3-alpha)") -> Array(
-      "computer.ramSizes",
-      "internet.blacklist",
-      "internet.whitelist"
+    // Upgrading to version 1.4.7, reduce default geolyzer noise.
+    VersionRange.createFromVersionSpec("[0.0, 1.4.7)") -> Array(
+      "misc.geolyzerNoise"
     ),
-    // Upgrading to version 1.3.3, default power consumption of chunk loader
-    // reduced as discussed in #447.
-    VersionRange.createFromVersionSpec("[1.3.0,1.3.3)") -> Array(
-      "power.cost.chunkloaderCost"
-    ),
-    // Upgrading to version 1.3.4+, computer.debug category was moved to top
-    // level debug category for more flexibility and some other settings merged
-    // into that new category.
-    VersionRange.createFromVersionSpec("1.3.3") -> Array(
-      "computer.debug",
-      "misc.alwaysTryNative",
-      "misc.verbosePersistenceErrors"
-    ),
-    // Upgrading to version 1.3.5, added forgotten check for item stack,
-    // inspection, patch to true to avoid stuff suddenly breaking.
-    VersionRange.createFromVersionSpec("1.3.4") -> Array(
-      "misc.allowItemStackInspection"
+    // Upgrading to version 1.4.8, changed power value defaults.
+    VersionRange.createFromVersionSpec("[0.0, 1.4.8)") -> Array(
+      "power.value.AppliedEnergistics2",
+      "power.value.Factorization",
+      "power.value.Galacticraft",
+      "power.value.IndustrialCraft2",
+      "power.value.Mekanism",
+      "power.value.RedstoneFlux"
     )
   )
 
