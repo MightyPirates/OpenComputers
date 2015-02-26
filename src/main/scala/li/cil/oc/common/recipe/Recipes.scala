@@ -130,6 +130,8 @@ object Recipes {
       val floppy = api.Items.get(Constants.ItemName.Floppy)
       val drone = api.Items.get(Constants.ItemName.Drone)
       val eeprom = api.Items.get(Constants.ItemName.EEPROM)
+      val robot = api.Items.get(Constants.BlockName.Robot)
+      val tablet = api.Items.get(Constants.ItemName.Tablet)
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
@@ -159,6 +161,16 @@ object Recipes {
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         eeprom.createItemStack(2),
         eeprom.createItemStack(1), eeprom.createItemStack(1)))
+
+      // Robot recrafting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        robot.createItemStack(1),
+        robot.createItemStack(1), eeprom.createItemStack(1)))
+
+      // Tablet recrafting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        tablet.createItemStack(1),
+        tablet.createItemStack(1), eeprom.createItemStack(1)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

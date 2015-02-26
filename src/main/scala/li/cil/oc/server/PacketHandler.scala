@@ -4,6 +4,7 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.machine.Machine
+import li.cil.oc.common.Achievement
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
@@ -196,10 +197,11 @@ object PacketHandler extends CommonPacketHandler {
 
   def onRobotAssemblerStart(p: PacketParser) =
     p.readTileEntity[Assembler]() match {
-      case Some(assembler) => assembler.start(p.player match {
-        case player: EntityPlayerMP => player.capabilities.isCreativeMode
-        case _ => false
-      })
+      case Some(assembler) =>
+        if (assembler.start(p.player match {
+          case player: EntityPlayerMP => player.capabilities.isCreativeMode
+          case _ => false
+        })) assembler.output.foreach(stack => Achievement.onAssemble(stack, p.player))
       case _ => // Invalid packet.
     }
 

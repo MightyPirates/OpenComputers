@@ -38,7 +38,7 @@ object Loot {
     listStream.close()
     parseLootDisks(list, builtInDisks)
 
-    val loot = new Loot(createLootDisk("openos", "OpenOS"))
+    val loot = new Loot(createLootDisk("openos", "OpenOS", Some("dyeGreen")))
     val containers = Array(
       ChestGenHooks.DUNGEON_CHEST,
       ChestGenHooks.PYRAMID_DESERT_CHEST,

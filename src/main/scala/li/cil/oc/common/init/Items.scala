@@ -20,7 +20,6 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.Item
@@ -121,20 +120,7 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def createOpenOS(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", "openos")
-
-    val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
-    nbt.setString(Settings.namespace + "lootPath", "OpenOS")
-    nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
-
-    val stack = get(Constants.ItemName.Floppy).createItemStack(amount)
-    stack.setTagCompound(nbt)
-
-    stack
-  }
+  def createOpenOS() = Loot.createLootDisk("openos", "OpenOS", Some("dyeGreen"))
 
   def createLuaBios(amount: Int = 1) = {
     val data = new NBTTagCompound()

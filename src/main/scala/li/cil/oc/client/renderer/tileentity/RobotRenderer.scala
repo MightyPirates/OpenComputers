@@ -205,11 +205,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       if (!isRunning) {
         GL11.glTranslatef(0, -2 * gap, 0)
       }
-      GL11.glCallList(displayList)
-      if (!isRunning) {
-        GL11.glTranslatef(0, 2 * gap, 0)
-      }
       GL11.glCallList(displayList + 1)
+      if (!isRunning) {
+        GL11.glTranslatef(0, -2 * gap, 0)
+      }
+      GL11.glCallList(displayList)
       GL11.glColor3f(1, 1, 1)
 
       if (isRunning) {
