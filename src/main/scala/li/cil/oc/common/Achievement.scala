@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import li.cil.oc.Constants
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.init.Items
 import net.minecraft.entity.player.EntityPlayer
@@ -20,7 +21,7 @@ object Achievement {
   val Disassembler = new Achievement("oc.disassembler", "oc.disassembler",
     2, 2, Items.get("disassembler").createItemStack(1), Transistor, "disassembler")
   val Microchip = new Achievement("oc.chip", "oc.chip",
-    4, 0, Items.get("chip1").createItemStack(1), Transistor, "chip1", "chip2", "chip3")
+    4, 0, Items.get(Constants.ItemName.ChipTier1).createItemStack(1), Transistor, Constants.ItemName.ChipTier1, Constants.ItemName.ChipTier2, Constants.ItemName.ChipTier3)
   val Capacitor = new Achievement("oc.capacitor", "oc.capacitor",
     6, -1, Items.get("capacitor").createItemStack(1), Microchip, "capacitor")
   val Assembler = new Achievement("oc.assembler", "oc.assembler",
