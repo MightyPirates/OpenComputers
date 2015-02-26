@@ -73,13 +73,13 @@ object Achievement {
   val Card = new Achievement("oc.card", "oc.card",
     0, -2, Items.get("card").createItemStack(1), null, "card").initIndependentStat()
   val RedstoneCard = new Achievement("oc.redstoneCard", "oc.redstoneCard",
-    -1, -4, Items.get("redstoneCard1").createItemStack(1), Card, "redstoneCard1", "redstoneCard2")
+    -2, -4, Items.get("redstoneCard1").createItemStack(1), Card, "redstoneCard1", "redstoneCard2")
   val GraphicsCard = new Achievement("oc.graphicsCard", "oc.graphicsCard",
-    0, -4, Items.get("graphicsCard1").createItemStack(1), Card, "graphicsCard1", "graphicsCard2", "graphicsCard3")
+    0, -5, Items.get("graphicsCard1").createItemStack(1), Card, "graphicsCard1", "graphicsCard2", "graphicsCard3")
   val NetworkCard = new Achievement("oc.networkCard", "oc.networkCard",
-    1, -4, Items.get("lanCard").createItemStack(1), Card, "lanCard")
+    2, -4, Items.get("lanCard").createItemStack(1), Card, "lanCard")
   val WirelessNetworkCard = new Achievement("oc.wirelessNetworkCard", "oc.wirelessNetworkCard",
-    1, -6, Items.get("wlanCard").createItemStack(1), NetworkCard, "wlanCard")
+    2, -6, Items.get("wlanCard").createItemStack(1), NetworkCard, "wlanCard")
 
   val Cable = new Achievement("oc.cable", "oc.cable",
     -2, 0, Items.get("cable").createItemStack(1), null, "cable").initIndependentStat()
