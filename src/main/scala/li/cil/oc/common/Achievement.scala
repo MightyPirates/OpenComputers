@@ -16,7 +16,7 @@ object Achievement {
   val CraftingMap = mutable.Map.empty[ItemInfo, MCAchievement]
 
   val Transistor = new Achievement("oc.transistor", "oc.transistor",
-    2, 0, Items.get("transistor").createItemStack(1), null, "transistor").initIndependentStat()
+    2, 0, Items.get("transistor").createItemStack(1), null, "transistor").setIndependent()
   val Disassembler = new Achievement("oc.disassembler", "oc.disassembler",
     2, 2, Items.get("disassembler").createItemStack(1), Transistor, "disassembler")
   val Microchip = new Achievement("oc.chip", "oc.chip",
@@ -71,7 +71,7 @@ object Achievement {
     8, 10, Items.get("raid").createItemStack(1), DiskDrive, "raid")
 
   val Card = new Achievement("oc.card", "oc.card",
-    0, -2, Items.get("card").createItemStack(1), null, "card").initIndependentStat()
+    0, -2, Items.get("card").createItemStack(1), null, "card").setIndependent()
   val RedstoneCard = new Achievement("oc.redstoneCard", "oc.redstoneCard",
     -2, -4, Items.get("redstoneCard1").createItemStack(1), Card, "redstoneCard1", "redstoneCard2")
   val GraphicsCard = new Achievement("oc.graphicsCard", "oc.graphicsCard",
@@ -82,7 +82,7 @@ object Achievement {
     2, -6, Items.get("wlanCard").createItemStack(1), NetworkCard, "wlanCard")
 
   val Cable = new Achievement("oc.cable", "oc.cable",
-    -2, 0, Items.get("cable").createItemStack(1), null, "cable").initIndependentStat()
+    -2, 0, Items.get("cable").createItemStack(1), null, "cable").setIndependent()
   val PowerDistributor = new Achievement("oc.powerDistributor", "oc.powerDistributor",
     -4, -1, Items.get("powerDistributor").createItemStack(1), Cable, "powerDistributor")
   val Switch = new Achievement("oc.switch", "oc.switch",
@@ -122,5 +122,10 @@ class Achievement(name: String, description: String, x: Int, y: Int, stack: Item
     if (descriptor != null) {
       Achievement.CraftingMap += descriptor -> this
     }
+  }
+
+  def setIndependent() = {
+    this.asInstanceOf[StatBase].initIndependentStat()
+    this
   }
 }
