@@ -83,6 +83,7 @@ class Proxy {
 
     Loot.init()
     Recipes.init()
+    Achievement.init()
 
     EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 

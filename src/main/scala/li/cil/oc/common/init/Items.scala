@@ -20,7 +20,6 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.Item
@@ -121,20 +120,7 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def createOpenOS(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", "openos")
-
-    val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
-    nbt.setString(Settings.namespace + "lootPath", "OpenOS")
-    nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
-
-    val stack = get(Constants.ItemName.Floppy).createItemStack(amount)
-    stack.setTagCompound(nbt)
-
-    stack
-  }
+  def createOpenOS() = Loot.createLootDisk("openos", "OpenOS", Some("dyeGreen"))
 
   def createLuaBios(amount: Int = 1) = {
     val data = new NBTTagCompound()
@@ -304,9 +290,9 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.PrintedCircuitBoard(materials), Constants.ItemName.PrintedCircuitBoard, "oc:materialCircuitBoardPrinted")
     Recipes.addSubItem(new item.CardBase(materials), Constants.ItemName.Card, "oc:materialCard")
     Recipes.addSubItem(new item.Transistor(materials), Constants.ItemName.Transistor, "oc:materialTransistor")
-    Recipes.addSubItem(new item.Microchip(materials, Tier.One), Constants.ItemName.Chip1, "oc:circuitChip1")
-    Recipes.addSubItem(new item.Microchip(materials, Tier.Two), Constants.ItemName.Chip2, "oc:circuitChip2")
-    Recipes.addSubItem(new item.Microchip(materials, Tier.Three), Constants.ItemName.Chip3, "oc:circuitChip3")
+    Recipes.addSubItem(new item.Microchip(materials, Tier.One), Constants.ItemName.ChipTier1, "oc:circuitChip1")
+    Recipes.addSubItem(new item.Microchip(materials, Tier.Two), Constants.ItemName.ChipTier2, "oc:circuitChip2")
+    Recipes.addSubItem(new item.Microchip(materials, Tier.Three), Constants.ItemName.ChipTier3, "oc:circuitChip3")
     Recipes.addSubItem(new item.ALU(materials), Constants.ItemName.Alu, "oc:materialALU")
     Recipes.addSubItem(new item.ControlUnit(materials), Constants.ItemName.ControlUnit, "oc:materialCU")
     Recipes.addSubItem(new item.Disk(materials), Constants.ItemName.Disk, "oc:materialDisk")

@@ -15,6 +15,8 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
 import net.minecraft.client.audio.SoundManager
 import net.minecraft.client.audio.SoundPoolEntry
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.sound.SoundLoadEvent
@@ -52,7 +54,9 @@ object Sound {
   def soundSystem: SoundSystem = ReflectionHelper.getPrivateValue(classOf[SoundManager], manager, "sndSystem", "field_148620_e", "e")
 
   private def updateVolume() {
-    val volume = FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
+    val volume =
+      if (isGamePaused) 0f
+      else FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
     if (volume != lastVolume) {
       lastVolume = volume
       sources.synchronized {
@@ -62,6 +66,11 @@ object Sound {
       }
     }
   }
+
+  private def isGamePaused = MinecraftServer.getServer != null && !MinecraftServer.getServer.isDedicatedServer && (MinecraftServer.getServer match {
+    case integrated: IntegratedServer => Minecraft.getMinecraft.isGamePaused
+    case _ => false
+  })
 
   private def processQueue() {
     if (commandQueue.nonEmpty) {

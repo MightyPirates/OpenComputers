@@ -249,7 +249,6 @@ class Settings(val config: Config) {
   val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
   val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
   val httpTimeout = (config.getInt("internet.requestTimeout") max 0) * 1000
-  val httpMaxDownloadSize = config.getInt("internet.requestMaxDownloadSize") max 0
   val maxConnections = config.getInt("internet.maxTcpConnections") max 0
   val internetThreads = config.getInt("internet.threads") max 1
 

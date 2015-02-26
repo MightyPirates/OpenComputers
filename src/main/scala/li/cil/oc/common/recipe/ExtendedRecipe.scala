@@ -8,6 +8,8 @@ import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.RobotData
+import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.SideTracker
@@ -27,6 +29,8 @@ object ExtendedRecipe {
   private lazy val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
   private lazy val linkedCard = api.Items.get(Constants.ItemName.LinkedCard)
   private lazy val floppy = api.Items.get(Constants.ItemName.Floppy)
+  private lazy val robot = api.Items.get(Constants.BlockName.Robot)
+  private lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
   private lazy val disabled = {
     val stack = new ItemStack(Blocks.dirt)
     val tag = new NBTTagCompound()
@@ -87,18 +91,20 @@ object ExtendedRecipe {
       }
     }
 
-    recraftMCU(craftedStack, inventory, mcu)
-    recraftMCU(craftedStack, inventory, drone)
+    recraft(craftedStack, inventory, mcu, stack => new MCUDataWrapper(stack))
+    recraft(craftedStack, inventory, drone, stack => new MCUDataWrapper(stack))
+    recraft(craftedStack, inventory, robot, stack => new RobotDataWrapper(stack))
+    recraft(craftedStack, inventory, tablet, stack => new TabletDataWrapper(stack))
 
     craftedStack
   }
 
-  private def recraftMCU(craftedStack: ItemStack, inventory: InventoryCrafting, descriptor: ItemInfo) {
+  private def recraft(craftedStack: ItemStack, inventory: InventoryCrafting, descriptor: ItemInfo, dataFactory: (ItemStack) => ItemDataWrapper) {
     if (api.Items.get(craftedStack) == descriptor) {
       // Find old Microcontroller.
       (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).find(api.Items.get(_) == descriptor) match {
         case Some(oldMcu) =>
-          val data = new MicrocontrollerData(oldMcu)
+          val data = dataFactory(oldMcu)
 
           // Remove old EEPROM.
           val oldRom = data.components.filter(api.Items.get(_) == eeprom)
@@ -119,4 +125,44 @@ object ExtendedRecipe {
   }
 
   private def weAreBeingCalledFromAppliedEnergistics2 = Mods.AppliedEnergistics2.isAvailable && new Exception().getStackTrace.exists(_.getClassName == "appeng.container.implementations.ContainerPatternTerm")
+
+  private trait ItemDataWrapper {
+    def components: Array[ItemStack]
+
+    def components_=(value: Array[ItemStack]): Unit
+
+    def save(stack: ItemStack): Unit
+  }
+
+  private class MCUDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
+    val data = new MicrocontrollerData(stack)
+
+    override def components = data.components
+
+    override def components_=(value: Array[ItemStack]) = data.components = value
+
+    override def save(stack: ItemStack) = data.save(stack)
+  }
+
+  private class RobotDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
+    val data = new RobotData(stack)
+
+    override def components = data.components
+
+    override def components_=(value: Array[ItemStack]) = data.components = value
+
+    override def save(stack: ItemStack) = data.save(stack)
+  }
+
+  private class TabletDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
+    val data = new TabletData(stack)
+
+    var components = data.items.collect { case Some(item) => item}
+
+    override def save(stack: ItemStack) = {
+      data.items = components.map(stack => Option(stack))
+      data.save(stack)
+    }
+  }
+
 }
