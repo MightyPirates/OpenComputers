@@ -121,7 +121,7 @@ object EventHandler {
     val invalid = mutable.ArrayBuffer.empty[Robot]
     runningRobots.foreach(robot => {
       if (robot.isInvalid) invalid += robot
-      else robot.machine.update()
+      else if (robot.world != null) robot.machine.update()
     })
     runningRobots --= invalid
   }
