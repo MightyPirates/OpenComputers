@@ -195,11 +195,13 @@ object SaveHandler {
 
   @SubscribeEvent(priority = EventPriority.HIGHEST)
   def onWorldLoad(e: WorldEvent.Load) {
-    // Touch all externally saved data when loading, to avoid it getting
-    // deleted in the next save (because the now - save time will usually
-    // be larger than the time out after loading a world again).
-    if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
-    else visitJava16()
+    if (!e.world.isRemote) {
+      // Touch all externally saved data when loading, to avoid it getting
+      // deleted in the next save (because the now - save time will usually
+      // be larger than the time out after loading a world again).
+      if (SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7)) SaveHandlerJava17Functionality.visitJava17(statePath)
+      else visitJava16()
+    }
   }
 
   private def visitJava16() {
