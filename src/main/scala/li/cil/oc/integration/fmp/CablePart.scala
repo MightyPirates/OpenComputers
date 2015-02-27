@@ -33,7 +33,7 @@ import scala.collection.convert.WrapAsScala._
 class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlockPart with TCuboidPart with TNormalOcclusion with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
 
-  private var _color = 0
+  private var _color = Color.LightGray
 
   original.foreach(cable => _color = cable.color)
 
