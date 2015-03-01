@@ -42,7 +42,7 @@ trait Buffered extends OutputStreamFileSystem {
       for (child <- directory.listFiles() if isValidFilename(child.getName)) {
         val childPath = path + child.getName
         val childFile = new io.File(directory, child.getName)
-        if (child.isDirectory) {
+        if (child.exists() && child.isDirectory && child.list() != null) {
           recurse(childPath + "/", childFile)
         }
         else if (!exists(childPath) || !isDirectory(childPath)) {
