@@ -101,24 +101,27 @@ object ItemCosts {
               }
               else {
                 val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
-                val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && fuzzyEquals(stack, recipe.getRecipeOutput))
-                val (ingredients, output) = recipe match {
-                  case Some(recipe: ShapedRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                  case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                  case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                  case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                  case _ => FurnaceRecipes.instance.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
-                    case (_, value) => fuzzyEquals(stack, value)
-                  } match {
-                    case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)
-                    case _ => (Iterable((stack, 1.0)), 1)
+                if (recipes == null) Iterable((stack, 1.0))
+                else {
+                  val recipe = recipes.filter(_ != null).find(recipe => recipe.getRecipeOutput != null && fuzzyEquals(stack, recipe.getRecipeOutput))
+                  val (ingredients, output) = recipe match {
+                    case Some(recipe: ShapedRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                    case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                    case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                    case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
+                    case _ => FurnaceRecipes.instance.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
+                      case (_, value) => fuzzyEquals(stack, value)
+                    } match {
+                      case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)
+                      case _ => (Iterable((stack, 1.0)), 1)
+                    }
                   }
+                  val scaled = deflate(ingredients.map {
+                    case (ingredient, count) => (ingredient.copy(), count / output)
+                  }).toArray.sortBy(_._1.getUnlocalizedName)
+                  cache += new ItemStackWrapper(stack.copy()) -> scaled
+                  scaled
                 }
-                val scaled = deflate(ingredients.map {
-                  case (ingredient, count) => (ingredient.copy(), count / output)
-                }).toArray.sortBy(_._1.getUnlocalizedName)
-                cache += new ItemStackWrapper(stack.copy()) -> scaled
-                scaled
               }
           }
         case list: java.util.List[ItemStack]@unchecked if !list.isEmpty =>
