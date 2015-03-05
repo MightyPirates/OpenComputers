@@ -1,21 +1,14 @@
 package li.cil.oc.server.component
 
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.mutable
 
@@ -35,21 +28,6 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
-  @SubscribeEvent
-  def onPlayerRespawn(e: PlayerRespawnEvent) {
-    releasePressedKeys(e.player)
-  }
-
-  @SubscribeEvent
-  def onPlayerChangedDimension(e: PlayerChangedDimensionEvent) {
-    releasePressedKeys(e.player)
-  }
-
-  @SubscribeEvent
-  def onPlayerLogout(e: PlayerLoggedOutEvent) {
-    releasePressedKeys(e.player)
-  }
-
   def releasePressedKeys(player: EntityPlayer) {
     pressedKeys.get(player) match {
       case Some(keys) => for ((code, char) <- keys) {
@@ -65,28 +43,7 @@ class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with
     pressedKeys.remove(player)
   }
 
-  @SubscribeEvent
-  def onWorldUnload(e: WorldEvent.Unload) {
-    try FMLCommonHandler.instance.bus.unregister(this) catch {
-      case ignore: Throwable =>
-    }
-  }
-
   // ----------------------------------------------------------------------- //
-
-  override def onConnect(node: Node) {
-    if (node == this.node) {
-      FMLCommonHandler.instance.bus.register(this)
-    }
-  }
-
-  override def onDisconnect(node: Node) {
-    if (node == this.node) {
-      try FMLCommonHandler.instance.bus.unregister(this) catch {
-        case ignore: Throwable =>
-      }
-    }
-  }
 
   override def onMessage(message: Message) = {
     message.data match {
