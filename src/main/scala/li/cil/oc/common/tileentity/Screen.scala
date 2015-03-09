@@ -7,6 +7,7 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.Color
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -61,7 +62,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   override def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
 
   // Allow connections from front for keyboards, and keyboards only...
-  override def sidedNode(side: ForgeDirection) = if (toLocal(side) != ForgeDirection.SOUTH || world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ).isInstanceOf[Keyboard]) node else null
+  override def sidedNode(side: ForgeDirection) = if (toLocal(side) != ForgeDirection.SOUTH || (world.blockExists(position.offset(side)) && world.getTileEntity(position.offset(side)).isInstanceOf[Keyboard])) node else null
 
   // ----------------------------------------------------------------------- //
 
