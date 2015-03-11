@@ -45,6 +45,9 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     super.isOutputEnabled_=(value)
   }
 
+  def bundledInput(side: ForgeDirection) =
+    (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
+
   def bundledInput(side: ForgeDirection, color: Int) =
     math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
 
