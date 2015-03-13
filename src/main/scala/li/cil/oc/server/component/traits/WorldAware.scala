@@ -1,5 +1,6 @@
 package li.cil.oc.server.component.traits
 
+import cpw.mods.fml.common.eventhandler.Event.Result
 import li.cil.oc.Settings
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedBlock._
@@ -13,6 +14,8 @@ import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.event.ForgeEventFactory
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 
@@ -31,6 +34,11 @@ trait WorldAware {
     player.posY = position.y + 0.5
     player.posZ = position.z + 0.5
     player
+  }
+
+  def mayInteract(blockPos: BlockPosition, face: ForgeDirection): Boolean = {
+    val event = ForgeEventFactory.onPlayerInteract(fakePlayer, Action.RIGHT_CLICK_BLOCK, blockPos.x, blockPos.y, blockPos.z, face.ordinal(), world)
+    !event.isCanceled && event.useBlock != Result.DENY
   }
 
   def entitiesInBounds[Type <: Entity : ClassTag](bounds: AxisAlignedBB) = {

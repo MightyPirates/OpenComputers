@@ -102,13 +102,13 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     memory > 0
   }
 
-  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => Option(api.Driver.driverFor(stack)) match {
+  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
     case Some(driver: Memory) =>
       val sizes = Settings.get.ramSizes
       val tier = math.round(driver.amount(stack)).toInt - 1
       sizes(tier max 0 min (sizes.length - 1)) * 1024
     case _ => 0
-  })
+  }))
 
   // ----------------------------------------------------------------------- //
 

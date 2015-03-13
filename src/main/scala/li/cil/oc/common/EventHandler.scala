@@ -21,6 +21,7 @@ import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
+import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util._
 import net.minecraft.client.Minecraft
@@ -34,6 +35,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.WorldEvent
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -45,9 +47,13 @@ object EventHandler {
 
   private val runningRobots = mutable.Set.empty[Robot]
 
+  private val keyboards = java.util.Collections.newSetFromMap[Keyboard](new java.util.WeakHashMap[Keyboard, java.lang.Boolean])
+
   def onRobotStart(robot: Robot): Unit = runningRobots += robot
 
   def onRobotStopped(robot: Robot): Unit = runningRobots -= robot
+
+  def addKeyboard(keyboard: Keyboard): Unit = keyboards += keyboard
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -184,6 +190,21 @@ object EventHandler {
         }
       case _ =>
     }
+  }
+
+  @SubscribeEvent
+  def onPlayerRespawn(e: PlayerRespawnEvent) {
+    keyboards.foreach(_.releasePressedKeys(e.player))
+  }
+
+  @SubscribeEvent
+  def onPlayerChangedDimension(e: PlayerChangedDimensionEvent) {
+    keyboards.foreach(_.releasePressedKeys(e.player))
+  }
+
+  @SubscribeEvent
+  def onPlayerLogout(e: PlayerLoggedOutEvent) {
+    keyboards.foreach(_.releasePressedKeys(e.player))
   }
 
   lazy val drone = api.Items.get("drone")

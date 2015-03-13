@@ -168,7 +168,7 @@ object SaveHandler {
     val chunk = e.getChunk.getChunkCoordIntPair
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
-    if (chunkPath.exists && chunkPath.isDirectory) {
+    if (chunkPath.exists && chunkPath.isDirectory && chunkPath.list() != null) {
       for (file <- chunkPath.listFiles() if System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves) file.delete()
     }
     saveData.get(dimension) match {
@@ -207,7 +207,7 @@ object SaveHandler {
     // But that's really not something I'm bothered by, it's a fallback.
     def recurse(file: File) {
       file.setLastModified(System.currentTimeMillis())
-      if (file.isDirectory) file.listFiles().foreach(recurse)
+      if (file.exists() && file.isDirectory && file.list() != null) file.listFiles().foreach(recurse)
     }
     recurse(statePath)
   }

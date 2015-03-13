@@ -11,10 +11,10 @@ object AngelUpgradeHandler {
   @SubscribeEvent
   def onPlaceInAir(e: RobotPlaceInAirEvent) {
     val machineNode = e.agent.machine.node
-    machineNode.reachableNodes.exists {
+    e.setAllowed(machineNode.reachableNodes.exists {
       case component: Component if component.canBeSeenFrom(machineNode) =>
         component.host.isInstanceOf[UpgradeAngel]
       case _ => false
-    }
+    })
   }
 }

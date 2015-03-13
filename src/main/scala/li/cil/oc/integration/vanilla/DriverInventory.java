@@ -1,5 +1,6 @@
 package li.cil.oc.integration.vanilla;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import li.cil.oc.Settings;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -7,14 +8,16 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import li.cil.oc.util.BlockPosition;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 public final class DriverInventory extends DriverTileEntity {
     @Override
@@ -29,12 +32,12 @@ public final class DriverInventory extends DriverTileEntity {
 
     public static final class Environment extends ManagedTileEntityEnvironment<IInventory> {
         private final EntityPlayer fakePlayer;
-        private final Vec3 position;
+        private final BlockPosition position;
 
         public Environment(final TileEntity tileEntity, final World world) {
             super((IInventory) tileEntity, "inventory");
             fakePlayer = FakePlayerFactory.get((WorldServer) world, Settings.get().fakePlayerProfile());
-            position = Vec3.createVectorHelper(tileEntity.xCoord + 0.5, tileEntity.yCoord + 0.5, tileEntity.zCoord + 0.5);
+            position = BlockPosition.apply(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, world);
         }
 
         @Callback(doc = "function():string -- Get the name of this inventory.")
@@ -172,8 +175,9 @@ public final class DriverInventory extends DriverTileEntity {
 
         private boolean notPermitted() {
             synchronized (fakePlayer) {
-                fakePlayer.setPosition(position.xCoord, position.yCoord, position.zCoord);
-                return !tileEntity.isUseableByPlayer(fakePlayer);
+                fakePlayer.setPosition(position.toVec3().xCoord, position.toVec3().yCoord, position.toVec3().zCoord);
+                final PlayerInteractEvent event = ForgeEventFactory.onPlayerInteract(fakePlayer, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK, position.x(), position.y(), position.z(), 0, fakePlayer.getEntityWorld());
+                return !event.isCanceled() && event.useBlock != Event.Result.DENY && !tileEntity.isUseableByPlayer(fakePlayer);
             }
         }
     }
