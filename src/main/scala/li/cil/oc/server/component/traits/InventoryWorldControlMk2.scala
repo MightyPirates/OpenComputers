@@ -56,7 +56,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
 
   private def withInventory(side: EnumFacing, f: IInventory => Array[AnyRef]) =
     InventoryUtils.inventoryAt(position.offset(side)) match {
-      case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) => f(inventory)
+      case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) && mayInteract(position.offset(side), side.getOpposite) => f(inventory)
       case _ => result(Unit, "no inventory")
     }
 }
