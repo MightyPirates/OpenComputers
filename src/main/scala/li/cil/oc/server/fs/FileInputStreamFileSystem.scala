@@ -3,7 +3,7 @@ package li.cil.oc.server.fs
 import java.io
 
 trait FileInputStreamFileSystem extends InputStreamFileSystem {
-  protected val root: io.File
+  protected def root: io.File
 
   // ----------------------------------------------------------------------- //
 
@@ -36,7 +36,7 @@ trait FileInputStreamFileSystem extends InputStreamFileSystem {
 
   override def list(path: String) = new io.File(root, path) match {
     case file if file.exists() && file.isFile => Array(file.getName)
-    case directory if directory.exists() && directory.isDirectory =>
+    case directory if directory.exists() && directory.isDirectory && directory.list() != null =>
       directory.listFiles().map(file => if (file.isDirectory) file.getName + "/" else file.getName)
     case _ => throw new io.FileNotFoundException("no such file or directory")
   }

@@ -7,15 +7,19 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import li.cil.oc.util.BlockPosition;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 public final class DriverInventory extends DriverTileEntity {
     @Override
@@ -30,12 +34,12 @@ public final class DriverInventory extends DriverTileEntity {
 
     public static final class Environment extends ManagedTileEntityEnvironment<IInventory> {
         private final EntityPlayer fakePlayer;
-        private final Vec3 position;
+        private final BlockPosition position;
 
         public Environment(final TileEntity tileEntity, final World world) {
             super((IInventory) tileEntity, "inventory");
             fakePlayer = FakePlayerFactory.get((WorldServer) world, Settings.get().fakePlayerProfile());
-            position = new Vec3(tileEntity.getPos().getX() + 0.5, tileEntity.getPos().getY() + 0.5, tileEntity.getPos().getZ() + 0.5);
+            position = BlockPosition.apply(tileEntity.getPos(), world);
         }
 
         @Callback(doc = "function():string -- Get the name of this inventory.")
@@ -173,8 +177,9 @@ public final class DriverInventory extends DriverTileEntity {
 
         private boolean notPermitted() {
             synchronized (fakePlayer) {
-                fakePlayer.setPosition(position.xCoord, position.yCoord, position.zCoord);
-                return !tileEntity.isUseableByPlayer(fakePlayer);
+                fakePlayer.setPosition(position.toVec3().xCoord, position.toVec3().yCoord, position.toVec3().zCoord);
+                final PlayerInteractEvent event = ForgeEventFactory.onPlayerInteract(fakePlayer, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK, fakePlayer.getEntityWorld(), position.toBlockPos(), EnumFacing.DOWN);
+                return !event.isCanceled() && event.useBlock != Event.Result.DENY && !tileEntity.isUseableByPlayer(fakePlayer);
             }
         }
     }

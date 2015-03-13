@@ -13,8 +13,11 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayerFactory
+import net.minecraftforge.event.ForgeEventFactory
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fml.common.eventhandler.Event.Result
 
 import scala.collection.convert.WrapAsScala._
 import scala.reflect.ClassTag
@@ -31,6 +34,11 @@ trait WorldAware {
     player.posY = position.y + 0.5
     player.posZ = position.z + 0.5
     player
+  }
+
+  def mayInteract(blockPos: BlockPosition, face: EnumFacing): Boolean = {
+    val event = ForgeEventFactory.onPlayerInteract(fakePlayer, Action.RIGHT_CLICK_BLOCK, world, blockPos.toBlockPos, face)
+    !event.isCanceled && event.useBlock != Result.DENY
   }
 
   def entitiesInBounds[Type <: Entity : ClassTag](bounds: AxisAlignedBB) = {
