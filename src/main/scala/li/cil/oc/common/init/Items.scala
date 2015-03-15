@@ -127,7 +127,7 @@ object Items extends ItemAPI {
     val code = new Array[Byte](4 * 1024)
     val count = OpenComputers.getClass.getResourceAsStream(Settings.scriptPath + "bios.lua").read(code)
     data.setByteArray(Settings.namespace + "eeprom", code.take(count))
-    data.setString(Settings.namespace + "label", "Lua BIOS")
+    data.setString(Settings.namespace + "label", "EEPROM (Lua BIOS)")
 
     val nbt = new NBTTagCompound()
     nbt.setTag(Settings.namespace + "data", data)
