@@ -24,6 +24,7 @@ do
     boot_invoke(gpu, "bind", screen)
   end
 end
+
 local function tryLoadFrom(address)
   local handle, reason = boot_invoke(address, "open", "/init.lua")
   if not handle then
@@ -40,10 +41,14 @@ local function tryLoadFrom(address)
   boot_invoke(address, "close", handle)
   return load(buffer, "=init")
 end
+
 local init, reason
+
 if computer.getBootAddress() then
   init, reason = tryLoadFrom(computer.getBootAddress())
 end
+
+
 if not init then
   computer.setBootAddress()
   for address in component.list("filesystem") do
@@ -54,8 +59,10 @@ if not init then
     end
   end
 end
+
 if not init then
   error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
 end
+
 computer.beep(1000, 0.2)
 init()
