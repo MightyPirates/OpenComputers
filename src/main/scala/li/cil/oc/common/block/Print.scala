@@ -1,6 +1,9 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import li.cil.oc.Settings
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedAABB
 import net.minecraft.entity.EntityLivingBase
@@ -11,6 +14,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.collection.convert.WrapAsJava._
 import scala.reflect.ClassTag
 
 class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends SimpleBlock with traits.SpecialBlock with traits.CustomDrops[tileentity.Print] {
@@ -18,6 +22,12 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   //  setCreativeTab(null)
   //  NEI.hide(this)
   setBlockTextureName(Settings.resourceDomain + "GenericTop")
+
+  override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
+    super.tooltipBody(metadata, stack, player, tooltip, advanced)
+    val data = new PrintData(stack)
+    data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
+  }
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 

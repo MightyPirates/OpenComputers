@@ -139,6 +139,7 @@ class Settings(val config: Config) {
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
   val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
+  val printerTickAmount = config.getDouble("power.printerTickAmount") max 1
   val powerModBlacklist = config.getStringList("power.modBlacklist")
 
   // power.buffer

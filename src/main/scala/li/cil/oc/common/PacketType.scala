@@ -20,6 +20,7 @@ object PacketType extends Enumeration {
   HologramTranslation,
   PetVisibility, // Goes both ways.
   PowerState,
+  PrinterState,
   RaidStateChange,
   RedstoneState,
   RobotAnimateSwing,

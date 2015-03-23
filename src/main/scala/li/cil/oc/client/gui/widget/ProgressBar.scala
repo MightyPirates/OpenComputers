@@ -16,8 +16,8 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
   def draw() {
     if (level > 0) {
       val u0 = 0
-      val u1 = width / 256.0 * level
-      val v0 = 1 - height / 256.0
+      val u1 = level
+      val v0 = 0
       val v1 = 1
       val tx = owner.windowX + x
       val ty = owner.windowY + y

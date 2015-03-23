@@ -226,6 +226,15 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendPrinting(t: tileentity.Printer, printing: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.PrinterState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(printing)
+
+    pb.sendToPlayersNearHost(t)
+  }
+
   def sendRaidChange(t: tileentity.Raid) {
     val pb = new SimplePacketBuilder(PacketType.RaidStateChange)
 

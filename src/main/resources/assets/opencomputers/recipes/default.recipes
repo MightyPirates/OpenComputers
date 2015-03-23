@@ -318,6 +318,21 @@ disk {
           [nuggetIron, "", nuggetIron]
           ["", nuggetIron, ""]]
 }
+plastic {
+  input: [[gravel, gravel, gravel],
+          [gravel, {item=coal, subID=1}, gravel],
+          [gravel, water_bucket, gravel]]
+  output: 8
+}
+inkCartridgeEmpty {
+  input: [[nuggetIron, dispenser, nuggetIron],
+          ["oc:materialTransistor", bucket, "oc:materialTransistor"],
+          [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
+inkCartridge {
+  type: shapeless
+  input: [dyeCyan, dyeMagenta, dyeYellow, dyeBlack, "oc:inkCartridgeEmpty"]
+}
 
 buttonGroup {
   input: [[button, button, button]

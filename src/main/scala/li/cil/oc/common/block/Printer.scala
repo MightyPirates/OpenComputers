@@ -9,7 +9,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class Printer extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Printer extends SimpleBlock with traits.SpecialBlock with traits.StateAware with traits.GUI {
   override protected def customTextures = Array(
     None,
     Some("AssemblerTop"),
@@ -31,8 +31,6 @@ class Printer extends SimpleBlock with traits.SpecialBlock with traits.PowerAcce
   override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.DOWN
 
   // ----------------------------------------------------------------------- //
-
-  override def energyThroughput = Settings.get.assemblerRate
 
   override def guiType = GuiType.Printer
 

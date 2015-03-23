@@ -52,6 +52,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
+      case PacketType.PrinterState => onPrinterState(p)
       case PacketType.RaidStateChange => onRaidStateChange(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
@@ -239,6 +240,14 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.globalBuffer = p.readDouble()
         t.globalBufferSize = p.readDouble()
+      case _ => // Invalid packet.
+    }
+
+  def onPrinterState(p: PacketParser) =
+    p.readTileEntity[Printer]() match {
+      case Some(t) =>
+        if (p.readBoolean()) t.requiredEnergy = 9001
+        else t.requiredEnergy = 0
       case _ => // Invalid packet.
     }
 

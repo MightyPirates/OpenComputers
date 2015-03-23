@@ -11,6 +11,7 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
@@ -19,17 +20,25 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.util.ForgeDirection
 
-class Printer extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware {
+class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
     create()
+
+  val maxAmountPlastic = 256000
+  var amountPlastic = 0
+  val maxAmountInk = 100000
+  var amountInk = 0
 
   var data = new PrintData()
   var isActive = false
   var output: Option[ItemStack] = None
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
+
+  val plasticPerItem = 2000
+  val inkPerCartridge = 50000
 
   val slotPlastic = 0
   val slotInk = 1
@@ -42,27 +51,22 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
 
   override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
 
-  @SideOnly(Side.CLIENT)
-  override protected def hasConnector(side: ForgeDirection) = canConnect(side)
-
-  override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
-
-  override protected def energyThroughput = Settings.get.assemblerRate
-
   override def currentState = {
-    if (isAssembling) util.EnumSet.of(traits.State.IsWorking)
-    else if (canAssemble) util.EnumSet.of(traits.State.CanWork)
+    if (isPrinting) util.EnumSet.of(traits.State.IsWorking)
+    else if (canPrint) util.EnumSet.of(traits.State.CanWork)
     else util.EnumSet.noneOf(classOf[traits.State])
   }
 
   // ----------------------------------------------------------------------- //
 
-  def canAssemble = {
+  def canPrint = {
     val complexity = data.stateOff.size + data.stateOn.size
     complexity > 0 && complexity <= Settings.get.maxPrintComplexity
   }
 
-  def isAssembling = requiredEnergy > 0
+  def isPrinting = (requiredEnergy > 0 || isActive) && Option(getStackInSlot(slotOutput)).fold(true)(stack => {
+    stack.stackSize < stack.getMaxStackSize && output.fold(true)(ItemStack.areItemStackTagsEqual(stack, _))
+  })
 
   def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
@@ -79,7 +83,7 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
 
   @Callback(doc = """function(value:string) -- Set a label for the block being printed.""")
   def setLabel(context: Context, args: Arguments): Array[Object] = {
-    data.label = Option(args.optString(0, null))
+    data.label = Option(args.optString(0, null)).map(_.take(16))
     isActive = false // Needs committing.
     null
   }
@@ -91,7 +95,7 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
 
   @Callback(doc = """function(value:string) -- Set a tooltip for the block being printed.""")
   def setTooltip(context: Context, args: Arguments): Array[Object] = {
-    data.tooltip = Option(args.optString(0, null))
+    data.tooltip = Option(args.optString(0, null)).map(_.take(128))
     isActive = false // Needs committing.
     null
   }
@@ -140,7 +144,7 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
 
   @Callback(doc = """function():boolean -- Commit and begin printing the current configuration.""")
   def commit(context: Context, args: Arguments): Array[Object] = {
-    if (!canAssemble) {
+    if (!canPrint) {
       return result(null, "model invalid")
     }
     isActive = true
@@ -149,8 +153,8 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
 
   @Callback(doc = """function(): string, number or boolean -- The current state of the printer, `busy' or `idle', followed by the progress or model validity, respectively.""")
   def status(context: Context, args: Arguments): Array[Object] = {
-    if (isAssembling) result("busy", progress)
-    else if (canAssemble) result("idle", true)
+    if (isPrinting) result("busy", progress)
+    else if (canPrint) result("idle", true)
     else result("idle", false)
   }
 
@@ -163,47 +167,74 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
   override def updateEntity() {
     super.updateEntity()
 
-    if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
-      if (isActive && output.isEmpty) {
-        val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
-        val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
-        val totalShapes = data.stateOn.size + data.stateOff.size
-        // TODO Consume plastic (totalVolume) and ink (totalSurface).
+    if (isActive && output.isEmpty) {
+      val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
+      val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
+      val totalShapes = data.stateOn.size + data.stateOff.size
+
+      if (totalVolume == 0) {
+        isActive = false
+      }
+      else {
+        val plasticRequired = totalVolume
+        val inkRequired = (totalSurface / 6) max 1
+
         totalRequiredEnergy = totalShapes * Settings.get.printShapeCost
         requiredEnergy = totalRequiredEnergy
-        output = Option(data.createItemStack())
-        //        ServerPacketSender.sendRobotAssembling(this, assembling = true)
-      }
 
-      if (output.isDefined) {
-        val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
-        val success = Settings.get.ignorePower || node.tryChangeBuffer(-want)
-        if (success) {
-          requiredEnergy -= want
+        if (amountPlastic >= plasticRequired && amountInk >= inkRequired) {
+          amountPlastic -= plasticRequired
+          amountInk -= inkRequired
+          output = Option(data.createItemStack())
+          ServerPacketSender.sendPrinting(this, printing = true)
         }
-        if (requiredEnergy <= 0) {
-          val result = getStackInSlot(slotOutput)
-          if (result == null) {
-            setInventorySlotContents(slotOutput, output.get)
-          }
-          else if (output.get.isItemEqual(result) && ItemStack.areItemStackTagsEqual(output.get, result) && result.stackSize < result.getMaxStackSize) {
-            result.stackSize += 1
-            markDirty()
-          }
-          else {
-            return
-          }
-          requiredEnergy = 0
-          output = None
+      }
+    }
+
+    if (output.isDefined) {
+      val want = math.max(1, math.min(requiredEnergy, Settings.get.printerTickAmount))
+      val success = Settings.get.ignorePower || node.tryChangeBuffer(-want)
+      if (success) {
+        requiredEnergy -= want
+      }
+      if (requiredEnergy <= 0) {
+        val result = getStackInSlot(slotOutput)
+        if (result == null) {
+          setInventorySlotContents(slotOutput, output.get)
         }
-        //      ServerPacketSender.sendRobotAssembling(this, success && output.isDefined)
+        else if (output.get.isItemEqual(result) && ItemStack.areItemStackTagsEqual(output.get, result) && result.stackSize < result.getMaxStackSize) {
+          result.stackSize += 1
+          markDirty()
+        }
+        else {
+          return
+        }
+        requiredEnergy = 0
+        output = None
+      }
+      ServerPacketSender.sendPrinting(this, success && output.isDefined)
+    }
+
+    if (maxAmountPlastic - amountPlastic >= plasticPerItem) {
+      val plastic = decrStackSize(slotPlastic, 1)
+      if (plastic != null) {
+        amountPlastic += plasticPerItem
+      }
+    }
+
+    if (maxAmountInk - amountInk >= inkPerCartridge) {
+      if (api.Items.get(getStackInSlot(slotInk)) == api.Items.get("inkCartridge")) {
+        setInventorySlotContents(slotInk, api.Items.get("inkCartridgeEmpty").createItemStack(1))
+        amountInk += inkPerCartridge
       }
     }
   }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    data.load(nbt.getCompoundTag("data"))
+    amountPlastic = nbt.getInteger(Settings.namespace + "amountPlastic")
+    amountInk = nbt.getInteger(Settings.namespace + "amountInk")
+    data.load(nbt.getCompoundTag(Settings.namespace + "data"))
     isActive = nbt.getBoolean(Settings.namespace + "active")
     if (nbt.hasKey(Settings.namespace + "output")) {
       output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
@@ -214,7 +245,9 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setNewCompoundTag("data", data.save)
+    nbt.setInteger(Settings.namespace + "amountPlastic", amountPlastic)
+    nbt.setInteger(Settings.namespace + "amountInk", amountInk)
+    nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
     nbt.setBoolean(Settings.namespace + "active", isActive)
     output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
     nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
@@ -240,8 +273,8 @@ class Printer extends traits.Environment with traits.PowerAcceptor with traits.I
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot == 0)
-      true // TODO Plastic
+      api.Items.get(stack) == api.Items.get("plastic")
     else if (slot == 1)
-      true // TODO Color
+      api.Items.get(stack) == api.Items.get("inkCartridge")
     else false
 }
