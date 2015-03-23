@@ -8,7 +8,7 @@ import net.minecraft.util.IIcon
 
 object Print {
   def render(print: tileentity.Print, x: Int, y: Int, z: Int, block: Block, renderer: RenderBlocks): Unit = {
-    for (shape <- print.data.stateOff) {
+    for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
       renderer.setOverrideBlockTexture(resolveTexture(shape.texture))
       renderer.setRenderBounds(
         shape.bounds.minX, shape.bounds.minY, shape.bounds.minZ,

@@ -59,10 +59,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = {
-    val complexity = data.stateOff.size + data.stateOn.size
-    complexity > 0 && complexity <= Settings.get.maxPrintComplexity
-  }
+  def canPrint = data.stateOff.size > 0 && data.stateOff.size + data.stateOn.size <= Settings.get.maxPrintComplexity
 
   def isPrinting = (requiredEnergy > 0 || isActive) && Option(getStackInSlot(slotOutput)).fold(true)(stack => {
     stack.stackSize < stack.getMaxStackSize && output.fold(true)(ItemStack.areItemStackTagsEqual(stack, _))
@@ -84,6 +81,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @Callback(doc = """function(value:string) -- Set a label for the block being printed.""")
   def setLabel(context: Context, args: Arguments): Array[Object] = {
     data.label = Option(args.optString(0, null)).map(_.take(16))
+    if (data.label.fold(false)(_.isEmpty)) data.label = None
     isActive = false // Needs committing.
     null
   }
@@ -96,6 +94,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @Callback(doc = """function(value:string) -- Set a tooltip for the block being printed.""")
   def setTooltip(context: Context, args: Arguments): Array[Object] = {
     data.tooltip = Option(args.optString(0, null)).map(_.take(128))
+    if (data.tooltip.fold(false)(_.isEmpty)) data.tooltip = None
     isActive = false // Needs committing.
     null
   }
@@ -103,6 +102,30 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @Callback(doc = """function():string -- Get the current tooltip for the block being printed.""")
   def getTooltip(context: Context, args: Arguments): Array[Object] = {
     result(data.tooltip.orNull)
+  }
+
+  @Callback(doc = """function(value:boolean) -- Set whether the printed block should emit redstone when in its active state.""")
+  def setRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
+    data.emitRedstone = args.checkBoolean(0)
+    isActive = false // Needs committing.
+    null
+  }
+
+  @Callback(doc = """function():boolean -- Get whether the printed block should emit redstone when in its active state.""")
+  def isRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
+    result(data.emitRedstone)
+  }
+
+  @Callback(doc = """function(value:boolean) -- Set whether the printed block should automatically return to its off state.""")
+  def setButtonMode(context: Context, args: Arguments): Array[Object] = {
+    data.isButtonMode = args.checkBoolean(0)
+    isActive = false // Needs committing.
+    null
+  }
+
+  @Callback(doc = """function():boolean -- Get whether the printed block should automatically return to its off state.""")
+  def isButtonMode(context: Context, args: Arguments): Array[Object] = {
+    result(data.isButtonMode)
   }
 
   @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
@@ -117,7 +140,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     val maxY = (args.checkInteger(4) max 0 min 16) / 16f
     val maxZ = (args.checkInteger(5) max 0 min 16) / 16f
     val texture = args.checkString(6)
-    val state = args.optBoolean(7, false)
+    val state = args.checkAny(7) != null && args.optBoolean(7, false)
 
     if (minX == maxX) throw new IllegalArgumentException("empty block")
     if (minY == maxY) throw new IllegalArgumentException("empty block")

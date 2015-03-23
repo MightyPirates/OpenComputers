@@ -17,7 +17,7 @@ class PrintData extends ItemData {
 
   var label: Option[String] = None
   var tooltip: Option[String] = None
-  var autoRevert = false
+  var isButtonMode = false
   var emitRedstone = false
   var pressurePlate = false
   val stateOff = mutable.Set.empty[PrintData.Shape]
@@ -26,7 +26,7 @@ class PrintData extends ItemData {
   override def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey("label")) label = Option(nbt.getString("label"))
     if (nbt.hasKey("tooltip")) tooltip = Option(nbt.getString("tooltip"))
-    autoRevert = nbt.getBoolean("autoRevert")
+    isButtonMode = nbt.getBoolean("isButtonMode")
     emitRedstone = nbt.getBoolean("emitRedstone")
     pressurePlate = nbt.getBoolean("pressurePlate")
     stateOff ++= nbt.getTagList("stateOff", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
@@ -36,7 +36,7 @@ class PrintData extends ItemData {
   override def save(nbt: NBTTagCompound): Unit = {
     label.foreach(nbt.setString("label", _))
     tooltip.foreach(nbt.setString("tooltip", _))
-    nbt.setBoolean("autoRevert", autoRevert)
+    nbt.setBoolean("isButtonMode", isButtonMode)
     nbt.setBoolean("emitRedstone", emitRedstone)
     nbt.setBoolean("pressurePlate", pressurePlate)
     nbt.setNewTagList("stateOff", stateOff.map(PrintData.shapeToNBT))

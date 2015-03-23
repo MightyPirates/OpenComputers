@@ -319,8 +319,8 @@ disk {
           ["", nuggetIron, ""]]
 }
 plastic {
-  input: [[gravel, gravel, gravel],
-          [gravel, {item=coal, subID=1}, gravel],
+  input: [[gravel, redstone, gravel],
+          [redstone, {item=coal, subID=1}, redstone],
           [gravel, water_bucket, gravel]]
   output: 8
 }
