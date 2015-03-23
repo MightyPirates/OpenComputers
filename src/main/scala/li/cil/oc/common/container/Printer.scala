@@ -16,7 +16,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
   addPlayerInventorySlots(8, 84)
 
   var isPrinting = false
-  var amountPlastic = 0
+  var amountMaterial = 0
   var amountInk = 0
 
   @SideOnly(Side.CLIENT)
@@ -27,7 +27,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     }
 
     if (id == 1) {
-      amountPlastic = value
+      amountMaterial = value
     }
 
     if (id == 2) {
@@ -42,9 +42,9 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
         isPrinting = printer.isPrinting
         sendProgressBarUpdate(0, if (isPrinting) 1 else 0)
       }
-      if (amountPlastic != printer.amountPlastic) {
-        amountPlastic = printer.amountPlastic
-        sendProgressBarUpdate(1, amountPlastic)
+      if (amountMaterial != printer.amountMaterial) {
+        amountMaterial = printer.amountMaterial
+        sendProgressBarUpdate(1, amountMaterial)
       }
       if (amountInk != printer.amountInk) {
         amountInk = printer.amountInk

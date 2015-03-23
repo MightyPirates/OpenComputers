@@ -26,8 +26,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     withConnector(Settings.get.bufferConverter).
     create()
 
-  val maxAmountPlastic = 256000
-  var amountPlastic = 0
+  val maxAmountMaterial = 256000
+  var amountMaterial = 0
   val maxAmountInk = 100000
   var amountInk = 0
 
@@ -37,10 +37,10 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
 
-  val plasticPerItem = 2000
+  val materialPerItem = 2000
   val inkPerCartridge = 50000
 
-  val slotPlastic = 0
+  val slotMaterial = 0
   val slotInk = 1
   val slotOutput = 2
 
@@ -63,7 +63,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   def isPrinting = (requiredEnergy > 0 || isActive) && Option(getStackInSlot(slotOutput)).fold(true)(stack => {
     stack.stackSize < stack.getMaxStackSize && output.fold(true)(ItemStack.areItemStackTagsEqual(stack, _))
-  })
+  }) && (output.isDefined || (amountMaterial > 0 && amountInk > 0))
 
   def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
@@ -190,23 +190,24 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   override def updateEntity() {
     super.updateEntity()
 
-    if (isActive && output.isEmpty) {
+    if (isActive && output.isEmpty && Option(getStackInSlot(slotOutput)).fold(true)(stack => stack.stackSize < stack.getMaxStackSize)) {
       val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
       val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
       val totalShapes = data.stateOn.size + data.stateOff.size
 
       if (totalVolume == 0) {
         isActive = false
+        data = new PrintData()
       }
       else {
-        val plasticRequired = totalVolume
+        val materialRequired = totalVolume
         val inkRequired = (totalSurface / 6) max 1
 
         totalRequiredEnergy = totalShapes * Settings.get.printShapeCost
         requiredEnergy = totalRequiredEnergy
 
-        if (amountPlastic >= plasticRequired && amountInk >= inkRequired) {
-          amountPlastic -= plasticRequired
+        if (amountMaterial >= materialRequired && amountInk >= inkRequired) {
+          amountMaterial -= materialRequired
           amountInk -= inkRequired
           output = Option(data.createItemStack())
           ServerPacketSender.sendPrinting(this, printing = true)
@@ -238,10 +239,10 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       ServerPacketSender.sendPrinting(this, success && output.isDefined)
     }
 
-    if (maxAmountPlastic - amountPlastic >= plasticPerItem) {
-      val plastic = decrStackSize(slotPlastic, 1)
-      if (plastic != null) {
-        amountPlastic += plasticPerItem
+    if (maxAmountMaterial - amountMaterial >= materialPerItem) {
+      val material = decrStackSize(slotMaterial, 1)
+      if (material != null) {
+        amountMaterial += materialPerItem
       }
     }
 
@@ -255,7 +256,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
-    amountPlastic = nbt.getInteger(Settings.namespace + "amountPlastic")
+    amountMaterial = nbt.getInteger(Settings.namespace + "amountMaterial")
     amountInk = nbt.getInteger(Settings.namespace + "amountInk")
     data.load(nbt.getCompoundTag(Settings.namespace + "data"))
     isActive = nbt.getBoolean(Settings.namespace + "active")
@@ -268,7 +269,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def writeToNBTForServer(nbt: NBTTagCompound) {
     super.writeToNBTForServer(nbt)
-    nbt.setInteger(Settings.namespace + "amountPlastic", amountPlastic)
+    nbt.setInteger(Settings.namespace + "amountMaterial", amountMaterial)
     nbt.setInteger(Settings.namespace + "amountInk", amountInk)
     nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
     nbt.setBoolean(Settings.namespace + "active", isActive)
@@ -296,7 +297,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot == 0)
-      api.Items.get(stack) == api.Items.get("plastic")
+      api.Items.get(stack) == api.Items.get("chamelium")
     else if (slot == 1)
       api.Items.get(stack) == api.Items.get("inkCartridge")
     else false

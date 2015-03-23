@@ -13,12 +13,12 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
   xSize = 176
   ySize = 166
 
-  private val plasticBar = addWidget(new ProgressBar(40, 21) {
+  private val materialBar = addWidget(new ProgressBar(40, 21) {
     override def width = 62
 
     override def height = 12
 
-    override def barTexture = Textures.guiPrinterPlastic
+    override def barTexture = Textures.guiPrinterMaterial
   })
   private val inkBar = addWidget(new ProgressBar(40, 53) {
     override def width = 62
@@ -47,9 +47,9 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
       Localization.localizeImmediately(printer.getInventoryName),
       8, 6, 0x404040)
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
-    if (func_146978_c(plasticBar.x, plasticBar.y, plasticBar.width, plasticBar.height, mouseX, mouseY)) {
+    if (func_146978_c(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(printerContainer.amountPlastic + "/" + printer.maxAmountPlastic)
+      tooltip.add(printerContainer.amountMaterial + "/" + printer.maxAmountMaterial)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     if (func_146978_c(inkBar.x, inkBar.y, inkBar.width, inkBar.height, mouseX, mouseY)) {
@@ -64,7 +64,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     mc.renderEngine.bindTexture(Textures.guiPrinter)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
-    plasticBar.level = printerContainer.amountPlastic / printer.maxAmountPlastic.toDouble
+    materialBar.level = printerContainer.amountMaterial / printer.maxAmountMaterial.toDouble
     inkBar.level = printerContainer.amountInk / printer.maxAmountInk.toDouble
     if (printerContainer.isPrinting) progressBar.level = (System.currentTimeMillis() % 3000) / 3000.0
     else progressBar.level = 0

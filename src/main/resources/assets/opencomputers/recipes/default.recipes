@@ -318,7 +318,7 @@ disk {
           [nuggetIron, "", nuggetIron]
           ["", nuggetIron, ""]]
 }
-plastic {
+chamelium {
   input: [[gravel, redstone, gravel],
           [redstone, {item=coal, subID=1}, redstone],
           [gravel, water_bucket, gravel]]
