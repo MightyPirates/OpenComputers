@@ -25,6 +25,8 @@ object Textures {
   val guiDisassembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/disassembler.png")
   val guiDrone = new ResourceLocation(Settings.resourceDomain, "textures/gui/drone.png")
   val guiKeyboardMissing = new ResourceLocation(Settings.resourceDomain, "textures/gui/keyboard_missing.png")
+  val guiPrinter = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer.png")
+  val guiPrinterProgress = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_progress.png")
   val guiRaid = new ResourceLocation(Settings.resourceDomain, "textures/gui/raid.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
   val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")

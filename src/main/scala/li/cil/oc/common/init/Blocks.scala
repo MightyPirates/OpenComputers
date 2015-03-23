@@ -26,6 +26,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Print], Settings.namespace + "print")
+    GameRegistry.registerTileEntity(classOf[tileentity.Printer], Settings.namespace + "printer")
     GameRegistry.registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
@@ -85,5 +86,6 @@ object Blocks {
 
     // v1.5.4
     Items.registerBlock(new Print(), "print")
+    Items.registerBlock(new Printer(), "printer")
   }
 }

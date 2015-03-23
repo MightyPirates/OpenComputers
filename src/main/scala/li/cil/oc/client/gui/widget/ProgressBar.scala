@@ -9,6 +9,8 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
 
   override def height = 12
 
+  def barTexture = Textures.guiBar
+
   var level = 0.0
 
   def draw() {
@@ -21,7 +23,7 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
       val ty = owner.windowY + y
       val w = width * level
 
-      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiBar)
+      Minecraft.getMinecraft.renderEngine.bindTexture(barTexture)
       val t = Tessellator.instance
       t.startDrawingQuads()
       t.addVertexWithUV(tx, ty, owner.windowZ, u0, v0)

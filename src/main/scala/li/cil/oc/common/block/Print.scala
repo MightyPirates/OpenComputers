@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.ExtendedAABB
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -36,6 +37,10 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       case print: tileentity.Print => setBlockBounds(if (print.state) print.boundsOn else print.boundsOff)
       case _ => super.doSetBlockBoundsBasedOnState(world, x, y, z)
     }
+  }
+
+  override def setBlockBoundsForItemRender(metadata: Int): Unit = {
+    setBlockBounds(ExtendedAABB.unitBounds)
   }
 
   // ----------------------------------------------------------------------- //
