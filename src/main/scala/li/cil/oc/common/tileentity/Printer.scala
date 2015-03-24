@@ -135,10 +135,10 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     }
     val minX = (args.checkInteger(0) max 0 min 16) / 16f
     val minY = (args.checkInteger(1) max 0 min 16) / 16f
-    val minZ = (args.checkInteger(2) max 0 min 16) / 16f
+    val minZ = (16 - (args.checkInteger(2) max 0 min 16)) / 16f
     val maxX = (args.checkInteger(3) max 0 min 16) / 16f
     val maxY = (args.checkInteger(4) max 0 min 16) / 16f
-    val maxZ = (args.checkInteger(5) max 0 min 16) / 16f
+    val maxZ = (16 - (args.checkInteger(5) max 0 min 16)) / 16f
     val texture = args.checkString(6).take(64)
     val state = args.checkAny(7) != null && args.optBoolean(7, false)
 

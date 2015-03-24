@@ -41,24 +41,28 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = isSideSolid(world, x, y, z, side)
 
-  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = {
+  override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection): Boolean = {
     world.getTileEntity(x, y, z) match {
       case print: tileentity.Print =>
-        val bounds = if (print.state) print.boundsOn else print.boundsOff
-        val fullX = bounds.minX == 0 && bounds.maxX == 1
-        val fullY = bounds.minY == 0 && bounds.maxY == 1
-        val fullZ = bounds.minZ == 0 && bounds.maxZ == 1
-        side match {
-          case ForgeDirection.DOWN => bounds.minY == 0 && fullX && fullZ
-          case ForgeDirection.UP => bounds.maxY == 1 && fullX && fullZ
-          case ForgeDirection.NORTH => bounds.minZ == 0 && fullX && fullY
-          case ForgeDirection.SOUTH => bounds.maxZ == 1 && fullX && fullY
-          case ForgeDirection.WEST => bounds.minX == 0 && fullY && fullZ
-          case ForgeDirection.EAST => bounds.maxX == 1 && fullY && fullZ
-          case _ => false
+        val shapes = if (print.state) print.data.stateOn else print.data.stateOff
+        for (shape <- shapes) {
+          val bounds = shape.bounds
+          val fullX = bounds.minX == 0 && bounds.maxX == 1
+          val fullY = bounds.minY == 0 && bounds.maxY == 1
+          val fullZ = bounds.minZ == 0 && bounds.maxZ == 1
+          if (side match {
+            case ForgeDirection.DOWN => bounds.minY == 0 && fullX && fullZ
+            case ForgeDirection.UP => bounds.maxY == 1 && fullX && fullZ
+            case ForgeDirection.NORTH => bounds.minZ == 0 && fullX && fullY
+            case ForgeDirection.SOUTH => bounds.maxZ == 1 && fullX && fullY
+            case ForgeDirection.WEST => bounds.minX == 0 && fullY && fullZ
+            case ForgeDirection.EAST => bounds.maxX == 1 && fullY && fullZ
+            case _ => false
+          }) return true
         }
-      case _ => super.isSideSolid(world, x, y, z, side)
+      case _ =>
     }
+    false
   }
 
   override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int, player: EntityPlayer): ItemStack = {
