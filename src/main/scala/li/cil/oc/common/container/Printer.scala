@@ -1,11 +1,9 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.nbt.NBTTagCompound
 
 class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer) extends Player(playerInventory, printer) {
   addSlotToContainer(18, 19, Slot.Filtered)
@@ -15,41 +13,16 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
   // Show the player's inventory.
   addPlayerInventorySlots(8, 84)
 
-  var isPrinting = false
-  var amountMaterial = 0
-  var amountInk = 0
+  def isPrinting = synchronizedData.getBoolean("isPrinting")
 
-  @SideOnly(Side.CLIENT)
-  override def updateProgressBar(id: Int, value: Int) {
-    super.updateProgressBar(id, value)
-    if (id == 0) {
-      isPrinting = value == 1
-    }
+  def amountMaterial = synchronizedData.getInteger("amountMaterial")
 
-    if (id == 1) {
-      amountMaterial = value
-    }
+  def amountInk = synchronizedData.getInteger("amountInk")
 
-    if (id == 2) {
-      amountInk = value
-    }
-  }
-
-  override def detectAndSendChanges() {
-    super.detectAndSendChanges()
-    if (SideTracker.isServer) {
-      if (isPrinting != printer.isPrinting) {
-        isPrinting = printer.isPrinting
-        sendProgressBarUpdate(0, if (isPrinting) 1 else 0)
-      }
-      if (amountMaterial != printer.amountMaterial) {
-        amountMaterial = printer.amountMaterial
-        sendProgressBarUpdate(1, amountMaterial)
-      }
-      if (amountInk != printer.amountInk) {
-        amountInk = printer.amountInk
-        sendProgressBarUpdate(2, amountInk)
-      }
-    }
+  override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
+    synchronizedData.setBoolean("isPrinting", printer.isPrinting)
+    synchronizedData.setInteger("amountMaterial", printer.amountMaterial)
+    synchronizedData.setInteger("amountInk", printer.amountInk)
+    super.detectCustomDataChanges(nbt)
   }
 }

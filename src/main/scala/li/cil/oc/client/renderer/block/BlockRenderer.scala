@@ -140,8 +140,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     }
   }
 
-  // I can't be bothered to adjust the screen rendering logic... so special case ahoy.
-  def patchedRenderer(renderer: RenderBlocks, block: Block) = if (!block.isInstanceOf[Screen]) {
+  // The texture flip this works around only seems to occur for blocks with custom block renderers?
+  def patchedRenderer(renderer: RenderBlocks, block: Block) = if (block.isInstanceOf[Hologram] || block.isInstanceOf[Printer]) {
     PatchedRenderBlocks.blockAccess = renderer.blockAccess
     PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
     PatchedRenderBlocks.flipTexture = renderer.flipTexture

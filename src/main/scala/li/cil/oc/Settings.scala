@@ -193,7 +193,7 @@ class Settings(val config: Config) {
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
   val eepromWriteCost = config.getDouble("power.cost.eepromWrite") max 0
-  val printShapeCost = config.getDouble("power.cost.printerShape") max 0
+  val printCost = config.getDouble("power.cost.printerModel") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0

@@ -195,7 +195,6 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     if (isActive && output.isEmpty && Option(getStackInSlot(slotOutput)).fold(true)(stack => stack.stackSize < stack.getMaxStackSize)) {
       val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
       val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
-      val totalShapes = data.stateOn.size + data.stateOff.size
 
       if (totalVolume == 0) {
         isActive = false
@@ -205,7 +204,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
         val materialRequired = totalVolume
         val inkRequired = (totalSurface / 6) max 1
 
-        totalRequiredEnergy = totalShapes * Settings.get.printShapeCost
+        totalRequiredEnergy = Settings.get.printCost
         requiredEnergy = totalRequiredEnergy
 
         if (amountMaterial >= materialRequired && amountInk >= inkRequired) {
