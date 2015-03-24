@@ -201,7 +201,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
         data = new PrintData()
       }
       else {
-        val materialRequired = totalVolume
+        val materialRequired = (totalVolume / 2) max 1
         val inkRequired = (totalSurface / 6) max 1
 
         totalRequiredEnergy = Settings.get.printCost
