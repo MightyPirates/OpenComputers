@@ -12,11 +12,11 @@ import net.minecraftforge.common.util.ForgeDirection
 class Printer extends SimpleBlock with traits.SpecialBlock with traits.StateAware with traits.GUI {
   override protected def customTextures = Array(
     None,
-    Some("AssemblerTop"),
-    Some("AssemblerSide"),
-    Some("AssemblerSide"),
-    Some("AssemblerSide"),
-    Some("AssemblerSide")
+    Some("PrinterTop"),
+    Some("PrinterSide"),
+    Some("PrinterSide"),
+    Some("PrinterSide"),
+    Some("PrinterSide")
   )
 
   override def registerBlockIcons(iconRegister: IIconRegister) = {

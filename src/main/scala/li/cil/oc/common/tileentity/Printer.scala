@@ -63,7 +63,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   def isPrinting = (requiredEnergy > 0 || isActive) && Option(getStackInSlot(slotOutput)).fold(true)(stack => {
     stack.stackSize < stack.getMaxStackSize && output.fold(true)(ItemStack.areItemStackTagsEqual(stack, _))
-  }) && (output.isDefined || (amountMaterial > 0 && amountInk > 0))
+  })
 
   def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
@@ -155,6 +155,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       math.max(maxY, minY),
       math.max(maxZ, minZ)), texture)
     isActive = false // Needs committing.
+
+    world.markBlockForUpdate(x, y, z)
 
     result(true)
   }
@@ -281,11 +283,13 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
+    data.load(nbt.getCompoundTag(Settings.namespace + "data"))
     requiredEnergy = nbt.getDouble("remaining")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
+    nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
     nbt.setDouble("remaining", requiredEnergy)
   }
 

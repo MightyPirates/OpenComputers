@@ -18,7 +18,7 @@ object Print {
     renderer.clearOverrideBlockTexture()
   }
 
-  private def resolveTexture(name: String): IIcon =
+  def resolveTexture(name: String): IIcon =
     Option(Minecraft.getMinecraft.getTextureMapBlocks.getTextureExtry(name)).
       getOrElse(Minecraft.getMinecraft.getTextureMapBlocks.getTextureExtry("wool_colored_magenta"))
 }

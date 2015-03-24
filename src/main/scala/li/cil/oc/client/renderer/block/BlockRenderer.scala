@@ -53,6 +53,13 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram")
+      case printer: Printer =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        Printer.render(block, metadata, renderer)
+        Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: printer")
       case _ =>
         block match {
           case simple: SimpleBlock =>
@@ -81,7 +88,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, realRenderer: RenderBlocks) = {
     RenderState.checkError(getClass.getName + ".renderWorldBlock: entering (aka: wasntme)")
 
-    val renderer = patchedRenderer(realRenderer)
+    val renderer = patchedRenderer(realRenderer, block)
     world.getTileEntity(x, y, z) match {
       case cable: tileentity.Cable =>
         Cable.render(world, x, y, z, block, renderer)
@@ -99,6 +106,12 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Print.render(print, x, y, z, block, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: print")
+
+        true
+      case printer: tileentity.Printer =>
+        Printer.render(block, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: printer")
 
         true
       case rack: tileentity.ServerRack =>
@@ -130,7 +143,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
   val isOneSevenTwo = Loader.instance.getMinecraftModContainer.getVersion == "1.7.2"
 
-  def patchedRenderer(renderer: RenderBlocks) = if (isOneSevenTwo) {
+  // I can't be bothered to adjust the screen rendering logic... so special case ahoy.
+  def patchedRenderer(renderer: RenderBlocks, block: Block) = if (!block.isInstanceOf[Screen]) {
     PatchedRenderBlocks.blockAccess = renderer.blockAccess
     PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
     PatchedRenderBlocks.flipTexture = renderer.flipTexture

@@ -24,12 +24,14 @@ class PrintData extends ItemData {
   val stateOn = mutable.Set.empty[PrintData.Shape]
 
   override def load(nbt: NBTTagCompound): Unit = {
-    if (nbt.hasKey("label")) label = Option(nbt.getString("label"))
-    if (nbt.hasKey("tooltip")) tooltip = Option(nbt.getString("tooltip"))
+    if (nbt.hasKey("label")) label = Option(nbt.getString("label")) else label = None
+    if (nbt.hasKey("tooltip")) tooltip = Option(nbt.getString("tooltip")) else tooltip = None
     isButtonMode = nbt.getBoolean("isButtonMode")
     emitRedstone = nbt.getBoolean("emitRedstone")
     pressurePlate = nbt.getBoolean("pressurePlate")
+    stateOff.clear()
     stateOff ++= nbt.getTagList("stateOff", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
+    stateOn.clear()
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
   }
 
