@@ -54,7 +54,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
           case ForgeDirection.NORTH => bounds.minZ == 0 && fullX && fullY
           case ForgeDirection.SOUTH => bounds.maxZ == 1 && fullX && fullY
           case ForgeDirection.WEST => bounds.minX == 0 && fullY && fullZ
-          case ForgeDirection.EAST => bounds.minX == 1 && fullY && fullZ
+          case ForgeDirection.EAST => bounds.maxX == 1 && fullY && fullZ
           case _ => false
         }
       case _ => super.isSideSolid(world, x, y, z, side)

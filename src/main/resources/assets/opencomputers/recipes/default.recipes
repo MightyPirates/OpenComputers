@@ -322,7 +322,7 @@ chamelium {
   input: [[gravel, redstone, gravel],
           [redstone, {item=coal, subID=1}, redstone],
           [gravel, water_bucket, gravel]]
-  output: 8
+  output: 16
 }
 inkCartridgeEmpty {
   input: [[nuggetIron, dispenser, nuggetIron],
