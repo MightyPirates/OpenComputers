@@ -8,11 +8,15 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.ExtendedAABB
+import li.cil.oc.util.ExtendedAABB._
+import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.EnumCreatureType
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.Vec3
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -61,6 +65,42 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     world.getTileEntity(x, y, z) match {
       case print: tileentity.Print => print.data.createItemStack()
       case _ => null
+    }
+  }
+
+  override def addCollisionBoxesToList(world: World, x: Int, y: Int, z: Int, mask: AxisAlignedBB, list: util.List[_], entity: Entity): Unit = {
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print =>
+        def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+        val shapes = if (print.state) print.data.stateOn else print.data.stateOff
+        for (shape <- shapes) {
+          val bounds = shape.bounds.rotateTowards(print.facing).offset(x, y, z)
+          if (bounds.intersectsWith(mask)) {
+            add(list, bounds)
+          }
+        }
+      case _ => super.addCollisionBoxesToList(world, x, y, z, mask, list, entity)
+    }
+  }
+
+  override protected def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3): MovingObjectPosition = {
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print =>
+        var closestDistance = Double.PositiveInfinity
+        var closest: Option[MovingObjectPosition] = None
+        for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
+          val bounds = shape.bounds.rotateTowards(print.facing).offset(x, y, z)
+          val hit = bounds.calculateIntercept(origin, direction)
+          if (hit != null) {
+            val distance = hit.hitVec.distanceTo(origin)
+            if (distance < closestDistance) {
+              closestDistance = distance
+              closest = Option(hit)
+            }
+          }
+        }
+        closest.map(hit => new MovingObjectPosition(x, y, z, hit.sideHit, hit.hitVec)).orNull
+      case _ => super.intersect(world, x, y, z, origin, direction)
     }
   }
 
