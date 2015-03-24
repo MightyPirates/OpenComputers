@@ -179,7 +179,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
-  override protected def updateRedstoneInput(side: ForgeDirection) {
+  override def updateRedstoneInput(side: ForgeDirection) {
     super.updateRedstoneInput(side)
     val signal = math.max(0, math.min(15, ForgeDirection.VALID_DIRECTIONS.map(input).max))
 

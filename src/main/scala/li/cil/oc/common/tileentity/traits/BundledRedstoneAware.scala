@@ -81,7 +81,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   // ----------------------------------------------------------------------- //
 
-  override protected def updateRedstoneInput(side: ForgeDirection) {
+  override def updateRedstoneInput(side: ForgeDirection) {
     super.updateRedstoneInput(side)
     val ownBundledInput = _bundledInput(side.ordinal())
     val newBundledInput = computeBundledInput(side)
