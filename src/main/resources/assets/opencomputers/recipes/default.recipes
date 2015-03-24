@@ -514,6 +514,11 @@ motionSensor {
           [daylightDetector, "oc:cpu2", daylightDetector]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
+printer {
+  input: [[ingotIron, hopper, ingotIron]
+          [craftingPiston, "oc:circuitChip3", craftingPiston]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
 powerConverter {
   input: [[ingotIron, "oc:cable", ingotIron]
           [ingotGold, "oc:circuitChip1", ingotGold]

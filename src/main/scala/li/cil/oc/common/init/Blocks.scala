@@ -86,6 +86,6 @@ object Blocks {
 
     // v1.5.4
     Items.registerBlock(new Print(), "print")
-    Items.registerBlock(new Printer(), "printer")
+    Recipes.addBlock(new Printer(), "printer", "oc:printer")
   }
 }
