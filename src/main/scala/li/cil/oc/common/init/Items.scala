@@ -475,5 +475,6 @@ object Items extends ItemAPI {
     Recipes.addMultiItem(new item.InkCartridgeEmpty(multi), "inkCartridgeEmpty", "oc:inkCartridgeEmpty")
     Recipes.addMultiItem(new item.InkCartridge(multi), "inkCartridge", "oc:inkCartridge")
     Recipes.addMultiItem(new item.Chamelium(multi), "chamelium", "oc:chamelium")
+    Recipes.addMultiItem(new item.TexturePicker(multi), "texturePicker", "oc:texturePicker")
   }
 }

@@ -139,7 +139,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     val maxX = (args.checkInteger(3) max 0 min 16) / 16f
     val maxY = (args.checkInteger(4) max 0 min 16) / 16f
     val maxZ = (args.checkInteger(5) max 0 min 16) / 16f
-    val texture = args.checkString(6)
+    val texture = args.checkString(6).take(64)
     val state = args.checkAny(7) != null && args.optBoolean(7, false)
 
     if (minX == maxX) throw new IllegalArgumentException("empty block")
