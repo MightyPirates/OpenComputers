@@ -5,6 +5,7 @@ import li.cil.oc.util.ExtendedAABB._
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderBlocks
+import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.IIcon
 
 object Print {
@@ -20,7 +21,9 @@ object Print {
     renderer.clearOverrideBlockTexture()
   }
 
-  def resolveTexture(name: String): IIcon =
-    Option(Minecraft.getMinecraft.getTextureMapBlocks.getTextureExtry(name)).
-      getOrElse(Minecraft.getMinecraft.getTextureMapBlocks.getTextureExtry("wool_colored_magenta"))
+  def resolveTexture(name: String): IIcon = {
+    val icon = Minecraft.getMinecraft.getTextureMapBlocks.getTextureExtry(name)
+    if (icon == null) Minecraft.getMinecraft.getTextureManager.getTexture(TextureMap.locationBlocksTexture).asInstanceOf[TextureMap].getAtlasSprite("missingno")
+    else icon
+  }
 }
