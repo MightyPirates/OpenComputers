@@ -290,6 +290,7 @@ class Settings(val config: Config) {
   val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
+  val threadPriority = config.getInt("misc.threadPriority")
 
   // ----------------------------------------------------------------------- //
   // integration
