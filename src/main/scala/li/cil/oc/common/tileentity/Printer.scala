@@ -33,6 +33,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   var data = new PrintData()
   var isActive = false
+  var limit = 0
   var output: Option[ItemStack] = None
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
@@ -167,12 +168,13 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @Callback(doc = """function():number -- Get the maximum allowed number of shapes.""")
   def getMaxShapeCount(context: Context, args: Arguments): Array[Object] = result(Settings.get.maxPrintComplexity)
 
-  @Callback(doc = """function():boolean -- Commit and begin printing the current configuration.""")
+  @Callback(doc = """function([count:number]):boolean -- Commit and begin printing the current configuration.""")
   def commit(context: Context, args: Arguments): Array[Object] = {
     if (!canPrint) {
       return result(null, "model invalid")
     }
     isActive = true
+    limit = (args.optDouble(0, 1) max 0 min Integer.MAX_VALUE).toInt
     result(true)
   }
 
@@ -210,7 +212,9 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
         if (amountMaterial >= materialRequired && amountInk >= inkRequired) {
           amountMaterial -= materialRequired
           amountInk -= inkRequired
+          limit -= 1
           output = Option(data.createItemStack())
+          if (limit < 1) isActive = false
           ServerPacketSender.sendPrinting(this, printing = true)
         }
       }
@@ -261,6 +265,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     amountInk = nbt.getInteger(Settings.namespace + "amountInk")
     data.load(nbt.getCompoundTag(Settings.namespace + "data"))
     isActive = nbt.getBoolean(Settings.namespace + "active")
+    limit = nbt.getInteger(Settings.namespace + "limit")
     if (nbt.hasKey(Settings.namespace + "output")) {
       output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
     }
@@ -274,6 +279,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     nbt.setInteger(Settings.namespace + "amountInk", amountInk)
     nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
     nbt.setBoolean(Settings.namespace + "active", isActive)
+    nbt.setInteger(Settings.namespace + "limit", limit)
     output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
     nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
     nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
