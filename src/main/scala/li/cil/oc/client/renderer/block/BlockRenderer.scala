@@ -1,7 +1,6 @@
 package li.cil.oc.client.renderer.block
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
-import cpw.mods.fml.common.Loader
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.tileentity.RobotRenderer
 import li.cil.oc.common.block._
@@ -140,8 +139,6 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         result
     }
   }
-
-  val isOneSevenTwo = Loader.instance.getMinecraftModContainer.getVersion == "1.7.2"
 
   // I can't be bothered to adjust the screen rendering logic... so special case ahoy.
   def patchedRenderer(renderer: RenderBlocks, block: Block) = if (!block.isInstanceOf[Screen]) {

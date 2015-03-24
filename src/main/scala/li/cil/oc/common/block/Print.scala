@@ -22,6 +22,7 @@ import scala.reflect.ClassTag
 
 class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.SpecialBlock with traits.CustomDrops[tileentity.Print] {
   setLightOpacity(0)
+  setHardness(1)
   setCreativeTab(null)
   NEI.hide(this)
   setBlockTextureName(Settings.resourceDomain + "GenericTop")
