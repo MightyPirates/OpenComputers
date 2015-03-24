@@ -9,6 +9,7 @@ import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.inventory.Container
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
@@ -72,6 +73,17 @@ object PacketSender {
     list.foreach(pb.writeUTF)
 
     pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendContainerUpdate(c: Container, nbt: NBTTagCompound, player: EntityPlayerMP): Unit = {
+    if (!nbt.hasNoTags) {
+      val pb = new SimplePacketBuilder(PacketType.ContainerUpdate)
+
+      pb.writeByte(c.windowId.toByte)
+      pb.writeNBT(nbt)
+
+      pb.sendToPlayer(player)
+    }
   }
 
   def sendDisassemblerActive(t: tileentity.Disassembler, active: Boolean) {
@@ -224,6 +236,15 @@ object PacketSender {
     pb.writeDouble(t.globalBufferSize)
 
     pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendPrinting(t: tileentity.Printer, printing: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.PrinterState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(printing)
+
+    pb.sendToPlayersNearHost(t)
   }
 
   def sendRaidChange(t: tileentity.Raid) {

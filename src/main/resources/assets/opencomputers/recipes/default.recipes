@@ -6,6 +6,11 @@ analyzer {
           ["oc:materialTransistor", nuggetGold, ""]
           ["oc:materialCircuitBoardPrinted", nuggetGold, ""]]
 }
+texturePicker {
+  input: [[dyeBlack, dyeRed, dyeGreen]
+          [dyeBlue, "oc:analyzer", dyePurple]
+          [dyeYellow, dyeMagenta, dyeWhite]]
+}
 droneCase1 {
   input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
           ["oc:circuitChip1", "oc:microcontrollerCase1", "oc:circuitChip1"]
@@ -317,6 +322,21 @@ disk {
   input: [["", nuggetIron, ""]
           [nuggetIron, "", nuggetIron]
           ["", nuggetIron, ""]]
+}
+chamelium {
+  input: [[gravel, redstone, gravel],
+          [redstone, {item=coal, subID=1}, redstone],
+          [gravel, water_bucket, gravel]]
+  output: 16
+}
+inkCartridgeEmpty {
+  input: [[nuggetIron, dispenser, nuggetIron],
+          ["oc:materialTransistor", bucket, "oc:materialTransistor"],
+          [nuggetIron, "oc:materialCircuitBoardPrinted", nuggetIron]]
+}
+inkCartridge {
+  type: shapeless
+  input: [dyeCyan, dyeMagenta, dyeYellow, dyeBlack, "oc:inkCartridgeEmpty"]
 }
 
 buttonGroup {

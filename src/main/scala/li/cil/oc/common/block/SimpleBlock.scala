@@ -27,6 +27,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 class SimpleBlock(material: Material = Material.iron) extends Block(material) {
   setHardness(2f)
+  setResistance(5)
   setCreativeTab(CreativeTab)
 
   var showInItemList = true

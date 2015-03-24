@@ -4,12 +4,15 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.Textures
+import li.cil.oc.common
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraftforge.client.event.DrawBlockHighlightEvent
@@ -94,6 +97,34 @@ object HighlightRenderer {
         GL11.glPopAttrib()
         GL11.glPopMatrix()
       }
+    }
+
+    if (hitInfo.typeOfHit == MovingObjectType.BLOCK) e.player.getEntityWorld.getTileEntity(hitInfo.blockX, hitInfo.blockY, hitInfo.blockZ) match {
+      case print: common.tileentity.Print =>
+        val pos = e.player.getPosition(e.partialTicks)
+        val expansion = 0.002f
+
+        // See RenderGlobal.drawSelectionBox.
+        GL11.glEnable(GL11.GL_BLEND)
+        OpenGlHelper.glBlendFunc(770, 771, 1, 0)
+        GL11.glColor4f(0, 0, 0, 0.4f)
+        GL11.glLineWidth(2)
+        GL11.glDisable(GL11.GL_TEXTURE_2D)
+        GL11.glDepthMask(false)
+
+        for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
+          val bounds = shape.bounds.rotateTowards(print.facing)
+          RenderGlobal.drawOutlinedBoundingBox(bounds.copy().expand(expansion, expansion, expansion)
+            .offset(e.target.blockX, e.target.blockY, e.target.blockZ)
+            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), -1)
+        }
+
+        GL11.glDepthMask(true)
+        GL11.glEnable(GL11.GL_TEXTURE_2D)
+        GL11.glDisable(GL11.GL_BLEND)
+
+        e.setCanceled(true)
+      case _ =>
     }
   }
 }

@@ -7,8 +7,8 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.nbt.NBTTagCompound
 
 class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Assembler) extends Player(playerInventory, assembler) {
   // Computer case.
@@ -67,40 +67,16 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
   // Show the player's inventory.
   addPlayerInventorySlots(8, 110)
 
-  var isAssembling = false
-  var assemblyProgress = 0.0
-  var assemblyRemainingTime = 0
+  def isAssembling = synchronizedData.getBoolean("isAssembling")
 
-  @SideOnly(Side.CLIENT)
-  override def updateProgressBar(id: Int, value: Int) {
-    super.updateProgressBar(id, value)
-    if (id == 0) {
-      isAssembling = value == 1
-    }
+  def assemblyProgress = synchronizedData.getDouble("assemblyProgress")
 
-    if (id == 1) {
-      assemblyProgress = value / 5.0
-    }
+  def assemblyRemainingTime = synchronizedData.getInteger("assemblyRemainingTime")
 
-    if (id == 2) {
-      assemblyRemainingTime = value
-    }
-  }
-
-  override def detectAndSendChanges() {
-    super.detectAndSendChanges()
-    if (SideTracker.isServer) {
-      if (isAssembling != assembler.isAssembling) {
-        isAssembling = assembler.isAssembling
-        sendProgressBarUpdate(0, if (isAssembling) 1 else 0)
-      }
-      val timeRemaining = assembler.timeRemaining
-      if (math.abs(assembler.progress - assemblyProgress) > 0.2 || assemblyRemainingTime != timeRemaining) {
-        assemblyProgress = assembler.progress
-        assemblyRemainingTime = timeRemaining
-        sendProgressBarUpdate(1, (assemblyProgress * 5).toInt)
-        sendProgressBarUpdate(2, timeRemaining)
-      }
-    }
+  override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
+    synchronizedData.setBoolean("isAssembling", assembler.isAssembling)
+    synchronizedData.setDouble("assemblyProgress", assembler.progress)
+    synchronizedData.setInteger("assemblyRemainingTime", assembler.timeRemaining)
+    super.detectCustomDataChanges(nbt)
   }
 }

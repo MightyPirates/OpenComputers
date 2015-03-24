@@ -75,7 +75,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     }
   }
 
-  protected def updateRedstoneInput(side: ForgeDirection) {
+  def updateRedstoneInput(side: ForgeDirection) {
     val oldInput = _input(side.ordinal())
     val newInput = computeInput(side)
     _input(side.ordinal()) = newInput

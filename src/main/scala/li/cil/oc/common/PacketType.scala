@@ -9,6 +9,7 @@ object PacketType extends Enumeration {
   ColorChange,
   ComputerState,
   ComputerUserList,
+  ContainerUpdate,
   DisassemblerActiveChange,
   FileSystemActivity,
   FloppyChange,
@@ -20,6 +21,7 @@ object PacketType extends Enumeration {
   HologramTranslation,
   PetVisibility, // Goes both ways.
   PowerState,
+  PrinterState,
   RaidStateChange,
   RedstoneState,
   RobotAnimateSwing,
