@@ -80,7 +80,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   @Callback(doc = """function(value:string) -- Set a label for the block being printed.""")
   def setLabel(context: Context, args: Arguments): Array[Object] = {
-    data.label = Option(args.optString(0, null)).map(_.take(16))
+    data.label = Option(args.optString(0, null)).map(_.take(24))
     if (data.label.fold(false)(_.isEmpty)) data.label = None
     isActive = false // Needs committing.
     null
