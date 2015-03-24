@@ -9,7 +9,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Print extends traits.TileEntity with traits.RedstoneAware {
+class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rotatable {
   val data = new PrintData()
 
   var boundsOff = ExtendedAABB.unitBounds
@@ -55,7 +55,7 @@ class Print extends traits.TileEntity with traits.RedstoneAware {
     super.readFromNBTForServer(nbt)
     data.load(nbt.getCompoundTag("data"))
     state = nbt.getBoolean("state")
-    updateFromData()
+    updateBounds()
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
@@ -69,7 +69,7 @@ class Print extends traits.TileEntity with traits.RedstoneAware {
     super.readFromNBTForClient(nbt)
     data.load(nbt.getCompoundTag("data"))
     state = nbt.getBoolean("state")
-    updateFromData()
+    updateBounds()
     world.markBlockForUpdate(x, y, z)
   }
 
@@ -79,10 +79,17 @@ class Print extends traits.TileEntity with traits.RedstoneAware {
     nbt.setBoolean("state", state)
   }
 
-  def updateFromData(): Unit = {
+  def updateBounds(): Unit = {
     boundsOff = data.stateOff.drop(1).foldLeft(data.stateOff.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.func_111270_a(b.bounds))
     if (boundsOff.volume == 0) boundsOff = ExtendedAABB.unitBounds
+    else boundsOff = boundsOff.rotateTowards(facing)
     boundsOn = data.stateOn.drop(1).foldLeft(data.stateOn.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.func_111270_a(b.bounds))
     if (boundsOn.volume == 0) boundsOn = ExtendedAABB.unitBounds
+    else boundsOn = boundsOn.rotateTowards(facing)
+  }
+
+  override protected def onRotationChanged(): Unit = {
+    super.onRotationChanged()
+    updateBounds()
   }
 }
