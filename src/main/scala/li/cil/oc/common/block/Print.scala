@@ -61,7 +61,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       case print: tileentity.Print =>
         val shapes = if (print.state) print.data.stateOn else print.data.stateOff
         for (shape <- shapes) {
-          val bounds = shape.bounds
+          val bounds = shape.bounds.rotateTowards(print.facing)
           val fullX = bounds.minX == 0 && bounds.maxX == 1
           val fullY = bounds.minY == 0 && bounds.maxY == 1
           val fullZ = bounds.minZ == 0 && bounds.maxZ == 1
