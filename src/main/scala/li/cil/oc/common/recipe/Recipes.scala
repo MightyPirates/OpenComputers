@@ -127,6 +127,8 @@ object Recipes {
       val eeprom = api.Items.get("eeprom")
       val robot = api.Items.get("robot")
       val tablet = api.Items.get("tablet")
+      val chamelium = api.Items.get("chamelium")
+      val chameliumBlock = api.Items.get("chameliumBlock")
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
@@ -166,6 +168,22 @@ object Recipes {
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         tablet.createItemStack(1),
         tablet.createItemStack(1), eeprom.createItemStack(1)))
+
+      // Chamelium block splitting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        chamelium.createItemStack(9),
+        chameliumBlock.createItemStack(1)))
+
+      // Chamelium dying.
+      for ((dye, meta) <- Color.dyes.zipWithIndex) {
+        val result = chameliumBlock.createItemStack(1)
+        result.setItemDamage(meta)
+        val input = chameliumBlock.createItemStack(1)
+        input.setItemDamage(OreDictionary.WILDCARD_VALUE)
+        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+          result,
+          input, dye))
+      }
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

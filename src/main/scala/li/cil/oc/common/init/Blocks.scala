@@ -87,5 +87,6 @@ object Blocks {
     // v1.5.4
     Items.registerBlock(new Print(), "print")
     Recipes.addBlock(new Printer(), "printer", "oc:printer")
+    Recipes.addBlock(new ChameliumBlock(), "chameliumBlock", "oc:chameliumBlock")
   }
 }
