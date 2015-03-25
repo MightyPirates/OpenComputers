@@ -254,6 +254,7 @@ object ItemRenderer extends IItemRenderer {
     })
 
     GL11.glBegin(GL11.GL_QUADS)
+    GL11.glDisable(GL11.GL_CULL_FACE)
 
     // Front.
     GL11.glNormal3f(0, 0, 1)
@@ -322,6 +323,7 @@ object ItemRenderer extends IItemRenderer {
     GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
 
     GL11.glEnd()
+    GL11.glEnable(GL11.GL_CULL_FACE)
 
     GL11.glColor3f(1, 1, 1)
   }
