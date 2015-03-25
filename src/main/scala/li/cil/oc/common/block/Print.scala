@@ -3,6 +3,8 @@ package li.cil.oc.common.block
 import java.util
 import java.util.Random
 
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
@@ -15,6 +17,7 @@ import net.minecraft.entity.EnumCreatureType
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.IIcon
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.IBlockAccess
@@ -30,6 +33,18 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   setCreativeTab(null)
   NEI.hide(this)
   setBlockTextureName(Settings.resourceDomain + "GenericTop")
+
+  // This is used when rendering to allow tinting individual shapes of models.
+  var colorMultiplierOverride: Option[Int] = None
+  // Also used in model rendering, can't use renderer's override logic because that'll disable tinting.
+  var textureOverride: Option[IIcon] = None
+
+  @SideOnly(Side.CLIENT)
+  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, globalSide: ForgeDirection, localSide: ForgeDirection): IIcon =
+    textureOverride.getOrElse(super.getIcon(world, x, y, z, globalSide, localSide))
+
+  override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    colorMultiplierOverride.getOrElse(super.colorMultiplier(world, x, y, z))
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)

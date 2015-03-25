@@ -239,6 +239,13 @@ object ItemRenderer extends IItemRenderer {
     val bounds = shape.bounds
     val texture = Print.resolveTexture(shape.texture)
 
+    shape.tint.foreach(color => {
+      val r = (color >> 16).toByte
+      val g = (color >> 8).toByte
+      val b = color.toByte
+      GL11.glColor3ub(r, g, b)
+    })
+
     GL11.glBegin(GL11.GL_QUADS)
 
     // Front.
@@ -308,5 +315,7 @@ object ItemRenderer extends IItemRenderer {
     GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
 
     GL11.glEnd()
+
+    GL11.glColor3f(1, 1, 1)
   }
 }

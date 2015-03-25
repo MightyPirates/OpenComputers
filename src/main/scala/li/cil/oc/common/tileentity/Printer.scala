@@ -129,7 +129,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     result(data.isButtonMode)
   }
 
-  @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
+  @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
   def addShape(context: Context, args: Arguments): Array[Object] = {
     if (data.stateOff.size + data.stateOn.size >= Settings.get.maxPrintComplexity) {
       return result(null, "model too complex")
@@ -141,7 +141,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     val maxY = (args.checkInteger(4) max 0 min 16) / 16f
     val maxZ = (16 - (args.checkInteger(5) max 0 min 16)) / 16f
     val texture = args.checkString(6).take(64)
-    val state = args.checkAny(7) != null && args.optBoolean(7, false)
+    val state = if (args.isBoolean(7)) args.checkBoolean(7) else false
+    val tint = if (args.isInteger(7)) Option(args.checkInteger(7)) else if (args.isInteger(8)) Option(args.checkInteger(8)) else None
 
     if (minX == maxX) throw new IllegalArgumentException("empty block")
     if (minY == maxY) throw new IllegalArgumentException("empty block")
@@ -154,7 +155,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       math.min(minZ, maxZ),
       math.max(maxX, minX),
       math.max(maxY, minY),
-      math.max(maxZ, minZ)), texture)
+      math.max(maxZ, minZ)),
+      texture, tint)
     isActive = false // Needs committing.
 
     world.markBlockForUpdate(x, y, z)

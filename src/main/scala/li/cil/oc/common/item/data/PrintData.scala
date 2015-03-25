@@ -61,7 +61,8 @@ object PrintData {
     val maxY = nbt.getByte("maxY") / 16f
     val maxZ = nbt.getByte("maxZ") / 16f
     val texture = nbt.getString("texture")
-    new Shape(AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ), texture)
+    val tint = if (nbt.hasKey("tint")) Option(nbt.getInteger("tint")) else None
+    new Shape(AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ), texture, tint)
   }
 
   def shapeToNBT(shape: Shape): NBTTagCompound = {
@@ -73,9 +74,10 @@ object PrintData {
     nbt.setByte("maxY", (shape.bounds.maxY * 16).round.toByte)
     nbt.setByte("maxZ", (shape.bounds.maxZ * 16).round.toByte)
     nbt.setString("texture", shape.texture)
+    shape.tint.foreach(nbt.setInteger("tint", _))
     nbt
   }
 
-  class Shape(val bounds: AxisAlignedBB, val texture: String)
+  class Shape(val bounds: AxisAlignedBB, val texture: String, val tint: Option[Int])
 
 }
