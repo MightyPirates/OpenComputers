@@ -25,6 +25,8 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.common.property.IUnlistedProperty
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable.ArrayBuffer
@@ -53,6 +55,9 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   }
 
   // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT) override
+  def colorMultiplier(world: IBlockAccess, pos: BlockPos, tint: Int): Int = tint
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
@@ -157,8 +162,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     }
   }
 
-  override def isBeaconBase(world: IBlockAccess, x: Int, y: Int, z: Int, beaconX: Int, beaconY: Int, beaconZ: Int): Boolean = {
-    world.getTileEntity(x, y, z) match {
+  override def isBeaconBase(world: IBlockAccess, pos: BlockPos, beacon: BlockPos): Boolean = {
+    world.getTileEntity(pos) match {
       case print: tileentity.Print => print.data.isBeaconBase
       case _ => false
     }

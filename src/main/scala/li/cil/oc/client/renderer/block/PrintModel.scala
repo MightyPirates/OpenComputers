@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.block
 
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedAABB._
 import net.minecraft.block.state.IBlockState
@@ -33,7 +34,7 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
             if (texture.getIconName == "missingno") {
               texture = Textures.getSprite("minecraft:blocks/" + shape.texture)
             }
-            faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), None)
+            faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
           }
 
           bufferAsJavaList(faces)
@@ -42,12 +43,20 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
   }
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
-    override protected def textureScale = 32f
+    val data = new PrintData(stack)
 
     override def getGeneralQuads = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-      //      Textures.bind(Textures.Model.DroneItem)
+      Textures.Block.bind()
+      for (shape <- data.stateOff) {
+        val bounds = shape.bounds
+        var texture = Textures.getSprite(shape.texture)
+        if (texture.getIconName == "missingno") {
+          texture = Textures.getSprite("minecraft:blocks/" + shape.texture)
+        }
+        faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
+      }
 
       bufferAsJavaList(faces)
     }

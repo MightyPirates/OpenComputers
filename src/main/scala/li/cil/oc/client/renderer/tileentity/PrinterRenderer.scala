@@ -21,7 +21,7 @@ object PrinterRenderer extends TileEntitySpecialRenderer {
       RenderState.pushAttrib(GL11.GL_ALL_ATTRIB_BITS)
       RenderState.pushMatrix()
 
-      GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+      GL11.glTranslated(x + 0.5, y + 0.5 + 0.3, z + 0.5)
 
       GL11.glRotated((System.currentTimeMillis() % 20000) / 20000.0 * 360, 0, 1, 0)
 
