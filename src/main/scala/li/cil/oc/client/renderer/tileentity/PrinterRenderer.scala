@@ -23,9 +23,7 @@ object PrinterRenderer extends TileEntitySpecialRenderer {
 
       GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
-//      GL11.glTranslated(-0.5, -0.5, -0.5)
       GL11.glRotated((System.currentTimeMillis() % 20000) / 20000.0 * 360, 0, 1, 0)
-//      GL11.glTranslated(0.5, 0.5, 0.5)
 
       val brightness = printer.world.getLightBrightnessForSkyBlocks(printer.x, printer.y, printer.z, 0)
       OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)

@@ -175,8 +175,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     if (!canPrint) {
       return result(null, "model invalid")
     }
-    isActive = true
     limit = (args.optDouble(0, 1) max 0 min Integer.MAX_VALUE).toInt
+    isActive = limit > 0
     result(true)
   }
 
