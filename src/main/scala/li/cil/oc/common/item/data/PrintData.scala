@@ -23,6 +23,7 @@ class PrintData extends ItemData {
   var pressurePlate = false
   val stateOff = mutable.Set.empty[PrintData.Shape]
   val stateOn = mutable.Set.empty[PrintData.Shape]
+  var isBeaconBase = false
 
   override def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey("label")) label = Option(nbt.getString("label")) else label = None
@@ -34,6 +35,7 @@ class PrintData extends ItemData {
     stateOff ++= nbt.getTagList("stateOff", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     stateOn.clear()
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
+    isBeaconBase = nbt.getBoolean("isBeaconBase")
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
@@ -44,6 +46,7 @@ class PrintData extends ItemData {
     nbt.setBoolean("pressurePlate", pressurePlate)
     nbt.setNewTagList("stateOff", stateOff.map(PrintData.shapeToNBT))
     nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
+    nbt.setBoolean("isBeaconBase", isBeaconBase)
   }
 
   def createItemStack() = {
@@ -62,7 +65,8 @@ object PrintData {
     val maxY = nbt.getByte("maxY") / 16f
     val maxZ = nbt.getByte("maxZ") / 16f
     val texture = nbt.getString("texture")
-    new Shape(AxisAlignedBB.fromBounds(minX, minY, minZ, maxX, maxY, maxZ), texture)
+    val tint = if (nbt.hasKey("tint")) Option(nbt.getInteger("tint")) else None
+    new Shape(AxisAlignedBB.fromBounds(minX, minY, minZ, maxX, maxY, maxZ), texture, tint)
   }
 
   def shapeToNBT(shape: Shape): NBTTagCompound = {
@@ -74,9 +78,10 @@ object PrintData {
     nbt.setByte("maxY", (shape.bounds.maxY * 16).round.toByte)
     nbt.setByte("maxZ", (shape.bounds.maxZ * 16).round.toByte)
     nbt.setString("texture", shape.texture)
+    shape.tint.foreach(nbt.setInteger("tint", _))
     nbt
   }
 
-  class Shape(val bounds: AxisAlignedBB, val texture: String)
+  class Shape(val bounds: AxisAlignedBB, val texture: String, val tint: Option[Int])
 
 }

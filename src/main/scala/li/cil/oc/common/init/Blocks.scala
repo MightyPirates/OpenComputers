@@ -43,6 +43,7 @@ object Blocks {
     Recipes.addBlock(new Case(Tier.One), Constants.BlockName.CaseTier1, "oc:case1")
     Recipes.addBlock(new Case(Tier.Three), Constants.BlockName.CaseTier3, "oc:case3")
     Recipes.addBlock(new Case(Tier.Two), Constants.BlockName.CaseTier2, "oc:case2")
+    Recipes.addBlock(new ChameliumBlock(), Constants.BlockName.ChameliumBlock, "oc:chameliumBlock")
     Recipes.addBlock(new Charger(), Constants.BlockName.Charger, "oc:charger")
     Recipes.addBlock(new Disassembler(), Constants.BlockName.Disassembler, "oc:disassembler")
     Recipes.addBlock(new DiskDrive(), Constants.BlockName.DiskDrive, "oc:diskDrive")

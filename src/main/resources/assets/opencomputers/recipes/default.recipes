@@ -330,6 +330,11 @@ chamelium {
           [gravel, {item=water_bucket}, gravel]]
   output: 16
 }
+chameliumBlock {
+  input: [["oc:chamelium", "oc:chamelium", "oc:chamelium"],
+          ["oc:chamelium", "oc:chamelium", "oc:chamelium"],
+          ["oc:chamelium", "oc:chamelium", "oc:chamelium"]]
+}
 inkCartridgeEmpty {
   input: [[nuggetIron, dispenser, nuggetIron],
           ["oc:materialTransistor", bucket, "oc:materialTransistor"],

@@ -14,6 +14,7 @@ object Constants {
     final val CaseTier1 = "case1"
     final val CaseTier2 = "case2"
     final val CaseTier3 = "case3"
+    final val ChameliumBlock = "chameliumBlock"
     final val Charger = "charger"
     final val Disassembler = "disassembler"
     final val DiskDrive = "diskDrive"

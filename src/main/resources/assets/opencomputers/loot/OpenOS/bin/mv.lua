@@ -16,6 +16,7 @@ end
 if fs.exists(to) then
   if not options.f then
     io.stderr:write("target file exists")
+    return
   end
   fs.remove(to)
 end

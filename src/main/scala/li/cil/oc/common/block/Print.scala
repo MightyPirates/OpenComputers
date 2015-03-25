@@ -73,7 +73,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       case print: tileentity.Print =>
         val shapes = if (print.state) print.data.stateOn else print.data.stateOff
         for (shape <- shapes) {
-          val bounds = shape.bounds
+          val bounds = shape.bounds.rotateTowards(print.facing)
           val fullX = bounds.minX == 0 && bounds.maxX == 1
           val fullY = bounds.minY == 0 && bounds.maxY == 1
           val fullZ = bounds.minZ == 0 && bounds.maxZ == 1
@@ -154,6 +154,13 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     if (!world.isRemote) world.getTileEntity(pos) match {
       case print: tileentity.Print => if (print.state) print.toggleState()
       case _ =>
+    }
+  }
+
+  override def isBeaconBase(world: IBlockAccess, x: Int, y: Int, z: Int, beaconX: Int, beaconY: Int, beaconZ: Int): Boolean = {
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print => print.data.isBeaconBase
+      case _ => false
     }
   }
 

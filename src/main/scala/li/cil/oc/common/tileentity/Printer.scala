@@ -33,6 +33,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   var data = new PrintData()
   var isActive = false
+  var limit = 0
   var output: Option[ItemStack] = None
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
@@ -128,7 +129,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     result(data.isButtonMode)
   }
 
-  @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
+  @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
   def addShape(context: Context, args: Arguments): Array[Object] = {
     if (data.stateOff.size + data.stateOn.size >= Settings.get.maxPrintComplexity) {
       return result(null, "model too complex")
@@ -140,7 +141,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     val maxY = (args.checkInteger(4) max 0 min 16) / 16f
     val maxZ = (16 - (args.checkInteger(5) max 0 min 16)) / 16f
     val texture = args.checkString(6).take(64)
-    val state = args.checkAny(7) != null && args.optBoolean(7, false)
+    val state = if (args.isBoolean(7)) args.checkBoolean(7) else false
+    val tint = if (args.isInteger(7)) Option(args.checkInteger(7)) else if (args.isInteger(8)) Option(args.checkInteger(8)) else None
 
     if (minX == maxX) throw new IllegalArgumentException("empty block")
     if (minY == maxY) throw new IllegalArgumentException("empty block")
@@ -153,7 +155,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       math.min(minZ, maxZ),
       math.max(maxX, minX),
       math.max(maxY, minY),
-      math.max(maxZ, minZ)), texture)
+      math.max(maxZ, minZ)),
+      texture, tint)
     isActive = false // Needs committing.
 
     world.markBlockForUpdate(getPos)
@@ -167,12 +170,13 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @Callback(doc = """function():number -- Get the maximum allowed number of shapes.""")
   def getMaxShapeCount(context: Context, args: Arguments): Array[Object] = result(Settings.get.maxPrintComplexity)
 
-  @Callback(doc = """function():boolean -- Commit and begin printing the current configuration.""")
+  @Callback(doc = """function([count:number]):boolean -- Commit and begin printing the current configuration.""")
   def commit(context: Context, args: Arguments): Array[Object] = {
     if (!canPrint) {
       return result(null, "model invalid")
     }
     isActive = true
+    limit = (args.optDouble(0, 1) max 0 min Integer.MAX_VALUE).toInt
     result(true)
   }
 
@@ -210,7 +214,9 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
         if (amountMaterial >= materialRequired && amountInk >= inkRequired) {
           amountMaterial -= materialRequired
           amountInk -= inkRequired
+          limit -= 1
           output = Option(data.createItemStack())
+          if (limit < 1) isActive = false
           ServerPacketSender.sendPrinting(this, printing = true)
         }
       }
@@ -261,6 +267,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     amountInk = nbt.getInteger(Settings.namespace + "amountInk")
     data.load(nbt.getCompoundTag(Settings.namespace + "data"))
     isActive = nbt.getBoolean(Settings.namespace + "active")
+    limit = nbt.getInteger(Settings.namespace + "limit")
     if (nbt.hasKey(Settings.namespace + "output")) {
       output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
     }
@@ -274,6 +281,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     nbt.setInteger(Settings.namespace + "amountInk", amountInk)
     nbt.setNewCompoundTag(Settings.namespace + "data", data.save)
     nbt.setBoolean(Settings.namespace + "active", isActive)
+    nbt.setInteger(Settings.namespace + "limit", limit)
     output.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "output", stack.writeToNBT))
     nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
     nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
