@@ -9,7 +9,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rotatable {
+class Print extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
   val data = new PrintData()
 
   var boundsOff = ExtendedAABB.unitBounds

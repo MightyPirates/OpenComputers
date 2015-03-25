@@ -49,10 +49,10 @@ object ExtendedAABB {
     })
 
     def rotateY(count: Int): AxisAlignedBB = {
-      val min = new Vec3(bounds.minX - 0.5, bounds.minY - 0.5, bounds.minZ - 0.5)
-      val max = new Vec3(bounds.maxX - 0.5, bounds.maxY - 0.5, bounds.maxZ - 0.5)
-      min.rotateYaw(count * Math.PI.toFloat * 0.5f)
-      max.rotateYaw(count * Math.PI.toFloat * 0.5f)
+      var min = new Vec3(bounds.minX - 0.5, bounds.minY - 0.5, bounds.minZ - 0.5)
+      var max = new Vec3(bounds.maxX - 0.5, bounds.maxY - 0.5, bounds.maxZ - 0.5)
+      min = min.rotateYaw(count * Math.PI.toFloat * 0.5f)
+      max = max.rotateYaw(count * Math.PI.toFloat * 0.5f)
       AxisAlignedBB.fromBounds(
         (math.min(min.xCoord + 0.5, max.xCoord + 0.5) * 32).round / 32f,
         (math.min(min.yCoord + 0.5, max.yCoord + 0.5) * 32).round / 32f,

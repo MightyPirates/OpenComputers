@@ -28,6 +28,8 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
   /** Render size of slots (width and height). */
   protected val slotSize = 18
 
+  private var lastSync = System.currentTimeMillis()
+
   override def canInteractWith(player: EntityPlayer) = otherInventory.isUseableByPlayer(player)
 
   override def slotClick(slot: Int, mouseClick: Int, holdingShift: Int, player: EntityPlayer) = {
@@ -155,6 +157,10 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     val delta = synchronizedData.getDelta
     if (delta != null && !delta.hasNoTags) {
       nbt.setTag("delta", delta)
+    }
+    else if (System.currentTimeMillis() - lastSync > 250) {
+      nbt.setTag("delta", synchronizedData)
+      lastSync = Long.MaxValue
     }
   }
 
