@@ -48,6 +48,9 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
       state = newMaxValue > 0
       world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
       world.markBlockForUpdate(getPos)
+      if (state && data.isButtonMode) {
+        world.scheduleUpdate(getPos, blockType, blockType.tickRate(world))
+      }
     }
   }
 
