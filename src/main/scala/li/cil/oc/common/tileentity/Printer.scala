@@ -62,9 +62,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   def canPrint = data.stateOff.size > 0 && data.stateOff.size + data.stateOn.size <= Settings.get.maxPrintComplexity
 
-  def isPrinting = (requiredEnergy > 0 || isActive) && Option(getStackInSlot(slotOutput)).fold(true)(stack => {
-    stack.stackSize < stack.getMaxStackSize && output.fold(true)(ItemStack.areItemStackTagsEqual(stack, _))
-  })
+  def isPrinting = output.isDefined
 
   def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
@@ -196,7 +194,13 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   override def updateEntity() {
     super.updateEntity()
 
-    if (isActive && output.isEmpty && Option(getStackInSlot(slotOutput)).fold(true)(stack => stack.stackSize < stack.getMaxStackSize)) {
+    def canMergeOutput = {
+      val presentStack = getStackInSlot(slotOutput)
+      val outputStack = data.createItemStack()
+      presentStack == null || (presentStack.isItemEqual(outputStack) && ItemStack.areItemStackTagsEqual(presentStack, outputStack))
+    }
+
+    if (isActive && output.isEmpty && canMergeOutput) {
       val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
       val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
 
@@ -233,7 +237,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
         if (result == null) {
           setInventorySlotContents(slotOutput, output.get)
         }
-        else if (output.get.isItemEqual(result) && ItemStack.areItemStackTagsEqual(output.get, result) && result.stackSize < result.getMaxStackSize) {
+        else if (result.stackSize < result.getMaxStackSize && canMergeOutput /* Should never fail, but just in case... */ ) {
           result.stackSize += 1
           markDirty()
         }
