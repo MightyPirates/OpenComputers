@@ -22,6 +22,7 @@ class PrintData extends ItemData {
   var pressurePlate = false
   val stateOff = mutable.Set.empty[PrintData.Shape]
   val stateOn = mutable.Set.empty[PrintData.Shape]
+  var isBeaconBase = false
 
   override def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey("label")) label = Option(nbt.getString("label")) else label = None
@@ -33,6 +34,7 @@ class PrintData extends ItemData {
     stateOff ++= nbt.getTagList("stateOff", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     stateOn.clear()
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
+    isBeaconBase = nbt.getBoolean("isBeaconBase")
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
@@ -43,6 +45,7 @@ class PrintData extends ItemData {
     nbt.setBoolean("pressurePlate", pressurePlate)
     nbt.setNewTagList("stateOff", stateOff.map(PrintData.shapeToNBT))
     nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
+    nbt.setBoolean("isBeaconBase", isBeaconBase)
   }
 
   def createItemStack() = {

@@ -8,6 +8,8 @@ import li.cil.oc.client.renderer.block.Print
 import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.integration.opencomputers.Item
+import li.cil.oc.util.Color
+import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
@@ -37,6 +39,8 @@ object ItemRenderer extends IItemRenderer {
   lazy val lootDisk = api.Items.get("lootDisk")
   lazy val print = api.Items.get("print")
 
+  lazy val nullShape = new PrintData.Shape(ExtendedAABB.unitBounds, Settings.resourceDomain + ":White", Some(Color.Lime))
+
   def bounds = AxisAlignedBB.getBoundingBox(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
 
   def isUpgrade(descriptor: ItemInfo) =
@@ -58,7 +62,7 @@ object ItemRenderer extends IItemRenderer {
 
   override def shouldUseRenderHelper(renderType: ItemRenderType, stack: ItemStack, helper: ItemRendererHelper) =
     if (renderType == ItemRenderType.ENTITY) true
-      else if (renderType == ItemRenderType.INVENTORY && api.Items.get(stack) == print) helper == ItemRendererHelper.INVENTORY_BLOCK
+    else if (renderType == ItemRenderType.INVENTORY && api.Items.get(stack) == print) helper == ItemRendererHelper.INVENTORY_BLOCK
     // Note: it's easier to revert changes introduced by this "helper" than by
     // the code that applies if no helper is used...
     else helper == ItemRendererHelper.EQUIPPED_BLOCK
@@ -163,6 +167,9 @@ object ItemRenderer extends IItemRenderer {
       Minecraft.getMinecraft.renderEngine.bindTexture(TextureMap.locationBlocksTexture)
       for (shape <- data.stateOff) {
         drawShape(shape)
+      }
+      if (data.stateOff.isEmpty) {
+        drawShape(nullShape)
       }
 
       GL11.glPopMatrix()

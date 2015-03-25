@@ -129,6 +129,7 @@ object Recipes {
       val tablet = api.Items.get("tablet")
       val chamelium = api.Items.get("chamelium")
       val chameliumBlock = api.Items.get("chameliumBlock")
+      val print = api.Items.get("print")
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
@@ -183,6 +184,18 @@ object Recipes {
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
           result,
           input, dye))
+      }
+
+      // Print beaconification.
+      for (block <- Array(
+        net.minecraft.init.Blocks.iron_block,
+        net.minecraft.init.Blocks.gold_block,
+        net.minecraft.init.Blocks.emerald_block,
+        net.minecraft.init.Blocks.diamond_block
+      )) {
+        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+          print.createItemStack(1),
+          print.createItemStack(1), new ItemStack(block)))
       }
     }
     catch {

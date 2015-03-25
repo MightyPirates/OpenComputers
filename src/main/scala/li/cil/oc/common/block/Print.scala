@@ -145,6 +145,13 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     }
   }
 
+  override def isBeaconBase(world: IBlockAccess, x: Int, y: Int, z: Int, beaconX: Int, beaconY: Int, beaconZ: Int): Boolean = {
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print => print.data.isBeaconBase
+      case _ => false
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def hasTileEntity(metadata: Int) = true
