@@ -24,6 +24,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 abstract class SimpleBlock(material: Material = Material.iron) extends BlockContainer(material) {
   setHardness(2f)
+  setResistance(5)
   setCreativeTab(CreativeTab)
 
   var showInItemList = true

@@ -34,6 +34,8 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Disassembler(player.inventory, t)
           case t: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
             new gui.DiskDrive(player.inventory, t)
+          case t: tileentity.Printer if id == GuiType.Printer.id =>
+            new gui.Printer(player.inventory, t)
           case t: tileentity.Raid if id == GuiType.Raid.id =>
             new gui.Raid(player.inventory, t)
           case t: tileentity.RobotProxy if id == GuiType.Robot.id =>

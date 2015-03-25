@@ -26,6 +26,8 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motionSensor")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "powerConverter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "powerDistributor")
+    GameRegistry.registerTileEntity(classOf[tileentity.Print], Settings.namespace + "print")
+    GameRegistry.registerTileEntity(classOf[tileentity.Printer], Settings.namespace + "printer")
     GameRegistry.registerTileEntity(classOf[tileentity.Raid], Settings.namespace + "raid")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
@@ -51,6 +53,7 @@ object Blocks {
     Recipes.addBlock(new MotionSensor(), Constants.BlockName.MotionSensor, "oc:motionSensor")
     Recipes.addBlock(new PowerConverter(), Constants.BlockName.PowerConverter, "oc:powerConverter")
     Recipes.addBlock(new PowerDistributor(), Constants.BlockName.PowerDistributor, "oc:powerDistributor")
+    Recipes.addBlock(new Printer(), "printer", "oc:printer")
     Recipes.addBlock(new Raid(), Constants.BlockName.Raid, "oc:raid")
     Recipes.addBlock(new Redstone(), Constants.BlockName.Redstone, "oc:redstone")
     Recipes.addBlock(new Screen(Tier.One), Constants.BlockName.ScreenTier1, "oc:screen1")
@@ -61,6 +64,7 @@ object Blocks {
 
     Items.registerBlock(new Case(Tier.Four), Constants.BlockName.CaseCreative)
     Items.registerBlock(new Microcontroller(), Constants.BlockName.Microcontroller)
+    Items.registerBlock(new Print(), "print")
     Items.registerBlock(new RobotAfterimage(), Constants.BlockName.RobotAfterimage)
     Items.registerBlock(new RobotProxy(), Constants.BlockName.Robot)
   }

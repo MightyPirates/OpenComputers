@@ -8,19 +8,21 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
 
   override def height = 12
 
+  def barTexture = Textures.GUI.Bar
+
   var level = 0.0
 
   def draw() {
     if (level > 0) {
       val u0 = 0
-      val u1 = width / 256.0 * level
-      val v0 = 1 - height / 256.0
+      val u1 = level
+      val v0 = 0
       val v1 = 1
       val tx = owner.windowX + x
       val ty = owner.windowY + y
       val w = width * level
 
-      Textures.bind(Textures.GUI.Bar)
+      Textures.bind(barTexture)
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
       r.startDrawingQuads()

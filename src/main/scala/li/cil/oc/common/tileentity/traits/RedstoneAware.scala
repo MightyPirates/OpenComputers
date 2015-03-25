@@ -80,7 +80,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     }
   }
 
-  protected def updateRedstoneInput(side: EnumFacing) {
+  def updateRedstoneInput(side: EnumFacing) {
     val oldInput = _input(side.ordinal())
     val newInput = computeInput(side)
     _input(side.ordinal()) = newInput

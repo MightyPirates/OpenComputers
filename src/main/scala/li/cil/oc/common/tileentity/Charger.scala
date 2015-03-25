@@ -180,7 +180,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
-  override protected def updateRedstoneInput(side: EnumFacing) {
+  override def updateRedstoneInput(side: EnumFacing) {
     super.updateRedstoneInput(side)
     val signal = math.max(0, math.min(15, EnumFacing.values.map(input).max))
 
@@ -209,7 +209,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     // Only update list when we have to, keeps pointless block updates to a minimum.
-    if (connectors.size != robotConnectors.size + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
+    if (connectors.size != robotConnectors.length + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
       connectors.clear()
       connectors ++= robotConnectors
       connectors ++= droneConnectors

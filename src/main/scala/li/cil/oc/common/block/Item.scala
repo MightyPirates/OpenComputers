@@ -6,6 +6,7 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
@@ -75,6 +76,14 @@ class Item(value: Block) extends ItemBlock(value) {
   }
 
   override def getMetadata(itemDamage: Int) = itemDamage
+
+  override def getItemStackDisplayName(stack: ItemStack): String = {
+    if (api.Items.get(stack) == api.Items.get("print")) {
+      val data = new PrintData(stack)
+      data.label.getOrElse(super.getItemStackDisplayName(stack))
+    }
+    else super.getItemStackDisplayName(stack)
+  }
 
   override def getUnlocalizedName = block match {
     case simple: SimpleBlock => simple.getUnlocalizedName

@@ -90,7 +90,7 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
 
   // ----------------------------------------------------------------------- //
 
-  override protected def updateRedstoneInput(side: EnumFacing) {
+  override def updateRedstoneInput(side: EnumFacing) {
     super.updateRedstoneInput(side)
     val ownBundledInput = _bundledInput(side.ordinal())
     val newBundledInput = computeBundledInput(side)

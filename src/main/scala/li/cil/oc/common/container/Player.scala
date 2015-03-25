@@ -3,14 +3,18 @@ package li.cil.oc.common.container
 import li.cil.oc.common
 import li.cil.oc.common.InventorySlots.InventorySlot
 import li.cil.oc.common.Tier
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.SideTracker
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.ICrafting
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTBase
+import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
 
@@ -133,4 +137,104 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       case _ =>
     }
   }
+
+  override def detectAndSendChanges(): Unit = {
+    super.detectAndSendChanges()
+    if (SideTracker.isServer) {
+      val nbt = new NBTTagCompound()
+      detectCustomDataChanges(nbt)
+      for (entry <- crafters) entry match {
+        case player: EntityPlayerMP => ServerPacketSender.sendContainerUpdate(this, nbt, player)
+        case _ =>
+      }
+    }
+  }
+
+  // Used for custom value synchronization, because shorts simply don't cut it most of the time.
+  protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
+    val delta = synchronizedData.getDelta
+    if (delta != null && !delta.hasNoTags) {
+      nbt.setTag("delta", delta)
+    }
+  }
+
+  def updateCustomData(nbt: NBTTagCompound): Unit = {
+    if (nbt.hasKey("delta")) {
+      val delta = nbt.getCompoundTag("delta")
+      delta.getKeySet.foreach {
+        case key: String => synchronizedData.setTag(key, delta.getTag(key))
+      }
+    }
+  }
+
+  protected class SynchronizedData extends NBTTagCompound {
+    private var delta = new NBTTagCompound()
+
+    def getDelta: NBTTagCompound = this.synchronized {
+      if (delta.hasNoTags) null
+      else {
+        val result = delta
+        delta = new NBTTagCompound()
+        result
+      }
+    }
+
+    override def setTag(key: String, value: NBTBase): Unit = this.synchronized {
+      if (!value.equals(getTag(key))) delta.setTag(key, value)
+      super.setTag(key, value)
+    }
+
+    override def setByte(key: String, value: Byte): Unit = this.synchronized {
+      if (value != getByte(key)) delta.setByte(key, value)
+      super.setByte(key, value)
+    }
+
+    override def setShort(key: String, value: Short): Unit = this.synchronized {
+      if (value != getShort(key)) delta.setShort(key, value)
+      super.setShort(key, value)
+    }
+
+    override def setInteger(key: String, value: Int): Unit = this.synchronized {
+      if (value != getInteger(key)) delta.setInteger(key, value)
+      super.setInteger(key, value)
+    }
+
+    override def setLong(key: String, value: Long): Unit = this.synchronized {
+      if (value != getLong(key)) delta.setLong(key, value)
+      super.setLong(key, value)
+    }
+
+    override def setFloat(key: String, value: Float): Unit = this.synchronized {
+      if (value != getFloat(key)) delta.setFloat(key, value)
+      super.setFloat(key, value)
+    }
+
+    override def setDouble(key: String, value: Double): Unit = this.synchronized {
+      if (value != getDouble(key)) delta.setDouble(key, value)
+      super.setDouble(key, value)
+    }
+
+    override def setString(key: String, value: String): Unit = this.synchronized {
+      if (value != getString(key)) delta.setString(key, value)
+      super.setString(key, value)
+    }
+
+    override def setByteArray(key: String, value: Array[Byte]): Unit = this.synchronized {
+      if (value.deep != getByteArray(key).deep) delta.setByteArray(key, value)
+      super.setByteArray(key, value)
+    }
+
+    override def setIntArray(key: String, value: Array[Int]): Unit = this.synchronized {
+      if (value.deep != getIntArray(key).deep) delta.setIntArray(key, value)
+      super.setIntArray(key, value)
+    }
+
+    override def setBoolean(key: String, value: Boolean): Unit = this.synchronized {
+      if (value != getBoolean(key)) delta.setBoolean(key, value)
+      super.setBoolean(key, value)
+    }
+  }
+
+  protected val synchronizedData = new SynchronizedData()
+
 }

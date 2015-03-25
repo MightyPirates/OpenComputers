@@ -26,6 +26,8 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Disassembler(player.inventory, t)
           case t: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
             new container.DiskDrive(player.inventory, t)
+          case t: tileentity.Printer if id == GuiType.Printer.id =>
+            new container.Printer(player.inventory, t)
           case t: tileentity.Raid if id == GuiType.Raid.id =>
             new container.Raid(player.inventory, t)
           case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
