@@ -11,7 +11,7 @@ import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
 object PrinterRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val printer = tileEntity.asInstanceOf[Printer]

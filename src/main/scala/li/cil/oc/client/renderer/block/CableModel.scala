@@ -82,7 +82,7 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
 
   class BlockModel(val state: IExtendedBlockState) extends SmartBlockModelBase {
     override def getGeneralQuads =
-      state.getValue(block.Cable.Tile) match {
+      state.getValue(block.property.PropertyTile.Tile) match {
         case cable: tileentity.Cable =>
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
@@ -120,6 +120,7 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
     }
 
     private def isCableFMP(tileEntity: TileEntity) = false
+
     /* TODO FMP
       tileEntity.isInstanceOf[TileMultipart]
     */

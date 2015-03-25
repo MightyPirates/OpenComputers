@@ -83,10 +83,10 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Accessors
   // ----------------------------------------------------------------------- //
 
-  def pitch = getBlockType match {
+  def pitch = if (world != null) getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getPitch(world.getBlockState(getPos))
     case _ => EnumFacing.NORTH
-  }
+  } else EnumFacing.NORTH
 
   def pitch_=(value: EnumFacing): Unit =
     trySetPitchYaw(value match {
@@ -94,11 +94,11 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       case _ => EnumFacing.NORTH
     }, yaw)
 
-  def yaw = getBlockType match {
+  def yaw = if (world != null) getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getYaw(world.getBlockState(getPos))
     case rotatable: block.traits.Rotatable => rotatable.getFacing(world.getBlockState(getPos))
     case _ => EnumFacing.SOUTH
-  }
+  } else EnumFacing.SOUTH
 
   def yaw_=(value: EnumFacing): Unit =
     trySetPitchYaw(pitch, value match {

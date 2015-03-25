@@ -23,6 +23,10 @@ object ExtendedAABB {
         bounds.maxZ + pos.getZ)
     }
 
+    def min = new Vec3(bounds.minX, bounds.minY, bounds.minZ)
+
+    def max = new Vec3(bounds.maxX, bounds.maxY, bounds.maxZ)
+
     def volume: Int = {
       val sx = ((bounds.maxX - bounds.minX) * 16).round.toInt
       val sy = ((bounds.maxY - bounds.minY) * 16).round.toInt

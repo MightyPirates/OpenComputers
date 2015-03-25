@@ -3,13 +3,13 @@ package li.cil.oc.common.block
 import java.util
 import java.util.Random
 
-import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.InventoryUtils
+import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving.SpawnPlacementType
@@ -23,16 +23,36 @@ import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraftforge.common.property.IUnlistedProperty
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
-class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] {
+class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] with traits.Extended {
   setLightOpacity(0)
   setHardness(1)
   setCreativeTab(null)
   NEI.hide(this)
-  setBlockTextureName(Settings.resourceDomain + "GenericTop")
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+
+  override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
+    (state, world.getTileEntity(pos)) match {
+      case (extendedState: IExtendedBlockState, print: tileentity.Print) =>
+        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, print), world, pos)
+      case _ => None
+    }
+
+  override protected def createProperties(listed: ArrayBuffer[IProperty], unlisted: ArrayBuffer[IUnlistedProperty[_]]) {
+    super.createProperties(listed, unlisted)
+    unlisted += property.PropertyTile.Tile
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
@@ -141,7 +161,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, state: IBlockState) = new tileentity.Print()
+  override def createNewTileEntity(worldIn: World, meta: Int) = new tileentity.Print()
 
   // ----------------------------------------------------------------------- //
 

@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import net.minecraft.block.state.IBlockState
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
@@ -20,7 +21,7 @@ class Printer extends SimpleBlock with traits.StateAware with traits.GUI {
 
   override def guiType = GuiType.Printer
 
-  override def hasTileEntity(metadata: Int) = true
+  override def hasTileEntity(state: IBlockState) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Printer()
+  override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Printer()
 }

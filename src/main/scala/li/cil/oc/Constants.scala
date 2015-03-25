@@ -25,6 +25,8 @@ object Constants {
     final val MotionSensor = "motionSensor"
     final val PowerConverter = "powerConverter"
     final val PowerDistributor = "powerDistributor"
+    final val Print = "print"
+    final val Printer = "printer"
     final val Raid = "raid"
     final val Redstone = "redstone"
     final val Robot = "robot"

@@ -1,5 +1,6 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
@@ -46,7 +47,7 @@ class PrintData extends ItemData {
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("print").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Print).createItemStack(1)
     save(stack)
     stack
   }
