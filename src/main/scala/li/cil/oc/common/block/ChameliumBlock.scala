@@ -13,4 +13,6 @@ class ChameliumBlock extends SimpleBlock {
   )
 
   override def getRenderColor(meta: Int): Int = Color.byOreName(Color.dyes(meta max 0 min Color.dyes.length))
+
+  override def damageDropped(meta: Int): Int = meta
 }
