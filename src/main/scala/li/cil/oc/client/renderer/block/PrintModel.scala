@@ -30,10 +30,7 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
 
           for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
             val bounds = shape.bounds.rotateTowards(print.facing)
-            var texture = Textures.getSprite(shape.texture)
-            if (texture.getIconName == "missingno") {
-              texture = Textures.getSprite("minecraft:blocks/" + shape.texture)
-            }
+            val texture = resolveTexture(shape.texture)
             faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
           }
 
@@ -51,15 +48,18 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
       Textures.Block.bind()
       for (shape <- data.stateOff) {
         val bounds = shape.bounds
-        var texture = Textures.getSprite(shape.texture)
-        if (texture.getIconName == "missingno") {
-          texture = Textures.getSprite("minecraft:blocks/" + shape.texture)
-        }
+        val texture = resolveTexture(shape.texture)
         faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
       }
 
       bufferAsJavaList(faces)
     }
+  }
+
+  private def resolveTexture(name: String) = {
+    val texture = Textures.getSprite(name)
+    if (texture.getIconName == "missingno") Textures.getSprite("minecraft:blocks/" + name)
+    else texture
   }
 
 }
