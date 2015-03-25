@@ -66,8 +66,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     materialBar.level = printerContainer.amountMaterial / printer.maxAmountMaterial.toDouble
     inkBar.level = printerContainer.amountInk / printer.maxAmountInk.toDouble
-    if (printerContainer.isPrinting) progressBar.level = (System.currentTimeMillis() % 3000) / 3000.0
-    else progressBar.level = 0
+    progressBar.level = printerContainer.progress
     drawWidgets()
     drawInventorySlots()
   }

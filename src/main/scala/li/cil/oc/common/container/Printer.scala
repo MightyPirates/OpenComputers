@@ -13,14 +13,14 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
   // Show the player's inventory.
   addPlayerInventorySlots(8, 84)
 
-  def isPrinting = synchronizedData.getBoolean("isPrinting")
+  def progress = synchronizedData.getDouble("progress")
 
   def amountMaterial = synchronizedData.getInteger("amountMaterial")
 
   def amountInk = synchronizedData.getInteger("amountInk")
 
   override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
-    synchronizedData.setBoolean("isPrinting", printer.isPrinting)
+    synchronizedData.setDouble("progress", if (printer.isPrinting) printer.progress / 100.0 else 0)
     synchronizedData.setInteger("amountMaterial", printer.amountMaterial)
     synchronizedData.setInteger("amountInk", printer.amountInk)
     super.detectCustomDataChanges(nbt)
