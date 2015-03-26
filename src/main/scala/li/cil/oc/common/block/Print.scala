@@ -102,16 +102,16 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     }
   }
 
-  override protected def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3): MovingObjectPosition = {
+  override protected def intersect(world: World, x: Int, y: Int, z: Int, start: Vec3, end: Vec3): MovingObjectPosition = {
     world.getTileEntity(x, y, z) match {
       case print: tileentity.Print =>
         var closestDistance = Double.PositiveInfinity
         var closest: Option[MovingObjectPosition] = None
         for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
           val bounds = shape.bounds.rotateTowards(print.facing).offset(x, y, z)
-          val hit = bounds.calculateIntercept(origin, direction)
+          val hit = bounds.calculateIntercept(start, end)
           if (hit != null) {
-            val distance = hit.hitVec.distanceTo(origin)
+            val distance = hit.hitVec.distanceTo(start)
             if (distance < closestDistance) {
               closestDistance = distance
               closest = Option(hit)
@@ -119,7 +119,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
           }
         }
         closest.map(hit => new MovingObjectPosition(x, y, z, hit.sideHit, hit.hitVec)).orNull
-      case _ => super.intersect(world, x, y, z, origin, direction)
+      case _ => super.intersect(world, x, y, z, start, end)
     }
   }
 

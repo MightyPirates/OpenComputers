@@ -102,7 +102,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
         result
       case print: tileentity.Print =>
-        Print.render(print, x, y, z, block, renderer)
+        Print.render(print.data, print.state, print.facing, x, y, z, block, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: print")
 
