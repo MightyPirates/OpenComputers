@@ -57,25 +57,42 @@ class PrintData extends ItemData {
 
 object PrintData {
   def nbtToShape(nbt: NBTTagCompound): Shape = {
-    val minX = nbt.getByte("minX") / 16f
-    val minY = nbt.getByte("minY") / 16f
-    val minZ = nbt.getByte("minZ") / 16f
-    val maxX = nbt.getByte("maxX") / 16f
-    val maxY = nbt.getByte("maxY") / 16f
-    val maxZ = nbt.getByte("maxZ") / 16f
+    val aabb =
+      if (nbt.hasKey("minX")) {
+        // Compatibility with shapes created with earlier dev-builds.
+        val minX = nbt.getByte("minX") / 16f
+        val minY = nbt.getByte("minY") / 16f
+        val minZ = nbt.getByte("minZ") / 16f
+        val maxX = nbt.getByte("maxX") / 16f
+        val maxY = nbt.getByte("maxY") / 16f
+        val maxZ = nbt.getByte("maxZ") / 16f
+        AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ)
+      }
+      else {
+        val bounds = nbt.getByteArray("bounds").padTo(6, 0.toByte)
+        val minX = bounds(0) / 16f
+        val minY = bounds(1) / 16f
+        val minZ = bounds(2) / 16f
+        val maxX = bounds(3) / 16f
+        val maxY = bounds(4) / 16f
+        val maxZ = bounds(5) / 16f
+        AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ)
+      }
     val texture = nbt.getString("texture")
     val tint = if (nbt.hasKey("tint")) Option(nbt.getInteger("tint")) else None
-    new Shape(AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ), texture, tint)
+    new Shape(aabb, texture, tint)
   }
 
   def shapeToNBT(shape: Shape): NBTTagCompound = {
     val nbt = new NBTTagCompound()
-    nbt.setByte("minX", (shape.bounds.minX * 16).round.toByte)
-    nbt.setByte("minY", (shape.bounds.minY * 16).round.toByte)
-    nbt.setByte("minZ", (shape.bounds.minZ * 16).round.toByte)
-    nbt.setByte("maxX", (shape.bounds.maxX * 16).round.toByte)
-    nbt.setByte("maxY", (shape.bounds.maxY * 16).round.toByte)
-    nbt.setByte("maxZ", (shape.bounds.maxZ * 16).round.toByte)
+    nbt.setByteArray("bounds", Array(
+      (shape.bounds.minX * 16).round.toByte,
+      (shape.bounds.minY * 16).round.toByte,
+      (shape.bounds.minZ * 16).round.toByte,
+      (shape.bounds.maxX * 16).round.toByte,
+      (shape.bounds.maxY * 16).round.toByte,
+      (shape.bounds.maxZ * 16).round.toByte
+    ))
     nbt.setString("texture", shape.texture)
     shape.tint.foreach(nbt.setInteger("tint", _))
     nbt
