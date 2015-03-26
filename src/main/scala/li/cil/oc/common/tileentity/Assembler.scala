@@ -113,16 +113,14 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
     super.updateEntity()
     if (output.isDefined && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
-      val success = Settings.get.ignorePower || node.tryChangeBuffer(-want)
-      if (success) {
-        requiredEnergy -= want
-      }
+      val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
+      requiredEnergy -= have
       if (requiredEnergy <= 0) {
         setInventorySlotContents(0, output.get)
         output = None
         requiredEnergy = 0
       }
-      ServerPacketSender.sendRobotAssembling(this, success && output.isDefined)
+      ServerPacketSender.sendRobotAssembling(this, have > 0.5 && output.isDefined)
     }
   }
 

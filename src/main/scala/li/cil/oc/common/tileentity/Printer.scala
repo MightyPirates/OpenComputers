@@ -228,10 +228,8 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
     if (output.isDefined) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.printerTickAmount))
-      val success = Settings.get.ignorePower || node.tryChangeBuffer(-want)
-      if (success) {
-        requiredEnergy -= want
-      }
+      val have = want + (if (Settings.get.ignorePower) 0 else node.changeBuffer(-want))
+      requiredEnergy -= have
       if (requiredEnergy <= 0) {
         val result = getStackInSlot(slotOutput)
         if (result == null) {
@@ -247,7 +245,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
         requiredEnergy = 0
         output = None
       }
-      ServerPacketSender.sendPrinting(this, success && output.isDefined)
+      ServerPacketSender.sendPrinting(this, have > 0.5 && output.isDefined)
     }
 
     if (maxAmountMaterial - amountMaterial >= materialPerItem) {
