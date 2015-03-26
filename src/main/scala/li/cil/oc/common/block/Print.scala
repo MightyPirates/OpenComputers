@@ -67,6 +67,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def isOpaqueCube = false
 
+  override def isVisuallyOpaque = false
+
   override def isFullCube = false
 
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true

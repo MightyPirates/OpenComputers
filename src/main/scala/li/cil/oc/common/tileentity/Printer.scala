@@ -318,9 +318,9 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  override def getAccessibleSlotsFromSide(side: Int): Array[Int] = Array(slotMaterial, slotInk, slotOutput)
+  override def getSlotsForFace(side: EnumFacing): Array[Int] = Array(slotMaterial, slotInk, slotOutput)
 
-  override def canExtractItem(slot: Int, stack: ItemStack, side: Int): Boolean = !isItemValidForSlot(slot, stack)
+  override def canExtractItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean = !isItemValidForSlot(slot, stack)
 
-  override def canInsertItem(slot: Int, stack: ItemStack, side: Int): Boolean = slot != slotOutput
+  override def canInsertItem(slot: Int, stack: ItemStack, side: EnumFacing): Boolean = slot != slotOutput
 }
