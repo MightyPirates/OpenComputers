@@ -13,6 +13,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
+import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
@@ -20,7 +21,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware {
+class Printer extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment with traits.StateAware with ISidedInventory {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("printer3d").
     withConnector(Settings.get.bufferConverter).
@@ -314,4 +315,12 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     else if (slot == 1)
       api.Items.get(stack) == api.Items.get("inkCartridge")
     else false
+
+  // ----------------------------------------------------------------------- //
+
+  override def getAccessibleSlotsFromSide(side: Int): Array[Int] = Array(slotMaterial, slotInk, slotOutput)
+
+  override def canExtractItem(slot: Int, stack: ItemStack, side: Int): Boolean = !isItemValidForSlot(slot, stack)
+
+  override def canInsertItem(slot: Int, stack: ItemStack, side: Int): Boolean = slot != slotOutput
 }
