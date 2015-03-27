@@ -4,10 +4,6 @@ import li.cil.oc.api.Persistable
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-object ItemData {
-
-}
-
 abstract class ItemData extends Persistable {
   def load(stack: ItemStack) {
     if (stack.hasTagCompound) {

@@ -9,6 +9,7 @@ import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.container
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
@@ -41,6 +42,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
+      case PacketType.ContainerUpdate => onContainerUpdate(p)
       case PacketType.DisassemblerActiveChange => onDisassemblerActiveChange(p)
       case PacketType.FileSystemActivity => onFileSystemActivity(p)
       case PacketType.FloppyChange => onFloppyChange(p)
@@ -52,6 +54,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
+      case PacketType.PrinterState => onPrinterState(p)
       case PacketType.RaidStateChange => onRaidStateChange(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
@@ -133,6 +136,16 @@ object PacketHandler extends CommonPacketHandler {
         t.setUsers((0 until count).map(_ => p.readUTF()))
       case _ => // Invalid packet.
     }
+
+  def onContainerUpdate(p: PacketParser) = {
+    val windowId = p.readUnsignedByte()
+    if (p.player.openContainer != null && p.player.openContainer.windowId == windowId) {
+      p.player.openContainer match {
+        case container: container.Player => container.updateCustomData(p.readNBT())
+        case _ => // Invalid packet.
+      }
+    }
+  }
 
   def onDisassemblerActiveChange(p: PacketParser) =
     p.readTileEntity[Disassembler]() match {
@@ -239,6 +252,14 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.globalBuffer = p.readDouble()
         t.globalBufferSize = p.readDouble()
+      case _ => // Invalid packet.
+    }
+
+  def onPrinterState(p: PacketParser) =
+    p.readTileEntity[Printer]() match {
+      case Some(t) =>
+        if (p.readBoolean()) t.requiredEnergy = 9001
+        else t.requiredEnergy = 0
       case _ => // Invalid packet.
     }
 

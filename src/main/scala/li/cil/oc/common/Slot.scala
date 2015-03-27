@@ -5,6 +5,7 @@ import li.cil.oc.api.driver
 object Slot {
   val None = driver.item.Slot.None
   val Any = driver.item.Slot.Any
+  val Filtered = "filtered"
 
   val Card = driver.item.Slot.Card
   val ComponentBus = driver.item.Slot.ComponentBus
