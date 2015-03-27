@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity.traits
 import li.cil.oc.api.internal
 import li.cil.oc.common.block
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedEnumFacing._
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
@@ -82,10 +83,10 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Accessors
   // ----------------------------------------------------------------------- //
 
-  def pitch = getBlockType match {
+  def pitch = if (world != null) getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getPitch(world.getBlockState(getPos))
     case _ => EnumFacing.NORTH
-  }
+  } else EnumFacing.NORTH
 
   def pitch_=(value: EnumFacing): Unit =
     trySetPitchYaw(value match {
@@ -93,11 +94,11 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       case _ => EnumFacing.NORTH
     }, yaw)
 
-  def yaw = getBlockType match {
+  def yaw = if (world != null) getBlockType match {
     case rotatable: block.traits.OmniRotatable => rotatable.getYaw(world.getBlockState(getPos))
     case rotatable: block.traits.Rotatable => rotatable.getFacing(world.getBlockState(getPos))
     case _ => EnumFacing.SOUTH
-  }
+  } else EnumFacing.SOUTH
 
   def yaw_=(value: EnumFacing): Unit =
     trySetPitchYaw(pitch, value match {
@@ -134,9 +135,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     if (block != null) {
       val valid = block.getValidRotations(world, getPos)
       if (valid != null && valid.contains(axis)) {
-        val (newPitch, newYaw) = rotateAround(facing, axis) match {
+        val (newPitch, newYaw) = facing.getRotation(axis) match {
           case value@(EnumFacing.UP | EnumFacing.DOWN) =>
-            if (value == pitch) (value, rotateAround(yaw, axis))
+            if (value == pitch) (value, yaw.getRotation(axis))
             else (value, yaw)
           case value => (EnumFacing.NORTH, value)
         }
@@ -145,13 +146,6 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       else false
     }
     else false
-  }
-
-  private def rotateAround(facing: EnumFacing, around: EnumFacing) = {
-    if (around.getAxisDirection == EnumFacing.AxisDirection.NEGATIVE)
-      facing.getOpposite.rotateAround(around.getAxis)
-    else
-      facing.rotateAround(around.getAxis)
   }
 
   override def toLocal(value: EnumFacing) = {

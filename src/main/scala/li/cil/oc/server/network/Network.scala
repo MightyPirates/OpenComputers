@@ -392,7 +392,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
             }
           }
         }
-        remaining
+        -remaining
       }
       else /* if (delta > 0) */ {
         var remaining = delta

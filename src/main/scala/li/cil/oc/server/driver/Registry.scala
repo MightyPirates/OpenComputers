@@ -131,11 +131,13 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case arg: Array[_] => convertList(arg, arg.zipWithIndex.iterator, memo)
       case arg: Product => convertList(arg, arg.productIterator.zipWithIndex, memo)
       case arg: Seq[_] => convertList(arg, arg.zipWithIndex.iterator, memo)
-      case arg: java.lang.Iterable[_] => convertList(arg, arg.zipWithIndex.iterator, memo)
 
       case arg: Map[_, _] => convertMap(arg, arg, memo)
       case arg: mutable.Map[_, _] => convertMap(arg, arg.toMap, memo)
       case arg: java.util.Map[_, _] => convertMap(arg, arg.toMap, memo)
+
+      case arg: Iterable[_] => convertList(arg, arg.zipWithIndex.toIterator, memo)
+      case arg: java.lang.Iterable[_] => convertList(arg, arg.zipWithIndex.iterator, memo)
 
       case arg =>
         val converted = new util.HashMap[AnyRef, AnyRef]()

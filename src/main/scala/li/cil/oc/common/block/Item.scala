@@ -6,6 +6,7 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
@@ -39,7 +40,12 @@ class Item(value: Block) extends ItemBlock(value) {
     api.Items.get(Constants.BlockName.ScreenTier3)
   )
 
-  private lazy val Robot = api.Items.get(Constants.BlockName.Robot)
+  private lazy val DirectTint = Set(
+    api.Items.get(Constants.BlockName.Print),
+    api.Items.get(Constants.BlockName.Robot)
+  )
+
+  private lazy val ChameliumBlock = api.Items.get(Constants.BlockName.ChameliumBlock)
 
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
@@ -64,7 +70,9 @@ class Item(value: Block) extends ItemBlock(value) {
       Color.rgbValues(EnumDyeColor.byDyeDamage(tintIndex))
     else if (Cases.contains(api.Items.get(stack)))
       Color.rgbValues(Color.byTier(ItemUtils.caseTier(stack)))
-    else if (api.Items.get(stack) == Robot)
+    else if (api.Items.get(stack) == ChameliumBlock)
+      Color.rgbValues(EnumDyeColor.byDyeDamage(stack.getItemDamage))
+    else if (DirectTint.contains(api.Items.get(stack)))
       tintIndex
     else super.getColorFromItemStack(stack, tintIndex)
   }
@@ -75,6 +83,14 @@ class Item(value: Block) extends ItemBlock(value) {
   }
 
   override def getMetadata(itemDamage: Int) = itemDamage
+
+  override def getItemStackDisplayName(stack: ItemStack): String = {
+    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
+      val data = new PrintData(stack)
+      data.label.getOrElse(super.getItemStackDisplayName(stack))
+    }
+    else super.getItemStackDisplayName(stack)
+  }
 
   override def getUnlocalizedName = block match {
     case simple: SimpleBlock => simple.getUnlocalizedName

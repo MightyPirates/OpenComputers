@@ -58,7 +58,11 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
     }
     */
     world.getTileEntity(pos) match {
-      case redstone: tileentity.traits.RedstoneAware => redstone.checkRedstoneInputChanged()
+      case redstone: tileentity.traits.RedstoneAware =>
+        if (redstone.canUpdate)
+          redstone.checkRedstoneInputChanged()
+        else
+          EnumFacing.values().foreach(redstone.updateRedstoneInput)
       case _ => // Ignore.
     }
   }

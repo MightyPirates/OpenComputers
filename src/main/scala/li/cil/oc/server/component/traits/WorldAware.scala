@@ -79,6 +79,9 @@ trait WorldAware {
           MinecraftForge.EVENT_BUS.post(event)
           (event.isCanceled, "replaceable")
         }
+        else if (block.getCollisionBoundingBoxFromPool(blockPos) == null) {
+          (true, "passable")
+        }
         else {
           (true, "solid")
         }

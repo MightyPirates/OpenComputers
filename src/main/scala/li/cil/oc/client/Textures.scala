@@ -5,6 +5,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.TextureStitchEvent
@@ -40,6 +41,10 @@ object Textures {
     val Disassembler = L("disassembler")
     val Drone = L("drone")
     val KeyboardMissing = L("keyboard_missing")
+    val Printer = L("printer")
+    val PrinterInk = L("printer_ink")
+    val PrinterMaterial = L("printer_material")
+    val PrinterProgress = L("printer_progress")
     val Raid = L("raid")
     val Range = L("range")
     val Robot = L("robot")
@@ -532,7 +537,9 @@ object Textures {
     }
   }
 
-  def getSprite(location: ResourceLocation) = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location.toString)
+  def getSprite(location: String): TextureAtlasSprite = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(location)
+
+  def getSprite(location: ResourceLocation): TextureAtlasSprite = getSprite(location.toString)
 
   @SubscribeEvent
   def onTextureStitchPre(e: TextureStitchEvent.Pre): Unit = {

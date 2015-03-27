@@ -35,12 +35,10 @@ trait CustomDrops[Tile <: TileEntity] extends SimpleBlock {
 
   override def onBlockPlacedBy(world: World, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, stack: ItemStack): Unit = {
     super.onBlockPlacedBy(world, pos, state, placer, stack)
-    if (!world.isRemote) {
-      val matcher = tileTag
-      world.getTileEntity(pos) match {
-        case matcher(tileEntity) => doCustomInit(tileEntity, placer, stack)
-        case _ =>
-      }
+    val matcher = tileTag
+    world.getTileEntity(pos) match {
+      case matcher(tileEntity) => doCustomInit(tileEntity, placer, stack)
+      case _ =>
     }
   }
 

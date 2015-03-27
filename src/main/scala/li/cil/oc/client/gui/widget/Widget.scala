@@ -11,5 +11,5 @@ abstract class Widget {
 
   def height: Int
 
-  def draw()
+  def draw(): Unit
 }

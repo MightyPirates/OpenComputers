@@ -139,6 +139,7 @@ class Settings(val config: Config) {
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
   val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
+  val printerTickAmount = config.getDouble("power.printerTickAmount") max 1
   val powerModBlacklist = config.getStringList("power.modBlacklist")
 
   // power.buffer
@@ -192,6 +193,7 @@ class Settings(val config: Config) {
   val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
   val eepromWriteCost = config.getDouble("power.cost.eepromWrite") max 0
+  val printCost = config.getDouble("power.cost.printerModel") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -291,6 +293,8 @@ class Settings(val config: Config) {
   // Not configurable because of GUI design.
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
+  val threadPriority = config.getInt("misc.threadPriority")
+  val maxPrintComplexity = config.getInt("misc.maxPrinterShapes")
 
   // ----------------------------------------------------------------------- //
   // integration

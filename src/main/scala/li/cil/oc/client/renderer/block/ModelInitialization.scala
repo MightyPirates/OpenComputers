@@ -29,6 +29,8 @@ import scala.collection.mutable
 object ModelInitialization {
   final val CableBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "normal")
   final val CableItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "inventory")
+  final val PrintBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "normal")
+  final val PrintItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "inventory")
   final val RobotBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "normal")
   final val RobotItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "inventory")
   final val RobotAfterimageBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "normal")
@@ -43,6 +45,7 @@ object ModelInitialization {
     MinecraftForge.EVENT_BUS.register(this)
 
     registerModel(Constants.BlockName.Cable, CableBlockLocation, CableItemLocation)
+    registerModel(Constants.BlockName.Print, PrintBlockLocation, PrintItemLocation)
     registerModel(Constants.BlockName.Robot, RobotBlockLocation, RobotItemLocation)
     registerModel(Constants.BlockName.RobotAfterimage, RobotAfterimageBlockLocation, RobotAfterimageItemLocation)
   }
@@ -134,6 +137,8 @@ object ModelInitialization {
 
     registry.putObject(CableBlockLocation, CableModel)
     registry.putObject(CableItemLocation, CableModel)
+    registry.putObject(PrintBlockLocation, PrintModel)
+    registry.putObject(PrintItemLocation, PrintModel)
     registry.putObject(RobotBlockLocation, RobotModel)
     registry.putObject(RobotItemLocation, RobotModel)
     registry.putObject(RobotAfterimageBlockLocation, NullModel)

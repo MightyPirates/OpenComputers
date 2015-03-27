@@ -6,6 +6,7 @@ import codechicken.lib.vec.BlockCoord
 import codechicken.lib.vec.Vector3
 import codechicken.multipart.TileMultipart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.Settings
 import li.cil.oc.api.Items
 import li.cil.oc.client.PacketSender
 import li.cil.oc.common.block.SimpleBlock
@@ -14,12 +15,15 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.MovingObjectPosition
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 
 object EventHandler {
   private var currentlyPlacing = false
+
+  private val yaw2Direction = Array(ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST)
 
   @SubscribeEvent
   def playerInteract(event: PlayerInteractEvent) {
@@ -46,13 +50,24 @@ object EventHandler {
     if (hit != null && player.getHeldItem != null) player.getHeldItem.getItem match {
       case itemBlock: ItemBlock =>
         itemBlock.field_150939_a match {
-          case simpleBlock: SimpleBlock if simpleBlock == Items.get("cable").block() => placeDelegatePart(player, hit, new CablePart())
+          case simpleBlock: SimpleBlock =>
+            if (simpleBlock == Items.get("cable").block()) {
+              placeDelegatePart(player, hit, new CablePart())
+            }
+            else if (simpleBlock == Items.get("print").block()) {
+              val part = new PrintPart()
+              part.data.load(player.getHeldItem)
+              part.facing = yaw2Direction((player.rotationYaw / 360 * 4).round & 3).getOpposite
+              placeDelegatePart(player, hit, part)
+            }
+            else false
           case _ => false
         }
       case _ => false
     }
     else false
   }
+
 
   protected def placeDelegatePart(player: EntityPlayer, hit: MovingObjectPosition, part: SimpleBlockPart): Boolean = {
     val world = player.getEntityWorld
@@ -66,7 +81,7 @@ object EventHandler {
           hit.blockX, hit.blockY, hit.blockZ, hit.sideHit,
           player.inventory.getCurrentItem,
           f.x.toFloat, f.y.toFloat, f.z.toFloat))
-        return false
+        return true
       }
     }
 
@@ -75,12 +90,26 @@ object EventHandler {
     val inside = Option(TileMultipart.getOrConvertTile(world, pos))
     val outside = Option(TileMultipart.getOrConvertTile(world, posOutside))
     inside match {
-      case Some(t) if t.canAddPart(part) => placeMultiPart(player, part, pos)
+      case Some(t) if t.canAddPart(part) && canAddPrint(t, part) => placeMultiPart(player, part, pos)
       case _ => outside match {
-        case Some(t) if t.canAddPart(part) => placeMultiPart(player, part, posOutside)
+        case Some(t) if t.canAddPart(part) && canAddPrint(t, part) => placeMultiPart(player, part, posOutside)
         case _ => false
       }
     }
+  }
+
+  protected def canAddPrint(t: TileMultipart, p: SimpleBlockPart): Boolean = p match {
+    case print: PrintPart =>
+      val (offSum, onSum) = t.partList.foldLeft((print.data.stateOff.size, print.data.stateOn.size))((acc, part) => {
+        val (offAcc, onAcc) = acc
+        val (offCount, onCount) = part match {
+          case innerPrint: PrintPart => (innerPrint.data.stateOff.size, innerPrint.data.stateOn.size)
+          case _ => (0, 0)
+        }
+        (offAcc + offCount, onAcc + onCount)
+      })
+      offSum <= Settings.get.maxPrintComplexity && onSum <= Settings.get.maxPrintComplexity
+    case _ => true
   }
 
   protected def placeMultiPart(player: EntityPlayer, part: SimpleBlockPart, pos: BlockCoord) = {

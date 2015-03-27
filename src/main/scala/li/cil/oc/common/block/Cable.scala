@@ -45,13 +45,13 @@ class Cable extends SimpleBlock with traits.Extended {
   override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
     (state, world.getTileEntity(pos)) match {
       case (extendedState: IExtendedBlockState, cable: tileentity.Cable) =>
-        super.addExtendedState(extendedState.withProperty(Cable.Tile, cable), world, pos)
+        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, cable), world, pos)
       case _ => None
     }
 
   override protected def createProperties(listed: ArrayBuffer[IProperty], unlisted: ArrayBuffer[IUnlistedProperty[_]]) {
     super.createProperties(listed, unlisted)
-    unlisted += Cable.Tile
+    unlisted += property.PropertyTile.Tile
   }
 
   // ----------------------------------------------------------------------- //
@@ -86,8 +86,6 @@ class Cable extends SimpleBlock with traits.Extended {
 }
 
 object Cable {
-  final val Tile = new property.PropertyTile()
-
   val cachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {

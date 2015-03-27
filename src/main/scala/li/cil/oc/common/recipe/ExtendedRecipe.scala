@@ -8,6 +8,7 @@ import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.Mods
@@ -31,6 +32,7 @@ object ExtendedRecipe {
   private lazy val floppy = api.Items.get(Constants.ItemName.Floppy)
   private lazy val robot = api.Items.get(Constants.BlockName.Robot)
   private lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
+  private lazy val print = api.Items.get(Constants.BlockName.Print)
   private lazy val disabled = {
     val stack = new ItemStack(Blocks.dirt)
     val tag = new NBTTagCompound()
@@ -73,6 +75,28 @@ object ExtendedRecipe {
           val oldData = stack.getTagCompound
           for (oldTagName <- oldData.getKeySet.map(_.asInstanceOf[String])) {
             nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
+          }
+        }
+      }
+    }
+
+    if (api.Items.get(craftedStack) == print) {
+      val blocks = Array(
+        new ItemStack(net.minecraft.init.Blocks.iron_block),
+        new ItemStack(net.minecraft.init.Blocks.gold_block),
+        new ItemStack(net.minecraft.init.Blocks.emerald_block),
+        new ItemStack(net.minecraft.init.Blocks.diamond_block)
+      )
+      for (slot <- 0 until inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(slot)
+        if (stack != null) {
+          if (blocks.exists(_.isItemEqual(stack))) {
+            val data = new PrintData(craftedStack)
+            data.isBeaconBase = true
+            data.save(craftedStack)
+          }
+          if (api.Items.get(stack) == print) {
+            new PrintData(stack).save(craftedStack)
           }
         }
       }
@@ -157,7 +181,7 @@ object ExtendedRecipe {
   private class TabletDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
     val data = new TabletData(stack)
 
-    var components = data.items.collect { case Some(item) => item}
+    var components = data.items.collect { case Some(item) => item }
 
     override def save(stack: ItemStack) = {
       data.items = components.map(stack => Option(stack))

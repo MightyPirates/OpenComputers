@@ -49,14 +49,16 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
 
   override protected def doCustomInit(tileEntity: tileentity.Raid, player: EntityLivingBase, stack: ItemStack): Unit = {
     super.doCustomInit(tileEntity, player, stack)
-    val data = new RaidData(stack)
-    for (i <- 0 until math.min(data.disks.length, tileEntity.getSizeInventory)) {
-      tileEntity.setInventorySlotContents(i, data.disks(i))
-    }
-    data.label.foreach(tileEntity.label.setLabel)
-    if (!data.filesystem.hasNoTags) {
-      tileEntity.tryCreateRaid(data.filesystem.getCompoundTag("node").getString("address"))
-      tileEntity.filesystem.foreach(_.load(data.filesystem))
+    if (!tileEntity.world.isRemote) {
+      val data = new RaidData(stack)
+      for (i <- 0 until math.min(data.disks.length, tileEntity.getSizeInventory)) {
+        tileEntity.setInventorySlotContents(i, data.disks(i))
+      }
+      data.label.foreach(tileEntity.label.setLabel)
+      if (!data.filesystem.hasNoTags) {
+        tileEntity.tryCreateRaid(data.filesystem.getCompoundTag("node").getString("address"))
+        tileEntity.filesystem.foreach(_.load(data.filesystem))
+      }
     }
   }
 

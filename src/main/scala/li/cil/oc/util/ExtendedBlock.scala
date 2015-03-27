@@ -18,6 +18,8 @@ object ExtendedBlock {
     def setBlockBoundsBasedOnState(position: BlockPosition) = block.setBlockBoundsBasedOnState(position.world.get, position.toBlockPos)
 
     def getSelectedBoundingBoxFromPool(position: BlockPosition) = block.getSelectedBoundingBox(position.world.get, position.toBlockPos)
+
+    def getCollisionBoundingBoxFromPool(position: BlockPosition) = block.getCollisionBoundingBox(position.world.get, position.toBlockPos, position.world.get.getBlockState(position.toBlockPos))
   }
 
 }

@@ -156,11 +156,11 @@ class RobotProxy extends RedstoneAware with traits.StateAware {
 
   private def gettingDropsForActualDrop = new Exception().getStackTrace.exists(element => getDropForRealDropCallers.contains(element.getClassName + "." + element.getMethodName))
 
-  override def collisionRayTrace(world: World, pos: BlockPos, origin: Vec3, direction: Vec3) = {
+  override def collisionRayTrace(world: World, pos: BlockPos, start: Vec3, end: Vec3) = {
     val bounds = getCollisionBoundingBox(world, pos, world.getBlockState(pos))
     world.getTileEntity(pos) match {
-      case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(origin) => null
-      case _ => super.collisionRayTrace(world, pos, origin, direction)
+      case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(start) => null
+      case _ => super.collisionRayTrace(world, pos, start, end)
     }
   }
 

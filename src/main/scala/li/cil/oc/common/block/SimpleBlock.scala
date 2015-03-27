@@ -16,6 +16,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -24,6 +25,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 abstract class SimpleBlock(material: Material = Material.iron) extends BlockContainer(material) {
   setHardness(2f)
+  setResistance(5)
   setCreativeTab(CreativeTab)
 
   var showInItemList = true
@@ -35,6 +37,8 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
   }
 
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
+
+  override def createNewTileEntity(world: World, meta: Int): TileEntity = null
 
   // ----------------------------------------------------------------------- //
   // Synchronized block size, because threading...
