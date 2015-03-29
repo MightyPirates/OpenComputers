@@ -28,7 +28,7 @@ object HighlightRenderer {
   lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
 
   @SubscribeEvent
-  def onDrawBlockHighlight(e: DrawBlockHighlightEvent): Unit = {
+  def onDrawBlockHighlight(e: DrawBlockHighlightEvent): Unit = if (e.target != null && e.target.getBlockPos != null) {
     val hitInfo = e.target
     val world = e.player.getEntityWorld
     val blockPos = BlockPosition(hitInfo.getBlockPos, world)
