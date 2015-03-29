@@ -25,6 +25,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+import scala.language.existentials
 
 class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   override val node = api.Network.newNode(this, Visibility.Network).
