@@ -10,18 +10,22 @@ local serial = require("serialization")
 local shell = require("shell")
 local term = require("term")
 
-local wget = loadfile("/bin/wget.lua")
-
 local gpu = component.gpu
 
-if not component.isAvailable("internet") then
-  io.stderr:write("This program requires an internet card to run.")
-  return
-end
-local internet = require("internet")
+local internet
+local wget
 
 local args, options = shell.parse(...)
 
+local function getInternet()
+  if not component.isAvailable("internet") then
+    io.stderr:write("This program requires an internet card to run.")
+    return false
+  end
+  internet = require("internet")
+  wget = loadfile("/bin/wget.lua")
+  return true
+end
 
 local function printUsage()
   print("OpenPrograms Package Manager, use this to browse through and download OpenPrograms programs easily")
@@ -43,9 +47,9 @@ local function getContent(url)
   if not result then
     return nil
   end
-    for chunk in response do
-      sContent = sContent..chunk
-    end
+  for chunk in response do
+    sContent = sContent..chunk
+  end
   return sContent
 end
 
@@ -80,6 +84,9 @@ local function downloadFile(url,path,force)
   if options.f or force then
     return wget("-fq",url,path)
   else
+    if fs.exists(path) then
+      error("file already exists and option -f is not enabled")
+    end
     return wget("-q",url,path)
   end
 end
@@ -209,6 +216,67 @@ local function printPackages(packs)
   end
 end
 
+local function parseFolders(pack, repo, info)
+
+  local function getFolderTable(repo, namePath, branch)
+    local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
+    if not success or filestring:find('"message": "Not Found"') then
+      io.stderr:write("Error while trying to parse folder names in declaration of package "..pack..".\n")
+      if filestring:find('"message": "Not Found"') then
+        io.stderr:write("Folder "..namePath.." does not exist.\n")
+      else
+        io.stderr:write(filestring.."\n")
+      end
+      io.stderr:write("Please contact the author of that package.\n")
+      return nil
+    end
+    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"[^%s,]-\")%s?:", "[%1] = "), nil)
+  end
+
+  local function nonSpecial(text)
+    return text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+  end
+
+  local function unserializeFiles(files, repo, namePath, branch, relPath)
+    if not files then return nil end
+    local tFiles = {}
+    for _,v in pairs(files) do
+      if v["type"] == "file" then
+        local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/*$",""):gsub("^/*","")
+        tFiles[newPath] = relPath
+      elseif v["type"] == "dir" then
+        local newFiles = unserializeFiles(getFolderTable(repo, relPath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
+        for p,q in pairs(newFiles) do
+          tFiles[p] = q
+        end
+      end
+    end
+    return tFiles
+  end
+
+  local newInfo = info
+  for i,j in pairs(info.files) do
+    if string.find(i,"^:")  then
+      local iPath = i:gsub("^:","")
+      local branch = string.gsub(iPath,"^(.-)/.+","%1"):gsub("/*$",""):gsub("^/*","")
+      local namePath = string.gsub(iPath,".-(/.+)$","%1"):gsub("/*$",""):gsub("^/*","")
+      local absolutePath = j:find("^//")
+
+      local files = unserializeFiles(getFolderTable(repo, namePath, branch), repo, namePath, branch, j:gsub("^//","/"))
+      if not files then return nil end
+      for p,q in pairs(files) do
+        if absolutePath then
+          newInfo.files[p] = "/"..q
+        else
+          newInfo.files[p] = q
+        end
+      end
+      newInfo.files[i] = nil
+    end
+  end
+  return newInfo
+end
+
 local function getInformation(pack)
   local success, repos = pcall(getRepos)
   if not success or repos==-1 then
@@ -223,7 +291,7 @@ local function getInformation(pack)
       elseif type(lPacks) == "table" then
         for k in pairs(lPacks) do
           if k==pack then
-            return lPacks[k],j.repo
+            return parseFolders(pack, j.repo, lPacks[k]),j.repo
           end
         end
       end
@@ -234,7 +302,7 @@ local function getInformation(pack)
     for i,j in pairs(lRepos.repos) do
       for k in pairs(j) do
         if k==pack then
-          return j[k],i
+          return parseFolders(pack, i, j[k]),i
         end
       end
     end
@@ -271,14 +339,17 @@ local function provideInfo(pack)
     print("Note: "..info.note)
     done = true
   end
+  if info.files then
+    print("Number of files: "..tostring(#info.files))
+    done = true
+  end
   if not done then
     print("No information provided.")
   end
 end
 
-local tPacks = readFromFile(1)
-
 local function installPackage(pack,path,update)
+  local tPacks = readFromFile(1)
   update = update or false
   if not pack then
     printUsage()
@@ -309,8 +380,12 @@ local function installPackage(pack,path,update)
   if update then
     print("Updating package "..pack)
     path = nil
+    if not tPacks[pack] then
+      io.stderr:write("error while checking update path")
+      return
+    end
     for i,j in pairs(info.files) do
-      if tPacks[pack] then
+      if not string.find(j,"^//") then
         for k,v in pairs(tPacks[pack]) do
           if k==i then
             path = string.gsub(fs.path(v),j.."/?$","/")
@@ -320,9 +395,6 @@ local function installPackage(pack,path,update)
         if path then
           break
         end
-      else
-        io.stderr:write("error while checking update path")
-        return
       end
     end
     path = shell.resolve(string.gsub(path,"^/?","/"),nil)
@@ -381,7 +453,8 @@ local function installPackage(pack,path,update)
     if success and response then
       tPacks[pack][i] = nPath
     else
-      term.write("Error while installing files for package '"..pack.."'. Reverting installation... ")
+      response = response or "no error message"
+      term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
       fs.remove(nPath)
       for o,p in pairs(tPacks[pack]) do
         fs.remove(p)
@@ -405,7 +478,8 @@ local function installPackage(pack,path,update)
         if success and response then
           tPacks[pack][i] = nPath
         else
-          term.write("Error while installing dependency package '"..i.."'. Reverting installation... ")
+          response = response or "no error message"
+          term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
           fs.remove(nPath)
           for o,p in pairs(tPacks[pack]) do
             fs.remove(p)
@@ -429,11 +503,6 @@ local function installPackage(pack,path,update)
 end
 
 local function uninstallPackage(pack)
-  local info,repo = getInformation(pack)
-  if not info then
-    print("Package does not exist")
-    return
-  end
   local tFiles = readFromFile(1)
   if not tFiles then
     io.stderr:write("Error while trying to read package names")
@@ -443,7 +512,8 @@ local function uninstallPackage(pack)
   end
   if not tFiles[pack] then
       print("Package has not been installed.")
-      print("If it has, you have to remove it manually.")
+      print("If it has, the package could not be identified.")
+      print("In this case you have to remove it manually.")
       return
   end
   term.write("Removing package files...")
@@ -482,13 +552,17 @@ end
 
 if options.iKnowWhatIAmDoing then
   if args[1] == "list" then
+    if not getInternet() then return end
     local packs = listPackages(args[2])
     printPackages(packs)
   elseif args[1] == "info" then
+    if not getInternet() then return end
     provideInfo(args[2])
   elseif args[1] == "install" then
+    if not getInternet() then return end
     installPackage(args[2],args[3],false)
   elseif args[1] == "update" then
+    if not getInternet() then return end
     updatePackage(args[2])
   elseif args[1] == "uninstall" then
     uninstallPackage(args[2])
