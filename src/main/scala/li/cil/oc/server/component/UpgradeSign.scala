@@ -25,7 +25,7 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
 
   protected def getValue(tileEntity: Option[TileEntitySign]): Array[AnyRef] = {
     tileEntity match {
-      case Some(sign) => result(sign.signText.mkString("\n"))
+      case Some(sign) => result(sign.signText.map(_.getUnformattedText).mkString("\n"))
       case _ => result(Unit, "no sign")
     }
   }
@@ -43,7 +43,7 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
 
         text.lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line).map(new ChatComponentText(_)).copyToArray(sign.signText)
         host.world.markBlockForUpdate(sign.getPos)
-        result(sign.signText.mkString("\n"))
+        result(sign.signText.map(_.getUnformattedText).mkString("\n"))
       case _ => result(Unit, "no sign")
     }
   }
@@ -75,7 +75,7 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
         case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: EnumFacing, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
           host.world.getTileEntity(blockPos) match {
             case sign: TileEntitySign =>
-              nbt.setString("signText", sign.signText.mkString("\n"))
+              nbt.setString("signText", sign.signText.map(_.getUnformattedText).mkString("\n"))
             case _ =>
           }
         case _ => // Ignore.
