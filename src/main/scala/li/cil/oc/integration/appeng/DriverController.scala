@@ -7,7 +7,6 @@ import appeng.api.networking.crafting.ICraftingRequester
 import appeng.api.networking.security.IActionHost
 import appeng.api.networking.security.MachineSource
 import appeng.api.storage.data.IAEItemStack
-import appeng.core.Api
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.misc.TileInterface
 import appeng.tile.networking.TileController
@@ -40,6 +39,7 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.language.existentials
 
 object DriverController extends DriverTileEntity with EnvironmentAware {
   private type AETile = TileEntity with IGridProxyable with IActionHost
@@ -210,7 +210,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
         })
       }
       links ++= nbt.getTagList("links", NBT.TAG_COMPOUND).map(
-        (nbt: NBTTagCompound) => Api.instance.storage.loadCraftingLink(nbt, this))
+        (nbt: NBTTagCompound) => AEApi.instance.storage.loadCraftingLink(nbt, this))
     }
 
     override def save(nbt: NBTTagCompound) {

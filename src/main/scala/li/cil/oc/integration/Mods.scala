@@ -19,7 +19,7 @@ object Mods {
 
   def All = knownMods.clone()
 
-  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
+  val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,rv2-beta-19)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
@@ -199,6 +199,10 @@ object Mods {
     // This is called from the class transformer when injecting an interface of
     // this power type fails, to avoid class not found / class cast exceptions.
     def disablePower() = powerDisabled = true
+
+    def container = Option(Loader.instance.getIndexedModList.get(id))
+
+    def version = container.map(_.getProcessedVersion)
   }
 
   class SimpleMod(val id: String, override val providesPower: Boolean = false, version: String = "") extends ModBase {
