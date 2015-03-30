@@ -264,7 +264,15 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def crash(message: String) = {
     this.message = Option(message)
-    stop()
+    state.synchronized {
+      val result = stop()
+      if (state.top == Machine.State.Stopping) {
+        // When crashing, make sure there's no "Running" left in the stack.
+        state.clear()
+        state.push(Machine.State.Stopping)
+      }
+      result
+    }
   }
 
   override def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
@@ -503,7 +511,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
               state.pop() // Running, no switchTo to avoid new future.
               state.push(Machine.State.SynchronizedReturn)
               state.push(Machine.State.Paused)
-            case Machine.State.Stopping => // Nothing to do, we'll die anyway.
+            case Machine.State.Stopping =>
+              state.clear()
+              state.push(Machine.State.Stopping)
             case _ => throw new AssertionError()
           }
         }
@@ -919,7 +929,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
                 crash(Option(result.message).getOrElse("unknown error"))
             }
             state.push(Machine.State.Paused)
-          case Machine.State.Stopping => // Nothing to do, we'll die anyway.
+          case Machine.State.Stopping =>
+            state.clear()
+            state.push(Machine.State.Stopping)
           case _ => throw new AssertionError("Invalid state in executor post-processing.")
         }
         assert(!isExecuting)
