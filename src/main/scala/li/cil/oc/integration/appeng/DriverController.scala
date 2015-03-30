@@ -9,7 +9,6 @@ import appeng.api.networking.security.MachineSource
 import appeng.api.storage.data.IAEItemStack
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.misc.TileInterface
-import appeng.tile.networking.TileController
 import appeng.util.item.AEItemStack
 import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
@@ -44,10 +43,11 @@ import scala.language.existentials
 object DriverController extends DriverTileEntity with EnvironmentAware {
   private type AETile = TileEntity with IGridProxyable with IActionHost
 
-  def getTileEntityClass = {
+  def getTileEntityClass: Class[_] = {
     if (AEApi.instance != null && AEApi.instance.blocks != null) {
       if (AEApi.instance.blocks.blockController != null && AEApi.instance.blocks.blockController.item != null)
-        classOf[TileController]
+        // Not classOf[TileController] because that derps the compiler when it tries to resolve the class (says can't find API classes from RotaryCraft).
+        Class.forName("appeng.tile.networking.TileController")
       else
         classOf[TileInterface]
     }
