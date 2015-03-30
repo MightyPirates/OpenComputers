@@ -9,7 +9,6 @@ import appeng.api.networking.security.MachineSource
 import appeng.api.storage.data.IAEItemStack
 import appeng.me.helpers.IGridProxyable
 import appeng.tile.misc.TileInterface
-import appeng.tile.networking.TileController
 import appeng.util.item.AEItemStack
 import com.google.common.collect.ImmutableSet
 import li.cil.oc.OpenComputers
@@ -26,6 +25,7 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.block.Block
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
@@ -44,10 +44,11 @@ import scala.language.existentials
 object DriverController extends DriverTileEntity with EnvironmentAware {
   private type AETile = TileEntity with IGridProxyable with IActionHost
 
-  def getTileEntityClass = {
+  def getTileEntityClass: Class[_] = {
     if (AEApi.instance != null && AEApi.instance.blocks != null) {
       if (AEApi.instance.blocks.blockController != null && AEApi.instance.blocks.blockController.item != null)
-        classOf[TileController]
+        // Not classOf[TileController] because that derps the compiler when it tries to resolve the class (says can't find API classes from RotaryCraft).
+        Class.forName("appeng.tile.networking.TileController")
       else
         classOf[TileInterface]
     }
@@ -78,10 +79,13 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
         "coprocessors" -> cpu.getCoProcessors,
         "busy" -> cpu.isBusy)))
 
-    @Callback(doc = "function():table -- Get a list of known item recipes. These can be used to issue crafting requests.")
+    @Callback(doc = "function([filter:table]):table -- Get a list of known item recipes. These can be used to issue crafting requests.")
     def getCraftables(context: Context, args: Arguments): Array[AnyRef] = {
+      val filter = args.optTable(0, Map.empty[AnyRef, AnyRef]).collect {
+        case (key: String, value: AnyRef) => (key, value)
+      }
       result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.
-        filter(_.isCraftable).map(stack => {
+        filter(_.isCraftable).filter(stack => matches(stack, filter)).map(stack => {
         val patterns = tileEntity.getProxy.getCrafting.getCraftingFor(stack, null, 0, tileEntity.getWorldObj)
         val result = patterns.find(pattern => pattern.getOutputs.exists(_.isSameType(stack))) match {
           case Some(pattern) => pattern.getOutputs.find(_.isSameType(stack)).get
@@ -91,9 +95,13 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
       }).toArray)
     }
 
-    @Callback(doc = "function():table -- Get a list of the stored items in the network.")
-    def getItemsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-      result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.map(_.getItemStack).toArray)
+    @Callback(doc = "function([filter:table]):table -- Get a list of the stored items in the network.")
+    def getItemsInNetwork(context: Context, args: Arguments): Array[AnyRef] = {
+      val filter = args.optTable(0, Map.empty[AnyRef, AnyRef]).collect {
+        case (key: String, value: AnyRef) => (key, value)
+      }
+      result(tileEntity.getProxy.getStorage.getItemInventory.getStorageList.filter(stack => matches(stack, filter)).map(_.getItemStack).toArray)
+    }
 
     @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
     def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
@@ -118,6 +126,17 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
     @Callback(doc = "function():number -- Get the stored power in the network. ")
     def getStoredPower(context: Context, args: Arguments): Array[AnyRef] =
       result(tileEntity.getProxy.getEnergy.getStoredPower)
+
+    private def matches(stack: IAEItemStack, filter: scala.collection.mutable.Map[String, AnyRef]) = {
+      stack != null &&
+        filter.get("damage").forall(_.equals(stack.getItemDamage.toDouble)) &&
+        filter.get("maxDamage").forall(_.equals(stack.getItemStack.getMaxDamage.toDouble)) &&
+        filter.get("size").forall(_.equals(stack.getStackSize.toDouble)) &&
+        filter.get("maxSize").forall(_.equals(stack.getItemStack.getMaxStackSize.toDouble)) &&
+        filter.get("hasTag").forall(_.equals(stack.hasTagCompound)) &&
+        filter.get("name").forall(_.equals(Item.itemRegistry.getNameForObject(stack.getItem))) &&
+        filter.get("label").forall(_.equals(stack.getItemStack.getDisplayName))
+    }
   }
 
   class Craftable(var controller: AETile, var stack: IAEItemStack) extends AbstractValue with ICraftingRequester {

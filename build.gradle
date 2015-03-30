@@ -119,27 +119,27 @@ repositories {
 
     ivy {
         name 'CoFHLib'
-        artifactPattern "http://addons.cursecdn.com/files/${config.cofhlib.cf}/[module]-[revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cofhlib.cf}/[module]-[revision].[ext]"
     }
     ivy {
         name 'MineFactoryReloaded'
-        artifactPattern "http://addons.cursecdn.com/files/${config.mfr.cf}/[module]-[revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.mfr.cf}/[module]-[revision].[ext]"
     }
     ivy {
         name 'ComputerCraft'
-        artifactPattern "http://addons.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
     }
     ivy {
         name 'EnderIO'
-        artifactPattern "http://addons.cursecdn.com/files/${config.eio.cf}/[module]-[revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.eio.cf}/[module]-[revision].[ext]"
     }
     ivy {
         name 'Railcraft'
-        artifactPattern "http://addons.cursecdn.com/files/${config.rc.cf}/[module]_[revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.rc.cf}/[module]_[revision].[ext]"
     }
     ivy {
         name 'BloodMagic'
-        artifactPattern "http://addons.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
     }
     */
 }
@@ -156,7 +156,7 @@ dependencies {
     provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}:dev"
 /*
-    provided "api:rotarycraft:${config.rotc.version}"
+    provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided "appeng:appliedenergistics2:${config.ae2.version}:dev"
     provided "codechicken:EnderStorage:${config.minecraft.version}-${config.es.version}:dev"
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
