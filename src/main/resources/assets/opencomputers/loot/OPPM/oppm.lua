@@ -1,6 +1,11 @@
 --[[
 OpenPrograms package manager, browser and downloader, for easy access to many programs
 Author: Vexatos
+
+Warning! This file is just an auto-installer for OPPM!
+DO NOT EVER TRY TO INSTALL A PACKAGE WITH THIS!
+Once you ran OPPM once, you can remove the floppy disk
+and run the installed OPPM version just fine.
 ]]
 local component = require("component")
 local event = require("event")
