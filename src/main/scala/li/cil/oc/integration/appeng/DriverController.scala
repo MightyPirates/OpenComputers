@@ -182,6 +182,10 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
     @Callback(doc = "function():table -- Returns the item stack representation of the crafting result.")
     def getItemStack(context: Context, args: Arguments): Array[AnyRef] = Array(stack.getItemStack)
 
+//Unneeded since filters got introduced, but nevertheless: proof-of-concept. (and it works)
+    @Callback(doc = "function():table --Returns craftables-ItemStack-friendlyName.")
+    def getItemStackFriendlyName(context: Context, args: Arguments): Array[AnyRef] = Array(stack.getItemStack.getDisplayName)
+
     @Callback(doc = "function([int amount]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
     def request(context: Context, args: Arguments): Array[AnyRef] = {
       if (controller == null || controller.isInvalid) {
