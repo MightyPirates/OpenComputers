@@ -13,6 +13,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
+    distributor.globalBuffer = 0.5
     if (distributor.globalBuffer > 0) {
       RenderState.pushAttrib()
 
@@ -42,7 +43,6 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
 
       {
         val icon = Textures.getSprite(Textures.Block.PowerDistributorSideOn)
-        r.startDrawingQuads()
         r.addVertexWithUV(1, 1, 0, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(0, 1, 0, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(0, 0, 0, icon.getMaxU, icon.getMinV)
