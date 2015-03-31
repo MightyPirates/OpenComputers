@@ -32,7 +32,7 @@ object ConverterItemStack extends api.driver.Converter {
           stack.getTagCompound.getCompoundTag("display").hasKey("Lore", NBT.TAG_LIST)) {
           output += "lore" -> stack.getTagCompound.
             getCompoundTag("display").
-            getTagList("Lore", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_()).
+            getTagList("Lore", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString()).
             mkString("\n")
         }
 
