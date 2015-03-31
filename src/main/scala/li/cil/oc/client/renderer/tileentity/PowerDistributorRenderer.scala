@@ -13,7 +13,6 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
-    distributor.globalBuffer = 0.5
     if (distributor.globalBuffer > 0) {
       RenderState.pushAttrib()
 
