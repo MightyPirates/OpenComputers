@@ -16,6 +16,7 @@ import net.minecraft.util.IChatComponent
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
+import scala.language.existentials
 
 object AssemblerTemplates {
   val NoSlot = new Slot(Slot.None, Tier.None, None, None)

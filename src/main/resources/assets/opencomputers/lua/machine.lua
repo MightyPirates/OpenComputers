@@ -908,7 +908,7 @@ wrappedUserdataMeta = {
 local wrappedUserdata = setmetatable({}, wrappedUserdataMeta)
 
 local function processResult(result)
-  wrapUserdata(result) -- needed for metamethods.
+  result = wrapUserdata(result) -- needed for metamethods.
   if not result[1] then -- error that should be re-thrown.
     error(result[2], 0)
   else -- success or already processed error.
@@ -920,8 +920,9 @@ local function invoke(target, direct, ...)
   local result
   if direct then
     local args = table.pack(...) -- for unwrapping
-    unwrapUserdata(args)
+    args = unwrapUserdata(args)
     result = table.pack(target.invoke(table.unpack(args, 1, args.n)))
+    args = nil -- clear upvalue, avoids trying to persist it
     if result.n == 0 then -- limit for direct calls reached
       result = nil
     end
@@ -930,9 +931,10 @@ local function invoke(target, direct, ...)
   if not result then
     local args = table.pack(...) -- for access in closure
     result = select(1, coroutine.yield(function()
-      unwrapUserdata(args)
+      args = unwrapUserdata(args)
       local result = table.pack(target.invoke(table.unpack(args, 1, args.n)))
-      wrapUserdata(result)
+      args = nil -- clear upvalue, avoids trying to persist it
+      result = wrapUserdata(result)
       return result
     end))
   end
@@ -941,8 +943,9 @@ end
 
 local function udinvoke(f, data, ...)
   local args = table.pack(...)
-  unwrapUserdata(args)
+  args = unwrapUserdata(args)
   local result = table.pack(f(data, table.unpack(args)))
+  args = nil -- clear upvalue, avoids trying to persist it
   return processResult(result)
 end
 
@@ -1035,7 +1038,7 @@ function wrapUserdata(values)
     end
     return value
   end
-  wrapRecursively(values)
+  return wrapRecursively(values)
 end
 
 function unwrapUserdata(values)
@@ -1054,7 +1057,7 @@ function unwrapUserdata(values)
     end
     return value
   end
-  unwrapRecursively(values)
+  return unwrapRecursively(values)
 end
 
 -------------------------------------------------------------------------------
@@ -1343,13 +1346,14 @@ local function main()
 
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
+    args = nil -- clear upvalue, avoids trying to persist it
     if not result[1] then
       error(tostring(result[2]), 0)
     elseif coroutine.status(co) == "dead" then
       error("computer halted", 0)
     else
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
-      wrapUserdata(args)
+      args = wrapUserdata(args)
     end
   end
 end

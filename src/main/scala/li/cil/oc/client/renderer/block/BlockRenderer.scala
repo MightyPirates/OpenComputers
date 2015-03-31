@@ -141,7 +141,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   }
 
   // The texture flip this works around only seems to occur for blocks with custom block renderers?
-  def patchedRenderer(renderer: RenderBlocks, block: Block) = if (block.isInstanceOf[Hologram] || block.isInstanceOf[Printer]) {
+  def patchedRenderer(renderer: RenderBlocks, block: Block) =
+    if (block.isInstanceOf[Hologram] || block.isInstanceOf[Printer] || block.isInstanceOf[Print]) {
     PatchedRenderBlocks.blockAccess = renderer.blockAccess
     PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
     PatchedRenderBlocks.flipTexture = renderer.flipTexture

@@ -127,6 +127,13 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     ServerPacketSender.sendComputerState(this)
   }
 
+  override def dispose(): Unit = {
+    super.dispose()
+    if (machine != null && !this.isInstanceOf[RobotProxy]) {
+      machine.stop()
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {

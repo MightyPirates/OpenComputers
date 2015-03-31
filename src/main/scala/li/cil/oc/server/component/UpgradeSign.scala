@@ -2,12 +2,16 @@ package li.cil.oc.server.component
 
 import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.internal
+import li.cil.oc.api.network.Message
 import li.cil.oc.api.prefab
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntitySign
 import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
@@ -61,5 +65,21 @@ abstract class UpgradeSign extends prefab.ManagedEnvironment {
     val event = new BlockEvent.BreakEvent(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, host.world, tileEntity.getBlockType, tileEntity.getBlockMetadata, player)
     MinecraftForge.EVENT_BUS.post(event)
     !(event.isCanceled || event.getResult == Event.Result.DENY)
+  }
+
+  override def onMessage(message: Message): Unit = {
+    super.onMessage(message)
+    if (message.name == "tablet.use") message.source.host match {
+      case machine: api.machine.Machine => (machine.host, message.data) match {
+        case (tablet: internal.Tablet, Array(nbt: NBTTagCompound, stack: ItemStack, player: EntityPlayer, blockPos: BlockPosition, side: ForgeDirection, hitX: java.lang.Float, hitY: java.lang.Float, hitZ: java.lang.Float)) =>
+          host.world.getTileEntity(blockPos) match {
+            case sign: TileEntitySign =>
+              nbt.setString("signText", sign.signText.mkString("\n"))
+            case _ =>
+          }
+        case _ => // Ignore.
+      }
+      case _ => // Ignore.
+    }
   }
 }

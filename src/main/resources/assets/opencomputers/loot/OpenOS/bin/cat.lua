@@ -21,5 +21,6 @@ else
         io.write(line)
       end
     until not line
+    file:close()
   end
 end

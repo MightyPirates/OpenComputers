@@ -188,9 +188,35 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  override def canUpdate = isServer
+  def computeCosts(data: PrintData) = {
+    val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
+    val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
+
+    if (totalVolume > 0) {
+      val materialRequired = (totalVolume / 2) max 1
+      val inkRequired = (totalSurface / 6) max 1
+
+      Option((materialRequired, inkRequired))
+    }
+    else None
+  }
+
+  def materialValue(stack: ItemStack) = {
+    if (api.Items.get(stack) == api.Items.get("chamelium"))
+      materialPerItem
+    else if (api.Items.get(stack) == api.Items.get("print")) {
+      val data = new PrintData(stack)
+      computeCosts(data) match {
+        case Some((materialRequired, inkRequired)) => (materialRequired * Settings.get.printRecycleRate).toInt
+        case _ => 0
+      }
+    }
+    else 0
+  }
 
   // ----------------------------------------------------------------------- //
+
+  override def canUpdate = isServer
 
   override def updateEntity() {
     super.updateEntity()
@@ -202,28 +228,22 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     }
 
     if (isActive && output.isEmpty && canMergeOutput) {
-      val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
-      val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
+      computeCosts(data) match {
+        case Some((materialRequired, inkRequired)) =>
+          totalRequiredEnergy = Settings.get.printCost
+          requiredEnergy = totalRequiredEnergy
 
-      if (totalVolume == 0) {
-        isActive = false
-        data = new PrintData()
-      }
-      else {
-        val materialRequired = (totalVolume / 2) max 1
-        val inkRequired = (totalSurface / 6) max 1
-
-        totalRequiredEnergy = Settings.get.printCost
-        requiredEnergy = totalRequiredEnergy
-
-        if (amountMaterial >= materialRequired && amountInk >= inkRequired) {
-          amountMaterial -= materialRequired
-          amountInk -= inkRequired
-          limit -= 1
-          output = Option(data.createItemStack())
-          if (limit < 1) isActive = false
-          ServerPacketSender.sendPrinting(this, printing = true)
-        }
+          if (amountMaterial >= materialRequired && amountInk >= inkRequired) {
+            amountMaterial -= materialRequired
+            amountInk -= inkRequired
+            limit -= 1
+            output = Option(data.createItemStack())
+            if (limit < 1) isActive = false
+            ServerPacketSender.sendPrinting(this, printing = true)
+          }
+        case _ =>
+          isActive = false
+          data = new PrintData()
       }
     }
 
@@ -249,10 +269,11 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       ServerPacketSender.sendPrinting(this, have > 0.5 && output.isDefined)
     }
 
-    if (maxAmountMaterial - amountMaterial >= materialPerItem) {
+    val inputValue = materialValue(getStackInSlot(slotMaterial))
+    if (inputValue > 0 && maxAmountMaterial - amountMaterial >= inputValue) {
       val material = decrStackSize(slotMaterial, 1)
       if (material != null) {
-        amountMaterial += materialPerItem
+        amountMaterial += inputValue
       }
     }
 
@@ -310,9 +331,9 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   override def getInventoryStackLimit = 64
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    if (slot == 0)
-      api.Items.get(stack) == api.Items.get("chamelium")
-    else if (slot == 1)
+    if (slot == slotMaterial)
+      materialValue(stack) > 0
+    else if (slot == slotInk)
       api.Items.get(stack) == api.Items.get("inkCartridge")
     else false
 

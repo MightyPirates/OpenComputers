@@ -1,27 +1,15 @@
 package li.cil.oc.server.component
 
-import java.io.BufferedWriter
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStreamWriter
+import java.io.{BufferedWriter, FileNotFoundException, IOException, InputStream, OutputStreamWriter}
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
-import java.util.concurrent.Callable
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Future
+import java.util.concurrent.{Callable, ConcurrentLinkedQueue, ExecutionException, Future}
 
-import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
-import li.cil.oc.api
-import li.cil.oc.api.Network
-import li.cil.oc.api.machine.Arguments
-import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.Context
+import li.cil.oc.{OpenComputers, Settings, api}
+import li.cil.oc.api.machine.{Arguments, Callback, Context}
 import li.cil.oc.api.network._
-import li.cil.oc.api.prefab
+import li.cil.oc.api.{Network, prefab}
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
@@ -239,28 +227,30 @@ object InternetCard {
       })
     }
 
-    private def checkConnected() = try {
+    private def checkConnected() = {
       if (owner.isEmpty) throw new IOException("connection lost")
-      if (isAddressResolved) channel.finishConnect()
-      else if (address.isCancelled) {
-        // I don't think this can ever happen, Justin Case.
-        channel.close()
-        throw new IOException("bad connection descriptor")
-      }
-      else if (address.isDone) {
-        // Check for errors.
-        try address.get catch {
-          case e: ExecutionException => throw e.getCause
+      try {
+        if (isAddressResolved) channel.finishConnect()
+        else if (address.isCancelled) {
+          // I don't think this can ever happen, Justin Case.
+          channel.close()
+          throw new IOException("bad connection descriptor")
         }
-        isAddressResolved = true
-        false
+        else if (address.isDone) {
+          // Check for errors.
+          try address.get catch {
+            case e: ExecutionException => throw e.getCause
+          }
+          isAddressResolved = true
+          false
+        }
+        else false
       }
-      else false
-    }
-    catch {
-      case t: Throwable =>
-        close()
-        false
+      catch {
+        case t: Throwable =>
+          close()
+          false
+      }
     }
 
     // This has to be an explicit internal class instead of an anonymous one
@@ -430,6 +420,7 @@ object InternetCard {
           throw new IOException(Option(e.getMessage).getOrElse(e.toString))
       }
     }
+
   }
 
 }

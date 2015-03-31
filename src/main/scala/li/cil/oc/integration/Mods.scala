@@ -56,10 +56,12 @@ object Mods {
   val StargateTech2 = new ModBase {
     def id = IDs.StargateTech2
 
-    protected override lazy val isModAvailable = Loader.isModLoaded(IDs.StargateTech2) && {
+    private lazy val isModAvailable_ = Loader.isModLoaded(IDs.StargateTech2) && {
       val mod = Loader.instance.getIndexedModList.get(IDs.StargateTech2)
       mod.getVersion.startsWith("0.7.")
     }
+
+    override def isModAvailable: Boolean = isModAvailable_
   }
   val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
@@ -121,7 +123,7 @@ object Mods {
   private def tryInit(mod: ModProxy) {
     val isBlacklisted = Settings.get.modBlacklist.contains(mod.getMod.id)
     val alwaysEnabled = mod.getMod == null || mod.getMod == Mods.Minecraft
-    if (!isBlacklisted && (alwaysEnabled || mod.getMod.isAvailable) && handlers.add(mod)) {
+    if (!isBlacklisted && (alwaysEnabled || mod.getMod.isModAvailable) && handlers.add(mod)) {
       li.cil.oc.OpenComputers.log.info(s"Initializing mod integration for '${mod.getMod.id}'.")
       try mod.initialize() catch {
         case e: Throwable =>
@@ -188,7 +190,7 @@ object Mods {
 
     protected lazy val isPowerModEnabled = !providesPower || (!Settings.get.pureIgnorePower && !Settings.get.powerModBlacklist.contains(id))
 
-    protected def isModAvailable: Boolean
+    def isModAvailable: Boolean
 
     def id: String
 
@@ -199,21 +201,29 @@ object Mods {
     // This is called from the class transformer when injecting an interface of
     // this power type fails, to avoid class not found / class cast exceptions.
     def disablePower() = powerDisabled = true
+
+    def container = Option(Loader.instance.getIndexedModList.get(id))
+
+    def version = container.map(_.getProcessedVersion)
   }
 
   class SimpleMod(val id: String, override val providesPower: Boolean = false, version: String = "") extends ModBase {
-    override protected lazy val isModAvailable = {
+    private lazy val isModAvailable_ = {
       val version = VersionParser.parseVersionReference(id + this.version)
       if (Loader.isModLoaded(version.getLabel))
         version.containsVersion(Loader.instance.getIndexedModList.get(version.getLabel).getProcessedVersion)
       else ModAPIManager.INSTANCE.hasAPI(version.getLabel)
     }
+
+    def isModAvailable = isModAvailable_
   }
 
   class ClassBasedMod(val id: String, val classNames: String*)(override val providesPower: Boolean = false) extends ModBase {
-    override protected lazy val isModAvailable = classNames.forall(className => try Class.forName(className) != null catch {
+    private lazy val isModAvailable_ = classNames.forall(className => try Class.forName(className) != null catch {
       case _: Throwable => false
     })
+
+    def isModAvailable = isModAvailable_
   }
 
 }
