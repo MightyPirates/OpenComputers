@@ -14,6 +14,7 @@ import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
+import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util._
 import net.minecraft.client.Minecraft
@@ -45,11 +46,15 @@ object EventHandler {
 
   private val keyboards = java.util.Collections.newSetFromMap[Keyboard](new java.util.WeakHashMap[Keyboard, java.lang.Boolean])
 
+  private val machines = mutable.Set.empty[Machine]
+
   def onRobotStart(robot: Robot): Unit = runningRobots += robot
 
   def onRobotStopped(robot: Robot): Unit = runningRobots -= robot
 
   def addKeyboard(keyboard: Keyboard): Unit = keyboards += keyboard
+
+  def scheduleClose(machine: Machine) = machines += machine
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -90,6 +95,10 @@ object EventHandler {
       else if (robot.world != null) robot.machine.update()
     })
     runningRobots --= invalid
+
+    val closed = mutable.ArrayBuffer.empty[Machine]
+    machines.foreach(machine => if (machine.tryClose()) closed += machine)
+    machines --= closed
   }
 
   @SubscribeEvent
@@ -203,7 +212,7 @@ object EventHandler {
 
     didRecraft = recraft(e, tablet, stack => {
       // Restore EEPROM currently used in tablet.
-      new TabletData(stack).items.collect { case Some(item) => item}.find(api.Items.get(_) == eeprom)
+      new TabletData(stack).items.collect { case Some(item) => item }.find(api.Items.get(_) == eeprom)
     }) || didRecraft
 
     // Presents?

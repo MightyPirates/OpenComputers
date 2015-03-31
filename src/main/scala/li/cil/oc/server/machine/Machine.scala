@@ -23,6 +23,7 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
@@ -257,12 +258,21 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       false
     case _ =>
       state.push(Machine.State.Stopping)
+      EventHandler.scheduleClose(this)
       true
   })
 
   override def crash(message: String) = {
     this.message = Option(message)
-    stop()
+    state.synchronized {
+      val result = stop()
+      if (state.top == Machine.State.Stopping) {
+        // When crashing, make sure there's no "Running" left in the stack.
+        state.clear()
+        state.push(Machine.State.Stopping)
+      }
+      result
+    }
   }
 
   override def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
@@ -392,6 +402,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
+  def isExecuting = state.synchronized(state.contains(Machine.State.Running))
+
   override val canUpdate = true
 
   override def update() = if (state.synchronized(state.top != Machine.State.Stopped)) {
@@ -499,7 +511,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
               state.pop() // Running, no switchTo to avoid new future.
               state.push(Machine.State.SynchronizedReturn)
               state.push(Machine.State.Paused)
-            case Machine.State.Stopping => // Nothing to do, we'll die anyway.
+            case Machine.State.Stopping =>
+              state.clear()
+              state.push(Machine.State.Stopping)
             case _ => throw new AssertionError()
           }
         }
@@ -514,7 +528,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           inSynchronizedCall = false
         }
 
-        assert(state.top != Machine.State.Running)
+        assert(!isExecuting)
       case _ => // Nothing special to do, just avoid match errors.
     })
 
@@ -643,7 +657,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     super.load(nbt)
 
-    state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
+    state.pushAll(nbt.getIntArray("state").reverseMap(Machine.State(_)))
     nbt.getTagList("users", NBT.TAG_STRING).foreach((tag: NBTTagString) => _users += tag.getString)
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
@@ -703,7 +717,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized {
-    assert(state.top != Machine.State.Running) // Lock on 'this' should guarantee this.
+    assert(!isExecuting) // Lock on 'this' should guarantee this.
 
     // Make sure we don't continue running until everything has saved.
     pause(0.05)
@@ -798,16 +812,25 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     false
   }
 
+  def tryClose(): Boolean =
+    if (isExecuting) false
+    else {
+      close()
+      true
+    }
+
   private def close() = state.synchronized(
     if (state.size == 0 || state.top != Machine.State.Stopped) {
-      state.clear()
-      state.push(Machine.State.Stopped)
-      Option(architecture).foreach(_.close())
-      signals.clear()
-      uptime = 0
-      cpuTotal = 0
-      cpuStart = 0
-      remainIdle = 0
+      this.synchronized {
+        state.clear()
+        state.push(Machine.State.Stopped)
+        Option(architecture).foreach(_.close())
+        signals.clear()
+        uptime = 0
+        cpuTotal = 0
+        cpuStart = 0
+        remainIdle = 0
+      }
 
       // Mark state change in owner, to send it to clients.
       host.markChanged()
@@ -906,10 +929,12 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
                 crash(Option(result.message).getOrElse("unknown error"))
             }
             state.push(Machine.State.Paused)
-          case Machine.State.Stopping => // Nothing to do, we'll die anyway.
+          case Machine.State.Stopping =>
+            state.clear()
+            state.push(Machine.State.Stopping)
           case _ => throw new AssertionError("Invalid state in executor post-processing.")
         }
-        assert(state.top != Machine.State.Running)
+        assert(!isExecuting)
       }
     }
     catch {
