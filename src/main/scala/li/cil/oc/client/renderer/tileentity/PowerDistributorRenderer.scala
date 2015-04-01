@@ -42,7 +42,6 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
 
       {
         val icon = Textures.getSprite(Textures.Block.PowerDistributorSideOn)
-        r.startDrawingQuads()
         r.addVertexWithUV(1, 1, 0, icon.getMinU, icon.getMaxV)
         r.addVertexWithUV(0, 1, 0, icon.getMaxU, icon.getMaxV)
         r.addVertexWithUV(0, 0, 0, icon.getMaxU, icon.getMinV)
