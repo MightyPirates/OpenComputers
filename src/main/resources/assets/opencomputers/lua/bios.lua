@@ -17,14 +17,14 @@ computer.setBootAddress = function(address)
   return boot_invoke(eeprom, "setData", address)
 end
 
-do
+do --Auto bind gpus
   local screen = component.list("screen")()
   local gpu = component.list("gpu")()
   if gpu and screen then
     boot_invoke(gpu, "bind", screen)
   end
 end
-local function tryLoadFrom(address)
+local function tryLoadFrom(address) --Try and load from an address
   local handle, reason = boot_invoke(address, "open", "/init.lua")
   if not handle then
     return nil, reason
@@ -57,5 +57,5 @@ end
 if not init then
   error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
 end
-computer.beep(1000, 0.2)
+computer.beep(1000, 0.2) --A note of success to the user.
 init()
