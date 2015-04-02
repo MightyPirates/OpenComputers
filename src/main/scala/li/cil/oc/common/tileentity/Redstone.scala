@@ -17,6 +17,7 @@ class Redstone extends Environment with BundledRedstoneAware {
       new component.Redstone.Bundled(this)
     else
       new component.Redstone.Vanilla(this)
+  instance.wakeNeighborsOnly = false
   val node = instance.node
   val dummyNode = if (node != null) {
     node.setVisibility(Visibility.Network)
