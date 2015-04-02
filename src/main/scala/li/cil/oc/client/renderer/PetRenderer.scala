@@ -22,10 +22,13 @@ import scala.collection.mutable
 object PetRenderer {
   val hidden = mutable.Set.empty[String]
 
+  // http://goo.gl/frLWYR
   private val entitledPlayers = Map(
     "Sangar" ->(0.3, 0.9, 0.6),
     "Jodarion" ->(1.0, 0.0, 0.0),
-    "DaKaTotal" ->(0.5, 0.7, 1.0)
+    "DaKaTotal" ->(0.5, 0.7, 1.0),
+    "MichiyoRavencroft" ->(1.0, 0.0, 0.0),
+    "Vexatos" ->(0.18, 0.95, 0.922)
   )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().
