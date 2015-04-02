@@ -84,7 +84,7 @@ to create an IntellJ IDEA project.
 
 Open the project and you will be asked to *import the Gradle project* (check your Event Log if you missed the pop-up). **Do so**. This will configure additionally referenced libraries.
 
-In the case you wish to use Eclipse rather then IDEA, the process is mostly the same, except you must run `gradlew eclipse` rather then `gradlew idea`.
+In the case you wish to use Eclipse rather than IDEA, the process is mostly the same, except you must run `gradlew eclipse` rather than `gradlew idea`.
 
 
 
