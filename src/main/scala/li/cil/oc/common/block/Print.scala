@@ -19,6 +19,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumWorldBlockLayer
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.IBlockAccess
@@ -55,6 +56,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def canRenderInLayer(layer: EnumWorldBlockLayer): Boolean = layer == EnumWorldBlockLayer.CUTOUT_MIPPED
 
   @SideOnly(Side.CLIENT) override
   def colorMultiplier(world: IBlockAccess, pos: BlockPos, tint: Int): Int = tint
