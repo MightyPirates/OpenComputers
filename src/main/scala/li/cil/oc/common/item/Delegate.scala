@@ -53,11 +53,11 @@ trait Delegate {
     stack
   }
 
-  def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.none
+  def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.NONE
 
   def getMaxItemUseDuration(stack: ItemStack) = 0
 
-  def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
+  def onItemUseFinish(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
 
   def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int) {}
 

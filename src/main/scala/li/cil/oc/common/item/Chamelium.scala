@@ -16,11 +16,11 @@ class Chamelium(val parent: Delegator) extends Delegate {
     stack
   }
 
-  override def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.eat
+  override def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.EAT
 
   override def getMaxItemUseDuration(stack: ItemStack): Int = 32
 
-  override def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
+  override def onItemUseFinish(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (!world.isRemote) {
       player.addPotionEffect(new PotionEffect(Potion.invisibility.id, 100, 0))
       player.addPotionEffect(new PotionEffect(Potion.blindness.id, 200, 0))

@@ -126,14 +126,14 @@ class Delegator extends Item {
 
   // ----------------------------------------------------------------------- //
 
-  override def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
-    subItem(stack) match {
-      case Some(subItem) => subItem.onEaten(stack, world, player)
-      case _ => super.onEaten(stack, world, player)
+  override def onItemUseFinish(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.onItemUseFinish(stack, world, player)
+      case _ => super.onItemUseFinish(stack, world, player)
     }
 
   override def getItemUseAction(stack: ItemStack): EnumAction =
-    subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(subItem) => subItem.getItemUseAction(stack)
       case _ => super.getItemUseAction(stack)
     }
