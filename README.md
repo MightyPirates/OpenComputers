@@ -70,7 +70,7 @@ Alternatively, leave out the `api` classifier and you can build against the dev 
 If you have any questions, please do not hesitate to ask, either in the [forums][] or in the [IRC][irc]!
 
 ### OpenComputers
-Want to tinker with the mod itself? Here is how - for IntelliJ IDEA users. For eclipse I assume the process will be similar.
+Want to tinker with the mod itself? Here is how - for IntelliJ IDEA users.
 
 **Important**
 - Make sure you have the Gradle plugin enabled in IDEA (File->Settings->Plugins).
@@ -83,6 +83,8 @@ to setup the workspace, including assets and such, then
 to create an IntellJ IDEA project.
 
 Open the project and you will be asked to *import the Gradle project* (check your Event Log if you missed the pop-up). **Do so**. This will configure additionally referenced libraries.
+
+In the case you wish to use Eclipse rather than IDEA, the process is mostly the same, except you must run `gradlew eclipse` rather than `gradlew idea`.
 
 
 
