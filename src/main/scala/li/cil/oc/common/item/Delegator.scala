@@ -11,6 +11,7 @@ import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumAction
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -124,6 +125,18 @@ class Delegator extends Item {
     }
 
   // ----------------------------------------------------------------------- //
+
+  override def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
+    subItem(stack) match {
+      case Some(subItem) => subItem.onEaten(stack, world, player)
+      case _ => super.onEaten(stack, world, player)
+    }
+
+  override def getItemUseAction(stack: ItemStack): EnumAction =
+    subItem(stack) match {
+      case Some(subItem) => subItem.getItemUseAction(stack)
+      case _ => super.getItemUseAction(stack)
+    }
 
   override def getMaxItemUseDuration(stack: ItemStack): Int =
     Delegator.subItem(stack) match {

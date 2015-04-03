@@ -13,6 +13,7 @@ import li.cil.oc.util.Tooltip
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumAction
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
@@ -52,7 +53,11 @@ trait Delegate {
     stack
   }
 
+  def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.none
+
   def getMaxItemUseDuration(stack: ItemStack) = 0
+
+  def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
 
   def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int) {}
 
