@@ -80,7 +80,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     false
   }
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int, player: EntityPlayer): ItemStack = {
+  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int): ItemStack = {
     world.getTileEntity(x, y, z) match {
       case print: tileentity.Print => print.data.createItemStack()
       case _ => null
