@@ -46,20 +46,30 @@ object ItemUtils {
   def loadStack(nbt: NBTTagCompound) = ItemStack.loadItemStackFromNBT(nbt)
 
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
-    val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
-    val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack))
-    val count = recipe.fold(0)(_.getRecipeOutput.stackSize)
-    val ingredients = (recipe match {
-      case Some(recipe: ShapedRecipes) => recipe.recipeItems.toIterable
-      case Some(recipe: ShapelessRecipes) => recipe.recipeItems.map(_.asInstanceOf[ItemStack])
-      case Some(recipe: ShapedOreRecipe) => resolveOreDictEntries(recipe.getInput)
-      case Some(recipe: ShapelessOreRecipe) => resolveOreDictEntries(recipe.getInput)
-      case _ => Iterable.empty
-    }).filter(ingredient => ingredient != null &&
+    def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Double) = inputs.filter(input =>
+      input != null &&
+      input.getItem != null &&
+      math.floor(input.stackSize / outputSize) > 0 &&
       // Strip out buckets, because those are returned when crafting, and
       // we have no way of returning the fluid only (and I can't be arsed
       // to make it output fluids into fluiducts or such, sorry).
-      !ingredient.getItem.isInstanceOf[ItemBucket]).toArray
+      !input.getItem.isInstanceOf[ItemBucket]).toArray
+    def getOutputSize(recipe: IRecipe) =
+      if (recipe != null && recipe.getRecipeOutput != null)
+        recipe.getRecipeOutput.stackSize
+      else
+        Double.PositiveInfinity
+
+    val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
+    val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack))
+    val count = recipe.fold(0)(_.getRecipeOutput.stackSize)
+    val ingredients = recipe match {
+      case Some(recipe: ShapedRecipes) => getFilteredInputs(recipe.recipeItems.toIterable, getOutputSize(recipe))
+      case Some(recipe: ShapelessRecipes) => getFilteredInputs(recipe.recipeItems.map(_.asInstanceOf[ItemStack]), getOutputSize(recipe))
+      case Some(recipe: ShapedOreRecipe) => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
+      case Some(recipe: ShapelessOreRecipe) => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
+      case _ => Array.empty
+    }
     // Avoid positive feedback loops.
     if (ingredients.exists(ingredient => ingredient.isItemEqual(stack))) {
       return Array.empty
