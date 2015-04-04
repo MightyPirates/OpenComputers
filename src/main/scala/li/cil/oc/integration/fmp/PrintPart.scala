@@ -5,7 +5,6 @@ import java.lang
 import codechicken.lib.data.MCDataInput
 import codechicken.lib.data.MCDataOutput
 import codechicken.lib.raytracer.ExtendedMOP
-import codechicken.lib.raytracer.IndexedCuboid6
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
 import codechicken.multipart.IRedstonePart
