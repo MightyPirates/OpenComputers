@@ -140,6 +140,10 @@ repositories {
         name 'BloodMagic'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
     }
+    ivy {
+        name "Flaxbeard'sSteamPower"
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.fsp.cf}/[module]-${config.fsp.version}.[ext]"
+    }
 }
 
 configurations {
@@ -176,6 +180,8 @@ dependencies {
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
 
+    provided name: "Flaxbeard'sSteamPower", version: config.fsp.version, ext: 'jar'
+
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
@@ -211,6 +217,7 @@ processResources {
 
 jar {
     exclude "cofh/**"
+    exclude "flaxbeard/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
@@ -231,6 +238,7 @@ javadoc {
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     exclude "cofh/**"
+    exclude "flaxbeard/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'

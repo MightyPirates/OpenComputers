@@ -3,8 +3,7 @@ package li.cil.oc.integration
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.ModAPIManager
 import cpw.mods.fml.common.versioning.VersionParser
-import li.cil.oc.Settings
-import li.cil.oc.integration
+import li.cil.oc.{Settings, integration}
 
 import scala.collection.mutable
 
@@ -72,6 +71,9 @@ object Mods {
   val WirelessRedstoneCBE = new SimpleMod(IDs.WirelessRedstoneCBE)
   val WirelessRedstoneSVE = new SimpleMod(IDs.WirelessRedstoneSV)
 
+  //EDIT Flaxbeard's Steam Power, povidesPower = false because it doesn't have any RF Gen.
+  val FlaxbeardsSteamPower = new SimpleMod(IDs.FlaxbeardsSteamPower, providesPower = false)
+
   // ----------------------------------------------------------------------- //
 
   val Proxies = Array(
@@ -111,7 +113,10 @@ object Mods {
 
     // We go last to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
-    integration.opencomputers.ModOpenComputers
+    integration.opencomputers.ModOpenComputers,
+
+    //EDIT for Flaxbeard's Steam Power
+    integration.fsp.ModFSP
   )
 
   def init(): Unit = {
@@ -179,6 +184,9 @@ object Mods {
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"
     final val WirelessRedstoneSV = "WirelessRedstoneCore"
+
+    //EDIT for Flaxbeard's Steam Power
+    final val FlaxbeardsSteamPower = "Steamcraft"
   }
 
   // ----------------------------------------------------------------------- //
