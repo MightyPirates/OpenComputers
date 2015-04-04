@@ -117,7 +117,7 @@ end
 function network.tcp.close(channel)
     if internal.tcp.channels[channel] then
         if internal.tcp.channels[channel].open or internal.tcp.channels[channel].waiting then
-            driver.send(addr, "TC"..  string.char(math.floor(internal.tcp.channels[channel].remote/256))..string.char(internal.tcp.channels[channel].remote%256))
+            driver.send(internal.tcp.channels[channel].addr, "TC"..  string.char(math.floor(internal.tcp.channels[channel].remote/256))..string.char(internal.tcp.channels[channel].remote%256))
         end
         internal.tcp.channels[channel] = {next = internal.tcp.freeCh}
         internal.tcp.freeCh = channel
