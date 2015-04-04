@@ -1,13 +1,5 @@
 package li.cil.oc.integration.appeng
 
-import appeng.api.config.Actionable
-import appeng.api.config.FuzzyMode
-import appeng.api.config.Settings
-import appeng.api.config.Upgrades
-import appeng.api.networking.security.MachineSource
-import appeng.parts.automation.PartExportBus
-import appeng.util.Platform
-import appeng.util.item.AEItemStack
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.internal.Database
@@ -21,9 +13,6 @@ import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
-
-import scala.collection.convert.WrapAsScala._
 
 object DriverExportBus extends driver.Block {
   type ExportBusTile = appeng.api.parts.IPartHost
@@ -98,11 +87,15 @@ object DriverExportBus extends driver.Block {
                 case 4 => 96
                 case _ => 1
               }
-              val fuzzyMode = export.getConfigManager.getSetting(Settings.FUZZY_MODE).asInstanceOf[FuzzyMode]
+              // We need reflection here to avoid compiling against the return type,
+              // which has changed in rv2-beta-20 or so.
+              val fuzzyMode = export.getConfigManager.
+                getClass.getMethod("getSetting", classOf[Enum[_]]).
+                invoke(export.getConfigManager, Settings.FUZZY_MODE).asInstanceOf[FuzzyMode]
               val source = new MachineSource(export)
               var didSomething = false
               for (slot <- 0 until config.getSizeInventory if count > 0) {
-                val filter = AEItemStack.create(config.getStackInSlot(slot))
+                val filter = AEApi.instance.storage.createItemStack(config.getStackInSlot(slot))
                 val stacks =
                   if (export.getInstalledUpgrades(Upgrades.FUZZY) > 0)
                     itemStorage.getStorageList.findFuzzy(filter, fuzzyMode).toSeq
@@ -137,4 +130,5 @@ object DriverExportBus extends driver.Block {
       }
     }
   }
+
 }
