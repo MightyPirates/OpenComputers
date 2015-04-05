@@ -26,7 +26,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
 
-object DriverExportBus extends driver.Block {
+object DriverExportBus extends driver.Block with EnvironmentAware {
   type AETileType = appeng.api.parts.IPartHost
 
   override def worksWith(world: World, x: Int, y: Int, z: Int) =
