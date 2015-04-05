@@ -125,6 +125,7 @@ object Recipes {
       val navigationUpgrade = api.Items.get("navigationUpgrade")
       val mcu = api.Items.get("microcontroller")
       val floppy = api.Items.get("floppy")
+      val lootDisk = api.Items.get("lootDisk")
       val drone = api.Items.get("drone")
       val eeprom = api.Items.get("eeprom")
       val robot = api.Items.get("robot")
@@ -203,6 +204,10 @@ object Recipes {
           beaconPrint,
           print.createItemStack(1), new ItemStack(block)))
       }
+
+      // Floppy disk formatting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), floppy.createItemStack(1)))
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), lootDisk.createItemStack(1)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)
@@ -328,10 +333,10 @@ object Recipes {
     (inputs, inputCount).zipped.foreach((stacks, count) => stacks.foreach(stack => if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count))
     inputs.padTo(2, null)
 
-    if (inputs(0) != null) {
-      for (input1 <- inputs(0)) {
-        if (inputs(1) != null) {
-          for (input2 <- inputs(1))
+    if (inputs.head != null) {
+      for (input1 <- inputs.head) {
+        if (inputs.last != null) {
+          for (input2 <- inputs.last)
             gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, input2, output, duration, eu)
         }
         else gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, null, output, duration, eu)
