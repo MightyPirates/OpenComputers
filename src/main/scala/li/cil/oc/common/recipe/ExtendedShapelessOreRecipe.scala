@@ -6,5 +6,5 @@ import net.minecraftforge.oredict.ShapelessOreRecipe
 
 class ExtendedShapelessOreRecipe(result: ItemStack, ingredients: AnyRef*) extends ShapelessOreRecipe(result, ingredients: _*) {
   override def getCraftingResult(inventory: InventoryCrafting) =
-    ExtendedRecipe.addNBTToResult(super.getCraftingResult(inventory), inventory)
+    ExtendedRecipe.addNBTToResult(this, super.getCraftingResult(inventory), inventory)
 }

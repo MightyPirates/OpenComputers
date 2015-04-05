@@ -43,15 +43,7 @@ trait Delegate {
 
   def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
-    if (player.isSneaking) {
-      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
-        stack.setTagCompound(null)
-        player.swingItem()
-      }
-    }
-    stack
-  }
+  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
 
   def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.NONE
 

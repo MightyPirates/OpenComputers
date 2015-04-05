@@ -33,9 +33,13 @@ object ObfNames {
   final val Method_writeToNBT = Array("writeToNBT", "func_145841_b")
 }
 
+object ClassTransformer {
+  var hadErrors = false
+  var hadSimpleComponentErrors = false
+}
+
 class ClassTransformer extends IClassTransformer {
   private val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
-
   private val log = LogManager.getLogger("OpenComputers")
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
@@ -73,7 +77,7 @@ class ClassTransformer extends IClassTransformer {
           // Inject available interfaces where requested.
           if (classNode.visibleAnnotations != null) {
             def injectInterface(annotation: AnnotationNode): Unit = {
-              val values = annotation.values.grouped(2).map(buffer => buffer(0) -> buffer(1)).toMap
+              val values = annotation.values.grouped(2).map(buffer => buffer.head -> buffer.last).toMap
               (values.get("value"), values.get("modid")) match {
                 case (Some(interfaceName: String), Some(modid: String)) =>
                   Mods.All.find(_.id == modid) match {
@@ -93,6 +97,7 @@ class ClassTransformer extends IClassTransformer {
                           else {
                             log.warn(s"Missing implementations for interface $interfaceName, skipping injection.")
                             missing.foreach(log.warn)
+                            ClassTransformer.hadErrors = true
                           }
                         }
                       }
@@ -113,7 +118,7 @@ class ClassTransformer extends IClassTransformer {
             }
             classNode.visibleAnnotations.find(_.desc == "Lli/cil/oc/common/asm/Injectable$InterfaceList;") match {
               case Some(annotation) =>
-                val values = annotation.values.grouped(2).map(buffer => buffer(0) -> buffer(1)).toMap
+                val values = annotation.values.grouped(2).map(buffer => buffer.head -> buffer.last).toMap
                 values.get("value") match {
                   case Some(interfaceList: java.lang.Iterable[AnnotationNode]@unchecked) =>
                     interfaceList.foreach(injectInterface)
@@ -135,6 +140,7 @@ class ClassTransformer extends IClassTransformer {
             catch {
               case e: Throwable =>
                 log.warn(s"Failed injecting component logic into class $name.", e)
+                ClassTransformer.hadSimpleComponentErrors = true
             }
           }
         }
@@ -220,6 +226,7 @@ class ClassTransformer extends IClassTransformer {
     catch {
       case t: Throwable =>
         log.warn("Something went wrong!", t)
+        ClassTransformer.hadErrors = true
         basicClass
     }
   }
@@ -233,10 +240,12 @@ class ClassTransformer extends IClassTransformer {
         }
         else {
           log.warn(s"Failed patching ${classNode.name}.${methodNames(0)}, injection point not found.")
+          ClassTransformer.hadErrors = true
           None
         }
       case _ =>
         log.warn(s"Failed patching ${classNode.name}.${methodNames(0)}, method not found.")
+        ClassTransformer.hadErrors = true
         None
     }
   }

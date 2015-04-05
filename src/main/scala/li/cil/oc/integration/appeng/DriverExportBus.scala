@@ -1,5 +1,12 @@
 package li.cil.oc.integration.appeng
 
+import appeng.api.AEApi
+import appeng.api.config.Actionable
+import appeng.api.config.FuzzyMode
+import appeng.api.config.Settings
+import appeng.api.config.Upgrades
+import appeng.api.networking.security.MachineSource
+import appeng.parts.automation.PartExportBus
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.internal.Database
@@ -15,17 +22,17 @@ import li.cil.oc.util.ResultWrapper._
 import net.minecraft.world.World
 
 object DriverExportBus extends driver.Block {
-  type ExportBusTile = appeng.api.parts.IPartHost
+  type AETileType = appeng.api.parts.IPartHost
 
   override def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
-      case container: ExportBusTile => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
+      case container: AETileType => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
       case _ => false
     }
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[ExportBusTile])
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[AETileType])
 
-  class Environment(host: ExportBusTile) extends ManagedTileEntityEnvironment[ExportBusTile](host, "me_exportbus") with NamedBlock {
+  class Environment(host: AETileType) extends ManagedTileEntityEnvironment[AETileType](host, "me_exportbus") with NamedBlock {
     override def preferredName = "me_exportbus"
 
     override def priority = 0
@@ -106,7 +113,7 @@ object DriverExportBus extends driver.Block {
                   is.stackSize = count
                   if (InventoryUtils.insertIntoInventorySlot(is, inventory, Option(side.getOpposite), targetSlot, count, simulate = true)) {
                     ais.setStackSize(count - is.stackSize)
-                    val eais = Platform.poweredExtraction(export.getProxy.getEnergy, itemStorage, ais, source)
+                    val eais = AEApi.instance.storage.poweredExtraction(export.getProxy.getEnergy, itemStorage, ais, source)
                     if (eais != null) {
                       val eis = eais.getItemStack
                       count -= eis.stackSize

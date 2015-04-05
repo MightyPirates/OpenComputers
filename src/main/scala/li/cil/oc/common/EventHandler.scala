@@ -7,6 +7,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.asm.ClassTransformer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
@@ -119,6 +120,12 @@ object EventHandler {
         }
         if (Recipes.hadErrors) {
           player.addChatMessage(Localization.Chat.WarningRecipes)
+        }
+        if (ClassTransformer.hadErrors) {
+          player.addChatMessage(Localization.Chat.WarningClassTransformer)
+        }
+        if (ClassTransformer.hadSimpleComponentErrors) {
+          player.addChatMessage(Localization.Chat.WarningSimpleComponent)
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
         // Do update check in local games and for OPs.
