@@ -295,6 +295,7 @@ class Settings(val config: Config) {
   val threadPriority = config.getInt("misc.threadPriority")
   val maxPrintComplexity = config.getInt("misc.maxPrinterShapes")
   val printRecycleRate = config.getDouble("misc.printRecycleRate")
+  val chameliumEdible = config.getBoolean("misc.chameliumEdible")
 
   // ----------------------------------------------------------------------- //
   // integration

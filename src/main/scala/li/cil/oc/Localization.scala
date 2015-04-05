@@ -83,6 +83,12 @@ object Localization {
 
     def WarningFingerprint(event: FMLFingerprintViolationEvent) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", ")))
 
+    def WarningRecipes = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningRecipes"))
+
+    def WarningClassTransformer = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningClassTransformer"))
+
+    def WarningSimpleComponent = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent"))
+
     def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
 
     def TextureName(name: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.TextureName", name))
@@ -138,6 +144,8 @@ object Localization {
     def Materials = localizeImmediately("tooltip.Materials")
 
     def Tier(tier: Int) = localizeImmediately("tooltip.Tier", tier.toString)
+
+    def BeaconBase = localizeImmediately("tooltip.BeaconBase")
   }
 
 }

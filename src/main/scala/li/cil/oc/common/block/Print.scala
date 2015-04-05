@@ -5,6 +5,7 @@ import java.util.Random
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
@@ -49,6 +50,9 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
     val data = new PrintData(stack)
+    if (data.isBeaconBase) {
+      tooltip.add(Localization.Tooltip.BeaconBase)
+    }
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
   }
 
@@ -80,7 +84,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     false
   }
 
-  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int, player: EntityPlayer): ItemStack = {
+  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int): ItemStack = {
     world.getTileEntity(x, y, z) match {
       case print: tileentity.Print => print.data.createItemStack()
       case _ => null

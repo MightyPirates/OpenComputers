@@ -4,8 +4,10 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.channels.Channels
+import java.util.regex.Pattern
 
 import com.google.common.base.Strings
+import com.google.common.io.PatternFilenameFilter
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.server.machine.Machine
@@ -105,8 +107,20 @@ object LuaStateFactory {
       else if (path.endsWith("/") || path.endsWith("\\")) path
       else path + "/"
     }
-    else ""
+    else "./"
     val tmpLibFile = new File(tmpBasePath + tmpLibName)
+
+    // Clean up old library files when not in tmp dir.
+    if (!Settings.get.nativeInTmpDir) {
+      val libDir = new File(tmpBasePath)
+      if (libDir.isDirectory) {
+        for (file <- libDir.listFiles(new PatternFilenameFilter("^" + Pattern.quote("OpenComputersMod-") + ".*" + Pattern.quote("-" + libraryName) + "$"))) {
+          if (file.compareTo(tmpLibFile) != 0) {
+            file.delete()
+          }
+        }
+      }
+    }
 
     // If the file, already exists, make sure it's the same we need, if it's
     // not disable use of the natives.

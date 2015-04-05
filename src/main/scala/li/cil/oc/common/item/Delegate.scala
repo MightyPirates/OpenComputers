@@ -14,6 +14,7 @@ import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumAction
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
@@ -45,17 +46,13 @@ trait Delegate {
 
   def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
-    if (player.isSneaking) {
-      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
-        stack.setTagCompound(null)
-        player.swingItem()
-      }
-    }
-    stack
-  }
+  def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
+
+  def getItemUseAction(stack: ItemStack): EnumAction = EnumAction.none
 
   def getMaxItemUseDuration(stack: ItemStack) = 0
+
+  def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = stack
 
   def onPlayerStoppedUsing(stack: ItemStack, player: EntityPlayer, duration: Int) {}
 

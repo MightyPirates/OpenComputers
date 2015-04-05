@@ -16,6 +16,7 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
+import net.minecraft.item.crafting.IRecipe
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
@@ -29,6 +30,7 @@ object ExtendedRecipe {
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   private lazy val linkedCard = api.Items.get("linkedCard")
   private lazy val floppy = api.Items.get("floppy")
+  private lazy val lootDisk = api.Items.get("lootDisk")
   private lazy val robot = api.Items.get("robot")
   private lazy val tablet = api.Items.get("tablet")
   private lazy val print = api.Items.get("print")
@@ -40,7 +42,7 @@ object ExtendedRecipe {
     stack
   }
 
-  def addNBTToResult(craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
+  def addNBTToResult(recipe: IRecipe, craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
     if (api.Items.get(craftedStack) == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
         for (slot <- 0 until inventory.getSizeInventory) {
@@ -64,16 +66,22 @@ object ExtendedRecipe {
     }
 
     if (api.Items.get(craftedStack) == floppy) {
-      if (!craftedStack.hasTagCompound) {
-        craftedStack.setTagCompound(new NBTTagCompound())
+      if (recipe.getRecipeSize == 1) {
+        // Formatting / loot to normal disk conversion.
+        craftedStack.setTagCompound(null)
       }
-      val nbt = craftedStack.getTagCompound
-      for (slot <- 0 until inventory.getSizeInventory) {
-        val stack = inventory.getStackInSlot(slot)
-        if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
-          val oldData = stack.getTagCompound
-          for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
-            nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
+      else {
+        if (!craftedStack.hasTagCompound) {
+          craftedStack.setTagCompound(new NBTTagCompound())
+        }
+        val nbt = craftedStack.getTagCompound
+        for (slot <- 0 until inventory.getSizeInventory) {
+          val stack = inventory.getStackInSlot(slot)
+          if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
+            val oldData = stack.getTagCompound
+            for (oldTagName <- oldData.func_150296_c().map(_.asInstanceOf[String])) {
+              nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
+            }
           }
         }
       }
