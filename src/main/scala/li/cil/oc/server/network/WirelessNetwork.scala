@@ -142,7 +142,7 @@ object WirelessNetwork {
         val y = (origin.yCoord + v.yCoord * rGap + side.yCoord * rSide + top.yCoord * rTop).toInt
         val z = (origin.zCoord + v.zCoord * rGap + side.zCoord * rSide + top.zCoord * rTop).toInt
         val blockPos = BlockPosition(x, y, z, world)
-        Option(world.getBlock(blockPos)) match {
+        if (world.isBlockLoaded(blockPos)) Option(world.getBlock(blockPos)) match {
           case Some(block) => hardness += block.getBlockHardness(blockPos)
           case _ =>
         }
