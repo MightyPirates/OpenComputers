@@ -6,76 +6,55 @@ import appeng.api.config.FuzzyMode
 import appeng.api.config.Settings
 import appeng.api.config.Upgrades
 import appeng.api.networking.security.MachineSource
+import appeng.api.parts.IPartHost
 import appeng.parts.automation.PartExportBus
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.NamedBlock
-import li.cil.oc.api.internal.Database
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
-import li.cil.oc.api.network.Component
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper._
+import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-object DriverExportBus extends driver.Block {
-  type AETileType = appeng.api.parts.IPartHost
-
+object DriverExportBus extends driver.Block with EnvironmentAware {
   override def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
-      case container: AETileType => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
+      case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
       case _ => false
     }
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[AETileType])
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  class Environment(host: AETileType) extends ManagedTileEntityEnvironment[AETileType](host, "me_exportbus") with NamedBlock {
+  override def providedEnvironment(stack: ItemStack) =
+    if (AEUtil.isExportBus(stack)) classOf[Environment]
+    else null
+
+  class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
     override def preferredName = "me_exportbus"
 
-    override def priority = 0
+    override def priority = 2
+
+    // TODO remove in OC 1.6
+    @Deprecated
+    @Callback(doc = "function(side:number, [ slot:number]):boolean -- DEPRECATED, use getExportConfiguration.")
+    def getConfiguration(context: Context, args: Arguments): Array[AnyRef] = getExportConfiguration(context, args)
+
+    // TODO remove in OC 1.6
+    @Deprecated
+    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean -- DEPRECATED, use setExportConfiguration.")
+    def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = setExportConfiguration(context, args)
 
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
-    def getConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
-      val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-      host.getPart(side) match {
-        case export: PartExportBus =>
-          val config = export.getInventoryByName("config")
-          val slot = args.optSlot(config, 2, 0)
-          val stack = config.getStackInSlot(slot)
-          result(stack)
-        case _ => result(Unit, "no export bus")
-      }
-    }
+    def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = getPartConfig[PartExportBus](context, args)
 
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
-    def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
-      val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
-      host.getPart(side) match {
-        case export: PartExportBus =>
-          val config = export.getInventoryByName("config")
-          val slot = if (args.count > 3 || args.count < 3) args.optSlot(config, 1, 0) else 0
-          val stack = if (args.count > 2) {
-            val (address, entry) =
-              if (args.count > 3) (args.checkString(2), args.checkInteger(3))
-              else (args.checkString(1), args.checkInteger(2))
-            node.network.node(address) match {
-              case component: Component => component.host match {
-                case database: Database => database.getStackInSlot(entry - 1)
-                case _ => throw new IllegalArgumentException("not a database")
-              }
-              case _ => throw new IllegalArgumentException("no such component")
-            }
-          }
-          else null
-          config.setInventorySlotContents(slot, stack)
-          context.pause(0.5)
-          result(true)
-        case _ => result(Unit, "no export bus")
-      }
-    }
+    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
+    def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = setPartConfig[PartExportBus](context, args)
 
     @Callback(doc = "function(side:number, slot:number):boolean -- Make the export bus facing the specified direction perform a single export operation into the specified slot.")
     def exportIntoSlot(context: Context, args: Arguments): Array[AnyRef] = {
