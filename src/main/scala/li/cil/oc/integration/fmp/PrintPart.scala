@@ -7,14 +7,8 @@ import codechicken.lib.data.MCDataOutput
 import codechicken.lib.raytracer.ExtendedMOP
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
-import codechicken.multipart.IRedstonePart
-import codechicken.multipart.TCuboidPart
-import codechicken.multipart.TNormalOcclusion
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
-import li.cil.oc.client.renderer.block.Print
 import li.cil.oc.common.block.Print
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
@@ -23,10 +17,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ExtendedWorld._
-import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import net.minecraft.client.renderer.OpenGlHelper
-import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
@@ -34,18 +25,58 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
-import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 
-class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlockPart with TCuboidPart with TNormalOcclusion with IRedstonePart {
+object PrintPart {
+  private val q0 = 0 / 16f
+  private val q1 = 4 / 16f
+  private val q2 = 12 / 16f
+  private val q3 = 16 / 16f
+
+  val slotBounds = Array(
+    new Cuboid6(q1, q0, q1, q2, q1, q2),
+    new Cuboid6(q1, q2, q1, q2, q3, q2),
+    new Cuboid6(q1, q1, q0, q2, q2, q1),
+    new Cuboid6(q1, q1, q2, q2, q2, q3),
+    new Cuboid6(q0, q1, q1, q1, q2, q2),
+    new Cuboid6(q2, q1, q1, q3, q2, q2),
+    new Cuboid6(q1, q1, q1, q2, q2, q2),
+
+    new Cuboid6(q0, q0, q0, q1, q1, q1),
+    new Cuboid6(q0, q2, q0, q1, q3, q1),
+    new Cuboid6(q0, q0, q2, q1, q1, q3),
+    new Cuboid6(q0, q2, q2, q1, q3, q3),
+    new Cuboid6(q2, q0, q0, q3, q1, q1),
+    new Cuboid6(q2, q2, q0, q3, q3, q1),
+    new Cuboid6(q2, q0, q2, q3, q1, q3),
+    new Cuboid6(q2, q2, q2, q3, q3, q3),
+
+    new Cuboid6(q0, q1, q0, q1, q2, q1),
+    new Cuboid6(q0, q1, q2, q1, q2, q3),
+    new Cuboid6(q2, q1, q0, q3, q2, q1),
+    new Cuboid6(q2, q1, q2, q3, q2, q3),
+    new Cuboid6(q0, q0, q1, q1, q1, q2),
+    new Cuboid6(q2, q0, q1, q3, q1, q2),
+    new Cuboid6(q0, q2, q1, q1, q3, q2),
+    new Cuboid6(q2, q2, q1, q3, q3, q2),
+    new Cuboid6(q1, q0, q0, q2, q1, q1),
+    new Cuboid6(q1, q2, q0, q2, q3, q1),
+    new Cuboid6(q1, q0, q2, q2, q1, q3),
+    new Cuboid6(q1, q2, q2, q2, q3, q3)
+  )
+}
+
+class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlockPart with TCuboidPart with TNormalOcclusion with IRedstonePart with TSlottedPart with TEdgePart with TFacePart {
   var facing = ForgeDirection.SOUTH
   var data = new PrintData()
 
   var boundsOff = ExtendedAABB.unitBounds
   var boundsOn = ExtendedAABB.unitBounds
   var state = false
+  var toggling = false // avoid infinite loops when updating neighbors
 
   original.foreach(print => {
     facing = print.facing
@@ -74,7 +105,23 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   override def getRenderBounds = getBounds
 
+  override def getSlotMask: Int = {
+    var mask = 0
+    val boxes = getOcclusionBoxes
+    for (slot <- PartMap.values) {
+      val bounds = PrintPart.slotBounds(slot.i)
+      if (boxes.exists(_.intersects(bounds))) {
+        mask |= slot.mask
+      }
+    }
+    mask
+  }
+
   // ----------------------------------------------------------------------- //
+
+  override def conductsRedstone: Boolean = data.emitRedstone && state
+
+  override def redstoneConductionMap: Int = if (data.emitRedstone && state) 0xFF else 0
 
   override def canConnectRedstone(side: Int): Boolean = true
 
@@ -96,22 +143,29 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   def toggleState(): Unit = {
     if (canToggle) {
+      toggling = true
       state = !state
-      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
-      world.notifyBlocksOfNeighborChange(x, y, z, tile.getBlockType)
-      world.markBlockForUpdate(x, y, z)
-      if (!world.isRemote) sendDescUpdate()
-      tile.partList.foreach {
-        case print: PrintPart if print != this => print.onNeighborChanged()
+      // Update slot info in tile... kinda meh, but works.
+      tile match {
+        case slotted: TSlottedTile =>
+          for (i <- 0 until slotted.v_partMap.length) {
+            if (slotted.v_partMap(i) == this)
+              slotted.v_partMap(i) = null
+          }
+          tile.bindPart(this)
         case _ =>
       }
+      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
+      tile.notifyPartChange(this)
+      sendDescUpdate()
       if (state && data.isButtonMode) {
         scheduleTick(simpleBlock.tickRate(world))
       }
+      toggling = false
     }
   }
 
-  def canToggle = {
+  def canToggle = !toggling && world != null && !world.isRemote && {
     val toggled = new PrintPart()
     toggled.facing = facing
     toggled.data = data
@@ -177,22 +231,33 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
     true
   }
 
+  override def onPartChanged(part: TMultiPart): Unit = {
+    super.onPartChanged(part)
+    checkRedstone()
+  }
+
   override def onNeighborChanged(): Unit = {
     super.onNeighborChanged()
+    checkRedstone()
+  }
+
+  protected def checkRedstone(): Unit = {
+    val newMaxValue = computeInput()
+    val newState = newMaxValue > 1 // Fixes oddities in cycling updates.
+    if (!data.emitRedstone && data.stateOn.size > 0 && state != newState) {
+      toggleState()
+    }
+  }
+
+  protected def computeInput(): Int = {
     val inner = tile.partList.foldLeft(false)((powered, part) => part match {
       case print: PrintPart => powered || (print.state && print.data.emitRedstone)
       case _ => powered
     })
-    val newMaxValue = if (inner) 15 else ForgeDirection.VALID_DIRECTIONS.map(computeInput).max
-    if (!data.emitRedstone && data.stateOn.size > 0) {
-      val newState = newMaxValue > 0
-      if (state != newState) {
-        toggleState()
-      }
-    }
+    if (inner) 15 else ForgeDirection.VALID_DIRECTIONS.map(computeInput).max
   }
 
-  protected def computeInput(side: ForgeDirection) = {
+  protected def computeInput(side: ForgeDirection): Int = {
     val blockPos = BlockPosition(x, y, z).offset(side)
     if (!world.blockExists(blockPos)) 0
     else {

@@ -8,10 +8,8 @@ import appeng.api.networking.security.IActionHost
 import appeng.api.networking.security.MachineSource
 import appeng.api.storage.data.IAEItemStack
 import appeng.me.helpers.IGridProxyable
-import appeng.tile.misc.TileInterface
 import appeng.util.item.AEItemStack
 import com.google.common.collect.ImmutableSet
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.EnvironmentAware
@@ -24,10 +22,8 @@ import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.api.prefab.DriverTileEntity
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.ManagedTileEntityEnvironment
-import li.cil.oc.integration.Mods
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
-import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -49,32 +45,13 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
 
   val versionsWithNewItemDefinitionAPI = VersionRange.createFromVersionSpec("[rv2-beta-20,)")
 
-  def getTileEntityClass: Class[_] = {
-    if (versionsWithNewItemDefinitionAPI.containsVersion(Loader.instance.getIndexedModList.get(Mods.AppliedEnergistics2.id).getProcessedVersion)) {
-      if (AEApi.instance.definitions.blocks.controller.maybeStack(0).isPresent)
-        AEApi.instance.definitions.blocks.controller.maybeEntity.orNull
-      else
-        AEApi.instance.definitions.blocks.iface.maybeEntity.orNull
-    }
-    else if (AEApi.instance != null && AEApi.instance.blocks != null) {
-      if (AEApi.instance.blocks.blockController != null && AEApi.instance.blocks.blockController.item != null)
-        // Not classOf[TileController] because that derps the compiler when it tries to resolve the class (says can't find API classes from RotaryCraft).
-        Class.forName("appeng.tile.networking.TileController")
-      else
-        classOf[TileInterface]
-    }
-    else null
-  }
+  def getTileEntityClass = AEUtil.controllerClass
 
   def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[AETile])
 
   override def providedEnvironment(stack: ItemStack) =
-    if (stack != null &&
-      AEApi.instance != null &&
-      AEApi.instance.blocks != null &&
-      AEApi.instance.blocks.blockController != null &&
-      Block.getBlockFromItem(stack.getItem) == AEApi.instance.blocks.blockController.block) classOf[Environment]
+    if (AEUtil.isController(stack)) classOf[Environment]
     else null
 
   class Environment(tileEntity: AETile) extends ManagedTileEntityEnvironment[AETile](tileEntity, "me_controller") with NamedBlock {

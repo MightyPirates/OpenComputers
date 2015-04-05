@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import java.util
 import java.util.Random
 
+import li.cil.oc.Localization
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
@@ -19,6 +20,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumWorldBlockLayer
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
 import net.minecraft.world.IBlockAccess
@@ -56,12 +58,17 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   // ----------------------------------------------------------------------- //
 
+  override def canRenderInLayer(layer: EnumWorldBlockLayer): Boolean = layer == EnumWorldBlockLayer.CUTOUT_MIPPED
+
   @SideOnly(Side.CLIENT) override
   def colorMultiplier(world: IBlockAccess, pos: BlockPos, tint: Int): Int = tint
 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
     val data = new PrintData(stack)
+    if (data.isBeaconBase) {
+      tooltip.add(Localization.Tooltip.BeaconBase)
+    }
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
   }
 

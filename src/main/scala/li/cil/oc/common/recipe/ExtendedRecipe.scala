@@ -17,6 +17,7 @@ import li.cil.oc.util.SideTracker
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
+import net.minecraft.item.crafting.IRecipe
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
@@ -41,7 +42,7 @@ object ExtendedRecipe {
     stack
   }
 
-  def addNBTToResult(craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
+  def addNBTToResult(recipe: IRecipe, craftedStack: ItemStack, inventory: InventoryCrafting): ItemStack = {
     if (api.Items.get(craftedStack) == navigationUpgrade) {
       Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
         for (slot <- 0 until inventory.getSizeInventory) {
@@ -65,16 +66,22 @@ object ExtendedRecipe {
     }
 
     if (api.Items.get(craftedStack) == floppy) {
-      if (!craftedStack.hasTagCompound) {
-        craftedStack.setTagCompound(new NBTTagCompound())
+      if (recipe.getRecipeSize == 1) {
+        // Formatting / loot to normal disk conversion.
+        craftedStack.setTagCompound(null)
       }
-      val nbt = craftedStack.getTagCompound
-      for (slot <- 0 until inventory.getSizeInventory) {
-        val stack = inventory.getStackInSlot(slot)
-        if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
-          val oldData = stack.getTagCompound
-          for (oldTagName <- oldData.getKeySet.map(_.asInstanceOf[String])) {
-            nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
+      else {
+        if (!craftedStack.hasTagCompound) {
+          craftedStack.setTagCompound(new NBTTagCompound())
+        }
+        val nbt = craftedStack.getTagCompound
+        for (slot <- 0 until inventory.getSizeInventory) {
+          val stack = inventory.getStackInSlot(slot)
+          if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
+            val oldData = stack.getTagCompound
+            for (oldTagName <- oldData.getKeySet.map(_.asInstanceOf[String]) if !nbt.hasKey(oldTagName)) {
+              nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
+            }
           }
         }
       }

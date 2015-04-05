@@ -9,6 +9,7 @@ import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.SimpleItem
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
@@ -31,6 +32,7 @@ import scala.collection.mutable
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
   val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
+  var hadErrors = false
 
   def addBlock(instance: Block, name: String, oreDict: String = null) = {
     Items.registerBlock(instance, name)
@@ -192,6 +194,10 @@ object Recipes {
       }
 
       // Print beaconification.
+      val beaconPrint = print.createItemStack(1)
+      val printData = new PrintData(beaconPrint)
+      printData.isBeaconBase = true
+      printData.save(beaconPrint)
       for (block <- Array(
         net.minecraft.init.Blocks.iron_block,
         net.minecraft.init.Blocks.gold_block,
@@ -199,9 +205,12 @@ object Recipes {
         net.minecraft.init.Blocks.diamond_block
       )) {
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
-          print.createItemStack(1),
+          beaconPrint,
           print.createItemStack(1), new ItemStack(block)))
       }
+
+      // Floppy disk formatting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), floppy.createItemStack(1)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)
@@ -211,43 +220,55 @@ object Recipes {
 
   private def addRecipe(output: ItemStack, list: Config, name: String) = try {
     if (list.hasPath(name)) {
-      val recipe = list.getConfig(name)
-      val recipeType = tryGetType(recipe)
-      try {
-        recipeType match {
-          case "shaped" => addShapedRecipe(output, recipe)
-          case "shapeless" => addShapelessRecipe(output, recipe)
-          case "furnace" => addFurnaceRecipe(output, recipe)
-          /* TODO GregTech
-          case "gt_assembler" =>
-            if (Mods.GregTech.isAvailable) {
-              addGTAssemblingMachineRecipe(output, recipe)
+      val value = list.getValue(name)
+      value.valueType match {
+        case ConfigValueType.OBJECT =>
+          val recipe = list.getConfig(name)
+          val recipeType = tryGetType(recipe)
+          try {
+            recipeType match {
+              case "shaped" => addShapedRecipe(output, recipe)
+              case "shapeless" => addShapelessRecipe(output, recipe)
+              case "furnace" => addFurnaceRecipe(output, recipe)
+              /* TODO GregTech
+              case "gt_assembler" =>
+                if (Mods.GregTech.isAvailable) {
+                  addGTAssemblingMachineRecipe(output, recipe)
+                }
+                else {
+                      OpenComputers.log.error(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item.")
+                      hadErrors = true
+                }
+              */
+              case other =>
+                OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid recipe type '$other'.")
+                hadErrors = true
             }
-            else {
-              OpenComputers.log.warn(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item!")
-              hide(output)
-            }
-          */
-          case other =>
-            OpenComputers.log.warn(s"Failed adding recipe for '$name', you will not be able to craft this item! The error was: Invalid recipe type '$other'.")
+          }
+          catch {
+            case e: RecipeException =>
+              OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item! The error was: ${e.getMessage}")
+              hadErrors = true
+          }
+        case ConfigValueType.BOOLEAN =>
+          // Explicitly disabled, keep in NEI if true.
+          if (!value.unwrapped.asInstanceOf[Boolean]) {
             hide(output)
-        }
-      }
-      catch {
-        case e: RecipeException =>
-          OpenComputers.log.warn(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item! The error was: ${e.getMessage}")
-          hide(output)
+          }
+        case _ =>
+          OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid value for recipe.")
+          hadErrors = true
       }
     }
     else {
-      OpenComputers.log.info(s"No recipe for '$name', you will not be able to craft this item.")
-      hide(output)
+      OpenComputers.log.warn(s"No recipe for '$name', you will not be able to craft this item. To suppress this warning, disable the recipe (assign `false` to it).")
+      hadErrors = true
     }
   }
   catch {
     case e: Throwable =>
-      OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item!", e)
-      hide(output)
+      OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item.", e)
+      hadErrors = true
   }
 
   private def addShapedRecipe(output: ItemStack, recipe: Config) {
@@ -276,7 +297,6 @@ object Recipes {
     if (input.size > 0 && output.stackSize > 0) {
       GameRegistry.addRecipe(new ExtendedShapedOreRecipe(output, shape ++ input: _*))
     }
-    else hide(output)
   }
 
   private def addShapelessRecipe(output: ItemStack, recipe: Config) {
@@ -289,7 +309,6 @@ object Recipes {
     if (input.size > 0 && output.stackSize > 0) {
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(output, input: _*))
     }
-    else hide(output)
   }
 
   /* TODO GregTech
@@ -320,10 +339,10 @@ object Recipes {
     (inputs, inputCount).zipped.foreach((stacks, count) => stacks.foreach(stack => if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count))
     inputs.padTo(2, null)
 
-    if (inputs(0) != null) {
-      for (input1 <- inputs(0)) {
-        if (inputs(1) != null) {
-          for (input2 <- inputs(1))
+    if (inputs.head != null) {
+      for (input1 <- inputs.head) {
+        if (inputs.last != null) {
+          for (input2 <- inputs.last)
             gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, input2, output, duration, eu)
         }
         else gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, null, output, duration, eu)
