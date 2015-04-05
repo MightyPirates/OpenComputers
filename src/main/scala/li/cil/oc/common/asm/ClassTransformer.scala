@@ -34,8 +34,8 @@ object ObfNames {
 }
 
 object ClassTransformer {
-  var hadErrors = true
-  var hadSimpleComponentErrors = true
+  var hadErrors = false
+  var hadSimpleComponentErrors = false
 }
 
 class ClassTransformer extends IClassTransformer {
