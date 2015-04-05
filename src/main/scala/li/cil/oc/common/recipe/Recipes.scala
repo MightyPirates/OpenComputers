@@ -10,6 +10,7 @@ import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.SimpleItem
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
@@ -188,6 +189,10 @@ object Recipes {
       }
 
       // Print beaconification.
+      val beaconPrint = print.createItemStack(1)
+      val printData = new PrintData(beaconPrint)
+      printData.isBeaconBase = true
+      printData.save(beaconPrint)
       for (block <- Array(
         net.minecraft.init.Blocks.iron_block,
         net.minecraft.init.Blocks.gold_block,
@@ -195,7 +200,7 @@ object Recipes {
         net.minecraft.init.Blocks.diamond_block
       )) {
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
-          print.createItemStack(1),
+          beaconPrint,
           print.createItemStack(1), new ItemStack(block)))
       }
     }
