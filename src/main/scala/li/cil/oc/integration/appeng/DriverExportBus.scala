@@ -10,6 +10,7 @@ import appeng.parts.automation.PartExportBus
 import appeng.util.Platform
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
+import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.internal.Database
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -20,12 +21,12 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper._
+import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-
 import scala.collection.convert.WrapAsScala._
 
-object DriverExportBus extends driver.Block {
+object DriverExportBus extends driver.Block with EnvironmentAware {
   type ExportBusTile = appeng.api.parts.IPartHost
 
   override def worksWith(world: World, x: Int, y: Int, z: Int) =
@@ -35,14 +36,24 @@ object DriverExportBus extends driver.Block {
     }
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[ExportBusTile])
+  
+  override def providedEnvironment(stack: ItemStack) = 
+    if (stack != null &&
+        AEApi.instance != null &&
+      AEApi.instance.parts() != null &&
+      AEApi.instance.parts().partExportBus != null &&
+      stack.getItem == AEApi.instance().parts().partExportBus.item() &&
+      AEApi.instance().parts().partExportBus.stack(1) != null &&
+      AEApi.instance().parts().partExportBus.stack(1).getItemDamage == stack.getItemDamage) classOf[Environment]
+    else null
 
   class Environment(host: ExportBusTile) extends ManagedTileEntityEnvironment[ExportBusTile](host, "me_exportbus") with NamedBlock {
     override def preferredName = "me_exportbus"
 
-    override def priority = 0
+    override def priority = 2
 
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
-    def getConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
+    def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
       host.getPart(side) match {
         case export: PartExportBus =>
@@ -55,7 +66,7 @@ object DriverExportBus extends driver.Block {
     }
 
     @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean -- Configure the export bus pointing in the specified direction to export item stacks matching the specified descriptor.")
-    def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
+    def setExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = {
       val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
       host.getPart(side) match {
         case export: PartExportBus =>
