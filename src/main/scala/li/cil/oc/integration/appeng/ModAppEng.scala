@@ -10,6 +10,9 @@ object ModAppEng extends ModProxy {
   override def initialize() {
     Driver.add(DriverController)
     Driver.add(DriverExportBus)
+    Driver.add(DriverImportBus)
+    Driver.add(DriverPartInterface)
+    Driver.add(DriverBlockInterface)
 
     Driver.add(new ConverterCellInventory)
   }
