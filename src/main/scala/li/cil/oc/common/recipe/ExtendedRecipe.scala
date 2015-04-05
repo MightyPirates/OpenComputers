@@ -79,7 +79,7 @@ object ExtendedRecipe {
           val stack = inventory.getStackInSlot(slot)
           if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
             val oldData = stack.getTagCompound
-            for (oldTagName <- oldData.getKeySet.map(_.asInstanceOf[String])) {
+            for (oldTagName <- oldData.getKeySet.map(_.asInstanceOf[String]) if !nbt.hasKey(oldTagName)) {
               nbt.setTag(oldTagName, oldData.getTag(oldTagName).copy())
             }
           }
