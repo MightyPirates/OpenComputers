@@ -370,11 +370,6 @@ object Items extends ItemAPI {
     // v1.2.3
     registerItem(new item.FloppyDisk(multi) {
       showInItemList = false
-
-      override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
-        if (player.isSneaking) get("floppy").createItemStack(1)
-        else super.onItemRightClick(stack, world, player)
-      }
     }, "lootDisk")
 
     // v1.2.6

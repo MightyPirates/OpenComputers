@@ -10,6 +10,7 @@ object ModForestry extends ModProxy {
   override def initialize() {
     Driver.add(new ConverterIAlleles)
     Driver.add(new ConverterIIndividual)
+    Driver.add(ConverterItemStack)
     Driver.add(new DriverAnalyzer)
     Driver.add(new DriverBeeHouse)
   }
