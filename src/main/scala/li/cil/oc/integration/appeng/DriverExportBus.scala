@@ -7,7 +7,6 @@ import appeng.api.config.Settings
 import appeng.api.config.Upgrades
 import appeng.api.networking.security.MachineSource
 import appeng.parts.automation.PartExportBus
-import appeng.util.Platform
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.driver.EnvironmentAware
@@ -26,20 +25,21 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-object DriverExportBus extends driver.Block with EnvironmentAware {
-  type ExportBusTile = appeng.api.parts.IPartHost
+
+object DriverExportBus extends driver.Block {
+  type AETileType = appeng.api.parts.IPartHost
 
   override def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
-      case container: ExportBusTile => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
+      case container: AETileType => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
       case _ => false
     }
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[ExportBusTile])
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[AETileType])
   
   override def providedEnvironment(stack: ItemStack) = 
     if (stack != null &&
-        AEApi.instance != null &&
+      AEApi.instance != null &&
       AEApi.instance.parts() != null &&
       AEApi.instance.parts().partExportBus != null &&
       stack.getItem == AEApi.instance().parts().partExportBus.item() &&
@@ -47,7 +47,7 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
       AEApi.instance().parts().partExportBus.stack(1).getItemDamage == stack.getItemDamage) classOf[Environment]
     else null
 
-  class Environment(host: ExportBusTile) extends ManagedTileEntityEnvironment[ExportBusTile](host, "me_exportbus") with NamedBlock {
+  class Environment(host: AETileType) extends ManagedTileEntityEnvironment[AETileType](host, "me_exportbus") with NamedBlock {
     override def preferredName = "me_exportbus"
 
     override def priority = 2
@@ -128,7 +128,7 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
                   is.stackSize = count
                   if (InventoryUtils.insertIntoInventorySlot(is, inventory, Option(side.getOpposite), targetSlot, count, simulate = true)) {
                     ais.setStackSize(count - is.stackSize)
-                    val eais = Platform.poweredExtraction(export.getProxy.getEnergy, itemStorage, ais, source)
+                    val eais = AEApi.instance.storage.poweredExtraction(export.getProxy.getEnergy, itemStorage, ais, source)
                     if (eais != null) {
                       val eis = eais.getItemStack
                       count -= eis.stackSize
@@ -152,4 +152,5 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
       }
     }
   }
+
 }
