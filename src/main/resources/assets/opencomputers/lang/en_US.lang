@@ -215,8 +215,8 @@ oc:container.Switch=Switch
 oc:container.TabletWrapper=Tablet
 
 # Keybinds
-key.materialCosts=Show Material Costs
 key.clipboardPaste=Paste Clipboard
+key.materialCosts=Show Material Costs
 
 # Item / Block Tooltips
 oc:tooltip.AccessPoint=Acts like a Switch, but additionally receives wireless packets and relays wired packets wirelessly.
