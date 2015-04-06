@@ -187,6 +187,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     super.doCustomInit(tileEntity, player, stack)
     tileEntity.data.load(stack)
     tileEntity.updateBounds()
+    tileEntity.world.func_147451_t(tileEntity.x, tileEntity.y, tileEntity.z)
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Print, player: EntityPlayer, willHarvest: Boolean): Unit = {
