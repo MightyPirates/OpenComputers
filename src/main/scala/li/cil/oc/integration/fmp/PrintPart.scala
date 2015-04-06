@@ -110,6 +110,8 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   override def doesTick = false
 
+  override def getLightValue: Int = data.lightLevel
+
   override def getBounds = new Cuboid6(if (state) boundsOn else boundsOff)
 
   override def getOcclusionBoxes = {
@@ -143,7 +145,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   override def strongPowerLevel(side: Int): Int = weakPowerLevel(side)
 
-  override def weakPowerLevel(side: Int): Int = if (data.emitRedstone && state) 15 else 0
+  override def weakPowerLevel(side: Int): Int = if (data.emitRedstone && state) data.redstoneLevel else 0
 
   // ----------------------------------------------------------------------- //
 
@@ -266,11 +268,11 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
   }
 
   protected def computeInput(): Int = {
-    val inner = tile.partList.foldLeft(false)((powered, part) => part match {
-      case print: PrintPart => powered || (print.state && print.data.emitRedstone)
-      case _ => powered
+    val inner = tile.partList.foldLeft(0)((power, part) => part match {
+      case print: PrintPart if print.state && print.data.emitRedstone => math.max(power, print.data.redstoneLevel)
+      case _ => power
     })
-    if (inner) 15 else ForgeDirection.VALID_DIRECTIONS.map(computeInput).max
+    math.max(inner, ForgeDirection.VALID_DIRECTIONS.map(computeInput).max)
   }
 
   protected def computeInput(side: ForgeDirection): Int = {

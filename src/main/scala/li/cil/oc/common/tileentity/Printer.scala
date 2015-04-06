@@ -104,16 +104,29 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     result(data.tooltip.orNull)
   }
 
-  @Callback(doc = """function(value:boolean) -- Set whether the printed block should emit redstone when in its active state.""")
+  @Callback(doc = """function(value:boolean or number) -- Set whether the printed block should emit redstone when in its active state.""")
   def setRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
-    data.emitRedstone = args.checkBoolean(0)
+    if (args.isBoolean(0)) data.redstoneLevel = if (args.checkBoolean(0)) 15 else 0
+    else data.redstoneLevel = args.checkInteger(0) max 0 min 15
     isActive = false // Needs committing.
     null
   }
 
-  @Callback(doc = """function():boolean -- Get whether the printed block should emit redstone when in its active state.""")
+  @Callback(doc = """function():boolean, number -- Get whether the printed block should emit redstone when in its active state.""")
   def isRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
-    result(data.emitRedstone)
+    result(data.emitRedstone, data.redstoneLevel)
+  }
+
+  @Callback(doc = """function(value:number) -- Set what light level the printed block should have.""")
+  def setLightLevel(context: Context, args: Arguments): Array[Object] = {
+    data.lightLevel = args.checkInteger(0) max 0 min Settings.get.maxPrintLightLevel
+    isActive = false // Needs committing.
+    null
+  }
+
+  @Callback(doc = """function():number -- Get which light level the printed block should have.""")
+  def getLightLevel(context: Context, args: Arguments): Array[Object] = {
+    result(data.lightLevel)
   }
 
   @Callback(doc = """function(value:boolean) -- Set whether the printed block should automatically return to its off state.""")

@@ -56,6 +56,18 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
   }
 
+  override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int): Int =
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print => print.data.lightLevel
+      case _ => super.getLightValue(world, x, y, z)
+    }
+
+  override def getLightOpacity(world: IBlockAccess, x: Int, y: Int, z: Int): Int =
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print => (print.data.opacity * 4).toInt
+      case _ => super.getLightOpacity(world, x, y, z)
+    }
+
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = isSideSolid(world, x, y, z, side)
