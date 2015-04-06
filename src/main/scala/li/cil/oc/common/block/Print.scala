@@ -4,6 +4,7 @@ import java.util
 import java.util.Random
 
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
@@ -36,6 +37,7 @@ import scala.reflect.ClassTag
 
 class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] with traits.Extended {
   setLightOpacity(0)
+  setLightLevel((Settings.get.maxPrintLightLevel + 1) / 15f) // Needed to properly remove lighting when broken.
   setHardness(1)
   setCreativeTab(null)
   NEI.hide(this)
@@ -209,7 +211,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     super.doCustomInit(tileEntity, player, stack)
     tileEntity.data.load(stack)
     tileEntity.updateBounds()
-    tileEntity.world.func_147451_t(tileEntity.x, tileEntity.y, tileEntity.z)
+    tileEntity.world.checkLight(tileEntity.getPos)
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Print, player: EntityPlayer, willHarvest: Boolean): Unit = {
