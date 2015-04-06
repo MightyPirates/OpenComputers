@@ -165,11 +165,16 @@ object ItemRenderer extends IItemRenderer {
 
       val data = new PrintData(stack)
       Minecraft.getMinecraft.renderEngine.bindTexture(TextureMap.locationBlocksTexture)
-      for (shape <- data.stateOff) {
+      val state =
+        if (data.stateOn.size > 0 && System.currentTimeMillis() / 2000 % 2 == 0)
+          data.stateOn
+        else
+          data.stateOff
+      for (shape <- state) {
         drawShape(shape)
       }
-      if (data.stateOff.isEmpty) {
-        drawShape(nullShape)
+      if (state.isEmpty) {
+        drawShape(nullShape) // Avoid tessellator erroring.
       }
 
       GL11.glPopMatrix()
