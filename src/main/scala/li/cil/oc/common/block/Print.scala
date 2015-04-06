@@ -50,10 +50,18 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
     val data = new PrintData(stack)
-    if (data.isBeaconBase) {
-      tooltip.add(Localization.Tooltip.BeaconBase)
-    }
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
+  }
+
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
+    val data = new PrintData(stack)
+    if (data.isBeaconBase) {
+      tooltip.add(Localization.Tooltip.PrintBeaconBase)
+    }
+    if (data.emitRedstone) {
+      tooltip.add(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel))
+    }
   }
 
   override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int): Int =

@@ -145,7 +145,9 @@ object Localization {
 
     def Tier(tier: Int) = localizeImmediately("tooltip.Tier", tier.toString)
 
-    def BeaconBase = localizeImmediately("tooltip.BeaconBase")
+    def PrintBeaconBase = localizeImmediately("tooltip.Print.BeaconBase")
+
+    def PrintRedstoneLevel(level: Int) = localizeImmediately("tooltip.Print.RedstoneLevel", level.toString)
   }
 
 }
