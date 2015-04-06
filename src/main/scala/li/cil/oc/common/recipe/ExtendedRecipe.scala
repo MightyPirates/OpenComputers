@@ -30,7 +30,11 @@ object ExtendedRecipe {
   private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
   private lazy val linkedCard = api.Items.get("linkedCard")
   private lazy val floppy = api.Items.get("floppy")
-  private lazy val lootDisk = api.Items.get("lootDisk")
+  private lazy val hdds = Array(
+    api.Items.get("hdd1"),
+    api.Items.get("hdd2"),
+    api.Items.get("hdd3")
+  )
   private lazy val robot = api.Items.get("robot")
   private lazy val tablet = api.Items.get("tablet")
   private lazy val print = api.Items.get("print")
@@ -65,7 +69,7 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == floppy) {
+    if (api.Items.get(craftedStack) == floppy || hdds.contains(api.Items.get(craftedStack))) {
       if (recipe.getRecipeSize == 1) {
         // Formatting / loot to normal disk conversion.
         craftedStack.setTagCompound(null)
@@ -87,26 +91,47 @@ object ExtendedRecipe {
       }
     }
 
-    if (api.Items.get(craftedStack) == print) {
-      val blocks = Array(
+    if (api.Items.get(craftedStack) == print &&
+      recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
+      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
+      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) {
+      // First, copy old data.
+      val data = new PrintData(craftedStack)
+      val inputs = (0 until inventory.getSizeInventory).map(inventory.getStackInSlot).filter(_ != null)
+      for (stack <- inputs) {
+        if (api.Items.get(stack) == print) {
+          data.load(stack)
+        }
+      }
+
+      // Then apply new data.
+      val beaconBlocks = Array(
         new ItemStack(net.minecraft.init.Blocks.iron_block),
         new ItemStack(net.minecraft.init.Blocks.gold_block),
         new ItemStack(net.minecraft.init.Blocks.emerald_block),
         new ItemStack(net.minecraft.init.Blocks.diamond_block)
       )
-      for (slot <- 0 until inventory.getSizeInventory) {
-        val stack = inventory.getStackInSlot(slot)
-        if (stack != null) {
-          if (blocks.exists(_.isItemEqual(stack))) {
-            val data = new PrintData(craftedStack)
-            data.isBeaconBase = true
-            data.save(craftedStack)
+
+      val glowstone = new ItemStack(net.minecraft.init.Items.glowstone_dust)
+      for (stack <- inputs) {
+        if (beaconBlocks.exists(_.isItemEqual(stack))) {
+          if (data.isBeaconBase) {
+            // Crafting wouldn't change anything, prevent accidental resource loss.
+            return null
           }
-          if (api.Items.get(stack) == print) {
-            new PrintData(stack).save(craftedStack)
+          data.isBeaconBase = true
+        }
+        if (glowstone.isItemEqual(stack)) {
+          if (data.lightLevel == 15) {
+            // Crafting wouldn't change anything, prevent accidental resource loss.
+            return null
           }
+          data.lightLevel = math.min(15, data.lightLevel + 1)
         }
       }
+
+      // Finally apply modified data.
+      data.save(craftedStack)
     }
 
     if (api.Items.get(craftedStack) == eeprom && !ItemStack.areItemStackTagsEqual(craftedStack, luaBios)) breakable {
