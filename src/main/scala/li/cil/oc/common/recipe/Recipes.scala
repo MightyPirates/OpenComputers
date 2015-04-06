@@ -195,9 +195,13 @@ object Recipes {
 
       // Print beaconification.
       val beaconPrint = print.createItemStack(1)
-      val printData = new PrintData(beaconPrint)
-      printData.isBeaconBase = true
-      printData.save(beaconPrint)
+
+      {
+        val printData = new PrintData(beaconPrint)
+        printData.isBeaconBase = true
+        printData.save(beaconPrint)
+      }
+
       for (block <- Array(
         net.minecraft.init.Blocks.iron_block,
         net.minecraft.init.Blocks.gold_block,
@@ -211,6 +215,29 @@ object Recipes {
 
       // Floppy disk formatting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy.createItemStack(1), floppy.createItemStack(1)))
+
+      // Hard disk formatting.
+      val hdds = Array(
+        api.Items.get(Constants.ItemName.HDDTier1),
+        api.Items.get(Constants.ItemName.HDDTier2),
+        api.Items.get(Constants.ItemName.HDDTier3)
+      )
+      for (hdd <- hdds) {
+        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(hdd.createItemStack(1), hdd.createItemStack(1)))
+      }
+
+      // Print light value increments.
+      val lightPrint = print.createItemStack(1)
+
+      {
+        val printData = new PrintData(lightPrint)
+        printData.lightLevel = 1
+        printData.save(lightPrint)
+      }
+
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        lightPrint,
+        print.createItemStack(1), new ItemStack(net.minecraft.init.Items.glowstone_dust)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

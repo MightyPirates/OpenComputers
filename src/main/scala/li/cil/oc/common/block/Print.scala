@@ -4,7 +4,6 @@ import java.util
 import java.util.Random
 
 import li.cil.oc.Localization
-import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
@@ -37,7 +36,7 @@ import scala.reflect.ClassTag
 
 class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] with traits.Extended {
   setLightOpacity(0)
-  setLightLevel((Settings.get.maxPrintLightLevel + 1) / 15f) // Needed to properly remove lighting when broken.
+  setLightLevel(1)
   setHardness(1)
   setCreativeTab(null)
   NEI.hide(this)
@@ -68,10 +67,21 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
     val data = new PrintData(stack)
-    if (data.isBeaconBase) {
-      tooltip.add(Localization.Tooltip.BeaconBase)
-    }
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
+  }
+
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
+    val data = new PrintData(stack)
+    if (data.isBeaconBase) {
+      tooltip.add(Localization.Tooltip.PrintBeaconBase)
+    }
+    if (data.emitRedstone) {
+      tooltip.add(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel))
+    }
+    if (data.lightLevel > 0) {
+      tooltip.add(Localization.Tooltip.PrintLightValue(data.lightLevel))
+    }
   }
 
   override def isOpaqueCube = false

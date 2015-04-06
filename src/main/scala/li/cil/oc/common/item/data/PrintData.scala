@@ -1,7 +1,6 @@
 package li.cil.oc.common.item.data
 
 import li.cil.oc.Constants
-import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
@@ -27,7 +26,7 @@ class PrintData extends ItemData {
   var isBeaconBase = false
   var lightLevel = 0
 
-  def emitRedstone = redstoneLevel > 0
+  def emitRedstone = redstoneLevel > 0 && stateOn.size > 0
 
   def opacity = {
     if (opacityDirty) {
@@ -53,7 +52,7 @@ class PrintData extends ItemData {
     stateOn.clear()
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     isBeaconBase = nbt.getBoolean("isBeaconBase")
-    lightLevel = (nbt.getByte("lightLevel") & 0xFF) max 0 min Settings.get.maxPrintLightLevel
+    lightLevel = (nbt.getByte("lightLevel") & 0xFF) max 0 min 15
 
     opacityDirty = true
   }
