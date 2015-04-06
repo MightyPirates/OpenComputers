@@ -148,15 +148,17 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     else false
   }
 
-  override def toLocal(value: EnumFacing) = {
+  override def toLocal(value: EnumFacing) = if (value != null) {
     updateTranslation()
     cachedTranslation(value.ordinal)
   }
+  else null
 
-  override def toGlobal(value: EnumFacing) = {
+  override def toGlobal(value: EnumFacing) = if (value != null) {
     updateTranslation()
     cachedInverseTranslation(value.ordinal)
   }
+  else null
 
   def validFacings = Array(EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST)
 
