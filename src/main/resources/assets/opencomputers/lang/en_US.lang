@@ -279,6 +279,7 @@ oc:tooltip.PowerConverter=Converts power from other mods to the internal energy 
 oc:tooltip.PowerDistributor=Distributes energy among different networks. This is useful for sharing power fed into your system from one converter among different sub-networks that should remain separate.
 oc:tooltip.Present=... for your troubles. Open this present for a chance to receive some §kphat lewt§7![nl]§8Craft OpenComputers items when the time is right for a chance to receive a present.§7
 oc:tooltip.Print.BeaconBase=§8Works as a beacon base.
+oc:tooltip.Print.LightLevel=§8Light emitted: %s.
 oc:tooltip.Print.RedstoneLevel=§8Redstone output: %s.
 oc:tooltip.PrintedCircuitBoard=The basic building block for expansion cards and memory and such.
 oc:tooltip.Printer=Allows printing blocks of user-defined shapes using Chamelium and Ink Cartridges. Must be configured using a computer. Keep away from small children. Because reasons.

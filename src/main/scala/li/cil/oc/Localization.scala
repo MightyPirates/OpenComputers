@@ -147,6 +147,8 @@ object Localization {
 
     def PrintBeaconBase = localizeImmediately("tooltip.Print.BeaconBase")
 
+    def PrintLightValue(level: Int) = localizeImmediately("tooltip.Print.LightValue", level.toString)
+
     def PrintRedstoneLevel(level: Int) = localizeImmediately("tooltip.Print.RedstoneLevel", level.toString)
   }
 
