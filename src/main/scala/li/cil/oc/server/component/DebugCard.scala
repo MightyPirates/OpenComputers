@@ -1,6 +1,8 @@
 package li.cil.oc.server.component
 
 import com.google.common.base.Strings
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.ModAPIManager
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
@@ -106,6 +108,13 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def getPlayer(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
     result(new DebugCard.PlayerValue(args.checkString(0)))
+  }
+
+  @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
+  def isModLoaded(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    val name = args.checkString(0)
+    result(Loader.isModLoaded(name) || ModAPIManager.INSTANCE.hasAPI(name))
   }
 
   @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")
