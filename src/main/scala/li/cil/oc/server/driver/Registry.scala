@@ -45,17 +45,26 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   override def add(driver: api.driver.Block) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.contains(driver)) blocks += driver
+    if (!blocks.contains(driver)) {
+      OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
+      blocks += driver
+    }
   }
 
   override def add(driver: api.driver.Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.contains(driver)) items += driver
+    if (!blocks.contains(driver)) {
+      OpenComputers.log.debug(s"Registering item driver ${driver.getClass.getName}.")
+      items += driver
+    }
   }
 
   override def add(converter: Converter) {
     if (locked) throw new IllegalStateException("Please register all converters in the init phase.")
-    if (!converters.contains(converter)) converters += converter
+    if (!converters.contains(converter)) {
+      OpenComputers.log.debug(s"Registering converter ${converter.getClass.getName}.")
+      converters += converter
+    }
   }
 
   override def driverFor(world: World, pos: BlockPos) =

@@ -1,6 +1,7 @@
 package li.cil.oc.common.item.data
 
 import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
@@ -19,34 +20,54 @@ class PrintData extends ItemData {
   var label: Option[String] = None
   var tooltip: Option[String] = None
   var isButtonMode = false
-  var emitRedstone = false
+  var redstoneLevel = 0
   var pressurePlate = false
   val stateOff = mutable.Set.empty[PrintData.Shape]
   val stateOn = mutable.Set.empty[PrintData.Shape]
   var isBeaconBase = false
+  var lightLevel = 0
+
+  def emitRedstone = redstoneLevel > 0
+
+  def opacity = {
+    if (opacityDirty) {
+      opacityDirty = false
+      opacity_ = PrintData.computeApproximateOpacity(stateOn) min PrintData.computeApproximateOpacity(stateOff)
+    }
+    opacity_
+  }
+
+  // lazily computed and stored, because potentially slow
+  private var opacity_ = 0f
+  private var opacityDirty = true
 
   override def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey("label")) label = Option(nbt.getString("label")) else label = None
     if (nbt.hasKey("tooltip")) tooltip = Option(nbt.getString("tooltip")) else tooltip = None
     isButtonMode = nbt.getBoolean("isButtonMode")
-    emitRedstone = nbt.getBoolean("emitRedstone")
+    redstoneLevel = nbt.getInteger("redstoneLevel") max 0 min 15
+    if (nbt.getBoolean("emitRedstone")) redstoneLevel = 15
     pressurePlate = nbt.getBoolean("pressurePlate")
     stateOff.clear()
     stateOff ++= nbt.getTagList("stateOff", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     stateOn.clear()
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     isBeaconBase = nbt.getBoolean("isBeaconBase")
+    lightLevel = (nbt.getByte("lightLevel") & 0xFF) max 0 min Settings.get.maxPrintLightLevel
+
+    opacityDirty = true
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
     label.foreach(nbt.setString("label", _))
     tooltip.foreach(nbt.setString("tooltip", _))
     nbt.setBoolean("isButtonMode", isButtonMode)
-    nbt.setBoolean("emitRedstone", emitRedstone)
+    nbt.setInteger("redstoneLevel", redstoneLevel)
     nbt.setBoolean("pressurePlate", pressurePlate)
     nbt.setNewTagList("stateOff", stateOff.map(PrintData.shapeToNBT))
     nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
     nbt.setBoolean("isBeaconBase", isBeaconBase)
+    nbt.setByte("lightLevel", lightLevel.toByte)
   }
 
   def createItemStack() = {
@@ -57,16 +78,42 @@ class PrintData extends ItemData {
 }
 
 object PrintData {
+  // The following logic is used to approximate the opacity of a print, for
+  // which we use the volume as a heuristic. Because computing the actual
+  // volume is a) expensive b) not necessarily a good heuristic (e.g. a
+  // "dotted grid") we take a shortcut and divide the space into a few
+  // sub-sections, for each of which we check if there's anything in it.
+  // If so, we consider that area "opaque". To compensate, prints can never
+  // be fully light-opaque. This gives a little bit of shading as a nice
+  // effect, but avoid it looking derpy when there are only a few sparse
+  // shapes in the model.
+  private val stepping = 4
+  private val step = stepping / 16f
+  private val invMaxVolume = 1f / (stepping * stepping * stepping)
+
+  def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]) = {
+    var volume = 1f
+    if (shapes.size > 0) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
+      val bounds = AxisAlignedBB.fromBounds(
+        x * step, y * step, z * step,
+        (x + 1) * step, (y + 1) * step, (z + 1) * step)
+      if (!shapes.exists(_.bounds.intersectsWith(bounds))) {
+        volume -= invMaxVolume
+      }
+    }
+    volume
+  }
+
   def nbtToShape(nbt: NBTTagCompound): Shape = {
     val aabb =
       if (nbt.hasKey("minX")) {
         // Compatibility with shapes created with earlier dev-builds.
-    val minX = nbt.getByte("minX") / 16f
-    val minY = nbt.getByte("minY") / 16f
-    val minZ = nbt.getByte("minZ") / 16f
-    val maxX = nbt.getByte("maxX") / 16f
-    val maxY = nbt.getByte("maxY") / 16f
-    val maxZ = nbt.getByte("maxZ") / 16f
+        val minX = nbt.getByte("minX") / 16f
+        val minY = nbt.getByte("minY") / 16f
+        val minZ = nbt.getByte("minZ") / 16f
+        val maxX = nbt.getByte("maxX") / 16f
+        val maxY = nbt.getByte("maxY") / 16f
+        val maxZ = nbt.getByte("maxZ") / 16f
         AxisAlignedBB.fromBounds(minX, minY, minZ, maxX, maxY, maxZ)
       }
       else {

@@ -297,6 +297,7 @@ class Settings(val config: Config) {
   val maxPrintComplexity = config.getInt("misc.maxPrinterShapes")
   val printRecycleRate = config.getDouble("misc.printRecycleRate")
   val chameliumEdible = config.getBoolean("misc.chameliumEdible")
+  val maxPrintLightLevel = config.getInt("misc.maxPrintLightLevel") max 0 min 15
 
   // ----------------------------------------------------------------------- //
   // integration

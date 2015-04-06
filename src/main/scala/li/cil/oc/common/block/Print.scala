@@ -74,6 +74,18 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def isOpaqueCube = false
 
+  override def getLightValue(world: IBlockAccess, pos: BlockPos): Int =
+    world.getTileEntity(pos) match {
+      case print: tileentity.Print => print.data.lightLevel
+      case _ => super.getLightValue(world, pos)
+    }
+
+  override def getLightOpacity(world: IBlockAccess, pos: BlockPos): Int =
+    world.getTileEntity(pos) match {
+      case print: tileentity.Print => (print.data.opacity * 4).toInt
+      case _ => super.getLightOpacity(world, pos)
+    }
+
   override def isVisuallyOpaque = false
 
   override def isFullCube = false
