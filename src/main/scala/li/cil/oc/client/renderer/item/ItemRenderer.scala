@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.item
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.block.Print
 import li.cil.oc.client.renderer.entity.DroneRenderer
@@ -166,7 +167,7 @@ object ItemRenderer extends IItemRenderer {
       val data = new PrintData(stack)
       Minecraft.getMinecraft.renderEngine.bindTexture(TextureMap.locationBlocksTexture)
       val state =
-        if (data.stateOn.size > 0 && System.currentTimeMillis() / 2000 % 2 == 0)
+        if (data.stateOn.size > 0 && KeyBindings.showExtendedTooltips)
           data.stateOn
         else
           data.stateOff
