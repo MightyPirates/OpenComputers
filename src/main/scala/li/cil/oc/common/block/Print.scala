@@ -35,8 +35,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] with traits.Extended {
-  setLightOpacity(0)
-  setLightLevel(1)
+  setLightOpacity(1)
   setHardness(1)
   setCreativeTab(null)
   NEI.hide(this)
