@@ -133,6 +133,7 @@ object Constants {
     final val TankControllerUpgrade = "tankControllerUpgrade"
     final val TankUpgrade = "tankUpgrade"
     final val Terminal = "terminal"
+    final val TexturePicker = "texturePicker"
     final val TractorBeamUpgrade = "tractorBeamUpgrade"
     final val Transistor = "transistor"
     final val UpgradeContainerTier1 = "upgradeContainer1"
