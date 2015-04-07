@@ -3,7 +3,7 @@ package li.cil.oc.client
 import cpw.mods.fml.client.registry.ClientRegistry
 import cpw.mods.fml.client.registry.RenderingRegistry
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.event.{FMLInterModComms, FMLInitializationEvent, FMLPreInitializationEvent}
+import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
@@ -83,7 +83,5 @@ private[oc] class Proxy extends CommonProxy {
     FMLCommonHandler.instance.bus.register(HologramRenderer)
     FMLCommonHandler.instance.bus.register(PetRenderer)
     FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
-
-    FMLInterModComms.sendMessage("IGWMod", "li.cil.oc.integration.igwmod.ModIGWMod", "init")
   }
 }
