@@ -1,6 +1,7 @@
 package li.cil.oc.common
 
 import li.cil.oc.Constants
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.init.Items
 import net.minecraft.entity.player.EntityPlayer
@@ -12,116 +13,306 @@ import net.minecraftforge.common.AchievementPage
 import scala.collection.mutable
 
 object Achievement {
-  val All = mutable.ArrayBuffer.empty[Achievement]
-
+  val All = mutable.ArrayBuffer.empty[MCAchievement]
   val CraftingMap = mutable.Map.empty[ItemInfo, MCAchievement]
+  val CustomCraftingMap = mutable.Map.empty[ItemStack, MCAchievement]
+  val AssemblingMap = mutable.Map.empty[ItemInfo, MCAchievement]
 
-  val Transistor = new Achievement("oc.transistor", "oc.transistor",
-    2, 0, Items.get(Constants.ItemName.Transistor).createItemStack(1), null, Constants.ItemName.Transistor).setIndependent()
-  val Disassembler = new Achievement("oc.disassembler", "oc.disassembler",
-    2, 2, Items.get(Constants.BlockName.Disassembler).createItemStack(1), Transistor, Constants.BlockName.Disassembler)
-  val Microchip = new Achievement("oc.chip", "oc.chip",
-    4, 0, Items.get(Constants.ItemName.ChipTier1).createItemStack(1), Transistor, Constants.ItemName.ChipTier1, Constants.ItemName.ChipTier2, Constants.ItemName.ChipTier3)
-  val Capacitor = new Achievement("oc.capacitor", "oc.capacitor",
-    6, -1, Items.get(Constants.BlockName.Capacitor).createItemStack(1), Microchip, Constants.BlockName.Capacitor)
-  val Assembler = new Achievement("oc.assembler", "oc.assembler",
-    8, -2, Items.get(Constants.BlockName.Assembler).createItemStack(1), Capacitor, Constants.BlockName.Assembler)
-  val Microcontroller = new Achievement("oc.microcontroller", "oc.microcontroller",
-    10, -2, Items.get(Constants.BlockName.Microcontroller).createItemStack(1), Assembler)
-  val Robot = new Achievement("oc.robot", "oc.robot",
-    10, -3, Items.get(Constants.BlockName.Robot).createItemStack(1), Assembler)
-  val Drone = new Achievement("oc.drone", "oc.drone",
-    10, -4, Items.get(Constants.ItemName.Drone).createItemStack(1), Assembler)
-  val Tablet = new Achievement("oc.tablet", "oc.tablet",
-    10, -5, Items.get(Constants.ItemName.Tablet).createItemStack(1), Assembler)
-  val Charger = new Achievement("oc.charger", "oc.charger",
-    8, -1, Items.get(Constants.BlockName.Charger).createItemStack(1), Capacitor, Constants.BlockName.Charger)
-  val CPU = new Achievement("oc.cpu", "oc.cpu",
-    6, 0, Items.get(Constants.ItemName.CPUTier1).createItemStack(1), Microchip, Constants.ItemName.CPUTier1, Constants.ItemName.CPUTier2, Constants.ItemName.CPUTier3)
-  val MotionSensor = new Achievement("oc.motionSensor", "oc.motionSensor",
-    8, 0, Items.get(Constants.BlockName.MotionSensor).createItemStack(1), CPU, Constants.BlockName.MotionSensor)
-  val Geolyzer = new Achievement("oc.geolyzer", "oc.geolyzer",
-    8, 1, Items.get(Constants.BlockName.Geolyzer).createItemStack(1), CPU, Constants.BlockName.Geolyzer)
-  val RedstoneIO = new Achievement("oc.redstoneIO", "oc.redstoneIO",
-    8, 2, Items.get(Constants.BlockName.Redstone).createItemStack(1), CPU, Constants.BlockName.Redstone)
-  val EEPROM = new Achievement("oc.eeprom", "oc.eeprom",
-    6, 3, Items.get(Constants.ItemName.EEPROM).createItemStack(1), Microchip, Constants.ItemName.EEPROM)
-  val Memory = new Achievement("oc.ram", "oc.ram",
-    6, 4, Items.get(Constants.ItemName.RAMTier1).createItemStack(1), Microchip, Constants.ItemName.RAMTier1, Constants.ItemName.RAMTier2, Constants.ItemName.RAMTier3, Constants.ItemName.RAMTier4, Constants.ItemName.RAMTier5, Constants.ItemName.RAMTier6)
-  val HDD = new Achievement("oc.hdd", "oc.hdd",
-    6, 5, Items.get(Constants.ItemName.HDDTier1).createItemStack(1), Microchip, Constants.ItemName.HDDTier1, Constants.ItemName.HDDTier2, Constants.ItemName.HDDTier3)
-  val Case = new Achievement("oc.case", "oc.case",
-    6, 6, Items.get(Constants.BlockName.CaseTier1).createItemStack(1), Microchip, Constants.BlockName.CaseTier1, Constants.BlockName.CaseTier2, Constants.BlockName.CaseTier3)
-  val Rack = new Achievement("oc.rack", "oc.rack",
-    8, 6, Items.get(Constants.BlockName.ServerRack).createItemStack(1), Case, Constants.BlockName.ServerRack)
-  val Server = new Achievement("oc.server", "oc.server",
-    10, 6, Items.get(Constants.ItemName.ServerTier1).createItemStack(1), Rack, Constants.ItemName.ServerTier1, Constants.ItemName.ServerTier2, Constants.ItemName.ServerTier3)
-  val Screen = new Achievement("oc.screen", "oc.screen",
-    6, 7, Items.get(Constants.BlockName.ScreenTier1).createItemStack(1), Microchip, Constants.BlockName.ScreenTier1, Constants.BlockName.ScreenTier2, Constants.BlockName.ScreenTier3)
-  val Keyboard = new Achievement("oc.keyboard", "oc.keyboard",
-    8, 7, Items.get(Constants.BlockName.Keyboard).createItemStack(1), Screen, Constants.BlockName.Keyboard)
-  val Hologram = new Achievement("oc.hologram", "oc.hologram",
-    8, 8, Items.get(Constants.BlockName.HologramTier1).createItemStack(1), Screen, Constants.BlockName.HologramTier1, Constants.BlockName.HologramTier2)
-  val DiskDrive = new Achievement("oc.diskDrive", "oc.diskDrive",
-    6, 9, Items.get(Constants.BlockName.DiskDrive).createItemStack(1), Microchip, Constants.BlockName.DiskDrive)
-  val Floppy = new Achievement("oc.floppy", "oc.floppy",
-    8, 9, Items.get(Constants.ItemName.Floppy).createItemStack(1), DiskDrive, Constants.ItemName.Floppy)
-  val OpenOS = new Achievement("oc.openOS", "oc.openOS",
-    10, 9, Items.createOpenOS(), Floppy)
-  val Raid = new Achievement("oc.raid", "oc.raid",
-    8, 10, Items.get(Constants.BlockName.Raid).createItemStack(1), DiskDrive, Constants.BlockName.Raid)
+  val Transistor = newAchievement("transistor").
+    at(2, 0).
+    whenCrafting(Constants.ItemName.Transistor).
+    add()
+  val Disassembler = newAchievement("disassembler").
+    at(2, 2).
+    whenCrafting(Constants.BlockName.Disassembler).
+    withParent(Transistor).
+    add()
+  val Microchip = newAchievement("chip").
+    at(4, 0).
+    withParent(Transistor).
+    whenCrafting(Constants.ItemName.ChipTier1).
+    whenCrafting(Constants.ItemName.ChipTier2).
+    whenCrafting(Constants.ItemName.ChipTier3).
+    add()
+  val Capacitor = newAchievement("capacitor").
+    at(6, -1).
+    withParent(Microchip).
+    whenCrafting(Constants.BlockName.Capacitor).
+    add()
+  val Assembler = newAchievement("assembler").
+    at(8, -2).
+    withParent(Capacitor).
+    whenCrafting(Constants.BlockName.Assembler).
+    add()
+  val Microcontroller = newAchievement("microcontroller").
+    at(10, -2).
+    withParent(Assembler).
+    whenAssembling(Constants.BlockName.Microcontroller).
+    add()
+  val Robot = newAchievement("robot").
+    at(10, -3).
+    withParent(Assembler).
+    whenAssembling(Constants.BlockName.Robot).
+    add()
+  val Drone = newAchievement("drone").
+    at(10, -4).
+    withParent(Assembler).
+    whenAssembling(Constants.ItemName.Drone).
+    add()
+  val Tablet = newAchievement("tablet").
+    at(10, -5).
+    withParent(Assembler).
+    whenAssembling(Constants.ItemName.Tablet).
+    add()
+  val Charger = newAchievement("charger").
+    at(8, -1).
+    withParent(Capacitor).
+    whenCrafting(Constants.BlockName.Charger).
+    add()
+  val CPU = newAchievement("cpu").
+    at(6, 0).
+    withParent(Microchip).
+    whenCrafting(Constants.ItemName.CPUTier1).
+    whenCrafting(Constants.ItemName.CPUTier2).
+    whenCrafting(Constants.ItemName.CPUTier3).
+    add()
+  val MotionSensor = newAchievement("motionSensor").
+    at(8, 0).
+    withParent(CPU).
+    whenCrafting(Constants.BlockName.MotionSensor).
+    add()
+  val Geolyzer = newAchievement("geolyzer").
+    at(8, 1).
+    withParent(CPU).
+    whenCrafting(Constants.BlockName.Geolyzer).
+    add()
+  val RedstoneIO = newAchievement("redstoneIO").
+    at(8, 2).
+    withParent(CPU).
+    whenCrafting(Constants.BlockName.Redstone).
+    add()
+  val EEPROM = newAchievement("eeprom").
+    at(6, 3).
+    withParent(Microchip).
+    whenCrafting(Constants.ItemName.EEPROM).
+    add()
+  val Memory = newAchievement("ram").
+    at(6, 4).
+    withParent(Microchip).
+    whenCrafting(Constants.ItemName.RAMTier1).
+    whenCrafting(Constants.ItemName.RAMTier2).
+    whenCrafting(Constants.ItemName.RAMTier3).
+    whenCrafting(Constants.ItemName.RAMTier4).
+    whenCrafting(Constants.ItemName.RAMTier5).
+    whenCrafting(Constants.ItemName.RAMTier6).
+    add()
+  val HDD = newAchievement("hdd").
+    at(6, 5).
+    withParent(Microchip).
+    whenCrafting(Constants.ItemName.HDDTier1).
+    whenCrafting(Constants.ItemName.HDDTier2).
+    whenCrafting(Constants.ItemName.HDDTier3).
+    add()
+  val Case = newAchievement("case").
+    at(6, 6).
+    withParent(Microchip).
+    whenCrafting(Constants.BlockName.CaseTier1).
+    whenCrafting(Constants.BlockName.CaseTier2).
+    whenCrafting(Constants.BlockName.CaseTier3).
+    add()
+  val Rack = newAchievement("rack").
+    at(8, 6).
+    withParent(Case).
+    whenCrafting(Constants.BlockName.ServerRack).
+    add()
+  val Server = newAchievement("server").
+    at(10, 6).
+    withParent(Rack).
+    whenCrafting(Constants.ItemName.ServerTier1).
+    whenCrafting(Constants.ItemName.ServerTier2).
+    whenCrafting(Constants.ItemName.ServerTier3).
+    add()
+  val Screen = newAchievement("screen").
+    at(6, 7).
+    withParent(Microchip).
+    whenCrafting(Constants.BlockName.ScreenTier1).
+    whenCrafting(Constants.BlockName.ScreenTier2).
+    whenCrafting(Constants.BlockName.ScreenTier3).
+    add()
+  val Keyboard = newAchievement("keyboard").
+    at(8, 7).
+    withParent(Screen).
+    whenCrafting(Constants.BlockName.Keyboard).
+    add()
+  val Hologram = newAchievement("hologram").
+    at(8, 8).
+    withParent(Screen).
+    whenCrafting(Constants.BlockName.HologramTier1).
+    whenCrafting(Constants.BlockName.HologramTier2).
+    add()
+  val DiskDrive = newAchievement("diskDrive").
+    at(6, 9).
+    withParent(Microchip).
+    whenCrafting(Constants.BlockName.DiskDrive).
+    add()
+  val Floppy = newAchievement("floppy").
+    at(8, 9).
+    withParent(DiskDrive).
+    whenCrafting(Constants.ItemName.Floppy).
+    add()
+  val OpenOS = newAchievement("openOS").
+    at(10, 9).
+    withParent(Floppy).
+    whenCrafting(Items.createOpenOS()).
+    add()
+  val Raid = newAchievement("raid").
+    at(8, 10).
+    withParent(DiskDrive).
+    whenCrafting(Constants.BlockName.Raid).
+    add()
 
-  val Card = new Achievement("oc.card", "oc.card",
-    0, -2, Items.get(Constants.ItemName.Card).createItemStack(1), null, Constants.ItemName.Card).setIndependent()
-  val RedstoneCard = new Achievement("oc.redstoneCard", "oc.redstoneCard",
-    -2, -4, Items.get(Constants.ItemName.RedstoneCardTier1).createItemStack(1), Card, Constants.ItemName.RedstoneCardTier1, Constants.ItemName.RedstoneCardTier2)
-  val GraphicsCard = new Achievement("oc.graphicsCard", "oc.graphicsCard",
-    0, -5, Items.get(Constants.ItemName.GraphicsCardTier1).createItemStack(1), Card, Constants.ItemName.GraphicsCardTier1, Constants.ItemName.GraphicsCardTier2, Constants.ItemName.GraphicsCardTier3)
-  val NetworkCard = new Achievement("oc.networkCard", "oc.networkCard",
-    2, -4, Items.get(Constants.ItemName.NetworkCard).createItemStack(1), Card, Constants.ItemName.NetworkCard)
-  val WirelessNetworkCard = new Achievement("oc.wirelessNetworkCard", "oc.wirelessNetworkCard",
-    2, -6, Items.get(Constants.ItemName.WirelessNetworkCard).createItemStack(1), NetworkCard, Constants.ItemName.WirelessNetworkCard)
+  val Card = newAchievement("card").
+    at(0, -2).
+    whenCrafting(Constants.ItemName.Card).
+    add()
+  val RedstoneCard = newAchievement("redstoneCard").
+    at(-2, -4).
+    withParent(Card).
+    whenCrafting(Constants.ItemName.RedstoneCardTier1).
+    whenCrafting(Constants.ItemName.RedstoneCardTier2).
+    add()
+  val GraphicsCard = newAchievement("graphicsCard").
+    at(0, -5).
+    withParent(Card).
+    whenCrafting(Constants.ItemName.GraphicsCardTier1).
+    whenCrafting(Constants.ItemName.GraphicsCardTier2).
+    whenCrafting(Constants.ItemName.GraphicsCardTier3).
+    add()
+  val NetworkCard = newAchievement("networkCard").
+    at(2, -4).
+    withParent(Card).
+    whenCrafting(Constants.ItemName.NetworkCard).
+    add()
+  val WirelessNetworkCard = newAchievement("wirelessNetworkCard").
+    at(2, -6).
+    withParent(NetworkCard).
+    whenCrafting(Constants.ItemName.WirelessNetworkCard).
+    add()
 
-  val Cable = new Achievement("oc.cable", "oc.cable",
-    -2, 0, Items.get(Constants.BlockName.Cable).createItemStack(1), null, Constants.BlockName.Cable).setIndependent()
-  val PowerDistributor = new Achievement("oc.powerDistributor", "oc.powerDistributor",
-    -4, -1, Items.get(Constants.BlockName.PowerDistributor).createItemStack(1), Cable, Constants.BlockName.PowerDistributor)
-  val Switch = new Achievement("oc.switch", "oc.switch",
-    -4, 0, Items.get(Constants.BlockName.Switch).createItemStack(1), Cable, "switch", Constants.BlockName.Switch)
-  val Adapter = new Achievement("oc.adapter", "oc.adapter",
-    -4, 1, Items.get(Constants.BlockName.Adapter).createItemStack(1), Cable, Constants.BlockName.Adapter)
+  val Cable = newAchievement("cable").
+    at(-2, 0).
+    whenCrafting(Constants.BlockName.Cable).
+    add()
+  val PowerDistributor = newAchievement("powerDistributor").
+    at(-4, -1).
+    withParent(Cable).
+    whenCrafting(Constants.BlockName.PowerDistributor).
+    add()
+  val Switch = newAchievement("switch").
+    at(-4, 0).
+    withParent(Cable).
+    whenCrafting(Constants.BlockName.Switch).
+    whenCrafting(Constants.BlockName.AccessPoint).
+    add()
+  val Adapter = newAchievement("adapter").
+    at(-4, 1).
+    withParent(Cable).
+    whenCrafting(Constants.BlockName.Adapter).
+    add()
 
   def init() {
     // Missing @Override causes ambiguity, so cast is required; still a virtual call,
     // so Achievement.registerStat is still the method that's really being called.
     All.foreach(_.asInstanceOf[StatBase].registerStat())
-    AchievementPage.registerAchievementPage(new AchievementPage("OpenComputers", All: _*))
+    AchievementPage.registerAchievementPage(new AchievementPage(OpenComputers.Name, All: _*))
   }
 
   def onAssemble(stack: ItemStack, player: EntityPlayer): Unit = {
-    val descriptor = Items.get(stack)
-    if (descriptor == Items.get(Constants.BlockName.Microcontroller)) player.addStat(Microcontroller, 1)
-    if (descriptor == Items.get(Constants.BlockName.Robot)) player.addStat(Robot, 1)
-    if (descriptor == Items.get(Constants.ItemName.Drone)) player.addStat(Drone, 1)
-    if (descriptor == Items.get(Constants.ItemName.Tablet)) player.addStat(Tablet, 1)
+    AssemblingMap.get(Items.get(stack)).foreach(player.addStat(_, 1))
   }
 
   def onCraft(stack: ItemStack, player: EntityPlayer): Unit = {
     CraftingMap.get(Items.get(stack)).foreach(player.addStat(_, 1))
-
-    if (ItemStack.areItemStacksEqual(stack, Items.createOpenOS())) {
-      player.addStat(OpenOS, 1)
-    }
+    CustomCraftingMap.find(entry => ItemStack.areItemStacksEqual(stack, entry._1)).foreach(entry => player.addStat(entry._2, 1))
   }
-}
 
-class Achievement(name: String, description: String, x: Int, y: Int, stack: ItemStack, parent: MCAchievement, requirements: String*) extends MCAchievement(name, description, x, y, stack, parent) {
-  Achievement.All += this
+  private def newAchievement(name: String) = new AchievementBuilder(name)
 
-  for (requirement <- requirements) {
-    val descriptor = Items.get(requirement)
-    if (descriptor != null) {
-      Achievement.CraftingMap += descriptor -> this
+  private class AchievementBuilder(val name: String) {
+    var x = 0
+    var y = 0
+    var stack = stackFromName(name)
+    var parent: Option[MCAchievement] = None
+    var crafting = mutable.Set.empty[String]
+    var customCrafting = mutable.Set.empty[ItemStack]
+    var assembling = mutable.Set.empty[String]
+
+    def at(x: Int, y: Int): AchievementBuilder = {
+      this.x = x
+      this.y = y
+      this
     }
+
+    def withIconOf(stack: ItemStack): AchievementBuilder = {
+      this.stack = Option(stack)
+      this
+    }
+
+    def withParent(parent: MCAchievement): AchievementBuilder = {
+      this.parent = Option(parent)
+      this
+    }
+
+    def whenCrafting(name: String): AchievementBuilder = {
+      crafting += name
+      if (stack.isEmpty) stack = stackFromName(name)
+      this
+    }
+
+    def whenCrafting(stack: ItemStack): AchievementBuilder = {
+      customCrafting += stack
+      if (this.stack.isEmpty) this.stack = Option(stack)
+      this
+    }
+
+    def whenAssembling(name: String): AchievementBuilder = {
+      assembling += name
+      if (stack.isEmpty) stack = stackFromName(name)
+      this
+    }
+
+    def add(): MCAchievement = {
+      val achievement = new MCAchievement("oc." + name, "oc." + name, x, y, stack.orNull, parent.orNull)
+
+      if (parent.isEmpty) {
+        achievement.asInstanceOf[StatBase].initIndependentStat()
+      }
+
+      for (requirement <- crafting) {
+        val descriptor = Items.get(requirement)
+        if (descriptor != null) {
+          Achievement.CraftingMap += descriptor -> achievement
+        }
+      }
+
+      for (requirement <- customCrafting) {
+        if (requirement != null) {
+          Achievement.CustomCraftingMap += requirement -> achievement
+        }
+      }
+
+      for (requirement <- assembling) {
+        val descriptor = Items.get(requirement)
+        if (descriptor != null) {
+          Achievement.AssemblingMap += descriptor -> achievement
+        }
+      }
+
+      Achievement.All += achievement
+      achievement
+    }
+
+    private def stackFromName(name: String) = Option(Items.get(name)).map(_.createItemStack(1))
   }
+
 }

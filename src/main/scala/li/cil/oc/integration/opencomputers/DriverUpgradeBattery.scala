@@ -21,8 +21,9 @@ object DriverUpgradeBattery extends Item with HostAware {
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(battery: item.UpgradeBattery) => battery.tier
-    case _ => Tier.One
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(battery: item.UpgradeBattery) => battery.tier
+      case _ => Tier.One
+    }
 }

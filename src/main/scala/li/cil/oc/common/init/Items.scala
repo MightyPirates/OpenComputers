@@ -159,10 +159,7 @@ object Items extends ItemAPI {
       get(Constants.ItemName.RAMTier6).createItemStack(1)
     )
 
-    val stack = get(Constants.ItemName.Drone).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   def createConfiguredMicrocontroller() = {
@@ -182,10 +179,7 @@ object Items extends ItemAPI {
       get(Constants.ItemName.RAMTier6).createItemStack(1)
     )
 
-    val stack = get(Constants.BlockName.Microcontroller).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   def createConfiguredRobot() = {
@@ -226,10 +220,7 @@ object Items extends ItemAPI {
       get(Constants.BlockName.DiskDrive).createItemStack(1)
     )
 
-    val stack = get(Constants.BlockName.Robot).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   def createConfiguredTablet() = {

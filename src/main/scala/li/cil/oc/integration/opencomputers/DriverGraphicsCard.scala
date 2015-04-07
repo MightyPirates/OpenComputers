@@ -28,10 +28,11 @@ object DriverGraphicsCard extends Item with HostAware with EnvironmentAware {
 
   override def slot(stack: ItemStack) = Slot.Card
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(gpu: common.item.GraphicsCard) => gpu.tier
-    case _ => Tier.One
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(gpu: common.item.GraphicsCard) => gpu.tier
+      case _ => Tier.One
+    }
 
   override def providedEnvironment(stack: ItemStack) = classOf[component.GraphicsCard]
 }

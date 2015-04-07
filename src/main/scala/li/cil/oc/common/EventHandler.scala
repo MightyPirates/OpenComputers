@@ -257,6 +257,13 @@ object EventHandler {
       (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
+  def isItTime = {
+    val now = Calendar.getInstance()
+    val month = now.get(Calendar.MONTH)
+    val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
+    month == Calendar.APRIL && dayOfMonth == 1
+  }
+
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {
     if (api.Items.get(e.crafting) == item) {
       for (slot <- 0 until e.craftMatrix.getSizeInventory) {

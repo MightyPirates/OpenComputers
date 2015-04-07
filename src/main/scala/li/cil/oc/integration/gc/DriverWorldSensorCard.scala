@@ -1,5 +1,6 @@
 package li.cil.oc.integration.gc
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
@@ -11,7 +12,7 @@ import net.minecraft.item.ItemStack
 
 object DriverWorldSensorCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("worldSensorCard"))
+    isOneOf(stack, api.Items.get(Constants.ItemName.WorldSensorCard))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (Mods.Galacticraft.isAvailable) new WorldSensorCard(host)

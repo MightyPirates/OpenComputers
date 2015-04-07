@@ -24,8 +24,9 @@ object DriverContainerUpgrade extends Item with Container {
 
   override def providedTier(stack: ItemStack) = tier(stack)
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(container: item.UpgradeContainerUpgrade) => container.tier
-    case _ => Tier.One
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(container: item.UpgradeContainerUpgrade) => container.tier
+      case _ => Tier.One
+    }
 }
