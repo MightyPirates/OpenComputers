@@ -12,7 +12,6 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.ISidedInventory
@@ -38,9 +37,6 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   var output: Option[ItemStack] = None
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
-
-  val materialPerItem = 2000
-  val inkPerCartridge = 50000
 
   val slotMaterial = 0
   val slotInk = 1
@@ -201,34 +197,6 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def computeCosts(data: PrintData) = {
-    val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
-    val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
-
-    if (totalVolume > 0) {
-      val materialRequired = (totalVolume / 2) max 1
-      val inkRequired = (totalSurface / 6) max 1
-
-      Option((materialRequired, inkRequired))
-    }
-    else None
-  }
-
-  def materialValue(stack: ItemStack) = {
-    if (api.Items.get(stack) == api.Items.get("chamelium"))
-      materialPerItem
-    else if (api.Items.get(stack) == api.Items.get("print")) {
-      val data = new PrintData(stack)
-      computeCosts(data) match {
-        case Some((materialRequired, inkRequired)) => (materialRequired * Settings.get.printRecycleRate).toInt
-        case _ => 0
-      }
-    }
-    else 0
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def canUpdate = isServer
 
   override def updateEntity() {
@@ -241,7 +209,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     }
 
     if (isActive && output.isEmpty && canMergeOutput) {
-      computeCosts(data) match {
+      PrintData.computeCosts(data) match {
         case Some((materialRequired, inkRequired)) =>
           totalRequiredEnergy = Settings.get.printCost
           requiredEnergy = totalRequiredEnergy
@@ -282,7 +250,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       ServerPacketSender.sendPrinting(this, have > 0.5 && output.isDefined)
     }
 
-    val inputValue = materialValue(getStackInSlot(slotMaterial))
+    val inputValue = PrintData.materialValue(getStackInSlot(slotMaterial))
     if (inputValue > 0 && maxAmountMaterial - amountMaterial >= inputValue) {
       val material = decrStackSize(slotMaterial, 1)
       if (material != null) {
@@ -290,10 +258,14 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       }
     }
 
-    if (maxAmountInk - amountInk >= inkPerCartridge) {
-      if (api.Items.get(getStackInSlot(slotInk)) == api.Items.get("inkCartridge")) {
-        setInventorySlotContents(slotInk, api.Items.get("inkCartridgeEmpty").createItemStack(1))
-        amountInk += inkPerCartridge
+    val inkValue = PrintData.inkValue(getStackInSlot(slotInk))
+    if (inkValue > 0 && maxAmountInk - amountInk >= inkValue) {
+      val material = decrStackSize(slotInk, 1)
+      if (material != null) {
+        amountInk += inkValue
+        if (material.getItem.hasContainerItem(material)) {
+          setInventorySlotContents(slotInk, material.getItem.getContainerItem(material))
+        }
       }
     }
   }
@@ -345,7 +317,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot == slotMaterial)
-      materialValue(stack) > 0
+      PrintData.materialValue(stack) > 0
     else if (slot == slotInk)
       api.Items.get(stack) == api.Items.get("inkCartridge")
     else false

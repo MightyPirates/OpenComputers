@@ -94,6 +94,18 @@ class Delegator extends Item {
       case _ => super.getColorFromItemStack(stack, pass)
     }
 
+  override def getContainerItem(stack: ItemStack): ItemStack =
+    subItem(stack) match {
+      case Some(subItem) => subItem.getContainerItem(stack)
+      case _ => super.getContainerItem(stack)
+    }
+
+  override def hasContainerItem(stack: ItemStack): Boolean =
+    subItem(stack) match {
+      case Some(subItem) => subItem.hasContainerItem(stack)
+      case _ => super.hasContainerItem(stack)
+    }
+
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
   override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {

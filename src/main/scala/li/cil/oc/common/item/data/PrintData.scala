@@ -1,6 +1,9 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.util.Color
+import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -100,6 +103,46 @@ object PrintData {
       }
     }
     volume
+  }
+
+  def computeCosts(data: PrintData) = {
+    val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
+    val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
+
+    if (totalVolume > 0) {
+      val baseMaterialRequired = (totalVolume / 2) max 1
+      val materialRequired =
+        if (data.redstoneLevel > 0 && data.redstoneLevel < 15) baseMaterialRequired + Settings.get.printCustomRedstone
+        else baseMaterialRequired
+      val inkRequired = (totalSurface / 6) max 1
+
+      Option((materialRequired, inkRequired))
+    }
+    else None
+  }
+
+  private val materialPerItem = Settings.get.printMaterialValue
+  private val inkPerCartridge = Settings.get.printInkValue
+
+  def materialValue(stack: ItemStack) = {
+    if (api.Items.get(stack) == api.Items.get("chamelium"))
+      materialPerItem
+    else if (api.Items.get(stack) == api.Items.get("print")) {
+      val data = new PrintData(stack)
+      computeCosts(data) match {
+        case Some((materialRequired, inkRequired)) => (materialRequired * Settings.get.printRecycleRate).toInt
+        case _ => 0
+      }
+    }
+    else 0
+  }
+
+  def inkValue(stack: ItemStack) = {
+    if (api.Items.get(stack) == api.Items.get("inkCartridge"))
+      inkPerCartridge
+    else if (Color.isDye(stack))
+      inkPerCartridge / 10
+    else 0
   }
 
   def nbtToShape(nbt: NBTTagCompound): Shape = {
