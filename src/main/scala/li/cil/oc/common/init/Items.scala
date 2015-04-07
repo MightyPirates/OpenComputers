@@ -458,5 +458,8 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.InkCartridge(multi), Constants.ItemName.InkCartridge, "oc:inkCartridge")
     Recipes.addSubItem(new item.Chamelium(multi), Constants.ItemName.Chamelium, "oc:chamelium")
     Recipes.addSubItem(new item.TexturePicker(multi), Constants.ItemName.TexturePicker, "oc:texturePicker")
+
+    // 1.5.7
+    Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual")
   }
 }
