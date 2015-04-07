@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.block
 
+import li.cil.oc.Constants
 import li.cil.oc.api.Items
 import li.cil.oc.common.block
 import li.cil.oc.common.item.data.PrintData
@@ -12,7 +13,7 @@ import net.minecraft.util.IIcon
 import net.minecraftforge.common.util.ForgeDirection
 
 object Print {
-  lazy val printBlock = Items.get("print").block().asInstanceOf[block.Print]
+  lazy val printBlock = Items.get(Constants.BlockName.Print).block().asInstanceOf[block.Print]
 
   def render(data: PrintData, state: Boolean, facing: ForgeDirection, x: Int, y: Int, z: Int, block: Block, renderer: RenderBlocks): Unit = {
     val shapes = if (state) data.stateOn else data.stateOff

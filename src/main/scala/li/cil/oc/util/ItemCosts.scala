@@ -2,8 +2,9 @@ package li.cil.oc.util
 
 import java.util
 
+import li.cil.oc.Constants
 import li.cil.oc.Localization
-import li.cil.oc.common.init
+import li.cil.oc.api
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
@@ -25,7 +26,7 @@ object ItemCosts {
 
   private var started = 0L
 
-  cache += new ItemStackWrapper(init.Items.ironNugget.createItemStack()) -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
+  cache += new ItemStackWrapper(api.Items.get(Constants.ItemName.IronNugget).createItemStack(1)) -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
 
   def terminate(item: Item, meta: Int = 0) = cache += new ItemStackWrapper(new ItemStack(item, 1, meta)) -> mutable.Iterable((new ItemStack(item, 1, meta), 1))
 

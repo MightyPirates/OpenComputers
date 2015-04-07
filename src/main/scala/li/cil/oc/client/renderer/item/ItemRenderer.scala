@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.item
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
@@ -31,14 +32,14 @@ object ItemRenderer extends IItemRenderer {
   val renderItem = new RenderItem()
   renderItem.setRenderManager(RenderManager.instance)
 
-  lazy val craftingUpgrade = api.Items.get("craftingUpgrade")
-  lazy val generatorUpgrade = api.Items.get("generatorUpgrade")
-  lazy val inventoryUpgrade = api.Items.get("inventoryUpgrade")
-  lazy val drone = api.Items.get("drone")
+  lazy val craftingUpgrade = api.Items.get(Constants.ItemName.CraftingUpgrade)
+  lazy val generatorUpgrade = api.Items.get(Constants.ItemName.GeneratorUpgrade)
+  lazy val inventoryUpgrade = api.Items.get(Constants.ItemName.InventoryUpgrade)
+  lazy val drone = api.Items.get(Constants.ItemName.Drone)
 
-  lazy val floppy = api.Items.get("floppy")
-  lazy val lootDisk = api.Items.get("lootDisk")
-  lazy val print = api.Items.get("print")
+  lazy val floppy = api.Items.get(Constants.ItemName.Floppy)
+  lazy val lootDisk = api.Items.get(Constants.ItemName.LootDisk)
+  lazy val print = api.Items.get(Constants.BlockName.Print)
 
   lazy val nullShape = new PrintData.Shape(ExtendedAABB.unitBounds, Settings.resourceDomain + ":White", Some(Color.Lime))
 
@@ -79,21 +80,21 @@ object ItemRenderer extends IItemRenderer {
       // Revert offset introduced by the render "helper".
       GL11.glTranslatef(0.5f, 0.5f, 0.5f)
 
-      if (descriptor == api.Items.get("craftingUpgrade")) {
+      if (descriptor == api.Items.get(Constants.ItemName.CraftingUpgrade)) {
         tm.bindTexture(Textures.upgradeCrafting)
         drawSimpleBlock()
 
         RenderState.checkError(getClass.getName + ".renderItem: crafting upgrade")
       }
 
-      else if (descriptor == api.Items.get("generatorUpgrade")) {
+      else if (descriptor == api.Items.get(Constants.ItemName.GeneratorUpgrade)) {
         tm.bindTexture(Textures.upgradeGenerator)
         drawSimpleBlock(if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5f else 0)
 
         RenderState.checkError(getClass.getName + ".renderItem: generator upgrade")
       }
 
-      else if (descriptor == api.Items.get("inventoryUpgrade")) {
+      else if (descriptor == api.Items.get(Constants.ItemName.InventoryUpgrade)) {
         tm.bindTexture(Textures.upgradeInventory)
         drawSimpleBlock()
 

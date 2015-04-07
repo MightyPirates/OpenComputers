@@ -203,10 +203,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) = {
     val descriptor = api.Items.get(stack)
-    descriptor == api.Items.get("server1") ||
-      descriptor == api.Items.get("server2") ||
-      descriptor == api.Items.get("server3") ||
-      descriptor == api.Items.get("serverCreative")
+    descriptor == api.Items.get(Constants.ItemName.ServerTier1) ||
+      descriptor == api.Items.get(Constants.ItemName.ServerTier2) ||
+      descriptor == api.Items.get(Constants.ItemName.ServerTier3) ||
+      descriptor == api.Items.get(Constants.ItemName.ServerCreative)
   }
 
   // ----------------------------------------------------------------------- //

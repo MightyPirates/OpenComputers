@@ -4,6 +4,7 @@ import com.google.common.base.Strings
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -684,7 +685,7 @@ object TextBuffer {
       ClientPacketSender.sendCopyToAnalyzer(nodeAddress, line)
     }
 
-    private lazy val Debugger = api.Items.get("debugger")
+    private lazy val Debugger = api.Items.get(Constants.ItemName.Debugger)
 
     private def debug(message: String) {
       if (Minecraft.getMinecraft != null && Minecraft.getMinecraft.thePlayer != null && api.Items.get(Minecraft.getMinecraft.thePlayer.getHeldItem) == Debugger) {

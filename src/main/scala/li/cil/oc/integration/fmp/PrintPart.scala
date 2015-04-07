@@ -18,6 +18,7 @@ import codechicken.multipart.TSlottedPart
 import codechicken.multipart.scalatraits.TSlottedTile
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
 import li.cil.oc.client.renderer.block.Print
@@ -104,9 +105,9 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   // ----------------------------------------------------------------------- //
 
-  override def simpleBlock = Items.get("print").block().asInstanceOf[Print]
+  override def simpleBlock = Items.get(Constants.BlockName.Print).block().asInstanceOf[Print]
 
-  def getType = Settings.namespace + "print"
+  def getType = Settings.namespace + Constants.BlockName.Print
 
   override def doesTick = false
 

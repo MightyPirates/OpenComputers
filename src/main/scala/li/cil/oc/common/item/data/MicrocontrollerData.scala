@@ -1,5 +1,6 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.Tier
@@ -29,7 +30,7 @@ class MicrocontrollerData extends ItemData {
 
     // Reserve slot for EEPROM if necessary, avoids having to resize the
     // components array in the MCU tile entity, which isn't possible currently.
-    if (!components.exists(stack => api.Items.get(stack) == api.Items.get("eeprom"))) {
+    if (!components.exists(stack => api.Items.get(stack) == api.Items.get(Constants.ItemName.EEPROM))) {
       components :+= null
     }
   }
@@ -41,7 +42,7 @@ class MicrocontrollerData extends ItemData {
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("microcontroller").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Microcontroller).createItemStack(1)
     save(stack)
     stack
   }

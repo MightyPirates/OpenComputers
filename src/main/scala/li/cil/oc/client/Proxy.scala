@@ -5,6 +5,7 @@ import cpw.mods.fml.client.registry.RenderingRegistry
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event.{FMLInterModComms, FMLInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.client
@@ -65,8 +66,8 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 
-    MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
-    MinecraftForgeClient.registerItemRenderer(Items.get("print").createItemStack(1).getItem, ItemRenderer)
+    MinecraftForgeClient.registerItemRenderer(Items.get(Constants.ItemName.Floppy).createItemStack(1).getItem, ItemRenderer)
+    MinecraftForgeClient.registerItemRenderer(Items.get(Constants.BlockName.Print).createItemStack(1).getItem, ItemRenderer)
 
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)

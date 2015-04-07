@@ -1,6 +1,7 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -17,13 +18,13 @@ import net.minecraft.nbt.NBTTagList
 object RobotTemplate extends Template {
   override protected def hostClass = classOf[internal.Robot]
 
-  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case1")
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.CaseTier1)
 
-  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case2")
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.CaseTier2)
 
-  def selectTier3(stack: ItemStack) = api.Items.get(stack) == api.Items.get("case3")
+  def selectTier3(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.CaseTier3)
 
-  def selectCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("caseCreative")
+  def selectCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.CaseCreative)
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
@@ -36,18 +37,17 @@ object RobotTemplate extends Template {
     data.totalEnergy = data.robotEnergy
     data.containers = items.take(3).filter(_ != null).toArray
     data.components = items.drop(3).filter(_ != null).toArray
-    val stack = api.Items.get("robot").createItemStack(1)
-    data.save(stack)
+    val stack = data.createItemStack()
     val energy = Settings.get.robotBaseCost + complexity(inventory) * Settings.get.robotComplexityCost
 
     Array(stack, double2Double(energy))
   }
 
-  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("robot")
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.Robot)
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new RobotData(stack)
-    val itemName = ItemUtils.caseNameWithTierSuffix("case", info.tier)
+    val itemName = Constants.BlockName.Case(info.tier)
 
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.containers ++ info.components
   }

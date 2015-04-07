@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
@@ -49,7 +50,7 @@ class Item(value: Block) extends ItemBlock(value) {
   override def getMetadata(itemDamage: Int) = itemDamage
 
   override def getItemStackDisplayName(stack: ItemStack): String = {
-    if (api.Items.get(stack) == api.Items.get("print")) {
+    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
       val data = new PrintData(stack)
       data.label.getOrElse(super.getItemStackDisplayName(stack))
     }
@@ -67,7 +68,7 @@ class Item(value: Block) extends ItemBlock(value) {
     // When placing robots in creative mode, we have to copy the stack
     // manually before it's placed to ensure different component addresses
     // in the different robots, to avoid interference of screens e.g.
-    val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get("robot")
+    val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get(Constants.BlockName.Robot)
     val stackToUse = if (needsCopying) new RobotData(stack).copyItemStack() else stack
     if (super.placeBlockAt(stackToUse, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
       // If it's a rotatable block try to make it face the player.

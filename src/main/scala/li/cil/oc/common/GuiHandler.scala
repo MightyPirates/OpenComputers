@@ -1,9 +1,9 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IGuiHandler
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.item.Delegator
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 
@@ -43,7 +43,7 @@ abstract class GuiHandler extends IGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Items.multi.subItem(player.getCurrentEquippedItem) match {
+        Delegator.subItem(player.getCurrentEquippedItem) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new container.Database(player.inventory, new DatabaseInventory {
               override def tier = database.tier

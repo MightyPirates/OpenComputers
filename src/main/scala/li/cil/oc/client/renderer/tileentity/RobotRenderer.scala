@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.IItemRenderer.ItemRenderType._
@@ -459,7 +460,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       t.draw
 
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
-      f.drawString(name, -halfWidth, 0, 0xFFFFFFFF)
+      f.drawString((if (EventHandler.isItTime) EnumChatFormatting.OBFUSCATED.toString else "") + name, -halfWidth, 0, 0xFFFFFFFF)
 
       GL11.glDepthMask(true)
       GL11.glEnable(GL11.GL_LIGHTING)
