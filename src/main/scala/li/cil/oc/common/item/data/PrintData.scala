@@ -1,5 +1,6 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.util.Color
@@ -72,7 +73,7 @@ class PrintData extends ItemData {
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("print").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Print).createItemStack(1)
     save(stack)
     stack
   }
@@ -125,9 +126,9 @@ object PrintData {
   private val inkPerCartridge = Settings.get.printInkValue
 
   def materialValue(stack: ItemStack) = {
-    if (api.Items.get(stack) == api.Items.get("chamelium"))
+    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Chamelium))
       materialPerItem
-    else if (api.Items.get(stack) == api.Items.get("print")) {
+    else if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
       val data = new PrintData(stack)
       computeCosts(data) match {
         case Some((materialRequired, inkRequired)) => (materialRequired * Settings.get.printRecycleRate).toInt
@@ -138,7 +139,7 @@ object PrintData {
   }
 
   def inkValue(stack: ItemStack) = {
-    if (api.Items.get(stack) == api.Items.get("inkCartridge"))
+    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.InkCartridge))
       inkPerCartridge
     else if (Color.isDye(stack))
       inkPerCartridge / 10

@@ -38,7 +38,7 @@ object ExtendedRecipe {
   )
   private lazy val robot = api.Items.get(Constants.BlockName.Robot)
   private lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
-  private lazy val print = api.Items.get("print")
+  private lazy val print = api.Items.get(Constants.BlockName.Print)
   private lazy val disabled = {
     val stack = new ItemStack(Blocks.dirt)
     val tag = new NBTTagCompound()

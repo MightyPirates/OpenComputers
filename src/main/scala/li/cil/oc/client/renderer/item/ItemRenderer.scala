@@ -38,8 +38,8 @@ object ItemRenderer extends IItemRenderer {
   lazy val drone = api.Items.get(Constants.ItemName.Drone)
 
   lazy val floppy = api.Items.get(Constants.ItemName.Floppy)
-  lazy val lootDisk = api.Items.get("lootDisk")
-  lazy val print = api.Items.get("print")
+  lazy val lootDisk = api.Items.get(Constants.ItemName.LootDisk)
+  lazy val print = api.Items.get(Constants.BlockName.Print)
 
   lazy val nullShape = new PrintData.Shape(ExtendedAABB.unitBounds, Settings.resourceDomain + ":White", Some(Color.Lime))
 

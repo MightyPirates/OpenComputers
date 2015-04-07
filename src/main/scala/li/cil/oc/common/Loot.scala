@@ -4,6 +4,7 @@ import java.io
 import java.util.Random
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -106,7 +107,7 @@ object Loot extends WeightedRandomChestContent(Items.createOpenOS(), 1, 1, Setti
       case _ =>
     }
 
-    val disk = api.Items.get("lootDisk").createItemStack(1)
+    val disk = api.Items.get(Constants.ItemName.LootDisk).createItemStack(1)
     disk.setTagCompound(tag)
 
     disk

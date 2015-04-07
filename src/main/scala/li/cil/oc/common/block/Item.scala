@@ -50,7 +50,7 @@ class Item(value: Block) extends ItemBlock(value) {
   override def getMetadata(itemDamage: Int) = itemDamage
 
   override def getItemStackDisplayName(stack: ItemStack): String = {
-    if (api.Items.get(stack) == api.Items.get("print")) {
+    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
       val data = new PrintData(stack)
       data.label.getOrElse(super.getItemStackDisplayName(stack))
     }

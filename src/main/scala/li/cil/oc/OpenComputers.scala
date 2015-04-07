@@ -21,7 +21,7 @@ object OpenComputers {
 
   final val Version = "@VERSION@"
 
-  var log = LogManager.getLogger("OpenComputers")
+  var log = LogManager.getLogger(Name)
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null

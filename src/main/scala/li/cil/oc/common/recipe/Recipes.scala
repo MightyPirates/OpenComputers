@@ -125,14 +125,14 @@ object Recipes {
       val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
       val mcu = api.Items.get(Constants.BlockName.Microcontroller)
       val floppy = api.Items.get(Constants.ItemName.Floppy)
-      val lootDisk = api.Items.get("lootDisk")
+      val lootDisk = api.Items.get(Constants.ItemName.LootDisk)
       val drone = api.Items.get(Constants.ItemName.Drone)
       val eeprom = api.Items.get(Constants.ItemName.EEPROM)
       val robot = api.Items.get(Constants.BlockName.Robot)
       val tablet = api.Items.get(Constants.ItemName.Tablet)
-      val chamelium = api.Items.get("chamelium")
-      val chameliumBlock = api.Items.get("chameliumBlock")
-      val print = api.Items.get("print")
+      val chamelium = api.Items.get(Constants.ItemName.Chamelium)
+      val chameliumBlock = api.Items.get(Constants.BlockName.Chamelium)
+      val print = api.Items.get(Constants.BlockName.Print)
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
@@ -215,9 +215,9 @@ object Recipes {
 
       // Hard disk formatting.
       val hdds = Array(
-        api.Items.get("hdd1"),
-        api.Items.get("hdd2"),
-        api.Items.get("hdd3")
+        api.Items.get(Constants.ItemName.HDDTier1),
+        api.Items.get(Constants.ItemName.HDDTier2),
+        api.Items.get(Constants.ItemName.HDDTier3)
       )
       for (hdd <- hdds) {
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(hdd.createItemStack(1), hdd.createItemStack(1)))

@@ -13,7 +13,7 @@ import net.minecraftforge.common.DimensionManager
 
 object DriverLootDisk extends Item {
   override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("lootDisk"))
+    isOneOf(stack, api.Items.get(Constants.ItemName.LootDisk))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     if (stack.hasTagCompound) {
