@@ -67,6 +67,10 @@ trait Delegate {
 
   def color(stack: ItemStack, pass: Int) = 0xFFFFFF
 
+  def getContainerItem(stack: ItemStack): ItemStack = null
+
+  def hasContainerItem(stack: ItemStack): Boolean = false
+
   def displayName(stack: ItemStack): Option[String] = None
 
   @SideOnly(Side.CLIENT)
