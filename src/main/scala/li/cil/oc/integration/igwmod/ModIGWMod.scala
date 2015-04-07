@@ -1,15 +1,16 @@
 package li.cil.oc.integration.igwmod
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import igwmod.api.{ItemWikiEvent, BlockWikiEvent}
-import li.cil.oc.OpenComputers.log
-import li.cil.oc.common.item._
+import igwmod.api.BlockWikiEvent
+import igwmod.api.ItemWikiEvent
 import li.cil.oc.common.block._
+import li.cil.oc.common.item._
+import li.cil.oc.OpenComputers.log
 import net.minecraftforge.common.MinecraftForge
 
 object ModIGWMod {
   def init() {
-    log.info(s"IGW-Mod integration loading")
+    log.info(s"IGWMod integration loading")
     MinecraftForge.EVENT_BUS.register(this)
   }
 
