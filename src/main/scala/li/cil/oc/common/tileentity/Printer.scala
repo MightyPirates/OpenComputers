@@ -319,7 +319,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     if (slot == slotMaterial)
       PrintData.materialValue(stack) > 0
     else if (slot == slotInk)
-      api.Items.get(stack) == api.Items.get("inkCartridge")
+      PrintData.inkValue(stack) > 0
     else false
 
   // ----------------------------------------------------------------------- //
