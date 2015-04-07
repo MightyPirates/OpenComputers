@@ -7,8 +7,8 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
 object DriverComponentBus extends Item with Processor {
@@ -22,13 +22,13 @@ object DriverComponentBus extends Item with Processor {
   override def slot(stack: ItemStack) = Slot.ComponentBus
 
   override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(bus: item.ComponentBus) => bus.tier
       case _ => Tier.One
     }
 
   override def supportedComponents(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(bus: item.ComponentBus) => Settings.get.cpuComponentSupport(bus.tier)
       case _ => Tier.One
     }

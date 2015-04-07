@@ -8,8 +8,8 @@ import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.integration.util.BundledRedstone
@@ -42,7 +42,7 @@ object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {
   override def slot(stack: ItemStack) = Slot.Card
 
   override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(card: item.RedstoneCard) => card.tier
       case _ => Tier.One
     }

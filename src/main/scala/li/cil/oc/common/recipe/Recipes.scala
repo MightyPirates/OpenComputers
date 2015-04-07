@@ -9,6 +9,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.integration.Mods
@@ -44,7 +45,7 @@ object Recipes {
     instance
   }
 
-  def addMultiItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
     Items.registerItem(delegate, name)
     addRecipe(delegate.createItemStack(), name)
     register(oreDict, delegate.createItemStack())
@@ -131,7 +132,7 @@ object Recipes {
       val robot = api.Items.get(Constants.BlockName.Robot)
       val tablet = api.Items.get(Constants.ItemName.Tablet)
       val chamelium = api.Items.get(Constants.ItemName.Chamelium)
-      val chameliumBlock = api.Items.get(Constants.BlockName.Chamelium)
+      val chameliumBlock = api.Items.get(Constants.BlockName.ChameliumBlock)
       val print = api.Items.get(Constants.BlockName.Print)
 
       // Navigation upgrade recrafting.
@@ -474,7 +475,7 @@ object Recipes {
   }
 
   private def hide(value: ItemStack) {
-    Items.multi.subItem(value) match {
+    Delegator.subItem(value) match {
       case Some(stack) => stack.showInItemList = false
       case _ => value.getItem match {
         case itemBlock: ItemBlock => itemBlock.field_150939_a match {

@@ -5,10 +5,10 @@ import li.cil.oc.Settings
 import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.entity
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
 import net.minecraft.client.Minecraft
@@ -53,7 +53,7 @@ object GuiHandler extends CommonGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Items.multi.subItem(player.getCurrentEquippedItem) match {
+        Delegator.subItem(player.getCurrentEquippedItem) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
               override def tier = database.tier

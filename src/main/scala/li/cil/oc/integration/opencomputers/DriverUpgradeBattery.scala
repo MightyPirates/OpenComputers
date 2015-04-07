@@ -6,8 +6,8 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
@@ -22,7 +22,7 @@ object DriverUpgradeBattery extends Item with HostAware {
   override def slot(stack: ItemStack) = Slot.Upgrade
 
   override def tier(stack: ItemStack) =
-    Items.multi.subItem(stack) match {
+    Delegator.subItem(stack) match {
       case Some(battery: item.UpgradeBattery) => battery.tier
       case _ => Tier.One
     }

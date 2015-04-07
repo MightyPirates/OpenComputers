@@ -9,6 +9,7 @@ import li.cil.oc._
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.server._
@@ -38,14 +39,14 @@ class Proxy {
     val nuggetIron = Items.get(Constants.ItemName.IronNugget).createItemStack(1)
     registerExclusive("nuggetIron", nuggetIron)
 
-    Items.multi.subItem(nuggetIron) match {
+    Delegator.subItem(nuggetIron) match {
       case Some(subItem: item.IronNugget) =>
         if (OreDictionary.getOres("nuggetIron").exists(nuggetIron.isItemEqual)) {
-          Recipes.addMultiItem(subItem, "nuggetIron")
+          Recipes.addSubItem(subItem, "nuggetIron")
           Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
         }
         else {
-          Items.ironNugget.showInItemList = false
+          subItem.showInItemList = false
         }
       case _ =>
     }

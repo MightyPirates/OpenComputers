@@ -11,8 +11,8 @@ import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.event._
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Analyzer
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.template._
@@ -183,7 +183,7 @@ object ModOpenComputers extends ModProxy {
     // redstone card availability here, after all other mods were inited.
     if (BundledRedstone.isAvailable || WirelessRedstone.isAvailable) {
       OpenComputers.log.info("Found extended redstone mods, enabling tier two redstone card.")
-      Items.multi.subItem(api.Items.get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)) match {
+      Delegator.subItem(api.Items.get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)) match {
         case Some(redstone: RedstoneCard) => redstone.showInItemList = true
         case _ =>
       }
