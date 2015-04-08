@@ -24,19 +24,24 @@ class Manual extends GuiScreen {
   var xSize = 0
   var ySize = 0
   var offset = 0
+  var isDragging = false
   var document = Iterable.empty[PseudoMarkdown.Segment]
   var documentHeight = 0
   var history = mutable.Stack("index.md")
   var hoveredLink = None: Option[String]
+  protected var scrollButton: ImageButton = _
   final val documentMaxWidth = 230
   final val documentMaxHeight = 176
   final val scrollPosX = 244
   final val scrollPosY = 6
+  final val scrollWidth = 6
   final val scrollHeight = 180
 
-  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+  private def canScroll = maxOffset > 0
 
-  protected var scrollButton: ImageButton = _
+  def maxOffset = documentHeight - documentMaxHeight
+
+  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   def loadPage(path: String, seen: List[String] = List.empty): Iterator[String] = {
     if (seen.contains(path)) return Iterator("Redirection loop: ") ++ seen.iterator ++ Iterator(path)
@@ -109,6 +114,9 @@ class Manual extends GuiScreen {
     mc.renderEngine.bindTexture(Textures.guiManual)
     Gui.func_146110_a(guiLeft, guiTop, 0, 0, xSize, ySize, 256, 192)
 
+    scrollButton.enabled = canScroll
+    scrollButton.hoverOverride = isDragging
+
     super.drawScreen(mouseX, mouseY, dt)
 
     PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
@@ -122,18 +130,21 @@ class Manual extends GuiScreen {
     }
   }
 
-  override def handleMouseInput(): Unit = {
-    super.handleMouseInput()
-    if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
-      if (math.signum(Mouse.getEventDWheel) < 0) scrollDown()
-      else scrollUp()
+  override protected def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseMovedOrUp(mouseX, mouseY, button)
+    if (button == 0) {
+      isDragging = false
     }
   }
 
   override def mouseClicked(mouseX: Int, mouseY: Int, button: Int): Unit = {
     super.mouseClicked(mouseX, mouseY, button)
 
-    if (button == 0) {
+    if (canScroll && button == 0 && isCoordinateOverScrollBar(mouseX - guiLeft, mouseY - guiTop)) {
+      isDragging = true
+      scrollMouse(mouseY)
+    }
+    else if (button == 0) {
       // Left click, did we hit a link?
       hoveredLink.foreach(link => pushPage(link))
     }
@@ -143,12 +154,30 @@ class Manual extends GuiScreen {
     }
   }
 
+  override protected def mouseClickMove(mouseX: Int, mouseY: Int, lastButtonClicked: Int, timeSinceMouseClick: Long) {
+    super.mouseClickMove(mouseX, mouseY, lastButtonClicked, timeSinceMouseClick)
+    if (isDragging) {
+      scrollMouse(mouseY)
+    }
+  }
+
+  private def scrollMouse(mouseY: Int) {
+    scrollTo(math.round((mouseY - guiTop - scrollPosY - 6.5) * maxOffset / (scrollHeight - 13.0)).toInt)
+  }
+
+  override def handleMouseInput(): Unit = {
+    super.handleMouseInput()
+    if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
+      if (math.signum(Mouse.getEventDWheel) < 0) scrollDown()
+      else scrollUp()
+    }
+  }
+
   private def scrollUp() = scrollTo(offset - PseudoMarkdown.lineHeight(fontRendererObj) * 3)
 
   private def scrollDown() = scrollTo(offset + PseudoMarkdown.lineHeight(fontRendererObj) * 3)
 
   private def scrollTo(row: Int): Unit = {
-    val maxOffset = documentHeight - documentMaxHeight
     offset = math.max(0, math.min(maxOffset, row))
     val yMin = guiTop + scrollPosY
     if (maxOffset > 0) {
@@ -158,4 +187,8 @@ class Manual extends GuiScreen {
       scrollButton.yPosition = yMin
     }
   }
+
+  private def isCoordinateOverScrollBar(x: Int, y: Int) =
+    x > scrollPosX && x < scrollPosX + scrollWidth &&
+      y >= scrollPosY && y < scrollPosY + scrollHeight
 }
