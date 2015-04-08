@@ -175,10 +175,11 @@ object PseudoMarkdown {
     override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
       var lines = 0
       var chars = text
+      if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
       var lineChars = maxChars(chars, maxWidth - indent, renderer)
       while (chars.length > lineChars) {
         lines += 1
-        chars = chars.drop(lineChars)
+        chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
         lineChars = maxChars(chars, maxWidth, renderer)
       }
       (lines * lineHeight(renderer) * resolvedScale).toInt
@@ -187,9 +188,10 @@ object PseudoMarkdown {
     override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
       var currentX = indent
       var chars = text
+      if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
       var lineChars = maxChars(chars, maxWidth - indent, renderer)
       while (chars.length > lineChars) {
-        chars = chars.drop(lineChars)
+        chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
         lineChars = maxChars(chars, maxWidth, renderer)
         currentX = 0
       }
@@ -201,6 +203,7 @@ object PseudoMarkdown {
       var currentX = x + indent
       var currentY = y
       var chars = text
+      if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
       var numChars = maxChars(chars, maxWidth - indent, renderer)
       val interactive = findInteractive()
       var hovered: Option[InteractiveSegment] = None
@@ -215,7 +218,7 @@ object PseudoMarkdown {
         GL11.glPopMatrix()
         currentX = x
         currentY += (lineHeight(renderer) * fontScale).toInt
-        chars = chars.drop(numChars)
+        chars = chars.drop(numChars).dropWhile(_.isWhitespace)
         numChars = maxChars(chars, maxWidth, renderer)
       }
 
@@ -489,7 +492,8 @@ object PseudoMarkdown {
       val href = m.group(2)
       if (href.startsWith("item:")) {
         val desc = href.stripPrefix("item:")
-        val (name, optMeta) = desc.splitAt(desc.lastIndexOf('@'))
+        val splitIndex = desc.lastIndexOf('@')
+        val (name, optMeta) = if (splitIndex > 0) desc.splitAt(splitIndex) else (desc, "")
         val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
         Item.itemRegistry.getObject(name) match {
           case item: Item => new ItemStackSegment(s, m.group(1), Array(new ItemStack(item, 1, meta)))
@@ -498,10 +502,11 @@ object PseudoMarkdown {
       }
       else if (href.startsWith("block:")) {
         val desc = href.stripPrefix("block:")
-        val (name, optMeta) = desc.splitAt(desc.lastIndexOf('@'))
+        val splitIndex = desc.lastIndexOf('@')
+        val (name, optMeta) = if (splitIndex > 0) desc.splitAt(splitIndex) else (desc, "")
         val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
         Block.blockRegistry.getObject(name) match {
-          case block: Block => new ItemStackSegment(s, m.group(1), Array(new ItemStack(block, 1, meta)))
+          case block: Block if Item.getItemFromBlock(block) != null => new ItemStackSegment(s, m.group(1), Array(new ItemStack(block, 1, meta)))
           case _ => new TextSegment(s, "Failed resolving " + href)
         }
       }

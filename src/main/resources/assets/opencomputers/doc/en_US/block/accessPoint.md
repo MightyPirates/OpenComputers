@@ -2,7 +2,7 @@
 
 ![AAA](oredict:oc:accessPoint)
 
-The Access Point is the wireless version of the [switch block](switch.md). It can be used to separate subnetworks so that machines in them will not see components in other networks, while still allowing to send network messages to the machines in other networks.
+The Access Point is the wireless version of the [switch](switch.md). It can be used to separate subnetworks so that machines in them will not see components in other networks, while still allowing to send network messages to the machines in other networks.
 
 In addition to that, this block will resend any wired messages it receives as wireless ones, wireless messages it receives as wired messages, and repeat wireless messages as wireless ones.
 

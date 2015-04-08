@@ -97,7 +97,7 @@ class Manual extends GuiScreen {
       refreshPage()
     }
     else {
-      Minecraft.getMinecraft.thePlayer.closeScreenNoPacket()
+      Minecraft.getMinecraft.thePlayer.closeScreen()
     }
   }
 
