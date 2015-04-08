@@ -90,10 +90,11 @@ class Manual extends GuiScreen {
     guiTop = midY - guiSize.getScaledHeight / 2
     xSize = guiSize.getScaledWidth
     ySize = guiSize.getScaledHeight
-    refreshPage()
 
     scrollButton = new ImageButton(1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
     add(buttonList, scrollButton)
+
+    refreshPage()
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
