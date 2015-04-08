@@ -38,7 +38,8 @@ class Manual extends GuiScreen {
 
   protected var scrollButton: ImageButton = _
 
-  def loadPage(path: String): Iterator[String] = {
+  def loadPage(path: String, seen: List[String] = List.empty): Iterator[String] = {
+    if (seen.contains(path)) return Iterator("Redirection loop: ") ++ seen.iterator ++ Iterator(path)
     val location = new ResourceLocation(Settings.resourceDomain, if (path.startsWith("/")) path else "doc/" + path)
     var is: InputStream = null
     try {
@@ -46,7 +47,11 @@ class Manual extends GuiScreen {
       is = resource.getInputStream
       // Force resolving immediately via toArray, otherwise we return a read
       // iterator on a closed input stream (because of the finally).
-      Source.fromInputStream(is)(Charsets.UTF_8).getLines().toArray.iterator
+      val lines = Source.fromInputStream(is)(Charsets.UTF_8).getLines().toArray
+      lines.headOption match {
+        case Some(line) if line.toLowerCase.startsWith("#redirect ") => loadPage(line.substring("#redirect ".length), seen :+ path)
+        case _ => lines.iterator
+      }
     }
     catch {
       case t: Throwable =>

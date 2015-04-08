@@ -27,7 +27,6 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.util.matching.Regex
 
-
 /**
  * Primitive Markdown parser, only supports a very small subset. Used for
  * parsing documentation into segments, to be displayed in a GUI somewhere.

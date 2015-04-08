@@ -1,0 +1,1 @@
+#redirect redirect2.md

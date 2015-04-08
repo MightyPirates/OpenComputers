@@ -1,4 +1,4 @@
-# Headline with more lines  [with link](huehue) and *some* more
+# Headline with more lines  [with link](redirect1.md) and *some* more
 
 This is some test text for the subset of Markdown supported by the planned ingame documentation system for OpenComputers.
 ![This is a tooltip...](../../textures/gui/printer_ink.png)
