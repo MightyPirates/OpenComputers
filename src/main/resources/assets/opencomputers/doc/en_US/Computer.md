@@ -1,9 +1,0 @@
-# Computers
-
-Computers are built using a variety of different blocks and components. The bare minimum needed to build a computer is a Case, Screen, and Keyboard. The Case and Screen are available in different Tiers providing different functionality and allowing for more complex Computer systems. In order for the Screen to be accessible, the Keyboard must be placed adjacent to the Screen (either on the sides or directly in front of the Screen). 
-
-Once the basic structure is built, Components can be placed inside the Case. These Components include CPUs, Memory, Hard Disk Drives, Graphics Cards (to be able to use the Screen), Network Cards (for communication between Computer networks), etc. There are many components available allowing for highly flexible systems designed for specific purposes. 
-
-Lower Tier Computers also require a Disk Drive, which takes a Floppy Disk. An OpenOS Floppy Disk is needed for booting up the Computer for the first time, and is used to install the Operating System to the Hard Disk Drive. Once installed to the Hard Disk Drive, the Floppy Disk is no longer necessary. Additional software is also available as Floppy Disks (such as Open Programs Package Manager, or OPPM) and are obtained from dungeon loot. 
-
-The final step necessary is to provide the Computer with a Power Source. OpenComputers is compatible with all types of Power-providing mods, and will connect directly to them. For a larger network with multiple Computers, a Power Converter (converts different mod's power to OC's internal Energy type), Power Distributor (distributes power to different Computers), and Capacitor (power storage for the network) can be used to connect different Computers on the network using Cables. 
