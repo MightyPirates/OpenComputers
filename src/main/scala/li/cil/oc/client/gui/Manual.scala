@@ -83,9 +83,11 @@ class Manual extends GuiScreen {
   }
 
   def pushPage(path: String): Unit = {
-    history.push(path)
-    scrollTo(0)
-    refreshPage()
+    if (path != history.top) {
+      history.push(path)
+      scrollTo(0)
+      refreshPage()
+    }
   }
 
   def popPage(): Unit = {
