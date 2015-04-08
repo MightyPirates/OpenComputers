@@ -54,6 +54,8 @@ object GuiHandler extends CommonGuiHandler {
         }
       case Some(GuiType.Category.Item) =>
         Delegator.subItem(player.getCurrentEquippedItem) match {
+          case Some(manual: item.Manual) if id == GuiType.Manual.id =>
+            new gui.Manual()
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
               override def tier = database.tier

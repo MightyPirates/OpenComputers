@@ -102,6 +102,7 @@ object Constants {
     final val LinkedCard = "linkedCard"
     final val LootDisk = "lootDisk"
     final val LuaBios = "luaBios"
+    final val Manual = "manual"
     final val MicrocontrollerCaseCreative = "microcontrollerCaseCreative"
     final val MicrocontrollerCaseTier1 = "microcontrollerCase1"
     final val MicrocontrollerCaseTier2 = "microcontrollerCase2"

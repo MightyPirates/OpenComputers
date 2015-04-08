@@ -11,6 +11,10 @@ texturePicker {
           [dyeBlue, "oc:analyzer", dyePurple]
           [dyeYellow, dyeMagenta, dyeWhite]]
 }
+manual {
+  type: shapeless
+  input: [book, "oc:circuitChip1"]
+}
 droneCase1 {
   input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
           ["oc:circuitChip1", "oc:microcontrollerCase1", "oc:circuitChip1"]
@@ -115,11 +119,11 @@ hdd3 {
 }
 openOS {
   type: shapeless
-  input: ["oc:floppy", book]
+  input: ["oc:floppy", "oc:manual"]
 }
 luaBios {
   type: shapeless
-  input: ["oc:eeprom", book]
+  input: ["oc:eeprom", "oc:manual"]
 }
 graphicsCard1 {
   input: [["oc:circuitChip1", "oc:materialALU", "oc:ram1"]
