@@ -1,10 +1,12 @@
 package li.cil.oc.client.gui
 
+import java.io.FileNotFoundException
 import java.io.InputStream
 import java.net.URI
 import java.util
 
 import com.google.common.base.Charsets
+import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
@@ -38,6 +40,7 @@ class Manual extends GuiScreen {
   final val scrollPosY = 6
   final val scrollWidth = 6
   final val scrollHeight = 180
+  final val languageKey = "%LANGUAGE%"
 
   private def canScroll = maxOffset > 0
 
@@ -45,9 +48,11 @@ class Manual extends GuiScreen {
 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
-  def loadPage(path: String, seen: List[String] = List.empty): Iterator[String] = {
+  def loadPage(path: String, localized: Boolean = false, seen: List[String] = List.empty): Iterator[String] = {
     if (seen.contains(path)) return Iterator("Redirection loop: ") ++ seen.iterator ++ Iterator(path)
-    val location = new ResourceLocation(Settings.resourceDomain, if (path.startsWith("/")) path else "doc/" + path)
+    val language = FMLCommonHandler.instance.getCurrentLanguage
+    val resolvedPath = if (path.startsWith("/") || localized) path else s"doc/$languageKey/" + path
+    val location = new ResourceLocation(Settings.resourceDomain, resolvedPath.replaceAll(languageKey, language))
     var is: InputStream = null
     try {
       val resource = Minecraft.getMinecraft.getResourceManager.getResource(location)
@@ -56,11 +61,13 @@ class Manual extends GuiScreen {
       // iterator on a closed input stream (because of the finally).
       val lines = Source.fromInputStream(is)(Charsets.UTF_8).getLines().toArray
       lines.headOption match {
-        case Some(line) if line.toLowerCase.startsWith("#redirect ") => loadPage(line.substring("#redirect ".length), seen :+ path)
+        case Some(line) if line.toLowerCase.startsWith("#redirect ") => loadPage(line.substring("#redirect ".length), localized = false, seen :+ path)
         case _ => lines.iterator
       }
     }
     catch {
+      case e: FileNotFoundException if !localized && language != "en_US" =>
+        loadPage(resolvedPath.replaceAll(languageKey, "en_US"), localized = true, seen)
       case t: Throwable =>
         Iterator(s"Failed loading page '$path':") ++ t.toString.lines
     }
