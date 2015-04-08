@@ -1,26 +1,5 @@
-# Headline with more lines  [with link](redirect1.md) and *some* more
+# OpenComputers Manual
 
-This is some test text for the subset of Markdown supported by the planned ingame documentation system for OpenComputers.
-![This is a tooltip...](../../textures/gui/printer_ink.png)
-*This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this [a link](blah).
-![This is rendered live.](oredict:oc:assembler)
-## Smaller headline [also with *link* but this __one__ longer](adapter.md)
+This will be the index, one glorious day...
 
-![This is another tooltip.](item:OpenComputers:item@23)
-
-![All the colors.](oredict:craftingPiston)
-
-This is *italic
-over two* lines. But *this ... no *this is* **_bold italic_** *text*.
-
-### even smaller
-
-*not italic *because ** why would it be*eh
-
-isn't*.
-
-   # not a header
-
-asdasd ![Hello There!](button_power.png) qweqwe
-
-And finally, [this is a link!](https://avatars1.githubusercontent.com/u/514903).
+For now, [here is an example page](example.md).

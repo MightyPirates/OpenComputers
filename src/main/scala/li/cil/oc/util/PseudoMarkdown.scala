@@ -388,7 +388,7 @@ object PseudoMarkdown {
   }
 
   private class ImageSegment(val parent: Segment, val title: String, val url: String) extends InteractiveSegment {
-    val path = if (url.startsWith("/")) url else "doc/img/" + url
+    val path = if (url.startsWith("/")) url else "doc/" + url
     val location = new ResourceLocation(Settings.resourceDomain, path)
     val texture = {
       val manager = Minecraft.getMinecraft.getTextureManager
@@ -400,15 +400,22 @@ object PseudoMarkdown {
           image
       }
     }
+    def scale(maxWidth: Int) = math.min(1f, maxWidth / texture.width.toFloat)
 
     override def tooltip: Option[String] = Option(title)
 
-    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = math.max(lineHeight(renderer), texture.height + 10 - lineHeight(renderer))
+    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
+      val s = scale(maxWidth)
+      // This 2/s feels super-hacky, because I have no idea why it works >_>
+      math.max(lineHeight(renderer), (texture.height * s + 2 / s).toInt - lineHeight(renderer))
+    }
 
     override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = maxWidth
 
     override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-      val xOffset = (maxWidth - texture.width) / 2
+      val s = scale(maxWidth)
+      val (renderWidth, renderHeight) = ((texture.width * s).toInt, (texture.height * s).toInt)
+      val xOffset = (maxWidth - renderWidth) / 2
       val yOffset = 4 + (if (indent > 0) lineHeight(renderer) else 0)
       Minecraft.getMinecraft.getTextureManager.bindTexture(location)
       GL11.glColor4f(1, 1, 1, 1)
@@ -416,14 +423,14 @@ object PseudoMarkdown {
       GL11.glTexCoord2f(0, 0)
       GL11.glVertex2f(x + xOffset, y + yOffset)
       GL11.glTexCoord2f(0, 1)
-      GL11.glVertex2f(x + xOffset, y + yOffset + texture.height)
+      GL11.glVertex2f(x + xOffset, y + yOffset + renderHeight)
       GL11.glTexCoord2f(1, 1)
-      GL11.glVertex2f(x + xOffset + texture.width, y + yOffset + texture.height)
+      GL11.glVertex2f(x + xOffset + renderWidth, y + yOffset + renderHeight)
       GL11.glTexCoord2f(1, 0)
-      GL11.glVertex2f(x + xOffset + texture.width, y + yOffset)
+      GL11.glVertex2f(x + xOffset + renderWidth, y + yOffset)
       GL11.glEnd()
 
-      checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, texture.width, texture.height)
+      checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, renderWidth, renderHeight)
     }
 
     override def toString: String = s"{ImageSegment: tooltip = $tooltip, url = $url}"
