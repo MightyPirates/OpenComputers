@@ -2,7 +2,7 @@
 
 ![Just in case.](oredict:oc:case1)
 
-Computer Cases come in three different Tiers, which limits the components that can be inserted into them. An additional Tier also exists for use in Creative mode only. Computer Cases can also be placed inside an [assembler](assembler.md) to build [robots](robot.md).
+Computer Cases come in three different tiers, which limits the components that can be inserted into them. An additional tier also exists for use in Creative mode only. Computer Cases can also be placed inside an [assembler](assembler.md) to build [robots](robot.md).
 
 The Tier 1 Case can house up to and including the following components:
 - 2x Tier 1 Expansion Cards (such as [graphics cards](gpu1.md), [network cards](lanCard.md), etc)
