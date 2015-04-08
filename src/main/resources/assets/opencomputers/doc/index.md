@@ -1,10 +1,14 @@
 # Headline with more lines  [with link](huehue) and *some* more
 
 This is some test text for the subset of Markdown supported by the planned ingame documentation system for OpenComputers.
-![opencomputers:transistor](../../textures/gui/button_power.png)
-*This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this \*isn't bold*.
-
+![This is a tooltip...](../../textures/gui/printer_ink.png)
+*This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this [a link](blah).
+![This is rendered live.](oredict:oc:assembler)
 ## Smaller headline [also with *link* but this __one__ longer](huehue)
+
+![This is another tooltip.](item:OpenComputers:item@23)
+
+![All the colors.](oredict:craftingPiston)
 
 This is *italic
 over two* lines. But *this ... no *this is* **_bold italic_** *text*.

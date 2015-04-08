@@ -3,19 +3,30 @@ package li.cil.oc.util
 import java.io.InputStream
 import javax.imageio.ImageIO
 
+import com.google.common.base.Strings
 import li.cil.oc.Settings
+import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
+import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.client.renderer.entity.RenderItem
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.client.renderer.texture.TextureUtil
 import net.minecraft.client.resources.IResourceManager
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.oredict.OreDictionary
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
 
 import scala.annotation.tailrec
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.util.matching.Regex
+
 
 /**
  * Primitive Markdown parser, only supports a very small subset. Used for
@@ -62,11 +73,12 @@ object PseudoMarkdown {
     var currentX = 0
     var currentY = 0
     for (segment <- document) {
-      val result = segment.render(x, y + currentY - yOffset, currentX, maxWidth, maxHeight - (currentY - yOffset), renderer, mouseX, mouseY)
+      val result = segment.render(x, y + currentY - yOffset, currentX, maxWidth, y, maxHeight - (currentY - yOffset), renderer, mouseX, mouseY)
       hovered = hovered.orElse(result)
       currentY += segment.height(currentX, maxWidth, renderer)
       currentX = segment.width(currentX, maxWidth, renderer)
     }
+    if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
 
     // Restore all the things.
@@ -119,7 +131,7 @@ object PseudoMarkdown {
      */
     def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = 0
 
-    def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
+    def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
   }
 
   trait InteractiveSegment extends Segment {
@@ -185,7 +197,7 @@ object PseudoMarkdown {
       currentX + (stringWidth(chars, renderer) * resolvedScale).toInt
     }
 
-    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
       val fontScale = resolvedScale
       var currentX = x + indent
       var currentY = y
@@ -193,7 +205,7 @@ object PseudoMarkdown {
       var numChars = maxChars(chars, maxWidth - indent, renderer)
       val interactive = findInteractive()
       var hovered: Option[InteractiveSegment] = None
-      while (chars.length > 0 && (currentY - y) < maxHeight) {
+      while (chars.length > 0 && (currentY - y) < maxY) {
         val part = chars.take(numChars)
         hovered = hovered.orElse(interactive.fold(None: Option[InteractiveSegment])(_.checkHovered(mouseX, mouseY, currentX, currentY, (stringWidth(part, renderer) * fontScale).toInt, (lineHeight(renderer) * fontScale).toInt)))
         GL11.glPushMatrix()
@@ -315,6 +327,67 @@ object PseudoMarkdown {
     override def toString: String = s"{StrikethroughSegment: text = $text}"
   }
 
+  private class ItemStackSegment(val parent: Segment, val title: String, val stacks: Array[ItemStack]) extends InteractiveSegment {
+    final val renderWidth = 32
+    final val renderHeight = 32
+    final val cycleSpeed = 1000
+
+    override def tooltip: Option[String] = Option(title)
+
+    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = math.max(lineHeight(renderer), renderHeight + 10 - lineHeight(renderer))
+
+    override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = maxWidth
+
+    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+      val xOffset = (maxWidth - renderWidth) / 2
+      val yOffset = 4 + (if (indent > 0) lineHeight(renderer) else 0)
+      val maskLow = math.max(minY - y - yOffset - 1, 0)
+      val maskHigh = math.max(maskLow, math.min(renderHeight, maxY - 3))
+      val mc = Minecraft.getMinecraft
+      val index = (System.currentTimeMillis() % (cycleSpeed * stacks.length)).toInt / cycleSpeed
+      val stack = stacks(index)
+
+      GL11.glPushMatrix()
+      GL11.glTranslatef(x + xOffset, y + yOffset, 0)
+
+      GL11.glColor4f(0.1f, 0.1f, 0.1f, 1)
+      GL11.glTranslatef(0, 0, 400)
+      GL11.glDepthFunc(GL11.GL_LEQUAL)
+      GL11.glDisable(GL11.GL_TEXTURE_2D)
+      GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT_AND_DIFFUSE)
+      GL11.glEnable(GL11.GL_COLOR_MATERIAL)
+      GL11.glDepthMask(true)
+      GL11.glColorMask(false, false, false, false)
+      GL11.glBegin(GL11.GL_QUADS)
+      GL11.glVertex2f(0, maskLow)
+      GL11.glVertex2f(0, maskHigh)
+      GL11.glVertex2f(renderWidth, maskHigh)
+      GL11.glVertex2f(renderWidth, maskLow)
+      GL11.glEnd()
+      GL11.glTranslatef(0, 0, -400)
+      GL11.glDepthFunc(GL11.GL_GEQUAL)
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
+      GL11.glDisable(GL11.GL_COLOR_MATERIAL)
+      GL11.glDepthMask(false)
+      GL11.glColorMask(true, true, true, true)
+
+      GL11.glColor4f(1, 1, 1, 1)
+      GL11.glScalef(renderWidth / 16, renderHeight / 16, renderWidth / 16)
+      GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+      RenderHelper.enableGUIStandardItemLighting()
+      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240)
+      RenderItem.getInstance.renderItemAndEffectIntoGUI(renderer, mc.getTextureManager, stack, 0, 0)
+      RenderHelper.disableStandardItemLighting()
+
+      GL11.glPopMatrix()
+      GL11.glDepthFunc(GL11.GL_EQUAL)
+
+      checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, renderWidth, renderHeight)
+    }
+
+    override def toString: String = s"{ItemStackSegment: stacks = $stacks}"
+  }
+
   private class ImageSegment(val parent: Segment, val title: String, val url: String) extends InteractiveSegment {
     val path = if (url.startsWith("/")) url else "doc/img/" + url
     val location = new ResourceLocation(Settings.resourceDomain, path)
@@ -335,10 +408,10 @@ object PseudoMarkdown {
 
     override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = maxWidth
 
-    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-      Minecraft.getMinecraft.getTextureManager.bindTexture(location)
+    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
       val xOffset = (maxWidth - texture.width) / 2
       val yOffset = 4 + (if (indent > 0) lineHeight(renderer) else 0)
+      Minecraft.getMinecraft.getTextureManager.bindTexture(location)
       GL11.glColor4f(1, 1, 1, 1)
       GL11.glBegin(GL11.GL_QUADS)
       GL11.glTexCoord2f(0, 0)
@@ -402,7 +475,38 @@ object PseudoMarkdown {
 
   private def StrikethroughSegment(s: Segment, m: Regex.Match) = new StrikethroughSegment(s, m.group(1))
 
-  private def ImageSegment(s: Segment, m: Regex.Match) = new ImageSegment(s, m.group(1), m.group(2))
+  private def ImageSegment(s: Segment, m: Regex.Match) = {
+    try {
+      if (m.group(2).startsWith("item:")) {
+        val desc = m.group(2).stripPrefix("item:")
+        val (name, optMeta) = desc.splitAt(desc.lastIndexOf('@'))
+        val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
+        Item.itemRegistry.getObject(name) match {
+          case item: Item => new ItemStackSegment(s, m.group(1), Array(new ItemStack(item, 1, meta)))
+          case _ => new TextSegment(s, m.group(1))
+        }
+      }
+      else if (m.group(2).startsWith("block:")) {
+        val desc = m.group(2).stripPrefix("block:")
+        val (name, optMeta) = desc.splitAt(desc.lastIndexOf('@'))
+        val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
+        Block.blockRegistry.getObject(name) match {
+          case block: Block => new ItemStackSegment(s, m.group(1), Array(new ItemStack(block, 1, meta)))
+          case _ => new TextSegment(s, m.group(1))
+        }
+      }
+      else if (m.group(2).startsWith("oredict:")) {
+        val name = m.group(2).stripPrefix("oredict:")
+        val stacks = OreDictionary.getOres(name)
+        if (stacks != null && stacks.nonEmpty) new ItemStackSegment(s, m.group(1), stacks.toArray(new Array[ItemStack](stacks.size())))
+        else new TextSegment(s, m.group(1))
+      }
+      else new ImageSegment(s, m.group(1), m.group(2))
+    }
+    catch {
+      case t: Throwable => new TextSegment(s, t.getMessage)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
