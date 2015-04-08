@@ -28,7 +28,8 @@ class Manual(val parent: Delegator) extends Delegate {
           player.openGui(OpenComputers, GuiType.Manual.id, world, 0, 0, 0)
           Minecraft.getMinecraft.currentScreen match {
             case manual: gui.Manual =>
-              manual.pushPage(api.Items.get(new ItemStack(block)).name + ".md")
+              val descriptor = api.Items.get(new ItemStack(block))
+              manual.pushPage("block/" + descriptor.name + ".md")
             case _ =>
           }
         }

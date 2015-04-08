@@ -2,7 +2,7 @@
 
 ![See this?](oredict:oc:screen1)
 
-A Screen is used in combination with a [Graphics Card](graphicsCard1.md), to allow computers to display text. Different screen tiers have different capabilties, that being that they support different resolutions and color depths, ranging from very low resolution, monochrome displays, to very high resolutions with up to 256 different colors.
+A Screen is used in combination with a [graphics card](../item/graphicsCard1.md), to allow computers to display text. Different screen tiers have different capabilties, that being that they support different resolutions and color depths, ranging from very low resolution, monochrome displays, to very high resolutions with up to 256 different colors.
 
 The available resolution and color depth depends on the weakest link. When using a tier one graphics card with a tier three screen, only the tier one resolution and color depth is usable.
 

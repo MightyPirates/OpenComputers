@@ -23,17 +23,6 @@ import scala.collection.mutable
 import scala.io.Source
 
 class Manual extends GuiScreen {
-  var guiLeft = 0
-  var guiTop = 0
-  var xSize = 0
-  var ySize = 0
-  var offset = 0
-  var isDragging = false
-  var document = Iterable.empty[PseudoMarkdown.Segment]
-  var documentHeight = 0
-  var history = mutable.Stack("index.md")
-  var hoveredLink = None: Option[String]
-  protected var scrollButton: ImageButton = _
   final val documentMaxWidth = 230
   final val documentMaxHeight = 176
   final val scrollPosX = 244
@@ -42,17 +31,37 @@ class Manual extends GuiScreen {
   final val scrollHeight = 180
   final val languageKey = "%LANGUAGE%"
 
+  var guiLeft = 0
+  var guiTop = 0
+  var xSize = 0
+  var ySize = 0
+  var offset = 0
+  var isDragging = false
+  var document = Iterable.empty[PseudoMarkdown.Segment]
+  var documentHeight = 0
+  var history = mutable.Stack(s"doc/$languageKey/index.md")
+  var hoveredLink = None: Option[String]
+  protected var scrollButton: ImageButton = _
+
   private def canScroll = maxOffset > 0
 
   def maxOffset = documentHeight - documentMaxHeight
 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
+  def resolveLink(path: String, current: String): String =
+    if (path.startsWith("/")) path
+    else {
+      val splitAt = current.lastIndexOf('/')
+      if (splitAt >= 0) current.splitAt(splitAt)._1 + "/" + path
+      else path
+    }
+
   def loadPage(path: String, localized: Boolean = false, seen: List[String] = List.empty): Iterator[String] = {
-    if (seen.contains(path)) return Iterator("Redirection loop: ") ++ seen.iterator ++ Iterator(path)
     val language = FMLCommonHandler.instance.getCurrentLanguage
-    val resolvedPath = if (path.startsWith("/") || localized) path else s"doc/$languageKey/" + path
-    val location = new ResourceLocation(Settings.resourceDomain, resolvedPath.replaceAll(languageKey, language))
+    val resolvedPath = path.replaceAll(languageKey, language)
+    if (seen.contains(resolvedPath)) return Iterator("Redirection loop: ") ++ seen.iterator ++ Iterator(path)
+    val location = new ResourceLocation(Settings.resourceDomain, resolvedPath)
     var is: InputStream = null
     try {
       val resource = Minecraft.getMinecraft.getResourceManager.getResource(location)
@@ -61,13 +70,14 @@ class Manual extends GuiScreen {
       // iterator on a closed input stream (because of the finally).
       val lines = Source.fromInputStream(is)(Charsets.UTF_8).getLines().toArray
       lines.headOption match {
-        case Some(line) if line.toLowerCase.startsWith("#redirect ") => loadPage(line.substring("#redirect ".length), localized = false, seen :+ path)
+        case Some(line) if line.toLowerCase.startsWith("#redirect ") =>
+          loadPage(resolveLink(line.substring("#redirect ".length), resolvedPath), localized = false, seen :+ path)
         case _ => lines.iterator
       }
     }
     catch {
       case e: FileNotFoundException if !localized && language != "en_US" =>
-        loadPage(resolvedPath.replaceAll(languageKey, "en_US"), localized = true, seen)
+        loadPage(path.replaceAll(languageKey, "en_US"), localized = true, seen)
       case t: Throwable =>
         Iterator(s"Failed loading page '$path':") ++ t.toString.lines
     }
@@ -83,8 +93,9 @@ class Manual extends GuiScreen {
   }
 
   def pushPage(path: String): Unit = {
-    if (path != history.top) {
-      history.push(path)
+    val resolvedPath = resolveLink(path, history.top)
+    if (resolvedPath != history.top) {
+      history.push(resolvedPath)
       scrollTo(0)
       refreshPage()
     }
