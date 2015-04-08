@@ -4,6 +4,7 @@ import net.minecraft.client.gui.FontRenderer
 import net.minecraft.util.EnumChatFormatting
 import org.lwjgl.opengl.GL11
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -27,7 +28,8 @@ object PseudoMarkdown {
    * Renders a list of segments and tooltips if a segment with a tooltip is hovered.
    * Returns a link address if a link is hovered.
    */
-  def render(document: Iterable[Segment], x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer): Option[String] = {
+  def render(document: Iterable[Segment], x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+    // Create a flat area in the depth buffer.
     GL11.glPushMatrix()
     GL11.glTranslatef(0, 0, 1)
     GL11.glDepthMask(true)
@@ -39,21 +41,27 @@ object PseudoMarkdown {
     GL11.glVertex2f(x + 1 + maxWidth, y - 1)
     GL11.glEnd()
 
+    // Use that flat area to mask the output area.
     GL11.glDepthMask(false)
     GL11.glDepthFunc(GL11.GL_EQUAL)
 
+    // Actual rendering.
+    var hovered: Option[InteractiveSegment] = None
     var currentX = 0
     var currentY = 0
     for (segment <- document) {
-      segment.render(x, y + currentY - yOffset, currentX, maxWidth, maxHeight - (currentY - yOffset), renderer)
-      currentY += segment.height(currentX, maxWidth, renderer) - lineHeight(renderer)
+      val result = segment.render(x, y + currentY - yOffset, currentX, maxWidth, maxHeight - (currentY - yOffset), renderer, mouseX, mouseY)
+      hovered = hovered.orElse(result)
+      currentY += segment.height(currentX, maxWidth, renderer)
       currentX = segment.width(currentX, maxWidth, renderer)
     }
+    hovered.foreach(_.notifyHover())
 
+    // Restore all the things.
     GL11.glDepthFunc(GL11.GL_LEQUAL)
     GL11.glPopMatrix()
 
-    None
+    hovered
   }
 
   /**
@@ -63,7 +71,7 @@ object PseudoMarkdown {
     var currentX = 0
     var currentY = 0
     for (segment <- document) {
-      currentY += segment.height(currentX, maxWidth, renderer) - lineHeight(renderer)
+      currentY += segment.height(currentX, maxWidth, renderer)
       currentX = segment.width(currentX, maxWidth, renderer)
     }
     currentY
@@ -96,7 +104,17 @@ object PseudoMarkdown {
      */
     def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = 0
 
-    def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer): Unit = {}
+    def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
+  }
+
+  trait InteractiveSegment {
+    def tooltip: Option[String] = None
+
+    def link: Option[String] = None
+
+    private[PseudoMarkdown] def notifyHover(): Unit
+
+    private[PseudoMarkdown] def checkHovered(mouseX: Int, mouseY: Int, x: Int, y: Int, w: Int, h: Int): Option[InteractiveSegment] = if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) Some(this) else None
   }
 
   // ----------------------------------------------------------------------- //
@@ -129,7 +147,7 @@ object PseudoMarkdown {
     }
 
     override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
-      var lines = 1
+      var lines = 0
       var chars = text
       var lineChars = maxChars(chars, maxWidth - indent, renderer)
       while (chars.length > lineChars) {
@@ -137,7 +155,7 @@ object PseudoMarkdown {
         chars = chars.drop(lineChars)
         lineChars = maxChars(chars, maxWidth, renderer)
       }
-      lines * lineHeight(renderer)
+      (lines * lineHeight(renderer) * resolvedScale).toInt
     }
 
     override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
@@ -149,39 +167,74 @@ object PseudoMarkdown {
         lineChars = maxChars(chars, maxWidth, renderer)
         currentX = 0
       }
-      currentX + renderer.getStringWidth(fullFormat + chars)
+      currentX + (renderer.getStringWidth(resolvedFormat + chars) * resolvedScale).toInt
     }
 
-    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer): Unit = {
+    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+      val fontScale = resolvedScale
       var currentX = x + indent
       var currentY = y
       var chars = text
       var numChars = maxChars(chars, maxWidth - indent, renderer)
+      val interactive = findInteractive()
+      var hovered: Option[InteractiveSegment] = None
       while (chars.length > 0 && (currentY - y) < maxHeight) {
-        renderer.drawString(fullFormat + chars.take(numChars), currentX, currentY, 0xFAFAFA)
+        val part = chars.take(numChars)
+        hovered = hovered.orElse(interactive.fold(None: Option[InteractiveSegment])(_.checkHovered(mouseX, mouseY, currentX, currentY, (stringWidth(part, renderer) * fontScale).toInt, (lineHeight(renderer) * fontScale).toInt)))
+        GL11.glPushMatrix()
+        GL11.glTranslatef(currentX, currentY, 0)
+        GL11.glScalef(fontScale, fontScale, fontScale)
+        GL11.glTranslatef(-currentX, -currentY, 0)
+        renderer.drawString(resolvedFormat + part, currentX, currentY, resolvedColor)
+        GL11.glPopMatrix()
         currentX = x
-        currentY += lineHeight(renderer)
+        currentY += (lineHeight(renderer) * fontScale).toInt
         chars = chars.drop(numChars)
         numChars = maxChars(chars, maxWidth, renderer)
       }
+
+      hovered
     }
+
+    protected def color = None: Option[Int]
+
+    protected def scale = None: Option[Float]
 
     protected def format = ""
 
     protected def stringWidth(s: String, renderer: FontRenderer): Int = renderer.getStringWidth(s)
 
-    private def fullFormat = parent match {
-      case segment: TextSegment => segment.format + format
+    private def resolvedColor: Int = parent match {
+      case segment: TextSegment => color.getOrElse(segment.resolvedColor)
+      case _ => color.getOrElse(0xDDDDDD)
+    }
+
+    private def resolvedScale: Float = parent match {
+      case segment: TextSegment => scale.getOrElse(segment.resolvedScale)
+      case _ => scale.getOrElse(1f)
+    }
+
+    private def resolvedFormat: String = parent match {
+      case segment: TextSegment => segment.resolvedFormat + format
       case _ => format
     }
 
+    @tailrec private def findInteractive(): Option[InteractiveSegment] = this match {
+      case segment: InteractiveSegment => Some(segment)
+      case _ => parent match {
+        case segment: TextSegment => segment.findInteractive()
+        case _ => None
+      }
+    }
+
     private def maxChars(s: String, maxWidth: Int, renderer: FontRenderer): Int = {
+      val fontScale = resolvedScale
       val breaks = Set(' ', '-', '.', '+', '*', '_', '/')
       var pos = 0
       var lastBreak = -1
       while (pos < s.length) {
         pos += 1
-        val width = stringWidth(fullFormat + s.take(pos), renderer)
+        val width = (stringWidth(resolvedFormat + s.take(pos), renderer) * fontScale).toInt
         if (width >= maxWidth) return lastBreak + 1
         if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
       }
@@ -192,27 +245,38 @@ object PseudoMarkdown {
   }
 
   private class HeaderSegment(parent: Segment, text: String, val level: Int) extends TextSegment(parent, text) {
-    private def scale = math.max(2, 5 - level) / 2f
+    private val fontScale = math.max(2, 5 - level) / 2f
+
+    override protected def scale = Some(fontScale)
 
     override protected def format = EnumChatFormatting.UNDERLINE.toString
-
-    override protected def stringWidth(s: String, renderer: FontRenderer): Int = (super.stringWidth(s, renderer) * scale).toInt
-
-    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = (super.height(indent, maxWidth, renderer) * scale).toInt
-
-    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer): Unit = {
-      GL11.glPushMatrix()
-      GL11.glTranslatef(x, y, 0)
-      GL11.glScalef(scale, scale, scale)
-      GL11.glTranslatef(-x, -y, 0)
-      super.render(x, y, indent, maxWidth, maxHeight, renderer)
-      GL11.glPopMatrix()
-    }
 
     override def toString: String = s"{HeaderSegment: text = $text, level = $level}"
   }
 
-  private class LinkSegment(parent: Segment, text: String, val url: String) extends TextSegment(parent, text) {
+  private class LinkSegment(parent: Segment, text: String, val url: String) extends TextSegment(parent, text) with InteractiveSegment {
+    private final val normalColor = 0x66FF66
+    private final val hoverColor = 0xAAFFAA
+    private final val fadeTime = 500
+    private var lastHovered = System.currentTimeMillis() - fadeTime
+
+    override protected def color: Option[Int] = {
+      val timeSinceHover = (System.currentTimeMillis() - lastHovered).toInt
+      if (timeSinceHover > fadeTime) Some(normalColor)
+      else Some(fadeColor(hoverColor, normalColor, timeSinceHover / fadeTime.toFloat))
+    }
+
+    override def link: Option[String] = Option(url)
+
+    override private[PseudoMarkdown] def notifyHover(): Unit = lastHovered = System.currentTimeMillis()
+
+    private def fadeColor(c1: Int, c2: Int, t: Float): Int = {
+      val (r1, g1, b1) = ((c1 >>> 16) & 0xFF, (c1 >>> 8) & 0xFF, c1 & 0xFF)
+      val (r2, g2, b2) = ((c2 >>> 16) & 0xFF, (c2 >>> 8) & 0xFF, c2 & 0xFF)
+      val (r, g, b) = ((r1 + (r2 - r1) * t).toInt, (g1 + (g2 - g1) * t).toInt, (b1 + (b2 - b1) * t).toInt)
+      (r << 16) | (g << 8) | b
+    }
+
     override def toString: String = s"{LinkSegment: text = $text, url = $url}"
   }
 
@@ -241,7 +305,7 @@ object PseudoMarkdown {
   private class NewLineSegment extends Segment {
     override protected def parent: Segment = null
 
-    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = lineHeight(renderer) * 2
+    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = lineHeight(renderer)
 
     override def toString: String = s"{NewLineSegment}"
   }

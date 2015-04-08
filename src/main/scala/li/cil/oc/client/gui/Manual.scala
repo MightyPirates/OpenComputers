@@ -23,13 +23,13 @@ class Manual extends GuiScreen {
   final val scrollPosY = 6
   final val scrollHeight = 180
 
-  val document = PseudoMarkdown.parse( """# Headline with more lines
+  val document = PseudoMarkdown.parse( """# Headline with more lines  [with link](huehue) and *some* more
                                          |
                                          |The Adapter block is the core of most of OpenComputers' mod integration.
                                          |
                                          |*This* is *italic* text, ~~strikethrough~~ maybe a-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this \*isn't bold*.
                                          |
-                                         |## Smaller headline
+                                         |## Smaller headline [also with link but this one longer](huehue)
                                          |
                                          |This is *italic
                                          |over two* lines. But *this ... no *this is* **_bold italic_** *text*.
@@ -76,7 +76,7 @@ class Manual extends GuiScreen {
 
     super.drawScreen(mouseX, mouseY, dt)
 
-    PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj)
+    PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY)
   }
 
   override def handleMouseInput(): Unit = {
