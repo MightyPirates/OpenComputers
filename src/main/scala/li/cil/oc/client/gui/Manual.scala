@@ -1,5 +1,6 @@
 package li.cil.oc.client.gui
 
+import java.io.InputStream
 import java.util
 
 import com.google.common.base.Charsets
@@ -14,6 +15,7 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Mouse
 
 import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable
 import scala.io.Source
 
 class Manual extends GuiScreen {
@@ -24,6 +26,8 @@ class Manual extends GuiScreen {
   var offset = 0
   var document = Iterable.empty[PseudoMarkdown.Segment]
   var documentHeight = 0
+  var history = mutable.Stack("index.md")
+  var hoveredLink = None: Option[String]
   final val documentMaxWidth = 230
   final val documentMaxHeight = 176
   final val scrollPosX = 244
@@ -34,10 +38,43 @@ class Manual extends GuiScreen {
 
   protected var scrollButton: ImageButton = _
 
-  def loadPage(location: ResourceLocation): Iterator[String] = {
-    val resource = Minecraft.getMinecraft.getResourceManager.getResource(location)
-    val is = resource.getInputStream
-    Source.fromInputStream(is)(Charsets.UTF_8).getLines()
+  def loadPage(path: String): Iterator[String] = {
+    val location = new ResourceLocation(Settings.resourceDomain, if (path.startsWith("/")) path else "doc/" + path)
+    var is: InputStream = null
+    try {
+      val resource = Minecraft.getMinecraft.getResourceManager.getResource(location)
+      is = resource.getInputStream
+      // Force resolving immediately via toArray, otherwise we return a read
+      // iterator on a closed input stream (because of the finally).
+      Source.fromInputStream(is)(Charsets.UTF_8).getLines().toArray.iterator
+    }
+    catch {
+      case t: Throwable =>
+        Iterator(s"Failed loading page '$path':") ++ t.toString.lines
+    }
+    finally {
+      Option(is).foreach(_.close())
+    }
+  }
+
+  def refreshPage(): Unit = {
+    document = PseudoMarkdown.parse(loadPage(history.top))
+    documentHeight = PseudoMarkdown.height(document, documentMaxWidth, fontRendererObj)
+    scrollTo(offset)
+  }
+
+  def pushPage(path: String): Unit = {
+    history.push(path)
+    scrollTo(0)
+    refreshPage()
+  }
+
+  def popPage(): Unit = {
+    if (history.size > 1) {
+      history.pop()
+      scrollTo(0)
+      refreshPage()
+    }
   }
 
   override def doesGuiPauseGame = false
@@ -53,9 +90,7 @@ class Manual extends GuiScreen {
     guiTop = midY - guiSize.getScaledHeight / 2
     xSize = guiSize.getScaledWidth
     ySize = guiSize.getScaledHeight
-    offset = 0
-    document = PseudoMarkdown.parse(loadPage(new ResourceLocation(Settings.resourceDomain, "doc/index.md")))
-    documentHeight = PseudoMarkdown.height(document, documentMaxWidth, fontRendererObj)
+    refreshPage()
 
     scrollButton = new ImageButton(1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
     add(buttonList, scrollButton)
@@ -68,10 +103,12 @@ class Manual extends GuiScreen {
     super.drawScreen(mouseX, mouseY, dt)
 
     PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
-      case Some(segment) => segment.tooltip match {
-        case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(text.lines.toSeq), mouseX, mouseY, fontRendererObj)
-        case _ =>
-      }
+      case Some(segment) =>
+        segment.tooltip match {
+          case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(text.lines.toSeq), mouseX, mouseY, fontRendererObj)
+          case _ =>
+        }
+        hoveredLink = segment.link
       case _ =>
     }
   }
@@ -81,6 +118,19 @@ class Manual extends GuiScreen {
     if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
       if (math.signum(Mouse.getEventDWheel) < 0) scrollDown()
       else scrollUp()
+    }
+  }
+
+  override def mouseClicked(mouseX: Int, mouseY: Int, button: Int): Unit = {
+    super.mouseClicked(mouseX, mouseY, button)
+
+    if (button == 0) {
+      // Left click, did we hit a link?
+      hoveredLink.foreach(link => pushPage(link))
+    }
+    else if (button == 1) {
+      // Right mouseclick = back.
+      popPage()
     }
   }
 

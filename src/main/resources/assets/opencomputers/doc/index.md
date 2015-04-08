@@ -4,7 +4,7 @@ This is some test text for the subset of Markdown supported by the planned ingam
 ![This is a tooltip...](../../textures/gui/printer_ink.png)
 *This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this [a link](blah).
 ![This is rendered live.](oredict:oc:assembler)
-## Smaller headline [also with *link* but this __one__ longer](huehue)
+## Smaller headline [also with *link* but this __one__ longer](adapter.md)
 
 ![This is another tooltip.](item:OpenComputers:item@23)
 
