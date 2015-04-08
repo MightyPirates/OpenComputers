@@ -27,19 +27,49 @@ object PseudoMarkdown {
    * Renders a list of segments and tooltips if a segment with a tooltip is hovered.
    * Returns a link address if a link is hovered.
    */
-  def render(document: Iterable[Segment], x: Int, y: Int, maxWidth: Int, height: Int, offset: Int, renderer: FontRenderer): Option[String] = {
+  def render(document: Iterable[Segment], x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer): Option[String] = {
+    GL11.glPushMatrix()
+    GL11.glTranslatef(0, 0, 1)
+    GL11.glDepthMask(true)
+    GL11.glColor4f(0.01f, 0.01f, 0.01f, 1)
+    GL11.glBegin(GL11.GL_QUADS)
+    GL11.glVertex2f(x - 1, y - 1)
+    GL11.glVertex2f(x - 1, y + 1 + maxHeight)
+    GL11.glVertex2f(x + 1 + maxWidth, y + 1 + maxHeight)
+    GL11.glVertex2f(x + 1 + maxWidth, y - 1)
+    GL11.glEnd()
+
+    GL11.glDepthMask(false)
+    GL11.glDepthFunc(GL11.GL_EQUAL)
+
     var currentX = 0
     var currentY = 0
     for (segment <- document) {
-      if (currentY >= offset) {
-        segment.render(x, y + currentY, currentX, maxWidth, renderer)
-      }
-      currentY += segment.height(currentX, maxWidth, renderer) - renderer.FONT_HEIGHT
+      segment.render(x, y + currentY - yOffset, currentX, maxWidth, maxHeight - (currentY - yOffset), renderer)
+      currentY += segment.height(currentX, maxWidth, renderer) - lineHeight(renderer)
       currentX = segment.width(currentX, maxWidth, renderer)
     }
 
+    GL11.glDepthFunc(GL11.GL_LEQUAL)
+    GL11.glPopMatrix()
+
     None
   }
+
+  /**
+   * Compute the overall height of a document, for computation of scroll offsets.
+   */
+  def height(document: Iterable[Segment], maxWidth: Int, renderer: FontRenderer): Int = {
+    var currentX = 0
+    var currentY = 0
+    for (segment <- document) {
+      currentY += segment.height(currentX, maxWidth, renderer) - lineHeight(renderer)
+      currentX = segment.width(currentX, maxWidth, renderer)
+    }
+    currentY
+  }
+
+  def lineHeight(renderer: FontRenderer): Int = renderer.FONT_HEIGHT + 1
 
   // ----------------------------------------------------------------------- //
 
@@ -66,7 +96,7 @@ object PseudoMarkdown {
      */
     def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = 0
 
-    def render(x: Int, y: Int, indent: Int, width: Int, renderer: FontRenderer): Unit = {}
+    def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer): Unit = {}
   }
 
   // ----------------------------------------------------------------------- //
@@ -107,7 +137,7 @@ object PseudoMarkdown {
         chars = chars.drop(lineChars)
         lineChars = maxChars(chars, maxWidth, renderer)
       }
-      lines * renderer.FONT_HEIGHT
+      lines * lineHeight(renderer)
     }
 
     override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
@@ -122,15 +152,15 @@ object PseudoMarkdown {
       currentX + renderer.getStringWidth(fullFormat + chars)
     }
 
-    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer): Unit = {
+    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer): Unit = {
       var currentX = x + indent
       var currentY = y
       var chars = text
       var numChars = maxChars(chars, maxWidth - indent, renderer)
-      while (chars.length > 0) {
-        renderer.drawString(fullFormat + chars.take(numChars), currentX, currentY, 0xFFFFFF)
+      while (chars.length > 0 && (currentY - y) < maxHeight) {
+        renderer.drawString(fullFormat + chars.take(numChars), currentX, currentY, 0xFAFAFA)
         currentX = x
-        currentY += renderer.FONT_HEIGHT
+        currentY += lineHeight(renderer)
         chars = chars.drop(numChars)
         numChars = maxChars(chars, maxWidth, renderer)
       }
@@ -147,13 +177,13 @@ object PseudoMarkdown {
 
     private def maxChars(s: String, maxWidth: Int, renderer: FontRenderer): Int = {
       val breaks = Set(' ', '-', '.', '+', '*', '_', '/')
-      var pos = 1
+      var pos = 0
       var lastBreak = -1
       while (pos < s.length) {
-        val width = stringWidth(fullFormat + s.take(pos), renderer)
-        if (breaks.contains(s.charAt(pos))) lastBreak = pos
-        if (width > maxWidth) return lastBreak + 1
         pos += 1
+        val width = stringWidth(fullFormat + s.take(pos), renderer)
+        if (width >= maxWidth) return lastBreak + 1
+        if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
       }
       pos
     }
@@ -164,18 +194,18 @@ object PseudoMarkdown {
   private class HeaderSegment(parent: Segment, text: String, val level: Int) extends TextSegment(parent, text) {
     private def scale = math.max(2, 5 - level) / 2f
 
-    override protected def format = EnumChatFormatting.BOLD.toString
+    override protected def format = EnumChatFormatting.UNDERLINE.toString
 
     override protected def stringWidth(s: String, renderer: FontRenderer): Int = (super.stringWidth(s, renderer) * scale).toInt
 
     override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = (super.height(indent, maxWidth, renderer) * scale).toInt
 
-    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer): Unit = {
+    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer): Unit = {
       GL11.glPushMatrix()
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(scale, scale, scale)
       GL11.glTranslatef(-x, -y, 0)
-      super.render(x, y, indent, maxWidth, renderer)
+      super.render(x, y, indent, maxWidth, maxHeight, renderer)
       GL11.glPopMatrix()
     }
 
@@ -211,7 +241,7 @@ object PseudoMarkdown {
   private class NewLineSegment extends Segment {
     override protected def parent: Segment = null
 
-    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = renderer.FONT_HEIGHT * 2
+    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = lineHeight(renderer) * 2
 
     override def toString: String = s"{NewLineSegment}"
   }
