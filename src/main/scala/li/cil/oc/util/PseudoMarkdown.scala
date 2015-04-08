@@ -173,7 +173,7 @@ object PseudoMarkdown {
         lineChars = maxChars(chars, maxWidth, renderer)
         currentX = 0
       }
-      currentX + (renderer.getStringWidth(resolvedFormat + chars) * resolvedScale).toInt
+      currentX + (stringWidth(chars, renderer) * resolvedScale).toInt
     }
 
     override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
@@ -208,7 +208,7 @@ object PseudoMarkdown {
 
     protected def format = ""
 
-    protected def stringWidth(s: String, renderer: FontRenderer): Int = renderer.getStringWidth(s)
+    protected def stringWidth(s: String, renderer: FontRenderer): Int = renderer.getStringWidth(resolvedFormat + s)
 
     def resolvedColor: Int = parent match {
       case segment: TextSegment => color.getOrElse(segment.resolvedColor)
@@ -240,7 +240,7 @@ object PseudoMarkdown {
       var lastBreak = -1
       while (pos < s.length) {
         pos += 1
-        val width = (stringWidth(resolvedFormat + s.take(pos), renderer) * fontScale).toInt
+        val width = (stringWidth(s.take(pos), renderer) * fontScale).toInt
         if (width >= maxWidth) return lastBreak + 1
         if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
       }
