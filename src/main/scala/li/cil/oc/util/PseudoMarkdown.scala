@@ -36,7 +36,7 @@ object PseudoMarkdown {
    * Parses a plain text document into a list of segments.
    */
   def parse(document: Iterator[String]): Iterable[Segment] = {
-    var segments = document.flatMap(line => Iterable(new TextSegment(null, line), new NewLineSegment())).toArray
+    var segments = document.flatMap(line => Iterable(new TextSegment(null, Option(line).getOrElse("")), new NewLineSegment())).toArray
     for ((pattern, factory) <- segmentTypes) {
       segments = segments.flatMap(_.refine(pattern, factory))
     }
@@ -394,7 +394,10 @@ object PseudoMarkdown {
       val manager = Minecraft.getMinecraft.getTextureManager
       manager.getTexture(location) match {
         case image: ImageTexture => image
-        case _ =>
+        case other =>
+          if (other != null && other.getGlTextureId != -1) {
+            TextureUtil.deleteTexture(other.getGlTextureId)
+          }
           val image = new ImageTexture(location)
           manager.loadTexture(location, image)
           image
@@ -483,34 +486,35 @@ object PseudoMarkdown {
 
   private def ImageSegment(s: Segment, m: Regex.Match) = {
     try {
-      if (m.group(2).startsWith("item:")) {
-        val desc = m.group(2).stripPrefix("item:")
+      val href = m.group(2)
+      if (href.startsWith("item:")) {
+        val desc = href.stripPrefix("item:")
         val (name, optMeta) = desc.splitAt(desc.lastIndexOf('@'))
         val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
         Item.itemRegistry.getObject(name) match {
           case item: Item => new ItemStackSegment(s, m.group(1), Array(new ItemStack(item, 1, meta)))
-          case _ => new TextSegment(s, m.group(1))
+          case _ => new TextSegment(s, "Failed resolving " + href)
         }
       }
-      else if (m.group(2).startsWith("block:")) {
-        val desc = m.group(2).stripPrefix("block:")
+      else if (href.startsWith("block:")) {
+        val desc = href.stripPrefix("block:")
         val (name, optMeta) = desc.splitAt(desc.lastIndexOf('@'))
         val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
         Block.blockRegistry.getObject(name) match {
           case block: Block => new ItemStackSegment(s, m.group(1), Array(new ItemStack(block, 1, meta)))
-          case _ => new TextSegment(s, m.group(1))
+          case _ => new TextSegment(s, "Failed resolving " + href)
         }
       }
-      else if (m.group(2).startsWith("oredict:")) {
-        val name = m.group(2).stripPrefix("oredict:")
+      else if (href.startsWith("oredict:")) {
+        val name = href.stripPrefix("oredict:")
         val stacks = OreDictionary.getOres(name)
         if (stacks != null && stacks.nonEmpty) new ItemStackSegment(s, m.group(1), stacks.toArray(new Array[ItemStack](stacks.size())))
-        else new TextSegment(s, m.group(1))
+        else new TextSegment(s, "Failed resolving " + href)
       }
-      else new ImageSegment(s, m.group(1), m.group(2))
+      else new ImageSegment(s, m.group(1), href)
     }
     catch {
-      case t: Throwable => new TextSegment(s, t.getMessage)
+      case t: Throwable => new TextSegment(s, Option(t.toString).getOrElse("Unknown error."))
     }
   }
 
