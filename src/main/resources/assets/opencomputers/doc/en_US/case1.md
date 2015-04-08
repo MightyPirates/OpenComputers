@@ -2,14 +2,34 @@
 
 ![Just in case.](oredict:oc:case1)
 
-The Computer Case is the most basic computer you can build, and usually what you'll get started with. The different tiers of computers have a different layout of slots available for parts, as well as increasing level of supported component tier (indicated by the roman numeral in applicable slots).
+Computer Cases come in three different Tiers, which limits the components that can be inserted into them. An additional Tier also exists for use in Creative mode only. Computer Cases can also be placed inside an [assembler](assembler.md) to build [robots](robot.md).
 
-To get a running computer you'll need to install a [CPU](cpu1.md) and some [memory (RAM)](ram1.md) in a computer case. You'll usually also want to install a [graphics card](graphicsCard1.md) to be able to display text on a connected [screen](screen1.md), and a [hard disk drive (HDD)](hdd1.md) to install an operating system on (after booting from an OS floppy from an external [disk drive](diskDrive.md) for the first time, for example).
+The Tier 1 Case can house up to and including the following components:
+- 2x Tier 1 Expansion Cards (such as [graphics cards](gpu1.md), [network cards](lanCard.md), etc)
+- 1x Tier 1 [CPU](cpu1.md)
+- 2x Tier 1 [RAM](ram1.md)
+- 1x Tier 1 [HDD](hdd1.md)
 
-Computers can be upgraded using several different cards. For example, using a [redstone card](redstoneCard1.md) computers are able to read and emit redstone signals. Using [network cards](lanCard.md) they can send and receive network messages, allowing them to communicate with other computers.
+The Tier 2 Case can house up to and including the following components:
+- 1x Tier 1 Expansion Card (such as [graphics cards](gpu1.md), [network cards](lanCard.md), etc)
+- 1x Tier 2 Expansion Card
+- 1x Tier 2 [CPU](cpu1.md)
+- 2x Tier 2 [RAM](ram1.md)
+- 1x Tier 1 [HDD](hdd1.md)
+- 1x Tier 2 [HDD](hdd1.md)
 
-If a computer stops working / crashes, try using the [analyzer](analyzer.md) tool on it (sneak-activate) to see the error message that caused the computer to stop.
+The Tier 3 Case can house up to and including the following components:
+- 1x Tier 3 Expansion Card (such as [graphics cards](gpu1.md), [network cards](lanCard.md), etc)
+- 2x Tier 2 Expansion Card
+- 1x Tier 3 [CPU](cpu1.md)
+- 2x Tier 3 [RAM](ram1.md)
+- 1x Tier 2 [HDD](hdd1.md)
+- 1x Tier 3 [HDD](hdd1.md)
+- 1x [floppy disk](floppy.md)
 
-Computer cases can be dyed using any dye. This is purely for aesthetic reasons, and has no practical implications.
-
-Computer cases also serve as the base part when building [robots](robot.md) in the [assembler](assembler.md). The different tiers determine the available slots for building the robot. When using a creative case, the robot will also provide itself with power, as does the normal creative case.
+The Tier 4 (Creative) Case can house the following components:
+- 3x Tier 3 Expansion Cards (such as [graphics cards](gpu1.md), [network cards](lanCard.md), etc)
+- 1x Tier 3 [CPU](cpu1.md)
+- 2x Tier 3 [RAM](ram1.md)
+- 2x Tier 3 [HDD](hdd1.md)
+- 1x [floppy disk](floppy.md)
