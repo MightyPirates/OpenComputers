@@ -1,6 +1,6 @@
 # Tablet
 
-![Touch me if you can.](oredict:oc:tablet)
+![Touch me if you can.](item:OpenComputers:item@68)
 
  Tablets are built by placing a [tablet case](tabletCase1.md) into an [assembler](assembler.md), configuring as desired and assembling it. Tablets act as portable computers that cannot directly interact with the world - for example, basic [redstone cards](redstoneCard1.md) do not work in them. A number of upgrades, however, do, such as the [sign upgrade](signUpgrade.md) or the [piston upgrade](pistonUpgrade.md).
 
