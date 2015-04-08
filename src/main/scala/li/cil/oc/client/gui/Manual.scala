@@ -2,15 +2,19 @@ package li.cil.oc.client.gui
 
 import java.util
 
+import com.google.common.base.Charsets
+import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.util.PseudoMarkdown
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Mouse
 
 import scala.collection.convert.WrapAsJava._
+import scala.io.Source
 
 class Manual extends GuiScreen {
   var guiLeft = 0
@@ -18,6 +22,7 @@ class Manual extends GuiScreen {
   var xSize = 0
   var ySize = 0
   var offset = 0
+  var document = Iterable.empty[PseudoMarkdown.Segment]
   var documentHeight = 0
   final val documentMaxWidth = 230
   final val documentMaxHeight = 176
@@ -25,32 +30,15 @@ class Manual extends GuiScreen {
   final val scrollPosY = 6
   final val scrollHeight = 180
 
-  val document = PseudoMarkdown.parse( """# Headline with more lines  [with link](huehue) and *some* more
-                                         |
-                                         |This is some test text for the subset of Markdown supported by the planned ingame documentation system for OpenComputers.
-                                         |
-                                         |*This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this \*isn't bold*.
-                                         |
-                                         |## Smaller headline [also with *link* but this __one__ longer](huehue)
-                                         |
-                                         |This is *italic
-                                         |over two* lines. But *this ... no *this is* **_bold italic_** *text*.
-                                         |
-                                         |### even smaller
-                                         |
-                                         |*not italic *because ** why would it be*eh
-                                         |
-                                         |isn't*.
-                                         |
-                                         |   # not a header
-                                         |
-                                         |![](https://avatars1.githubusercontent.com/u/514903)
-                                         |
-                                         |And finally, [this is a link!](https://avatars1.githubusercontent.com/u/514903).""".stripMargin)
-
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   protected var scrollButton: ImageButton = _
+
+  def loadPage(location: ResourceLocation): Iterator[String] = {
+    val resource = Minecraft.getMinecraft.getResourceManager.getResource(location)
+    val is = resource.getInputStream
+    Source.fromInputStream(is)(Charsets.UTF_8).getLines()
+  }
 
   override def doesGuiPauseGame = false
 
@@ -66,6 +54,7 @@ class Manual extends GuiScreen {
     xSize = guiSize.getScaledWidth
     ySize = guiSize.getScaledHeight
     offset = 0
+    document = PseudoMarkdown.parse(loadPage(new ResourceLocation(Settings.resourceDomain, "doc/index.md")))
     documentHeight = PseudoMarkdown.height(document, documentMaxWidth, fontRendererObj)
 
     scrollButton = new ImageButton(1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
@@ -80,7 +69,7 @@ class Manual extends GuiScreen {
 
     PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
       case Some(segment) => segment.tooltip match {
-        case Some(text) => drawHoveringText(seqAsJavaList(text.lines.toSeq), mouseX, mouseY, fontRendererObj)
+        case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(text.lines.toSeq), mouseX, mouseY, fontRendererObj)
         case _ =>
       }
       case _ =>

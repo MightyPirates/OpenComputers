@@ -1,7 +1,16 @@
 package li.cil.oc.util
 
+import java.io.InputStream
+import javax.imageio.ImageIO
+
+import li.cil.oc.Settings
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
+import net.minecraft.client.renderer.texture.AbstractTexture
+import net.minecraft.client.renderer.texture.TextureUtil
+import net.minecraft.client.resources.IResourceManager
 import net.minecraft.util.EnumChatFormatting
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 import scala.annotation.tailrec
@@ -16,8 +25,8 @@ object PseudoMarkdown {
   /**
    * Parses a plain text document into a list of segments.
    */
-  def parse(document: String): Iterable[Segment] = {
-    var segments = document.lines.flatMap(line => Iterable(new TextSegment(null, line), new NewLineSegment())).toArray
+  def parse(document: Iterator[String]): Iterable[Segment] = {
+    var segments = document.flatMap(line => Iterable(new TextSegment(null, line), new NewLineSegment())).toArray
     for ((pattern, factory) <- segmentTypes) {
       segments = segments.flatMap(_.refine(pattern, factory))
     }
@@ -118,7 +127,7 @@ object PseudoMarkdown {
 
     def link: Option[String] = None
 
-    private[PseudoMarkdown] def notifyHover(): Unit
+    private[PseudoMarkdown] def notifyHover(): Unit = {}
 
     private[PseudoMarkdown] def checkHovered(mouseX: Int, mouseY: Int, x: Int, y: Int, w: Int, h: Int): Option[InteractiveSegment] = if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) Some(this) else None
   }
@@ -306,7 +315,45 @@ object PseudoMarkdown {
     override def toString: String = s"{StrikethroughSegment: text = $text}"
   }
 
-  private class ImageSegment(val parent: Segment, val tooltip: String, val url: String) extends Segment {
+  private class ImageSegment(val parent: Segment, val title: String, val url: String) extends InteractiveSegment {
+    val path = if (url.startsWith("/")) url else "doc/img/" + url
+    val location = new ResourceLocation(Settings.resourceDomain, path)
+    val texture = {
+      val manager = Minecraft.getMinecraft.getTextureManager
+      manager.getTexture(location) match {
+        case image: ImageTexture => image
+        case _ =>
+          val image = new ImageTexture(location)
+          manager.loadTexture(location, image)
+          image
+      }
+    }
+
+    override def tooltip: Option[String] = Option(title)
+
+    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = math.max(lineHeight(renderer), texture.height + 10 - lineHeight(renderer))
+
+    override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = maxWidth
+
+    override def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+      Minecraft.getMinecraft.getTextureManager.bindTexture(location)
+      val xOffset = (maxWidth - texture.width) / 2
+      val yOffset = 4 + (if (indent > 0) lineHeight(renderer) else 0)
+      GL11.glColor4f(1, 1, 1, 1)
+      GL11.glBegin(GL11.GL_QUADS)
+      GL11.glTexCoord2f(0, 0)
+      GL11.glVertex2f(x + xOffset, y + yOffset)
+      GL11.glTexCoord2f(0, 1)
+      GL11.glVertex2f(x + xOffset, y + yOffset + texture.height)
+      GL11.glTexCoord2f(1, 1)
+      GL11.glVertex2f(x + xOffset + texture.width, y + yOffset + texture.height)
+      GL11.glTexCoord2f(1, 0)
+      GL11.glVertex2f(x + xOffset + texture.width, y + yOffset)
+      GL11.glEnd()
+
+      checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, texture.width, texture.height)
+    }
+
     override def toString: String = s"{ImageSegment: tooltip = $tooltip, url = $url}"
   }
 
@@ -319,6 +366,28 @@ object PseudoMarkdown {
     }
 
     override def toString: String = s"{NewLineSegment}"
+  }
+
+  private class ImageTexture(val location: ResourceLocation) extends AbstractTexture {
+    var width = 0
+    var height = 0
+
+    override def loadTexture(manager: IResourceManager): Unit = {
+      deleteGlTexture()
+
+      var is: InputStream = null
+      try {
+        val resource = manager.getResource(location)
+        is = resource.getInputStream
+        val bi = ImageIO.read(is)
+        TextureUtil.uploadTextureImageAllocate(getGlTextureId, bi, false, false)
+        width = bi.getWidth
+        height = bi.getHeight
+      }
+      finally {
+        Option(is).foreach(_.close())
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //
