@@ -171,6 +171,7 @@ oc:gui.Chat.NewVersion=Eine neue Version ist verfügbar: %s
 oc:gui.Chat.TextureName=§7Texturname ist §a%s§f.
 oc:gui.Chat.WarningClassTransformer=Es gab §cFehler§f beim Ausführen des Class-Transformers. Bitte melde dies, zusammen mit deiner (vollständigen!) FML §alatest.log§f/§afml-server-latest.log§f Log-Datei, danke!
 oc:gui.Chat.WarningFingerprint=§cWARNUNG§f - ungültige Signatur! Sollte '§a%s§f' sein, aber war '§e%s§f'. Falls du kein Modder bist und die "deobfuscated"-Version des Mods benutzt, solltest du OpenComputers erneut herunterladen, da die JAR, die du benutzt, vermutlich modifiziert wurde.
+oc:gui.Chat.WarningLink=Link konnte nicht geöffnet werden: %s
 oc:gui.Chat.WarningLuaFallback=Die native Lua-Implementierung ist nicht verfügbar. Computer können ihren Ausführungszustand nicht speichern. Sie werden automatisch neu starten, sobald ein Chunk neu geladen wird.
 oc:gui.Chat.WarningPower=Es ist keine unterstützte, Strom erzeugende Mod verfügbar. Computer, Bildschirme und alle anderen Komponenten werden §lkeine§f Energie benötigen. Installiere eine der folgenden Mods, um Stromnutzung zu ermöglichen: BuildCraft, Electrical Age, IndustrialCraft2, Mekanism oder Thermal Expansion. Deaktiviere Stromverbrauch in der Konfiguration, um diese Warnung zu unterdrücken.
 oc:gui.Chat.WarningProjectRed=Die verwendete Version von Project: Red ist nicht mit OpenComputers kompatibel. Aktualisiere bitte deine Version von Project: Red.

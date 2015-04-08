@@ -1,9 +1,11 @@
 package li.cil.oc.client.gui
 
 import java.io.InputStream
+import java.net.URI
 import java.util
 
 import com.google.common.base.Charsets
+import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.util.PseudoMarkdown
@@ -146,11 +148,26 @@ class Manual extends GuiScreen {
     }
     else if (button == 0) {
       // Left click, did we hit a link?
-      hoveredLink.foreach(link => pushPage(link))
+      hoveredLink.foreach(link => {
+        if (link.startsWith("http://") || link.startsWith("https://")) handleUrl(link)
+        else pushPage(link)
+      })
     }
     else if (button == 1) {
       // Right mouseclick = back.
       popPage()
+    }
+  }
+
+  private def handleUrl(url: String): Unit = {
+    // Pretty much copy-paste from GuiChat.
+    try {
+      val desktop = Class.forName("java.awt.Desktop")
+      val instance = desktop.getMethod("getDesktop").invoke(null)
+      desktop.getMethod("browse", classOf[URI]).invoke(instance, new URI(url))
+    }
+    catch {
+      case t: Throwable => Minecraft.getMinecraft.thePlayer.addChatMessage(Localization.Chat.WarningLink(t.toString))
     }
   }
 
