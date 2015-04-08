@@ -109,7 +109,7 @@ class Manual extends GuiScreen {
           case _ =>
         }
         hoveredLink = segment.link
-      case _ =>
+      case _ => hoveredLink = None
     }
   }
 
