@@ -21,6 +21,9 @@ object PseudoMarkdown {
     for ((pattern, factory) <- segmentTypes) {
       segments = segments.flatMap(_.refine(pattern, factory))
     }
+    for (Array(s1, s2) <- segments.sliding(2)) {
+      s2.previous = s1
+    }
     segments
   }
 
@@ -82,6 +85,9 @@ object PseudoMarkdown {
   // ----------------------------------------------------------------------- //
 
   trait Segment {
+    // Set after construction of document, used for formatting (e.g. newline height).
+    private[PseudoMarkdown] var previous: Segment = null
+
     // Used when rendering, to compute the style of a nested segment.
     protected def parent: Segment
 
@@ -107,7 +113,7 @@ object PseudoMarkdown {
     def render(x: Int, y: Int, indent: Int, maxWidth: Int, maxHeight: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
   }
 
-  trait InteractiveSegment {
+  trait InteractiveSegment extends Segment {
     def tooltip: Option[String] = None
 
     def link: Option[String] = None
@@ -204,17 +210,17 @@ object PseudoMarkdown {
 
     protected def stringWidth(s: String, renderer: FontRenderer): Int = renderer.getStringWidth(s)
 
-    private def resolvedColor: Int = parent match {
+    def resolvedColor: Int = parent match {
       case segment: TextSegment => color.getOrElse(segment.resolvedColor)
       case _ => color.getOrElse(0xDDDDDD)
     }
 
-    private def resolvedScale: Float = parent match {
+    def resolvedScale: Float = parent match {
       case segment: TextSegment => scale.getOrElse(segment.resolvedScale)
       case _ => scale.getOrElse(1f)
     }
 
-    private def resolvedFormat: String = parent match {
+    def resolvedFormat: String = parent match {
       case segment: TextSegment => segment.resolvedFormat + format
       case _ => format
     }
@@ -266,6 +272,8 @@ object PseudoMarkdown {
       else Some(fadeColor(hoverColor, normalColor, timeSinceHover / fadeTime.toFloat))
     }
 
+    override def tooltip: Option[String] = Option(url)
+
     override def link: Option[String] = Option(url)
 
     override private[PseudoMarkdown] def notifyHover(): Unit = lastHovered = System.currentTimeMillis()
@@ -305,7 +313,10 @@ object PseudoMarkdown {
   private class NewLineSegment extends Segment {
     override protected def parent: Segment = null
 
-    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = lineHeight(renderer)
+    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = previous match {
+      case segment: TextSegment => (lineHeight(renderer) * segment.resolvedScale).toInt
+      case _ => lineHeight(renderer)
+    }
 
     override def toString: String = s"{NewLineSegment}"
   }

@@ -10,6 +10,8 @@ import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.ScaledResolution
 import org.lwjgl.input.Mouse
 
+import scala.collection.convert.WrapAsJava._
+
 class Manual extends GuiScreen {
   var guiLeft = 0
   var guiTop = 0
@@ -25,11 +27,11 @@ class Manual extends GuiScreen {
 
   val document = PseudoMarkdown.parse( """# Headline with more lines  [with link](huehue) and *some* more
                                          |
-                                         |The Adapter block is the core of most of OpenComputers' mod integration.
+                                         |This is some test text for the subset of Markdown supported by the planned ingame documentation system for OpenComputers.
                                          |
-                                         |*This* is *italic* text, ~~strikethrough~~ maybe a-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this \*isn't bold*.
+                                         |*This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this \*isn't bold*.
                                          |
-                                         |## Smaller headline [also with link but this one longer](huehue)
+                                         |## Smaller headline [also with *link* but this __one__ longer](huehue)
                                          |
                                          |This is *italic
                                          |over two* lines. But *this ... no *this is* **_bold italic_** *text*.
@@ -76,7 +78,13 @@ class Manual extends GuiScreen {
 
     super.drawScreen(mouseX, mouseY, dt)
 
-    PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY)
+    PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
+      case Some(segment) => segment.tooltip match {
+        case Some(text) => drawHoveringText(seqAsJavaList(text.lines.toSeq), mouseX, mouseY, fontRendererObj)
+        case _ =>
+      }
+      case _ =>
+    }
   }
 
   override def handleMouseInput(): Unit = {
