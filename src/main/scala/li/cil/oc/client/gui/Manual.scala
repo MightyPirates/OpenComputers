@@ -80,6 +80,9 @@ class Manual extends GuiScreen {
       scrollTo(0)
       refreshPage()
     }
+    else {
+      Minecraft.getMinecraft.thePlayer.closeScreenNoPacket()
+    }
   }
 
   override def doesGuiPauseGame = false
