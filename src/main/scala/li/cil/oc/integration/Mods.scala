@@ -2,7 +2,6 @@ package li.cil.oc.integration
 
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.ModAPIManager
-import cpw.mods.fml.common.event.FMLInterModComms
 import cpw.mods.fml.common.versioning.VersionParser
 import li.cil.oc.Settings
 import li.cil.oc.integration
@@ -119,8 +118,6 @@ object Mods {
     for (proxy <- Proxies) {
       tryInit(proxy)
     }
-    //Specialized loading of IGW integration
-    FMLInterModComms.sendMessage("IGWMod", "li.cil.oc.integration.igwmod.ModIGWMod", "init")
   }
 
   private def tryInit(mod: ModProxy) {

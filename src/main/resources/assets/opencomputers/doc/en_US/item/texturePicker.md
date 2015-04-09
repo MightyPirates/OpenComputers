@@ -1,6 +1,7 @@
 # Texture Picker
 
 ![What do you mean, it's just a re-skin?](oredict:oc:texturePicker)
+![Crafting](img/textpick.png)
 
 The texture picker is very useful when you're making models for your [3D printer](../block/printer.md). It allows getting the texture name of textures used by blocks in the world, simply by right-clicking them with the tool. Disclaimer: for blocks that use special rendering, such as chests, this may not work.
 
