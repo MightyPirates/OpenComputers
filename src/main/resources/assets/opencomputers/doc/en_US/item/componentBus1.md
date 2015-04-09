@@ -1,6 +1,9 @@
 # Component Bus
 
 ![I need mooooore.](oredict:oc:componentBus1)
+![Crafting1](img/compbus1.png)
+![Crafting2](img/compbus2.png)
+![Crafting3](img/compbus3.png)
 
 A Component Bus is a [server](server1.md)-specific upgrade that allows the server to communicate with more components at the same time, without shutting down. Like with [CPUs](cpu1.md), higher tier buses provide higher component limits. Higher tier [servers](server1.md) are also capable of taking more component buses, allowing for communication with many more components. 
 

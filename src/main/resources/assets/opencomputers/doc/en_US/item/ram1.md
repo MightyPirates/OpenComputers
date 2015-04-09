@@ -1,6 +1,12 @@
 # Memory
 
 ![Do you remember, dancing in September~](oredict:oc:ram1)
+![Crafting1](img/ram1.png)
+![Crafting2](img/ram2.png)
+![Crafting3](img/ram3.png)
+![Crafting4](img/ram4.png)
+![Crafting5](img/ram5.png)
+![Crafting6](img/ram6.png)
 
 Memory is, like the [CPU](cpu1.md), an essential part in all [computers](../general/computer.md). Depending on the CPU's architecture, the memory has a very essential effect on what a computer can and cannot do. For the standard Lua architecture, for example, it controls the actual amount of memory Lua scripts can use. This means that to run larger and more memory-intensive programs, you will need more RAM.
 

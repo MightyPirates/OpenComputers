@@ -1,6 +1,7 @@
 # Switch
 
 ![Building bridges.](oredict:oc:switch)
+![Crafting](img/switch.png)
 
 The switch can be used to allow different subnetworks to send network messages to each other, without exposing components to computers in other networks. Keeping components local is usually a good idea, to avoid computers using the wrong screen or to avoid component overflows to happen (in which computers will crash / not start anymore).
 

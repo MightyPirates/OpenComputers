@@ -1,6 +1,9 @@
 # Computer Case
 
 ![Just in case.](oredict:oc:case1)
+![Crafting1](img/case1.png)
+![Crafting2](img/case2.png)
+![Crafting3](img/case3.png)
 
 Computer cases come in three different tiers, which limits the components that can be inserted into them. An additional tier also exists for use in creative mode only. Computer cases can also be placed inside an [assembler](assembler.md) to build [robots](robot.md).
 

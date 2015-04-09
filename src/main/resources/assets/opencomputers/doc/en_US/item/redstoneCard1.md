@@ -1,6 +1,7 @@
 # Redstone Card
 
 ![Seeing red.](oredict:oc:redstoneCard1)
+![Crafting](img/rscard.png)
 
 The Redstone Card allows computers to read and emit analog redstone signal in adjacent blocks. When an incoming signal strength changes, a signal is injected into the computer.
 

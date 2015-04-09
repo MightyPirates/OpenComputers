@@ -1,6 +1,7 @@
 # WLAN Card
 
 ![May cause cancer. May not.](oredict:oc:wlanCard)
+![Crafting](img/wirelesscard.png)
 
 The Wireless network card is an upgraded [network card](lanCard.md) that, in addition to wired network messages, can also send and receive wireless network messages. The signal strength directly controls the distance up to which a sent message can be received, where the strength is equal to that distance in blocks.
 

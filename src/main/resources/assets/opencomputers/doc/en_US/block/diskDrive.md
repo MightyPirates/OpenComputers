@@ -1,6 +1,7 @@
 # Disk Drive
 
 ![Going round and round and...](oredict:oc:diskDrive)
+![Crafting](img/drive.png)
 
 The Disk Drive can be used to read [floppy disks](../item/floppy.md) using a computer connected to the disk drive. This is useful to get started, since the lower tier [computer cases](../case1.md) do not have a built-in floppy slot, and you'll need an operating system to get started. An OpenOS disk can be crafted using an empty [floppy disk](../item/floppy.md) and a Book. 
 

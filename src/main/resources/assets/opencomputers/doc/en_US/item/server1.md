@@ -1,6 +1,9 @@
 # Server
 
 ![Serves u right.](oredict:oc:server1)
+![Crafting1](img/server1.png)
+![Crafting2](img/server2.png)
+![Crafting3](img/server3.png)
 
 Servers are a form of higher tier [computer](../general/computer.md). They can be configured by holding them in the hand and right-clicking - like opening a backpack or ender pouch, for example. After inserting a [CPU](cpu1.md), [memory](ram1.md) and Expansion cards, the server has to be placed inside a [server rack](../block/serverRack.md). For more information see the server rack entry.
 

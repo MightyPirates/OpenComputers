@@ -1,6 +1,7 @@
 # Raid
 
 ![40 man instance.](oredict:oc:raid)
+![Crafting](img/raid.png)
 
 The Raid block houses three [hard drives](../item/hdd1.md) which will be combined into a single file system. This combined file system has the size of the sum of the capacities of the individual [hard drives](../item/hdd1.md) and is available to all [computers](../general/computer.md) connected to the raid.
 

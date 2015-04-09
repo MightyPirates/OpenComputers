@@ -1,6 +1,7 @@
 # Server Rack
 
 ![Free housing.](oredict:oc:serverRack)
+![Crafting](img/rack.png)
 
 A Server Rack houses up to four [servers](../item/server1.md). A server is a higher tier computer, which can only run when inside a server rack. [Servers](../item/server1.md) can be remote controlled using a [remote terminal](../item/terminal.md). The number of terminals that can be connected to a single server at a time depends on the tier of the server. The distance up to which the remote terminals work can be configured in the rack's GUI. Higher values have a higher constant energy draw.
 
