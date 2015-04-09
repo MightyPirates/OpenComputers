@@ -18,7 +18,7 @@ import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.Container
 import net.minecraft.item.ItemStack
 
-class ManualHandler(path: Option[String]) extends IUsageHandler {
+class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
   def this() = this(None)
 
   var lastMouseX = 0
@@ -30,7 +30,9 @@ class ManualHandler(path: Option[String]) extends IUsageHandler {
   override def getUsageHandler(input: String, ingredients: AnyRef*): IUsageHandler = {
     if (input == "item") {
       ingredients.collectFirst {
-        case stack: ItemStack if api.Items.get(stack) != null => new ManualHandler(Option(api.Items.get(stack).name + ".md"))
+        case stack: ItemStack if api.Items.get(stack) != null =>
+          val descriptor = api.Items.get(stack)
+          new ManualUsageHandler(Option((if (descriptor.block != null) "block/" else "item/") + descriptor.name + ".md"))
       }.getOrElse(this)
     }
     else this

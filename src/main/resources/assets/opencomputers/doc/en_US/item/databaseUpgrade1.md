@@ -6,4 +6,4 @@ The Database Upgrade can be configured to store a list of item stack representat
 
 To configure a database, open it by right-clicking it while holding it in your hand, then placing the stacks you wish to configure it with into the top inventory. This will store a "ghost stack", i.e. no "real" items are stored in the database.
 
-Alternatively the database can be configured automatically using [inventory controllers](inventoryControllerUpgrade.md) and [geolyzers](geolyzer.md).
+Alternatively the database can be configured automatically using [inventory controllers](inventoryControllerUpgrade.md) and [geolyzers](../block/geolyzer.md).
