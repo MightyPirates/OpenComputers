@@ -87,7 +87,7 @@ object Manual extends ManualAPI {
       getOrElse(asJavaIterable(Iterable("Document not found: " + path)))
   }
 
-  def imageFor(href: String): ImageRenderer = {
+  override def imageFor(href: String): ImageRenderer = {
     for ((prefix, provider) <- Manual.imageProviders) {
       if (href.startsWith(prefix)) {
         val image = try provider.getImage(href.stripPrefix(prefix)) catch {

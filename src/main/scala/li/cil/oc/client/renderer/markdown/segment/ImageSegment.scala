@@ -4,7 +4,7 @@ import java.io.InputStream
 import javax.imageio.ImageIO
 
 import li.cil.oc.Settings
-import li.cil.oc.client.renderer.markdown.PseudoMarkdown
+import li.cil.oc.client.renderer.markdown.Document
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.renderer.texture.AbstractTexture
@@ -37,7 +37,7 @@ private[markdown] class ImageSegment(val parent: Segment, val title: String, val
   override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
     val s = scale(maxWidth)
     // This 2/s feels super-hacky, because I have no idea why it works >_>
-    math.max(PseudoMarkdown.lineHeight(renderer), (texture.height * s + 2 / s).toInt - PseudoMarkdown.lineHeight(renderer))
+    math.max(Document.lineHeight(renderer), (texture.height * s + 2 / s).toInt - Document.lineHeight(renderer))
   }
 
   override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = maxWidth
@@ -46,7 +46,7 @@ private[markdown] class ImageSegment(val parent: Segment, val title: String, val
     val s = scale(maxWidth)
     val (renderWidth, renderHeight) = ((texture.width * s).toInt, (texture.height * s).toInt)
     val xOffset = (maxWidth - renderWidth) / 2
-    val yOffset = 4 + (if (indent > 0) PseudoMarkdown.lineHeight(renderer) else 0)
+    val yOffset = 4 + (if (indent > 0) Document.lineHeight(renderer) else 0)
 
     Minecraft.getMinecraft.getTextureManager.bindTexture(location)
     GL11.glColor4f(1, 1, 1, 1)
