@@ -58,7 +58,6 @@ object Document {
 
     // Use that flat area to mask the output area.
     GL11.glDepthFunc(GL11.GL_LEQUAL)
-    GL11.glDepthMask(false)
     GL11.glColorMask(true, true, true, true)
 
     // Actual rendering.
