@@ -24,7 +24,7 @@ object Manual extends ManualAPI {
 
   class History(val path: String, var offset: Int = 0)
 
-  class Tab(val renderer: TabIconRenderer, val path: String)
+  class Tab(val renderer: TabIconRenderer, val tooltip: Option[String], val path: String)
 
   val tabs = mutable.Buffer.empty[Tab]
 
@@ -36,8 +36,8 @@ object Manual extends ManualAPI {
 
   reset()
 
-  override def addTab(renderer: TabIconRenderer, path: String): Unit = {
-    tabs += new Tab(renderer, path)
+  override def addTab(renderer: TabIconRenderer, tooltip: String, path: String): Unit = {
+    tabs += new Tab(renderer, Option(tooltip), path)
   }
 
   override def addProvider(provider: PathProvider): Unit = {

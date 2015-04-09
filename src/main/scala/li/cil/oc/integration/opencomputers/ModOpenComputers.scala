@@ -200,8 +200,8 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addProvider(DefinitionPathProvider)
     api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain))
 
-    api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "doc/%LANGUAGE%/block/index.md")
-    api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("chip1").createItemStack(1)), "doc/%LANGUAGE%/item/index.md")
+    api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "doc/%LANGUAGE%/block/index.md")
+    api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("chip1").createItemStack(1)), "oc:gui.Manual.Items", "doc/%LANGUAGE%/item/index.md")
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {
@@ -231,8 +231,8 @@ object ModOpenComputers extends ModProxy {
 
     private def checkBlacklisted(info: ItemInfo): String =
       if (info == null || Blacklist.contains(info.name)) null
-      else if (info.block != null) "block/" + info.name + ".md"
-      else "item/" + info.name + ".md"
+      else if (info.block != null) "doc/%LANGUAGE%/block/" + info.name + ".md"
+      else "doc/%LANGUAGE%/item/" + info.name + ".md"
   }
 
 }

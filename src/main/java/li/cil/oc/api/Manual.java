@@ -26,11 +26,12 @@ public class Manual {
      * usually be one, for your main index page.
      *
      * @param renderer the renderer used to render the icon on your tab.
+     * @param tooltip  the unlocalized tooltip of the tab, or <tt>null</tt>.
      * @param path     the path to the page to open when the tab is clicked.
      */
-    public static void addTab(TabIconRenderer renderer, String path) {
+    public static void addTab(TabIconRenderer renderer, String tooltip, String path) {
         if (API.manual != null)
-            API.manual.addTab(renderer, path);
+            API.manual.addTab(renderer, tooltip, path);
     }
 
     /**

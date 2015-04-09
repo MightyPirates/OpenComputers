@@ -17,9 +17,10 @@ public interface ManualAPI {
      * usually be one, for your main index page.
      *
      * @param renderer the renderer used to render the icon on your tab.
+     * @param tooltip  the unlocalized tooltip of the tab, or <tt>null</tt>.
      * @param path     the path to the page to open when the tab is clicked.
      */
-    void addTab(TabIconRenderer renderer, String path);
+    void addTab(TabIconRenderer renderer, String tooltip, String path);
 
     /**
      * Register a path provider.

@@ -1,5 +1,7 @@
 package li.cil.oc.api.prefab;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.manual.TabIconRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -17,6 +19,7 @@ public class TextureTabIconRenderer implements TabIconRenderer {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void render() {
         Minecraft.getMinecraft().getTextureManager().bindTexture(location);
         final Tessellator t = Tessellator.instance;

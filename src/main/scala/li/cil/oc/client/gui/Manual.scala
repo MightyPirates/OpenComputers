@@ -5,8 +5,8 @@ import java.util
 
 import li.cil.oc.Localization
 import li.cil.oc.api
-import li.cil.oc.client.Manual
 import li.cil.oc.client.Textures
+import li.cil.oc.client.{Manual => ManualAPI}
 import li.cil.oc.util.PseudoMarkdown
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
@@ -43,7 +43,7 @@ class Manual extends GuiScreen {
 
   private def canScroll = maxOffset > 0
 
-  def offset = Manual.history.top.offset
+  def offset = ManualAPI.history.top.offset
 
   def maxOffset = documentHeight - documentMaxHeight
 
@@ -58,21 +58,21 @@ class Manual extends GuiScreen {
     }
 
   def refreshPage(): Unit = {
-    document = PseudoMarkdown.parse(api.Manual.contentFor(Manual.history.top.path))
+    document = PseudoMarkdown.parse(api.Manual.contentFor(ManualAPI.history.top.path))
     documentHeight = PseudoMarkdown.height(document, documentMaxWidth, fontRendererObj)
     scrollTo(offset)
   }
 
   def pushPage(path: String): Unit = {
-    if (path != Manual.history.top.path) {
-      Manual.history.push(new Manual.History(path))
+    if (path != ManualAPI.history.top.path) {
+      ManualAPI.history.push(new ManualAPI.History(path))
       refreshPage()
     }
   }
 
   def popPage(): Unit = {
-    if (Manual.history.size > 1) {
-      Manual.history.pop()
+    if (ManualAPI.history.size > 1) {
+      ManualAPI.history.pop()
       refreshPage()
     }
     else {
@@ -83,8 +83,8 @@ class Manual extends GuiScreen {
   override def doesGuiPauseGame = false
 
   override def actionPerformed(button: GuiButton): Unit = {
-    if (button.id >= 0 && button.id < Manual.tabs.length) {
-      api.Manual.navigate(Manual.tabs(button.id).path)
+    if (button.id >= 0 && button.id < ManualAPI.tabs.length) {
+      api.Manual.navigate(ManualAPI.tabs(button.id).path)
     }
   }
 
@@ -103,7 +103,7 @@ class Manual extends GuiScreen {
     scrollButton = new ImageButton(-1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
     add(buttonList, scrollButton)
 
-    for ((tab, i) <- Manual.tabs.zipWithIndex if i < 7) {
+    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < 7) {
       val x = guiLeft + tabPosX
       val y = guiTop + tabPosY + i * (tabHeight - 1)
       add(buttonList, new ImageButton(i, x, y, tabWidth, tabHeight, Textures.guiManualTab))
@@ -121,7 +121,7 @@ class Manual extends GuiScreen {
 
     super.drawScreen(mouseX, mouseY, dt)
 
-    for ((tab, i) <- Manual.tabs.zipWithIndex if i < 7) {
+    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < 7) {
       val x = guiLeft + tabPosX
       val y = guiTop + tabPosY + i * (tabHeight - 1)
       GL11.glPushMatrix()
@@ -133,11 +133,19 @@ class Manual extends GuiScreen {
     PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
       case Some(segment) =>
         segment.tooltip match {
-          case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(text.lines.toSeq), mouseX, mouseY, fontRendererObj)
+          case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
           case _ =>
         }
         hoveredLink = segment.link
       case _ => hoveredLink = None
+    }
+
+    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < 7) {
+      val x = guiLeft + tabPosX
+      val y = guiTop + tabPosY + i * (tabHeight - 1)
+      if (mouseX > x && mouseX < x + tabWidth && mouseY > y && mouseY < y + tabHeight) tab.tooltip.foreach(text => {
+        drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
+      })
     }
   }
 
@@ -159,7 +167,7 @@ class Manual extends GuiScreen {
       // Left click, did we hit a link?
       hoveredLink.foreach(link => {
         if (link.startsWith("http://") || link.startsWith("https://")) handleUrl(link)
-        else pushPage(Manual.makeRelative(link, Manual.history.top.path))
+        else pushPage(ManualAPI.makeRelative(link, ManualAPI.history.top.path))
       })
     }
     else if (button == 1) {
@@ -204,7 +212,7 @@ class Manual extends GuiScreen {
   private def scrollDown() = scrollTo(offset + PseudoMarkdown.lineHeight(fontRendererObj) * 3)
 
   private def scrollTo(row: Int): Unit = {
-    Manual.history.top.offset = math.max(0, math.min(maxOffset, row))
+    ManualAPI.history.top.offset = math.max(0, math.min(maxOffset, row))
     val yMin = guiTop + scrollPosY
     if (maxOffset > 0) {
       scrollButton.yPosition = yMin + (scrollHeight - 13) * offset / maxOffset
