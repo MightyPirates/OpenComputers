@@ -1,44 +1,23 @@
 package li.cil.oc.client.gui
 
-import java.io.FileNotFoundException
-import java.io.InputStream
 import java.net.URI
 import java.util
 
-import com.google.common.base.Charsets
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.Localization
-import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.client.Manual
 import li.cil.oc.client.Textures
 import li.cil.oc.util.PseudoMarkdown
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
+import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Mouse
+import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
-import scala.collection.mutable
-import scala.io.Source
-
-object Manual {
-  final val LanguageKey = "%LANGUAGE%"
-
-  val history = new mutable.Stack[History]
-
-  reset()
-
-  def reset(): Unit = {
-    history.clear()
-    history.push(new History(s"doc/$LanguageKey/index.md"))
-  }
-
-  class History(val path: String) {
-    var offset = 0
-  }
-
-}
+import scala.collection.convert.WrapAsScala._
 
 class Manual extends GuiScreen {
   final val documentMaxWidth = 230
@@ -47,6 +26,10 @@ class Manual extends GuiScreen {
   final val scrollPosY = 6
   final val scrollWidth = 6
   final val scrollHeight = 180
+  final val tabPosX = -23
+  final val tabPosY = 7
+  final val tabWidth = 23
+  final val tabHeight = 26
 
   var guiLeft = 0
   var guiTop = 0
@@ -74,37 +57,8 @@ class Manual extends GuiScreen {
       else path
     }
 
-  def loadPage(path: String, localized: Boolean = false, seen: List[String] = List.empty): Iterator[String] = {
-    val language = FMLCommonHandler.instance.getCurrentLanguage
-    val resolvedPath = path.replaceAll(Manual.LanguageKey, language)
-    if (seen.contains(resolvedPath)) return Iterator("Redirection loop: ") ++ seen.iterator ++ Iterator(path)
-    val location = new ResourceLocation(Settings.resourceDomain, resolvedPath)
-    var is: InputStream = null
-    try {
-      val resource = Minecraft.getMinecraft.getResourceManager.getResource(location)
-      is = resource.getInputStream
-      // Force resolving immediately via toArray, otherwise we return a read
-      // iterator on a closed input stream (because of the finally).
-      val lines = Source.fromInputStream(is)(Charsets.UTF_8).getLines().toArray
-      lines.headOption match {
-        case Some(line) if line.toLowerCase.startsWith("#redirect ") =>
-          loadPage(resolveLink(line.substring("#redirect ".length), resolvedPath), localized = false, seen :+ path)
-        case _ => lines.iterator
-      }
-    }
-    catch {
-      case e: FileNotFoundException if !localized && language != "en_US" =>
-        loadPage(path.replaceAll(Manual.LanguageKey, "en_US"), localized = true, seen)
-      case t: Throwable =>
-        Iterator(s"Failed loading page '$path':") ++ t.toString.lines
-    }
-    finally {
-      Option(is).foreach(_.close())
-    }
-  }
-
   def refreshPage(): Unit = {
-    document = PseudoMarkdown.parse(loadPage(Manual.history.top.path))
+    document = PseudoMarkdown.parse(api.Manual.contentFor(Manual.history.top.path))
     documentHeight = PseudoMarkdown.height(document, documentMaxWidth, fontRendererObj)
     scrollTo(offset)
   }
@@ -129,6 +83,12 @@ class Manual extends GuiScreen {
 
   override def doesGuiPauseGame = false
 
+  override def actionPerformed(button: GuiButton): Unit = {
+    if (button.id >= 0 && button.id < Manual.tabs.length) {
+      pushPage(Manual.tabs(button.id).path)
+    }
+  }
+
   override def initGui(): Unit = {
     super.initGui()
 
@@ -141,8 +101,14 @@ class Manual extends GuiScreen {
     xSize = guiSize.getScaledWidth
     ySize = guiSize.getScaledHeight
 
-    scrollButton = new ImageButton(1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
+    scrollButton = new ImageButton(-1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
     add(buttonList, scrollButton)
+
+    for ((tab, i) <- Manual.tabs.zipWithIndex if i < 7) {
+      val x = guiLeft + tabPosX
+      val y = guiTop + tabPosY + i * (tabHeight - 1)
+      add(buttonList, new ImageButton(0, x, y, tabWidth, tabHeight, Textures.guiManualTab))
+    }
 
     refreshPage()
   }
@@ -155,6 +121,15 @@ class Manual extends GuiScreen {
     scrollButton.hoverOverride = isDragging
 
     super.drawScreen(mouseX, mouseY, dt)
+
+    for ((tab, i) <- Manual.tabs.zipWithIndex if i < 7) {
+      val x = guiLeft + tabPosX
+      val y = guiTop + tabPosY + i * (tabHeight - 1)
+      GL11.glPushMatrix()
+      GL11.glTranslated(x + 5, y + 5, zLevel)
+      tab.renderer.render()
+      GL11.glPopMatrix()
+    }
 
     PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
       case Some(segment) =>

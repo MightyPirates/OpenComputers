@@ -35,7 +35,7 @@ object PseudoMarkdown {
   /**
    * Parses a plain text document into a list of segments.
    */
-  def parse(document: Iterator[String]): Iterable[Segment] = {
+  def parse(document: Iterable[String]): Iterable[Segment] = {
     var segments = document.flatMap(line => Iterable(new TextSegment(null, Option(line).getOrElse("")), new NewLineSegment())).toArray
     for ((pattern, factory) <- segmentTypes) {
       segments = segments.flatMap(_.refine(pattern, factory))

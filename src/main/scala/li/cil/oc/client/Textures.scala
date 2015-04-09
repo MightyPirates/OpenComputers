@@ -26,6 +26,7 @@ object Textures {
   val guiDrone = new ResourceLocation(Settings.resourceDomain, "textures/gui/drone.png")
   val guiKeyboardMissing = new ResourceLocation(Settings.resourceDomain, "textures/gui/keyboard_missing.png")
   val guiManual = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual.png")
+  val guiManualTab = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual_tab.png")
   val guiPrinter = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer.png")
   val guiPrinterInk = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_ink.png")
   val guiPrinterMaterial = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_material.png")

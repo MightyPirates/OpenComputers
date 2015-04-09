@@ -1,15 +1,24 @@
 package li.cil.oc.integration.opencomputers
 
+import java.io.InputStream
+import java.lang.Iterable
+
+import com.google.common.base.Charsets
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.internal
+import li.cil.oc.api.manual.ContentProvider
+import li.cil.oc.api.manual.PathProvider
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
+import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Analyzer
 import li.cil.oc.common.item.Delegator
@@ -22,9 +31,16 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.client.Minecraft
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ResourceLocation
+import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
+
+import scala.collection.convert.WrapAsJava._
+import scala.io.Source
 
 object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
@@ -188,6 +204,9 @@ object ModOpenComputers extends ModProxy {
         case _ =>
       }
     }
+
+    api.Manual.addProvider(DefinitionPathProvider)
+    api.Manual.addProvider(ResourceContentProvider)
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {
@@ -199,4 +218,46 @@ object ModOpenComputers extends ModProxy {
       FMLInterModComms.sendMessage("OpenComputers", "blacklistHost", nbt)
     }
   }
+
+  object DefinitionPathProvider extends PathProvider {
+    private final val Blacklist = Set(
+      "debugger"
+    )
+
+    override def pathFor(stack: ItemStack): String = Option(api.Items.get(stack)) match {
+      case Some(definition) => checkBlacklisted(definition)
+      case _ => null
+    }
+
+    override def pathFor(world: World, x: Int, y: Int, z: Int): String = world.getBlock(x, y, z) match {
+      case block: SimpleBlock => checkBlacklisted(api.Items.get(new ItemStack(block)))
+      case _ => null
+    }
+
+    private def checkBlacklisted(info: ItemInfo): String =
+      if (info == null || Blacklist.contains(info.name)) null
+      else if (info.block != null) "block/" + info.name + ".md"
+      else "item/" + info.name + ".md"
+  }
+
+  object ResourceContentProvider extends ContentProvider {
+    override def getContent(path: String): Iterable[String] = {
+      val location = new ResourceLocation(Settings.resourceDomain, path)
+      var is: InputStream = null
+      try {
+        val resource = Minecraft.getMinecraft.getResourceManager.getResource(location)
+        is = resource.getInputStream
+        // Force resolving immediately via toArray, otherwise we return a read
+        // iterator on a closed input stream (because of the finally).
+        asJavaIterable(Source.fromInputStream(is)(Charsets.UTF_8).getLines().toArray.toIterable)
+      }
+      catch {
+        case t: Throwable => null
+      }
+      finally {
+        Option(is).foreach(_.close())
+      }
+    }
+  }
+
 }

@@ -8,10 +8,7 @@ import codechicken.nei.api.IOverlayHandler
 import codechicken.nei.api.IRecipeOverlayRenderer
 import codechicken.nei.recipe.GuiRecipe
 import codechicken.nei.recipe.IUsageHandler
-import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.client.gui
-import li.cil.oc.common.GuiType
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -30,9 +27,8 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
   override def getUsageHandler(input: String, ingredients: AnyRef*): IUsageHandler = {
     if (input == "item") {
       ingredients.collectFirst {
-        case stack: ItemStack if api.Items.get(stack) != null =>
-          val descriptor = api.Items.get(stack)
-          new ManualUsageHandler(Option((if (descriptor.block != null) "block/" else "item/") + descriptor.name + ".md"))
+        case stack: ItemStack if api.Manual.pathFor(stack) != null =>
+          new ManualUsageHandler(Option(api.Manual.pathFor(stack)))
       }.getOrElse(this)
     }
     else this
@@ -76,11 +72,8 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
       val pos = GuiDraw.getMousePosition
       val mc = Minecraft.getMinecraft
       if (button.mousePressed(mc, pos.x - container.guiLeft - 5, pos.y - container.guiTop - 16)) {
-        mc.thePlayer.openGui(OpenComputers, GuiType.Manual.id, mc.theWorld, 0, 0, 0)
-        mc.currentScreen match {
-          case manual: gui.Manual => path.foreach(manual.pushPage)
-          case _ =>
-        }
+        api.Manual.openFor(mc.thePlayer)
+        path.foreach(api.Manual.navigate)
         true
       }
       else false

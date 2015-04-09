@@ -9,6 +9,7 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.client
 import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.PetRenderer
@@ -32,6 +33,8 @@ import org.lwjgl.opengl.GLContext
 private[oc] class Proxy extends CommonProxy {
   override def preInit(e: FMLPreInitializationEvent) {
     super.preInit(e)
+
+    api.API.manual = client.Manual
 
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(gui.Icons)
