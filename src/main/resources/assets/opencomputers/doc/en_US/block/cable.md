@@ -6,4 +6,4 @@ The Cable simply serves as a way of connecting computers and machines that are f
 
 Cables can be colored using any kind of dye. Colored cables will only connect to cables of the same color and to light gray colored cables - the default color. This can be useful for running cables for multiple subnetworks in parallel, without using covers.
 
-Speaking of which, cables can be covered using either Forge MultiPart covers or immibis Microblocks covers.
+If necessary, Cables can be covered using Forge MultiPart covers, or Immibis Microblocks covers. 
