@@ -1,6 +1,7 @@
 # Microcontroller
 
 ![Don't belittle it.](oredict:oc:microcontroller)
+![Crafting](img/microcontroller.png)
 
 Microcontrollers are built using a [microcontroller case](microcontrollerCase1.md) in the [assembler](../block/assembler.md). They have less functionality compared to computers. 
 

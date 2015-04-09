@@ -1,6 +1,7 @@
 # Remote Terminal
 
 ![Remote access.](oredict:oc:terminal)
+![Crafting](img/terminal.png)
 
 The Remote Terminal can be used to remote control [servers](server.md). To use it, sneak-activate a server that is installed in a [server rack](../block/serverRack.md) (click on the [server rack](../block/serverRack.md) block in the world, targeting the [server](server1.md) to bind the terminal to).
 

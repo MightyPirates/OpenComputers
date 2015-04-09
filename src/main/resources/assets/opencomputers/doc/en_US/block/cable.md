@@ -1,6 +1,7 @@
 # Cable
 
 ![Salad.](oredict:oc:cable)
+![Crafting](img/cable.png)
 
 The Cable simply serves as a way of connecting computers and machines that are far apart. If you have a compact build where all components touch each other (directly or indirectly, most blocks also behave the same way as cables) you will usually not need cables.
 

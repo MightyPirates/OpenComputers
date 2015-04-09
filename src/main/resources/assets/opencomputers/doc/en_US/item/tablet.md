@@ -1,6 +1,7 @@
 # Tablet
 
 ![Touch me if you can.](item:OpenComputers:item@68)
+![Crafting](img/tablet.png)
 
 Tablets are built by placing a [tablet case](tabletCase1.md) into an [assembler](../block/assembler.md), configuring as desired and assembling it. Tablets act as portable computers that cannot directly interact with the world - for example, basic [redstone cards](redstoneCard1.md) do not work in them. A number of upgrades do, such as the [sign i/o](signUpgrade.md) upgrade or the [piston](pistonUpgrade.md) upgrade.
 

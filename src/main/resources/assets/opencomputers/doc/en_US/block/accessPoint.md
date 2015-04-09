@@ -1,6 +1,7 @@
 # Access Point
 
 ![AAA](oredict:oc:accessPoint)
+![Crafting](img/ap.png)
 
 The Access Point is the wireless version of the [switch](switch.md). It can be used to separate subnetworks so that machines in them will not see components in other networks, while still allowing to send network messages to the machines in other networks.
 

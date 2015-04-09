@@ -1,6 +1,7 @@
 # Manual
 
 ![A good read.](oredict:oc:manual)
+![Crafting](img/manual.png)
 
 The thing you're reading right now! The manual contains a wealth of information about OpenComputers (and possibly more). If you need information on an item or block in the mod, look no further! Then realize your question isn't answered and alt-tab to the wiki. Or IRC. Or the forums. Anyway! Most basic questions (and some advanced ones) should be covered by the manual.
 

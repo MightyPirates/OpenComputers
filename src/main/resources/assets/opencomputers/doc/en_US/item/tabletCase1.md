@@ -1,6 +1,8 @@
 # Tablet Case
 
 ![Doesn't bend.](oredict:oc:tabletCase1)
+![Crafting1](img/tabletcase1.png)
+![Crafting2](img/tabletcase2.png)
 
 The Tablet Case is the base part when building [tablets](tablet.md) in the [assembler](../block/assembler.md). Tablets are very compact and portable computers. They can host a small number of select upgrades, but obviously cannot interact with the world like [computer cases](../block/case1.md) can (using simple [network cards](lanCard.md) or [redstone cards](redstoneCard1.md) for example).
 

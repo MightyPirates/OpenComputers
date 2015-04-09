@@ -1,6 +1,9 @@
 # Screens
 
 ![See this?](oredict:oc:screen1)
+![Crafting1](img/screen1.png)
+![Crafting2](img/screen2.png)
+![Crafting3](img/screen3.png)
 
 A Screen is used in combination with a [graphics card](../item/graphicsCard1.md), to allow computers to display text. Different screen tiers have different capabilties, such as supporting different resolutions and color depths. Screens range from low-resolution, monochrome displays to high-resolution displays with up to 256 colors. 
 

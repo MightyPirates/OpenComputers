@@ -1,6 +1,8 @@
 # Hologram Projector
 
 ![Is this the real life? Is this just fantasy?](oredict:oc:assembler)
+![Crafting1](img/holo1.png)
+![Crafting2](img/holo2.png)
 
 The Hologram Projector is a volumetric display, i.e. it provides a three dimensional array of voxels that can be individually enabled or disabled by a connected computer. The second tier projector, while having the same resolution as the tier one projector, supports displaying the individual voxels in three different user-definable colors.
 

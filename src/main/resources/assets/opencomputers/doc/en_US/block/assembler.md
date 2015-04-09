@@ -1,6 +1,7 @@
 # Assembler
 
 ![Harder, better, faster, stronger.](oredict:oc:assembler)
+![Crafting](img/assembler.png)
 
 The Assembler is an advanced workstation that can be used to build more complex electronic devices, such as [robots](robot.md), [drones](../item/drone.md) and [tablets](../item/tablet.md). They usually require a relatively large amount of energy to assemble these devices, so it is recommended to power them sufficiently.
 

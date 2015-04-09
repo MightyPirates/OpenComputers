@@ -1,6 +1,7 @@
 # Solar Generator
 
 ![Walking on the sun.](oredict:oc:solarGeneratorUpgrade)
+![Crafting](img/usolar.png)
 
 The solar generator upgrade can be installed in devices such as [robots](../block/robot.md), [drones](drone.md) and [tablets](tablet.md) to passively generate energy. It will only work while the device is standing in the sun, i.e. it is day and there is no block between the device and the sky above it.
 

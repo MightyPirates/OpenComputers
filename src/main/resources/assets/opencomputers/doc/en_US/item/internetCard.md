@@ -1,6 +1,7 @@
 # Internet Card
 
 ![Cat videos in 3, 2, ...](oredict:oc:internetCard)
+![Crafting](img/internetcard.png)
 
 The Internet Card grants [computers](../general/computer.md) access to the internet. It provides ways to perform simple HTTP requests, as well as to open plain TCP client sockets that can be read and written to.
 

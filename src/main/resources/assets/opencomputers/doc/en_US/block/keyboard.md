@@ -1,6 +1,7 @@
 # Keyboard
 
 ![QWERTY](oredict:oc:keyboard)
+![Crafting](img/keyboard.png)
 
 A Keyboard is needed to type text on [screens](../screen1.md), be they in the world or built into devices such as [robots](robot.md) or [tablets](../item/tablet.md).
 

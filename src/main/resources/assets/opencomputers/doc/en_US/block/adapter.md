@@ -1,6 +1,7 @@
 # Adapter
 
 ![Now with 100% more everything.](oredict:oc:adapter)
+![Crafting](img/adapter.png)
 
 The Adapter allows computers to interact with a number of blocks that are not part of OpenComputers, such as blocks from Minecraft itself (like the Furnace) and from a number of other mods. Supported blocks adjacent to the adapter will show up as components in [computers](../general/computer.md) connected to the adapter.
 

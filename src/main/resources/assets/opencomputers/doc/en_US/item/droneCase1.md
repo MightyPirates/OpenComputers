@@ -1,6 +1,8 @@
 # Drone Case
 
 ![Droning on.](oredict:oc:droneCase1)
+![Crafting1](img/dronecase1.png)
+![Crafting2](img/dronecase2.png)
 
 The Drone Case is used to build [drones](drone.md) in the [assembler](../block/assembler.md). Drones are light-weight, fast and very mobile machines with limited functionality (fewer Upgrade and Componet slots available). Unlike [robots](../block/robot.md) they cannot use tools, and can interact with the world only in a relatively limited manner.
 

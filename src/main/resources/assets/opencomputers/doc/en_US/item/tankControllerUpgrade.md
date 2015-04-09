@@ -1,6 +1,7 @@
 # Tank Controller
 
 ![Fluid routing.](oredict:oc:tankControllerUpgrade)
+![Crafting](img/utankcontroller.png)
 
 The tank controller upgrade is to fluid tanks what the [inventory controller upgrade](inventoryControllerUpgrade.md) is to normal inventories. It allows devices to query more detailed information about tanks inside and next to them.
 

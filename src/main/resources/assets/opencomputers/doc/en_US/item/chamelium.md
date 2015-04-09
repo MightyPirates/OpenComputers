@@ -1,6 +1,8 @@
 # Chamelium
 
 ![From Chameleon, in case you were wondering.](oredict:oc:chamelium)
+![Crafting](img/chamelium.png)
+![Crafting](img/chameliumblock.png)
 
 Chamelium is a shapeshifting material that is used when creating [3D prints](../block/print.md) in a [3D printer](../block/printer.md). On its own it is featureless and therefore very useful for creating simple, plain and monochrome areas.
 

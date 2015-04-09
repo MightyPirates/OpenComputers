@@ -1,6 +1,7 @@
 # Capacitor
 
 ![It's over 9000.](oredict:oc:assembler)
+¡[Crafting](img/capacitor.png)
 
 The Capacitor stores energy to be used by the network, acting as an energy buffer when needed. Unlike conversion from other mod's energy to OC's internal energy type (using a [power converter](powerConverter.md), transfering energy inside a single OC subnetwork is instantaneous, so it can be advantageous to store some energy internally for tasks that consume a lot of energy, such as assembling devices in the [assembler](assembler.md) or charging [robots](robot.md).
 
