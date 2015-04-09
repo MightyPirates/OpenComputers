@@ -1,6 +1,7 @@
 package li.cil.oc.api.detail;
 
 import li.cil.oc.api.manual.ContentProvider;
+import li.cil.oc.api.manual.ImageProvider;
 import li.cil.oc.api.manual.PathProvider;
 import li.cil.oc.api.manual.TabIconRenderer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -43,6 +44,25 @@ public interface ManualAPI {
      * @param provider the provider to register.
      */
     void addProvider(ContentProvider provider);
+
+    /**
+     * Register an image provider.
+     * <p/>
+     * Image providers are used to render custom content in a page. These are
+     * selected via the standard image tag of Markdown, based on the prefix of
+     * the image URL, i.e. <tt>![tooltip](prefix:data)</tt> will select the
+     * image provider registered for the prefix <tt>prefix</tt>, and pass to
+     * it the argument <tt>data</tt>, then use the returned renderer to draw
+     * an element in the place of the tag.
+     * <p/>
+     * Custom providers are only selected if a prefix is matched, otherwise
+     * it'll treat it as a relative path to an image to load via Minecraft's
+     * resource providing facilities, and display that.
+     *
+     * @param prefix   the prefix on which to use the provider.
+     * @param provider the provider to register.
+     */
+    void addProvider(String prefix, ImageProvider provider);
 
     // ----------------------------------------------------------------------- //
 

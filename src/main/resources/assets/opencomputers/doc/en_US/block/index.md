@@ -4,30 +4,36 @@ This index lists all of the documented blocks in OpenComputers. If you're lookin
 
 Keep in mind that some of these may not be available, depending on the recipe set used.
 
-## General Information
-* [Computers](../general/computer.md)
-
-## Assembly
-* [Assembler](assembler.md)
-* [Disassembler](disassembler.md)
-
 ## Computers
-
-### Basic components
 * [Computer Case](case1.md)
-* [Disk Drive](diskDrive.md)
+* [Microcontroller](microcontroller.md)
+* [Robot](robot.md)
+* [Server Rack](serverRack.md)
+
+## Components
+
+### Input / Output
+* [Hologram Projector](hologram1.md)
 * [Keyboard](keyboard.md)
 * [Screen](screen1.md)
+
+### Storage
+* [Disk Drive](diskDrive.md)
+* [RAID](raid.md)
 
 ### Extensions
 * [Adapter](adapter.md)
 * [Cable](cable.md)
 * [Geolyzer](geolyzer.md)
-* [MotionSensor](motionsensor.md)
+* [Motion Sensor](motionSensor.md)
 * [Redstone I/O](redstone.md)
 
-## Holographic display technology
-* [Hologram Projector](hologram1.md)
+### Assembly / Printing
+* [3D Print](print.md)
+* [3D Printer](printer.md)
+* [Assembler](assembler.md)
+* [Block of Chamelium](chameliumBlock.md)
+* [Disassembler](disassembler.md)
 
 ## Networking
 * [Access Point](accessPoint.md)
@@ -37,17 +43,4 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Capacitor](capacitor.md)
 * [Charger](charger.md)
 * [Power Converter](powerConverter.md)
-* [Power Distributer](powerDistributer.md)
-
-## Printing
-* [Block of Chamelium](chameliumBlock.md)
-* [3D Print](print.md)
-* [3D Printer](print.md)
-
-## Storage expansion
-* [RAID](raid.md)
-
-## Specialized Computers
-* [Microcontroller](microcontroller.md)
-* [Robot](robot.md)
-* [Server](server.md)
+* [Power Distributor](powerDistributor.md)

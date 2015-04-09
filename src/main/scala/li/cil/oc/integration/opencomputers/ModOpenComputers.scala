@@ -28,6 +28,7 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.PseudoMarkdown
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
@@ -199,6 +200,9 @@ object ModOpenComputers extends ModProxy {
 
     api.Manual.addProvider(DefinitionPathProvider)
     api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain))
+    api.Manual.addProvider("item", PseudoMarkdown.ItemRenderProvider)
+    api.Manual.addProvider("block", PseudoMarkdown.BlockRenderProvider)
+    api.Manual.addProvider("oredict", PseudoMarkdown.OreDictRenderProvider)
 
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "doc/%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("chip1").createItemStack(1)), "oc:gui.Manual.Items", "doc/%LANGUAGE%/item/index.md")

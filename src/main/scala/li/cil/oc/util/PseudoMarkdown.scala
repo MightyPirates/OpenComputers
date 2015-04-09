@@ -5,6 +5,9 @@ import javax.imageio.ImageIO
 
 import com.google.common.base.Strings
 import li.cil.oc.Settings
+import li.cil.oc.api.manual.ImageProvider
+import li.cil.oc.api.manual.ImageRenderer
+import li.cil.oc.client.Manual
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
@@ -329,29 +332,25 @@ object PseudoMarkdown {
     override def toString: String = s"{StrikethroughSegment: text = $text}"
   }
 
-  private class ItemStackSegment(val parent: Segment, val title: String, val stacks: Array[ItemStack]) extends InteractiveSegment {
-    final val renderWidth = 32
-    final val renderHeight = 32
-    final val cycleSpeed = 1000
-
+  private class RendererSegment(val parent: Segment, val title: String, val imageRenderer: ImageRenderer) extends InteractiveSegment {
     override def tooltip: Option[String] = Option(title)
 
-    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = math.max(lineHeight(renderer), renderHeight + 10 - lineHeight(renderer))
+    override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = math.max(lineHeight(renderer), imageRenderer.getHeight + 10 - lineHeight(renderer))
 
     override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = maxWidth
 
     override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-      val xOffset = (maxWidth - renderWidth) / 2
+      val xOffset = (maxWidth - imageRenderer.getWidth) / 2
       val yOffset = 4 + (if (indent > 0) lineHeight(renderer) else 0)
       val maskLow = math.max(minY - y - yOffset - 1, 0)
-      val maskHigh = math.max(maskLow, math.min(renderHeight, maxY - 3))
-      val mc = Minecraft.getMinecraft
-      val index = (System.currentTimeMillis() % (cycleSpeed * stacks.length)).toInt / cycleSpeed
-      val stack = stacks(index)
+      val maskHigh = math.max(maskLow, math.min(imageRenderer.getHeight, maxY - 3))
 
       GL11.glPushMatrix()
       GL11.glTranslatef(x + xOffset, y + yOffset, 0)
 
+      // TODO hacky as shit, find a better way
+      // maybe render a plane in the *foreground*, then one in the actual layer (with force updating depth buffer),
+      // then draw normally?
       GL11.glColor4f(0.1f, 0.1f, 0.1f, 1)
       GL11.glTranslatef(0, 0, 400)
       GL11.glDepthFunc(GL11.GL_LEQUAL)
@@ -363,8 +362,8 @@ object PseudoMarkdown {
       GL11.glBegin(GL11.GL_QUADS)
       GL11.glVertex2f(0, maskLow)
       GL11.glVertex2f(0, maskHigh)
-      GL11.glVertex2f(renderWidth, maskHigh)
-      GL11.glVertex2f(renderWidth, maskLow)
+      GL11.glVertex2f(imageRenderer.getWidth, maskHigh)
+      GL11.glVertex2f(imageRenderer.getWidth, maskLow)
       GL11.glEnd()
       GL11.glTranslatef(0, 0, -400)
       GL11.glDepthFunc(GL11.GL_GEQUAL)
@@ -374,20 +373,36 @@ object PseudoMarkdown {
       GL11.glColorMask(true, true, true, true)
 
       GL11.glColor4f(1, 1, 1, 1)
-      GL11.glScalef(renderWidth / 16, renderHeight / 16, renderWidth / 16)
+
+      imageRenderer.render(maxWidth)
+
+      GL11.glPopMatrix()
+
+      checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, imageRenderer.getWidth, imageRenderer.getHeight)
+    }
+
+    override def toString: String = s"{RendererSegment: title = $title, imageRenderer = $imageRenderer}"
+  }
+
+  private class ItemStackRenderer(val stacks: Array[ItemStack]) extends ImageRenderer {
+    final val cycleSpeed = 1000
+
+    override def getWidth = 32
+
+    override def getHeight = 32
+
+    override def render(maxWidth: Int): Unit = {
+      val mc = Minecraft.getMinecraft
+      val index = (System.currentTimeMillis() % (cycleSpeed * stacks.length)).toInt / cycleSpeed
+      val stack = stacks(index)
+
+      GL11.glScalef(getWidth / 16, getHeight / 16, getWidth / 16)
       GL11.glEnable(GL12.GL_RESCALE_NORMAL)
       RenderHelper.enableGUIStandardItemLighting()
       OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240)
-      RenderItem.getInstance.renderItemAndEffectIntoGUI(renderer, mc.getTextureManager, stack, 0, 0)
+      RenderItem.getInstance.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.getTextureManager, stack, 0, 0)
       RenderHelper.disableStandardItemLighting()
-
-      GL11.glPopMatrix()
-      GL11.glDepthFunc(GL11.GL_EQUAL)
-
-      checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, renderWidth, renderHeight)
     }
-
-    override def toString: String = s"{ItemStackSegment: stacks = $stacks}"
   }
 
   private class ImageSegment(val parent: Segment, val title: String, val url: String) extends InteractiveSegment {
@@ -406,6 +421,7 @@ object PseudoMarkdown {
           image
       }
     }
+
     def scale(maxWidth: Int) = math.min(1f, maxWidth / texture.width.toFloat)
 
     override def tooltip: Option[String] = Option(title)
@@ -475,6 +491,38 @@ object PseudoMarkdown {
     }
   }
 
+  object ItemRenderProvider extends ImageProvider {
+    override def getImage(href: String): ImageRenderer = {
+      val splitIndex = href.lastIndexOf('@')
+      val (name, optMeta) = if (splitIndex > 0) href.splitAt(splitIndex) else (href, "")
+      val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
+      Item.itemRegistry.getObject(name) match {
+        case item: Item => new ItemStackRenderer(Array(new ItemStack(item, 1, meta)))
+        case _ => null
+      }
+    }
+  }
+
+  object BlockRenderProvider extends ImageProvider {
+    override def getImage(href: String): ImageRenderer = {
+      val splitIndex = href.lastIndexOf('@')
+      val (name, optMeta) = if (splitIndex > 0) href.splitAt(splitIndex) else (href, "")
+      val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
+      Block.blockRegistry.getObject(name) match {
+        case block: Block => new ItemStackRenderer(Array(new ItemStack(block, 1, meta)))
+        case _ => null
+      }
+    }
+  }
+
+  object OreDictRenderProvider extends ImageProvider {
+    override def getImage(desc: String): ImageRenderer = {
+      val stacks = OreDictionary.getOres(desc)
+      if (stacks != null && stacks.nonEmpty) new ItemStackRenderer(stacks.toArray(new Array[ItemStack](stacks.size())))
+      else null
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   private def HeaderSegment(s: Segment, m: Regex.Match) = new HeaderSegment(s, m.group(2), m.group(1).length)
@@ -488,37 +536,10 @@ object PseudoMarkdown {
   private def StrikethroughSegment(s: Segment, m: Regex.Match) = new StrikethroughSegment(s, m.group(1))
 
   private def ImageSegment(s: Segment, m: Regex.Match) = {
-    try {
-      val href = m.group(2)
-      if (href.startsWith("item:")) {
-        val desc = href.stripPrefix("item:")
-        val splitIndex = desc.lastIndexOf('@')
-        val (name, optMeta) = if (splitIndex > 0) desc.splitAt(splitIndex) else (desc, "")
-        val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
-        Item.itemRegistry.getObject(name) match {
-          case item: Item => new ItemStackSegment(s, m.group(1), Array(new ItemStack(item, 1, meta)))
-          case _ => new TextSegment(s, "Failed resolving " + href)
-        }
-      }
-      else if (href.startsWith("block:")) {
-        val desc = href.stripPrefix("block:")
-        val splitIndex = desc.lastIndexOf('@')
-        val (name, optMeta) = if (splitIndex > 0) desc.splitAt(splitIndex) else (desc, "")
-        val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
-        Block.blockRegistry.getObject(name) match {
-          case block: Block if Item.getItemFromBlock(block) != null => new ItemStackSegment(s, m.group(1), Array(new ItemStack(block, 1, meta)))
-          case _ => new TextSegment(s, "Failed resolving " + href)
-        }
-      }
-      else if (href.startsWith("oredict:")) {
-        val name = href.stripPrefix("oredict:")
-        val stacks = OreDictionary.getOres(name)
-        if (stacks != null && stacks.nonEmpty) new ItemStackSegment(s, m.group(1), stacks.toArray(new Array[ItemStack](stacks.size())))
-        else new TextSegment(s, "Failed resolving " + href)
-      }
-      else new ImageSegment(s, m.group(1), href)
-    }
-    catch {
+    try Option(Manual.imageFor(m.group(2))) match {
+      case Some(renderer) => new RendererSegment(s, m.group(1), renderer)
+      case _ => new ImageSegment(s, m.group(1), m.group(2))
+    } catch {
       case t: Throwable => new TextSegment(s, Option(t.toString).getOrElse("Unknown error."))
     }
   }
