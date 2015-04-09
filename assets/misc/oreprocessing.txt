@@ -1,0 +1,12 @@
+This is ore processing for OpenComputers.
+You might say, 'Hey, but this is just a text file, how would it do ore processing?'
+And you would be right, because this is indeed just a plain text file, and it
+won't process your ores for you. What do you expect? Something to do it automatically?
+In OpenComputers? No, this is how you do ore processing in OpenComputers:
+Step 1: Start Minecraft
+Step 2: Get a furnace
+Step 3: Make a robot smelt your ores in it
+Done.
+See, it was that easy.
+Now noone can say OpenComputers wouldn't have ore processing. With this text file it officially has.
+This file is ore processing for OpenComputers. Your argument is invalid.
