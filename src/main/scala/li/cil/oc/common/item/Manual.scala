@@ -15,6 +15,9 @@ import net.minecraft.world.World
 class Manual(val parent: Delegator) extends Delegate {
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (world.isRemote) {
+      if (player.isSneaking) {
+        gui.Manual.reset()
+      }
       player.openGui(OpenComputers, GuiType.Manual.id, world, 0, 0, 0)
     }
     super.onItemRightClick(stack, world, player)
@@ -28,6 +31,7 @@ class Manual(val parent: Delegator) extends Delegate {
           player.openGui(OpenComputers, GuiType.Manual.id, world, 0, 0, 0)
           Minecraft.getMinecraft.currentScreen match {
             case manual: gui.Manual =>
+              gui.Manual.reset()
               val descriptor = api.Items.get(new ItemStack(block))
               manual.pushPage("block/" + descriptor.name + ".md")
             case _ =>

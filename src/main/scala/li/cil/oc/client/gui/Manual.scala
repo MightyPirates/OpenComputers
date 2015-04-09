@@ -22,6 +22,24 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 import scala.io.Source
 
+object Manual {
+  final val LanguageKey = "%LANGUAGE%"
+
+  val history = new mutable.Stack[History]
+
+  reset()
+
+  def reset(): Unit = {
+    history.clear()
+    history.push(new History(s"doc/$LanguageKey/index.md"))
+  }
+
+  class History(val path: String) {
+    var offset = 0
+  }
+
+}
+
 class Manual extends GuiScreen {
   final val documentMaxWidth = 230
   final val documentMaxHeight = 176
@@ -29,21 +47,20 @@ class Manual extends GuiScreen {
   final val scrollPosY = 6
   final val scrollWidth = 6
   final val scrollHeight = 180
-  final val languageKey = "%LANGUAGE%"
 
   var guiLeft = 0
   var guiTop = 0
   var xSize = 0
   var ySize = 0
-  var offset = 0
   var isDragging = false
   var document = Iterable.empty[PseudoMarkdown.Segment]
   var documentHeight = 0
-  var history = mutable.Stack(s"doc/$languageKey/index.md")
   var hoveredLink = None: Option[String]
   protected var scrollButton: ImageButton = _
 
   private def canScroll = maxOffset > 0
+
+  def offset = Manual.history.top.offset
 
   def maxOffset = documentHeight - documentMaxHeight
 
@@ -59,7 +76,7 @@ class Manual extends GuiScreen {
 
   def loadPage(path: String, localized: Boolean = false, seen: List[String] = List.empty): Iterator[String] = {
     val language = FMLCommonHandler.instance.getCurrentLanguage
-    val resolvedPath = path.replaceAll(languageKey, language)
+    val resolvedPath = path.replaceAll(Manual.LanguageKey, language)
     if (seen.contains(resolvedPath)) return Iterator("Redirection loop: ") ++ seen.iterator ++ Iterator(path)
     val location = new ResourceLocation(Settings.resourceDomain, resolvedPath)
     var is: InputStream = null
@@ -77,7 +94,7 @@ class Manual extends GuiScreen {
     }
     catch {
       case e: FileNotFoundException if !localized && language != "en_US" =>
-        loadPage(path.replaceAll(languageKey, "en_US"), localized = true, seen)
+        loadPage(path.replaceAll(Manual.LanguageKey, "en_US"), localized = true, seen)
       case t: Throwable =>
         Iterator(s"Failed loading page '$path':") ++ t.toString.lines
     }
@@ -87,24 +104,22 @@ class Manual extends GuiScreen {
   }
 
   def refreshPage(): Unit = {
-    document = PseudoMarkdown.parse(loadPage(history.top))
+    document = PseudoMarkdown.parse(loadPage(Manual.history.top.path))
     documentHeight = PseudoMarkdown.height(document, documentMaxWidth, fontRendererObj)
     scrollTo(offset)
   }
 
   def pushPage(path: String): Unit = {
-    val resolvedPath = resolveLink(path, history.top)
-    if (resolvedPath != history.top) {
-      history.push(resolvedPath)
-      scrollTo(0)
+    val resolvedPath = resolveLink(path, Manual.history.top.path)
+    if (resolvedPath != Manual.history.top.path) {
+      Manual.history.push(new Manual.History(resolvedPath))
       refreshPage()
     }
   }
 
   def popPage(): Unit = {
-    if (history.size > 1) {
-      history.pop()
-      scrollTo(0)
+    if (Manual.history.size > 1) {
+      Manual.history.pop()
       refreshPage()
     }
     else {
@@ -215,7 +230,7 @@ class Manual extends GuiScreen {
   private def scrollDown() = scrollTo(offset + PseudoMarkdown.lineHeight(fontRendererObj) * 3)
 
   private def scrollTo(row: Int): Unit = {
-    offset = math.max(0, math.min(maxOffset, row))
+    Manual.history.top.offset = math.max(0, math.min(maxOffset, row))
     val yMin = guiTop + scrollPosY
     if (maxOffset > 0) {
       scrollButton.yPosition = yMin + (scrollHeight - 13) * offset / maxOffset
