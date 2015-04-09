@@ -7,6 +7,9 @@ package li.cil.oc.api.manual;
  * arbitrary paths. Note that content providers have <em>lower</em> priority
  * than content found in resource packs, i.e. content providers will only be
  * queried for missing pages, so to speak.
+ * <p/>
+ *
+ * @see li.cil.oc.api.prefab.ResourceContentProvider
  */
 public interface ContentProvider {
     /**

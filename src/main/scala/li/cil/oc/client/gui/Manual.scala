@@ -64,9 +64,8 @@ class Manual extends GuiScreen {
   }
 
   def pushPage(path: String): Unit = {
-    val resolvedPath = resolveLink(path, Manual.history.top.path)
-    if (resolvedPath != Manual.history.top.path) {
-      Manual.history.push(new Manual.History(resolvedPath))
+    if (path != Manual.history.top.path) {
+      Manual.history.push(new Manual.History(path))
       refreshPage()
     }
   }
@@ -85,7 +84,7 @@ class Manual extends GuiScreen {
 
   override def actionPerformed(button: GuiButton): Unit = {
     if (button.id >= 0 && button.id < Manual.tabs.length) {
-      pushPage(Manual.tabs(button.id).path)
+      api.Manual.navigate(Manual.tabs(button.id).path)
     }
   }
 
@@ -107,7 +106,7 @@ class Manual extends GuiScreen {
     for ((tab, i) <- Manual.tabs.zipWithIndex if i < 7) {
       val x = guiLeft + tabPosX
       val y = guiTop + tabPosY + i * (tabHeight - 1)
-      add(buttonList, new ImageButton(0, x, y, tabWidth, tabHeight, Textures.guiManualTab))
+      add(buttonList, new ImageButton(i, x, y, tabWidth, tabHeight, Textures.guiManualTab))
     }
 
     refreshPage()
@@ -160,7 +159,7 @@ class Manual extends GuiScreen {
       // Left click, did we hit a link?
       hoveredLink.foreach(link => {
         if (link.startsWith("http://") || link.startsWith("https://")) handleUrl(link)
-        else pushPage(link)
+        else pushPage(Manual.makeRelative(link, Manual.history.top.path))
       })
     }
     else if (button == 1) {

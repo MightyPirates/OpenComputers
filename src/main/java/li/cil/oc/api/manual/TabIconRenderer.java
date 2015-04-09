@@ -7,9 +7,9 @@ package li.cil.oc.api.manual;
  * provide different graphics for different tabs you'll need to create
  * multiple tab renderer instances.
  * <p/>
- * See the prefabs {@link li.cil.oc.api.prefab.ItemStackTabIconRenderer} and
- * {@link li.cil.oc.api.prefab.IconTabIconRenderer} for simple standard
- * implementations.
+ *
+ * @see li.cil.oc.api.prefab.ItemStackTabIconRenderer
+ * @see li.cil.oc.api.prefab.TextureTabIconRenderer
  */
 public interface TabIconRenderer {
     /**
