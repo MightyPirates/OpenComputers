@@ -492,9 +492,9 @@ object PseudoMarkdown {
   }
 
   object ItemRenderProvider extends ImageProvider {
-    override def getImage(href: String): ImageRenderer = {
-      val splitIndex = href.lastIndexOf('@')
-      val (name, optMeta) = if (splitIndex > 0) href.splitAt(splitIndex) else (href, "")
+    override def getImage(data: String): ImageRenderer = {
+      val splitIndex = data.lastIndexOf('@')
+      val (name, optMeta) = if (splitIndex > 0) data.splitAt(splitIndex) else (data, "")
       val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
       Item.itemRegistry.getObject(name) match {
         case item: Item => new ItemStackRenderer(Array(new ItemStack(item, 1, meta)))
@@ -504,9 +504,9 @@ object PseudoMarkdown {
   }
 
   object BlockRenderProvider extends ImageProvider {
-    override def getImage(href: String): ImageRenderer = {
-      val splitIndex = href.lastIndexOf('@')
-      val (name, optMeta) = if (splitIndex > 0) href.splitAt(splitIndex) else (href, "")
+    override def getImage(data: String): ImageRenderer = {
+      val splitIndex = data.lastIndexOf('@')
+      val (name, optMeta) = if (splitIndex > 0) data.splitAt(splitIndex) else (data, "")
       val meta = if (Strings.isNullOrEmpty(optMeta)) 0 else Integer.parseInt(optMeta.drop(1))
       Block.blockRegistry.getObject(name) match {
         case block: Block => new ItemStackRenderer(Array(new ItemStack(block, 1, meta)))
@@ -516,8 +516,8 @@ object PseudoMarkdown {
   }
 
   object OreDictRenderProvider extends ImageProvider {
-    override def getImage(desc: String): ImageRenderer = {
-      val stacks = OreDictionary.getOres(desc)
+    override def getImage(data: String): ImageRenderer = {
+      val stacks = OreDictionary.getOres(data)
       if (stacks != null && stacks.nonEmpty) new ItemStackRenderer(stacks.toArray(new Array[ItemStack](stacks.size())))
       else null
     }

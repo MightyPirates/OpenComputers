@@ -71,7 +71,8 @@ public class Manual {
      * the image URL, i.e. <tt>![tooltip](prefix:data)</tt> will select the
      * image provider registered for the prefix <tt>prefix</tt>, and pass to
      * it the argument <tt>data</tt>, then use the returned renderer to draw
-     * an element in the place of the tag.
+     * an element in the place of the tag. The provided prefix is expected to
+     * be <em>without</em> the colon (<tt>:</tt>).
      * <p/>
      * Custom providers are only selected if a prefix is matched, otherwise
      * it'll treat it as a relative path to an image to load via Minecraft's
