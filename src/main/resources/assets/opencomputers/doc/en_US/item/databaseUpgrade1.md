@@ -1,13 +1,9 @@
 # Database Upgrade
 
-<<<<<<< HEAD
 ![Living in the database.](oredict:oc:databaseUpgrade1)
 ![Crafting1](img/udatabase1.png)
 ![Crafting2](img/udatabase2.png)
 ![Crafting3](img/udatabase3.png)
-=======
-![Living in the database.](oredict:oc:databaseUpgrade1)
->>>>>>> upstream/master-MC1.7.10
 
 The Database Upgrade can be configured to store a list of item stack representations, which can then be used by other components. This is particularly useful for items that are differentiated purely based on their NBT data, which is not part of the item stack descriptor returned by callbacks.
 
