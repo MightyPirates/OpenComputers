@@ -6,8 +6,9 @@ import java.util
 import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.client.Textures
+import li.cil.oc.client.renderer.markdown.PseudoMarkdown
+import li.cil.oc.client.renderer.markdown.segment.Segment
 import li.cil.oc.client.{Manual => ManualAPI}
-import li.cil.oc.util.PseudoMarkdown
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.GuiButton
@@ -36,7 +37,7 @@ class Manual extends GuiScreen {
   var xSize = 0
   var ySize = 0
   var isDragging = false
-  var document = Iterable.empty[PseudoMarkdown.Segment]
+  var document = Iterable.empty[Segment]
   var documentHeight = 0
   var hoveredLink = None: Option[String]
   protected var scrollButton: ImageButton = _
