@@ -36,9 +36,9 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
 
   override def recipiesPerPage = 1
 
-  override def numRecipes = 1
+  override def numRecipes = if (path.isDefined) 1 else 0
 
-  override def drawForeground(recipe: Int): Unit = Minecraft.getMinecraft.currentScreen match {
+  override def drawForeground(recipe: Int): Unit = if (path.isDefined) Minecraft.getMinecraft.currentScreen match {
     case container: GuiContainer =>
       val pos = GuiDraw.getMousePosition
       button.drawButton(Minecraft.getMinecraft, pos.x - container.guiLeft - 5, pos.y - container.guiTop - 16)
@@ -67,7 +67,7 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
 
   override def keyTyped(gui: GuiRecipe, char: Char, code: Int, recipe: Int): Boolean = false
 
-  override def mouseClicked(container: GuiRecipe, btn: Int, recipe: Int): Boolean = container match {
+  override def mouseClicked(container: GuiRecipe, btn: Int, recipe: Int): Boolean = path.isDefined && (container match {
     case container: GuiContainer =>
       val pos = GuiDraw.getMousePosition
       val mc = Minecraft.getMinecraft
@@ -78,5 +78,5 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
       }
       else false
     case _ => false
-  }
+  })
 }
