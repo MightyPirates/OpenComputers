@@ -3,7 +3,7 @@
 This is some test text for the subset of Markdown supported by the planned ingame documentation system for OpenComputers.
 ![This is a tooltip...](../textures/gui/printer_ink.png)
 ![This is a tooltip...](/textures/gui/printer_material.png)
-*This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this [a link](blah).
+*This* is *italic* text, ~~strikethrough~~ maybe abc-ter **some** text **in bold**. Is _this underlined_? Oh, no, _it's also italic!_ Well, this [a link](../index.md).
 ![This is rendered live.](oredict:oc:assembler)
 ## Smaller headline [also with *link* but this __one__ longer](../block/adapter.md)
 

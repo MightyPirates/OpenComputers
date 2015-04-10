@@ -8,16 +8,14 @@ package li.cil.oc.api.manual;
  * provider. A renderer will then be used to draw something at the position
  * of the image tag.
  * <p/>
- * Built-in image renderers are <tt>item</tt>, <tt>block</tt>, <tt>oredict</tt>
- * and <tt>recipe</tt>.
+ * Built-in image renderers are <tt>item</tt>, <tt>block</tt> and <tt>oredict</tt>.
  */
 public interface ImageRenderer {
     /**
      * The width of the area this renderer uses.
      * <p/>
      * This is used to offset the OpenGL state properly before calling
-     * {@link #render(int)}, as well as to know where to resume rendering
-     * other content below the image.
+     * {@link #render(int)}, to correctly align the image horizontally.
      *
      * @return the width of the rendered image.
      */
@@ -26,7 +24,9 @@ public interface ImageRenderer {
     /**
      * The height of the area this renderer uses.
      * <p/>
-     * This is used to compute the
+     * This is used to offset the OpenGL state properly before calling
+     * {@link #render(int)}, as well as to know where to resume rendering
+     * other content below the image.
      *
      * @return the height of the rendered image.
      */
