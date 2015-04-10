@@ -51,17 +51,6 @@ private[markdown] class CodeSegment(protected val parent: Segment, val text: Str
     None
   }
 
-  private def drawBox(x: Int, y: Int, width: Int, height: Int): Unit = {
-    GL11.glDisable(GL11.GL_TEXTURE_2D)
-    GL11.glBegin(GL11.GL_QUADS)
-    GL11.glVertex2f(x, y)
-    GL11.glVertex2f(x, y + height)
-    GL11.glVertex2f(x + width, y + height)
-    GL11.glVertex2f(x + width, y)
-    GL11.glEnd()
-    GL11.glEnable(GL11.GL_TEXTURE_2D)
-  }
-
   private def stringWidth(s: String): Int = s.length * TextBufferRenderCache.renderer.charRenderWidth
 
   private def maxChars(s: String, maxWidth: Int): Int = {
