@@ -1,12 +1,24 @@
 package li.cil.oc.common.item
 
+import java.util
+
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.EnumChatFormatting
 import net.minecraft.world.World
 
 class Manual(val parent: Delegator) extends Delegate {
+  @SideOnly(Side.CLIENT)
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
+    tooltip.add(EnumChatFormatting.DARK_GRAY.toString + "v" + OpenComputers.Version)
+    super.tooltipLines(stack, player, tooltip, advanced)
+  }
+
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (world.isRemote) {
       if (player.isSneaking) {
