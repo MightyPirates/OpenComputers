@@ -30,7 +30,7 @@ class TextureImageRenderer(val location: ResourceLocation) extends ImageRenderer
 
   override def getHeight: Int = texture.height
 
-  override def render(): Unit = {
+  override def render(mouseX: Int, mouseY: Int): Unit = {
     Minecraft.getMinecraft.getTextureManager.bindTexture(location)
     GL11.glColor4f(1, 1, 1, 1)
     GL11.glBegin(GL11.GL_QUADS)

@@ -39,6 +39,9 @@ public interface ImageRenderer {
      * such that you can start drawing at (0,0,*), and render up to
      * (getWidth,getHeight,*), i.e. translation and scaling are taken care
      * of for you.
+     *
+     * @param mouseX the X position of the mouse relative to the element.
+     * @param mouseY the Y position of the mouse relative to the element.
      */
-    void render();
+    void render(int mouseX, int mouseY);
 }

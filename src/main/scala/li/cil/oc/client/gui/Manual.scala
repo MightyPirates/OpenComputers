@@ -7,6 +7,7 @@ import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.markdown.Document
+import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
 import li.cil.oc.client.{Manual => ManualAPI}
 import net.minecraft.client.Minecraft
@@ -39,7 +40,7 @@ class Manual extends GuiScreen {
   var isDragging = false
   var document = Iterable.empty[Segment]
   var documentHeight = 0
-  var hoveredLink = None: Option[String]
+  var currentSegment = None: Option[InteractiveSegment]
   protected var scrollButton: ImageButton = _
 
   private def canScroll = maxOffset > 0
@@ -131,14 +132,15 @@ class Manual extends GuiScreen {
       GL11.glPopMatrix()
     }
 
-    Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
+    currentSegment = Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY)
+
+    currentSegment match {
       case Some(segment) =>
         segment.tooltip match {
           case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
           case _ =>
         }
-        hoveredLink = segment.link
-      case _ => hoveredLink = None
+      case _ =>
     }
 
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < 7) {
@@ -177,9 +179,11 @@ class Manual extends GuiScreen {
     }
     else if (button == 0) {
       // Left click, did we hit a link?
-      hoveredLink.foreach(link => {
-        if (link.startsWith("http://") || link.startsWith("https://")) handleUrl(link)
-        else pushPage(ManualAPI.makeRelative(link, ManualAPI.history.top.path))
+      currentSegment.foreach(segment => if (!segment.onMouseClick(mouseX, mouseY)) segment.link match {
+        case Some(link) =>
+          if (link.startsWith("http://") || link.startsWith("https://")) handleUrl(link)
+          else pushPage(ManualAPI.makeRelative(link, ManualAPI.history.top.path))
+        case _ =>
       })
     }
     else if (button == 1) {

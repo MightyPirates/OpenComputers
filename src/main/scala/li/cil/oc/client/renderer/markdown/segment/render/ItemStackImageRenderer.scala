@@ -17,7 +17,7 @@ private[markdown] class ItemStackImageRenderer(val stacks: Array[ItemStack]) ext
 
   override def getHeight = 32
 
-  override def render(): Unit = {
+  override def render(mouseX: Int, mouseY: Int): Unit = {
     val mc = Minecraft.getMinecraft
     val index = (System.currentTimeMillis() % (cycleSpeed * stacks.length)).toInt / cycleSpeed
     val stack = stacks(index)

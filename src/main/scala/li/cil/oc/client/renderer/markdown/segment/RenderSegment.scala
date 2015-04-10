@@ -1,12 +1,24 @@
 package li.cil.oc.client.renderer.markdown.segment
 
 import li.cil.oc.api.manual.ImageRenderer
+import li.cil.oc.api.manual.InteractiveImageRenderer
 import li.cil.oc.client.renderer.markdown.Document
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
 private[markdown] class RenderSegment(val parent: Segment, val title: String, val imageRenderer: ImageRenderer) extends InteractiveSegment {
-  override def tooltip: Option[String] = Option(title)
+  var lastX = 0
+  var lastY = 0
+
+  override def tooltip: Option[String] = imageRenderer match {
+    case interactive: InteractiveImageRenderer => Option(interactive.getTooltip(title))
+    case _ => Option(title)
+  }
+
+  override def onMouseClick(mouseX: Int, mouseY: Int): Boolean = imageRenderer match {
+    case interactive: InteractiveImageRenderer => interactive.onMouseClick(mouseX - lastX, mouseY - lastY)
+    case _ => false
+  }
 
   private def scale(maxWidth: Int) = math.min(1f, maxWidth / imageRenderer.getWidth.toFloat)
 
@@ -26,6 +38,9 @@ private[markdown] class RenderSegment(val parent: Segment, val title: String, va
     val xOffset = (maxWidth - width) / 2
     val yOffset = 4 + (if (indent > 0) Document.lineHeight(renderer) else 0)
     val s = scale(maxWidth)
+
+    lastX = x + xOffset
+    lastY = y + yOffset
 
     val hovered = checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, width, height)
 
@@ -50,7 +65,7 @@ private[markdown] class RenderSegment(val parent: Segment, val title: String, va
 
     GL11.glColor4f(1, 1, 1, 1)
 
-    imageRenderer.render()
+    imageRenderer.render(mouseX - x, mouseY - y)
 
     GL11.glDisable(GL11.GL_BLEND)
     GL11.glDisable(GL11.GL_ALPHA_TEST)

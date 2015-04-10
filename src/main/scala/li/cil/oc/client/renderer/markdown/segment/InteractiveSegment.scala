@@ -5,6 +5,8 @@ trait InteractiveSegment extends Segment {
 
   def link: Option[String] = None
 
+  def onMouseClick(mouseX: Int, mouseY: Int): Boolean = false
+
   private[markdown] def notifyHover(): Unit = {}
 
   private[markdown] def checkHovered(mouseX: Int, mouseY: Int, x: Int, y: Int, w: Int, h: Int): Option[InteractiveSegment] = if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) Some(this) else None
