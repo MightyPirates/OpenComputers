@@ -27,3 +27,7 @@ isn't*.
 asdasd ![oh my god, the recursion!](img/example.png) qweqwe
 
 And finally, [this is a link!](https://avatars1.githubusercontent.com/u/514903).
+
+![broken item image](item:this is broken)
+![broken item image](block:this is broken)
+![broken item image](oredict:this is broken)

@@ -37,7 +37,10 @@ object Document {
 
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
-    // Because reasons.
+    // On some systems/drivers/graphics cards the next calls won't update the
+    // depth buffer correctly if alpha test is enabled. Guess how we found out?
+    // By noticing that on those systems it only worked while chat messages
+    // were visible. Yeah. I know.
     GL11.glDisable(GL11.GL_ALPHA_TEST)
 
     // Clear depth mask, then create masks in foreground above and below scroll area.

@@ -3,7 +3,6 @@ package li.cil.oc.client.renderer.markdown.segment.render
 import java.io.InputStream
 import javax.imageio.ImageIO
 
-import li.cil.oc.Settings
 import li.cil.oc.api.manual.ImageRenderer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.AbstractTexture
@@ -12,9 +11,7 @@ import net.minecraft.client.resources.IResourceManager
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
-class TextureImageRenderer(val url: String) extends ImageRenderer {
-  private val path = if (url.startsWith("/")) url else "doc/" + url
-  private val location = new ResourceLocation(Settings.resourceDomain, path)
+class TextureImageRenderer(val location: ResourceLocation) extends ImageRenderer {
   private val texture = {
     val manager = Minecraft.getMinecraft.getTextureManager
     manager.getTexture(location) match {
