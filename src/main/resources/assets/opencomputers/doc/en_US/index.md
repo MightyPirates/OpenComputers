@@ -1,6 +1,6 @@
 # OpenComputers Manual
 
-OpenComputers is a mod that adds persistent, modular, and highly configurable [computers](general/computer.md), [servers](item/server1.md), robots, and drones. All devices can be programmed using Lua 5.2, allowing for systems with varying complexity depending on the usage. 
+OpenComputers is a mod that adds persistent, modular, and highly configurable [computers](general/computer.md), [servers](item/server1.md), [robots](block/robot.md), and [drones](item/drone.md). All devices can be programmed using Lua 5.2, allowing for systems with varying complexity depending on the usage. 
 
 Persistence ensures that a running [computer](general/computer.md) retains its state when the chunk it is in is unloaded. This means that if the player moves away from the [computer](general/computer.md), or logs off, the [computer](general/computer.md) will remember its last known state and continue from that point on when the player goes near the [computer](general/computer.md). Persistence works for all devices except for [tablets](item/tablet.md).  
 
