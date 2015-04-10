@@ -20,6 +20,10 @@ over two* lines. But *this ... no *this is* **_bold italic_** *text*.
 
 *not italic *because ** why would it be*eh
 
+`test for code`
+`that's not code yet`
+this is some `code` that's inline.
+
 isn't*.
 
    # not a header

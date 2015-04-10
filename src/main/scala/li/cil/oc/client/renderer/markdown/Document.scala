@@ -127,6 +127,7 @@ object Document {
 
   private val segmentTypes = Array(
     """^(#+)\s(.*)""".r -> HeaderSegment _, // headers: # ...
+    """(`)(\S.*?\S|$)\1""".r -> ItalicSegment _, // code: `...`
     """!\[([^\[]*)\]\(([^\)]+)\)""".r -> ImageSegment _, // images: ![...](...)
     """\[([^\[]+)\]\(([^\)]+)\)""".r -> LinkSegment _, // links: [...](...)
     """(\*\*|__)(\S.*?\S|$)\1""".r -> BoldSegment _, // bold: **...** | __...__
