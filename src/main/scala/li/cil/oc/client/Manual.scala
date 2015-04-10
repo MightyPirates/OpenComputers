@@ -81,9 +81,10 @@ object Manual extends ManualAPI {
   }
 
   override def contentFor(path: String): java.lang.Iterable[String] = {
+    val cleanPath = com.google.common.io.Files.simplifyPath(path)
     val language = FMLCommonHandler.instance.getCurrentLanguage
-    contentForWithRedirects(path.replaceAll(LanguageKey, language)).
-      orElse(contentForWithRedirects(path.replaceAll(LanguageKey, FallbackLanguage))).
+    contentForWithRedirects(cleanPath.replaceAll(LanguageKey, language)).
+      orElse(contentForWithRedirects(cleanPath.replaceAll(LanguageKey, FallbackLanguage))).
       getOrElse(asJavaIterable(Iterable("Document not found: " + path)))
   }
 
