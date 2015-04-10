@@ -35,6 +35,11 @@ object Document {
   def render(document: Iterable[Segment], x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     val mc = Minecraft.getMinecraft
 
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
+    // Because reasons.
+    GL11.glDisable(GL11.GL_ALPHA_TEST)
+
     // Clear depth mask, then create masks in foreground above and below scroll area.
     GL11.glColor4f(1, 1, 1, 1)
     GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
@@ -70,6 +75,9 @@ object Document {
     }
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
+
+    GL11.glPopAttrib()
+
     hovered
   }
 

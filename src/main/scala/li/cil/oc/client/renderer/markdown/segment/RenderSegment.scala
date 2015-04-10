@@ -21,18 +21,44 @@ private[markdown] class RenderSegment(val parent: Segment, val title: String, va
   }
 
   override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-    val xOffset = (maxWidth - imageWidth(maxWidth)) / 2
+    val width = imageWidth(maxWidth)
+    val height = imageHeight(maxWidth)
+    val xOffset = (maxWidth - width) / 2
     val yOffset = 4 + (if (indent > 0) Document.lineHeight(renderer) else 0)
     val s = scale(maxWidth)
 
-    GL11.glColor4f(1, 1, 1, 1)
+    val hovered = checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, width, height)
+
     GL11.glPushMatrix()
     GL11.glTranslatef(x + xOffset, y + yOffset, 0)
     GL11.glScalef(s, s, s)
+
+    GL11.glEnable(GL11.GL_BLEND)
+    GL11.glEnable(GL11.GL_ALPHA_TEST)
+
+    if (hovered.isDefined) {
+      GL11.glColor4f(1, 1, 1, 0.15f)
+      GL11.glDisable(GL11.GL_TEXTURE_2D)
+      GL11.glBegin(GL11.GL_QUADS)
+      GL11.glVertex2f(0, 0)
+      GL11.glVertex2f(0, imageRenderer.getHeight)
+      GL11.glVertex2f(imageRenderer.getWidth, imageRenderer.getHeight)
+      GL11.glVertex2f(imageRenderer.getWidth, 0)
+      GL11.glEnd()
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
+    }
+
+    GL11.glColor4f(1, 1, 1, 1)
+
     imageRenderer.render()
+
+    GL11.glDisable(GL11.GL_BLEND)
+    GL11.glDisable(GL11.GL_ALPHA_TEST)
+    GL11.glDisable(GL11.GL_LIGHTING)
+
     GL11.glPopMatrix()
 
-    checkHovered(mouseX, mouseY, x + xOffset, y + yOffset, imageWidth(maxWidth), imageHeight(maxWidth))
+    hovered
   }
 
   override def toString: String = s"{RendererSegment: title = $title, imageRenderer = $imageRenderer}"
