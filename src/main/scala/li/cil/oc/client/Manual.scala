@@ -111,7 +111,7 @@ object Manual extends ManualAPI {
 
   def reset(): Unit = {
     history.clear()
-    history.push(new History(s"doc/$LanguageKey/index.md"))
+    history.push(new History(s"$LanguageKey/index.md"))
   }
 
   override def navigate(path: String): Unit = {
