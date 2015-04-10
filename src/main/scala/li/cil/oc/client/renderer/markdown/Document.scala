@@ -106,6 +106,8 @@ object Document {
 
   private def HeaderSegment(s: Segment, m: Regex.Match) = new segment.HeaderSegment(s, m.group(2), m.group(1).length)
 
+  private def CodeSegment(s: Segment, m: Regex.Match) = new segment.CodeSegment(s, m.group(2))
+
   private def LinkSegment(s: Segment, m: Regex.Match) = new segment.LinkSegment(s, m.group(1), m.group(2))
 
   private def BoldSegment(s: Segment, m: Regex.Match) = new segment.BoldSegment(s, m.group(2))
@@ -127,7 +129,7 @@ object Document {
 
   private val segmentTypes = Array(
     """^(#+)\s(.*)""".r -> HeaderSegment _, // headers: # ...
-    """(`)(\S.*?\S|$)\1""".r -> ItalicSegment _, // code: `...`
+    """(`)(.*?)\1""".r -> CodeSegment _, // code: `...`
     """!\[([^\[]*)\]\(([^\)]+)\)""".r -> ImageSegment _, // images: ![...](...)
     """\[([^\[]+)\]\(([^\)]+)\)""".r -> LinkSegment _, // links: [...](...)
     """(\*\*|__)(\S.*?\S|$)\1""".r -> BoldSegment _, // bold: **...** | __...__

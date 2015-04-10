@@ -22,7 +22,14 @@ over two* lines. But *this ... no *this is* **_bold italic_** *text*.
 
 `test for code`
 `that's not code yet`
-this is some `code` that's inline.
+`function f(a)`
+`  testingIndent(a)`
+`  do`
+`    lalala()`
+`  end`
+`end`
+yeah, line spacing is a bit low, but otherwise too little text fits on one screen.
+this is some `code` that's inline. then `some more CODE that` line wraps and so on.
 
 isn't*.
 
@@ -35,3 +42,7 @@ And finally, [this is a link!](https://avatars1.githubusercontent.com/u/514903).
 ![broken item image](item:this is broken)
 ![broken item image](block:this is broken)
 ![broken item image](oredict:this is broken)
+
+wrap testing
+12345678901234567890.1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+`123456789012345678901234567890.12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`

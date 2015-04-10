@@ -127,7 +127,10 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     while (pos < s.length) {
       pos += 1
       val width = (stringWidth(s.take(pos), renderer) * fontScale).toInt
-      if (width >= maxWidth) return lastBreak + 1
+      if (width >= maxWidth) {
+        if (lastBreak > 0 || stringWidth(s, renderer) <= maxWidth) return lastBreak + 1
+        else return pos - 1
+      }
       if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
     }
     pos
