@@ -36,6 +36,7 @@ object Document {
     val mc = Minecraft.getMinecraft
 
     // Create a flat, inset area in the depth buffer.
+    GL11.glColor4f(1, 1, 1, 1)
     GL11.glPushMatrix()
     GL11.glTranslatef(0, 0, 300)
     GL11.glDepthFunc(GL11.GL_ALWAYS)
@@ -108,7 +109,7 @@ object Document {
   private def ImageSegment(s: Segment, m: Regex.Match) = {
     try Option(api.Manual.imageFor(m.group(2))) match {
       case Some(renderer) => new segment.RenderSegment(s, m.group(1), renderer)
-      case _ => new segment.ImageSegment(s, m.group(1), m.group(2))
+      case _ => new segment.TextSegment(s, "No renderer found for: " + m.group(2))
     } catch {
       case t: Throwable => new segment.TextSegment(s, Option(t.toString).getOrElse("Unknown error."))
     }

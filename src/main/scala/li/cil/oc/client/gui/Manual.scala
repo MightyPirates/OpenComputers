@@ -150,10 +150,21 @@ class Manual extends GuiScreen {
     }
   }
 
-  override protected def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
-    super.mouseMovedOrUp(mouseX, mouseY, button)
-    if (button == 0) {
-      isDragging = false
+  override def keyTyped(char: Char, code: Int): Unit = {
+    if (code == mc.gameSettings.keyBindJump.getKeyCode) {
+      popPage()
+    }
+    else if (code == mc.gameSettings.keyBindInventory.getKeyCode) {
+      mc.thePlayer.closeScreen()
+    }
+    else super.keyTyped(char, code)
+  }
+
+  override def handleMouseInput(): Unit = {
+    super.handleMouseInput()
+    if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
+      if (math.signum(Mouse.getEventDWheel) < 0) scrollDown()
+      else scrollUp()
     }
   }
 
@@ -177,6 +188,20 @@ class Manual extends GuiScreen {
     }
   }
 
+  override protected def mouseClickMove(mouseX: Int, mouseY: Int, lastButtonClicked: Int, timeSinceMouseClick: Long) {
+    super.mouseClickMove(mouseX, mouseY, lastButtonClicked, timeSinceMouseClick)
+    if (isDragging) {
+      scrollMouse(mouseY)
+    }
+  }
+
+  override protected def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseMovedOrUp(mouseX, mouseY, button)
+    if (button == 0) {
+      isDragging = false
+    }
+  }
+
   private def handleUrl(url: String): Unit = {
     // Pretty much copy-paste from GuiChat.
     try {
@@ -189,23 +214,8 @@ class Manual extends GuiScreen {
     }
   }
 
-  override protected def mouseClickMove(mouseX: Int, mouseY: Int, lastButtonClicked: Int, timeSinceMouseClick: Long) {
-    super.mouseClickMove(mouseX, mouseY, lastButtonClicked, timeSinceMouseClick)
-    if (isDragging) {
-      scrollMouse(mouseY)
-    }
-  }
-
   private def scrollMouse(mouseY: Int) {
     scrollTo(math.round((mouseY - guiTop - scrollPosY - 6.5) * maxOffset / (scrollHeight - 13.0)).toInt)
-  }
-
-  override def handleMouseInput(): Unit = {
-    super.handleMouseInput()
-    if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
-      if (math.signum(Mouse.getEventDWheel) < 0) scrollDown()
-      else scrollUp()
-    }
   }
 
   private def scrollUp() = scrollTo(offset - Document.lineHeight(fontRendererObj) * 3)

@@ -10,13 +10,14 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
 
 private[markdown] class ItemStackImageRenderer(val stacks: Array[ItemStack]) extends ImageRenderer {
+  // How long to show individual stacks, in milliseconds, before switching to the next.
   final val cycleSpeed = 1000
 
   override def getWidth = 32
 
   override def getHeight = 32
 
-  override def render(maxWidth: Int): Unit = {
+  override def render(): Unit = {
     val mc = Minecraft.getMinecraft
     val index = (System.currentTimeMillis() % (cycleSpeed * stacks.length)).toInt / cycleSpeed
     val stack = stacks(index)

@@ -15,7 +15,7 @@ public interface ImageRenderer {
      * The width of the area this renderer uses.
      * <p/>
      * This is used to offset the OpenGL state properly before calling
-     * {@link #render(int)}, to correctly align the image horizontally.
+     * {@link #render()}, to correctly align the image horizontally.
      *
      * @return the width of the rendered image.
      */
@@ -25,7 +25,7 @@ public interface ImageRenderer {
      * The height of the area this renderer uses.
      * <p/>
      * This is used to offset the OpenGL state properly before calling
-     * {@link #render(int)}, as well as to know where to resume rendering
+     * {@link #render()}, as well as to know where to resume rendering
      * other content below the image.
      *
      * @return the height of the rendered image.
@@ -37,9 +37,8 @@ public interface ImageRenderer {
      * <p/>
      * This should render the image as is, the OpenGL state will be set up
      * such that you can start drawing at (0,0,*), and render up to
-     * (getWidth,getHeight,*).
-     *
-     * @param maxWidth the maximum width usable for rendering.
+     * (getWidth,getHeight,*), i.e. translation and scaling are taken care
+     * of for you.
      */
-    void render(int maxWidth);
+    void render();
 }

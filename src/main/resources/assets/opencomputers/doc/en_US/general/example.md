@@ -9,7 +9,9 @@ This is some test text for the subset of Markdown supported by the planned ingam
 
 ![This is another tooltip.](item:OpenComputers:item@23)
 
+some text directly above the item stack renderer to test spacing
 ![All the colors.](oredict:craftingPiston)
+some text directly below the item stack renderer to test spacing
 
 This is *italic
 over two* lines. But *this ... no *this is* **_bold italic_** *text*.

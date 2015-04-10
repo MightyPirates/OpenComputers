@@ -14,6 +14,7 @@ import li.cil.oc.api.prefab.ResourceContentProvider
 import li.cil.oc.client.renderer.markdown.segment.render.BlockImageProvider
 import li.cil.oc.client.renderer.markdown.segment.render.ItemImageProvider
 import li.cil.oc.client.renderer.markdown.segment.render.OreDictImageProvider
+import li.cil.oc.client.renderer.markdown.segment.render.TextureImageProvider
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
@@ -202,6 +203,7 @@ object ModOpenComputers extends ModProxy {
 
     api.Manual.addProvider(DefinitionPathProvider)
     api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain))
+    api.Manual.addProvider("", TextureImageProvider)
     api.Manual.addProvider("item", ItemImageProvider)
     api.Manual.addProvider("block", BlockImageProvider)
     api.Manual.addProvider("oredict", OreDictImageProvider)

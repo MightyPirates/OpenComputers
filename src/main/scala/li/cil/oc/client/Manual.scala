@@ -1,5 +1,6 @@
 package li.cil.oc.client
 
+import com.google.common.base.Strings
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.detail.ManualAPI
@@ -34,7 +35,7 @@ object Manual extends ManualAPI {
 
   val contentProviders = mutable.Buffer.empty[ContentProvider]
 
-  val imageProviders = mutable.Map.empty[String, ImageProvider]
+  val imageProviders = mutable.Buffer.empty[(String, ImageProvider)]
 
   val history = new mutable.Stack[History]
 
@@ -53,7 +54,7 @@ object Manual extends ManualAPI {
   }
 
   override def addProvider(prefix: String, provider: ImageProvider): Unit = {
-    imageProviders += (prefix + ":") -> provider
+    imageProviders += (if (Strings.isNullOrEmpty(prefix)) "" else prefix + ":") -> provider
   }
 
   override def pathFor(stack: ItemStack): String = {
@@ -89,7 +90,7 @@ object Manual extends ManualAPI {
   }
 
   override def imageFor(href: String): ImageRenderer = {
-    for ((prefix, provider) <- Manual.imageProviders) {
+    for ((prefix, provider) <- Manual.imageProviders.reverse) {
       if (href.startsWith(prefix)) {
         val image = try provider.getImage(href.stripPrefix(prefix)) catch {
           case t: Throwable =>
