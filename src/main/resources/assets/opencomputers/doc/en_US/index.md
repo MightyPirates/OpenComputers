@@ -4,7 +4,9 @@ OpenComputers is a mod that adds persistent, modular, and highly configurable [c
 
 To learn about how to use the manual, check out [the page about the manual](item/manual.md) (that green text is a link, you can click it). You can find a table of contents at the bottom of this page.
 
-Persistence ensures that a running [computer](general/computer.md) retains its state when the chunk it is in is unloaded. This means that if the player moves away from the [computer](general/computer.md), or logs off, the [computer](general/computer.md) will remember its last known state and continue from that point on when the player goes near the [computer](general/computer.md). Persistence works for all devices except for [tablets](item/tablet.md).  
+## Prologue
+
+As mentioned above, computers in OpenComputers feature persistence, which means that a running [computer](general/computer.md) retains its state when the chunk it is in is unloaded. This means that if the player moves away from the [computer](general/computer.md), or logs off, the [computer](general/computer.md) will remember its last known state and continue from that point on when the player goes near the [computer](general/computer.md). Persistence works for all devices except for [tablets](item/tablet.md).  
 
 All devices are modular and can be assembled with a wide range of components, just like [computers](general/computer.md) in real life. Players who enjoy tinkering will be able to optimize devices to their heart's content. If desired, devices can be [dismantled](block/disassembler.md) and rebuilt if the initial configuration wasn't satisfactory. For [computers](general/computer.md) and [servers](item/server1.md), components can be swapped out on-the-fly simply by opening the corresponding GUI. 
 
@@ -19,16 +21,19 @@ This manual contains detailed information regarding all blocks and items, how to
 ## Table of Contents
 
 ### Devices
-- [Computers](general/computer.md)  
-- [Servers](item/server1.md)  
-- [Microcontrollers](block/microcontroller.md)  
-- [Robots](block/robot.md)  
-- [Drones](item/drone.md)  
+- [Computers](general/computer.md)
+- [Servers](item/server1.md)
+- [Microcontrollers](block/microcontroller.md)
+- [Robots](block/robot.md)
+- [Drones](item/drone.md)
 
 ### Software and Programming
-- [OpenOS](general/openOS.md)  
+- [OpenOS](general/openOS.md)
 - [Lua](general/lua.md)
 
 ### Blocks and Items
-- [Items](item/index.md)  
-- [Blocks](block/index.md)  
+- [Items](item/index.md)
+- [Blocks](block/index.md)
+
+### Guides
+- [Getting Started](general/quickstart.md)
