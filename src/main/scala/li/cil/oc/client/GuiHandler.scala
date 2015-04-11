@@ -125,6 +125,9 @@ object GuiHandler extends CommonGuiHandler {
             null
           case _ => null
         }
+      case Some(GuiType.Category.None) =>
+        if (id == GuiType.Manual.id) new gui.Manual()
+        else null
       case _ => null
     }
   }

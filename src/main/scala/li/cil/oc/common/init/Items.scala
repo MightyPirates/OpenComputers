@@ -315,6 +315,7 @@ object Items extends ItemAPI {
     registerItem(new item.Debugger(tools), Constants.ItemName.Debugger)
     Recipes.addSubItem(new item.Terminal(tools), Constants.ItemName.Terminal, "oc:terminal")
     Recipes.addSubItem(new item.TexturePicker(tools), Constants.ItemName.TexturePicker, "oc:texturePicker")
+    Recipes.addSubItem(new item.Manual(tools), Constants.ItemName.Manual, "oc:manual")
   }
 
   // General purpose components.

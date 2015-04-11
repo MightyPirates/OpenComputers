@@ -116,6 +116,33 @@ abstract class TextureFontRenderer {
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
   }
 
+  def drawString(s: String, x: Int, y: Int): Unit = {
+    GL11.glPushMatrix()
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
+    GL11.glTranslatef(x, y, 0)
+    GL11.glScalef(0.5f, 0.5f, 1)
+    GL11.glDepthMask(false)
+
+    for (i <- 0 until textureCount) {
+      bindTexture(i)
+      GL11.glBegin(GL11.GL_QUADS)
+      var tx = 0f
+      for (n <- 0 until s.length) {
+        val ch = s.charAt(n)
+        // Don't render whitespace.
+        if (ch != ' ') {
+          drawChar(tx, 0, ch)
+        }
+        tx += charWidth
+      }
+      GL11.glEnd()
+    }
+
+    GL11.glPopAttrib()
+    GL11.glPopMatrix()
+  }
+
   protected def charWidth: Int
 
   protected def charHeight: Int

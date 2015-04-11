@@ -2,12 +2,22 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.internal
+import li.cil.oc.api.manual.PathProvider
+import li.cil.oc.api.prefab.ItemStackTabIconRenderer
+import li.cil.oc.api.prefab.ResourceContentProvider
+import li.cil.oc.client.renderer.markdown.segment.render.BlockImageProvider
+import li.cil.oc.client.renderer.markdown.segment.render.ItemImageProvider
+import li.cil.oc.client.renderer.markdown.segment.render.OreDictImageProvider
+import li.cil.oc.client.renderer.markdown.segment.render.TextureImageProvider
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Loot
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.asm.SimpleComponentTickHandler
+import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.event._
 import li.cil.oc.common.item.Analyzer
 import li.cil.oc.common.item.Delegator
@@ -20,7 +30,9 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.FMLCommonHandler
@@ -188,6 +200,16 @@ object ModOpenComputers extends ModProxy {
         case _ =>
       }
     }
+
+    api.Manual.addProvider(DefinitionPathProvider)
+    api.Manual.addProvider(new ResourceContentProvider(Settings.resourceDomain, "doc/"))
+    api.Manual.addProvider("", TextureImageProvider)
+    api.Manual.addProvider("item", ItemImageProvider)
+    api.Manual.addProvider("block", BlockImageProvider)
+    api.Manual.addProvider("oredict", OreDictImageProvider)
+
+    api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
+    api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {
@@ -199,4 +221,26 @@ object ModOpenComputers extends ModProxy {
       FMLInterModComms.sendMessage("OpenComputers", "blacklistHost", nbt)
     }
   }
+
+  object DefinitionPathProvider extends PathProvider {
+    private final val Blacklist = Set(
+      "debugger"
+    )
+
+    override def pathFor(stack: ItemStack): String = Option(api.Items.get(stack)) match {
+      case Some(definition) => checkBlacklisted(definition)
+      case _ => null
+    }
+
+    override def pathFor(world: World, x: Int, y: Int, z: Int): String = world.getBlock(x, y, z) match {
+      case block: SimpleBlock => checkBlacklisted(api.Items.get(new ItemStack(block)))
+      case _ => null
+    }
+
+    private def checkBlacklisted(info: ItemInfo): String =
+      if (info == null || Blacklist.contains(info.name)) null
+      else if (info.block != null) "%LANGUAGE%/block/" + info.name + ".md"
+      else "%LANGUAGE%/item/" + info.name + ".md"
+  }
+
 }
