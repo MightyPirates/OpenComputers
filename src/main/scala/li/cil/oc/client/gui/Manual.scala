@@ -118,8 +118,8 @@ class Manual extends GuiScreen {
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
-    mc.renderEngine.bindTexture(Textures.GUI.Manual)
-    Gui.drawScaledCustomSizeModalRect(guiLeft, guiTop, 0, 0, xSize, ySize, 256, 192)
+    Textures.bind(Textures.GUI.Manual)
+    Gui.drawModalRectWithCustomSizedTexture(guiLeft, guiTop, 0, 0, xSize, ySize, 256, 192)
 
     scrollButton.enabled = canScroll
     scrollButton.hoverOverride = isDragging
@@ -204,8 +204,8 @@ class Manual extends GuiScreen {
     }
   }
 
-  override protected def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
-    super.mouseMovedOrUp(mouseX, mouseY, button)
+  override protected def mouseReleased(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseReleased(mouseX, mouseY, button)
     if (button == 0) {
       isDragging = false
     }

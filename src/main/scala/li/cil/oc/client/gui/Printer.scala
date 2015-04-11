@@ -62,7 +62,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.GUI.Printer)
+    Textures.bind(Textures.GUI.Printer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     materialBar.level = printerContainer.amountMaterial / printer.maxAmountMaterial.toDouble
     inkBar.level = printerContainer.amountInk / printer.maxAmountInk.toDouble

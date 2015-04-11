@@ -4,7 +4,6 @@ import li.cil.oc.api.manual.ImageRenderer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.entity.RenderItem
 import net.minecraft.item.ItemStack
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
@@ -26,7 +25,7 @@ private[markdown] class ItemStackImageRenderer(val stacks: Array[ItemStack]) ext
     GL11.glEnable(GL12.GL_RESCALE_NORMAL)
     RenderHelper.enableGUIStandardItemLighting()
     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240)
-    RenderItem.getInstance.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.getTextureManager, stack, 0, 0)
+    mc.getRenderItem.renderItemAndEffectIntoGUI(stack, 0, 0)
     RenderHelper.disableStandardItemLighting()
   }
 }

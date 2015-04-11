@@ -12,6 +12,7 @@ import li.cil.oc.common.GuiType
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.FMLCommonHandler
 
@@ -72,9 +73,9 @@ object Manual extends ManualAPI {
     null
   }
 
-  override def pathFor(world: World, x: Int, y: Int, z: Int): String = {
+  override def pathFor(world: World, pos: BlockPos): String = {
     for (provider <- pathProviders) {
-      val path = try provider.pathFor(world, x, y, z) catch {
+      val path = try provider.pathFor(world, pos) catch {
         case t: Throwable =>
           OpenComputers.log.warn("A path provider threw an error when queried with a block.", t)
           null

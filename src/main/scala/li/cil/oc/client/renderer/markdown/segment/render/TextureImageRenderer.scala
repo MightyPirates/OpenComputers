@@ -4,6 +4,7 @@ import java.io.InputStream
 import javax.imageio.ImageIO
 
 import li.cil.oc.api.manual.ImageRenderer
+import li.cil.oc.client.Textures
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.client.renderer.texture.TextureUtil
@@ -31,7 +32,7 @@ class TextureImageRenderer(val location: ResourceLocation) extends ImageRenderer
   override def getHeight: Int = texture.height
 
   override def render(mouseX: Int, mouseY: Int): Unit = {
-    Minecraft.getMinecraft.getTextureManager.bindTexture(location)
+    Textures.bind(location)
     GL11.glColor4f(1, 1, 1, 1)
     GL11.glBegin(GL11.GL_QUADS)
     GL11.glTexCoord2f(0, 0)

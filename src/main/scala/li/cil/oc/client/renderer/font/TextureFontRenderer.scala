@@ -117,8 +117,8 @@ abstract class TextureFontRenderer {
   }
 
   def drawString(s: String, x: Int, y: Int): Unit = {
-    GL11.glPushMatrix()
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    RenderState.pushMatrix()
+    RenderState.pushAttrib()
 
     GL11.glTranslatef(x, y, 0)
     GL11.glScalef(0.5f, 0.5f, 1)
@@ -139,8 +139,9 @@ abstract class TextureFontRenderer {
       GL11.glEnd()
     }
 
-    GL11.glPopAttrib()
-    GL11.glPopMatrix()
+    RenderState.popAttrib()
+    RenderState.popMatrix()
+    RenderState.color(1, 1, 1, 1)
   }
 
   protected def charWidth: Int

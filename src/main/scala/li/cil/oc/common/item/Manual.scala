@@ -8,6 +8,7 @@ import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumChatFormatting
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -29,9 +30,9 @@ class Manual(val parent: Delegator) extends Delegate {
     super.onItemRightClick(stack, world, player)
   }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     val world = player.getEntityWorld
-    api.Manual.pathFor(world, position.x, position.y, position.z) match {
+    api.Manual.pathFor(world, position.toBlockPos) match {
       case path: String =>
         if (world.isRemote) {
           api.Manual.openFor(player)

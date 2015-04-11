@@ -32,6 +32,7 @@ import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
@@ -232,7 +233,7 @@ object ModOpenComputers extends ModProxy {
       case _ => null
     }
 
-    override def pathFor(world: World, x: Int, y: Int, z: Int): String = world.getBlock(x, y, z) match {
+    override def pathFor(world: World, pos: BlockPos): String = world.getBlockState(pos).getBlock match {
       case block: SimpleBlock => checkBlacklisted(api.Items.get(new ItemStack(block)))
       case _ => null
     }
