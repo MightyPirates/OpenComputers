@@ -2,4 +2,4 @@
 
 ![Reflux?](oredict:oc:materialAcid)
 
-You'll probabl only see this item when playing with the hardmod recipe set, in which case you'll need it to etch [circuit boards](circuitBoard.md) to craft [printed circuit boards](printedCircuitBoard.md).
+You'll probably only see this item when playing with the hardmode recipe set, in which case you'll need it to etch [circuit boards](circuitBoard.md) to craft [printed circuit boards](printedCircuitBoard.md).

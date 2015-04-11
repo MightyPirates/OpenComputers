@@ -89,7 +89,7 @@ object Manual extends ManualAPI {
     val language = FMLCommonHandler.instance.getCurrentLanguage
     contentForWithRedirects(cleanPath.replaceAll(LanguageKey, language)).
       orElse(contentForWithRedirects(cleanPath.replaceAll(LanguageKey, FallbackLanguage))).
-      getOrElse(asJavaIterable(Iterable("Document not found: " + path)))
+      orNull
   }
 
   override def imageFor(href: String): ImageRenderer = {

@@ -30,3 +30,5 @@ This manual contains detailed information regarding all blocks and items, how to
 ### Blocks and Items
 [Items](item/index.md)  
 [Blocks](block/index.md)  
+
+[broken link](blah.md)

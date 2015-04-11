@@ -32,7 +32,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Angel Upgrade](angelUpgrade.md)
 * [Battery Upgrade](batteryUpgrade1.md)
 * [Card Container](cardContainer1.md)
-* [Chunkloader Upgrade](chunkloaderUpgrade.md)
+* [Chunk Loader Upgrade](chunkloaderUpgrade.md)
 * [Crafting Upgrade](craftingUpgrade.md)
 * [Database Upgrade](databaseUpgrade1.md)
 * [Experience Upgrade](experienceUpgrade.md)
@@ -59,7 +59,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 ## Crafting
 * [Acid](acid.md)
-* [Alu](alu.md)
+* [ALU](alu.md)
 * [ArrowKeys](arrowKeys.md)
 * [ButtonGroup](buttonGroup.md)
 * [Card](card.md)

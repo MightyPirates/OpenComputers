@@ -61,7 +61,9 @@ class Manual extends GuiScreen {
     }
 
   def refreshPage(): Unit = {
-    document = Document.parse(api.Manual.contentFor(ManualAPI.history.top.path))
+    val content = Option(api.Manual.contentFor(ManualAPI.history.top.path)).
+      getOrElse(asJavaIterable(Iterable("Document not found: " + ManualAPI.history.top.path)))
+    document = Document.parse(content)
     documentHeight = Document.height(document, documentMaxWidth, fontRendererObj)
     scrollTo(offset)
   }
