@@ -6,16 +6,19 @@ import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
 private[markdown] class CodeSegment(protected val parent: Segment, val text: String) extends Segment {
-  final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\', ')', '\'', '"')
+  private final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\', ')', '\'', '"')
+  private final val lists = Set("- ", "* ")
+  private lazy val rootPrefix = root.asInstanceOf[TextSegment].text.take(2)
 
   override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
     var lines = 0
     var chars = text
-    var lineChars = maxChars(chars, maxWidth - indent, maxWidth)
-    while (chars.length > lineChars) {
+    val wrapIndent = computeWrapIndent(renderer)
+    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent)
+    while (chars.length > numChars) {
       lines += 1
-      chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
-      lineChars = maxChars(chars, maxWidth, maxWidth)
+      chars = chars.drop(numChars).dropWhile(_.isWhitespace)
+      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent)
     }
     lines * Document.lineHeight(renderer)
   }
@@ -23,11 +26,12 @@ private[markdown] class CodeSegment(protected val parent: Segment, val text: Str
   override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
     var currentX = indent
     var chars = text
-    var lineChars = maxChars(chars, maxWidth - indent, maxWidth)
-    while (chars.length > lineChars) {
-      chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
-      lineChars = maxChars(chars, maxWidth, maxWidth)
-      currentX = 1
+    val wrapIndent = computeWrapIndent(renderer)
+    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent)
+    while (chars.length > numChars) {
+      chars = chars.drop(numChars).dropWhile(_.isWhitespace)
+      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent)
+      currentX = wrapIndent + 1
     }
     currentX + stringWidth(chars)
   }
@@ -38,15 +42,16 @@ private[markdown] class CodeSegment(protected val parent: Segment, val text: Str
     var currentX = x + indent
     var currentY = y
     var chars = text
-    var numChars = maxChars(chars, maxWidth - indent, maxWidth)
+    val wrapIndent = computeWrapIndent(renderer)
+    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent)
     while (chars.length > 0 && (currentY - y) < maxY) {
       val part = chars.take(numChars)
       GL11.glColor4f(0.75f, 0.8f, 1, 1)
       TextBufferRenderCache.renderer.drawString(part, currentX, currentY)
-      currentX = x
+      currentX = x + wrapIndent
       currentY += Document.lineHeight(renderer)
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
-      numChars = maxChars(chars, maxWidth, maxWidth)
+      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent)
     }
 
     None
@@ -68,6 +73,8 @@ private[markdown] class CodeSegment(protected val parent: Segment, val text: Str
     }
     pos
   }
+
+  private def computeWrapIndent(renderer: FontRenderer) = if (lists.contains(rootPrefix)) renderer.getStringWidth(rootPrefix) else 0
 
   override def toString: String = s"{CodeSegment: text = $text}"
 }

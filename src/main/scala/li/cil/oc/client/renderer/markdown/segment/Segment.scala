@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.markdown.segment
 
 import net.minecraft.client.gui.FontRenderer
 
+import scala.annotation.tailrec
 import scala.util.matching.Regex
 
 trait Segment {
@@ -25,6 +26,8 @@ trait Segment {
 
   // Used when rendering, to compute the style of a nested segment.
   protected def parent: Segment
+
+  @tailrec protected final def root: Segment = if (parent == null) this else parent.root
 
   // Used during construction, checks a segment for inner segments.
   private[markdown] def refine(pattern: Regex, factory: (Segment, Regex.Match) => Segment): Iterable[Segment] = Iterable(this)
