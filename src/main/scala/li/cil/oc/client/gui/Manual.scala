@@ -6,7 +6,7 @@ import java.util
 import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.client.Textures
-import li.cil.oc.client.renderer.markdown.PseudoMarkdown
+import li.cil.oc.client.renderer.markdown.Document
 import li.cil.oc.client.renderer.markdown.segment.Segment
 import li.cil.oc.client.{Manual => ManualAPI}
 import net.minecraft.client.Minecraft
@@ -59,8 +59,8 @@ class Manual extends GuiScreen {
     }
 
   def refreshPage(): Unit = {
-    document = PseudoMarkdown.parse(api.Manual.contentFor(ManualAPI.history.top.path))
-    documentHeight = PseudoMarkdown.height(document, documentMaxWidth, fontRendererObj)
+    document = Document.parse(api.Manual.contentFor(ManualAPI.history.top.path))
+    documentHeight = Document.height(document, documentMaxWidth, fontRendererObj)
     scrollTo(offset)
   }
 
@@ -131,7 +131,7 @@ class Manual extends GuiScreen {
       GL11.glPopMatrix()
     }
 
-    PseudoMarkdown.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
+    Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY) match {
       case Some(segment) =>
         segment.tooltip match {
           case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
@@ -208,9 +208,9 @@ class Manual extends GuiScreen {
     }
   }
 
-  private def scrollUp() = scrollTo(offset - PseudoMarkdown.lineHeight(fontRendererObj) * 3)
+  private def scrollUp() = scrollTo(offset - Document.lineHeight(fontRendererObj) * 3)
 
-  private def scrollDown() = scrollTo(offset + PseudoMarkdown.lineHeight(fontRendererObj) * 3)
+  private def scrollDown() = scrollTo(offset + Document.lineHeight(fontRendererObj) * 3)
 
   private def scrollTo(row: Int): Unit = {
     ManualAPI.history.top.offset = math.max(0, math.min(maxOffset, row))

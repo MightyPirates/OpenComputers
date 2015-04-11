@@ -72,6 +72,7 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
       val pos = GuiDraw.getMousePosition
       val mc = Minecraft.getMinecraft
       if (button.mousePressed(mc, pos.x - container.guiLeft - 5, pos.y - container.guiTop - 16)) {
+        mc.thePlayer.closeScreen()
         api.Manual.openFor(mc.thePlayer)
         path.foreach(api.Manual.navigate)
         true

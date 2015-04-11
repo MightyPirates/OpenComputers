@@ -1,8 +1,9 @@
 package li.cil.oc.client.renderer.markdown
 
-import li.cil.oc.client.Manual
+import li.cil.oc.api
 import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
@@ -12,7 +13,7 @@ import scala.util.matching.Regex
  * Primitive Markdown parser, only supports a very small subset. Used for
  * parsing documentation into segments, to be displayed in a GUI somewhere.
  */
-object PseudoMarkdown {
+object Document {
   /**
    * Parses a plain text document into a list of segments.
    */
@@ -32,11 +33,22 @@ object PseudoMarkdown {
    * Returns a link address if a link is hovered.
    */
   def render(document: Iterable[Segment], x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
-    // Create a flat area in the depth buffer.
+    val mc = Minecraft.getMinecraft
+
+    // Create a flat, inset area in the depth buffer.
     GL11.glPushMatrix()
-    GL11.glTranslatef(0, 0, 1)
+    GL11.glTranslatef(0, 0, 300)
+    GL11.glDepthFunc(GL11.GL_ALWAYS)
     GL11.glDepthMask(true)
-    GL11.glColor4f(0.01f, 0.01f, 0.01f, 1)
+    GL11.glColorMask(false, false, false, false)
+    GL11.glBegin(GL11.GL_QUADS)
+    GL11.glVertex2f(0, mc.displayHeight)
+    GL11.glVertex2f(mc.displayWidth, mc.displayHeight)
+    GL11.glVertex2f(mc.displayWidth, 0)
+    GL11.glVertex2f(0, 0)
+    GL11.glEnd()
+
+    GL11.glPopMatrix()
     GL11.glBegin(GL11.GL_QUADS)
     GL11.glVertex2f(x - 1, y - 1)
     GL11.glVertex2f(x - 1, y + 1 + maxHeight)
@@ -45,8 +57,8 @@ object PseudoMarkdown {
     GL11.glEnd()
 
     // Use that flat area to mask the output area.
-    GL11.glDepthMask(false)
-    GL11.glDepthFunc(GL11.GL_EQUAL)
+    GL11.glDepthFunc(GL11.GL_LEQUAL)
+    GL11.glColorMask(true, true, true, true)
 
     // Actual rendering.
     var hovered: Option[InteractiveSegment] = None
@@ -60,11 +72,6 @@ object PseudoMarkdown {
     }
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
-
-    // Restore all the things.
-    GL11.glDepthFunc(GL11.GL_LEQUAL)
-    GL11.glPopMatrix()
-
     hovered
   }
 
@@ -99,7 +106,7 @@ object PseudoMarkdown {
   private def StrikethroughSegment(s: Segment, m: Regex.Match) = new segment.StrikethroughSegment(s, m.group(1))
 
   private def ImageSegment(s: Segment, m: Regex.Match) = {
-    try Option(Manual.imageFor(m.group(2))) match {
+    try Option(api.Manual.imageFor(m.group(2))) match {
       case Some(renderer) => new segment.RenderSegment(s, m.group(1), renderer)
       case _ => new segment.ImageSegment(s, m.group(1), m.group(2))
     } catch {

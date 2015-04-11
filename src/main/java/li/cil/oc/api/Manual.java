@@ -2,6 +2,7 @@ package li.cil.oc.api;
 
 import li.cil.oc.api.manual.ContentProvider;
 import li.cil.oc.api.manual.ImageProvider;
+import li.cil.oc.api.manual.ImageRenderer;
 import li.cil.oc.api.manual.PathProvider;
 import li.cil.oc.api.manual.TabIconRenderer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -84,6 +85,22 @@ public class Manual {
     public static void addProvider(String prefix, ImageProvider provider) {
         if (API.manual != null)
             API.manual.addProvider(prefix, provider);
+    }
+
+    /**
+     * Get the image renderer for the specified image path.
+     * <p/>
+     * This will look for {@link ImageProvider}s registered for a prefix in the
+     * specified path. If there is no match, or the matched content provider
+     * does not provide a renderer, this will return <tt>null</tt>.
+     *
+     * @param path the path to the image to get the renderer for.
+     * @return the custom renderer for that path.
+     */
+    public static ImageRenderer imageFor(String path) {
+        if (API.manual != null)
+            return API.manual.imageFor(path);
+        return null;
     }
 
     // ----------------------------------------------------------------------- //

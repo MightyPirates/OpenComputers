@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.markdown.segment
 
-import li.cil.oc.client.renderer.markdown.PseudoMarkdown
+import li.cil.oc.client.renderer.markdown.Document
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
@@ -45,7 +45,7 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
       chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
       lineChars = maxChars(chars, maxWidth, renderer)
     }
-    (lines * PseudoMarkdown.lineHeight(renderer) * resolvedScale).toInt
+    (lines * Document.lineHeight(renderer) * resolvedScale).toInt
   }
 
   override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
@@ -72,7 +72,7 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     var hovered: Option[InteractiveSegment] = None
     while (chars.length > 0 && (currentY - y) < maxY) {
       val part = chars.take(numChars)
-      hovered = hovered.orElse(interactive.fold(None: Option[InteractiveSegment])(_.checkHovered(mouseX, mouseY, currentX, currentY, (stringWidth(part, renderer) * fontScale).toInt, (PseudoMarkdown.lineHeight(renderer) * fontScale).toInt)))
+      hovered = hovered.orElse(interactive.fold(None: Option[InteractiveSegment])(_.checkHovered(mouseX, mouseY, currentX, currentY, (stringWidth(part, renderer) * fontScale).toInt, (Document.lineHeight(renderer) * fontScale).toInt)))
       GL11.glPushMatrix()
       GL11.glTranslatef(currentX, currentY, 0)
       GL11.glScalef(fontScale, fontScale, fontScale)
@@ -80,7 +80,7 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
       renderer.drawString(resolvedFormat + part, currentX, currentY, resolvedColor)
       GL11.glPopMatrix()
       currentX = x
-      currentY += (PseudoMarkdown.lineHeight(renderer) * fontScale).toInt
+      currentY += (Document.lineHeight(renderer) * fontScale).toInt
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
       numChars = maxChars(chars, maxWidth, renderer)
     }
