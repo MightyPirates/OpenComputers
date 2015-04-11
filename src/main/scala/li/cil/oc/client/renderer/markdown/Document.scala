@@ -18,7 +18,7 @@ object Document {
    * Parses a plain text document into a list of segments.
    */
   def parse(document: Iterable[String]): Iterable[Segment] = {
-    var segments = document.flatMap(line => Iterable(new segment.TextSegment(null, Option(line).getOrElse("")), new segment.NewLineSegment())).toArray
+    var segments = document.flatMap(line => Iterable(new segment.TextSegment(null, Option(line).fold("")(_.reverse.dropWhile(_.isWhitespace).reverse)), new segment.NewLineSegment())).toArray
     for ((pattern, factory) <- segmentTypes) {
       segments = segments.flatMap(_.refine(pattern, factory))
     }
