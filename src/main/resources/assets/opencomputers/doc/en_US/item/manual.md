@@ -2,10 +2,12 @@
 
 ![A good read.](oredict:oc:manual)
 
-The thing you're reading right now! The manual contains a wealth of information about OpenComputers (and possibly more). If you need information on an item or block in the mod, look no further! Then realize your question isn't answered and alt-tab to the [wiki](http://ocdoc.cil.li). Or [IRC](http://webchat.esper.net/?channels=#oc). Or the [forums](http://oc.cil.li/). Anyway! Most basic questions (and some advanced ones) should be covered by the manual.
+The thing you're reading right now! The manual contains a wealth of information about OpenComputers (and possibly more). If you need information on an item or block in the mod, look no further! Scroll down to learn how to use (mouse wheel or the scroll bar to the right).
 
-## Usage
+![Your new best friend.](opencomputers:doc/img/manual.png)
 
-There are two main ways you can look things up in the manual: manual navigation (pun maybe intended) by following the links, or by sneak-activating a supported block while holding the manual in your hand; the latter will open the page for that block in the manual.
+Navigating the manual is similar to browsing a wiki: click on links (1) to follow them to the page they reference. Right-click or press the jump key to go back one page. Press escape or the inventory key to close the manual. To the left you will find a few tabs (2) that provide a way to quickly jump to select pages, such as the block and item index. To the right you will find the scroll bar (3). You can either drag it manually, or use the mouse wheel to scroll in a page.
 
-To navigate left-click on links (green text [like this one](../index.md)) to follow them, right-click anywhere or press space to go back to the previous page. Press escape to close the manual immediately. If you're lost, use the tabs to the left to return to and index page.
+When opening the manual again at a later point, you will return to the page you were on when you closed it. You can start over on the main index page by using it while sneaking. It is also possible to directly jump to a page concerning a block in the world by using the block while sneaking with the manual in hand.
+
+If your questions are not answered by the manual, other places with information are the [wiki](http://ocdoc.cil.li), OpenComputers' [IRC channel](http://webchat.esper.net/?channels=#oc) and the [forums](http://oc.cil.li/).

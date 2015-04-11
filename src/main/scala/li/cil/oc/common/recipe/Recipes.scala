@@ -226,6 +226,9 @@ object Recipes {
         GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(hdd.createItemStack(1), hdd.createItemStack(1)))
       }
 
+      // EEPROM formatting.
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(eeprom.createItemStack(1), eeprom.createItemStack(1)))
+
       // Print light value increments.
       val lightPrint = print.createItemStack(1)
 

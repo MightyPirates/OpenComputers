@@ -12,6 +12,7 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.integration.Mods
+import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.SideTracker
 import net.minecraft.init.Blocks
@@ -71,15 +72,27 @@ object ExtendedRecipe {
     }
 
     if (api.Items.get(craftedStack) == floppy || hdds.contains(api.Items.get(craftedStack))) {
+      if (!craftedStack.hasTagCompound) {
+        craftedStack.setTagCompound(new NBTTagCompound())
+      }
+      val nbt = craftedStack.getTagCompound
       if (recipe.getRecipeSize == 1) {
-        // Formatting / loot to normal disk conversion.
-        craftedStack.setTagCompound(null)
+        // Formatting / loot to normal disk conversion, only keep coloring.
+        val colorKey = Settings.namespace + "color"
+        for (slot <- 0 until inventory.getSizeInventory) {
+          val stack = inventory.getStackInSlot(slot)
+          if (stack != null && api.Items.get(stack) != null && (api.Items.get(stack) == floppy || api.Items.get(stack).name == "lootDisk") && stack.hasTagCompound) {
+            val oldData = stack.getTagCompound
+            if (oldData.hasKey(colorKey) && oldData.getInteger(colorKey) != Color.dyes.indexOf("lightGray")) {
+              nbt.setTag(colorKey, oldData.getTag(colorKey).copy())
+            }
+          }
+        }
+        if (nbt.hasNoTags) {
+          craftedStack.setTagCompound(null)
+        }
       }
       else {
-        if (!craftedStack.hasTagCompound) {
-          craftedStack.setTagCompound(new NBTTagCompound())
-        }
-        val nbt = craftedStack.getTagCompound
         for (slot <- 0 until inventory.getSizeInventory) {
           val stack = inventory.getStackInSlot(slot)
           if (stack != null && api.Items.get(stack) == floppy && stack.hasTagCompound) {
@@ -135,7 +148,12 @@ object ExtendedRecipe {
       data.save(craftedStack)
     }
 
-    if (api.Items.get(craftedStack) == eeprom && !ItemStack.areItemStackTagsEqual(craftedStack, luaBios)) breakable {
+    // EEPROM copying.
+    if (api.Items.get(craftedStack) == eeprom &&
+      !ItemStack.areItemStackTagsEqual(craftedStack, luaBios) &&
+      recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
+      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
+      recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) breakable {
       for (slot <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(slot)
         if (stack != null && api.Items.get(stack) == eeprom && stack.hasTagCompound) {
@@ -148,6 +166,7 @@ object ExtendedRecipe {
       }
     }
 
+    // Swapping EEPROM in devices.
     recraft(craftedStack, inventory, mcu, stack => new MCUDataWrapper(stack))
     recraft(craftedStack, inventory, drone, stack => new MCUDataWrapper(stack))
     recraft(craftedStack, inventory, robot, stack => new RobotDataWrapper(stack))
