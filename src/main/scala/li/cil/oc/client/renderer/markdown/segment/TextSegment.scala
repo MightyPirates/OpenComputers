@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 private[markdown] class TextSegment(protected val parent: Segment, val text: String) extends Segment {
-  private final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\', ')', '\'', '"')
+  private final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\')
   private final val lists = Set("- ", "* ")
   private lazy val rootPrefix = root.asInstanceOf[TextSegment].text.take(2)
 
