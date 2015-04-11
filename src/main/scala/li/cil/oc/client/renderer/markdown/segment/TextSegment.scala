@@ -9,6 +9,8 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 private[markdown] class TextSegment(protected val parent: Segment, val text: String) extends Segment {
+  final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\', ')', '\'', '"')
+
   override def refine(pattern: Regex, factory: (Segment, Regex.Match) => Segment): Iterable[Segment] = {
     val result = mutable.Buffer.empty[Segment]
 
@@ -39,11 +41,11 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     var lines = 0
     var chars = text
     if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
-    var lineChars = maxChars(chars, maxWidth - indent, renderer)
+    var lineChars = maxChars(chars, maxWidth - indent, maxWidth, renderer)
     while (chars.length > lineChars) {
       lines += 1
       chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
-      lineChars = maxChars(chars, maxWidth, renderer)
+      lineChars = maxChars(chars, maxWidth, maxWidth, renderer)
     }
     (lines * Document.lineHeight(renderer) * resolvedScale).toInt
   }
@@ -52,10 +54,10 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     var currentX = indent
     var chars = text
     if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
-    var lineChars = maxChars(chars, maxWidth - indent, renderer)
+    var lineChars = maxChars(chars, maxWidth - indent, maxWidth, renderer)
     while (chars.length > lineChars) {
       chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
-      lineChars = maxChars(chars, maxWidth, renderer)
+      lineChars = maxChars(chars, maxWidth, maxWidth, renderer)
       currentX = 0
     }
     currentX + (stringWidth(chars, renderer) * resolvedScale).toInt
@@ -67,7 +69,7 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     var currentY = y
     var chars = text
     if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
-    var numChars = maxChars(chars, maxWidth - indent, renderer)
+    var numChars = maxChars(chars, maxWidth - indent, maxWidth, renderer)
     val interactive = findInteractive()
     var hovered: Option[InteractiveSegment] = None
     while (chars.length > 0 && (currentY - y) < maxY) {
@@ -82,7 +84,7 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
       currentX = x
       currentY += (Document.lineHeight(renderer) * fontScale).toInt
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
-      numChars = maxChars(chars, maxWidth, renderer)
+      numChars = maxChars(chars, maxWidth, maxWidth, renderer)
     }
 
     hovered
@@ -119,16 +121,15 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     }
   }
 
-  private def maxChars(s: String, maxWidth: Int, renderer: FontRenderer): Int = {
+  private def maxChars(s: String, maxWidth: Int, maxLineWidth: Int, renderer: FontRenderer): Int = {
     val fontScale = resolvedScale
-    val breaks = Set(' ', '-', '.', '+', '*', '_', '/')
-    var pos = 0
+    var pos = -1
     var lastBreak = -1
     while (pos < s.length) {
       pos += 1
       val width = (stringWidth(s.take(pos), renderer) * fontScale).toInt
       if (width >= maxWidth) {
-        if (lastBreak > 0 || stringWidth(s, renderer) <= maxWidth) return lastBreak + 1
+        if (lastBreak > 0 || stringWidth(s, renderer) <= maxLineWidth || s.exists(breaks.contains)) return lastBreak + 1
         else return pos - 1
       }
       if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos

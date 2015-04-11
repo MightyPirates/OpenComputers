@@ -6,14 +6,16 @@ import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
 private[markdown] class CodeSegment(protected val parent: Segment, val text: String) extends Segment {
+  final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\', ')', '\'', '"')
+
   override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
     var lines = 0
     var chars = text
-    var lineChars = maxChars(chars, maxWidth - indent)
+    var lineChars = maxChars(chars, maxWidth - indent, maxWidth)
     while (chars.length > lineChars) {
       lines += 1
       chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
-      lineChars = maxChars(chars, maxWidth)
+      lineChars = maxChars(chars, maxWidth, maxWidth)
     }
     lines * Document.lineHeight(renderer)
   }
@@ -21,12 +23,11 @@ private[markdown] class CodeSegment(protected val parent: Segment, val text: Str
   override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
     var currentX = indent
     var chars = text
-    if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
-    var lineChars = maxChars(chars, maxWidth - indent)
+    var lineChars = maxChars(chars, maxWidth - indent, maxWidth)
     while (chars.length > lineChars) {
       chars = chars.drop(lineChars).dropWhile(_.isWhitespace)
-      lineChars = maxChars(chars, maxWidth)
-      currentX = 0
+      lineChars = maxChars(chars, maxWidth, maxWidth)
+      currentX = 1
     }
     currentX + stringWidth(chars)
   }
@@ -37,15 +38,15 @@ private[markdown] class CodeSegment(protected val parent: Segment, val text: Str
     var currentX = x + indent
     var currentY = y
     var chars = text
-    var numChars = maxChars(chars, maxWidth - indent)
+    var numChars = maxChars(chars, maxWidth - indent, maxWidth)
     while (chars.length > 0 && (currentY - y) < maxY) {
-      val part = chars.take(numChars).reverse.dropWhile(_.isWhitespace).reverse
+      val part = chars.take(numChars)
       GL11.glColor4f(0.75f, 0.8f, 1, 1)
       TextBufferRenderCache.renderer.drawString(part, currentX, currentY)
       currentX = x
       currentY += Document.lineHeight(renderer)
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
-      numChars = maxChars(chars, maxWidth)
+      numChars = maxChars(chars, maxWidth, maxWidth)
     }
 
     None
@@ -53,15 +54,14 @@ private[markdown] class CodeSegment(protected val parent: Segment, val text: Str
 
   private def stringWidth(s: String): Int = s.length * TextBufferRenderCache.renderer.charRenderWidth
 
-  private def maxChars(s: String, maxWidth: Int): Int = {
-    val breaks = Set(' ', '-', '.', '+', '*', '_', '/')
+  private def maxChars(s: String, maxWidth: Int, maxLineWidth: Int): Int = {
     var pos = 0
     var lastBreak = -1
     while (pos < s.length) {
       pos += 1
       val width = stringWidth(s.take(pos))
       if (width >= maxWidth) {
-        if (lastBreak > 0 || stringWidth(s) <= maxWidth) return lastBreak + 1
+        if (lastBreak > 0 || stringWidth(s) <= maxLineWidth || s.exists(breaks.contains)) return lastBreak + 1
         else return pos - 1
       }
       if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos

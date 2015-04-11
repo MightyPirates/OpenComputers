@@ -32,6 +32,7 @@ class Manual extends GuiScreen {
   final val tabPosY = 7
   final val tabWidth = 23
   final val tabHeight = 26
+  final val maxTabsPerSide = 7
 
   var guiLeft = 0
   var guiTop = 0
@@ -102,14 +103,14 @@ class Manual extends GuiScreen {
     xSize = guiSize.getScaledWidth
     ySize = guiSize.getScaledHeight
 
-    scrollButton = new ImageButton(-1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
-    add(buttonList, scrollButton)
-
-    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < 7) {
+    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val x = guiLeft + tabPosX
       val y = guiTop + tabPosY + i * (tabHeight - 1)
       add(buttonList, new ImageButton(i, x, y, tabWidth, tabHeight, Textures.guiManualTab))
     }
+
+    scrollButton = new ImageButton(-1, guiLeft + scrollPosX, guiTop + scrollPosY, 6, 13, Textures.guiButtonScroll)
+    add(buttonList, scrollButton)
 
     refreshPage()
   }
@@ -123,18 +124,17 @@ class Manual extends GuiScreen {
 
     super.drawScreen(mouseX, mouseY, dt)
 
-    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < 7) {
-      val x = guiLeft + tabPosX
-      val y = guiTop + tabPosY + i * (tabHeight - 1)
+    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
+      val button = buttonList.get(i).asInstanceOf[ImageButton]
       GL11.glPushMatrix()
-      GL11.glTranslated(x + 5, y + 5, zLevel)
+      GL11.glTranslated(button.xPosition + 5, button.yPosition + 5, zLevel)
       tab.renderer.render()
       GL11.glPopMatrix()
     }
 
     currentSegment = Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY)
 
-    currentSegment match {
+    if (!isDragging) currentSegment match {
       case Some(segment) =>
         segment.tooltip match {
           case Some(text) if text.nonEmpty => drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
@@ -143,12 +143,15 @@ class Manual extends GuiScreen {
       case _ =>
     }
 
-    for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < 7) {
-      val x = guiLeft + tabPosX
-      val y = guiTop + tabPosY + i * (tabHeight - 1)
-      if (mouseX > x && mouseX < x + tabWidth && mouseY > y && mouseY < y + tabHeight) tab.tooltip.foreach(text => {
+    if (!isDragging) for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
+      val button = buttonList.get(i).asInstanceOf[ImageButton]
+      if (mouseX > button.xPosition && mouseX < button.xPosition + tabWidth && mouseY > button.yPosition && mouseY < button.yPosition + tabHeight) tab.tooltip.foreach(text => {
         drawHoveringText(seqAsJavaList(Localization.localizeImmediately(text).lines.toSeq), mouseX, mouseY, fontRendererObj)
       })
+    }
+
+    if (isCoordinateOverScrollBar(mouseX - guiLeft, mouseY - guiTop) || isDragging) {
+      drawHoveringText(seqAsJavaList(Seq(s"${100 * offset / maxOffset}%")), guiLeft + scrollPosX + scrollWidth, scrollButton.yPosition + scrollButton.height + 1, fontRendererObj)
     }
   }
 

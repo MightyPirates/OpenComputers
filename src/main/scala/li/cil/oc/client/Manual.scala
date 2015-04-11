@@ -43,6 +43,9 @@ object Manual extends ManualAPI {
 
   override def addTab(renderer: TabIconRenderer, tooltip: String, path: String): Unit = {
     tabs += new Tab(renderer, Option(tooltip), path)
+    if (tabs.length > 7) {
+      OpenComputers.log.warn("Gosh I'm popular! Too many tabs were added to the OpenComputers in-game manual, so some won't be shown. In case this actually happens, let me know and I'll look into making them scrollable or something...")
+    }
   }
 
   override def addProvider(provider: PathProvider): Unit = {

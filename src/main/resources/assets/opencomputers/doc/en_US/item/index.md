@@ -77,6 +77,6 @@ Keep in mind that some of these may not be available, depending on the recipe se
 # Assembling / Printing
 * [Chamelium](chamelium.md)
 * [Drone Case](droneCase1.md)
-* [Ink Cardridge](inkCardridge.md)
+* [Ink Cartridge](inkCartridge.md)
 * [Microcontroller Case](microcontrollerCase1.md)
 * [Tablet Case](tabletCase1.md)
