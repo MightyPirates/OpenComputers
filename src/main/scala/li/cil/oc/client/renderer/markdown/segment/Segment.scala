@@ -40,7 +40,13 @@ trait Segment {
    */
   def nextY(indent: Int, maxWidth: Int, renderer: FontRenderer): Int
 
+  /**
+   * Render the segment at the specified coordinates with the specified
+   * properties.
+   */
   def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
+
+  // ----------------------------------------------------------------------- //
 
   // Used during construction, checks a segment for inner segments.
   private[markdown] def refine(pattern: Regex, factory: (Segment, Regex.Match) => Segment): Iterable[Segment] = Iterable(this)

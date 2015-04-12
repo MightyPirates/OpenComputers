@@ -1,43 +1,10 @@
 package li.cil.oc.client.renderer.markdown.segment
 
 import li.cil.oc.client.renderer.TextBufferRenderCache
-import li.cil.oc.client.renderer.markdown.Document
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
-private[markdown] class CodeSegment(val parent: Segment, val text: String) extends Segment {
-  private final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\')
-  private final val lists = Set("- ", "* ")
-  private lazy val rootPrefix = root.asInstanceOf[TextSegment].text.take(2)
-
-  override def nextX(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
-    if (isLast) return 0
-    var currentX = indent
-    var chars = text
-    val wrapIndent = computeWrapIndent(renderer)
-    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent)
-    while (chars.length > numChars) {
-      chars = chars.drop(numChars).dropWhile(_.isWhitespace)
-      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent)
-      currentX = wrapIndent + 1
-    }
-    currentX + stringWidth(chars)
-  }
-
-  override def nextY(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
-    var lines = 0
-    var chars = text
-    val wrapIndent = computeWrapIndent(renderer)
-    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent)
-    while (chars.length > numChars) {
-      lines += 1
-      chars = chars.drop(numChars).dropWhile(_.isWhitespace)
-      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent)
-    }
-    if (isLast) lines += 1
-    lines * Document.lineHeight(renderer)
-  }
-
+private[markdown] class CodeSegment(val parent: Segment, val text: String) extends BasicTextSegment {
   override def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     TextBufferRenderCache.renderer.generateChars(text.toCharArray)
 
@@ -45,38 +12,23 @@ private[markdown] class CodeSegment(val parent: Segment, val text: String) exten
     var currentY = y
     var chars = text
     val wrapIndent = computeWrapIndent(renderer)
-    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent)
+    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent, renderer)
     while (chars.length > 0) {
       val part = chars.take(numChars)
       GL11.glColor4f(0.75f, 0.8f, 1, 1)
       TextBufferRenderCache.renderer.drawString(part, currentX, currentY)
       currentX = x + wrapIndent
-      currentY += Document.lineHeight(renderer)
+      currentY += lineHeight(renderer)
       chars = chars.drop(numChars).dropWhile(_.isWhitespace)
-      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent)
+      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent, renderer)
     }
 
     None
   }
 
-  private def stringWidth(s: String): Int = s.length * TextBufferRenderCache.renderer.charRenderWidth
+  override protected def ignoreLeadingWhitespace: Boolean = false
 
-  private def maxChars(s: String, maxWidth: Int, maxLineWidth: Int): Int = {
-    var pos = 0
-    var lastBreak = -1
-    while (pos < s.length) {
-      pos += 1
-      val width = stringWidth(s.take(pos))
-      if (width >= maxWidth) {
-        if (lastBreak > 0 || stringWidth(s) <= maxLineWidth || s.exists(breaks.contains)) return lastBreak + 1
-        else return pos - 1
-      }
-      if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
-    }
-    pos
-  }
-
-  private def computeWrapIndent(renderer: FontRenderer) = if (lists.contains(rootPrefix)) renderer.getStringWidth(rootPrefix) else 0
+  override protected def stringWidth(s: String, renderer: FontRenderer): Int = s.length * TextBufferRenderCache.renderer.charRenderWidth
 
   override def toString: String = s"{CodeSegment: text = $text}"
 }
