@@ -186,6 +186,7 @@ oc:gui.Error.OutOfMemory=Nicht genug Arbeitsspeicher.
 oc:gui.Manual.Blocks=OpenComputers Blöcke
 oc:gui.Manual.Items=OpenComputers Gegenstände
 oc:gui.Manual.Warning.BlockMissing=Block nicht verfügbar.
+oc:gui.Manual.Warning.ImageMissing=Bild nicht gefunden.
 oc:gui.Manual.Warning.ItemMissing=Gegenstand nicht verfügbar.
 oc:gui.Manual.Warning.OreDictMissing=Ore-Dictionary-Eintrag nicht verfügbar.
 oc:gui.Raid.Warning=§4Eine Platte einzufügen löscht sie.[nl] Eine Platte zu entfernen löscht das Raid.

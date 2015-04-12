@@ -8,32 +8,65 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
+import scala.collection.Iterable
 import scala.util.matching.Regex
 
 /**
  * Primitive Markdown parser, only supports a very small subset. Used for
  * parsing documentation into segments, to be displayed in a GUI somewhere.
+ *
+ * General usage is: parse a string using parse(), render it using render().
+ *
+ * The parser generates a list of segments, each segment representing a part
+ * of the document, with a specific formatting / render type. For example,
+ * links are their own segments, a bold section in a link would be its own
+ * section and so on.
+ * The data structure is essentially a very flat multi-tree, where the segments
+ * returned are the leaves, and the roots are the individual lines, represented
+ * as text segments.
+ * Formatting is done by accumulating formatting information over the parent
+ * nodes, up to the root.
  */
 object Document {
   /**
    * Parses a plain text document into a list of segments.
    */
-  def parse(document: Iterable[String]): Iterable[Segment] = {
-    var segments = document.flatMap(line => Iterable(new segment.TextSegment(null, Option(line).fold("")(_.reverse.dropWhile(_.isWhitespace).reverse)), new segment.NewLineSegment())).toArray
+  def parse(document: Iterable[String]): Segment = {
+    var segments: Iterable[Segment] = document.map(line => new segment.TextSegment(null, Option(line).fold("")(_.reverse.dropWhile(_.isWhitespace).reverse)))
     for ((pattern, factory) <- segmentTypes) {
       segments = segments.flatMap(_.refine(pattern, factory))
     }
-    for (Array(s1, s2) <- segments.sliding(2)) {
-      s2.previous = s1
+    for (window <- segments.sliding(2)) {
+      window.head.next = window.last
     }
-    segments
+    segments.head
   }
 
   /**
-   * Renders a list of segments and tooltips if a segment with a tooltip is hovered.
-   * Returns a link address if a link is hovered.
+   * Compute the overall height of a document, e.g. for computation of scroll offsets.
    */
-  def render(document: Iterable[Segment], x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+  def height(document: Segment, maxWidth: Int, renderer: FontRenderer): Int = {
+    var currentX = 0
+    var currentY = 0
+    var segment = document
+    while (segment != null) {
+      currentY += segment.nextY(currentX, maxWidth, renderer)
+      currentX = segment.nextX(currentX, maxWidth, renderer)
+      segment = segment.next
+    }
+    currentY
+  }
+
+  /**
+   * Line height for a normal line of text.
+   */
+  def lineHeight(renderer: FontRenderer): Int = renderer.FONT_HEIGHT + 1
+
+  /**
+   * Renders a list of segments and tooltips if a segment with a tooltip is hovered.
+   * Returns the hovered interactive segment, if any.
+   */
+  def render(document: Segment, x: Int, y: Int, maxWidth: Int, maxHeight: Int, yOffset: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     val mc = Minecraft.getMinecraft
 
     RenderState.pushAttrib()
@@ -69,13 +102,20 @@ object Document {
 
     // Actual rendering.
     var hovered: Option[InteractiveSegment] = None
-    var currentX = 0
-    var currentY = 0
-    for (segment <- document) {
-      val result = segment.render(x, y + currentY - yOffset, currentX, maxWidth, y, maxHeight - (currentY - yOffset), renderer, mouseX, mouseY)
-      hovered = hovered.orElse(result)
-      currentY += segment.height(currentX, maxWidth, renderer)
-      currentX = segment.width(currentX, maxWidth, renderer)
+    var indent = 0
+    var currentY = y - yOffset
+    val minY = y - lineHeight(renderer)
+    val maxY = y + maxHeight + lineHeight(renderer)
+    var segment = document
+    while (segment != null) {
+      val segmentHeight = segment.nextY(indent, maxWidth, renderer)
+      if (currentY + segmentHeight >= minY && currentY <= maxY) {
+        val result = segment.render(x, currentY, indent, maxWidth, renderer, mouseX, mouseY)
+        hovered = hovered.orElse(result)
+      }
+      currentY += segmentHeight
+      indent = segment.nextX(indent, maxWidth, renderer)
+      segment = segment.next
     }
     if (mouseX < x || mouseX > x + maxWidth || mouseY < y || mouseY > y + maxHeight) hovered = None
     hovered.foreach(_.notifyHover())
@@ -85,24 +125,6 @@ object Document {
 
     hovered
   }
-
-  /**
-   * Compute the overall height of a document, for computation of scroll offsets.
-   */
-  def height(document: Iterable[Segment], maxWidth: Int, renderer: FontRenderer): Int = {
-    var currentX = 0
-    var currentY = 0
-    for (segment <- document) {
-      currentY += segment.height(currentX, maxWidth, renderer)
-      currentX = segment.width(currentX, maxWidth, renderer)
-    }
-    currentY
-  }
-
-  /**
-   * Line height for a normal line of text.
-   */
-  def lineHeight(renderer: FontRenderer): Int = renderer.FONT_HEIGHT + 1
 
   // ----------------------------------------------------------------------- //
 

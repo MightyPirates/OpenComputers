@@ -27,6 +27,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.mutable
 
@@ -439,8 +440,8 @@ object Items extends ItemAPI {
     val integration = newItem(new item.Delegator(), "integration")
 
     // Only register recipes if the related mods are present.
-    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, "oc:abstractBusCard", Mods.StargateTech2.isAvailable)
-    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, "oc:worldSensorCard", Mods.Galacticraft.isAvailable)
+    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, Mods.StargateTech2.isAvailable, "oc:abstractBusCard")
+    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, Mods.Galacticraft.isAvailable, "oc:worldSensorCard")
   }
 
   private def newItem[T <: Item](item: T, name: String): T = {
