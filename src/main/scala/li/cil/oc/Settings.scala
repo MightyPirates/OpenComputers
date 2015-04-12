@@ -293,6 +293,7 @@ class Settings(val config: Config) {
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
   val threadPriority = config.getInt("misc.threadPriority")
+  val giveManualToNewPlayers = config.getBoolean("misc.giveManualToNewPlayers")
 
   // ----------------------------------------------------------------------- //
   // printer
