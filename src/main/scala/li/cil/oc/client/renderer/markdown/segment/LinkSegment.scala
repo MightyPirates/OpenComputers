@@ -1,7 +1,11 @@
 package li.cil.oc.client.renderer.markdown.segment
 
+import java.net.URI
+
+import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.client.Manual
+import net.minecraft.client.Minecraft
 
 private[markdown] class LinkSegment(parent: Segment, text: String, val url: String) extends TextSegment(parent, text) with InteractiveSegment {
   private final val normalColor = 0x66FF66
@@ -23,7 +27,11 @@ private[markdown] class LinkSegment(parent: Segment, text: String, val url: Stri
 
   override def tooltip: Option[String] = Option(url)
 
-  override def link: Option[String] = Option(url)
+  override def onMouseClick(mouseX: Int, mouseY: Int): Boolean = {
+    if (url.startsWith("http://") || url.startsWith("https://")) handleUrl(url)
+    else Manual.navigate(Manual.makeRelative(url, Manual.history.top.path))
+    true
+  }
 
   override private[markdown] def notifyHover(): Unit = lastHovered = System.currentTimeMillis()
 
@@ -32,6 +40,18 @@ private[markdown] class LinkSegment(parent: Segment, text: String, val url: Stri
     val (r2, g2, b2) = ((c2 >>> 16) & 0xFF, (c2 >>> 8) & 0xFF, c2 & 0xFF)
     val (r, g, b) = ((r1 + (r2 - r1) * t).toInt, (g1 + (g2 - g1) * t).toInt, (b1 + (b2 - b1) * t).toInt)
     (r << 16) | (g << 8) | b
+  }
+
+  private def handleUrl(url: String): Unit = {
+    // Pretty much copy-paste from GuiChat.
+    try {
+      val desktop = Class.forName("java.awt.Desktop")
+      val instance = desktop.getMethod("getDesktop").invoke(null)
+      desktop.getMethod("browse", classOf[URI]).invoke(instance, new URI(url))
+    }
+    catch {
+      case t: Throwable => Minecraft.getMinecraft.thePlayer.addChatMessage(Localization.Chat.WarningLink(t.toString))
+    }
   }
 
   override def toString: String = s"{LinkSegment: text = $text, url = $url}"

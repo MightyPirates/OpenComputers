@@ -14,8 +14,6 @@ trait InteractiveSegment extends Segment {
    */
   def tooltip: Option[String] = None
 
-  def link: Option[String] = None
-
   /**
    * Should be called by whatever is rendering the document when a left mouse
    * click occurs.
