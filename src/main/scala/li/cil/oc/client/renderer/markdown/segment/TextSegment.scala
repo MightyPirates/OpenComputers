@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.matching.Regex
 
-private[markdown] class TextSegment(protected val parent: Segment, val text: String) extends Segment {
+private[markdown] class TextSegment(val parent: Segment, val text: String) extends Segment {
   private final val breaks = Set(' ', '.', ',', ':', ';', '!', '?', '_', '=', '-', '+', '*', '/', '\\')
   private final val lists = Set("- ", "* ")
   private lazy val rootPrefix = root.asInstanceOf[TextSegment].text.take(2)
@@ -39,21 +39,8 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     result
   }
 
-  override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
-    var lines = 0
-    var chars = text
-    if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
-    val wrapIndent = computeWrapIndent(renderer)
-    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent, renderer)
-    while (chars.length > numChars) {
-      lines += 1
-      chars = chars.drop(numChars).dropWhile(_.isWhitespace)
-      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent, renderer)
-    }
-    (lines * Document.lineHeight(renderer) * resolvedScale).toInt
-  }
-
-  override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
+  override def nextX(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
+    if (isLast) return 0
     var currentX = indent
     var chars = text
     if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
@@ -67,7 +54,22 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     currentX + (stringWidth(chars, renderer) * resolvedScale).toInt
   }
 
-  override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+  override def nextY(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
+    var lines = 0
+    var chars = text
+    if (indent == 0) chars = chars.dropWhile(_.isWhitespace)
+    val wrapIndent = computeWrapIndent(renderer)
+    var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent, renderer)
+    while (chars.length > numChars) {
+      lines += 1
+      chars = chars.drop(numChars).dropWhile(_.isWhitespace)
+      numChars = maxChars(chars, maxWidth - wrapIndent, maxWidth - wrapIndent, renderer)
+    }
+    if (isLast) lines += 1
+    (lines * Document.lineHeight(renderer) * resolvedScale).toInt
+  }
+
+  override def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     val fontScale = resolvedScale
     var currentX = x + indent
     var currentY = y
@@ -77,7 +79,7 @@ private[markdown] class TextSegment(protected val parent: Segment, val text: Str
     var numChars = maxChars(chars, maxWidth - indent, maxWidth - wrapIndent, renderer)
     val interactive = findInteractive()
     var hovered: Option[InteractiveSegment] = None
-    while (chars.length > 0 && (currentY - y) < maxY) {
+    while (chars.length > 0) {
       val part = chars.take(numChars)
       hovered = hovered.orElse(interactive.fold(None: Option[InteractiveSegment])(_.checkHovered(mouseX, mouseY, currentX, currentY, (stringWidth(part, renderer) * fontScale).toInt, (Document.lineHeight(renderer) * fontScale).toInt)))
       GL11.glPushMatrix()

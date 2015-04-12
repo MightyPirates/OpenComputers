@@ -39,7 +39,7 @@ class Manual extends GuiScreen {
   var xSize = 0
   var ySize = 0
   var isDragging = false
-  var document = Iterable.empty[Segment]
+  var document: Segment = null
   var documentHeight = 0
   var currentSegment = None: Option[InteractiveSegment]
   protected var scrollButton: ImageButton = _

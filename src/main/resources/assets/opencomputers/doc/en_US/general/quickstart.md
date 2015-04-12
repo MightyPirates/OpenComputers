@@ -5,7 +5,9 @@ Also know as "how to build your first computer". To get your first [computer](co
 **Disclaimer**: this will be step-by-step, and also provide some information on how to look for issues yourself later on, so this is quite long. If you never built a computer in real life, and/or are completely new to the mod, it is highly recommended you read through it all.
 
 First off, you will need a [computer case](../block/case1.md). This is the block into which you will build most of the components, defining the behavior of the computer you're building.
+
 ![A tier two computer case.](oredict:oc:case2)
+
 For example, you will need to choose what tier of [graphics card](../item/graphicsCard1.md) you wish to use, if you need a [network card](../item/lanCard.md), a [redstone card](../item/redstoneCard1.md) or, if you're just playing around in creative mode, maybe even a [debug card](../item/debugCard.md).
 
 When you open the computer case's GUI you will see a few slots to the right. The number of slots, and what tier of component can be placed into them (indicated by the small roman numeral in the slot) depends on the tier of the case itself.
@@ -18,7 +20,6 @@ Next up you'll be asked to insert some [memory](../item/ram1.md). Notice that th
 
 We're making good progress here. By now your computer case will look somewhat like this:
 ![Partially configured computer.](opencomputers:doc/img/configuration_case2.png)
-
 And behold, turning it on now does not print any more error messages! But alas, it still doesn't do much. At least it beeps twice now. That means the actual execution of the computer failed. In other words: it technically runs! This is where a very useful tool comes into play: the [analyzer](../item/analyzer.md). This tool allows inspecting many of OpenComputers' blocks, as well as some blocks from other mods. To use it on the computer, use the analyzer on the case while sneaking.
 
 You should now see the error that caused the computer to crash:
@@ -37,6 +38,7 @@ It lives! Or should, anyway. If it doesn't something went wrong, and you'll want
 
 To allow the computer to show some output, you'll want to grab a [screen](../block/screen1.md) and a [graphics card](../item/graphicsCard1.md).
 ![No, it's not a flatscreen.](oredict:oc:screen2)
+
 Place the screen adjacent to your computer case, or, again, connect it using some cable. Then place a graphics card of your choice into the computer case. You should now see a blinking cursor on the screen. Finally, place a [keyboard](../block/keyboard.md) either on the screen itself, or in a way so that it faces the screen, to enable keyboard input.
 
 And with that, you're done. The computer is up and running and ready for action. Try using it now! Type `lua` in the shell and press enter, and you'll be greeted with a bit of information on how to use the Lua interpreter. Here you can test basic Lua commands. For more information this topic see [the Lua page](lua.md).
