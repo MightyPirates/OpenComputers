@@ -29,6 +29,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
+import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.mutable
 
@@ -460,6 +461,6 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.TexturePicker(multi), Constants.ItemName.TexturePicker, "oc:texturePicker")
 
     // 1.5.7
-    Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual")
+    Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual", "craftingBook")
   }
 }

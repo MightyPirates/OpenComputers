@@ -4,7 +4,6 @@ import li.cil.oc.client.renderer.markdown.Document
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
-import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.matching.Regex
 

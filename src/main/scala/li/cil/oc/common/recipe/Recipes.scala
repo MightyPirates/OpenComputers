@@ -35,30 +35,30 @@ object Recipes {
   val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
   var hadErrors = false
 
-  def addBlock(instance: Block, name: String, oreDict: String = null) = {
+  def addBlock(instance: Block, name: String, oreDict: String*) = {
     Items.registerBlock(instance, name)
     addRecipe(new ItemStack(instance), name)
-    register(oreDict, instance match {
+    register(instance match {
       case simple: SimpleBlock => simple.createItemStack()
       case _ => new ItemStack(instance)
-    })
+    }, oreDict: _*)
     instance
   }
 
-  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String*) = {
     Items.registerItem(delegate, name)
     addRecipe(delegate.createItemStack(), name)
-    register(oreDict, delegate.createItemStack())
+    register(delegate.createItemStack(), oreDict: _*)
     delegate
   }
 
-  def addItem(instance: Item, name: String, oreDict: String = null) = {
+  def addItem(instance: Item, name: String, oreDict: String*) = {
     Items.registerItem(instance, name)
     addRecipe(new ItemStack(instance), name)
-    register(oreDict, instance match {
+    register(instance match {
       case simple: SimpleItem => simple.createItemStack()
       case _ => new ItemStack(instance)
-    })
+    }, oreDict: _*)
     instance
   }
 
@@ -66,8 +66,8 @@ object Recipes {
     list += stack -> name
   }
 
-  private def register(name: String, item: ItemStack) {
-    if (name != null) {
+  private def register(item: ItemStack, names: String*) {
+    for (name <- names if name != null) {
       oreDictEntries += name -> item
     }
   }
