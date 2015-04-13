@@ -62,7 +62,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     if (data.emitRedstone) {
       tooltip.add(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel))
     }
-    if (data.lightLevel > 0) {
+    if (data.emitLight) {
       tooltip.add(Localization.Tooltip.PrintLightValue(data.lightLevel))
     }
   }

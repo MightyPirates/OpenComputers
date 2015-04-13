@@ -29,9 +29,17 @@ class PrintData extends ItemData {
   var isBeaconBase = false
   var lightLevel = 0
 
-  def emitRedstone = redstoneLevel > 0 && stateOn.size > 0
-
   def hasActiveState = stateOn.size > 0
+
+  def emitLight = lightLevel > 0
+
+  def emitRedstone = redstoneLevel > 0
+
+  def emitRedstone(state: Boolean): Boolean = if (state) emitRedstoneWhenOn else emitRedstoneWhenOff
+
+  def emitRedstoneWhenOff = emitRedstone && !hasActiveState
+
+  def emitRedstoneWhenOn = emitRedstone && hasActiveState
 
   def opacity = {
     if (opacityDirty) {
