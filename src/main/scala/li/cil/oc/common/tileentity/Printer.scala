@@ -57,7 +57,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = data.stateOff.size > 0 && data.stateOff.size + data.stateOn.size <= Settings.get.maxPrintComplexity
+  def canPrint = data.stateOff.size > 0 && data.stateOff.size < Settings.get.maxPrintComplexity && data.stateOn.size < Settings.get.maxPrintComplexity
 
   def isPrinting = output.isDefined
 
@@ -100,6 +100,18 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     result(data.tooltip.orNull)
   }
 
+  @Callback(doc = """function(value:number) -- Set what light level the printed block should have.""")
+  def setLightLevel(context: Context, args: Arguments): Array[Object] = {
+    data.lightLevel = args.checkInteger(0) max 0 min Settings.get.maxPrintLightLevel
+    isActive = false // Needs committing.
+    null
+  }
+
+  @Callback(doc = """function():number -- Get which light level the printed block should have.""")
+  def getLightLevel(context: Context, args: Arguments): Array[Object] = {
+    result(data.lightLevel)
+  }
+
   @Callback(doc = """function(value:boolean or number) -- Set whether the printed block should emit redstone when in its active state.""")
   def setRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
     if (args.isBoolean(0)) data.redstoneLevel = if (args.checkBoolean(0)) 15 else 0
@@ -111,18 +123,6 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @Callback(doc = """function():boolean, number -- Get whether the printed block should emit redstone when in its active state.""")
   def isRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
     result(data.emitRedstone, data.redstoneLevel)
-  }
-
-  @Callback(doc = """function(value:number) -- Set what light level the printed block should have.""")
-  def setLightLevel(context: Context, args: Arguments): Array[Object] = {
-    data.lightLevel = args.checkInteger(0) max 0 min Settings.get.maxPrintLightLevel
-    isActive = false // Needs committing.
-    null
-  }
-
-  @Callback(doc = """function():number -- Get which light level the printed block should have.""")
-  def getLightLevel(context: Context, args: Arguments): Array[Object] = {
-    result(data.lightLevel)
   }
 
   @Callback(doc = """function(value:boolean) -- Set whether the printed block should automatically return to its off state.""")
@@ -139,7 +139,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
   def addShape(context: Context, args: Arguments): Array[Object] = {
-    if (data.stateOff.size + data.stateOn.size >= Settings.get.maxPrintComplexity) {
+    if (data.stateOff.size >= Settings.get.maxPrintComplexity || data.stateOn.size >= Settings.get.maxPrintComplexity) {
       return result(null, "model too complex")
     }
     val minX = (args.checkInteger(0) max 0 min 16) / 16f
@@ -173,7 +173,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   }
 
   @Callback(doc = """function():number -- Get the number of shapes in the current configuration.""")
-  def getShapeCount(context: Context, args: Arguments): Array[Object] = result(data.stateOff.size + data.stateOn.size)
+  def getShapeCount(context: Context, args: Arguments): Array[Object] = result(data.stateOff.size, data.stateOn.size)
 
   @Callback(doc = """function():number -- Get the maximum allowed number of shapes.""")
   def getMaxShapeCount(context: Context, args: Arguments): Array[Object] = result(Settings.get.maxPrintComplexity)
