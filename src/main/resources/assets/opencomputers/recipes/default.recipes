@@ -15,6 +15,23 @@ manual {
   type: shapeless
   input: [book, "oc:circuitChip1"]
 }
+lootDisks: [
+  {
+    name: OpenOS
+    type: shapeless
+    input: ["oc:floppy", "oc:manual"]
+  },
+  {
+    name: OPPM
+    type: shapeless
+    input: ["oc:floppy", "oc:internetCard"]
+  }
+]
+luaBios {
+  type: shapeless
+  input: ["oc:eeprom", "oc:manual"]
+}
+
 droneCase1 {
   input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
           ["oc:circuitChip1", "oc:microcontrollerCase1", "oc:circuitChip1"]
@@ -116,14 +133,6 @@ hdd3 {
   input: [["oc:circuitChip3", "oc:materialDisk", diamond]
           ["oc:materialCircuitBoardPrinted", "oc:materialDisk", craftingPiston]
           ["oc:circuitChip3", "oc:materialDisk", diamond]]
-}
-openOS {
-  type: shapeless
-  input: ["oc:floppy", "oc:manual"]
-}
-luaBios {
-  type: shapeless
-  input: ["oc:eeprom", "oc:manual"]
 }
 graphicsCard1 {
   input: [["oc:circuitChip1", "oc:materialALU", "oc:ram1"]

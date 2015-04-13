@@ -20,7 +20,6 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -29,7 +28,6 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
-import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.mutable
 
@@ -115,18 +113,7 @@ object Items extends ItemAPI {
   // ----------------------------------------------------------------------- //
 
   def createOpenOS(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", "openos")
-
-    val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
-    nbt.setString(Settings.namespace + "lootPath", "OpenOS")
-    nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
-
-    val stack = get(Constants.ItemName.LootDisk).createItemStack(amount)
-    stack.setTagCompound(nbt)
-
-    stack
+    Loot.builtInDisks.get("OpenOS").map(_._1.copy()).orNull
   }
 
   def createLuaBios(amount: Int = 1) = {
@@ -390,7 +377,6 @@ object Items extends ItemAPI {
         else super.onItemRightClick(stack, world, player)
       }
     }
-    Recipes.addRecipe(createOpenOS(), "openOS")
 
     Recipes.addSubItem(new item.UpgradeInventoryController(multi), Constants.ItemName.InventoryControllerUpgrade, "oc:inventoryControllerUpgrade")
     Recipes.addSubItem(new item.UpgradeChunkloader(multi), Constants.ItemName.ChunkloaderUpgrade, "oc:chunkloaderUpgrade")
