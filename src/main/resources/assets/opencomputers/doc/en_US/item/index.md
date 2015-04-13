@@ -9,6 +9,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Manual](manual.md)
 * [Remote Terminal](terminal.md)
 * [Texture Picker](texturePicker.md)
+* [Scrench](wrench.md)
 
 ## Devices
 * [Drone](drone.md)

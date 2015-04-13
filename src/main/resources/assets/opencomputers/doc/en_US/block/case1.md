@@ -4,6 +4,8 @@
 
 Computer cases come in three different tiers, which limits the components that can be inserted into them. An additional tier also exists for use in creative mode only. Computer cases can also be placed inside an [assembler](assembler.md) to build [robots](robot.md).
 
+The tier of component that can be inserted into any slot of a computer case can be seen as a small roman numeral in the corner of a tier-limited slot. This indicates the maximum tier that can be inserted, so it is also possible, for example, to insert a tier 1 card into a tier 2 slot.
+
 The tier 1 case can house up to and including the following components:
 - 2x tier 1 expansion cards (such as [graphics cards](../item/graphicsCard1.md), [network cards](../item/lanCard.md), etc)
 - 1x tier 1 [CPU](../item/cpu1.md)

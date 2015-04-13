@@ -12,6 +12,8 @@ import li.cil.oc.api.internal.Wrench
 import li.cil.oc.api.manual.PathProvider
 import li.cil.oc.api.prefab.ItemStackTabIconRenderer
 import li.cil.oc.api.prefab.ResourceContentProvider
+import li.cil.oc.api.prefab.TextureTabIconRenderer
+import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.markdown.segment.render.BlockImageProvider
 import li.cil.oc.client.renderer.markdown.segment.render.ItemImageProvider
 import li.cil.oc.client.renderer.markdown.segment.render.OreDictImageProvider
@@ -51,6 +53,7 @@ object ModOpenComputers extends ModProxy {
     ServerTemplate.register()
     TabletTemplate.register()
     TemplateBlacklist.register()
+
     FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
@@ -211,6 +214,7 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addProvider("block", BlockImageProvider)
     api.Manual.addProvider("oredict", OreDictImageProvider)
 
+    api.Manual.addTab(new TextureTabIconRenderer(Textures.guiManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
   }

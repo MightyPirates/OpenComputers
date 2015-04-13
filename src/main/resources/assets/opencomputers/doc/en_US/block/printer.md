@@ -4,7 +4,7 @@
 
 3D printers allow you to print any block of any shape, with any type of texture. To get started with 3D printers, you will need to place down a 3D printer block next to a computer. This will give access to the `printer3d` component API, allowing you to set up and print [models](print.md) using the provided functions.
 
-A more convenient way to setup 3D printers is to use Open Programs Package Manager (OPPM). Once installed, make sure you have an [internet card](../item/internetCard.md) in your computer and run the following command:
+A more convenient way to setup 3D printers is to use Open Programs Package Manager (OPPM). Once installed (`oppm install oppm`), make sure you have an [internet card](../item/internetCard.md) in your computer and run the following command:
 `oppm install print3d-examples`
 
 The examples can then be found in `/usr/share/models/` as .3dm files. Take a look through the example files for available options, in particular the `example.3dm` file. Alternatively, you can download the `print3d` and `print3d-examples` programs from OpenPrograms using `wget` and an internet card.
