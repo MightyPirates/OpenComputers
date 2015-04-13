@@ -315,7 +315,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       renderChassis(robot, offset)
     }
 
-    if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
+    if (MinecraftForgeClient.getRenderPass == 0 && !robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       val itemRenderer = Minecraft.getMinecraft.getItemRenderer
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
