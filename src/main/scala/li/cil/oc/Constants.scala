@@ -142,6 +142,7 @@ object Constants {
     final val UpgradeContainerTier3 = "upgradeContainer3"
     final val WirelessNetworkCard = "wlanCard"
     final val WorldSensorCard = "worldSensorCard"
+    final val Wrench = "wrench"
 
     def DroneCase(tier: Int) = ItemUtils.caseNameWithTierSuffix("droneCase", tier)
 

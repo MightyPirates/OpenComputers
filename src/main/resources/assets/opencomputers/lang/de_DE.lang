@@ -184,6 +184,7 @@ oc:gui.Error.NoEnergy=Nicht genug Energie.
 oc:gui.Error.NoRAM=Im Computer ist kein RAM installiert.
 oc:gui.Error.OutOfMemory=Nicht genug Arbeitsspeicher.
 oc:gui.Manual.Blocks=OpenComputers Blöcke
+oc:gui.Manual.Home=Startseite
 oc:gui.Manual.Items=OpenComputers Gegenstände
 oc:gui.Manual.Warning.BlockMissing=Block nicht verfügbar.
 oc:gui.Manual.Warning.ImageMissing=Bild nicht gefunden.
@@ -338,3 +339,14 @@ oc:tooltip.UpgradeTankController=Dieses Upgrade erlaubt es dem Roboter, präzise
 oc:tooltip.UpgradeTractorBeam=Stattet den Roboter mit unglaublich fortschrittlicher Technologie - Kosename: "Gegenstandsmagnet" - aus. Erlaubt es dem Roboter, Gegenstände, innerhalb von 3 Blöcken um sich herum, einzusammeln.
 oc:tooltip.WirelessNetworkCard=Erlaubt das drahtlose Senden von Netzwerknachrichten, zusätzlich zu normalen. Drahtlose Nachrichten werden nur gesendet, wenn eine §fSignalstärke§7 festgelegt wurde!
 oc:tooltip.WorldSensorCard=Erlaubt es, Informationen über die Welt auszulesen, wie etwa Gravitation und ob die Atmosphäre atembar ist. Verwendung von Messergebnissen auf eigene Gefahr. Der Hersteller übernimmt keinerlei Garantie.
+
+# NEI Integration
+nei.options.inventory.oredict=Zeige OreDictionary Namen
+nei.options.inventory.oredict.true=True
+nei.options.inventory.oredict.false=False
+nei.usage.oc.Manual=Handbuch öffnen
+
+# Waila Integration
+option.oc.address=Adresse
+option.oc.componentName=Komponentenname
+option.oc.energy=Energie

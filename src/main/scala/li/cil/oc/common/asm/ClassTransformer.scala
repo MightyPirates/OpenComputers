@@ -107,6 +107,7 @@ class ClassTransformer extends IClassTransformer {
                       }
                     case _ =>
                       log.warn(s"Skipping interface $interfaceName from unknown mod $modid.")
+                      ClassTransformer.hadErrors = true
                   }
                 case _ =>
               }

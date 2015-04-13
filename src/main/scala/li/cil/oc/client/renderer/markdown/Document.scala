@@ -36,7 +36,7 @@ object Document {
     for ((pattern, factory) <- segmentTypes) {
       segments = segments.flatMap(_.refine(pattern, factory))
     }
-    for (window <- segments.sliding(2)) {
+    for (window <- segments.sliding(2) if window.size == 2) {
       window.head.next = window.last
     }
     segments.head

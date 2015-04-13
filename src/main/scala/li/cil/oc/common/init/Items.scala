@@ -27,7 +27,6 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.common.registry.GameRegistry
-import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.mutable
 
@@ -121,7 +120,9 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def createOpenOS() = Loot.createLootDisk("openos", "OpenOS", Some("dyeGreen"))
+  def createOpenOS(amount: Int = 1) = {
+    Loot.builtInDisks.get("OpenOS").map(_._1.copy()).orNull
+  }
 
   def createLuaBios(amount: Int = 1) = {
     val data = new NBTTagCompound()
@@ -317,6 +318,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.Terminal(tools), Constants.ItemName.Terminal, "oc:terminal")
     Recipes.addSubItem(new item.TexturePicker(tools), Constants.ItemName.TexturePicker, "oc:texturePicker")
     Recipes.addSubItem(new item.Manual(tools), Constants.ItemName.Manual, "oc:manual")
+    Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
   }
 
   // General purpose components.
@@ -411,7 +413,6 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Three), Constants.ItemName.HDDTier3, "oc:hdd3")
 
     Recipes.addRecipe(createLuaBios(), Constants.ItemName.LuaBios)
-    Recipes.addRecipe(createOpenOS(), Constants.ItemName.OpenOS)
   }
 
   // Special purpose items that don't fit into any other category.

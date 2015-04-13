@@ -5,6 +5,7 @@ import java.io.FileReader
 
 import com.typesafe.config._
 import li.cil.oc._
+import li.cil.oc.common.Loot
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegator
@@ -130,7 +131,44 @@ object Recipes {
 
       // Register all known recipes.
       for ((stack, name) <- list) {
-        addRecipe(stack, recipes, name)
+        if (recipes.hasPath(name)) {
+          val value = recipes.getValue(name)
+          value.valueType match {
+            case ConfigValueType.OBJECT =>
+              addRecipe(stack, recipes.getConfig(name), "'" + name + "'")
+            case ConfigValueType.BOOLEAN =>
+              // Explicitly disabled, keep in NEI if true.
+              if (!value.unwrapped.asInstanceOf[Boolean]) {
+                hide(stack)
+              }
+            case _ =>
+              OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid value for recipe.")
+              hadErrors = true
+          }
+        }
+        else {
+          OpenComputers.log.warn(s"No recipe for '$name', you will not be able to craft this item. To suppress this warning, disable the recipe (assign `false` to it).")
+          hadErrors = true
+        }
+      }
+
+      // Register all unknown recipes. Well. Loot disk recipes.
+      if (recipes.hasPath("lootDisks")) try {
+        val lootRecipes = recipes.getConfigList("lootDisks")
+        for (recipe <- lootRecipes) {
+          val name = recipe.getString("name")
+          Loot.builtInDisks.get(name) match {
+            case Some((stack, _)) => addRecipe(stack, recipe, "loot disk '" + name + "'")
+            case _ =>
+              OpenComputers.log.warn(s"Failed adding recipe for loot disk '$name': No such global loot disk.")
+              hadErrors = true
+          }
+        }
+      }
+      catch {
+        case t: Throwable =>
+          OpenComputers.log.warn("Failed parsing loot disk recipes.", t)
+          hadErrors = true
       }
 
       // Recrafting operations.
@@ -255,56 +293,37 @@ object Recipes {
     list.clear()
   }
 
-  private def addRecipe(output: ItemStack, list: Config, name: String) = try {
-    if (list.hasPath(name)) {
-      val value = list.getValue(name)
-      value.valueType match {
-        case ConfigValueType.OBJECT =>
-          val recipe = list.getConfig(name)
-          val recipeType = tryGetType(recipe)
-          try {
-            recipeType match {
-              case "shaped" => addShapedRecipe(output, recipe)
-              case "shapeless" => addShapelessRecipe(output, recipe)
-              case "furnace" => addFurnaceRecipe(output, recipe)
-              /* TODO GregTech
-              case "gt_assembler" =>
-                if (Mods.GregTech.isAvailable) {
-                  addGTAssemblingMachineRecipe(output, recipe)
-                }
-                else {
-                      OpenComputers.log.error(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item.")
-                      hadErrors = true
-                }
-              */
-              case other =>
-                OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid recipe type '$other'.")
+  private def addRecipe(output: ItemStack, recipe: Config, name: String) = try {
+    val recipeType = tryGetType(recipe)
+    try {
+      recipeType match {
+        case "shaped" => addShapedRecipe(output, recipe)
+        case "shapeless" => addShapelessRecipe(output, recipe)
+        case "furnace" => addFurnaceRecipe(output, recipe)
+        /* TODO GregTech
+        case "gt_assembler" =>
+          if (Mods.GregTech.isAvailable) {
+            addGTAssemblingMachineRecipe(output, recipe)
+          }
+          else {
+      OpenComputers.log.error(s"Skipping GregTech assembler recipe for $name because GregTech is not present, you will not be able to craft this item.")
                 hadErrors = true
-            }
           }
-          catch {
-            case e: RecipeException =>
-              OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item! The error was: ${e.getMessage}")
-              hadErrors = true
-          }
-        case ConfigValueType.BOOLEAN =>
-          // Explicitly disabled, keep in NEI if true.
-          if (!value.unwrapped.asInstanceOf[Boolean]) {
-            hide(output)
-          }
-        case _ =>
-          OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid value for recipe.")
+        */
+        case other =>
+          OpenComputers.log.error(s"Failed adding recipe for $name, you will not be able to craft this item. The error was: Invalid recipe type '$other'.")
           hadErrors = true
       }
     }
-    else {
-      OpenComputers.log.warn(s"No recipe for '$name', you will not be able to craft this item. To suppress this warning, disable the recipe (assign `false` to it).")
-      hadErrors = true
+    catch {
+      case e: RecipeException =>
+        OpenComputers.log.error(s"Failed adding $recipeType recipe for $name, you will not be able to craft this item! The error was: ${e.getMessage}")
+        hadErrors = true
     }
   }
   catch {
     case e: Throwable =>
-      OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item.", e)
+      OpenComputers.log.error(s"Failed adding recipe for $name, you will not be able to craft this item.", e)
       hadErrors = true
   }
 

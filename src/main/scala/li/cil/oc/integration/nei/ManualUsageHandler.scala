@@ -8,6 +8,7 @@ import codechicken.nei.api.IOverlayHandler
 import codechicken.nei.api.IRecipeOverlayRenderer
 import codechicken.nei.recipe.GuiRecipe
 import codechicken.nei.recipe.IUsageHandler
+import li.cil.oc.Localization
 import li.cil.oc.api
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
@@ -20,7 +21,7 @@ class ManualUsageHandler(path: Option[String]) extends IUsageHandler {
 
   var lastMouseX = 0
   var lastMouseY = 0
-  val button = new GuiButton(0, 34, 20, 100, 20, "Open Manual")
+  val button = new GuiButton(0, 34, 20, 100, 20, Localization.localizeImmediately("nei.usage.oc.Manual"))
 
   override def getRecipeName = "Manual"
 

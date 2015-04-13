@@ -4,6 +4,7 @@ import java.util
 import java.util.Random
 
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
@@ -93,7 +94,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def getLightOpacity(world: IBlockAccess, pos: BlockPos): Int =
     world.getTileEntity(pos) match {
-      case print: tileentity.Print => (print.data.opacity * 4).toInt
+      case print: tileentity.Print if Settings.get.printsHaveOpacity => (print.data.opacity * 4).toInt
       case _ => super.getLightOpacity(world, pos)
     }
 
