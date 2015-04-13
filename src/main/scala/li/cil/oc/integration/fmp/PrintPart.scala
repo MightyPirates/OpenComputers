@@ -263,7 +263,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
   protected def checkRedstone(): Unit = {
     val newMaxValue = computeInput()
     val newState = newMaxValue > 1 // Fixes oddities in cycling updates.
-    if (!data.emitRedstone && state != newState) {
+    if (!data.emitRedstone && data.hasActiveState && state != newState) {
       toggleState()
     }
   }

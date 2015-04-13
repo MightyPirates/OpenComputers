@@ -31,6 +31,8 @@ class PrintData extends ItemData {
 
   def emitRedstone = redstoneLevel > 0 && stateOn.size > 0
 
+  def hasActiveState = stateOn.size > 0
+
   def opacity = {
     if (opacityDirty) {
       opacityDirty = false
