@@ -44,7 +44,7 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
 
   override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int): Unit = {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    if (!data.emitRedstone) {
+    if (!data.emitRedstone && data.hasActiveState) {
       state = newMaxValue > 0
       world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
       world.markBlockForUpdate(getPos)

@@ -405,7 +405,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     RenderState.popMatrix()
 
     val name = robot.name
-    if (Settings.get.robotLabels && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
+    if (Settings.get.robotLabels && MinecraftForgeClient.getRenderPass == 1 && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
       RenderState.pushMatrix()
 
       // This is pretty much copy-pasta from the entity's label renderer.
@@ -430,7 +430,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
       r.startDrawingQuads()
-      r.setColorRGBA_F(0, 0, 0, 0.25f)
+      r.setColorRGBA_F(0, 0, 0, 0.5f)
       r.addVertex(-halfWidth - 1, -1, 0)
       r.addVertex(-halfWidth - 1, 8, 0)
       r.addVertex(halfWidth + 1, 8, 0)
