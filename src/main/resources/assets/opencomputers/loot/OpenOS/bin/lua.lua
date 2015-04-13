@@ -86,6 +86,7 @@ if #args == 0 or options.i then
     end
   end
   local function hint(line, index)
+    line = (line or ""):sub(1, index - 1)
     local path = string.match(line, "[a-zA-Z_][a-zA-Z0-9_.]*$")
     if not path then return nil end
     local suffix = string.match(path, "[^.]+$") or ""
