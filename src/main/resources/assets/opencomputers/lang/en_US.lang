@@ -135,6 +135,7 @@ item.oc.UpgradeTankController.name=Tank Controller Upgrade
 item.oc.UpgradeTractorBeam.name=Tractor Beam Upgrade
 item.oc.WirelessNetworkCard.name=Wireless Network Card
 item.oc.WorldSensorCard.name=World Sensor Card
+item.oc.wrench.name=Scrench
 
 # Entities
 entity.oc.Drone.name=Drone
@@ -338,6 +339,7 @@ oc:tooltip.UpgradeTankController=This upgrade allows robots and drones more cont
 oc:tooltip.UpgradeTractorBeam=Equips a device with extremely advanced technology, nicknamed the "Item Magnet". Allows the device to pick up items anywhere within 3 blocks of its location.
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.
 oc:tooltip.WorldSensorCard=Allows reading out information about the world, such as its gravity and whether it has a breathable atmosphere. Use results at own risk. The manufacturer takes no responsibility for bodily or material harm caused by decisions made upon the cards' outputs. We have lawyers. And money. Don't even try.
+oc:tooltip.Wrench=A hybrid of Screwdriver and Wrench, this tool is easy to learn, but hard to master.
 
 #Achievements
 achievement.oc.adapter=Plug In Baby

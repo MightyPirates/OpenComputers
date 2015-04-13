@@ -15,6 +15,11 @@ manual {
   type: shapeless
   input: [book, "oc:circuitChip1"]
 }
+wrench {
+  input: [[ingotIron, "", ingotIron]
+          ["", "oc:circuitChip2", ""],
+          ["", ingotIron, ""]]
+}
 lootDisks: [
   {
     name: OpenOS

@@ -448,5 +448,6 @@ object Items extends ItemAPI {
 
     // 1.5.7
     Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual", "craftingBook")
+    Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
   }
 }
