@@ -6,6 +6,4 @@ The redstone I/O block can be used to remotely read and emit redstone signals. I
 
 When providing a side to the methods of the component exposed by this block, the directions are the global principal directions, i.e. it is recommended to use `sides.north`, `sides.east` and so on.
 
-Like the redstone card, this block injects a signal into connected computers when the state of a redstone signal changes - both for analog as well as for bundled signals.
-
-Also like redstone cards, this block can be configured to wake up connected computers when a certain input strength is exceeded, allowing automated booting of computers.
+Like the [redstone cards](../item/redstoneCard1.md), this block injects a signal into connected [computers](../general/computer.md) when the state of a redstone signal changes - both for analog as well as for bundled signals. This block can also be configured to wake up connected [computers](../general/computer.md) when a certain input strength is exceeded, allowing automated booting of [computers](../general/computer.md).

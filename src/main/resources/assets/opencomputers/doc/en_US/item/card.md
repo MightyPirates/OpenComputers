@@ -2,4 +2,4 @@
 
 ![Can't be read.](oredict:oc:materialCard)
 
-Common crafting material for most, if not all card components in OpenComputers.
+Common crafting material for card components in OpenComputers (such as [graphics cards](graphicsCard1.md), [network cards](lanCard.md), etc).
