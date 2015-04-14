@@ -14,8 +14,8 @@ object Wrench {
   def add(wrench: Method): Unit = wrenches += wrench
 
   def holdsApplicableWrench(player: EntityPlayer, position: BlockPos): Boolean =
-    player.getCurrentEquippedItem != null && wrenches.exists(IMC.tryInvokeStatic(_, player, int2Integer(position.getX), int2Integer(position.getY), int2Integer(position.getZ), boolean2Boolean(false))(false))
+    player.getCurrentEquippedItem != null && wrenches.exists(IMC.tryInvokeStatic(_, player, position, java.lang.Boolean.FALSE)(false))
 
   def wrenchUsed(player: EntityPlayer, position: BlockPos): Unit =
-    if (player.getCurrentEquippedItem != null) wrenches.foreach(IMC.tryInvokeStaticVoid(_, player, int2Integer(position.getX), int2Integer(position.getY), int2Integer(position.getZ), boolean2Boolean(true)))
+    if (player.getCurrentEquippedItem != null) wrenches.foreach(IMC.tryInvokeStaticVoid(_, player, position, java.lang.Boolean.TRUE))
 }

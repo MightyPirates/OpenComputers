@@ -31,10 +31,11 @@ object DriverUpgradeDatabase extends Item with HostAware with EnvironmentAware {
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(database: item.UpgradeDatabase) => database.tier
-    case _ => Tier.One
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(database: item.UpgradeDatabase) => database.tier
+      case _ => Tier.One
+    }
 
   override def providedEnvironment(stack: ItemStack) = classOf[component.UpgradeDatabase]
 }

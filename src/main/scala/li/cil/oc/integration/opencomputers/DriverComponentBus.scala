@@ -21,15 +21,17 @@ object DriverComponentBus extends Item with Processor {
 
   override def slot(stack: ItemStack) = Slot.ComponentBus
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(bus: item.ComponentBus) => bus.tier
-    case _ => Tier.One
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(bus: item.ComponentBus) => bus.tier
+      case _ => Tier.One
+    }
 
-  override def supportedComponents(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(bus: item.ComponentBus) => Settings.get.cpuComponentSupport(bus.tier)
-    case _ => Tier.One
-  }
+  override def supportedComponents(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(bus: item.ComponentBus) => Settings.get.cpuComponentSupport(bus.tier)
+      case _ => Tier.One
+    }
 
   override def architecture(stack: ItemStack) = null
 }

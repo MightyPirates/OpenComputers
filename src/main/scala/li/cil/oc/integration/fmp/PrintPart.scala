@@ -7,6 +7,7 @@ import codechicken.lib.data.MCDataOutput
 import codechicken.lib.raytracer.ExtendedMOP
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
 import li.cil.oc.common.block.Print
@@ -88,11 +89,13 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   // ----------------------------------------------------------------------- //
 
-  override def simpleBlock = Items.get("print").block().asInstanceOf[Print]
+  override def simpleBlock = Items.get(Constants.BlockName.Print).block().asInstanceOf[Print]
 
-  def getType = Settings.namespace + "print"
+  def getType = Settings.namespace + Constants.BlockName.Print
 
   override def doesTick = false
+
+  override def getLightValue: Int = data.lightLevel
 
   override def getBounds = new Cuboid6(if (state) boundsOn else boundsOff)
 
@@ -119,20 +122,20 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   // ----------------------------------------------------------------------- //
 
-  override def conductsRedstone: Boolean = data.emitRedstone && state
+  override def conductsRedstone: Boolean = if (state) data.emitRedstoneWhenOn else data.emitRedstoneWhenOff
 
-  override def redstoneConductionMap: Int = if (data.emitRedstone && state) 0xFF else 0
+  override def redstoneConductionMap: Int = if (conductsRedstone) 0xFF else 0
 
   override def canConnectRedstone(side: Int): Boolean = true
 
   override def strongPowerLevel(side: Int): Int = weakPowerLevel(side)
 
-  override def weakPowerLevel(side: Int): Int = if (data.emitRedstone && state) 15 else 0
+  override def weakPowerLevel(side: Int): Int = if (data.emitRedstone(state)) data.redstoneLevel else 0
 
   // ----------------------------------------------------------------------- //
 
   override def activate(player: EntityPlayer, hit: MovingObjectPosition, item: ItemStack): Boolean = {
-    if (data.stateOn.size > 0) {
+    if (data.hasActiveState) {
       if (!state || !data.isButtonMode) {
         toggleState()
         return true
@@ -243,18 +246,18 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   protected def checkRedstone(): Unit = {
     val newMaxValue = computeInput()
-    val newState = newMaxValue > 1 // Fixes oddities in cycling updates.
-    if (!data.emitRedstone && data.stateOn.size > 0 && state != newState) {
+    val newState = newMaxValue > 1 // >1 Fixes oddities in cycling updates.
+    if (!data.emitRedstone && data.hasActiveState && state != newState) {
       toggleState()
     }
   }
 
   protected def computeInput(): Int = {
-    val inner = tile.partList.foldLeft(false)((powered, part) => part match {
-      case print: PrintPart => powered || (print.state && print.data.emitRedstone)
-      case _ => powered
+    val inner = tile.partList.foldLeft(0)((power, part) => part match {
+      case print: PrintPart if print.data.emitRedstone(print.state) => math.max(power, print.data.redstoneLevel)
+      case _ => power
     })
-    if (inner) 15 else ForgeDirection.VALID_DIRECTIONS.map(computeInput).max
+    math.max(inner, ForgeDirection.VALID_DIRECTIONS.map(computeInput).max)
   }
 
   protected def computeInput(side: ForgeDirection): Int = {

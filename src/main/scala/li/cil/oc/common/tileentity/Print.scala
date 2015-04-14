@@ -19,7 +19,7 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
   _isOutputEnabled = true
 
   def activate(): Boolean = {
-    if (data.stateOn.size > 0) {
+    if (data.hasActiveState) {
       if (!state || !data.isButtonMode) {
         toggleState()
         return true
@@ -32,8 +32,8 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
     state = !state
     world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
     world.markBlockForUpdate(getPos)
-    if (data.emitRedstone) {
-      EnumFacing.values().foreach(output(_, if (state) 15 else 0))
+    if (data.emitRedstoneWhenOn) {
+      EnumFacing.values().foreach(output(_, if (state) data.redstoneLevel else 0))
     }
     if (state && data.isButtonMode) {
       world.scheduleUpdate(getPos, blockType, blockType.tickRate(world))
@@ -44,7 +44,7 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
 
   override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int): Unit = {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    if (!data.emitRedstone && data.stateOn.size > 0) {
+    if (!data.emitRedstone && data.hasActiveState) {
       state = newMaxValue > 0
       world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
       world.markBlockForUpdate(getPos)
@@ -89,6 +89,10 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
     boundsOn = data.stateOn.drop(1).foldLeft(data.stateOn.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.union(b.bounds))
     if (boundsOn.volume == 0) boundsOn = ExtendedAABB.unitBounds
     else boundsOn = boundsOn.rotateTowards(facing)
+
+    if (data.emitRedstoneWhenOff) {
+      EnumFacing.values().foreach(output(_, data.redstoneLevel))
+    }
   }
 
   override protected def onRotationChanged(): Unit = {

@@ -27,8 +27,9 @@ object DriverMemory extends Item with driver.item.Memory {
 
   override def slot(stack: ItemStack) = Slot.Memory
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(memory: item.Memory) => memory.tier / 2
-    case _ => Tier.One
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(memory: item.Memory) => memory.tier / 2
+      case _ => Tier.One
+    }
 }

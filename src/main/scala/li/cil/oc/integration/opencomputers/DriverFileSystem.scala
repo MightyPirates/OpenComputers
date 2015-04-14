@@ -22,22 +22,25 @@ object DriverFileSystem extends Item {
     api.Items.get(Constants.ItemName.Floppy)) &&
     (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = Delegator.subItem(stack) match {
-    case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host)
-    case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, host)
-    case _ => null
-  }
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+    Delegator.subItem(stack) match {
+      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host)
+      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, host)
+      case _ => null
+    }
 
-  override def slot(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(hdd: HardDiskDrive) => Slot.HDD
-    case Some(disk: FloppyDisk) => Slot.Floppy
-    case _ => throw new IllegalArgumentException()
-  }
+  override def slot(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(hdd: HardDiskDrive) => Slot.HDD
+      case Some(disk: FloppyDisk) => Slot.Floppy
+      case _ => throw new IllegalArgumentException()
+    }
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(hdd: HardDiskDrive) => hdd.tier
-    case _ => 0
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(hdd: HardDiskDrive) => hdd.tier
+      case _ => 0
+    }
 
   private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost) = if (DimensionManager.getWorld(0) != null) {
     // We have a bit of a chicken-egg problem here, because we want to use the

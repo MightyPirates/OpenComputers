@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
@@ -314,7 +315,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       renderChassis(robot, offset)
     }
 
-    if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
+    if (MinecraftForgeClient.getRenderPass == 0 && !robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       val itemRenderer = Minecraft.getMinecraft.getItemRenderer
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
@@ -404,7 +405,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     RenderState.popMatrix()
 
     val name = robot.name
-    if (Settings.get.robotLabels && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
+    if (Settings.get.robotLabels && MinecraftForgeClient.getRenderPass == 1 && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
       RenderState.pushMatrix()
 
       // This is pretty much copy-pasta from the entity's label renderer.
@@ -429,7 +430,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
       r.startDrawingQuads()
-      r.setColorRGBA_F(0, 0, 0, 0.25f)
+      r.setColorRGBA_F(0, 0, 0, 0.5f)
       r.addVertex(-halfWidth - 1, -1, 0)
       r.addVertex(-halfWidth - 1, 8, 0)
       r.addVertex(halfWidth + 1, 8, 0)
@@ -437,7 +438,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       t.draw
 
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
-      f.drawString(name, -halfWidth, 0, 0xFFFFFFFF)
+      f.drawString((if (EventHandler.isItTime) EnumChatFormatting.OBFUSCATED.toString else "") + name, -halfWidth, 0, 0xFFFFFFFF)
 
       RenderState.enableDepthMask()
       RenderState.enableLighting()

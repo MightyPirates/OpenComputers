@@ -41,10 +41,11 @@ object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {
 
   override def slot(stack: ItemStack) = Slot.Card
 
-  override def tier(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(card: item.RedstoneCard) => card.tier
-    case _ => Tier.One
-  }
+  override def tier(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(card: item.RedstoneCard) => card.tier
+      case _ => Tier.One
+    }
 
   override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] = {
     val isAdvanced = tier(stack) == Tier.Two

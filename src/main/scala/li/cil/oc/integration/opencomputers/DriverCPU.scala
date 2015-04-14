@@ -30,10 +30,11 @@ object DriverCPU extends Item with Processor {
     case _ => Tier.One
   }
 
-  override def supportedComponents(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(cpu: item.CPU) => Settings.get.cpuComponentSupport(cpu.tier)
-    case _ => Tier.One
-  }
+  override def supportedComponents(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(cpu: item.CPU) => Settings.get.cpuComponentSupport(cpu.tier)
+      case _ => Tier.One
+    }
 
   override def architecture(stack: ItemStack): Class[_ <: Architecture] = {
     if (stack.hasTagCompound) {

@@ -20,11 +20,14 @@ import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util._
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.FakePlayer
+import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -187,6 +190,23 @@ object EventHandler {
     keyboards.foreach(_.releasePressedKeys(e.player))
   }
 
+  @SubscribeEvent
+  def onEntityJoinWorld(e: EntityJoinWorldEvent): Unit = {
+    if (Settings.get.giveManualToNewPlayers && !e.world.isRemote) e.entity match {
+      case player: EntityPlayer if !player.isInstanceOf[FakePlayer] =>
+        val nbt = player.getEntityData
+        if (!nbt.hasKey(EntityPlayer.PERSISTED_NBT_TAG)) {
+          nbt.setTag(EntityPlayer.PERSISTED_NBT_TAG, new NBTTagCompound())
+        }
+        val ocData = nbt.getCompoundTag(EntityPlayer.PERSISTED_NBT_TAG)
+        if (!ocData.getBoolean(Settings.namespace + "receivedManual")) {
+          ocData.setBoolean(Settings.namespace + "receivedManual", true)
+          player.inventory.addItemStackToInventory(api.Items.get(Constants.ItemName.Manual).createItemStack(1))
+        }
+      case _ =>
+    }
+  }
+
   lazy val drone = api.Items.get(Constants.ItemName.Drone)
   lazy val eeprom = api.Items.get(Constants.ItemName.EEPROM)
   lazy val mcu = api.Items.get(Constants.BlockName.Microcontroller)
@@ -255,6 +275,13 @@ object EventHandler {
       (month == Calendar.MAY && dayOfMonth == 1) ||
       (month == Calendar.OCTOBER && dayOfMonth == 3) ||
       (month == Calendar.DECEMBER && dayOfMonth == 14)
+  }
+
+  def isItTime = {
+    val now = Calendar.getInstance()
+    val month = now.get(Calendar.MONTH)
+    val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
+    month == Calendar.APRIL && dayOfMonth == 1
   }
 
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {

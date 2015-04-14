@@ -83,15 +83,28 @@ class Delegator extends Item {
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 
-  override def getRarity(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(subItem) => subItem.rarity(stack)
-    case _ => EnumRarity.COMMON
-  }
+  override def getRarity(stack: ItemStack) =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.rarity(stack)
+      case _ => EnumRarity.COMMON
+    }
 
   override def getColorFromItemStack(stack: ItemStack, pass: Int) =
     Delegator.subItem(stack) match {
       case Some(subItem) => subItem.color(stack, pass)
       case _ => super.getColorFromItemStack(stack, pass)
+    }
+
+  override def getContainerItem(stack: ItemStack): ItemStack =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.getContainerItem(stack)
+      case _ => super.getContainerItem(stack)
+    }
+
+  override def hasContainerItem(stack: ItemStack): Boolean =
+    Delegator.subItem(stack) match {
+      case Some(subItem) => subItem.hasContainerItem(stack)
+      case _ => super.hasContainerItem(stack)
     }
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original

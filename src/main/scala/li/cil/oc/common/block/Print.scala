@@ -4,6 +4,7 @@ import java.util
 import java.util.Random
 
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
@@ -35,7 +36,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends RedstoneAware with traits.CustomDrops[tileentity.Print] with traits.Extended {
-  setLightOpacity(0)
+  setLightOpacity(1)
   setHardness(1)
   setCreativeTab(null)
   NEI.hide(this)
@@ -66,13 +67,36 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
     val data = new PrintData(stack)
-    if (data.isBeaconBase) {
-      tooltip.add(Localization.Tooltip.BeaconBase)
-    }
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
   }
 
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
+    val data = new PrintData(stack)
+    if (data.isBeaconBase) {
+      tooltip.add(Localization.Tooltip.PrintBeaconBase)
+    }
+    if (data.emitRedstone) {
+      tooltip.add(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel))
+    }
+    if (data.emitLight) {
+      tooltip.add(Localization.Tooltip.PrintLightValue(data.lightLevel))
+    }
+  }
+
   override def isOpaqueCube = false
+
+  override def getLightValue(world: IBlockAccess, pos: BlockPos): Int =
+    world.getTileEntity(pos) match {
+      case print: tileentity.Print => print.data.lightLevel
+      case _ => super.getLightValue(world, pos)
+    }
+
+  override def getLightOpacity(world: IBlockAccess, pos: BlockPos): Int =
+    world.getTileEntity(pos) match {
+      case print: tileentity.Print if Settings.get.printsHaveOpacity => (print.data.opacity * 4).toInt
+      case _ => super.getLightOpacity(world, pos)
+    }
 
   override def isVisuallyOpaque = false
 
@@ -197,6 +221,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     super.doCustomInit(tileEntity, player, stack)
     tileEntity.data.load(stack)
     tileEntity.updateBounds()
+    tileEntity.world.checkLight(tileEntity.getPos)
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Print, player: EntityPlayer, willHarvest: Boolean): Unit = {

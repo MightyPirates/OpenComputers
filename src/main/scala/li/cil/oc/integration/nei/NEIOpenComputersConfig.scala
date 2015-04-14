@@ -19,7 +19,7 @@ class NEIOpenComputersConfig extends IConfigureNEI {
   override def loadConfig() {
     // Non-alphabetic order haunts my OCD, but I want the "Manual" to show up
     // before the API doc.
-    API.registerUsageHandler(new GeneralUsageHandler())
+    API.registerUsageHandler(new ManualUsageHandler())
     API.registerUsageHandler(new CallbackDocHandler())
 
     // Add option to show items' ore dictionary name in tooltips.

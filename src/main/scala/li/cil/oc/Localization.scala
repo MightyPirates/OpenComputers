@@ -89,6 +89,8 @@ object Localization {
 
     def WarningSimpleComponent = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent"))
 
+    def WarningLink(url: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLink", url))
+
     def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
 
     def TextureName(name: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.TextureName", name))
@@ -145,7 +147,11 @@ object Localization {
 
     def Tier(tier: Int) = localizeImmediately("tooltip.Tier", tier.toString)
 
-    def BeaconBase = localizeImmediately("tooltip.BeaconBase")
+    def PrintBeaconBase = localizeImmediately("tooltip.Print.BeaconBase")
+
+    def PrintLightValue(level: Int) = localizeImmediately("tooltip.Print.LightValue", level.toString)
+
+    def PrintRedstoneLevel(level: Int) = localizeImmediately("tooltip.Print.RedstoneLevel", level.toString)
   }
 
 }

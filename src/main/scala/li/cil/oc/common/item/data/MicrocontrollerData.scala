@@ -30,7 +30,7 @@ class MicrocontrollerData extends ItemData {
 
     // Reserve slot for EEPROM if necessary, avoids having to resize the
     // components array in the MCU tile entity, which isn't possible currently.
-    if (!components.exists(stack => api.Items.get(stack) == api.Items.get("eeprom"))) {
+    if (!components.exists(stack => api.Items.get(stack) == api.Items.get(Constants.ItemName.EEPROM))) {
       components :+= null
     }
   }

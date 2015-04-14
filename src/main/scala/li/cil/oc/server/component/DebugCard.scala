@@ -40,6 +40,8 @@ import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.IFluidHandler
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.ModAPIManager
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -108,6 +110,13 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
   def getPlayer(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
     result(new DebugCard.PlayerValue(args.checkString(0)))
+  }
+
+  @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
+  def isModLoaded(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    val name = args.checkString(0)
+    result(Loader.isModLoaded(name) || ModAPIManager.INSTANCE.hasAPI(name))
   }
 
   @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")

@@ -3,8 +3,7 @@ package li.cil.oc.integration.fmp
 import java.util
 
 import codechicken.lib.vec.BlockCoord
-import codechicken.multipart.MultiPartRegistry
-import codechicken.multipart.MultiPartRegistry.IPartConverter
+import li.cil.oc.Constants
 import li.cil.oc.api.Items
 import li.cil.oc.common.tileentity.Cable
 import li.cil.oc.common.tileentity.Print
@@ -16,8 +15,8 @@ object MultipartConverter extends IPartConverter {
   }
 
   override def blockTypes = util.Arrays.asList(
-    Items.get("cable").block,
-    Items.get("print").block
+    Items.get(Constants.BlockName.Cable).block,
+    Items.get(Constants.BlockName.Print).block
   )
 
   override def convert(world: World, pos: BlockCoord) = {

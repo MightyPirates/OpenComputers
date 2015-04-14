@@ -9,6 +9,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.inventory.IInventory
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
@@ -20,7 +21,13 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-object Loot {
+object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, Settings.get.lootProbability) {
+  val containers = Array(
+    ChestGenHooks.DUNGEON_CHEST,
+    ChestGenHooks.PYRAMID_DESERT_CHEST,
+    ChestGenHooks.PYRAMID_JUNGLE_CHEST,
+    ChestGenHooks.STRONGHOLD_LIBRARY)
+
   val builtInDisks = mutable.Map.empty[String, (ItemStack, Int)]
 
   val worldDisks = mutable.Map.empty[String, (ItemStack, Int)]
@@ -32,21 +39,15 @@ object Loot {
     else None
 
   def init() {
+    for (container <- containers) {
+      ChestGenHooks.addItem(container, Loot)
+    }
+
     val list = new java.util.Properties()
     val listStream = getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/loot/loot.properties")
     list.load(listStream)
     listStream.close()
     parseLootDisks(list, builtInDisks)
-
-    val loot = new Loot(createLootDisk("openos", "OpenOS", Some("dyeGreen")))
-    val containers = Array(
-      ChestGenHooks.DUNGEON_CHEST,
-      ChestGenHooks.PYRAMID_DESERT_CHEST,
-      ChestGenHooks.PYRAMID_JUNGLE_CHEST,
-      ChestGenHooks.STRONGHOLD_LIBRARY)
-    for (container <- containers) {
-      ChestGenHooks.addItem(container, loot)
-    }
   }
 
   @SubscribeEvent
@@ -117,9 +118,7 @@ object Loot {
 
     disk
   }
-}
 
-class Loot(baseItem: ItemStack) extends WeightedRandomChestContent(baseItem, 1, 1, Settings.get.lootProbability) {
   override def generateChestContent(random: Random, newInventory: IInventory) =
     Loot.randomDisk(random) match {
       case Some(disk) =>

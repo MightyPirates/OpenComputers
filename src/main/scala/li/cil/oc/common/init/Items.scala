@@ -120,7 +120,9 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def createOpenOS() = Loot.createLootDisk("openos", "OpenOS", Some("dyeGreen"))
+  def createOpenOS(amount: Int = 1) = {
+    Loot.builtInDisks.get("OpenOS").map(_._1.copy()).orNull
+  }
 
   def createLuaBios(amount: Int = 1) = {
     val data = new NBTTagCompound()
@@ -159,10 +161,7 @@ object Items extends ItemAPI {
       get(Constants.ItemName.RAMTier6).createItemStack(1)
     )
 
-    val stack = get(Constants.ItemName.Drone).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   def createConfiguredMicrocontroller() = {
@@ -182,10 +181,7 @@ object Items extends ItemAPI {
       get(Constants.ItemName.RAMTier6).createItemStack(1)
     )
 
-    val stack = get(Constants.BlockName.Microcontroller).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   def createConfiguredRobot() = {
@@ -226,10 +222,7 @@ object Items extends ItemAPI {
       get(Constants.BlockName.DiskDrive).createItemStack(1)
     )
 
-    val stack = get(Constants.BlockName.Robot).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   def createConfiguredTablet() = {
@@ -324,6 +317,8 @@ object Items extends ItemAPI {
     registerItem(new item.Debugger(tools), Constants.ItemName.Debugger)
     Recipes.addSubItem(new item.Terminal(tools), Constants.ItemName.Terminal, "oc:terminal")
     Recipes.addSubItem(new item.TexturePicker(tools), Constants.ItemName.TexturePicker, "oc:texturePicker")
+    Recipes.addSubItem(new item.Manual(tools), Constants.ItemName.Manual, "oc:manual")
+    Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
   }
 
   // General purpose components.
@@ -418,7 +413,6 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.HardDiskDrive(storage, Tier.Three), Constants.ItemName.HDDTier3, "oc:hdd3")
 
     Recipes.addRecipe(createLuaBios(), Constants.ItemName.LuaBios)
-    Recipes.addRecipe(createOpenOS(), Constants.ItemName.OpenOS)
   }
 
   // Special purpose items that don't fit into any other category.
@@ -447,8 +441,8 @@ object Items extends ItemAPI {
     val integration = newItem(new item.Delegator(), "integration")
 
     // Only register recipes if the related mods are present.
-    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, "oc:abstractBusCard", Mods.StargateTech2.isAvailable)
-    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, "oc:worldSensorCard", Mods.Galacticraft.isAvailable)
+    Recipes.addSubItem(new item.AbstractBusCard(integration), Constants.ItemName.AbstractBusCard, Mods.StargateTech2.isAvailable, "oc:abstractBusCard")
+    Recipes.addSubItem(new item.WorldSensorCard(integration), Constants.ItemName.WorldSensorCard, Mods.Galacticraft.isAvailable, "oc:worldSensorCard")
   }
 
   private def newItem[T <: Item](item: T, name: String): T = {

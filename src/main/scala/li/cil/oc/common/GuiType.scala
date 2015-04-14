@@ -23,6 +23,7 @@ object GuiType extends ScalaEnum {
   val Disassembler = new EnumVal { def name = "Disassembler"; def subType = GuiType.Category.Block }
   val DiskDrive = new EnumVal { def name = "DiskDrive"; def subType = GuiType.Category.Block }
   val Drone = new EnumVal { def name = "Drone"; def subType = GuiType.Category.Entity }
+  val Manual = new EnumVal { def name = "Manual"; def subType = GuiType.Category.None }
   val Printer = new EnumVal { def name = "Printer"; def subType = GuiType.Category.Block }
   val Rack = new EnumVal { def name = "Rack"; def subType = GuiType.Category.Block }
   val Raid = new EnumVal { def name = "Raid"; def subType = GuiType.Category.Block }
@@ -38,6 +39,7 @@ object GuiType extends ScalaEnum {
 
     sealed trait EnumVal extends Value
 
+    val None = new EnumVal { def name = "None" }
     val Block = new EnumVal { def name = "Block" }
     val Entity = new EnumVal { def name = "Entity" }
     val Item = new EnumVal { def name = "Item" }

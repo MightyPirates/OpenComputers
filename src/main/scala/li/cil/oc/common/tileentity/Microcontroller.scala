@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -235,7 +236,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack) = {
-    val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get("eeprom"))
+    val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get(Constants.ItemName.EEPROM))
     if (oldEepromIndex >= 0) {
       val oldEeprom = info.components(oldEepromIndex)
       super.setInventorySlotContents(oldEepromIndex, newEeprom)

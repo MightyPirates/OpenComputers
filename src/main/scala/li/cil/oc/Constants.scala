@@ -101,6 +101,7 @@ object Constants {
     final val LeashUpgrade = "leashUpgrade"
     final val LinkedCard = "linkedCard"
     final val LuaBios = "luaBios"
+    final val Manual = "manual"
     final val MicrocontrollerCaseCreative = "microcontrollerCaseCreative"
     final val MicrocontrollerCaseTier1 = "microcontrollerCase1"
     final val MicrocontrollerCaseTier2 = "microcontrollerCase2"
@@ -141,6 +142,7 @@ object Constants {
     final val UpgradeContainerTier3 = "upgradeContainer3"
     final val WirelessNetworkCard = "wlanCard"
     final val WorldSensorCard = "worldSensorCard"
+    final val Wrench = "wrench"
 
     def DroneCase(tier: Int) = ItemUtils.caseNameWithTierSuffix("droneCase", tier)
 

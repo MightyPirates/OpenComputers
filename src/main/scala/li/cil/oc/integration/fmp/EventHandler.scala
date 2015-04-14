@@ -4,8 +4,7 @@ import codechicken.lib.packet.PacketCustom
 import codechicken.lib.raytracer.RayTracer
 import codechicken.lib.vec.BlockCoord
 import codechicken.lib.vec.Vector3
-import codechicken.multipart.TileMultipart
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
 import li.cil.oc.client.PacketSender
@@ -51,10 +50,10 @@ object EventHandler {
       case itemBlock: ItemBlock =>
         itemBlock.field_150939_a match {
           case simpleBlock: SimpleBlock =>
-            if (simpleBlock == Items.get("cable").block()) {
+            if (simpleBlock == Items.get(Constants.BlockName.Cable).block()) {
               placeDelegatePart(player, hit, new CablePart())
             }
-            else if (simpleBlock == Items.get("print").block()) {
+            else if (simpleBlock == Items.get(Constants.BlockName.Print).block()) {
               val part = new PrintPart()
               part.data.load(player.getHeldItem)
               part.facing = yaw2Direction((player.rotationYaw / 360 * 4).round & 3).getOpposite
