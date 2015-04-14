@@ -1,6 +1,7 @@
 package li.cil.oc.common.template
 
 import cpw.mods.fml.common.event.FMLInterModComms
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.internal
@@ -16,18 +17,18 @@ import net.minecraft.nbt.NBTTagList
 
 object TabletTemplate extends Template {
   override protected val suggestedComponents = Array(
-    "BIOS" -> hasComponent("eeprom") _,
-    "Keyboard" -> hasComponent("keyboard") _,
-    "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
+    "BIOS" -> hasComponent(Constants.ItemName.EEPROM) _,
+    "Keyboard" -> hasComponent(Constants.BlockName.Keyboard) _,
+    "GraphicsCard" -> ((inventory: IInventory) => Array(Constants.ItemName.GraphicsCardTier1, Constants.ItemName.GraphicsCardTier2, Constants.ItemName.GraphicsCardTier3).exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
   override protected def hostClass = classOf[internal.Tablet]
 
-  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tabletCase1")
+  def selectTier1(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.TabletCaseTier1)
 
-  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tabletCase2")
+  def selectTier2(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.TabletCaseTier2)
 
-  def selectCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tabletCaseCreative")
+  def selectCreative(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.TabletCaseCreative)
 
   def validate(inventory: IInventory): Array[AnyRef] = validateComputer(inventory)
 
@@ -36,21 +37,21 @@ object TabletTemplate extends Template {
     val data = new TabletData()
     data.tier = ItemUtils.caseTier(inventory.getStackInSlot(0))
     data.container = items.headOption.getOrElse(None)
-    data.items = Array(Option(api.Items.get("screen1").createItemStack(1))) ++ items.drop(if (data.tier == Tier.One) 0 else 1).filter(_.isDefined)
+    data.items = Array(Option(api.Items.get(Constants.BlockName.ScreenTier1).createItemStack(1))) ++ items.drop(if (data.tier == Tier.One) 0 else 1).filter(_.isDefined)
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
-    val stack = api.Items.get("tablet").createItemStack(1)
+    val stack = api.Items.get(Constants.ItemName.Tablet).createItemStack(1)
     data.save(stack)
     val energy = Settings.get.tabletBaseCost + complexity(inventory) * Settings.get.tabletComplexityCost
 
     Array(stack, double2Double(energy))
   }
 
-  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get("tablet")
+  def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.Tablet)
 
   def disassemble(stack: ItemStack, ingredients: Array[ItemStack]) = {
     val info = new TabletData(stack)
-    val itemName = ItemUtils.caseNameWithTierSuffix("tabletCase", info.tier)
+    val itemName = Constants.ItemName.TabletCase(info.tier)
     Array(api.Items.get(itemName).createItemStack(1)) ++ info.items.collect {
       case Some(item) => item
     }.drop(1) // Screen.

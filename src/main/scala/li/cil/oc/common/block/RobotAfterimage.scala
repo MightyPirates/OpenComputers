@@ -4,6 +4,7 @@ import java.util.Random
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.data.RobotData
@@ -102,7 +103,7 @@ class RobotAfterimage extends SimpleBlock with traits.SpecialBlock {
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     findMovingRobot(world, x, y, z) match {
-      case Some(robot) => api.Items.get("robot").block.onBlockActivated(world, robot.x, robot.y, robot.z, player, side.ordinal, hitX, hitY, hitZ)
+      case Some(robot) => api.Items.get(Constants.BlockName.Robot).block.onBlockActivated(world, robot.x, robot.y, robot.z, player, side.ordinal, hitX, hitY, hitZ)
       case _ => world.setBlockToAir(x, y, z)
     }
   }

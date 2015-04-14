@@ -42,7 +42,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
     textures.clear()
     charMap.clear()
     textures += new DynamicFontRenderer.CharTexture(this)
-    activeTexture = textures(0)
+    activeTexture = textures.head
     generateChars(basicChars.toCharArray)
   }
 
@@ -68,9 +68,9 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
   }
 
   override protected def drawChar(tx: Float, ty: Float, char: Char) {
-    val icon = charMap(char)
-    if (icon != null && icon.texture == activeTexture) {
-      icon.draw(tx, ty)
+    charMap.get(char) match {
+      case Some(icon) if icon.texture == activeTexture => icon.draw(tx, ty)
+      case _ =>
     }
   }
 

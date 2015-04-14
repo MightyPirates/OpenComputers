@@ -40,7 +40,7 @@ object Mods {
   val Forestry = new SimpleMod(IDs.Forestry)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
-  val GregTech = new SimpleMod(IDs.GregTech)
+  val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
@@ -50,6 +50,7 @@ object Mods {
   val NotEnoughItems = new SimpleMod(IDs.NotEnoughItems)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val PortalGun = new SimpleMod(IDs.PortalGun)
+  val ProjectRedCore = new SimpleMod(IDs.ProjectRedCore)
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
@@ -167,6 +168,7 @@ object Mods {
     final val NotEnoughItems = "NotEnoughItems"
     final val OpenComputers = "OpenComputers"
     final val PortalGun = "PortalGun"
+    final val ProjectRedCore = "ProjRed|Core"
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val Railcraft = "Railcraft"
     final val RedLogic = "RedLogic"

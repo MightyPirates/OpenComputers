@@ -7,8 +7,8 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Packet
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.integration.Mods
 import li.cil.oc.server.PacketSender
 import net.minecraft.item.ItemStack
@@ -78,7 +78,7 @@ class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentI
       case Some(driver) if driver.slot(stack) == Slot.CPU =>
         relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
       case Some(driver) if driver.slot(stack) == Slot.Memory =>
-        relayAmount = math.max(1, relayBaseAmount + (Items.multi.subItem(stack) match {
+        relayAmount = math.max(1, relayBaseAmount + (Delegator.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade
           case _ => (driver.tier(stack) + 1) * (relayAmountPerUpgrade * 2)
         }))

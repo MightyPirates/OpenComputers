@@ -211,6 +211,7 @@ processResources {
 
 jar {
     exclude "cofh/**"
+    exclude "mods/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'

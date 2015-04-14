@@ -239,8 +239,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
       if (event.isCanceled) return false
     }
 
-    val blockRobotProxy = api.Items.get("robot").block.asInstanceOf[common.block.RobotProxy]
-    val blockRobotAfterImage = api.Items.get("robotAfterimage").block.asInstanceOf[common.block.RobotAfterimage]
+    val blockRobotProxy = api.Items.get(Constants.BlockName.Robot).block.asInstanceOf[common.block.RobotProxy]
+    val blockRobotAfterImage = api.Items.get(Constants.BlockName.RobotAfterimage).block.asInstanceOf[common.block.RobotAfterimage]
     val wasAir = world.isAirBlock(newPosition)
     val block = world.getBlock(newPosition)
     val metadata = world.getBlockMetadata(newPosition)

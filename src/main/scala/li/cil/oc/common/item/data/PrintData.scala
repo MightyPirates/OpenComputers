@@ -1,6 +1,10 @@
 package li.cil.oc.common.item.data
 
+import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.util.Color
+import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -18,44 +22,140 @@ class PrintData extends ItemData {
   var label: Option[String] = None
   var tooltip: Option[String] = None
   var isButtonMode = false
-  var emitRedstone = false
+  var redstoneLevel = 0
   var pressurePlate = false
   val stateOff = mutable.Set.empty[PrintData.Shape]
   val stateOn = mutable.Set.empty[PrintData.Shape]
   var isBeaconBase = false
+  var lightLevel = 0
+
+  def hasActiveState = stateOn.size > 0
+
+  def emitLight = lightLevel > 0
+
+  def emitRedstone = redstoneLevel > 0
+
+  def emitRedstone(state: Boolean): Boolean = if (state) emitRedstoneWhenOn else emitRedstoneWhenOff
+
+  def emitRedstoneWhenOff = emitRedstone && !hasActiveState
+
+  def emitRedstoneWhenOn = emitRedstone && hasActiveState
+
+  def opacity = {
+    if (opacityDirty) {
+      opacityDirty = false
+      opacity_ = PrintData.computeApproximateOpacity(stateOn) min PrintData.computeApproximateOpacity(stateOff)
+    }
+    opacity_
+  }
+
+  // lazily computed and stored, because potentially slow
+  private var opacity_ = 0f
+  private var opacityDirty = true
 
   override def load(nbt: NBTTagCompound): Unit = {
     if (nbt.hasKey("label")) label = Option(nbt.getString("label")) else label = None
     if (nbt.hasKey("tooltip")) tooltip = Option(nbt.getString("tooltip")) else tooltip = None
     isButtonMode = nbt.getBoolean("isButtonMode")
-    emitRedstone = nbt.getBoolean("emitRedstone")
+    redstoneLevel = nbt.getInteger("redstoneLevel") max 0 min 15
+    if (nbt.getBoolean("emitRedstone")) redstoneLevel = 15
     pressurePlate = nbt.getBoolean("pressurePlate")
     stateOff.clear()
     stateOff ++= nbt.getTagList("stateOff", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     stateOn.clear()
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     isBeaconBase = nbt.getBoolean("isBeaconBase")
+    lightLevel = (nbt.getByte("lightLevel") & 0xFF) max 0 min 15
+
+    opacityDirty = true
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
     label.foreach(nbt.setString("label", _))
     tooltip.foreach(nbt.setString("tooltip", _))
     nbt.setBoolean("isButtonMode", isButtonMode)
-    nbt.setBoolean("emitRedstone", emitRedstone)
+    nbt.setInteger("redstoneLevel", redstoneLevel)
     nbt.setBoolean("pressurePlate", pressurePlate)
     nbt.setNewTagList("stateOff", stateOff.map(PrintData.shapeToNBT))
     nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
     nbt.setBoolean("isBeaconBase", isBeaconBase)
+    nbt.setByte("lightLevel", lightLevel.toByte)
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("print").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Print).createItemStack(1)
     save(stack)
     stack
   }
 }
 
 object PrintData {
+  // The following logic is used to approximate the opacity of a print, for
+  // which we use the volume as a heuristic. Because computing the actual
+  // volume is a) expensive b) not necessarily a good heuristic (e.g. a
+  // "dotted grid") we take a shortcut and divide the space into a few
+  // sub-sections, for each of which we check if there's anything in it.
+  // If so, we consider that area "opaque". To compensate, prints can never
+  // be fully light-opaque. This gives a little bit of shading as a nice
+  // effect, but avoid it looking derpy when there are only a few sparse
+  // shapes in the model.
+  private val stepping = 4
+  private val step = stepping / 16f
+  private val invMaxVolume = 1f / (stepping * stepping * stepping)
+
+  def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]) = {
+    var volume = 1f
+    if (shapes.size > 0) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
+      val bounds = AxisAlignedBB.getBoundingBox(
+        x * step, y * step, z * step,
+        (x + 1) * step, (y + 1) * step, (z + 1) * step)
+      if (!shapes.exists(_.bounds.intersectsWith(bounds))) {
+        volume -= invMaxVolume
+      }
+    }
+    volume
+  }
+
+  def computeCosts(data: PrintData) = {
+    val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
+    val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
+
+    if (totalVolume > 0) {
+      val baseMaterialRequired = (totalVolume / 2) max 1
+      val materialRequired =
+        if (data.redstoneLevel > 0 && data.redstoneLevel < 15) baseMaterialRequired + Settings.get.printCustomRedstone
+        else baseMaterialRequired
+      val inkRequired = (totalSurface / 6) max 1
+
+      Option((materialRequired, inkRequired))
+    }
+    else None
+  }
+
+  private val materialPerItem = Settings.get.printMaterialValue
+  private val inkPerCartridge = Settings.get.printInkValue
+
+  def materialValue(stack: ItemStack) = {
+    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Chamelium))
+      materialPerItem
+    else if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Print)) {
+      val data = new PrintData(stack)
+      computeCosts(data) match {
+        case Some((materialRequired, inkRequired)) => (materialRequired * Settings.get.printRecycleRate).toInt
+        case _ => 0
+      }
+    }
+    else 0
+  }
+
+  def inkValue(stack: ItemStack) = {
+    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.InkCartridge))
+      inkPerCartridge
+    else if (Color.isDye(stack))
+      inkPerCartridge / 10
+    else 0
+  }
+
   def nbtToShape(nbt: NBTTagCompound): Shape = {
     val aabb =
       if (nbt.hasKey("minX")) {

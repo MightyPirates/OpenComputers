@@ -7,6 +7,7 @@ import codechicken.lib.vec.Vector3
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Items
@@ -55,9 +56,9 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
 
   // ----------------------------------------------------------------------- //
 
-  override def simpleBlock = Items.get("cable").block().asInstanceOf[Cable]
+  override def simpleBlock = Items.get(Constants.BlockName.Cable).block().asInstanceOf[Cable]
 
-  def getType = Settings.namespace + "cable"
+  def getType = Settings.namespace + Constants.BlockName.Cable
 
   override def doesTick = false
 

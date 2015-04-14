@@ -4,12 +4,13 @@ import java.io
 import java.util.Random
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.inventory.IInventory
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
@@ -20,7 +21,7 @@ import net.minecraftforge.event.world.WorldEvent
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-object Loot extends WeightedRandomChestContent(Items.createOpenOS(), 1, 1, Settings.get.lootProbability) {
+object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, Settings.get.lootProbability) {
   val containers = Array(
     ChestGenHooks.DUNGEON_CHEST,
     ChestGenHooks.PYRAMID_DESERT_CHEST,
@@ -76,7 +77,7 @@ object Loot extends WeightedRandomChestContent(Items.createOpenOS(), 1, 1, Setti
   }
 
   private def parseLootDisks(list: java.util.Properties, acc: mutable.Map[String, (ItemStack, Int)]) {
-    for (key <- list.stringPropertyNames if key != "OpenOS") {
+    for (key <- list.stringPropertyNames) {
       val value = list.getProperty(key)
       try value.split(":") match {
         case Array(name, count, color) =>
@@ -106,7 +107,7 @@ object Loot extends WeightedRandomChestContent(Items.createOpenOS(), 1, 1, Setti
       case _ =>
     }
 
-    val disk = api.Items.get("lootDisk").createItemStack(1)
+    val disk = Items.get(Constants.ItemName.LootDisk).createItemStack(1)
     disk.setTagCompound(tag)
 
     disk
