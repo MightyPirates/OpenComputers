@@ -28,7 +28,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Motion Sensor](motionSensor.md)
 * [Redstone I/O](redstone.md)
 
-### Assembly / Printing
+## Assembly / Printing
 * [3D Print](print.md)
 * [3D Printer](printer.md)
 * [Assembler](assembler.md)
