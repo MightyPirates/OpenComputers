@@ -29,7 +29,7 @@ lootDisks: [
   {
     name: OPPM
     type: shapeless
-    input: ["oc:floppy", "oc:internetCard"]
+    input: ["oc:floppy", "oc:materialInterweb"]
   }
 ]
 luaBios {
