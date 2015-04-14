@@ -76,7 +76,7 @@ if #args == 0 or options.i then
         elseif type(v) == "table" and getmetatable(v) and getmetatable(v).__call then postfix = "()"
         elseif type(v) == "table" then postfix = "."
         end
-        table.insert(r, prefix..k..postfix)
+        r[prefix..k..postfix] = true
       end
     end
     local mt = getmetatable(t)
@@ -93,10 +93,13 @@ if #args == 0 or options.i then
     local prefix = string.sub(path, 1, #path - #suffix)
     local t = findTable(env, prefix)
     if not t then return nil end
-    local r = {}
-    findKeys(t, r, string.sub(line, 1, #line - #suffix), suffix)
-    table.sort(r)
-    return r
+    local r1, r2 = {}, {}
+    findKeys(t, r1, string.sub(line, 1, #line - #suffix), suffix)
+    for k in pairs(r1) do
+      table.insert(r2, k)
+    end
+    table.sort(r2)
+    return r2
   end
 
   component.gpu.setForeground(0xFFFFFF)
