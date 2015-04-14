@@ -15,7 +15,7 @@ public interface ImageRenderer {
      * The width of the area this renderer uses.
      * <p/>
      * This is used to offset the OpenGL state properly before calling
-     * {@link #render()}, to correctly align the image horizontally.
+     * {@link #render(int, int)}, to correctly align the image horizontally.
      *
      * @return the width of the rendered image.
      */
@@ -25,7 +25,7 @@ public interface ImageRenderer {
      * The height of the area this renderer uses.
      * <p/>
      * This is used to offset the OpenGL state properly before calling
-     * {@link #render()}, as well as to know where to resume rendering
+     * {@link #render(int, int)}, as well as to know where to resume rendering
      * other content below the image.
      *
      * @return the height of the rendered image.
