@@ -2,11 +2,11 @@
 
 ![Droning on.](oredict:oc:droneCase1)
 
-The drone case is used to build [drones](drone.md) in the [assembler](../block/assembler.md). Drones are light-weight, fast and very mobile machines with limited functionality (fewer upgrade and component slots available). Unlike [robots](../block/robot.md) they cannot use tools, and can interact with the world only in a relatively limited manner.
+The drone case is used to build [drones](drone.md) in the [assembler](../block/assembler.md). [Drones](drone.md) are light-weight, fast and very mobile machines with limited functionality (fewer upgrade and component slots available). Unlike [robots](../block/robot.md) they cannot use tools, and can interact with the world only in a relatively limited manner.
 
-They make up for their limitations with speed and lower running energy costs. They are well suited for transport of small amounts of items, and ideal for reconnaissance. Pairing a drone with a robot can be quite powerful, with the robot doing the "hard work", and the drone providing information about the environment and transporting items to and from a central hub, for example.
+They make up for their limitations with speed and lower running energy costs. They are well suited for transport of small amounts of items, and ideal for reconnaissance. Pairing a [drone](drone.md) with a [robot](../block/robot.md) can be quite powerful, with the [robot](../block/robot.md) doing the "hard work", and the [drone](drone.md) providing information about the environment and transporting items to and from a central hub, for example.
 
-Like [microcontrollers](../block/microcontroller.md), Drones can only be programmed using their [EEPROM](eeprom.md). Accordingly, the [EEPROM](eeprom.md) can be changed by crafting the drone with another [EEPROM](eeprom.md). 
+Like [microcontrollers](../block/microcontroller.md), [drones](drone.md) can only be programmed using their [EEPROM](eeprom.md). Accordingly, the [EEPROM](eeprom.md) can be changed by crafting the [drone](drone.md) with another [EEPROM](eeprom.md); the existing [EEPROM](eeprom.md) is return to the player's inventory.
 
 The tier 1 drone case is capable of taking the following components:
 - 1x tier 1 [CPU](cpu1.md)

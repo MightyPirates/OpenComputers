@@ -2,4 +2,4 @@
 
 ![Not a garrote. Honest.](oredict:oc:materialCuttingWire)
 
-You'll usually only encounter this when playing with the hard mode recipe set. In that case, this is used for crafting [raw circuit boards](rawCircuitBoard.md). Very inefficiently.
+An item encountered when using hard-mode recipes, it is used for crafting [raw circuit boards](rawCircuitBoard.md). Very inefficiently.

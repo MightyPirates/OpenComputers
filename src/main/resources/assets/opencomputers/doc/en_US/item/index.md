@@ -19,7 +19,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 ## Components
 
 ### Cards
-* [AbstractBusCard](abstractBusCard.md)
+* [AbstractBus Card](abstractBusCard.md)
 * [Debug Card](debugCard.md) (aka AMI)
 * [Graphics Card](graphicsCard1.md)
 * [Internet Card](internetCard.md)
@@ -61,8 +61,8 @@ Keep in mind that some of these may not be available, depending on the recipe se
 ## Crafting
 * [Acid](acid.md)
 * [ALU](alu.md)
-* [ArrowKeys](arrowKeys.md)
-* [ButtonGroup](buttonGroup.md)
+* [Arrow Keys](arrowKeys.md)
+* [Button Group](buttonGroup.md)
 * [Card](card.md)
 * [Circuit Board](circuitBoard.md)
 * [Control Unit](controlUnit.md)
@@ -77,7 +77,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 # Assembling / Printing
 * [Chamelium](chamelium.md)
-* [Drone Case](droneCase1.md)
 * [Ink Cartridge](inkCartridge.md)
+* [Drone Case](droneCase1.md)
 * [Microcontroller Case](microcontrollerCase1.md)
 * [Tablet Case](tabletCase1.md)

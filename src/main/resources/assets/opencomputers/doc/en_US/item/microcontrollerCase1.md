@@ -2,9 +2,9 @@
 
 ![It's so cute.](oredict:oc:microcontrollerCase1)
 
-The microcontroller Case is the base part when building [microcontrollers](../block/microcontroller.md) in the [assembler](../block/assembler.md). Microcontrollers are very primitive computers. They may only contain a very limited number of components, and are intended to be used in very specific use-cases, such as transforming or reacting to redstone signals, or processing network messages.
+The Microcontroller case is the base part when building [microcontrollers](../block/microcontroller.md) in the [assembler](../block/assembler.md). [Microcontrollers](../block/microcontroller.md) are very primitive [computers](../general/computer.md). They may only contain a very limited number of components, and are intended to be used in very specific use-cases, such as transforming or reacting to redstone signals, or processing network messages.
 
-They do not have an actual file system. All programming must be done using the [EEPROM](eeprom.md) chip built into them. This chip can be swapped for another one by crafting a microcontroller with the chip to insert. The old [EEPROM](eeprom.md) will be returned to your inventory.
+They do not have an actual file system. All programming must be done using the [EEPROM](eeprom.md) chip built into them. This chip can be swapped for another one by crafting a [microcontrollers](../block/microcontroller.md) with the chip to insert. The old [EEPROM](eeprom.md) will be returned to your inventory.
 
 While they also require power to run, they consume very little energy.
 
