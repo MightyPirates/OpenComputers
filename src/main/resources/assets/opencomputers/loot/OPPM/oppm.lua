@@ -575,7 +575,7 @@ if options.iKnowWhatIAmDoing then
     printUsage()
     return
   end
-  return
+  return true
 end
 
 --Very much not stolen from Sangar's install.lua
@@ -629,6 +629,10 @@ local mnt = choice.address:sub(1, 3)
 local result, reason = shell.execute("oppm", nil, "install", "-f", "oppm", "/mnt/" .. mnt .. "/usr/", "--iKnowWhatIAmDoing")
 if not result then
   error(reason, 0)
+end
+
+if not reason then
+  return
 end
 
 print("All done! Please remove the Floppy Disk used for installation! Reboot now? [Y/n]")
