@@ -505,6 +505,7 @@ local function installPackage(pack,path,update)
   term.write("Done.\n")
   saveToFile(tPacks)
   print("Successfully installed package "..pack)
+  return true
 end
 
 local function uninstallPackage(pack)
@@ -565,7 +566,7 @@ if options.iKnowWhatIAmDoing then
     provideInfo(args[2])
   elseif args[1] == "install" then
     if not getInternet() then return end
-    installPackage(args[2],args[3],false)
+    return installPackage(args[2],args[3],false)
   elseif args[1] == "update" then
     if not getInternet() then return end
     updatePackage(args[2])
@@ -575,7 +576,7 @@ if options.iKnowWhatIAmDoing then
     printUsage()
     return
   end
-  return true
+  return
 end
 
 --Very much not stolen from Sangar's install.lua
