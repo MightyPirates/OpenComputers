@@ -415,7 +415,7 @@ object Items extends ItemAPI {
     // 1.4.2
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, Constants.ItemName.EEPROM, "oc:eeprom")
-    Recipes.addRecipe(createLuaBios(), "luaBios")
+    Recipes.addRecipe(createLuaBios(), Constants.ItemName.LuaBios)
     Recipes.addSubItem(new item.MicrocontrollerCase(multi, Tier.One), Constants.ItemName.MicrocontrollerCaseTier1, "oc:microcontrollerCase1")
 
     // 1.4.3
