@@ -27,6 +27,7 @@ import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
@@ -148,7 +149,9 @@ object EventHandler {
     val closed = mutable.ArrayBuffer.empty[Machine]
     machines.foreach(machine => if (machine.tryClose()) {
       closed += machine
-      if (machine.node != null) machine.node.remove()
+      if (machine.host.world == null || !machine.host.world.blockExists(BlockPosition(machine.host))) {
+        if (machine.node != null) machine.node.remove()
+      }
     })
     machines --= closed
   }
