@@ -197,6 +197,20 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendParticleEffect(position: BlockPosition, name: String, count: Int, velocity: Double, direction: Option[ForgeDirection] = None): Unit = if (count > 0) {
+    val pb = new SimplePacketBuilder(PacketType.ParticleEffect)
+
+    pb.writeInt(position.world.get.provider.dimensionId)
+    pb.writeInt(position.x)
+    pb.writeInt(position.y)
+    pb.writeInt(position.z)
+    pb.writeDouble(velocity)
+    pb.writeDirection(direction)
+    pb.writeUTF(name)
+    pb.writeByte(count.toByte)
+
+    pb.sendToNearbyPlayers(position.world.get, position.x, position.y, position.z, Some(32.0))
+  }
 
   def sendPetVisibility(name: Option[String] = None, player: Option[EntityPlayerMP] = None) {
     val pb = new SimplePacketBuilder(PacketType.PetVisibility)

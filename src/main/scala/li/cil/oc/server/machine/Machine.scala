@@ -185,7 +185,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
-  override def start(): Boolean = state.synchronized(state.top match {
+  override def start(): Boolean = node.network != null && state.synchronized(state.top match {
     case Machine.State.Stopped =>
       onHostChanged()
       processAddedComponents()

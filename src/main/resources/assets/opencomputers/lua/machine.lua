@@ -634,6 +634,14 @@ local function spcall(...)
   end
 end
 
+local sgcco
+
+local function sgcf(self, gc)
+  while true do
+    self, gc = coroutine.yield(pcall(gc, self))
+  end
+end
+
 local function sgc(self)
   local oldDeadline, oldHitDeadline = deadline, hitDeadline
   local mt = debug.getmetatable(self)
@@ -642,11 +650,16 @@ local function sgc(self)
   if type(gc) ~= "function" then
     return
   end
-  local co = coroutine.create(gc)
-  debug.sethook(co, checkDeadline, "", hookInterval)
+  if not sgcco then
+    sgcco = coroutine.create(sgcf)
+  end
+  debug.sethook(sgcco, checkDeadline, "", hookInterval)
   deadline, hitDeadline = math.min(oldDeadline, computer.realTime() + 0.5), true
-  local result, reason = coroutine.resume(co, self)
-  debug.sethook(co)
+  local _, result, reason = coroutine.resume(sgcco, self, gc)
+  debug.sethook(sgcco)
+  if coroutine.status(sgcco) == "dead" then
+    sgcco = nil
+  end
   deadline, hitDeadline = oldDeadline, oldHitDeadline
   if not result then
     error(reason, 0)

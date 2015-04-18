@@ -188,19 +188,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override def onAnalyze(player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     slotAt(side, hitX, hitY, hitZ) match {
       case Some(slot) => servers(slot) match {
-        case Some(server) =>
-          val computer = server.machine
-          computer.lastError match {
-            case value if value != null =>
-              player.addChatMessage(Localization.Analyzer.LastError(value))
-            case _ =>
-          }
-          player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, computer.maxComponents))
-          val list = computer.users
-          if (list.size > 0) {
-            player.addChatMessage(Localization.Analyzer.Users(list))
-          }
-          Array(computer.node)
+        case Some(server) => Array(server.machine.node)
         case _ => null
       }
       case _ => Array(sidedNode(side))
