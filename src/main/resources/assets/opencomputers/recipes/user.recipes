@@ -11,6 +11,7 @@
 include file("default.recipes")
 #include file("hardmode.recipes")
 #include file("gregtech.recipes")
+#include file("peaceful.recipes")
 #include file("your_custom.recipes")
 
 # You can also specify custom recipes in this file directly. Have a look at the

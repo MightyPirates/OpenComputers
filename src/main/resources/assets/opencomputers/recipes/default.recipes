@@ -244,12 +244,12 @@ generatorUpgrade {
 }
 inventoryUpgrade {
   input: [[plankWood, hopper, plankWood]
-          [dispenser, chest, craftingPiston]
+          [dropper, chest, craftingPiston]
           [plankWood, "oc:circuitChip1", plankWood]]
 }
 inventoryControllerUpgrade {
   input: [[ingotGold, "oc:analyzer", ingotGold]
-          [dispenser, "oc:circuitChip2", craftingPiston]
+          [dropper, "oc:circuitChip2", craftingPiston]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 leashUpgrade {
