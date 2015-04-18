@@ -34,5 +34,6 @@ object ModVanilla extends ModProxy {
     Driver.add(ConverterNBT)
     Driver.add(ConverterWorld)
     Driver.add(ConverterWorldProvider)
+    RecipeRegistry.init()
   }
 }

@@ -77,13 +77,14 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
 
     Loot.init()
-    Recipes.init()
     Achievement.init()
 
     EntityRegistry.registerModEntity(classOf[Drone], "Drone", 0, OpenComputers, 80, 1, true)
 
     OpenComputers.log.info("Initializing mod integration.")
     Mods.init()
+    OpenComputers.log.info("Initializing Recipes.")
+    Recipes.init()
   }
 
   def postInit(e: FMLPostInitializationEvent) {

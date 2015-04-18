@@ -2,6 +2,7 @@ package li.cil.oc.common.recipe
 
 import java.io.File
 import java.io.FileReader
+import java.util
 
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
@@ -22,6 +23,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.RegistryNamespaced
+import net.minecraftforge.fluids.{Fluid, FluidRegistry}
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
@@ -34,6 +36,12 @@ object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
   val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
   var hadErrors = false
+  val recipeMap = mutable.LinkedHashMap.empty[String, (ItemStack, Config) => Unit]
+
+
+  def registerRecipe(name: String, recipe: (ItemStack, Config) => Unit): Unit = {
+    recipeMap += name -> recipe
+  }
 
   def addBlock(instance: Block, name: String, oreDict: String = null) = {
     Items.registerBlock(instance, name)
@@ -254,21 +262,10 @@ object Recipes {
           val recipe = list.getConfig(name)
           val recipeType = tryGetType(recipe)
           try {
-            recipeType match {
-              case "shaped" => addShapedRecipe(output, recipe)
-              case "shapeless" => addShapelessRecipe(output, recipe)
-              case "furnace" => addFurnaceRecipe(output, recipe)
-              case "gt_assembler" =>
-                if (Mods.GregTech.isAvailable) {
-                  addGTAssemblingMachineRecipe(output, recipe)
-                }
-                else {
-                  OpenComputers.log.error(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item.")
-                  hadErrors = true
-                }
-              case other =>
-                OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid recipe type '$other'.")
-                hadErrors = true
+            recipeMap.get(recipeType) match {
+              case Some(x) => x(output, recipe)
+              case _ => OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item!")
+
             }
           }
           catch {
@@ -291,106 +288,79 @@ object Recipes {
       hadErrors = true
     }
   }
-  catch {
-    case e: Throwable =>
-      OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item.", e)
-      hadErrors = true
+
+  //  private def addRecipe(output: ItemStack, list: Config, name: String) = try {
+  //    if (list.hasPath(name)) {
+  //      val value = list.getValue(name)
+  //      value.valueType match {
+  //        case ConfigValueType.OBJECT =>
+  //          val recipe = list.getConfig(name)
+  //          val recipeType = tryGetType(recipe)
+  //          try {
+  //            recipeType match {
+  //              case "shaped" => addShapedRecipe(output, recipe)
+  //              case "shapeless" => addShapelessRecipe(output, recipe)
+  //              case "furnace" => addFurnaceRecipe(output, recipe)
+  //              case "gt_assembler" =>
+  //                if (Mods.GregTech.isAvailable) {
+  //                  addGTAssemblingMachineRecipe(output, recipe)
+  //                }
+  //                else {
+  //                  OpenComputers.log.error(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item.")
+  //                  hadErrors = true
+  //                }
+  //              case "gt_alloysmelter" =>
+  //                if (Mods.GregTech.isAvailable) {
+  //                  addGTAlloySmelterRecipe(output, recipe)
+  //                }
+  //                else {
+  //                  OpenComputers.log.error(s"Skipping GregTech alloy smelter recipe for '$name' because GregTech is not present, you will not be able to craft this item.")
+  //                  hadErrors = true
+  //                }
+  //              case other =>
+  //                OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid recipe type '$other'.")
+  //                hadErrors = true
+  //            }
+  //          }
+  //          catch {
+  //            case e: RecipeException =>
+  //              OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item! The error was: ${e.getMessage}")
+  //              hadErrors = true
+  //          }
+  //        case ConfigValueType.BOOLEAN =>
+  //          // Explicitly disabled, keep in NEI if true.
+  //          if (!value.unwrapped.asInstanceOf[Boolean]) {
+  //            hide(output)
+  //          }
+  //        case _ =>
+  //          OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid value for recipe.")
+  //          hadErrors = true
+  //      }
+  //    }
+  //    else {
+  //      OpenComputers.log.warn(s"No recipe for '$name', you will not be able to craft this item. To suppress this warning, disable the recipe (assign `false` to it).")
+  //      hadErrors = true
+  //    }
+  //  }
+  //  catch {
+  //    case e: Throwable =>
+  //      OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item.", e)
+  //      hadErrors = true
+  //  }
+
+
+  def parseFluidIngredient(entry: AnyRef): Option[Fluid] = entry match {
+    case name: String => {
+      if (name == null || name.trim.isEmpty) None
+      else if (FluidRegistry.getFluid(name) != null) Option(FluidRegistry.getFluid(name))
+      else None
+    }
+    case _ => None
+
   }
 
-  private def addShapedRecipe(output: ItemStack, recipe: Config) {
-    val rows = recipe.getList("input").unwrapped().map {
-      case row: java.util.List[AnyRef]@unchecked => row.map(parseIngredient)
-      case other => throw new RecipeException(s"Invalid row entry for shaped recipe (not a list: $other).")
-    }
-    output.stackSize = tryGetCount(recipe)
 
-    var number = -1
-    var shape = mutable.ArrayBuffer.empty[String]
-    val input = mutable.ArrayBuffer.empty[AnyRef]
-    for (row <- rows) {
-      val (pattern, ingredients) = row.foldLeft((new StringBuilder, Seq.empty[AnyRef]))((acc, ingredient) => {
-        val (pattern, ingredients) = acc
-        ingredient match {
-          case _@(_: ItemStack | _: String) =>
-            number += 1
-            (pattern.append(('a' + number).toChar), ingredients ++ Seq(Char.box(('a' + number).toChar), ingredient))
-          case _ => (pattern.append(' '), ingredients)
-        }
-      })
-      shape += pattern.toString
-      input ++= ingredients
-    }
-    if (input.size > 0 && output.stackSize > 0) {
-      GameRegistry.addRecipe(new ExtendedShapedOreRecipe(output, shape ++ input: _*))
-    }
-  }
-
-  private def addShapelessRecipe(output: ItemStack, recipe: Config) {
-    val input = recipe.getValue("input").unwrapped() match {
-      case list: java.util.List[AnyRef]@unchecked => list.map(parseIngredient)
-      case other => Seq(parseIngredient(other))
-    }
-    output.stackSize = tryGetCount(recipe)
-
-    if (input.size > 0 && output.stackSize > 0) {
-      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(output, input: _*))
-    }
-  }
-
-  private def addGTAssemblingMachineRecipe(output: ItemStack, recipe: Config) {
-    val inputs = (recipe.getValue("input").unwrapped() match {
-      case list: java.util.List[AnyRef]@unchecked => list.map(parseIngredient)
-      case other => Seq(parseIngredient(other))
-    }) map {
-      case null => Array.empty[ItemStack]
-      case stack: ItemStack => Array(stack)
-      case name: String => Array(OreDictionary.getOres(name): _*)
-      case other => throw new RecipeException(s"Invalid ingredient type: $other.")
-    }
-    output.stackSize = tryGetCount(recipe)
-
-    if (inputs.size < 1 || inputs.size > 2) {
-      throw new RecipeException(s"Invalid recipe length: ${inputs.size}, should be 1 or 2.")
-    }
-
-    val inputCount = recipe.getIntList("count")
-    if (inputCount.size() != inputs.size) {
-      throw new RecipeException(s"Ingredient and input count mismatch: ${inputs.size} != ${inputCount.size}.")
-    }
-
-    val eu = recipe.getInt("eu")
-    val duration = recipe.getInt("time")
-
-    (inputs, inputCount).zipped.foreach((stacks, count) => stacks.foreach(stack => if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count))
-    inputs.padTo(2, null)
-
-    if (inputs.head != null) {
-      for (input1 <- inputs.head) {
-        if (inputs.last != null) {
-          for (input2 <- inputs.last)
-            gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, input2, output, duration, eu)
-        }
-        else gregtech.api.GregTech_API.sRecipeAdder.addAssemblerRecipe(input1, null, output, duration, eu)
-      }
-    }
-  }
-
-  private def addFurnaceRecipe(output: ItemStack, recipe: Config) {
-    val input = parseIngredient(recipe.getValue("input").unwrapped())
-    output.stackSize = tryGetCount(recipe)
-
-    input match {
-      case stack: ItemStack =>
-        FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
-      case name: String =>
-        for (stack <- OreDictionary.getOres(name)) {
-          FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
-        }
-      case _ =>
-    }
-  }
-
-  private def parseIngredient(entry: AnyRef) = entry match {
+  def parseIngredient(entry: AnyRef) = entry match {
     case map: java.util.Map[AnyRef, AnyRef]@unchecked =>
       if (map.contains("oreDict")) {
         map.get("oreDict") match {
@@ -453,7 +423,7 @@ object Recipes {
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
 
-  private def tryGetCount(recipe: Config) = if (recipe.hasPath("output")) recipe.getInt("output") else 1
+  def tryGetCount(recipe: Config) = if (recipe.hasPath("output")) recipe.getInt("output") else 1
 
   private def tryGetId(ingredient: java.util.Map[AnyRef, AnyRef]): Int =
     if (ingredient.contains("subID")) ingredient.get("subID") match {
@@ -492,6 +462,6 @@ object Recipes {
     }
   }
 
-  private class RecipeException(message: String) extends RuntimeException(message)
+  class RecipeException(message: String) extends RuntimeException(message)
 
 }

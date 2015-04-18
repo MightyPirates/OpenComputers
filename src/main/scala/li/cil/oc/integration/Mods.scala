@@ -40,7 +40,7 @@ object Mods {
   val Forestry = new SimpleMod(IDs.Forestry)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
-  val GregTech = new ClassBasedMod(IDs.GregTech,"gregtech.api.GregTech_API")()
+  val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
@@ -155,7 +155,8 @@ object Mods {
     final val Factorization = "factorization"
     final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
-    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
+    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit"
+    // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
