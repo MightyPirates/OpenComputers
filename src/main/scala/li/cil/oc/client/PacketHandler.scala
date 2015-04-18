@@ -19,6 +19,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
 import net.minecraft.util.Vec3
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -240,26 +241,26 @@ object PacketHandler extends CommonPacketHandler {
         val z = p.readInt()
         val velocity = p.readDouble()
         val direction = p.readDirection()
-        val name = p.readUTF()
+        val particleType = EnumParticleTypes.getParticleFromId(p.readInt())
         val count = p.readUnsignedByte()
 
         for (i <- 0 until count) {
-          def rv(f: ForgeDirection => Int) = direction match {
+          def rv(f: EnumFacing => Int) = direction match {
             case Some(d) => world.rand.nextFloat - 0.5 + f(d) * 0.5
             case _ => world.rand.nextFloat * 2 - 1
           }
-          val vx = rv(_.offsetX)
-          val vy = rv(_.offsetY)
-          val vz = rv(_.offsetZ)
+          val vx = rv(_.getFrontOffsetX)
+          val vy = rv(_.getFrontOffsetY)
+          val vz = rv(_.getFrontOffsetZ)
           if (vx * vx + vy * vy + vz * vz < 1) {
-            def rp(x: Int, v: Double, f: ForgeDirection => Int) = direction match {
+            def rp(x: Int, v: Double, f: EnumFacing => Int) = direction match {
               case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
               case _ => x + 0.5 + v * velocity
             }
-            val px = rp(x, vx, _.offsetX)
-            val py = rp(y, vy, _.offsetY)
-            val pz = rp(z, vz, _.offsetZ)
-            world.spawnParticle(name, px, py, pz, vx, vy + velocity * 0.25, vz)
+            val px = rp(x, vx, _.getFrontOffsetX)
+            val py = rp(y, vy, _.getFrontOffsetY)
+            val pz = rp(z, vz, _.getFrontOffsetZ)
+            world.spawnParticle(particleType, px, py, pz, vx, vy + velocity * 0.25, vz)
           }
         }
       case _ => // Invalid packet.

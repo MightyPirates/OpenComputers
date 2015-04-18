@@ -323,7 +323,7 @@ object EventHandler {
   @SubscribeEvent
   def onChunkUnload(e: ChunkEvent.Unload): Unit = {
     if (!e.world.isRemote) {
-      e.getChunk.entityLists.foreach(_.collect {
+      e.getChunk.getEntityLists.foreach(_.collect {
         case host: MachineHost => host.machine match {
           case machine: Machine => scheduleClose(machine)
         }
