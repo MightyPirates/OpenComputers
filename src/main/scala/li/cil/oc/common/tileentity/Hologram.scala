@@ -56,9 +56,6 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   var dirtyFromZ = Int.MaxValue
   var dirtyUntilZ = -1
 
-  // Time to wait before sending another update packet.
-  var cooldown = 5
-
   var hasPower = true
 
   final val colorsByTier = Array(Array(0x00FF00), Array(0x0000FF, 0x00FF00, 0xFF0000)) // 0xBBGGRR for rendering convenience
@@ -97,7 +94,6 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     dirtyUntilX = -1
     dirtyFromZ = Int.MaxValue
     dirtyUntilZ = -1
-    cooldown = 5
   }
 
   // ----------------------------------------------------------------------- //
@@ -113,7 +109,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function() -- Clears the hologram.""")
-  def clear(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def clear(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     for (i <- 0 until volume.length) volume(i) = 0
     ServerPacketSender.sendHologramClear(this)
     resetDirtyFlag()
@@ -122,13 +118,13 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   }
 
   @Callback(direct = true, doc = """function(x:number, y:number, z:number):number -- Returns the value for the specified voxel.""")
-  def get(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def get(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val (x, y, z) = checkCoordinates(args)
     result(getColor(x, y, z))
   }
 
   @Callback(direct = true, limit = 256, doc = """function(x:number, y:number, z:number, value:number or boolean) -- Set the value for the specified voxel.""")
-  def set(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def set(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val (x, y, z) = checkCoordinates(args)
     val value = checkColor(args, 3)
     setColor(x, y, z, value)
@@ -136,7 +132,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   }
 
   @Callback(direct = true, limit = 128, doc = """function(x:number, z:number[, minY:number], maxY:number, value:number or boolean) -- Fills an interval of a column with the specified value.""")
-  def fill(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def fill(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val (x, _, z) = checkCoordinates(args, 0, -1, 1)
     val (minY, maxY, value) =
       if (args.count > 4)
@@ -157,8 +153,30 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     null
   }
 
+  @Callback(doc = """function(data:string) -- Set the raw buffer to the specified byte array, where each byte represents a voxel color. Nesting is x,z,y.""")
+  def setRaw(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    val data = args.checkByteArray(0)
+    for (x <- 0 until width; z <- 0 until width) {
+      val offset = z * height + x * height * width
+      if (data.length >= offset + height) {
+        var lbit = 0
+        var hbit = 0
+        for (y <- (height - 1) to 0 by -1) {
+          val color = data(offset + y)
+          lbit |= (color & 1) << y
+          hbit |= ((color & 3) >>> 1) << y
+        }
+        volume(x + z * width) = lbit
+        volume(x + z * width + width * width) = hbit
+      }
+    }
+    setDirty(0, 0)
+    setDirty(width - 1, width - 1)
+    null
+  }
+
   @Callback(doc = """function(x:number, z:number, sx:number, sz:number, tx:number, tz:number) -- Copies an area of columns by the specified translation.""")
-  def copy(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def copy(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val (x, _, z) = checkCoordinates(args, 0, -1, 1)
     val w = args.checkInteger(2)
     val h = args.checkInteger(3)
@@ -205,30 +223,30 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     // 'free' if it's less than 0.25 seconds, i.e. for small copies.
     val area = (math.max(dx0, dx1) - math.min(dx0, dx1)) * (math.max(dz0, dz1) - math.min(dz0, dz1))
     val relativeArea = math.max(0, area / (width * width).toFloat - 0.25)
-    computer.pause(relativeArea)
+    context.pause(relativeArea)
 
     null
   }
 
   @Callback(direct = true, doc = """function():number -- Returns the render scale of the hologram.""")
-  def getScale(computer: Context, args: Arguments): Array[AnyRef] = {
+  def getScale(context: Context, args: Arguments): Array[AnyRef] = {
     result(scale)
   }
 
   @Callback(doc = """function(value:number) -- Set the render scale. A larger scale consumes more energy.""")
-  def setScale(computer: Context, args: Arguments): Array[AnyRef] = {
+  def setScale(context: Context, args: Arguments): Array[AnyRef] = {
     scale = math.max(0.333333, math.min(Settings.get.hologramMaxScaleByTier(tier), args.checkDouble(0)))
     ServerPacketSender.sendHologramScale(this)
     null
   }
 
   @Callback(direct = true, doc = """function():number, number, number -- Returns the relative render projection offsets of the hologram.""")
-  def getTranslation(computer: Context, args: Arguments): Array[AnyRef] = {
+  def getTranslation(context: Context, args: Arguments): Array[AnyRef] = {
     result(translation.xCoord, translation.yCoord, translation.zCoord)
   }
 
   @Callback(doc = """function(tx:number, ty:number, tz:number) -- Sets the relative render projection offsets of the hologram.""")
-  def setTranslation(computer: Context, args: Arguments): Array[AnyRef] = {
+  def setTranslation(context: Context, args: Arguments): Array[AnyRef] = {
     // Validate all axes before setting the values.
     val maxTranslation = Settings.get.hologramMaxTranslationByTier(tier)
     val tx = math.max(-maxTranslation, math.min(maxTranslation, args.checkDouble(0)))
@@ -249,7 +267,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   }
 
   @Callback(doc = """function(index:number):number -- Get the color defined for the specified value.""")
-  def getPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
+  def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
     if (index < 1 || index > colors.length) throw new ArrayIndexOutOfBoundsException()
     // Colors are stored as 0xAABBGGRR for rendering convenience, so convert them.
@@ -257,7 +275,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   }
 
   @Callback(doc = """function(index:number, value:number):number -- Set the color defined for the specified value.""")
-  def setPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
+  def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
     if (index < 1 || index > colors.length) throw new ArrayIndexOutOfBoundsException()
     val value = args.checkInteger(1)
@@ -300,12 +318,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {
-      if (dirty) {
-        cooldown -= 1
-        if (cooldown <= 0) this.synchronized {
-          ServerPacketSender.sendHologramSet(this)
-          resetDirtyFlag()
-        }
+      if (dirty) this.synchronized {
+        ServerPacketSender.sendHologramSet(this)
+        resetDirtyFlag()
       }
       if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (litRatio < 0) this.synchronized {
