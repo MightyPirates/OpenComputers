@@ -2,7 +2,7 @@
 
 ![Serves u right.](oredict:oc:server1)
 
-Servers are a form of higher tier [computer](../general/computer.md). They can be configured by holding them in the hand and using them - like opening a backpack or ender pouch, for example. After inserting a [CPU](cpu1.md), [memory](ram1.md) and Expansion cards, the server has to be placed inside a [server rack](../block/serverRack.md). For more information see the server rack entry.
+Servers are a form of higher tier [computer](../general/computer.md). They can be configured by holding them in the hand and using them - like opening a backpack or Ender pouch, for example. After inserting a [CPU](cpu1.md), [memory](ram1.md) and Expansion cards, the server has to be placed inside a [server rack](../block/serverRack.md). For more information see the [server rack](../block/serverRack.md) entry.
 
 The tier 1 server is capable of taking the following components: 
 - 1x tier 2 [CPU](cpu2.md)

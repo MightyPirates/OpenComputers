@@ -1,6 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.net.URI
 import java.util
 
 import li.cil.oc.Localization
@@ -39,7 +38,7 @@ class Manual extends GuiScreen {
   var xSize = 0
   var ySize = 0
   var isDragging = false
-  var document = Iterable.empty[Segment]
+  var document: Segment = null
   var documentHeight = 0
   var currentSegment = None: Option[InteractiveSegment]
   protected var scrollButton: ImageButton = _
@@ -182,19 +181,8 @@ class Manual extends GuiScreen {
       isDragging = true
       scrollMouse(mouseY)
     }
-    else if (button == 0) {
-      // Left click, did we hit a link?
-      currentSegment.foreach(segment => if (!segment.onMouseClick(mouseX, mouseY)) segment.link match {
-        case Some(link) =>
-          if (link.startsWith("http://") || link.startsWith("https://")) handleUrl(link)
-          else pushPage(ManualAPI.makeRelative(link, ManualAPI.history.top.path))
-        case _ =>
-      })
-    }
-    else if (button == 1) {
-      // Right mouseclick = back.
-      popPage()
-    }
+    else if (button == 0) currentSegment.foreach(_.onMouseClick(mouseX, mouseY))
+    else if (button == 1) popPage()
   }
 
   override protected def mouseClickMove(mouseX: Int, mouseY: Int, lastButtonClicked: Int, timeSinceMouseClick: Long) {
@@ -208,18 +196,6 @@ class Manual extends GuiScreen {
     super.mouseMovedOrUp(mouseX, mouseY, button)
     if (button == 0) {
       isDragging = false
-    }
-  }
-
-  private def handleUrl(url: String): Unit = {
-    // Pretty much copy-paste from GuiChat.
-    try {
-      val desktop = Class.forName("java.awt.Desktop")
-      val instance = desktop.getMethod("getDesktop").invoke(null)
-      desktop.getMethod("browse", classOf[URI]).invoke(instance, new URI(url))
-    }
-    catch {
-      case t: Throwable => Minecraft.getMinecraft.thePlayer.addChatMessage(Localization.Chat.WarningLink(t.toString))
     }
   }
 

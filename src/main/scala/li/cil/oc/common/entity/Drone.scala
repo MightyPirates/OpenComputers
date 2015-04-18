@@ -206,19 +206,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    machine.lastError match {
-      case value if value != null =>
-        player.addChatMessage(Localization.Analyzer.LastError(value))
-      case _ =>
-    }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
-    val list = machine.users
-    if (list.size > 0) {
-      player.addChatMessage(Localization.Analyzer.Users(list))
-    }
-    Array(machine.node)
-  }
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
 
   // ----------------------------------------------------------------------- //
 

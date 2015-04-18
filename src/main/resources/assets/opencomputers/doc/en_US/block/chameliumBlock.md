@@ -1,7 +1,7 @@
-# Chamelium Block
+# Block of Chamelium
 
 ![So... blank.](oredict:oc:chameliumBlock)
 
-A bunch of [Chamelium](../item/chamelium.md) slapped together, this can be nice to decorate parts of your base, if you want a clean, monochrome block. Can be dyed to take any one of the 16 common Minecraft colors.
+A few pieces of [chamelium](../item/chamelium.md) can be combined to provide a monochrome block for decorative purposes. Chamelium blocks can also be dyed with any of the 16 Minecraft colors. 
 
-Another use is to pick its texture and use that in your [3D prints](print.md), if you want something clean white to apply a tint to.
+Using the Chamelium block as a texture for [3D prints](print.md) provides a clean white surface for applying tints. 

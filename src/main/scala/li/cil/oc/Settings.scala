@@ -293,6 +293,7 @@ class Settings(val config: Config) {
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
   val threadPriority = config.getInt("misc.threadPriority")
+  val giveManualToNewPlayers = config.getBoolean("misc.giveManualToNewPlayers")
 
   // ----------------------------------------------------------------------- //
   // printer
@@ -303,6 +304,7 @@ class Settings(val config: Config) {
   val printCustomRedstone = config.getInt("printer.customRedstoneCost") max 0
   val printMaterialValue = config.getInt("printer.materialValue") max 0
   val printInkValue = config.getInt("printer.inkValue") max 0
+  val printsHaveOpacity = config.getBoolean("printer.printsHaveOpacity")
 
   // ----------------------------------------------------------------------- //
   // integration

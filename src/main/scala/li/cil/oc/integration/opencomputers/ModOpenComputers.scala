@@ -8,9 +8,12 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.internal
+import li.cil.oc.api.internal.Wrench
 import li.cil.oc.api.manual.PathProvider
 import li.cil.oc.api.prefab.ItemStackTabIconRenderer
 import li.cil.oc.api.prefab.ResourceContentProvider
+import li.cil.oc.api.prefab.TextureTabIconRenderer
+import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.markdown.segment.render.BlockImageProvider
 import li.cil.oc.client.renderer.markdown.segment.render.ItemImageProvider
 import li.cil.oc.client.renderer.markdown.segment.render.OreDictImageProvider
@@ -32,6 +35,7 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
@@ -49,6 +53,8 @@ object ModOpenComputers extends ModProxy {
     ServerTemplate.register()
     TabletTemplate.register()
     TemplateBlacklist.register()
+
+    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
@@ -208,8 +214,16 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addProvider("block", BlockImageProvider)
     api.Manual.addProvider("oredict", OreDictImageProvider)
 
+    api.Manual.addTab(new TextureTabIconRenderer(Textures.guiManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
+  }
+
+  def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
+    player.getCurrentEquippedItem.getItem match {
+      case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, x, y, z, !changeDurability)
+      case _ => false
+    }
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {

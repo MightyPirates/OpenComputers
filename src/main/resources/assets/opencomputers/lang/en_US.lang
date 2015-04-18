@@ -135,6 +135,7 @@ item.oc.UpgradeTankController.name=Tank Controller Upgrade
 item.oc.UpgradeTractorBeam.name=Tractor Beam Upgrade
 item.oc.WirelessNetworkCard.name=Wireless Network Card
 item.oc.WorldSensorCard.name=World Sensor Card
+item.oc.wrench.name=Scrench
 
 # Entities
 entity.oc.Drone.name=Drone
@@ -184,8 +185,10 @@ oc:gui.Error.NoEnergy=Not enough energy.
 oc:gui.Error.NoRAM=No RAM is installed in the computer.
 oc:gui.Error.OutOfMemory=Out of memory.
 oc:gui.Manual.Blocks=OpenComputers Blocks
+oc:gui.Manual.Home=Home
 oc:gui.Manual.Items=OpenComputers Items
 oc:gui.Manual.Warning.BlockMissing=Block unavailable.
+oc:gui.Manual.Warning.ImageMissing=Image not found.
 oc:gui.Manual.Warning.ItemMissing=Item unavailable.
 oc:gui.Manual.Warning.OreDictMissing=Ore dictionary entry unavailable.
 oc:gui.Raid.Warning=§4Adding a disk wipes it.[nl] Removing a disk wipes the raid.
@@ -337,6 +340,7 @@ oc:tooltip.UpgradeTankController=This upgrade allows robots and drones more cont
 oc:tooltip.UpgradeTractorBeam=Equips a device with extremely advanced technology, nicknamed the "Item Magnet". Allows the device to pick up items anywhere within 3 blocks of its location.
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.
 oc:tooltip.WorldSensorCard=Allows reading out information about the world, such as its gravity and whether it has a breathable atmosphere. Use results at own risk. The manufacturer takes no responsibility for bodily or material harm caused by decisions made upon the cards' outputs. We have lawyers. And money. Don't even try.
+oc:tooltip.Wrench=A hybrid of Screwdriver and Wrench, this tool is easy to learn, but hard to master.
 
 #Achievements
 achievement.oc.adapter=Plug In Baby
@@ -416,6 +420,7 @@ achievement.oc.wirelessNetworkCard.desc=Time to go where no packet has gone befo
 nei.options.inventory.oredict=Show OreDictionary names
 nei.options.inventory.oredict.true=True
 nei.options.inventory.oredict.false=False
+nei.usage.oc.Manual=Open Manual
 
 # Waila Integration
 option.oc.address=Address

@@ -50,6 +50,7 @@ object Mods {
   val NotEnoughItems = new SimpleMod(IDs.NotEnoughItems)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val PortalGun = new SimpleMod(IDs.PortalGun)
+  val ProjectRedCore = new SimpleMod(IDs.ProjectRedCore)
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
@@ -168,6 +169,7 @@ object Mods {
     final val NotEnoughItems = "NotEnoughItems"
     final val OpenComputers = "OpenComputers"
     final val PortalGun = "PortalGun"
+    final val ProjectRedCore = "ProjRed|Core"
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val Railcraft = "Railcraft"
     final val RedLogic = "RedLogic"

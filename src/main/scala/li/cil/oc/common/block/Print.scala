@@ -62,7 +62,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     if (data.emitRedstone) {
       tooltip.add(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel))
     }
-    if (data.lightLevel > 0) {
+    if (data.emitLight) {
       tooltip.add(Localization.Tooltip.PrintLightValue(data.lightLevel))
     }
   }
@@ -75,7 +75,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def getLightOpacity(world: IBlockAccess, x: Int, y: Int, z: Int): Int =
     world.getTileEntity(x, y, z) match {
-      case print: tileentity.Print => (print.data.opacity * 4).toInt
+      case print: tileentity.Print if Settings.get.printsHaveOpacity => (print.data.opacity * 4).toInt
       case _ => super.getLightOpacity(world, x, y, z)
     }
 

@@ -20,7 +20,6 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
-import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -114,18 +113,7 @@ object Items extends ItemAPI {
   // ----------------------------------------------------------------------- //
 
   def createOpenOS(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    data.setString(Settings.namespace + "fs.label", "openos")
-
-    val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
-    nbt.setString(Settings.namespace + "lootPath", "OpenOS")
-    nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
-
-    val stack = get(Constants.ItemName.LootDisk).createItemStack(amount)
-    stack.setTagCompound(nbt)
-
-    stack
+    Loot.builtInDisks.get("OpenOS").map(_._1.copy()).orNull
   }
 
   def createLuaBios(amount: Int = 1) = {
@@ -268,7 +256,6 @@ object Items extends ItemAPI {
   def init() {
     val multi = new item.Delegator() {
       def configuredItems = Array(
-        createOpenOS(),
         createLuaBios(),
         createConfiguredDrone(),
         createConfiguredMicrocontroller(),
@@ -389,7 +376,6 @@ object Items extends ItemAPI {
         else super.onItemRightClick(stack, world, player)
       }
     }
-    Recipes.addRecipe(createOpenOS(), "openOS")
 
     Recipes.addSubItem(new item.UpgradeInventoryController(multi), Constants.ItemName.InventoryControllerUpgrade, "oc:inventoryControllerUpgrade")
     Recipes.addSubItem(new item.UpgradeChunkloader(multi), Constants.ItemName.ChunkloaderUpgrade, "oc:chunkloaderUpgrade")
@@ -428,7 +414,7 @@ object Items extends ItemAPI {
     // 1.4.2
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, Constants.ItemName.EEPROM, "oc:eeprom")
-    Recipes.addRecipe(createLuaBios(), "luaBios")
+    Recipes.addRecipe(createLuaBios(), Constants.ItemName.LuaBios)
     Recipes.addSubItem(new item.MicrocontrollerCase(multi, Tier.One), Constants.ItemName.MicrocontrollerCaseTier1, "oc:microcontrollerCase1")
 
     // 1.4.3
@@ -460,6 +446,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.TexturePicker(multi), Constants.ItemName.TexturePicker, "oc:texturePicker")
 
     // 1.5.7
-    Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual")
+    Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual", "craftingBook")
+    Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
   }
 }

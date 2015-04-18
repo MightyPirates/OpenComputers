@@ -128,7 +128,6 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
-  @Callback(doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
   def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
     val color = args.checkInteger(1)
@@ -380,6 +379,9 @@ object GraphicsCard {
 
     @Callback(direct = true, limit = 32, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
+
+    @Callback(direct = true, limit = 2, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
+    override def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = super.setPaletteColor(context, args)
   }
 
   class Tier2 extends GraphicsCard {
@@ -400,6 +402,9 @@ object GraphicsCard {
 
     @Callback(direct = true, limit = 64, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
+
+    @Callback(direct = true, limit = 8, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
+    override def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = super.setPaletteColor(context, args)
   }
 
   class Tier3 extends GraphicsCard {
@@ -420,6 +425,9 @@ object GraphicsCard {
 
     @Callback(direct = true, limit = 128, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
+
+    @Callback(direct = true, limit = 16, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
+    override def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = super.setPaletteColor(context, args)
   }
 
 }

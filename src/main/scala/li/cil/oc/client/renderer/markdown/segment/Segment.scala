@@ -7,31 +7,54 @@ import scala.util.matching.Regex
 
 trait Segment {
   /**
-   * Computes the height of this segment, in pixels, given it starts at the
-   * specified indent into the current line, with the specified maximum
-   * allowed width.
+   * Parent segment, i.e. the segment this segment was refined from.
+   * Each line starts as a TextSegment that is refined based into segments
+   * based on the handled formatting rules / patterns.
    */
-  def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = 0
+  def parent: Segment
 
   /**
-   * Computes the width of the last line of this segment, given it starts
-   * at the specified indent into the current line, with the specified
-   * maximum allowed width.
-   * If the segment remains on the same line, returns the new end of the
-   * line (i.e. indent plus width of the segment).
+   * The root segment, i.e. the original parent of this segment.
    */
-  def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = 0
+  @tailrec final def root: Segment = if (parent == null) this else parent.root
 
-  def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
+  /**
+   * Get the X coordinate at which to render the next segment.
+   *
+   * For flowing/inline segments this will be to the right of the last line
+   * this segment renders, for block segments it will be at the start of
+   * the next line below this segment.
+   *
+   * The coordinates in this context are relative to (0,0).
+   */
+  def nextX(indent: Int, maxWidth: Int, renderer: FontRenderer): Int
 
-  // Used when rendering, to compute the style of a nested segment.
-  protected def parent: Segment
+  /**
+   * Get the Y coordinate at which to render the next segment.
+   *
+   * For flowing/inline segments this will be the same level as the last line
+   * this segment renders, unless it's the last segment on its line. For block
+   * segments and last-on-line segments this will be the next line after.
+   *
+   * The coordinates in this context are relative to (0,0).
+   */
+  def nextY(indent: Int, maxWidth: Int, renderer: FontRenderer): Int
 
-  @tailrec protected final def root: Segment = if (parent == null) this else parent.root
+  /**
+   * Render the segment at the specified coordinates with the specified
+   * properties.
+   */
+  def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = None
+
+  // ----------------------------------------------------------------------- //
 
   // Used during construction, checks a segment for inner segments.
   private[markdown] def refine(pattern: Regex, factory: (Segment, Regex.Match) => Segment): Iterable[Segment] = Iterable(this)
 
-  // Set after construction of document, used for formatting (e.g. newline height).
-  private[markdown] var previous: Segment = null
+  // Set after construction of document, used for formatting, specifically
+  // to compute the height for last segment on a line (to force a new line).
+  private[markdown] var next: Segment = null
+
+  // Utility method to check if the segment is the last on a line.
+  private[markdown] def isLast = next == null || root != next.root
 }

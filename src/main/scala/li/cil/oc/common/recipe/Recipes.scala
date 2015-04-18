@@ -8,6 +8,7 @@ import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
+import li.cil.oc.common.Loot
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegator
@@ -43,30 +44,30 @@ object Recipes {
     recipeMap += name -> recipe
   }
 
-  def addBlock(instance: Block, name: String, oreDict: String = null) = {
+  def addBlock(instance: Block, name: String, oreDict: String*) = {
     Items.registerBlock(instance, name)
     addRecipe(new ItemStack(instance), name)
-    register(oreDict, instance match {
+    register(instance match {
       case simple: SimpleBlock => simple.createItemStack()
       case _ => new ItemStack(instance)
-    })
+    }, oreDict: _*)
     instance
   }
 
-  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String*) = {
     Items.registerItem(delegate, name)
     addRecipe(delegate.createItemStack(), name)
-    register(oreDict, delegate.createItemStack())
+    register(delegate.createItemStack(), oreDict: _*)
     delegate
   }
 
-  def addItem(instance: Item, name: String, oreDict: String = null) = {
+  def addItem(instance: Item, name: String, oreDict: String*) = {
     Items.registerItem(instance, name)
     addRecipe(new ItemStack(instance), name)
-    register(oreDict, instance match {
+    register(instance match {
       case simple: SimpleItem => simple.createItemStack()
       case _ => new ItemStack(instance)
-    })
+    }, oreDict: _*)
     instance
   }
 
@@ -74,8 +75,8 @@ object Recipes {
     list += stack -> name
   }
 
-  private def register(name: String, item: ItemStack) {
-    if (name != null) {
+  private def register(item: ItemStack, names: String*) {
+    for (name <- names if name != null) {
       oreDictEntries += name -> item
     }
   }
@@ -92,17 +93,15 @@ object Recipes {
     oreDictEntries.clear()
 
     try {
-      val defaultRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "default.recipes")
-      val hardmodeRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "hardmode.recipes")
-      val gregTechRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "gregtech.recipes")
-      val userRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "user.recipes")
-
-      defaultRecipes.getParentFile.mkdirs()
-      FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/default.recipes"), defaultRecipes)
-      FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/hardmode.recipes"), hardmodeRecipes)
-      FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/gregtech.recipes"), gregTechRecipes)
+      val recipeSets = Array("default", "hardmode", "gregtech", "peaceful")
+      val recipeDirectory = new File(Loader.instance.getConfigDir + File.separator + "opencomputers")
+      val userRecipes = new File(recipeDirectory, "user.recipes")
+      userRecipes.getParentFile.mkdirs()
       if (!userRecipes.exists()) {
         FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/user.recipes"), userRecipes)
+      }
+      for (recipeSet <- recipeSets) {
+        FileUtils.copyURLToFile(getClass.getResource(s"/assets/opencomputers/recipes/$recipeSet.recipes"), new File(recipeDirectory, s"$recipeSet.recipes"))
       }
       lazy val config: ConfigParseOptions = ConfigParseOptions.defaults.
         setSyntax(ConfigSyntax.CONF).
@@ -127,7 +126,44 @@ object Recipes {
 
       // Register all known recipes.
       for ((stack, name) <- list) {
-        addRecipe(stack, recipes, name)
+        if (recipes.hasPath(name)) {
+          val value = recipes.getValue(name)
+          value.valueType match {
+            case ConfigValueType.OBJECT =>
+              addRecipe(stack, recipes.getConfig(name), "'" + name + "'")
+            case ConfigValueType.BOOLEAN =>
+              // Explicitly disabled, keep in NEI if true.
+              if (!value.unwrapped.asInstanceOf[Boolean]) {
+                hide(stack)
+              }
+            case _ =>
+              OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid value for recipe.")
+              hadErrors = true
+          }
+        }
+        else {
+          OpenComputers.log.warn(s"No recipe for '$name', you will not be able to craft this item. To suppress this warning, disable the recipe (assign `false` to it).")
+          hadErrors = true
+        }
+      }
+
+      // Register all unknown recipes. Well. Loot disk recipes.
+      if (recipes.hasPath("lootDisks")) try {
+        val lootRecipes = recipes.getConfigList("lootDisks")
+        for (recipe <- lootRecipes) {
+          val name = recipe.getString("name")
+          Loot.builtInDisks.get(name) match {
+            case Some((stack, _)) => addRecipe(stack, recipe, "loot disk '" + name + "'")
+            case _ =>
+              OpenComputers.log.warn(s"Failed adding recipe for loot disk '$name': No such global loot disk.")
+              hadErrors = true
+          }
+        }
+      }
+      catch {
+        case t: Throwable =>
+          OpenComputers.log.warn("Failed parsing loot disk recipes.", t)
+          hadErrors = true
       }
 
       // Recrafting operations.
@@ -254,100 +290,23 @@ object Recipes {
     list.clear()
   }
 
-  private def addRecipe(output: ItemStack, list: Config, name: String) = try {
-    if (list.hasPath(name)) {
-      val value = list.getValue(name)
-      value.valueType match {
-        case ConfigValueType.OBJECT =>
-          val recipe = list.getConfig(name)
-          val recipeType = tryGetType(recipe)
-          try {
-            recipeMap.get(recipeType) match {
-              case Some(x) => x(output, recipe)
-              case _ => OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item!")
+  private def addRecipe(output: ItemStack, recipe: Config, name: String) = {
 
-            }
-          }
-          catch {
-            case e: RecipeException =>
-              OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item! The error was: ${e.getMessage}")
-              hadErrors = true
-          }
-        case ConfigValueType.BOOLEAN =>
-          // Explicitly disabled, keep in NEI if true.
-          if (!value.unwrapped.asInstanceOf[Boolean]) {
-            hide(output)
-          }
-        case _ =>
-          OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid value for recipe.")
+    val recipeType = tryGetType(recipe)
+    try {
+      recipeMap.get(recipeType) match {
+        case Some(x) => x(output, recipe)
+        case _ => OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item!")
           hadErrors = true
+
       }
     }
-    else {
-      OpenComputers.log.warn(s"No recipe for '$name', you will not be able to craft this item. To suppress this warning, disable the recipe (assign `false` to it).")
-      hadErrors = true
+    catch {
+      case e: RecipeException =>
+        OpenComputers.log.error(s"Failed adding $recipeType recipe for $name, you will not be able to craft this item! The error was: ${e.getMessage}")
+        hadErrors = true
     }
   }
-
-  //  private def addRecipe(output: ItemStack, list: Config, name: String) = try {
-  //    if (list.hasPath(name)) {
-  //      val value = list.getValue(name)
-  //      value.valueType match {
-  //        case ConfigValueType.OBJECT =>
-  //          val recipe = list.getConfig(name)
-  //          val recipeType = tryGetType(recipe)
-  //          try {
-  //            recipeType match {
-  //              case "shaped" => addShapedRecipe(output, recipe)
-  //              case "shapeless" => addShapelessRecipe(output, recipe)
-  //              case "furnace" => addFurnaceRecipe(output, recipe)
-  //              case "gt_assembler" =>
-  //                if (Mods.GregTech.isAvailable) {
-  //                  addGTAssemblingMachineRecipe(output, recipe)
-  //                }
-  //                else {
-  //                  OpenComputers.log.error(s"Skipping GregTech assembler recipe for '$name' because GregTech is not present, you will not be able to craft this item.")
-  //                  hadErrors = true
-  //                }
-  //              case "gt_alloysmelter" =>
-  //                if (Mods.GregTech.isAvailable) {
-  //                  addGTAlloySmelterRecipe(output, recipe)
-  //                }
-  //                else {
-  //                  OpenComputers.log.error(s"Skipping GregTech alloy smelter recipe for '$name' because GregTech is not present, you will not be able to craft this item.")
-  //                  hadErrors = true
-  //                }
-  //              case other =>
-  //                OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid recipe type '$other'.")
-  //                hadErrors = true
-  //            }
-  //          }
-  //          catch {
-  //            case e: RecipeException =>
-  //              OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item! The error was: ${e.getMessage}")
-  //              hadErrors = true
-  //          }
-  //        case ConfigValueType.BOOLEAN =>
-  //          // Explicitly disabled, keep in NEI if true.
-  //          if (!value.unwrapped.asInstanceOf[Boolean]) {
-  //            hide(output)
-  //          }
-  //        case _ =>
-  //          OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item. The error was: Invalid value for recipe.")
-  //          hadErrors = true
-  //      }
-  //    }
-  //    else {
-  //      OpenComputers.log.warn(s"No recipe for '$name', you will not be able to craft this item. To suppress this warning, disable the recipe (assign `false` to it).")
-  //      hadErrors = true
-  //    }
-  //  }
-  //  catch {
-  //    case e: Throwable =>
-  //      OpenComputers.log.error(s"Failed adding recipe for '$name', you will not be able to craft this item.", e)
-  //      hadErrors = true
-  //  }
-
 
   def parseFluidIngredient(entry: AnyRef): Option[Fluid] = entry match {
     case name: String => {

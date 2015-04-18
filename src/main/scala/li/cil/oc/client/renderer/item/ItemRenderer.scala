@@ -168,7 +168,7 @@ object ItemRenderer extends IItemRenderer {
       val data = new PrintData(stack)
       Minecraft.getMinecraft.renderEngine.bindTexture(TextureMap.locationBlocksTexture)
       val state =
-        if (data.stateOn.size > 0 && KeyBindings.showExtendedTooltips)
+        if (data.hasActiveState && KeyBindings.showExtendedTooltips)
           data.stateOn
         else
           data.stateOff

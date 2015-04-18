@@ -24,19 +24,17 @@ private[markdown] class RenderSegment(val parent: Segment, val title: String, va
 
   def imageWidth(maxWidth: Int) = math.min(maxWidth, imageRenderer.getWidth)
 
-  def imageHeight(maxWidth: Int) = (imageRenderer.getHeight * scale(maxWidth)).toInt
+  def imageHeight(maxWidth: Int) = math.ceil(imageRenderer.getHeight * scale(maxWidth)).toInt + 4
 
-  override def width(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = imageWidth(maxWidth)
+  override def nextY(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = imageHeight(maxWidth) + (if (indent > 0) Document.lineHeight(renderer) else 0)
 
-  override def height(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = {
-    math.max(0, imageHeight(maxWidth)) + (if (indent > 0) Document.lineHeight(renderer) else 0)
-  }
+  override def nextX(indent: Int, maxWidth: Int, renderer: FontRenderer): Int = 0
 
-  override def render(x: Int, y: Int, indent: Int, maxWidth: Int, minY: Int, maxY: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
+  override def render(x: Int, y: Int, indent: Int, maxWidth: Int, renderer: FontRenderer, mouseX: Int, mouseY: Int): Option[InteractiveSegment] = {
     val width = imageWidth(maxWidth)
     val height = imageHeight(maxWidth)
     val xOffset = (maxWidth - width) / 2
-    val yOffset = 4 + (if (indent > 0) Document.lineHeight(renderer) else 0)
+    val yOffset = 2 + (if (indent > 0) Document.lineHeight(renderer) else 0)
     val s = scale(maxWidth)
 
     lastX = x + xOffset
