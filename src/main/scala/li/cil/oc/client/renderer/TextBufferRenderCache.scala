@@ -71,6 +71,8 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
     else {
       GL11.glCallList(list)
       RenderState.bindTexture(0)
+      RenderState.enableDepthMask()
+      RenderState.color(1, 1, 1)
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: glCallList")
     }
