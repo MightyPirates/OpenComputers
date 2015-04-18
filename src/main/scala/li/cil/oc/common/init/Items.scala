@@ -256,7 +256,6 @@ object Items extends ItemAPI {
   def init() {
     val multi = new item.Delegator() {
       def configuredItems = Array(
-        createOpenOS(),
         createLuaBios(),
         createConfiguredDrone(),
         createConfiguredMicrocontroller(),
