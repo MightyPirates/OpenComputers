@@ -33,20 +33,6 @@ class Settings(val config: Config) {
   val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
-  val hologramMaxScaleByTier = Array(config.getDoubleList("client.hologramMaxScale"): _*) match {
-    case Array(tier1, tier2) =>
-      Array((tier1: Double) max 1.0, (tier2: Double) max 1.0)
-    case _ =>
-      OpenComputers.log.warn("Bad number of hologram max scales, ignoring.")
-      Array(3.0, 4.0)
-  }
-  val hologramMaxTranslationByTier = Array(config.getDoubleList("client.hologramMaxTranslation"): _*) match {
-    case Array(tier1, tier2) =>
-      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
-    case _ =>
-      OpenComputers.log.warn("Bad number of hologram max translations, ignoring.")
-      Array(0.25, 0.5)
-  }
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
   val fontRenderer = config.getString("client.fontRenderer")
   val beepSampleRate = config.getInt("client.beepSampleRate")
@@ -264,6 +250,24 @@ class Settings(val config: Config) {
   val switchRelayAmountUpgrade = config.getInt("switch.relayAmountUpgrade") max 0
 
   // ----------------------------------------------------------------------- //
+  // hologram
+  val hologramMaxScaleByTier = Array(config.getDoubleList("hologram.maxScale"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 1.0, (tier2: Double) max 1.0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hologram max scales, ignoring.")
+      Array(3.0, 4.0)
+  }
+  val hologramMaxTranslationByTier = Array(config.getDoubleList("hologram.maxTranslation"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hologram max translations, ignoring.")
+      Array(0.25, 0.5)
+  }
+  val hologramSetRawDelay = config.getDouble("hologram.setRawDelay") max 0
+
+  // ----------------------------------------------------------------------- //
   // misc
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
@@ -289,7 +293,8 @@ class Settings(val config: Config) {
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
-  val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
+  val databaseEntriesPerTier = Array(9, 25, 81)
+  // Not configurable because of GUI design.
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
   val threadPriority = config.getInt("misc.threadPriority")

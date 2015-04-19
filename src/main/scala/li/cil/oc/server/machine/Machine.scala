@@ -117,19 +117,17 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       }
       case _ => 0
     }))
-    val oldArchitecture = architecture
-    architecture = null
+    var newArchitecture: Architecture = null
     components.find {
       case stack: ItemStack => Option(Driver.driverFor(stack, host.getClass)) match {
         case Some(driver: Processor) if driver.slot(stack) == Slot.CPU =>
           Option(driver.architecture(stack)) match {
             case Some(clazz) =>
-              if (oldArchitecture == null || oldArchitecture.getClass != clazz) {
-                architecture = clazz.getConstructor(classOf[machine.Machine]).newInstance(this)
-                if (node.network != null) architecture.onConnect()
+              if (architecture == null || architecture.getClass != clazz) {
+                newArchitecture = clazz.getConstructor(classOf[machine.Machine]).newInstance(this)
               }
               else {
-                architecture = oldArchitecture
+                newArchitecture = architecture
               }
               true
             case _ => false
@@ -137,6 +135,12 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         case _ => false
       }
       case _ => false
+    }
+    // This needs to operate synchronized against the worker thread, to avoid the
+    // architecture changing while it is currently being executed.
+    if (newArchitecture != architecture) this.synchronized {
+      architecture = newArchitecture
+      if (architecture != null && node.network != null) architecture.onConnect()
     }
     hasMemory = Option(architecture).fold(false)(_.recomputeMemory(components))
   }
@@ -181,7 +185,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
-  override def start(): Boolean = state.synchronized(state.top match {
+  override def start(): Boolean = node.network != null && state.synchronized(state.top match {
     case Machine.State.Stopped =>
       onHostChanged()
       processAddedComponents()

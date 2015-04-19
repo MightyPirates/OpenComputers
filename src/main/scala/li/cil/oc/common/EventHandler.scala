@@ -12,6 +12,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.asm.ClassTransformer
@@ -26,6 +27,7 @@ import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
@@ -39,6 +41,7 @@ import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.BlockEvent
+import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._
@@ -140,9 +143,16 @@ object EventHandler {
       else if (robot.world != null) robot.machine.update()
     })
     runningRobots --= invalid
-
+  }
+  else if (e.phase == TickEvent.Phase.END) {
+    // Clean up machines *after* a tick, to allow stuff to be saved, first.
     val closed = mutable.ArrayBuffer.empty[Machine]
-    machines.foreach(machine => if (machine.tryClose()) closed += machine)
+    machines.foreach(machine => if (machine.tryClose()) {
+      closed += machine
+      if (machine.host.world == null || !machine.host.world.blockExists(BlockPosition(machine.host))) {
+        if (machine.node != null) machine.node.remove()
+      }
+    })
     machines --= closed
   }
 
@@ -341,10 +351,23 @@ object EventHandler {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     if (!e.world.isRemote) {
-      import scala.collection.convert.WrapAsScala._
       e.world.loadedTileEntityList.collect {
         case te: tileentity.traits.TileEntity => te.dispose()
       }
+      e.world.loadedEntityList.collect {
+        case host: MachineHost => host.machine.stop()
+      }
+    }
+  }
+
+  @SubscribeEvent
+  def onChunkUnload(e: ChunkEvent.Unload): Unit = {
+    if (!e.world.isRemote) {
+      e.getChunk.entityLists.foreach(_.collect {
+        case host: MachineHost => host.machine match {
+          case machine: Machine => scheduleClose(machine)
+        }
+      })
     }
   }
 }
