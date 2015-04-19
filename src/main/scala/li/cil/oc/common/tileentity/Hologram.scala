@@ -166,12 +166,15 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
           lbit |= (color & 1) << y
           hbit |= ((color & 3) >>> 1) << y
         }
-        volume(x + z * width) = lbit
-        volume(x + z * width + width * width) = hbit
+        val index = x + z * width
+        if (volume(index) != lbit || volume(index + width * width) != hbit) {
+          volume(index) = lbit
+          volume(index + width * width) = hbit
+          setDirty(x, z)
+        }
       }
     }
-    setDirty(0, 0)
-    setDirty(width - 1, width - 1)
+    context.pause(0.2)
     null
   }
 
