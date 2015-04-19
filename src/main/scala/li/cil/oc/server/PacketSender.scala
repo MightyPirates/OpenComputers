@@ -176,8 +176,8 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendHologramSet(t: tileentity.Hologram) {
-    val pb = new CompressedPacketBuilder(PacketType.HologramSet)
+  def sendHologramArea(t: tileentity.Hologram) {
+    val pb = new CompressedPacketBuilder(PacketType.HologramArea)
 
     pb.writeTileEntity(t)
     pb.writeByte(t.dirtyFromX)
@@ -189,6 +189,22 @@ object PacketSender {
         pb.writeInt(t.volume(x + z * t.width))
         pb.writeInt(t.volume(x + z * t.width + t.width * t.width))
       }
+    }
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendHologramValues(t: tileentity.Hologram): Unit = {
+    val pb = new CompressedPacketBuilder(PacketType.HologramValues)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.dirty.size)
+    for (xz <- t.dirty) {
+      val x = (xz >> 8).toByte
+      val z = xz.toByte
+      pb.writeShort(xz)
+      pb.writeInt(t.volume(x + z * t.width))
+      pb.writeInt(t.volume(x + z * t.width + t.width * t.width))
     }
 
     pb.sendToPlayersNearTileEntity(t)
