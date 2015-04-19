@@ -19,6 +19,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
 import net.minecraft.util.Vec3
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -47,12 +48,14 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.DisassemblerActiveChange => onDisassemblerActiveChange(p)
       case PacketType.FileSystemActivity => onFileSystemActivity(p)
       case PacketType.FloppyChange => onFloppyChange(p)
+      case PacketType.HologramArea => onHologramArea(p)
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
-      case PacketType.HologramSet => onHologramSet(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
+      case PacketType.HologramValues => onHologramValues(p)
+      case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.PrinterState => onPrinterState(p)
@@ -176,7 +179,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         for (i <- 0 until t.volume.length) t.volume(i) = 0
-        t.dirty = true
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -186,7 +189,7 @@ object PacketHandler extends CommonPacketHandler {
         val index = p.readInt()
         val value = p.readInt()
         t.colors(index) = value & 0xFFFFFF
-        t.dirty = true
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -203,7 +206,7 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onHologramSet(p: PacketParser) =
+  def onHologramArea(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         val fromX = p.readByte(): Int
@@ -216,7 +219,22 @@ object PacketHandler extends CommonPacketHandler {
             t.volume(x + z * t.width + t.width * t.width) = p.readInt()
           }
         }
-        t.dirty = true
+        t.needsRendering = true
+      case _ => // Invalid packet.
+    }
+
+  def onHologramValues(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        val count = p.readInt()
+        for (i <- 0 until count) {
+          val xz = p.readShort()
+          val x = (xz >> 8).toByte
+          val z = xz.toByte
+          t.volume(x + z * t.width) = p.readInt()
+          t.volume(x + z * t.width + t.width * t.width) = p.readInt()
+        }
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -229,6 +247,41 @@ object PacketHandler extends CommonPacketHandler {
         t.translation = new Vec3(x, y, z)
       case _ => // Invalid packet.
     }
+
+  def onParticleEffect(p: PacketParser) = {
+    val dimension = p.readInt()
+    world(p.player, dimension) match {
+      case Some(world) =>
+        val x = p.readInt()
+        val y = p.readInt()
+        val z = p.readInt()
+        val velocity = p.readDouble()
+        val direction = p.readDirection()
+        val particleType = EnumParticleTypes.getParticleFromId(p.readInt())
+        val count = p.readUnsignedByte()
+
+        for (i <- 0 until count) {
+          def rv(f: EnumFacing => Int) = direction match {
+            case Some(d) => world.rand.nextFloat - 0.5 + f(d) * 0.5
+            case _ => world.rand.nextFloat * 2 - 1
+          }
+          val vx = rv(_.getFrontOffsetX)
+          val vy = rv(_.getFrontOffsetY)
+          val vz = rv(_.getFrontOffsetZ)
+          if (vx * vx + vy * vy + vz * vz < 1) {
+            def rp(x: Int, v: Double, f: EnumFacing => Int) = direction match {
+              case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
+              case _ => x + 0.5 + v * velocity
+            }
+            val px = rp(x, vx, _.getFrontOffsetX)
+            val py = rp(y, vy, _.getFrontOffsetY)
+            val pz = rp(z, vz, _.getFrontOffsetZ)
+            world.spawnParticle(particleType, px, py, pz, vx, vy + velocity * 0.25, vz)
+          }
+        }
+      case _ => // Invalid packet.
+    }
+  }
 
   def onPetVisibility(p: PacketParser) {
     val count = p.readInt()

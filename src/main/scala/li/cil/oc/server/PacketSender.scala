@@ -15,6 +15,7 @@ import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 
@@ -168,8 +169,8 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendHologramSet(t: tileentity.Hologram) {
-    val pb = new CompressedPacketBuilder(PacketType.HologramSet)
+  def sendHologramArea(t: tileentity.Hologram) {
+    val pb = new CompressedPacketBuilder(PacketType.HologramArea)
 
     pb.writeTileEntity(t)
     pb.writeByte(t.dirtyFromX)
@@ -186,6 +187,22 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendHologramValues(t: tileentity.Hologram): Unit = {
+    val pb = new CompressedPacketBuilder(PacketType.HologramValues)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.dirty.size)
+    for (xz <- t.dirty) {
+      val x = (xz >> 8).toByte
+      val z = xz.toByte
+      pb.writeShort(xz)
+      pb.writeInt(t.volume(x + z * t.width))
+      pb.writeInt(t.volume(x + z * t.width + t.width * t.width))
+    }
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendHologramOffset(t: tileentity.Hologram) {
     val pb = new SimplePacketBuilder(PacketType.HologramTranslation)
 
@@ -197,6 +214,20 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendParticleEffect(position: BlockPosition, particleType: EnumParticleTypes, count: Int, velocity: Double, direction: Option[EnumFacing] = None): Unit = if (count > 0) {
+    val pb = new SimplePacketBuilder(PacketType.ParticleEffect)
+
+    pb.writeInt(position.world.get.provider.getDimensionId)
+    pb.writeInt(position.x)
+    pb.writeInt(position.y)
+    pb.writeInt(position.z)
+    pb.writeDouble(velocity)
+    pb.writeDirection(direction)
+    pb.writeInt(particleType.getParticleID)
+    pb.writeByte(count.toByte)
+
+    pb.sendToNearbyPlayers(position.world.get, position.x, position.y, position.z, Some(32.0))
+  }
 
   def sendPetVisibility(name: Option[String] = None, player: Option[EntityPlayerMP] = None) {
     val pb = new SimplePacketBuilder(PacketType.PetVisibility)

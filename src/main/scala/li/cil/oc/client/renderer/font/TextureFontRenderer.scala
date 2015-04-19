@@ -110,6 +110,7 @@ abstract class TextureFontRenderer {
 
     RenderState.bindTexture(0)
     RenderState.enableDepthMask()
+    RenderState.color(1, 1, 1)
     RenderState.popAttrib()
     RenderState.popMatrix()
 
@@ -141,7 +142,7 @@ abstract class TextureFontRenderer {
 
     RenderState.popAttrib()
     RenderState.popMatrix()
-    RenderState.color(1, 1, 1, 1)
+    RenderState.color(1, 1, 1)
   }
 
   protected def charWidth: Int

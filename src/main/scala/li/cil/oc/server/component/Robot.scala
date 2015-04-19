@@ -10,10 +10,13 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.ToolDurabilityProviders
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.PacketSender
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumParticleTypes
 
 class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with Agent {
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -72,6 +75,8 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
     else {
       val (something, what) = blockContent(direction)
       if (something) {
+        context.pause(0.4)
+        PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
         result(Unit, what)
       }
       else {
@@ -84,6 +89,8 @@ class Robot(val agent: tileentity.Robot) extends prefab.ManagedEnvironment with 
         }
         else {
           node.changeBuffer(Settings.get.robotMoveCost)
+          context.pause(0.4)
+          PacketSender.sendParticleEffect(BlockPosition(agent), EnumParticleTypes.CRIT, 8, 0.25, Some(direction))
           result(Unit, "impossible move")
         }
       }

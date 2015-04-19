@@ -227,7 +227,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
   private def validate(glBuffer: Int) {
     // Refresh indexes when the hologram's data changed.
-    if (hologram.dirty) {
+    if (hologram.needsRendering) {
       def value(hx: Int, hy: Int, hz: Int) = if (hx >= 0 && hy >= 0 && hz >= 0 && hx < hologram.width && hy < hologram.height && hz < hologram.width) hologram.getColor(hx, hy, hz) else 0
 
       def isSolid(hx: Int, hy: Int, hz: Int) = value(hx, hy, hz) != 0
@@ -315,7 +315,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       // Reset for the next operation.
       dataBuffer.clear()
 
-      hologram.dirty = false
+      hologram.needsRendering = false
     }
   }
 
@@ -342,7 +342,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     val glBuffer = GL15.glGenBuffers()
 
     // Force re-indexing.
-    hologram.dirty = true
+    hologram.needsRendering = true
 
     glBuffer
   }

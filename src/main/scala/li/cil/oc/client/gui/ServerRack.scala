@@ -70,6 +70,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
+    if (powerButtons(0) == null) return // This should be impossible, but was reported to happen...
     for (i <- 0 to 3) {
       powerButtons(i).toggled = rack.isRunning(i)
       sideButtons(i).displayString = sideName(i)

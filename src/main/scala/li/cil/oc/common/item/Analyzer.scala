@@ -4,6 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.machine.Machine
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
@@ -59,6 +60,20 @@ object Analyzer {
   private def analyzeNodes(nodes: Array[Node], player: EntityPlayer) = if (nodes != null) for (node <- nodes if node != null) {
     player match {
       case playerMP: EntityPlayerMP =>
+        if (node != null) node.host match {
+          case machine: Machine =>
+            if (machine != null) {
+              if (machine.lastError != null) {
+                playerMP.addChatMessage(Localization.Analyzer.LastError(machine.lastError))
+              }
+              playerMP.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
+              val list = machine.users
+              if (list.length > 0) {
+                playerMP.addChatMessage(Localization.Analyzer.Users(list))
+              }
+            }
+          case _ =>
+        }
         node match {
           case connector: Connector =>
             if (connector.localBufferSize > 0) {
