@@ -1,0 +1,15 @@
+NAME
+  update - update OpenOS files from an OpenOS install disk
+
+SYNOPSIS
+  update [OPTION]...
+
+DESCRIPTION
+  Run the install command so that it reinstalls OpenOS from a filesystem labeled "openos". By default this will not change the filesystem label or default boot device, and any existing files in /etc (such as rc.cfg) are not replaced with their defaults.
+
+OPTIONS
+  Options are the same as for install and can be used to override update's defaults.
+
+EXAMPLES
+  update
+    Install OpenOS from the boot filesystem, set the destination as the boot device and label it OpenOS.

@@ -1,0 +1,32 @@
+NAME
+  install - copy a directory tree onto a user-selected file system
+
+SYNOPSIS
+  install [OPTION]...
+
+DESCRIPTION
+  Copy a directory recursively from one filesystem onto the root of a user-selected destination filesystem. By default the source directory is the root of the boot filesystem, usually an OpenOS installation.
+
+OPTIONS
+  --from
+    address of the source filesystem, defaults to boot address
+  --fromDir
+    directory on the source filesystem to copy from, defaults to filesystem root
+  --ignore
+    colon-separated list of directories on the destination filesystem where existing files should not be overwritten
+  --name
+    new label for the destination filesystem, defaults to OpenOS
+  --noboot
+    do not prompt to set destination as default boot device
+  --nolabelset
+    do not label the destination filesystem (overrides --name)
+
+EXAMPLES
+  install
+    Install OpenOS from the boot filesystem, set the destination as the boot device and label it OpenOS.
+
+  install --from abc --fromDir programs/helloworld --noboot --nolabelset
+    Install the files at programs/helloworld on filesystem address abc, without changing the boot device or label.
+
+  install --from 562 --ignore /etc
+    Install all files from filesystem address 562, without overwriting any files in /etc at the destination.
