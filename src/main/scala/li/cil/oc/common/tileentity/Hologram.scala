@@ -18,6 +18,8 @@ import net.minecraft.util.Vec3
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
+import scala.collection.mutable
+
 class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable with traits.Rotatable {
   def this() = this(0)
 
@@ -43,12 +45,15 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // Relative number of lit columns (for energy cost).
   var litRatio = -1.0
 
-  // Whether we need to send an update packet/recompile our display list.
-  var dirty = false
+  // Whether we need to recompile our display list.
+  var needsRendering = false
 
   // Store it here for convenience, this is the number of visible voxel faces
   // as determined in the last VBO index update. See HologramRenderer.
   var visibleQuads = 0
+
+  // What parts of the hologram changed and need an update packet.
+  var dirty = mutable.Set.empty[Short]
 
   // Interval of dirty columns.
   var dirtyFromX = Int.MaxValue
@@ -80,7 +85,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   }
 
   private def setDirty(x: Int, z: Int) {
-    dirty = true
+    dirty += ((x.toByte << 8) | z.toByte).toShort
     dirtyFromX = math.min(dirtyFromX, x)
     dirtyUntilX = math.max(dirtyUntilX, x + 1)
     dirtyFromZ = math.min(dirtyFromZ, z)
@@ -89,7 +94,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   }
 
   private def resetDirtyFlag() {
-    dirty = false
+    dirty.clear()
     dirtyFromX = Int.MaxValue
     dirtyUntilX = -1
     dirtyFromZ = Int.MaxValue
@@ -319,8 +324,23 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {
-      if (dirty) this.synchronized {
-        ServerPacketSender.sendHologramSet(this)
+      if (dirty.nonEmpty) this.synchronized {
+        val dirtySizeX = dirtyUntilX - dirtyFromX
+        val dirtySizeZ = dirtyUntilZ - dirtyFromZ
+        // Sending the dirty area requires
+        //   dirtySizeX * dirtySizeZ * (4 + 4)
+        // bytes (2 = low + high byte).
+        // Sending a single changes requires
+        //   changes * (4 + 4 + 2)
+        // bytes (other 2 byte = coords).
+        // So at some point it'll be cheaper to just send the area:
+        // changes * (4 + 4 + 2) = dirtySizeX * dirtySizeZ * (4 + 4)
+        // changes = dirtySizeX * dirtySizeZ * (4 + 4) / (4 + 4 + 2) = dirtySizeX * dirtySizeZ * 0.8
+        // So if changes are larger than that, just send the full hologram.
+        if (dirty.size > dirtySizeX * dirtySizeZ * 0.8)
+          ServerPacketSender.sendHologramArea(this)
+        else
+          ServerPacketSender.sendHologramValues(this)
         resetDirtyFlag()
       }
       if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {

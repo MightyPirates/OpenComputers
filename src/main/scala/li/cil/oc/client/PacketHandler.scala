@@ -48,12 +48,13 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.DisassemblerActiveChange => onDisassemblerActiveChange(p)
       case PacketType.FileSystemActivity => onFileSystemActivity(p)
       case PacketType.FloppyChange => onFloppyChange(p)
+      case PacketType.HologramArea => onHologramArea(p)
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
-      case PacketType.HologramSet => onHologramSet(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
+      case PacketType.HologramValues => onHologramValues(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
@@ -178,7 +179,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         for (i <- 0 until t.volume.length) t.volume(i) = 0
-        t.dirty = true
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -188,7 +189,7 @@ object PacketHandler extends CommonPacketHandler {
         val index = p.readInt()
         val value = p.readInt()
         t.colors(index) = value & 0xFFFFFF
-        t.dirty = true
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -205,7 +206,7 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onHologramSet(p: PacketParser) =
+  def onHologramArea(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         val fromX = p.readByte(): Int
@@ -218,7 +219,22 @@ object PacketHandler extends CommonPacketHandler {
             t.volume(x + z * t.width + t.width * t.width) = p.readInt()
           }
         }
-        t.dirty = true
+        t.needsRendering = true
+      case _ => // Invalid packet.
+    }
+
+  def onHologramValues(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        val count = p.readInt()
+        for (i <- 0 until count) {
+          val xz = p.readShort()
+          val x = (xz >> 8).toByte
+          val z = xz.toByte
+          t.volume(x + z * t.width) = p.readInt()
+          t.volume(x + z * t.width + t.width * t.width) = p.readInt()
+        }
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
