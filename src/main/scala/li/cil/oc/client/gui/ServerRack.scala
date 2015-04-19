@@ -70,11 +70,13 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
-    for (i <- 0 to 3) {
+    for (i <- 0 to 3 if powerButtons(i) != null) {
       powerButtons(i).toggled = rack.isRunning(i)
       sideButtons(i).displayString = sideName(i)
     }
-    switchButton.displayString = if (rack.internalSwitch) Localization.ServerRack.SwitchInternal else Localization.ServerRack.SwitchExternal
+    if (switchButton != null) {
+      switchButton.displayString = if (rack.internalSwitch) Localization.ServerRack.SwitchInternal else Localization.ServerRack.SwitchExternal
+    }
     super.drawScreen(mouseX, mouseY, dt)
   }
 
