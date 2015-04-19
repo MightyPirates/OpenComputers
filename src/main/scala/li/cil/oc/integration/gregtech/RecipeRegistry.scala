@@ -13,7 +13,7 @@ import scala.collection.convert.WrapAsScala._
 
 object RecipeRegistry {
 
-  def getGTRecipesWithEU(output: ItemStack, recipe: Config): (Array[ItemStack], Option[Array[ItemStack]], Option[FluidStack], Option[FluidStack], Option[ItemStack], Int, Int) = {
+  def getGTRecipesWithEU(output: ItemStack, recipe: Config): (Array[ItemStack], Option[Array[ItemStack]], Option[FluidStack], Option[FluidStack], Seq[ItemStack], Int, Int) = {
 
     val inputs = (recipe.getValue("input").unwrapped() match {
       case list: util.List[AnyRef]@unchecked => list.map(Recipes.parseIngredient)
@@ -55,11 +55,34 @@ object RecipeRegistry {
 
     val eu = recipe.getInt("eu")
     val duration = recipe.getInt("time")
+    var additionalOutput = Seq.empty[ItemStack]
+    if(recipe.hasPath("additionalOutput"))
+     {
+      additionalOutput = (recipe.getValue("additionalOutput").unwrapped() match {
+        case list: util.List[AnyRef]@unchecked => list.map(Recipes.parseIngredient)
+        case other => Seq(Recipes.parseIngredient(other))
+      }) map {
+        case stack: ItemStack => stack
+        case name: String => val ores = OreDictionary.getOres(name)
+          if(ores.size()>0)
+            ores.get(0)
+          else
+            null
+        case other => throw new RecipeException(s"Invalid ingredient type: $other.")
+      }
 
-    //TODO add output
-    val additionalOutput: Option[ItemStack] = None
+       val outputCount = recipe.getIntList("outputCount")
+       if (outputCount.size() != additionalOutput.size) {
+         throw new RecipeException(s"Outputs and output count mismatch: ${additionalOutput.size} != ${outputCount.size}.")
+       }
+       (additionalOutput, outputCount).zipped.foreach((stack, count) =>  if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count)
+    }
+
 
     (inputs, inputCount).zipped.foreach((stacks, count) => stacks.foreach(stack => if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count))
+
+
+
     inputs.padTo(2, null)
     val input = inputs.head
     (input, Option(inputs.last), inputFluidStack, outputFluidStack, additionalOutput, eu, duration)
@@ -113,10 +136,8 @@ object RecipeRegistry {
   def addGTCutterRecipe(output: ItemStack, recipe: Config) {
     val (inputs1, inputs2, fluidStackIn, fluidStackOut, additionalOutput, eu, duration) = getGTRecipesWithEU(output, recipe)
     var add  :ItemStack = null
-    additionalOutput match{
-      case Some(a) => add = a
-      case _=>
-    }
+    if(additionalOutput.size>1)
+      add = additionalOutput.head
     for (input1 <- inputs1) {
       fluidStackIn match {
         case Some(fluid) =>
@@ -131,10 +152,9 @@ object RecipeRegistry {
   def addGTCannerRecipe(output: ItemStack, recipe: Config) {
     val (inputs1, inputs2, fluidStackIn, fluidStackOut, additionalOutput, eu, duration) = getGTRecipesWithEU(output, recipe)
     var add  :ItemStack = null
-    additionalOutput match{
-      case Some(a) => add = a
-      case _=>
-    }
+    if(additionalOutput.size>1)
+      add = additionalOutput.head
+
     for (input1 <- inputs1) {
       inputs2 match {
         case Some(inputs2List) =>
@@ -204,10 +224,8 @@ object RecipeRegistry {
   def addGTLatheRecipe(output: ItemStack, recipe: Config) {
     val (inputs1, inputs2, fluidStackIn, fluidStackOut, additionalOutput, eu, duration) = getGTRecipesWithEU(output, recipe)
     var add  :ItemStack = null
-    additionalOutput match{
-      case Some(a) => add = a
-      case _=>
-    }
+    if(additionalOutput.size>1)
+      add = additionalOutput.head
     for (input1 <- inputs1) {
       gregtech.api.GregTech_API.sRecipeAdder.addLatheRecipe(input1, output, add, duration, eu)
     }
