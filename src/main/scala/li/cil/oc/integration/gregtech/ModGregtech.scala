@@ -16,6 +16,6 @@ object ModGregtech extends ModProxy {
 
     Driver.add(new DriverEnergyContainer)
 
-    RecipeRegistry.init()
+    RecipeHandler.init()
   }
 }

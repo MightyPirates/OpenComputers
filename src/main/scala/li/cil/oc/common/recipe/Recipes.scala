@@ -2,7 +2,6 @@ package li.cil.oc.common.recipe
 
 import java.io.File
 import java.io.FileReader
-import java.util
 
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
@@ -14,17 +13,16 @@ import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.data.PrintData
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
-import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.RegistryNamespaced
-import net.minecraftforge.fluids.{Fluid, FluidRegistry}
+import net.minecraftforge.fluids.FluidRegistry
+import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.RecipeSorter
 import net.minecraftforge.oredict.RecipeSorter.Category
@@ -37,11 +35,10 @@ object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
   val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
   var hadErrors = false
-  val recipeMap = mutable.LinkedHashMap.empty[String, (ItemStack, Config) => Unit]
+  val recipeHandlers = mutable.LinkedHashMap.empty[String, (ItemStack, Config) => Unit]
 
-
-  def registerRecipe(name: String, recipe: (ItemStack, Config) => Unit): Unit = {
-    recipeMap += name -> recipe
+  def registerRecipeHandler(name: String, recipe: (ItemStack, Config) => Unit): Unit = {
+    recipeHandlers += name -> recipe
   }
 
   def addBlock(instance: Block, name: String, oreDict: String*) = {
@@ -290,34 +287,22 @@ object Recipes {
     list.clear()
   }
 
-  private def addRecipe(output: ItemStack, recipe: Config, name: String) = {
-
+  private def addRecipe(output: ItemStack, recipe: Config, name: String) = try {
     val recipeType = tryGetType(recipe)
-    try {
-      recipeMap.get(recipeType) match {
-        case Some(x) => x(output, recipe)
-        case _ => OpenComputers.log.error(s"Failed adding $recipeType recipe for '$name', you will not be able to craft this item!")
-          hadErrors = true
-
-      }
-    }
-    catch {
-      case e: RecipeException =>
-        OpenComputers.log.error(s"Failed adding $recipeType recipe for $name, you will not be able to craft this item! The error was: ${e.getMessage}")
+    recipeHandlers.get(recipeType) match {
+      case Some(recipeHandler) => recipeHandler(output, recipe)
+      case _ =>
+        OpenComputers.log.error(s"Failed adding recipe for $name, you will not be able to craft this item. The error was: Invalid recipe type '$recipeType'.")
         hadErrors = true
     }
   }
-
-  def parseFluidIngredient(entry: AnyRef): Option[Fluid] = entry match {
-    case name: String => {
-      if (name == null || name.trim.isEmpty) None
-      else if (FluidRegistry.getFluid(name) != null) Option(FluidRegistry.getFluid(name))
-      else None
-    }
-    case _ => None
-
+  catch {
+    case e: RecipeException =>
+      OpenComputers.log.error(s"Failed adding recipe for $name, you will not be able to craft this item.", e)
+      hadErrors = true
   }
 
+  def tryGetCount(recipe: Config) = if (recipe.hasPath("output")) recipe.getInt("output") else 1
 
   def parseIngredient(entry: AnyRef) = entry match {
     case map: java.util.Map[AnyRef, AnyRef]@unchecked =>
@@ -366,6 +351,14 @@ object Recipes {
     case other => throw new RecipeException(s"Invalid ingredient type (not a map or string): $other")
   }
 
+  def parseFluidIngredient(entry: Config): Option[FluidStack] = {
+    val fluid = FluidRegistry.getFluid(entry.getString("name"))
+    val amount =
+      if (entry.hasPath("amount")) entry.getInt("amount")
+      else 1000
+    Option(new FluidStack(fluid, amount))
+  }
+
   private def findItem(name: String) = getObjectWithoutFallback(Item.itemRegistry, name).orElse(Item.itemRegistry.find {
     case item: Item => item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name
     case _ => false
@@ -381,8 +374,6 @@ object Recipes {
     else None
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
-
-  def tryGetCount(recipe: Config) = if (recipe.hasPath("output")) recipe.getInt("output") else 1
 
   private def tryGetId(ingredient: java.util.Map[AnyRef, AnyRef]): Int =
     if (ingredient.contains("subID")) ingredient.get("subID") match {

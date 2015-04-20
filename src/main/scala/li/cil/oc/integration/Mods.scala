@@ -156,8 +156,7 @@ object Mods {
     final val Factorization = "factorization"
     final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
-    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit"
-    // Doesn't really exist.
+    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"

@@ -83,7 +83,8 @@ class Proxy {
 
     OpenComputers.log.info("Initializing mod integration.")
     Mods.init()
-    OpenComputers.log.info("Initializing Recipes.")
+
+    OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
   }
 

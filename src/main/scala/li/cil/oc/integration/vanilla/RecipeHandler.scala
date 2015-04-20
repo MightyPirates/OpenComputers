@@ -2,8 +2,10 @@ package li.cil.oc.integration.vanilla
 
 import com.typesafe.config.Config
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.common.recipe.ExtendedShapedOreRecipe
+import li.cil.oc.common.recipe.ExtendedShapelessOreRecipe
+import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.recipe.Recipes.RecipeException
-import li.cil.oc.common.recipe.{Recipes, ExtendedShapelessOreRecipe, ExtendedShapedOreRecipe}
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraftforge.oredict.OreDictionary
@@ -11,7 +13,12 @@ import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-object RecipeRegistry {
+object RecipeHandler {
+  def init(): Unit = {
+    Recipes.registerRecipeHandler("shaped", addShapedRecipe)
+    Recipes.registerRecipeHandler("shapeless", addShapelessRecipe)
+    Recipes.registerRecipeHandler("furnace", addFurnaceRecipe)
+  }
 
   def addShapedRecipe(output: ItemStack, recipe: Config) {
     val rows = recipe.getList("input").unwrapped().map {
@@ -24,12 +31,12 @@ object RecipeRegistry {
     var shape = mutable.ArrayBuffer.empty[String]
     val input = mutable.ArrayBuffer.empty[AnyRef]
     for (row <- rows) {
-      val (pattern, ingredients) = row.foldLeft((new StringBuilder, Seq.empty[AnyRef]))((acc, ingredient) => {
+      val (pattern, ingredients) = row.foldLeft((new StringBuilder, Iterable.empty[AnyRef]))((acc, ingredient) => {
         val (pattern, ingredients) = acc
         ingredient match {
           case _@(_: ItemStack | _: String) =>
             number += 1
-            (pattern.append(('a' + number).toChar), ingredients ++ Seq(Char.box(('a' + number).toChar), ingredient))
+            (pattern.append(('a' + number).toChar), ingredients ++ Iterable(Char.box(('a' + number).toChar), ingredient))
           case _ => (pattern.append(' '), ingredients)
         }
       })
@@ -66,11 +73,5 @@ object RecipeRegistry {
         }
       case _ =>
     }
-  }
-
-  def init(): Unit = {
-    Recipes.registerRecipe("shaped", addShapedRecipe)
-    Recipes.registerRecipe("shapeless", addShapelessRecipe)
-    Recipes.registerRecipe("furnace", addFurnaceRecipe)
   }
 }
