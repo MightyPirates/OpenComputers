@@ -207,6 +207,15 @@ processResources {
         exclude 'mcmod.info'
         exclude 'application.conf'
     }
+
+    // Move access transformer to META-INF
+    rename '(.+_at.cfg)', 'META-INF/$1'
+}
+
+def commonManifest = {
+    attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+    attributes FMLCorePluginContainsFMLMod: "true"
+    attributes FMLAT: "oc_at.cfg"
 }
 
 jar {
@@ -218,10 +227,7 @@ jar {
         }
     }
     classifier = 'universal'
-    manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-        attributes FMLCorePluginContainsFMLMod: "true"
-    }
+    manifest commonManifest
 }
 
 javadoc {
@@ -238,10 +244,7 @@ task deobfJar(type: Jar) {
         }
     }
     classifier = 'dev'
-    manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-        attributes FMLCorePluginContainsFMLMod: "true"
-    }
+    manifest commonManifest
 }
 
 task apiJar(type: Jar) {
