@@ -25,6 +25,7 @@ import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
+import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
@@ -357,6 +358,8 @@ object EventHandler {
       e.world.loadedEntityList.collect {
         case host: MachineHost => host.machine.stop()
       }
+
+      Callbacks.clear()
     }
   }
 
