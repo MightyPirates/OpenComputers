@@ -1,7 +1,6 @@
 package li.cil.oc.server.driver
 
 import com.google.common.base.Strings
-import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.network.ManagedEnvironment
@@ -59,8 +58,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     }
     try world.getTileEntity(x, y, z) match {
       case tileEntity: TileEntity =>
-        val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_145853_j")
-        return map.get(tileEntity.getClass)
+        return TileEntity.classToNameMap.get(tileEntity.getClass).asInstanceOf[String]
     } catch {
       case _: Throwable =>
     }
