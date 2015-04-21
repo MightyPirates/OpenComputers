@@ -67,7 +67,9 @@ object EventHandler {
 
   def addKeyboard(keyboard: Keyboard): Unit = keyboards += keyboard
 
-  def scheduleClose(machine: Machine) = machines += machine
+  def scheduleClose(machine: Machine): Unit = machines += machine
+
+  def unscheduleClose(machine: Machine): Unit = machines -= machine
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
