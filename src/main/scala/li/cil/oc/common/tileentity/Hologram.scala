@@ -179,7 +179,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
         }
       }
     }
-    context.pause(0.2)
+    context.pause(Settings.get.hologramSetRawDelay)
     null
   }
 

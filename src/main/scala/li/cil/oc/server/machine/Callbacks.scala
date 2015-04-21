@@ -27,6 +27,12 @@ object Callbacks {
     case _ => cache.getOrElseUpdate(host.getClass, dynamicAnalyze(host))
   }
 
+  // Clear the cache; used when world is unloaded, mostly to allow reacting to
+  // stuff (aka configs) that may influence which @Callbacks are enabled.
+  def clear(): Unit = {
+    cache.clear()
+  }
+
   def fromClass(environment: Class[_]) = staticAnalyze(environment)
 
   private def dynamicAnalyze(host: Any) = {

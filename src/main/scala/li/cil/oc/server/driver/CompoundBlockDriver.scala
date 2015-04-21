@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.fml.relauncher.ReflectionHelper
 
 class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   override def createEnvironment(world: World, pos: BlockPos) = {
@@ -58,8 +57,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     }
     try world.getTileEntity(pos) match {
       case tileEntity: TileEntity =>
-        val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_145853_j")
-        return map.get(tileEntity.getClass)
+        return TileEntity.classToNameMap.get(tileEntity.getClass).asInstanceOf[String]
     } catch {
       case _: Throwable =>
     }
