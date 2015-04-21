@@ -24,8 +24,6 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.client.FMLClientHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import net.minecraftforge.fml.relauncher.ReflectionHelper
-import paulscode.sound.SoundSystem
 import paulscode.sound.SoundSystemConfig
 
 import scala.collection.mutable
@@ -51,7 +49,7 @@ object Sound {
   // Set in init event.
   var manager: SoundManager = _
 
-  def soundSystem: SoundSystem = ReflectionHelper.getPrivateValue(classOf[SoundManager], manager, "sndSystem", "field_148620_e", "e")
+  def soundSystem = manager.sndSystem
 
   private def updateVolume() {
     val volume =

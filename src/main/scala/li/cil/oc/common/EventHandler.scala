@@ -17,6 +17,7 @@ import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
+import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
@@ -62,7 +63,9 @@ object EventHandler {
 
   def addKeyboard(keyboard: Keyboard): Unit = keyboards += keyboard
 
-  def scheduleClose(machine: Machine) = machines += machine
+  def scheduleClose(machine: Machine): Unit = machines += machine
+
+  def unscheduleClose(machine: Machine): Unit = machines -= machine
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -317,6 +320,8 @@ object EventHandler {
       e.world.loadedEntityList.collect {
         case host: MachineHost => host.machine.stop()
       }
+
+      Callbacks.clear()
     }
   }
 
