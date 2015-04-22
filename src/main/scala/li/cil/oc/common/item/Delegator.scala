@@ -254,9 +254,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer {
 
   // ----------------------------------------------------------------------- //
 
-  def priority(stack: ItemStack, robot: Robot): Int = UpgradeRenderer.priority(stack)
+  override def computePreferredMountPoint(stack: ItemStack, robot: Robot, availableMountPoints: util.Set[String]): String = UpgradeRenderer.preferredMountPoint(stack, availableMountPoints)
 
-  def canRender(stack: ItemStack, mountPoint: MountPoint, robot: Robot): Boolean = UpgradeRenderer.canRender(stack)
-
-  def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(stack, mountPoint)
+  override def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(stack, mountPoint)
 }
