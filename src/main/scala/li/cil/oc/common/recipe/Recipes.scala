@@ -280,6 +280,16 @@ object Recipes {
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
         print.createItemStack(1), new ItemStack(net.minecraft.init.Items.glowstone_dust)))
+
+      {
+        val printData = new PrintData(lightPrint)
+        printData.lightLevel = 4
+        printData.save(lightPrint)
+      }
+
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
+        lightPrint,
+        print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.glowstone)))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)
