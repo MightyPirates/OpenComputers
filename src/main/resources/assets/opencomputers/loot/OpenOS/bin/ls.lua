@@ -77,7 +77,11 @@ for i = 1, #dirs do
       end
       if options.a or f:sub(1, 1) ~= "." then
         if not formatOutput() then
-          io.write(f .. "\n")
+          io.write(f)
+          if options.l then
+            io.write(" " .. fs.size(fs.concat(path, f)))
+          end
+          io.write("\n")
         else
           io.write(text.padRight(f, m))
           if options.l then
