@@ -4,6 +4,7 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.UpgradeRenderer
+import li.cil.oc.api.driver.item.UpgradeRenderer.MountPointName
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.EventHandler
@@ -19,6 +20,7 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
+import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.EnumFacing
@@ -27,10 +29,23 @@ import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.opengl.GL11
 
+import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable
+
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
 
   private val mountPoints = Array.fill(7)(new RobotRenderEvent.MountPoint())
+
+  private val slotNameMapping = Map(
+    UpgradeRenderer.MountPointName.TopLeft -> 0,
+    UpgradeRenderer.MountPointName.TopRight -> 1,
+    UpgradeRenderer.MountPointName.TopBack -> 2,
+    UpgradeRenderer.MountPointName.BottomLeft -> 3,
+    UpgradeRenderer.MountPointName.BottomRight -> 4,
+    UpgradeRenderer.MountPointName.BottomBack -> 5,
+    UpgradeRenderer.MountPointName.BottomFront -> 6
+  )
 
   private val gap = 1.0f / 28.0f
   private val gt = 0.5f + gap
@@ -382,20 +397,31 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       }
 
       if (MinecraftForgeClient.getRenderPass == 0) {
-        var filterMount = 0
-        //noinspection SortFilter We need to sort before we filter, because the filter is index sensitive.
-        val stacks = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).
-          collect { case stack if stack != null && stack.getItem.isInstanceOf[UpgradeRenderer] => (stack, stack.getItem.asInstanceOf[UpgradeRenderer]) }.
-          sortBy { case (stack, renderer) => -renderer.priority(stack, robot) }.
-          filter {
-          case (stack, renderer) if filterMount < mountPoints.length && renderer.canRender(stack, mountPoints(filterMount), robot) =>
-            filterMount += 1
-            true
-          case _ => false
+        lazy val availableSlots = slotNameMapping.keys.to[mutable.Set]
+        lazy val wildcardRenderers = mutable.Buffer.empty[(ItemStack, UpgradeRenderer)]
+        lazy val slotMapping = Array.fill(mountPoints.length)(null: (ItemStack, UpgradeRenderer))
+
+        val renderers = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).
+          collect { case stack if stack != null && stack.getItem.isInstanceOf[UpgradeRenderer] => (stack, stack.getItem.asInstanceOf[UpgradeRenderer]) }
+
+        for ((stack, renderer) <- renderers) {
+          val preferredSlot = renderer.computePreferredMountPoint(stack, robot, availableSlots)
+          if (availableSlots.remove(preferredSlot)) {
+            slotMapping(slotNameMapping(preferredSlot)) = (stack, renderer)
+          }
+          else if (preferredSlot == MountPointName.Any) {
+            wildcardRenderers += ((stack, renderer))
+          }
         }
 
-        val minLength = math.min(mountPoints.length, stacks.length)
-        for (((stack, renderer), mountPoint) <- (stacks.take(minLength), mountPoints.take(minLength)).zipped) try {
+        var firstEmpty = slotMapping.indexOf(null)
+        for (entry <- wildcardRenderers if firstEmpty >= 0) {
+          slotMapping(firstEmpty) = entry
+          firstEmpty = slotMapping.indexOf(null)
+        }
+
+        for ((info, mountPoint) <- (slotMapping, mountPoints).zipped if info != null) try {
+          val (stack, renderer) = info
           RenderState.pushMatrix()
           GL11.glTranslatef(0.5f, 0.5f, 0.5f)
           renderer.render(stack, mountPoint, robot, f)

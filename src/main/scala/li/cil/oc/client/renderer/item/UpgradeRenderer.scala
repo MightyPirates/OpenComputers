@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.item
 
 import li.cil.oc.Constants
 import li.cil.oc.api
+import li.cil.oc.api.driver.item.UpgradeRenderer.MountPointName
 import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.client.Textures
 import li.cil.oc.integration.opencomputers.Item
@@ -15,12 +16,15 @@ object UpgradeRenderer {
   lazy val generatorUpgrade = api.Items.get(Constants.ItemName.GeneratorUpgrade)
   lazy val inventoryUpgrade = api.Items.get(Constants.ItemName.InventoryUpgrade)
 
-  def priority(stack: ItemStack): Int = {
+  def preferredMountPoint(stack: ItemStack, availableMountPoints: java.util.Set[String]): String = {
     val descriptor = api.Items.get(stack)
 
-    if (descriptor == craftingUpgrade) 5
-    else if (descriptor == generatorUpgrade) 0
-    else 10
+    if (descriptor == craftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade) {
+      if (descriptor == generatorUpgrade && availableMountPoints.contains(MountPointName.BottomBack)) MountPointName.BottomBack
+      else if (descriptor == inventoryUpgrade && availableMountPoints.contains(MountPointName.TopBack)) MountPointName.TopBack
+      else MountPointName.Any
+    }
+    else MountPointName.None
   }
 
   def canRender(stack: ItemStack): Boolean = {
