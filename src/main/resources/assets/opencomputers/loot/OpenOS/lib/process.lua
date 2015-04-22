@@ -83,12 +83,17 @@ function process.running(level) -- kept for backwards compat, prefer process.inf
   end
 end
 
-function process.info(level)
-  level = level or 1
-  local process = findProcess()
-  while level > 1 and process do
-    process = process.parent
-    level = level - 1
+function process.info(levelOrThread)
+  local process
+  if type(levelOrThread) == "thread" then
+    process = findProcess(levelOrThread)
+  else
+    local level = levelOrThread or 1
+    process = findProcess()
+    while level > 1 and process do
+      process = process.parent
+      level = level - 1
+    end
   end
   if process then
     return {path=process.path, env=process.env, command=process.command, data=process.data}
