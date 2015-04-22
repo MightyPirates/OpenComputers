@@ -121,33 +121,34 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   def resetMountPoints(running: Boolean) {
     val offset = if (running) 0 else -0.06f
 
-    // Back.
+    // Left top.
     mountPoints(0).offset.setX(0)
-    mountPoints(0).offset.setY(-0.2f - offset)
+    mountPoints(0).offset.setY(0.2f)
     mountPoints(0).offset.setZ(0.24f)
     mountPoints(0).rotation.setX(0)
     mountPoints(0).rotation.setY(1)
     mountPoints(0).rotation.setZ(0)
-    mountPoints(0).rotation.setW(180)
+    mountPoints(0).rotation.setW(90)
 
+    // Right top.
     mountPoints(1).offset.setX(0)
     mountPoints(1).offset.setY(0.2f)
     mountPoints(1).offset.setZ(0.24f)
     mountPoints(1).rotation.setX(0)
     mountPoints(1).rotation.setY(1)
     mountPoints(1).rotation.setZ(0)
-    mountPoints(1).rotation.setW(180)
+    mountPoints(1).rotation.setW(-90)
 
-    // Front.
+    // Back top.
     mountPoints(2).offset.setX(0)
-    mountPoints(2).offset.setY(-0.2f - offset)
+    mountPoints(2).offset.setY(0.2f)
     mountPoints(2).offset.setZ(0.24f)
     mountPoints(2).rotation.setX(0)
     mountPoints(2).rotation.setY(1)
     mountPoints(2).rotation.setZ(0)
-    mountPoints(2).rotation.setW(0)
+    mountPoints(2).rotation.setW(180)
 
-    // Left.
+    // Left bottom.
     mountPoints(3).offset.setX(0)
     mountPoints(3).offset.setY(-0.2f - offset)
     mountPoints(3).offset.setZ(0.24f)
@@ -156,30 +157,32 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     mountPoints(3).rotation.setZ(0)
     mountPoints(3).rotation.setW(90)
 
+    // Right bottom.
     mountPoints(4).offset.setX(0)
-    mountPoints(4).offset.setY(0.2f)
+    mountPoints(4).offset.setY(-0.2f - offset)
     mountPoints(4).offset.setZ(0.24f)
     mountPoints(4).rotation.setX(0)
     mountPoints(4).rotation.setY(1)
     mountPoints(4).rotation.setZ(0)
-    mountPoints(4).rotation.setW(90)
+    mountPoints(4).rotation.setW(-90)
 
-    // Right.
+    // Back bottom.
     mountPoints(5).offset.setX(0)
     mountPoints(5).offset.setY(-0.2f - offset)
     mountPoints(5).offset.setZ(0.24f)
     mountPoints(5).rotation.setX(0)
     mountPoints(5).rotation.setY(1)
     mountPoints(5).rotation.setZ(0)
-    mountPoints(5).rotation.setW(-90)
+    mountPoints(5).rotation.setW(180)
 
+    // Front bottom.
     mountPoints(6).offset.setX(0)
-    mountPoints(6).offset.setY(0.2f)
+    mountPoints(6).offset.setY(-0.2f - offset)
     mountPoints(6).offset.setZ(0.24f)
     mountPoints(6).rotation.setX(0)
     mountPoints(6).rotation.setY(1)
     mountPoints(6).rotation.setZ(0)
-    mountPoints(6).rotation.setW(-90)
+    mountPoints(6).rotation.setW(0)
   }
 
   def renderChassis(robot: tileentity.Robot = null, offset: Double = 0, isRunningOverride: Boolean = false) {
@@ -379,16 +382,24 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       }
 
       if (MinecraftForgeClient.getRenderPass == 0) {
+        var filterMount = 0
+        //noinspection SortFilter We need to sort before we filter, because the filter is index sensitive.
         val stacks = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).
-          filter(stack => stack != null && stack.getItem.isInstanceOf[UpgradeRenderer]).
-          take(mountPoints.length)
-        for ((stack, mountPoint) <- stacks.zip(mountPoints.take(stacks.length))) try stack.getItem match {
-          case renderer: UpgradeRenderer =>
-            RenderState.pushMatrix()
-            GL11.glTranslatef(0.5f, 0.5f, 0.5f)
-            renderer.render(stack, mountPoint, robot)
-            RenderState.popMatrix()
-          case _ =>
+          collect { case stack if stack != null && stack.getItem.isInstanceOf[UpgradeRenderer] => (stack, stack.getItem.asInstanceOf[UpgradeRenderer]) }.
+          sortBy { case (stack, renderer) => -renderer.priority(stack, robot) }.
+          filter {
+          case (stack, renderer) if filterMount < mountPoints.length && renderer.canRender(stack, mountPoints(filterMount), robot) =>
+            filterMount += 1
+            true
+          case _ => false
+        }
+
+        val minLength = math.min(mountPoints.length, stacks.length)
+        for (((stack, renderer), mountPoint) <- (stacks.take(minLength), mountPoints.take(minLength)).zipped) try {
+          RenderState.pushMatrix()
+          GL11.glTranslatef(0.5f, 0.5f, 0.5f)
+          renderer.render(stack, mountPoint, robot, f)
+          RenderState.popMatrix()
         }
         catch {
           case e: Throwable =>

@@ -6,7 +6,6 @@ import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.client.Textures
 import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.util.RenderState
-import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import org.lwjgl.opengl.GL11
@@ -15,6 +14,20 @@ object UpgradeRenderer {
   lazy val craftingUpgrade = api.Items.get(Constants.ItemName.CraftingUpgrade)
   lazy val generatorUpgrade = api.Items.get(Constants.ItemName.GeneratorUpgrade)
   lazy val inventoryUpgrade = api.Items.get(Constants.ItemName.InventoryUpgrade)
+
+  def priority(stack: ItemStack): Int = {
+    val descriptor = api.Items.get(stack)
+
+    if (descriptor == craftingUpgrade) 5
+    else if (descriptor == generatorUpgrade) 0
+    else 10
+  }
+
+  def canRender(stack: ItemStack): Boolean = {
+    val descriptor = api.Items.get(stack)
+
+    descriptor == craftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade
+  }
 
   def render(stack: ItemStack, mountPoint: MountPoint): Unit = {
     val descriptor = api.Items.get(stack)
