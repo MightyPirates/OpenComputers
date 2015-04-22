@@ -53,7 +53,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   val tmp = if (Settings.get.tmpSize > 0) {
     Option(FileSystem.asManagedEnvironment(FileSystem.
-      fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
+      fromMemory(Settings.get.tmpSize * 1024), "tmpfs", null, null, 5))
   } else None
 
   var architecture: Architecture = _
