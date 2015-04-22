@@ -266,6 +266,7 @@ local function execute(env, command, ...)
     local program, args, input, output, mode = table.unpack(commands[i])
     local reason
     threads[i], reason = process.load(program, env, function()
+      os.setenv("_", program)
       if input then
         local file, reason = io.open(shell.resolve(input))
         if not file then
@@ -303,9 +304,6 @@ local function execute(env, command, ...)
     if not threads[i] then
       return false, reason
     end
-
-    -- TODO needs moving of env vars into process lib/info
-    -- os.setenv("_", program)
 
     if i < #commands then
       pipes[i] = require("buffer").new("rw", memoryStream.new())
@@ -348,6 +346,15 @@ local function execute(env, command, ...)
         result[2] = debug.traceback(threads[i], result[2])
       end
       break
+    end
+  end
+
+  -- copy env vars from last process; mostly to ensure stuff like cd.lua works
+  local lastVars = rawget(process.info(threads[#threads]).data, "vars")
+  if lastVars then
+    local localVars = process.info().data.vars
+    for k,v in pairs(lastVars) do
+      localVars[k] = v
     end
   end
 
