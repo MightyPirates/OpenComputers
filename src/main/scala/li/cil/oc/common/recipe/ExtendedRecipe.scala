@@ -126,7 +126,8 @@ object ExtendedRecipe {
         new ItemStack(net.minecraft.init.Blocks.diamond_block)
       )
 
-      val glowstone = new ItemStack(net.minecraft.init.Items.glowstone_dust)
+      val glowstoneDust = new ItemStack(net.minecraft.init.Items.glowstone_dust)
+      val glowstone = new ItemStack(net.minecraft.init.Blocks.glowstone)
       for (stack <- inputs) {
         if (beaconBlocks.exists(_.isItemEqual(stack))) {
           if (data.isBeaconBase) {
@@ -135,12 +136,19 @@ object ExtendedRecipe {
           }
           data.isBeaconBase = true
         }
-        if (glowstone.isItemEqual(stack)) {
+        if (glowstoneDust.isItemEqual(stack)) {
           if (data.lightLevel == 15) {
             // Crafting wouldn't change anything, prevent accidental resource loss.
             return null
           }
           data.lightLevel = math.min(15, data.lightLevel + 1)
+        }
+        if (glowstone.isItemEqual(stack)) {
+          if (data.lightLevel == 15) {
+            // Crafting wouldn't change anything, prevent accidental resource loss.
+            return null
+          }
+          data.lightLevel = math.min(15, data.lightLevel + 4)
         }
       }
 

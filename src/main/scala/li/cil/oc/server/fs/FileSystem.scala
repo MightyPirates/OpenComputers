@@ -96,20 +96,26 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, accessSound: String, speed: Int) =
+    Option(fileSystem).flatMap(fs => Some(component.FileSystem(fs, label, Option(host), Option(accessSound), speed))).orNull
+
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, accessSound: String, speed: Int) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, accessSound, speed)
+
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, sound: String) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(sound)))).orNull
+    asManagedEnvironment(fileSystem, label, host, sound, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, sound: String) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound)
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull
+    asManagedEnvironment(fileSystem, label, null, null, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label))
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), null, null, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem) =
-    asManagedEnvironment(fileSystem, null: Label)
+    asManagedEnvironment(fileSystem, null: Label, null, null, 1)
 
   abstract class ItemLabel(val stack: ItemStack) extends Label
 

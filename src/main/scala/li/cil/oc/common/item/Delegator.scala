@@ -5,6 +5,10 @@ import java.util.Random
 
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.driver
+import li.cil.oc.api.event.RobotRenderEvent.MountPoint
+import li.cil.oc.api.internal.Robot
+import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import net.minecraft.client.resources.model.ModelResourceLocation
@@ -34,7 +38,7 @@ object Delegator {
     else None
 }
 
-class Delegator extends Item {
+class Delegator extends Item with driver.item.UpgradeRenderer {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
 
@@ -210,4 +214,9 @@ class Delegator extends Item {
     }
 
   override def toString = getUnlocalizedName
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot): Unit = UpgradeRenderer.render(stack, mountPoint)
 }
