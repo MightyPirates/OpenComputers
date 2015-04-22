@@ -16,6 +16,20 @@ object UpgradeRenderer {
   lazy val generatorUpgrade = api.Items.get(Constants.ItemName.GeneratorUpgrade)
   lazy val inventoryUpgrade = api.Items.get(Constants.ItemName.InventoryUpgrade)
 
+  def priority(stack: ItemStack): Int = {
+    val descriptor = api.Items.get(stack)
+
+    if (descriptor == craftingUpgrade) 5
+    else if (descriptor == generatorUpgrade) 0
+    else 10
+  }
+
+  def canRender(stack: ItemStack): Boolean = {
+    val descriptor = api.Items.get(stack)
+
+    descriptor == craftingUpgrade || descriptor == generatorUpgrade || descriptor == inventoryUpgrade
+  }
+
   def render(stack: ItemStack, mountPoint: MountPoint): Unit = {
     val descriptor = api.Items.get(stack)
 

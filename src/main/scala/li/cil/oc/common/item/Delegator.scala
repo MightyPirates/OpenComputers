@@ -254,6 +254,9 @@ class Delegator extends Item with driver.item.UpgradeRenderer {
 
   // ----------------------------------------------------------------------- //
 
-  @SideOnly(Side.CLIENT)
-  def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot): Unit = UpgradeRenderer.render(stack, mountPoint)
+  def priority(stack: ItemStack, robot: Robot): Int = UpgradeRenderer.priority(stack)
+
+  def canRender(stack: ItemStack, mountPoint: MountPoint, robot: Robot): Boolean = UpgradeRenderer.canRender(stack)
+
+  def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(stack, mountPoint)
 }
