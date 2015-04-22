@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api.driver.item.UpgradeRenderer
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.EventHandler
@@ -21,7 +22,6 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.IItemRenderer.ItemRenderType._
 import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
@@ -121,7 +121,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     // Back.
     mountPoints(0).offset.setX(0)
-    mountPoints(0).offset.setY(-0.2f)
+    mountPoints(0).offset.setY(-0.2f - offset)
     mountPoints(0).offset.setZ(0.24f)
     mountPoints(0).rotation.setX(0)
     mountPoints(0).rotation.setY(1)
@@ -129,7 +129,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     mountPoints(0).rotation.setW(180)
 
     mountPoints(1).offset.setX(0)
-    mountPoints(1).offset.setY(0.2f + offset)
+    mountPoints(1).offset.setY(0.2f)
     mountPoints(1).offset.setZ(0.24f)
     mountPoints(1).rotation.setX(0)
     mountPoints(1).rotation.setY(1)
@@ -138,7 +138,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     // Front.
     mountPoints(2).offset.setX(0)
-    mountPoints(2).offset.setY(-0.2f)
+    mountPoints(2).offset.setY(-0.2f - offset)
     mountPoints(2).offset.setZ(0.24f)
     mountPoints(2).rotation.setX(0)
     mountPoints(2).rotation.setY(1)
@@ -147,7 +147,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     // Left.
     mountPoints(3).offset.setX(0)
-    mountPoints(3).offset.setY(-0.2f)
+    mountPoints(3).offset.setY(-0.2f - offset)
     mountPoints(3).offset.setZ(0.24f)
     mountPoints(3).rotation.setX(0)
     mountPoints(3).rotation.setY(1)
@@ -155,7 +155,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     mountPoints(3).rotation.setW(90)
 
     mountPoints(4).offset.setX(0)
-    mountPoints(4).offset.setY(0.2f + offset)
+    mountPoints(4).offset.setY(0.2f)
     mountPoints(4).offset.setZ(0.24f)
     mountPoints(4).rotation.setX(0)
     mountPoints(4).rotation.setY(1)
@@ -164,7 +164,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     // Right.
     mountPoints(5).offset.setX(0)
-    mountPoints(5).offset.setY(-0.2f)
+    mountPoints(5).offset.setY(-0.2f - offset)
     mountPoints(5).offset.setZ(0.24f)
     mountPoints(5).rotation.setX(0)
     mountPoints(5).rotation.setY(1)
@@ -172,7 +172,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     mountPoints(5).rotation.setW(-90)
 
     mountPoints(6).offset.setX(0)
-    mountPoints(6).offset.setY(0.2f + offset)
+    mountPoints(6).offset.setY(0.2f)
     mountPoints(6).offset.setZ(0.24f)
     mountPoints(6).rotation.setX(0)
     mountPoints(6).rotation.setY(1)
@@ -401,22 +401,17 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         case _ =>
       }
 
-      val stacks = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).filter(stack => stack != null && MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null).padTo(mountPoints.length, null).take(mountPoints.length)
-      for ((stack, mountPoint) <- stacks.zip(mountPoints)) {
-        try {
-          if (stack != null && (stack.getItem.requiresMultipleRenderPasses() || MinecraftForgeClient.getRenderPass == 0)) {
-            val tint = stack.getItem.getColorFromItemStack(stack, MinecraftForgeClient.getRenderPass)
-            val r = ((tint >> 16) & 0xFF) / 255f
-            val g = ((tint >> 8) & 0xFF) / 255f
-            val b = ((tint >> 0) & 0xFF) / 255f
-            GL11.glColor4f(r, g, b, 1)
+      if (MinecraftForgeClient.getRenderPass == 0) {
+        val stacks = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).
+          filter(stack => stack != null && stack.getItem.isInstanceOf[UpgradeRenderer]).
+          take(mountPoints.length)
+        for ((stack, mountPoint) <- stacks.zip(mountPoints.take(stacks.length))) try stack.getItem match {
+          case renderer: UpgradeRenderer =>
             GL11.glPushMatrix()
             GL11.glTranslatef(0.5f, 0.5f, 0.5f)
-            GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
-            GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
-            RenderManager.instance.itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, MinecraftForgeClient.getRenderPass)
+            renderer.render(stack, mountPoint, robot)
             GL11.glPopMatrix()
-          }
+          case _ =>
         }
         catch {
           case e: Throwable =>

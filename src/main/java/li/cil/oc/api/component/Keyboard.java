@@ -30,11 +30,11 @@ public interface Keyboard extends Environment, Persistable {
     void setUsableOverride(UsabilityChecker callback);
 
     /**
-     * Contract interface that has to implemented for usability check overides.
+     * Contract interface that has to implemented for usability check overrides.
      *
      * @see #setUsableOverride(li.cil.oc.api.component.Keyboard.UsabilityChecker)
      */
-    public static interface UsabilityChecker {
+    interface UsabilityChecker {
         /**
          * Whether the specified keyboard is usable by the specified player.
          *
