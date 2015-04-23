@@ -6,6 +6,7 @@ A few useful links:
 * [Downloads][releases]
 * [Bug Tracker][issues]
 * [Wiki][wiki]
+* [Ingame Manual][ingame manual]
 * [IRC][irc]
 * [Community Forums][forums]
 
@@ -58,7 +59,7 @@ repositories {
     maven { url = "http://maven.cil.li/" }
 }
 dependencies {
-    compile "li.cil.oc:OpenComputers:MC1.7.10-1.4.+:api"
+    compile "li.cil.oc:OpenComputers:MC1.7.10-1.5.+:api"
 }
 ```
 Adjust the version number accordingly to the version you'd like to build against.
@@ -104,3 +105,4 @@ In the case you wish to use Eclipse rather than IDEA, the process is mostly the 
 [robot names]: https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/src/main/resources/assets/opencomputers/robot.names
 [wiki]: http://ocdoc.cil.li/
 [integration]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/scala/li/cil/oc/integration
+[ingame manual]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/doc
