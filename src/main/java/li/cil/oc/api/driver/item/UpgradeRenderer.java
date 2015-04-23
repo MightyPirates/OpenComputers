@@ -17,8 +17,9 @@ import java.util.Set;
  * renderable upgrade. When the robot is rendered, each equipped upgrade is
  * checked for this interface, and if present, the {@link #render} method
  * is called.
+ * <p/>
+ * Note that these methods are only ever called on the client side.
  */
-@SideOnly(Side.CLIENT)
 public interface UpgradeRenderer {
     /**
      * Returns which mount point this renderer wants to render the specified
