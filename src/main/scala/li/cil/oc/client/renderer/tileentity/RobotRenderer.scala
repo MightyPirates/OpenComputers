@@ -35,7 +35,7 @@ import scala.collection.mutable
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
 
-  private val mountPoints = Array.fill(7)(new RobotRenderEvent.MountPoint())
+  private val mountPoints = new Array[RobotRenderEvent.MountPoint](7)
 
   private val slotNameMapping = Map(
     UpgradeRenderer.MountPointName.TopLeft -> 0,
@@ -46,6 +46,10 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     UpgradeRenderer.MountPointName.BottomBack -> 5,
     UpgradeRenderer.MountPointName.BottomFront -> 6
   )
+
+  for ((name, index) <- slotNameMapping) {
+    mountPoints(index) = new RobotRenderEvent.MountPoint(name)
+  }
 
   private val gap = 1.0f / 28.0f
   private val gt = 0.5f + gap
