@@ -17,4 +17,4 @@ if not options.from then
   end
 end
 
-return os.execute("install " .. from .. " --ignore=/etc --noboot --nolabelset " .. table.concat(table.pack(...), " "))
+return os.execute("install " .. from .. " --update --noboot --nolabelset " .. table.concat(table.pack(...), " "))

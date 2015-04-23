@@ -6,8 +6,8 @@ local shell = require("shell")
 local unicode = require("unicode")
 
 -- Modified version of recurse from /bin/cp.lua
-local function rcopy(fromPath, toPath, ignore)
-  ignore = ignore or {}
+local function rcopy(fromPath, toPath, update)
+  update = update or false
   os.sleep(0) -- allow interrupting
   if fs.isDirectory(fromPath) then
     if fs.canonical(fromPath) == fs.canonical(fs.path(toPath)) then
@@ -20,7 +20,7 @@ local function rcopy(fromPath, toPath, ignore)
     print(fromPath .. " -> " .. toPath)
     fs.makeDirectory(toPath)
     for file in fs.list(fromPath) do
-      local result, reason = rcopy(fs.concat(fromPath, file), fs.concat(toPath, file), ignore)
+      local result, reason = rcopy(fs.concat(fromPath, file), fs.concat(toPath, file), update)
       if not result then
         return nil, reason
       end
@@ -34,11 +34,38 @@ local function rcopy(fromPath, toPath, ignore)
       if fs.isDirectory(toPath) then
         return nil, "cannot overwrite directory `" .. toPath .. "' with non-directory"
       else
-        for n, part in ipairs(ignore) do
-          print("match ^" .. part .. " on " .. fs.canonical(toPath))
-          if fs.canonical(toPath):match("^" .. part) then
-            print("Skipping " .. fromPath .. " -> " .. toPath)
-            return true -- file is in ignored directory
+        if update then
+          local fromFile = io.open(fs.canonical(fromPath), "r")
+          local toFile = io.open(fs.canonical(toPath), "r")
+          local skipreason = "Unchanged file"
+          
+          repeat
+            local fromStr = fromFile:read(4096)
+            local toStr = toFile:read(4096)
+            if fromStr ~= toStr then
+              local answer = ""
+              repeat
+                io.write("Overwrite " .. toPath .. "? [y/n/q] ")
+                answer = io.read()
+              until answer ~= ""
+              
+              if answer == "y" then
+                skipreason = false
+              elseif answer == "n" then
+                skipreason = "Not overwriting"
+              else
+                return nil, "aborted by user"
+              end
+              break
+            end
+          until fromStr == nil and toStr == nil
+          
+          fromFile:close()
+          toFile:close()
+          
+          if skipreason then
+            print(skipreason .. ": " .. toPath)
+            return true
           end
         end
         -- else: default to overwriting
@@ -99,12 +126,7 @@ local origin = options.from and options.from:sub(1,3) or computer.getBootAddress
 local fromDir = options.fromDir or "/"
 local mnt = choice.address:sub(1, 3)
 
-local ignore = {}
-for part in string.gmatch(options.ignore, "[^:]+") do
-  table.insert(ignore, fs.canonical("/mnt/" .. mnt .. "/" .. part))
-end
-
-local result, reason = rcopy("/mnt/" .. origin .. fromDir, "/mnt/" .. mnt .. "/", ignore)
+local result, reason = rcopy("/mnt/" .. origin .. fromDir, "/mnt/" .. mnt .. "/", options.update)
 if not result then
   error(reason, 0)
 end
