@@ -282,7 +282,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
-    val worldTime = EventHandler.totalWorldTicks + f
+    val worldTime = entity.getWorldObj.getTotalWorldTime + f
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)

@@ -6,7 +6,6 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
@@ -52,8 +51,6 @@ import scala.concurrent.Future
 
 object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
-
-  var totalWorldTicks = 0L
 
   private val runningRobots = mutable.Set.empty[Robot]
 
@@ -157,11 +154,6 @@ object EventHandler {
       }
     })
     machines --= closed
-  }
-
-  @SubscribeEvent
-  def onClientTick(e: ClientTickEvent) = if (e.phase == TickEvent.Phase.START) {
-    totalWorldTicks += 1
   }
 
   @SubscribeEvent
