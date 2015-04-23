@@ -37,7 +37,6 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent._
 import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 
@@ -48,8 +47,6 @@ import scala.concurrent.Future
 
 object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
-
-  var totalWorldTicks = 0L
 
   private val runningRobots = mutable.Set.empty[Robot]
 
@@ -117,11 +114,6 @@ object EventHandler {
       }
     })
     machines --= closed
-  }
-
-  @SubscribeEvent
-  def onClientTick(e: ClientTickEvent) = if (e.phase == TickEvent.Phase.START) {
-    totalWorldTicks += 1
   }
 
   @SubscribeEvent
