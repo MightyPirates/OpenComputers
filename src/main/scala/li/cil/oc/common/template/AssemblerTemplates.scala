@@ -64,7 +64,7 @@ object AssemblerTemplates {
     }
 
     def assemble(inventory: IInventory) = IMC.tryInvokeStatic(assembler, inventory)(null: Array[AnyRef]) match {
-      case Array(stack: ItemStack, energy: java.lang.Double) => (stack, energy: Double)
+      case Array(stack: ItemStack, energy: java.lang.Number) => (stack, energy.doubleValue(): Double)
       case Array(stack: ItemStack) => (stack, 0.0)
       case _ => (null, 0.0)
     }
