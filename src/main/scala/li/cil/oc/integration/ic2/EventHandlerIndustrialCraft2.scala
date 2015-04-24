@@ -1,5 +1,6 @@
 package li.cil.oc.integration.ic2
 
+import li.cil.oc.Settings
 import li.cil.oc.api.event.RobotUsedToolEvent
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -50,6 +51,22 @@ object EventHandlerIndustrialCraft2 {
         }
         else wrench.canTakeDamage(player.getHeldItem, 1)
       case _ => false
+    }
+  }
+
+  def canCharge(stack: ItemStack): Boolean = stack.getItem match {
+    case chargeable: IElectricItem => chargeable.getMaxCharge(stack) > 0
+    case _ => false
+  }
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
+    (stack.getItem match {
+      case item: ISpecialElectricItem => Option(item.getManager(stack))
+      case item: IElectricItem => Option(ElectricItem.manager)
+      case _ => None
+    }) match {
+      case Some(manager) => amount - manager.charge(stack, amount * Settings.get.ratioIndustrialCraft2, Int.MaxValue, true, false) / Settings.get.ratioIndustrialCraft2
+      case _ => amount
     }
   }
 }

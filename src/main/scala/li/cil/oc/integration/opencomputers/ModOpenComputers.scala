@@ -5,6 +5,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.Wrench
 import li.cil.oc.api.manual.PathProvider
@@ -56,6 +57,11 @@ object ModOpenComputers extends ModProxy {
     TemplateBlacklist.register()
 
     FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
+    val chargerNbt = new NBTTagCompound()
+    chargerNbt.setString("name", "OpenComputers")
+    chargerNbt.setString("canCharge", "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge")
+    chargerNbt.setString("charge", "li.cil.oc.integration.opencomputers.ModOpenComputers.charge")
+    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerItemCharge", chargerNbt)
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
@@ -224,6 +230,18 @@ object ModOpenComputers extends ModProxy {
     player.getCurrentEquippedItem.getItem match {
       case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, pos, !changeDurability)
       case _ => false
+    }
+  }
+
+  def canCharge(stack: ItemStack): Boolean = stack.getItem match {
+    case chargeable: Chargeable => chargeable.canCharge(stack)
+    case _ => false
+  }
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
+    stack.getItem match {
+      case chargeable: Chargeable => chargeable.charge(stack, amount, simulate)
+      case _ => 0.0
     }
   }
 

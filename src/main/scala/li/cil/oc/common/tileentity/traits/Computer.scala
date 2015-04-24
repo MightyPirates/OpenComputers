@@ -73,7 +73,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   // ----------------------------------------------------------------------- //
 
   override def internalComponents(): lang.Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case i if isComponentSlot(i) && getStackInSlot(i) != null => getStackInSlot(i)
+    case slot if getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
   }
 
 

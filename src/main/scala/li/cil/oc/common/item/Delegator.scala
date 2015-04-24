@@ -6,6 +6,7 @@ import java.util.Random
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.client.renderer.item.UpgradeRenderer
@@ -38,7 +39,7 @@ object Delegator {
     else None
 }
 
-class Delegator extends Item with driver.item.UpgradeRenderer {
+class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
 
@@ -214,6 +215,20 @@ class Delegator extends Item with driver.item.UpgradeRenderer {
     }
 
   override def toString = getUnlocalizedName
+
+  // ----------------------------------------------------------------------- //
+
+  def canCharge(stack: ItemStack): Boolean =
+    Delegator.subItem(stack) match {
+      case Some(subItem: Chargeable) => true
+      case _ => false
+    }
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double =
+    Delegator.subItem(stack) match {
+      case Some(subItem: Chargeable) => subItem.charge(stack, amount, simulate)
+      case _ => 0.0
+    }
 
   // ----------------------------------------------------------------------- //
 
