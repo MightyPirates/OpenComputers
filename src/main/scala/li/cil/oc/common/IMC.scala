@@ -12,6 +12,7 @@ import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 
@@ -52,7 +53,7 @@ object IMC {
       }
       else if (message.key == "registerWrenchTool" && message.isStringMessage) {
         OpenComputers.log.info(s"Registering new wrench tool '${message.getStringValue}' from mod ${message.getSender}.")
-        try Wrench.add(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[Int], classOf[Int], classOf[Int], classOf[Boolean])) catch {
+        try Wrench.add(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[BlockPos], classOf[Boolean])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering wrench tool.", t)
         }
       }
