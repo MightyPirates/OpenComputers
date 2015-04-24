@@ -73,7 +73,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
-      var canCharge = false
+      var canCharge = Settings.get.ignorePower
 
       // Charging of external devices.
       {
