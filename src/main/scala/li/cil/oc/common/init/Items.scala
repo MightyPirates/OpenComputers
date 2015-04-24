@@ -239,9 +239,9 @@ object Items extends ItemAPI {
       Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
 
       Option(createLuaBios()),
-      Option(createOpenOS()),
       Option(get(Constants.ItemName.HDDTier3).createItemStack(1))
-    )
+    ).padTo(32, None)
+    data.items(31) = Option(createOpenOS())
     data.container = Option(get(Constants.BlockName.DiskDrive).createItemStack(1))
 
     val stack = get(Constants.ItemName.Tablet).createItemStack(1)
