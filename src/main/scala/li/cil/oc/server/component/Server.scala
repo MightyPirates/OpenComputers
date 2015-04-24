@@ -39,7 +39,7 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
   // ----------------------------------------------------------------------- //
 
   override def internalComponents(): Iterable[ItemStack] = (0 until inventory.getSizeInventory).collect {
-    case i if inventory.isComponentSlot(i) && inventory.getStackInSlot(i) != null => inventory.getStackInSlot(i)
+    case i if inventory.getStackInSlot(i) != null && inventory.isComponentSlot(i, inventory.getStackInSlot(i)) => inventory.getStackInSlot(i)
   }
 
   override def componentSlot(address: String) = inventory.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))

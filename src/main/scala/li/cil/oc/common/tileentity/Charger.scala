@@ -11,8 +11,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.item.Tablet
-import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
@@ -74,8 +73,32 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
-      val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
-      val canCharge = charge > 0 && node.globalBuffer >= charge * 0.5
+      var canCharge = false
+
+      // Charging of external devices.
+      {
+        val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
+        canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
+        if (canCharge) {
+          connectors.foreach {
+            case (_, connector) => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge)))
+          }
+        }
+      }
+
+      // Charging of internal devices.
+      {
+        val charge = Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency
+        canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
+        if (canCharge) {
+          (0 until getSizeInventory).map(getStackInSlot).foreach(stack => if (stack != null) {
+            val offered = charge + node.changeBuffer(-charge)
+            val surplus = ItemCharge.charge(stack, offered)
+            node.changeBuffer(surplus)
+          })
+        }
+      }
+
       if (hasPower && !canCharge) {
         hasPower = false
         ServerPacketSender.sendChargerState(this)
@@ -83,28 +106,6 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       if (!hasPower && canCharge) {
         hasPower = true
         ServerPacketSender.sendChargerState(this)
-      }
-      if (canCharge) {
-        connectors.foreach {
-          case (_, connector) => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge)))
-        }
-      }
-
-      // Charge tablet if present.
-      val stack = getStackInSlot(0)
-      if (stack != null && chargeSpeed > 0) {
-        def tryCharge(energy: Double, maxEnergy: Double, handler: (Double) => Unit) {
-          if (energy < maxEnergy) {
-            val itemCharge = math.min(maxEnergy - energy, Settings.get.chargeRateTablet * chargeSpeed * Settings.get.tickFrequency)
-            if (node.tryChangeBuffer(-itemCharge))
-              handler(itemCharge)
-          }
-        }
-        val data = new TabletData(stack)
-        tryCharge(data.energy, data.maxEnergy, (amount) => {
-          data.energy = math.min(data.maxEnergy, data.energy + amount)
-          data.save(stack)
-        })
       }
     }
 
@@ -159,22 +160,17 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   // ----------------------------------------------------------------------- //
 
+  override def isComponentSlot(slot: Int, stack: ItemStack): Boolean =
+    super.isComponentSlot(slot, stack) && (Option(Driver.driverFor(stack, getClass)) match {
+      case Some(driver) => driver.slot(stack) == Slot.Tablet
+      case _ => false
+    })
+
   override def getSizeInventory = 1
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack, getClass))) match {
-    case (0, Some(driver)) => driver.slot(stack) == Slot.Tablet
-    case _ => false
-  }
-
-  override protected def onItemAdded(slot: Int, stack: ItemStack) {
-    super.onItemAdded(slot, stack)
-    Tablet.Server.cache.invalidate(Tablet.getId(stack))
-    components(slot) match {
-      case Some(environment) => environment.node match {
-        case component: Component => component.setVisibility(Visibility.Network)
-      }
-      case _ =>
-    }
+    case (0, Some(driver)) if driver.slot(stack) == Slot.Tablet => true
+    case _ => ItemCharge.canCharge(stack)
   }
 
   // ----------------------------------------------------------------------- //
@@ -208,7 +204,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     // Only update list when we have to, keeps pointless block updates to a minimum.
-    if (connectors.size != robotConnectors.size + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
+    if (connectors.size != robotConnectors.length + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
       connectors.clear()
       connectors ++= robotConnectors
       connectors ++= droneConnectors

@@ -4,12 +4,13 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.inventory
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 trait ComponentInventory extends Environment with Inventory with inventory.ComponentInventory {
   override def host = this
 
-  override def isComponentSlot(slot: Int) = isServer
+  override def isComponentSlot(slot: Int, stack: ItemStack) = isServer
 
   override def onConnect(node: Node) {
     super.onConnect(node)

@@ -38,7 +38,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   def connectComponents() {
     for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
       val stack = getStackInSlot(slot)
-      if (stack != null && components(slot).isEmpty && isComponentSlot(slot)) {
+      if (stack != null && components(slot).isEmpty && isComponentSlot(slot, stack)) {
         components(slot) = Option(Driver.driverFor(stack)) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, host)) match {
@@ -98,7 +98,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   override def getInventoryStackLimit = 1
 
-  override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot)) {
+  override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot, stack)) {
     Option(Driver.driverFor(stack)).foreach(driver =>
       Option(driver.createEnvironment(stack, host)) match {
         case Some(component) => this.synchronized {
@@ -140,7 +140,7 @@ trait ComponentInventory extends Inventory with network.Environment {
     }
   }
 
-  def isComponentSlot(slot: Int) = true
+  def isComponentSlot(slot: Int, stack: ItemStack) = true
 
   protected def connectItemNode(node: Node) {
     if (this.node != null && node != null) {
