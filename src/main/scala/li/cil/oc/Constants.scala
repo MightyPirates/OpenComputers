@@ -91,6 +91,8 @@ object Constants {
     final val HDDTier1 = "hdd1"
     final val HDDTier2 = "hdd2"
     final val HDDTier3 = "hdd3"
+    final val HoverUpgradeTier1 = "hoverUpgrade1"
+    final val HoverUpgradeTier2 = "hoverUpgrade2"
     final val InkCartridgeEmpty = "inkCartridgeEmpty"
     final val InkCartridge = "inkCartridge"
     final val InternetCard = "internetCard"

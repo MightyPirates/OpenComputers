@@ -448,5 +448,10 @@ object Items extends ItemAPI {
     // 1.5.7
     Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual", "craftingBook")
     Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
+
+    // 1.5.8
+    Recipes.addSubItem(new item.UpgradeHover(multi, Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
+    Recipes.addSubItem(new item.UpgradeHover(multi, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
+
   }
 }

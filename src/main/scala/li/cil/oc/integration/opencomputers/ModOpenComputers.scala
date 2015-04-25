@@ -115,6 +115,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeDatabase)
     api.Driver.add(DriverUpgradeExperience)
     api.Driver.add(DriverUpgradeGenerator)
+    api.Driver.add(DriverUpgradeHover)
     api.Driver.add(DriverUpgradeInventory)
     api.Driver.add(DriverUpgradeInventoryController)
     api.Driver.add(DriverUpgradeLeash)

@@ -242,6 +242,16 @@ generatorUpgrade {
           ["oc:circuitChip1", craftingPiston, "oc:circuitChip1"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+hoverUpgrade1 {
+  input: [[feather, "oc:circuitChip1", feather]
+          [nuggetIron, leather, nuggetIron]
+          [feather, "oc:materialCircuitBoardPrinted", feather]]
+}
+hoverUpgrade2 {
+  input: [[end_stone, "oc:circuitChip2", end_stone]
+          [nuggetGold, ingotIron, nuggetGold]
+          [end_stone, "oc:materialCircuitBoardPrinted", end_stone]]
+}
 inventoryUpgrade {
   input: [[plankWood, hopper, plankWood]
           [dropper, chest, craftingPiston]
