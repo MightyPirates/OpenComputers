@@ -5,6 +5,7 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
+import li.cil.oc.common.tileentity.Waypoint
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
@@ -594,5 +595,14 @@ object PacketSender {
     pb.writeUTF(pattern)
 
     pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+  }
+
+  def sendWaypointLabel(t: Waypoint): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.WaypointLabel)
+
+    pb.writeTileEntity(t)
+    pb.writeUTF(t.label)
+
+    pb.sendToPlayersNearTileEntity(t)
   }
 }

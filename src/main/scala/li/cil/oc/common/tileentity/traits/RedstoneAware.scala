@@ -45,7 +45,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     this
   }
 
-  def input(side: ForgeDirection) = _input(side.ordinal())
+  def input(side: ForgeDirection) = _input(side.ordinal()) max 0
 
   def maxInput = ForgeDirection.VALID_DIRECTIONS.map(input).max
 

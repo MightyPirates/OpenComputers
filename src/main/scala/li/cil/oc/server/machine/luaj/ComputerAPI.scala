@@ -15,10 +15,6 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     // Allow getting the real world time for timeouts.
     computer.set("realTime", (_: Varargs) => LuaValue.valueOf(System.currentTimeMillis() / 1000.0))
 
-    // The time the computer has been running, as opposed to the CPU time.
-    // World time is in ticks, and each second has 20 ticks. Since we
-    // want uptime() to return real seconds, though, we'll divide it
-    // accordingly.
     computer.set("uptime", (_: Varargs) => LuaValue.valueOf(machine.upTime()))
 
     // Allow the computer to figure out its own id in the component network.

@@ -53,6 +53,7 @@ object PacketType extends Enumeration {
   ServerPresence,
   Sound,
   SoundPattern,
+  WaypointLabel, // Goes both ways.
 
   // Client -> Server
   ComputerPower,

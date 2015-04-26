@@ -37,6 +37,7 @@ object Constants {
     final val ScreenTier3 = "screen3"
     final val ServerRack = "serverRack"
     final val Switch = "switch"
+    final val Waypoint = "waypoint"
 
     def Case(tier: Int) = ItemUtils.caseNameWithTierSuffix("case", tier)
   }

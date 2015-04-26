@@ -600,6 +600,11 @@ screen3 {
           [yellowDust, "oc:circuitChip3", glass]
           [obsidian, yellowDust, obsidian]]
 }
+waypoint {
+  input: [[ingotIron, "oc:circuitChip1", ingotIron]
+          ["oc:materialTransistor", "oc:materialInterweb", "oc:materialTransistor"],
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
 
 appengTunnel {
   type: shapeless

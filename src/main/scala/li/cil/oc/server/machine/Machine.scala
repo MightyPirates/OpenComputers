@@ -166,6 +166,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (uptime < 0) {
       uptime = worldTime + uptime
     }
+    // World time is in ticks, and each second has 20 ticks. Since we
+    // want uptime() to return real seconds, though, we'll divide it
+    // accordingly.
     uptime / 20.0
   }
 

@@ -34,6 +34,7 @@ import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
+import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -79,6 +80,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(Waypoints)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
     MinecraftForge.EVENT_BUS.register(li.cil.oc.client.ComponentTracker)
