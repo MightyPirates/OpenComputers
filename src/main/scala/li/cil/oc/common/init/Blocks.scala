@@ -34,6 +34,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 
     Recipes.addBlock(new AccessPoint(), Constants.BlockName.AccessPoint, "oc:accessPoint")
     Recipes.addBlock(new Adapter(), Constants.BlockName.Adapter, "oc:adapter")
@@ -62,6 +63,7 @@ object Blocks {
     Recipes.addBlock(new Screen(Tier.Two), Constants.BlockName.ScreenTier2, "oc:screen2")
     Recipes.addBlock(new ServerRack(), Constants.BlockName.ServerRack, "oc:serverRack")
     Recipes.addBlock(new Switch(), Constants.BlockName.Switch, "oc:switch")
+    Recipes.addBlock(new Waypoint(), Constants.BlockName.Waypoint, "oc:waypoint")
 
     Items.registerBlock(new Case(Tier.Four), Constants.BlockName.CaseCreative)
     Items.registerBlock(new Microcontroller(), Constants.BlockName.Microcontroller)

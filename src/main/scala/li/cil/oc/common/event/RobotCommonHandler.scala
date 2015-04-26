@@ -5,6 +5,8 @@ import li.cil.oc.api.event.RobotMoveEvent
 import li.cil.oc.api.event.RobotUsedToolEvent
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.Robot
+import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.item.UpgradeHover
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.util.EnumFacing
@@ -32,8 +34,14 @@ object RobotCommonHandler {
     if (Settings.get.limitFlightHeight < 256) e.agent match {
       case robot: Robot =>
         val world = robot.world
-        // TODO Allow increasing this via upgrades?
-        val maxFlyingHeight = Settings.get.limitFlightHeight
+        var maxFlyingHeight = Settings.get.limitFlightHeight
+
+        (0 until robot.equipmentInventory.getSizeInventory).
+          map(robot.equipmentInventory.getStackInSlot).
+          map(Delegator.subItem).
+          collect { case Some(item: UpgradeHover) => maxFlyingHeight = Settings.get.upgradeFlightHeight(item.tier) }
+
+        robot.componentCount()
         def isMovingDown = e.direction == EnumFacing.DOWN
         def hasAdjacentBlock(pos: BlockPosition) = EnumFacing.values.exists(side => world.isSideSolid(pos.offset(side), side.getOpposite))
         def isWithinFlyingHeight(pos: BlockPosition) = (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(EnumFacing.DOWN, n)))

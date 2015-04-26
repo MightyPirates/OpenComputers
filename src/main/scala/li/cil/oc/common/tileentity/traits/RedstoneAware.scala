@@ -50,7 +50,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     this
   }
 
-  def input(side: EnumFacing) = _input(side.ordinal())
+  def input(side: EnumFacing) = _input(side.ordinal()) max 0
 
   def maxInput = EnumFacing.values.map(input).max
 

@@ -95,7 +95,6 @@ class Manual extends GuiScreen {
   override def initGui(): Unit = {
     super.initGui()
 
-    val mc = Minecraft.getMinecraft
     val screenSize = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
     val guiSize = new ScaledResolution(mc, 256, 192)
     val (midX, midY) = (screenSize.getScaledWidth / 2, screenSize.getScaledHeight / 2)

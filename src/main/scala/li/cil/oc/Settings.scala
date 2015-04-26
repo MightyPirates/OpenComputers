@@ -88,6 +88,13 @@ class Settings(val config: Config) {
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1
   val nameFormat = config.getString("robot.nameFormat")
   val uuidFormat = config.getString("robot.uuidFormat")
+  val upgradeFlightHeight = Array(config.getIntList("robot.upgradeFlightHeight"): _*) match {
+    case Array(tier1, tier2) =>
+      Array(tier1: Int, tier2: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hover flight height counts, ignoring.")
+      Array(64, 256)
+  }
 
   // robot.xp
   val baseXpToLevel = config.getDouble("robot.xp.baseValue") max 0

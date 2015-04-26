@@ -32,6 +32,7 @@ import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
+import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -80,6 +81,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(Waypoints)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
     MinecraftForge.EVENT_BUS.register(li.cil.oc.client.ComponentTracker)
@@ -116,6 +118,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeDatabase)
     api.Driver.add(DriverUpgradeExperience)
     api.Driver.add(DriverUpgradeGenerator)
+    api.Driver.add(DriverUpgradeHover)
     api.Driver.add(DriverUpgradeInventory)
     api.Driver.add(DriverUpgradeInventoryController)
     api.Driver.add(DriverUpgradeLeash)
@@ -139,6 +142,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2,
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.NavigationUpgrade,
       Constants.ItemName.PistonUpgrade,
@@ -156,7 +161,9 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
-      Constants.ItemName.ExperienceUpgrade)
+      Constants.ItemName.ExperienceUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2)
     blacklistHost(classOf[internal.Microcontroller],
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
@@ -171,6 +178,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.DatabaseUpgradeTier3,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2,
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.InventoryControllerUpgrade,
       Constants.ItemName.NavigationUpgrade,
@@ -192,6 +201,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.DatabaseUpgradeTier3,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2,
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.InventoryControllerUpgrade,
       Constants.ItemName.TankUpgrade,

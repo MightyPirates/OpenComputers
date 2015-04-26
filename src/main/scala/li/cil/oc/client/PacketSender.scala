@@ -196,4 +196,13 @@ object PacketSender {
 
     pb.sendToServer()
   }
+
+  def sendWaypointLabel(t: Waypoint): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.WaypointLabel)
+
+    pb.writeTileEntity(t)
+    pb.writeUTF(t.label)
+
+    pb.sendToServer()
+  }
 }
