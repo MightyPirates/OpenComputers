@@ -64,7 +64,7 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
     val waypoints = Waypoints.findWaypoints(position, range).
       filter(waypoint => waypoint.getDistanceSq(positionVec.xCoord, positionVec.yCoord, positionVec.zCoord) <= rangeSq)
     result(waypoints.map(waypoint => {
-      val delta = position.toVec3.subtract(waypoint.position.offset(waypoint.facing).toVec3)
+      val delta = waypoint.position.offset(waypoint.facing).toVec3.subtract(positionVec)
       Map(
         "position" -> Array(delta.xCoord, delta.yCoord, delta.zCoord),
         "redstone" -> waypoint.maxInput,

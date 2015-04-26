@@ -249,9 +249,9 @@ hoverUpgrade1 {
           [feather, "oc:materialCircuitBoardPrinted", feather]]
 }
 hoverUpgrade2 {
-  input: [[end_stone, "oc:circuitChip2", end_stone]
+  input: [[{block="minecraft:end_stone"}, "oc:circuitChip2", {block="minecraft:end_stone"}]
           [nuggetGold, ingotIron, nuggetGold]
-          [end_stone, "oc:materialCircuitBoardPrinted", end_stone]]
+          [{block="minecraft:end_stone"}, "oc:materialCircuitBoardPrinted", {block="minecraft:end_stone"}]]
 }
 inventoryUpgrade {
   input: [[plankWood, hopper, plankWood]
