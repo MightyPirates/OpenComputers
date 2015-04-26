@@ -60,6 +60,7 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
         if (label != waypoint.label) {
           waypoint.label = label
           PacketSender.sendWaypointLabel(waypoint)
+          mc.thePlayer.closeScreen()
         }
       }
       else super.keyTyped(char, code)
