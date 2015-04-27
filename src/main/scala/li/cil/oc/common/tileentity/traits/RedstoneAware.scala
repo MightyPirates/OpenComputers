@@ -1,20 +1,17 @@
 package li.cil.oc.common.tileentity.traits
 
-import com.bluepowermod.api.BPApi
-import com.bluepowermod.api.wire.redstone.IRedstoneDevice
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import mods.immibis.redlogic.api.wiring.IConnectable
 import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
 import mods.immibis.redlogic.api.wiring.IWire
-import net.minecraft.init.Blocks
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -86,7 +83,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   }
 
   def updateRedstoneInput(side: ForgeDirection) {
-    input(side, computeInput(side))
+    input(side, BundledRedstone.computeInput(position, side))
   }
 
   // ----------------------------------------------------------------------- //
@@ -121,35 +118,6 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   }
 
   // ----------------------------------------------------------------------- //
-
-  protected def computeInput(side: ForgeDirection) = {
-    val blockPos = BlockPosition(x, y, z).offset(side)
-    if (!world.blockExists(blockPos)) 0
-    else {
-      // See BlockRedstoneLogic.getInputStrength() for reference.
-      val vanilla = math.max(world.getIndirectPowerLevelTo(blockPos, side),
-        if (world.getBlock(blockPos) == Blocks.redstone_wire) world.getBlockMetadata(blockPos) else 0)
-      val redLogic = if (Mods.RedLogic.isAvailable) {
-        world.getTileEntity(blockPos) match {
-          case emitter: IRedstoneEmitter =>
-            var strength = 0
-            for (i <- -1 to 5) {
-              strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
-            }
-            strength
-          case _ => 0
-        }
-      }
-      else 0
-      val bluePower = if (Mods.BluePower.isAvailable) {
-        ForgeDirection.values.map(BPApi.getInstance.getRedstoneApi.getRedstoneDevice(world, x + side.offsetX, y + side.offsetY, z + side.offsetY, _, ForgeDirection.UNKNOWN)).collect {
-          case device: IRedstoneDevice => device.getRedstonePower(side.getOpposite) & 0xFF
-        }.padTo(1, 0).max
-      }
-      else 0
-      vanilla max redLogic max bluePower
-    }
-  }
 
   protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {}
 

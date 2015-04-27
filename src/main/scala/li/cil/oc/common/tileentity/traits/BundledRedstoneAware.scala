@@ -1,18 +1,15 @@
 package li.cil.oc.common.tileentity.traits
 
-import com.bluepowermod.api.BPApi
-import com.bluepowermod.api.wire.redstone.IBundledDevice
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
-import mods.immibis.redlogic.api.wiring.IInsulatedRedstoneWire
 import mrtjp.projectred.api.IBundledTile
-import mrtjp.projectred.api.ProjectRedAPI
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagIntArray
 import net.minecraftforge.common.util.Constants.NBT
@@ -102,7 +99,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   override def updateRedstoneInput(side: ForgeDirection) {
     super.updateRedstoneInput(side)
-    bundledInput(side, computeBundledInput(side))
+    bundledInput(side, BundledRedstone.computeBundledInput(position, side))
   }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
@@ -142,55 +139,6 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   }
 
   // ----------------------------------------------------------------------- //
-
-  protected def computeBundledInput(side: ForgeDirection): Array[Int] = {
-    val redLogic = if (Mods.RedLogic.isAvailable) {
-      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
-        case wire: IInsulatedRedstoneWire =>
-          var strength: Array[Int] = null
-          for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal())) {
-            if (strength == null) strength = Array.fill(16)(0)
-            strength(wire.getInsulatedWireColour) = math.max(strength(wire.getInsulatedWireColour), wire.getEmittedSignalStrength(face, side.ordinal()))
-          }
-          strength
-        case emitter: IBundledEmitter =>
-          var strength: Array[Int] = null
-          for (i <- -1 to 5 if strength == null) {
-            strength = Option(emitter.getBundledCableStrength(i, side.getOpposite.ordinal())).fold(null: Array[Int])(_.map(_ & 0xFF))
-          }
-          strength
-        case _ => null
-      }
-      else null
-    }
-    else null
-    val projectRed = if (Mods.ProjectRedTransmission.isAvailable) {
-      Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
-    }
-    else null
-    val bluePower = if (Mods.BluePower.isAvailable) {
-      var strength: Array[Int] = null
-      ForgeDirection.values.map(BPApi.getInstance.getRedstoneApi.getBundledDevice(world, x + side.offsetX, y + side.offsetY, z + side.offsetY, _, ForgeDirection.UNKNOWN)).collect {
-        case device: IBundledDevice => Option(device.getBundledOutput(side.getOpposite)).foreach(inputs => {
-          if (strength == null) strength = Array.fill(16)(0)
-          for (color <- 0 until strength.length) {
-            strength(color) = math.max(strength(color), inputs(color) & 0xFF)
-          }
-        })
-      }
-      strength
-    }
-    else null
-    var result: Array[Int] = null
-    for (inputs <- Iterable(redLogic, projectRed, bluePower) if inputs != null) {
-      if (result == null) result = Array.fill(16)(0)
-      for (color <- 0 until result.length) {
-        result(color) = math.max(result(color), inputs(color))
-      }
-    }
-    result
-  }
 
   override protected def onRedstoneOutputEnabledChanged() {
     if (Mods.MineFactoryReloaded.isAvailable) {

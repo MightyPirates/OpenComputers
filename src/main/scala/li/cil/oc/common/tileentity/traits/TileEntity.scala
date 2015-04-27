@@ -20,7 +20,7 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def z = zCoord
 
-  def position = BlockPosition(x, y, z)
+  def position = BlockPosition(x, y, z, world)
 
   def block = getBlockType
 
