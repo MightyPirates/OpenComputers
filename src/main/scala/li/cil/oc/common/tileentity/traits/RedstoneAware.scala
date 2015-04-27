@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
+import com.bluepowermod.api.BPApi
+import com.bluepowermod.api.wire.redstone.IRedstoneDevice
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
@@ -47,6 +49,14 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   def input(side: ForgeDirection) = _input(side.ordinal()) max 0
 
+  def input(side: ForgeDirection, newInput: Int): Unit = {
+    val oldInput = _input(side.ordinal())
+    _input(side.ordinal()) = newInput
+    if (oldInput >= 0 && newInput != oldInput) {
+      onRedstoneInputChanged(side, oldInput, newInput)
+    }
+  }
+
   def maxInput = ForgeDirection.VALID_DIRECTIONS.map(input).max
 
   def output(side: ForgeDirection) = _output(toLocal(side).ordinal())
@@ -76,12 +86,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   }
 
   def updateRedstoneInput(side: ForgeDirection) {
-    val oldInput = _input(side.ordinal())
-    val newInput = computeInput(side)
-    _input(side.ordinal()) = newInput
-    if (oldInput >= 0 && newInput != oldInput) {
-      onRedstoneInputChanged(side, oldInput, newInput)
-    }
+    input(side, computeInput(side))
   }
 
   // ----------------------------------------------------------------------- //
@@ -136,7 +141,13 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
         }
       }
       else 0
-      math.max(vanilla, redLogic)
+      val bluePower = if (Mods.BluePower.isAvailable) {
+        ForgeDirection.values.map(BPApi.getInstance.getRedstoneApi.getRedstoneDevice(world, x + side.offsetX, y + side.offsetY, z + side.offsetY, _, ForgeDirection.UNKNOWN)).collect {
+          case device: IRedstoneDevice => device.getRedstonePower(side.getOpposite) & 0xFF
+        }.padTo(1, 0).max
+      }
+      else 0
+      vanilla max redLogic max bluePower
     }
   }
 

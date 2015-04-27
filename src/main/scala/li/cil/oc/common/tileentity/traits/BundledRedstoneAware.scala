@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
+import com.bluepowermod.api.BPApi
+import com.bluepowermod.api.wire.redstone.IBundledDevice
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
@@ -48,6 +50,23 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   def bundledInput(side: ForgeDirection) =
     (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
 
+  def bundledInput(side: ForgeDirection, newBundledInput: Array[Int]): Unit = {
+    val ownBundledInput = _bundledInput(side.ordinal())
+    val oldMaxValue = ownBundledInput.max
+    var changed = false
+    if (newBundledInput != null) for (color <- 0 until 16) {
+      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
+      ownBundledInput(color) = newBundledInput(color)
+    }
+    else for (color <- 0 until 16) {
+      changed = changed || ownBundledInput(color) > 0
+      ownBundledInput(color) = 0
+    }
+    if (changed) {
+      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
+    }
+  }
+
   def bundledInput(side: ForgeDirection, color: Int) =
     math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
 
@@ -83,21 +102,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   override def updateRedstoneInput(side: ForgeDirection) {
     super.updateRedstoneInput(side)
-    val ownBundledInput = _bundledInput(side.ordinal())
-    val newBundledInput = computeBundledInput(side)
-    val oldMaxValue = ownBundledInput.max
-    var changed = false
-    if (newBundledInput != null) for (color <- 0 until 16) {
-      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
-      ownBundledInput(color) = newBundledInput(color)
-    }
-    else for (color <- 0 until 16) {
-      changed = changed || ownBundledInput(color) > 0
-      ownBundledInput(color) = 0
-    }
-    if (changed) {
-      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
-    }
+    bundledInput(side, computeBundledInput(side))
   }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
@@ -144,9 +149,9 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
       if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
         case wire: IInsulatedRedstoneWire =>
           var strength: Array[Int] = null
-          for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal()) && strength == null) {
-            strength = Array.fill(16)(0)
-            strength(wire.getInsulatedWireColour) = wire.getEmittedSignalStrength(face, side.ordinal())
+          for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal())) {
+            if (strength == null) strength = Array.fill(16)(0)
+            strength(wire.getInsulatedWireColour) = math.max(strength(wire.getInsulatedWireColour), wire.getEmittedSignalStrength(face, side.ordinal()))
           }
           strength
         case emitter: IBundledEmitter =>
@@ -164,12 +169,27 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
       Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
     }
     else null
-    (redLogic, projectRed) match {
-      case (a: Array[Int], b: Array[Int]) => (a, b).zipped.map((r1, r2) => math.max(r1, r2))
-      case (a: Array[Int], _) => a
-      case (_, b: Array[Int]) => b
-      case _ => null
+    val bluePower = if (Mods.BluePower.isAvailable) {
+      var strength: Array[Int] = null
+      ForgeDirection.values.map(BPApi.getInstance.getRedstoneApi.getBundledDevice(world, x + side.offsetX, y + side.offsetY, z + side.offsetY, _, ForgeDirection.UNKNOWN)).collect {
+        case device: IBundledDevice => Option(device.getBundledOutput(side.getOpposite)).foreach(inputs => {
+          if (strength == null) strength = Array.fill(16)(0)
+          for (color <- 0 until strength.length) {
+            strength(color) = math.max(strength(color), inputs(color) & 0xFF)
+          }
+        })
+      }
+      strength
     }
+    else null
+    var result: Array[Int] = null
+    for (inputs <- Iterable(redLogic, projectRed, bluePower) if inputs != null) {
+      if (result == null) result = Array.fill(16)(0)
+      for (color <- 0 until result.length) {
+        result(color) = math.max(result(color), inputs(color))
+      }
+    }
+    result
   }
 
   override protected def onRedstoneOutputEnabledChanged() {
