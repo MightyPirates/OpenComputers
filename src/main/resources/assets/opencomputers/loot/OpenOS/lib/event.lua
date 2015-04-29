@@ -4,19 +4,6 @@ local keyboard = require("keyboard")
 local event, listeners, timers = {}, {}, {}
 local lastInterrupt = -math.huge
 
-local function matches(signal, name, filter)
-  if name and not (type(signal[1]) == "string" and signal[1]:match(name))
-  then
-    return false
-  end
-  for i = 1, filter.n do
-    if filter[i] ~= nil and filter[i] ~= signal[i + 1] then
-      return false
-    end
-  end
-  return true
-end
-
 local function call(callback, ...)
   local result, message = pcall(callback, ...)
   if not result and type(event.onError) == "function" then
@@ -64,6 +51,45 @@ local function tick()
   end
 end
 
+local function createPlainFilter(name, ...)
+  local filter = table.pack(...)
+  if name == nil and filter.n == 0 then
+    return nil
+  end
+
+  return function(...)
+    local signal = table.pack(...)
+    if name and not (type(signal[1]) == "string" and signal[1]:match(name)) then
+      return false
+    end
+    for i = 1, filter.n do
+      if filter[i] ~= nil and filter[i] ~= signal[i + 1] then
+        return false
+      end
+    end
+    return true
+  end
+end
+
+local function createMultipleFilter(...)
+  local filter = table.pack(...)
+  if filter.n == 0 then
+    return nil
+  end
+
+  return function(...)
+    local signal = table.pack(...)
+    if type(signal[1]) ~= "string" then
+      return false
+    end
+    for i = 1, filter.n do
+      if filter[i] ~= nil and signal[1]:match(filter[i]) then
+        return true
+      end
+    end
+    return false
+  end
+end
 -------------------------------------------------------------------------------
 
 function event.cancel(timerId)
@@ -118,28 +144,50 @@ end
 
 function event.pull(...)
   local args = table.pack(...)
-  local seconds, name, filter
   if type(args[1]) == "string" then
-    name = args[1]
-    filter = table.pack(table.unpack(args, 2, args.n))
+    return event.pullFiltered(createPlainFilter(...))
   else
     checkArg(1, args[1], "number", "nil")
     checkArg(2, args[2], "string", "nil")
-    seconds = args[1]
-    name = args[2]
-    filter = table.pack(table.unpack(args, 3, args.n))
+    return event.pullFiltered(args[1], createPlainFilter(select(2, ...)))
   end
+end
 
-  local hasFilter = name ~= nil
-  if not hasFilter then
-    for i = 1, filter.n do
-      hasFilter = hasFilter or filter[i] ~= nil
+function event.pullMultiple(...)
+  local seconds
+  local args
+  if type(...) == "number" then
+    seconds = ...
+    args = table.pack(select(2,...))
+    for i=1,args.n do
+      checkArg(i+1, args[i], "string", "nil")
     end
+  else
+    args = table.pack(...)
+    for i=1,args.n do
+      checkArg(i, args[i], "string", "nil")
+    end
+  end
+  return event.pullFiltered(seconds, createMultipleFilter(table.unpack(args, 1, args.n)))
+
+end
+
+function event.pullFiltered(...)
+  local args = table.pack(...)
+  local seconds, filter
+
+  if type(args[1]) == "function" then
+    filter = args[1]
+  else
+    checkArg(1, args[1], "number", "nil")
+    checkArg(2, args[2], "function", "nil")
+    seconds = args[1]
+    filter = args[2]
   end
 
   local deadline = seconds and
                    (computer.uptime() + seconds) or
-                   (hasFilter and math.huge or 0)
+                   (filter and math.huge or 0)
   repeat
     local closest = seconds and deadline or math.huge
     for _, timer in pairs(timers) do
@@ -154,9 +202,15 @@ function event.pull(...)
       lastInterrupt = computer.uptime()
       error("interrupted", 0)
     end
-    if not (seconds or hasFilter) or matches(signal, name, filter) then
+    if event.shouldSoftInterrupt() and (filter == nil or filter("interrupted", computer.uptime() - lastInterrupt))  then
+      local awaited = computer.uptime() - lastInterrupt
+      lastInterrupt = computer.uptime()
+      return "interrupted", awaited
+    end
+    if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
       return table.unpack(signal, 1, signal.n)
     end
+
   until computer.uptime() >= deadline
 end
 
@@ -164,6 +218,12 @@ function event.shouldInterrupt()
   return computer.uptime() - lastInterrupt > 1 and
          keyboard.isControlDown() and
          keyboard.isAltDown() and
+         keyboard.isKeyDown(keyboard.keys.c)
+end
+
+function event.shouldSoftInterrupt()
+  return computer.uptime() - lastInterrupt > 1 and
+         keyboard.isControlDown() and
          keyboard.isKeyDown(keyboard.keys.c)
 end
 
