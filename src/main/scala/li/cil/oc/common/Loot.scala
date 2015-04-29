@@ -117,5 +117,5 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
     if (disks.length > 0)
       ChestGenHooks.generateStacks(random, disks(random.nextInt(disks.length)),
         theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
-    else Array.empty
+    else Array.empty[ItemStack]
 }

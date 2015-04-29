@@ -55,7 +55,7 @@ object ItemUtils {
       // we have no way of returning the fluid only (and I can't be arsed
       // to make it output fluids into fluiducts or such, sorry).
       !input.getItem.isInstanceOf[ItemBucket]).toArray
-    def getOutputSize(recipe: IRecipe) =
+    def getOutputSize(recipe: IRecipe): Double =
       if (recipe != null && recipe.getRecipeOutput != null)
         recipe.getRecipeOutput.stackSize
       else
@@ -69,11 +69,11 @@ object ItemUtils {
       case Some(recipe: ShapelessRecipes) => getFilteredInputs(recipe.recipeItems.map(_.asInstanceOf[ItemStack]), getOutputSize(recipe))
       case Some(recipe: ShapedOreRecipe) => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
       case Some(recipe: ShapelessOreRecipe) => getFilteredInputs(resolveOreDictEntries(recipe.getInput), getOutputSize(recipe))
-      case _ => Array.empty
+      case _ => Array.empty[ItemStack]
     }
     // Avoid positive feedback loops.
     if (ingredients.exists(ingredient => ingredient.isItemEqual(stack))) {
-      return Array.empty
+      return Array.empty[ItemStack]
     }
     // Merge equal items for size division by output size.
     val merged = mutable.ArrayBuffer.empty[ItemStack]
@@ -98,7 +98,7 @@ object ItemUtils {
   catch {
     case t: Throwable =>
       OpenComputers.log.warn("Whoops, something went wrong when trying to figure out an item's parts.", t)
-      Array.empty
+      Array.empty[ItemStack]
   }
 
   private lazy val rng = new Random()
