@@ -44,6 +44,7 @@ object Mods {
   val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
+  val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
@@ -114,9 +115,13 @@ object Mods {
     // being used rather than other more concrete implementations.
     integration.computercraft.ModComputerCraft,
 
-    // We go last to ensure all other mod integration is done, e.g. to
+    // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
-    integration.opencomputers.ModOpenComputers
+    integration.opencomputers.ModOpenComputers,
+
+    // Run IGW registration after OC registration because we use the manual
+    // in there to know which pages to register.
+    integration.igw.ModIngameWiki
   )
 
   def init(): Unit = {
@@ -166,6 +171,7 @@ object Mods {
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
     final val IndustrialCraft2Classic = "IC2-Classic"
+    final val IngameWiki = "IGWMod"
     final val Mekanism = "Mekanism"
     final val Minecraft = "Minecraft"
     final val MineFactoryReloaded = "MineFactoryReloaded"

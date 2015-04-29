@@ -32,9 +32,9 @@ import net.minecraft.world.World
 import scala.collection.mutable
 
 object Items extends ItemAPI {
-  private val descriptors = mutable.Map.empty[String, ItemInfo]
+  val descriptors = mutable.Map.empty[String, ItemInfo]
 
-  private val names = mutable.Map.empty[Any, String]
+  val names = mutable.Map.empty[Any, String]
 
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
 
