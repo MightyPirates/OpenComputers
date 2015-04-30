@@ -1,0 +1,15 @@
+NAME
+  update - update OpenOS files from an OpenOS install disk
+
+SYNOPSIS
+  update [OPTION]...
+
+DESCRIPTION
+  Run the install command so that it reinstalls OpenOS from a filesystem labeled "openos". By default this will not change the filesystem label or default boot device, and the user is asked before any files are overwritten.
+
+OPTIONS
+  Options are the same as for install and can be used to override update's defaults.
+
+EXAMPLES
+  update
+    Update OpenOS and prompt the user before overwriting files.
