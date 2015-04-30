@@ -256,7 +256,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
       case print: PrintPart if print.data.emitRedstone(print.state) => math.max(power, print.data.redstoneLevel)
       case _ => power
     })
-    math.max(inner, ForgeDirection.VALID_DIRECTIONS.map(BundledRedstone.computeInput(BlockPosition(x, y, z), _)).max)
+    math.max(inner, ForgeDirection.VALID_DIRECTIONS.map(BundledRedstone.computeInput(BlockPosition(x, y, z, world), _)).max)
   }
 
   // ----------------------------------------------------------------------- //
