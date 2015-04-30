@@ -49,9 +49,8 @@ object ModVanilla extends ModProxy with RedstoneProvider {
 
   override def computeInput(pos: BlockPosition, side: EnumFacing): Int = {
     val world = pos.world.get
-    // See BlockRedstoneLogic.getInputStrength() for reference.
-    math.max(world.getIndirectPowerLevelTo(pos, side),
-      if (world.getBlock(pos) == Blocks.redstone_wire) world.getBlockMetadata(pos).getValue(BlockRedstoneWire.POWER).asInstanceOf[Integer].intValue() else 0)
+    math.max(world.computeRedstoneSignal(pos, side),
+      if (world.getBlock(pos.offset(side)) == Blocks.redstone_wire) world.getBlockMetadata(pos.offset(side)).getValue(BlockRedstoneWire.POWER).asInstanceOf[Integer].intValue() else 0)
   }
 
   override def computeBundledInput(pos: BlockPosition, side: EnumFacing): Array[Int] = null

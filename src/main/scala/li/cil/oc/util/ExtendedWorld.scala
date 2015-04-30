@@ -43,6 +43,10 @@ object ExtendedWorld {
 
     def getBlockHarvestTool(position: BlockPosition) = getBlock(position).getHarvestTool(getBlockMetadata(position))
 
+    def computeRedstoneSignal(position: BlockPosition, side: EnumFacing) = math.max(world.isBlockProvidingPowerTo(position.offset(side), side.getOpposite), world.getIndirectPowerLevelTo(position.offset(side), side.getOpposite))
+
+    def isBlockProvidingPowerTo(position: BlockPosition, side: EnumFacing) = world.getStrongPower(position.toBlockPos, side)
+
     def getIndirectPowerLevelTo(position: BlockPosition, side: EnumFacing) = world.getRedstonePower(position.toBlockPos, side)
 
     def markBlockForUpdate(position: BlockPosition) = world.markBlockForUpdate(position.toBlockPos)
