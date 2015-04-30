@@ -888,6 +888,26 @@ sandbox = {
   },
 
   debug = {
+    getinfo = function(...)
+      local result = debug.getinfo(...)
+      if result then
+        -- Only make primitive information available in the sandbox.
+        return {
+          source = result.source,
+          short_src = result.short_src,
+          linedefined = result.linedefined,
+          lastlinedefined = result.lastlinedefined,
+          what = result.what,
+          currentline = result.currentline,
+          nups = result.nups,
+          nparams = result.nparams,
+          isvararg = result.isvararg,
+          name = result.name,
+          namewhat = result.namewhat,
+          istailcall = result.istailcall
+        }
+      end
+    end,
     traceback = debug.traceback
   },
 

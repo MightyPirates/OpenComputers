@@ -35,6 +35,7 @@ tile.oc.screen2.name=Монитор (2-ой уровень)
 tile.oc.screen3.name=Монитор (3-ий уровень)
 tile.oc.serverRack.name=Серверная стойка
 tile.oc.switch.name=Коммутатор
+tile.oc.waypoint.name=Путевая точка
 
 # Items
 item.oc.AbstractBusCard.name=Карта абстрактной шины
@@ -133,6 +134,7 @@ item.oc.UpgradeSolarGenerator.name=Улучшение "Солнечный ген
 item.oc.UpgradeTank.name=Улучшение "Бак для жидкостей"
 item.oc.UpgradeTankController.name=Улучшение "Контроллер бака"
 item.oc.UpgradeTractorBeam.name=Улучшение "Притягивающий луч"
+oc:tooltip.Waypoint=Добавляет путевую точку для устройств с навигационным улучшением.
 item.oc.WirelessNetworkCard.name=Плата беспроводной сети
 item.oc.WorldSensorCard.name=Карта-мировой сенсор
 item.oc.wrench.name=Ключ

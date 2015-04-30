@@ -124,6 +124,6 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
       case Some(disk) =>
         ChestGenHooks.generateStacks(random, disk,
           theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
-      case _ => Array.empty
+      case _ => Array.empty[ItemStack]
     }
 }

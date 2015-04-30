@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.markdown.segment
 
+import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.util.EnumChatFormatting
 
 private[markdown] class HeaderSegment(parent: Segment, text: String, val level: Int) extends TextSegment(parent, text) {
@@ -9,5 +10,8 @@ private[markdown] class HeaderSegment(parent: Segment, text: String, val level: 
 
   override protected def format = EnumChatFormatting.UNDERLINE.toString
 
-  override def toString: String = s"{HeaderSegment: text = $text, level = $level}"
+  override def toString(format: MarkupFormat.Value): String = format match {
+    case MarkupFormat.Markdown => s"${"#" * level} $text"
+    case MarkupFormat.IGWMod => s"[prefix{l}]$text [prefix{}]"
+  }
 }

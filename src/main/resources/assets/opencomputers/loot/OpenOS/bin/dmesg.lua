@@ -2,15 +2,21 @@ local event = require "event"
 local component = require "component"
 local keyboard = require "keyboard"
 
+local args = {...}
+
 local interactive = io.output() == io.stdout
 local color, isPal, evt
 if interactive then
   color, isPal = component.gpu.getForeground()
 end
-io.write("Press 'q' to exit\n")
+io.write("Press 'Ctrl-C' to exit\n")
 pcall(function()
   repeat
-    evt = table.pack(event.pull())
+    if #args > 0 then
+      evt = table.pack(event.pullMultiple("interrupted", table.unpack(args)))
+    else
+      evt = table.pack(event.pull())
+    end
     if interactive then component.gpu.setForeground(0xCC2200) end
     io.write("[" .. os.date("%T") .. "] ")
     if interactive then component.gpu.setForeground(0x44CC00) end
@@ -25,7 +31,7 @@ pcall(function()
     end
     
     io.write("\n")
-  until evt[1] == "key_down" and evt[4] == keyboard.keys.q
+  until evt[1] == "interrupted"
 end)
 if interactive then
   component.gpu.setForeground(color, isPal)

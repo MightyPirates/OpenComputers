@@ -96,6 +96,4 @@ private[markdown] class TextSegment(val parent: Segment, val text: String) exten
       case _ => None
     }
   }
-
-  override def toString: String = s"{TextSegment: text = $text}"
 }

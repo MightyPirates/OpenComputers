@@ -1,6 +1,7 @@
 package li.cil.oc.client.renderer.markdown.segment
 
 import li.cil.oc.client.renderer.markdown.Document
+import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.gui.FontRenderer
 
 trait BasicTextSegment extends Segment {
@@ -37,6 +38,8 @@ trait BasicTextSegment extends Segment {
     if (isLast) lines += 1
     lines * lineHeight(renderer)
   }
+
+  override def toString(format: MarkupFormat.Value): String = text
 
   // ----------------------------------------------------------------------- //
 

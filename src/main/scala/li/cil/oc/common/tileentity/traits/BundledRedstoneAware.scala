@@ -2,17 +2,16 @@ package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraftforge.fml.common.Optional
 
 /* TODO RedLogic
 import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import mods.immibis.redlogic.api.wiring.IBundledUpdatable
-import mods.immibis.redlogic.api.wiring.IInsulatedRedstoneWire
 */
 /* TODO Project Red
 import mrtjp.projectred.api.IBundledTile
-import mrtjp.projectred.api.ProjectRedAPI
 */
 
 import net.minecraft.nbt.NBTTagCompound
@@ -55,6 +54,23 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
   def bundledInput(side: EnumFacing) =
     (_bundledInput(side.ordinal()), _rednetInput(side.ordinal())).zipped.map(math.max)
 
+  def bundledInput(side: EnumFacing, newBundledInput: Array[Int]): Unit = {
+    val ownBundledInput = _bundledInput(side.ordinal())
+    val oldMaxValue = ownBundledInput.max
+    var changed = false
+    if (newBundledInput != null) for (color <- 0 until 16) {
+      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
+      ownBundledInput(color) = newBundledInput(color)
+    }
+    else for (color <- 0 until 16) {
+      changed = changed || ownBundledInput(color) > 0
+      ownBundledInput(color) = 0
+    }
+    if (changed) {
+      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
+    }
+  }
+
   def bundledInput(side: EnumFacing, color: Int) =
     math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
 
@@ -92,21 +108,7 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
 
   override def updateRedstoneInput(side: EnumFacing) {
     super.updateRedstoneInput(side)
-    val ownBundledInput = _bundledInput(side.ordinal())
-    val newBundledInput = computeBundledInput(side)
-    val oldMaxValue = ownBundledInput.max
-    var changed = false
-    if (newBundledInput != null) for (color <- 0 until 16) {
-      changed = changed || (ownBundledInput(color) >= 0 && ownBundledInput(color) != newBundledInput(color))
-      ownBundledInput(color) = newBundledInput(color)
-    }
-    else for (color <- 0 until 16) {
-      changed = changed || ownBundledInput(color) > 0
-      ownBundledInput(color) = 0
-    }
-    if (changed) {
-      onRedstoneInputChanged(side, oldMaxValue, ownBundledInput.max)
-    }
+    bundledInput(side, BundledRedstone.computeBundledInput(position, side))
   }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
@@ -146,49 +148,6 @@ trait BundledRedstoneAware extends RedstoneAware /* with IBundledEmitter with IB
   }
 
   // ----------------------------------------------------------------------- //
-
-  protected def computeBundledInput(side: EnumFacing): Array[Int] = {
-    /* TODO RedLogic
-    val redLogic =
-      if (Mods.RedLogic.isAvailable) {
-        val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-        if (world.blockExists(nx, ny, nz)) world.getTileEntity(nx, ny, nz) match {
-          case wire: IInsulatedRedstoneWire =>
-            var strength: Array[Int] = null
-            for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal()) && strength == null) {
-              strength = Array.fill(16)(0)
-              strength(wire.getInsulatedWireColour) = wire.getEmittedSignalStrength(face, side.ordinal())
-            }
-            strength
-          case emitter: IBundledEmitter =>
-            var strength: Array[Int] = null
-            for (i <- -1 to 5 if strength == null) {
-              strength = Option(emitter.getBundledCableStrength(i, side.getOpposite.ordinal())).fold(null: Array[Int])(_.map(_ & 0xFF))
-            }
-            strength
-          case _ => null
-        }
-        else null
-      }
-      else null
-    */
-    /* TODO Project Red
-    val projectRed =
-      if (Mods.ProjectRedTransmission.isAvailable) {
-        Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
-      }
-      else null
-    */
-    /* TODO RedLogic or Project Red
-    (redLogic, projectRed) match {
-      case (a: Array[Int], b: Array[Int]) => (a, b).zipped.map((r1, r2) => math.max(r1, r2))
-      case (a: Array[Int], _) => a
-      case (_, b: Array[Int]) => b
-      case _ => null
-    }
-    */
-    null
-  }
 
   override protected def onRedstoneOutputEnabledChanged() {
     /* TODO MFR

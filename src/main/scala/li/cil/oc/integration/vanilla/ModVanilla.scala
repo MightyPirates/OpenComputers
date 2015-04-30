@@ -4,8 +4,15 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
+import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.block.BlockRedstoneWire
+import net.minecraft.init.Blocks
+import net.minecraft.util.EnumFacing
 
-object ModVanilla extends ModProxy {
+object ModVanilla extends ModProxy with RedstoneProvider {
   def getMod = Mods.Minecraft
 
   def initialize() {
@@ -36,5 +43,16 @@ object ModVanilla extends ModProxy {
     Driver.add(ConverterWorldProvider)
 
     RecipeHandler.init()
+
+    BundledRedstone.addProvider(this)
   }
+
+  override def computeInput(pos: BlockPosition, side: EnumFacing): Int = {
+    val world = pos.world.get
+    // See BlockRedstoneLogic.getInputStrength() for reference.
+    math.max(world.getIndirectPowerLevelTo(pos, side),
+      if (world.getBlock(pos) == Blocks.redstone_wire) world.getBlockMetadata(pos).getValue(BlockRedstoneWire.POWER).asInstanceOf[Integer].intValue() else 0)
+  }
+
+  override def computeBundledInput(pos: BlockPosition, side: EnumFacing): Array[Int] = null
 }

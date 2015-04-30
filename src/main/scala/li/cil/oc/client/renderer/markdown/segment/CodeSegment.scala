@@ -1,6 +1,7 @@
 package li.cil.oc.client.renderer.markdown.segment
 
 import li.cil.oc.client.renderer.TextBufferRenderCache
+import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.gui.FontRenderer
 import org.lwjgl.opengl.GL11
 
@@ -30,5 +31,8 @@ private[markdown] class CodeSegment(val parent: Segment, val text: String) exten
 
   override protected def stringWidth(s: String, renderer: FontRenderer): Int = s.length * TextBufferRenderCache.renderer.charRenderWidth
 
-  override def toString: String = s"{CodeSegment: text = $text}"
+  override def toString(format: MarkupFormat.Value): String = format match {
+    case MarkupFormat.Markdown => s"`$text`"
+    case MarkupFormat.IGWMod => s"[prefix{1}]$text [prefix{}]"
+  }
 }
