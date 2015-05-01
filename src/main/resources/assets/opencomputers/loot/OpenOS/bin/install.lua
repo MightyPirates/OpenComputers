@@ -59,7 +59,7 @@ local name = options.name or "OpenOS"
 io.write("Installing " .. name .." to device " .. (choice.getLabel() or choice.address) .. "\n")
 os.sleep(0.25)
 local cpPath = filesystem.concat(findMount(filesystem.get(os.getenv("_")).address), "bin/cp")
-local cpOptions = "-vr" .. (options.u and "ui " or "")
+local cpOptions = "-vrx" .. (options.u and "ui " or "")
 local cpSource = filesystem.concat(findMount(fromAddress), options.fromDir or "/", "*")
 local cpDest = findMount(choice.address) .. "/"
 local result, reason = os.execute(cpPath .. " " .. cpOptions .. " " .. cpSource .. " " .. cpDest)
