@@ -17,9 +17,6 @@ function memoryStream:close()
 end
 
 function memoryStream:seek()
-  if self.closed then
-    error("attempt to use a closed stream")
-  end
   return nil, "bad file descriptor"
 end
 
@@ -28,7 +25,7 @@ function memoryStream:read(n)
     if self.buffer == "" and self.redirect.read then
       return self.redirect.read:read(n)
     else
-      error("attempt to use a closed stream")
+      return nil -- eof
     end
   end
   if self.buffer == "" then
