@@ -10,6 +10,7 @@ if #args < 2 then
   io.write(" -u: copy only when the SOURCE file differs from the destination\n")
   io.write("     file or when the destination file is missing.\n")
   io.write(" -v: verbose output.")
+  io.write(" -x: stay on original source file system.")
   return
 end
 
@@ -58,6 +59,15 @@ local function areEqual(path1, path2)
   return result
 end
 
+local function isMount(path)
+  path = fs.canonical(path)
+  for _, mountPath in fs.mounts() do
+    if path == fs.canonical(mountPath) then
+      return true
+    end
+  end
+end
+
 local function recurse(fromPath, toPath)
   status(fromPath, toPath)
   if fs.isDirectory(fromPath) then
@@ -71,6 +81,9 @@ local function recurse(fromPath, toPath)
     if fs.exists(toPath) and not fs.isDirectory(toPath) then
       -- my real cp always does this, even with -f, -n or -i.
       return nil, "cannot overwrite non-directory `" .. toPath .. "' with directory `" .. fromPath .. "'"
+    end
+    if options.x and isMount(fromPath) then
+      return true
     end
     fs.makeDirectory(toPath)
     for file in fs.list(fromPath) do
