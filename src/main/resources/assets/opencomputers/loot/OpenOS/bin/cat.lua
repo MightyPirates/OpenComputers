@@ -12,8 +12,8 @@ else
   for i = 1, #args do
     local file, reason = io.open(shell.resolve(args[i]))
     if not file then
-      io.stderr:write(reason)
-      return
+      io.stderr:write(tostring(reason) .. "\n")
+      os.exit(false)
     end
     repeat
       local line = file:read("*L")
