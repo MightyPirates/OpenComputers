@@ -17,6 +17,9 @@ function memoryStream:close()
 end
 
 function memoryStream:seek()
+  if self.closed then
+    error("attempt to use a closed stream")
+  end
   return nil, "bad file descriptor"
 end
 
@@ -24,8 +27,9 @@ function memoryStream:read(n)
   if self.closed then
     if self.buffer == "" and self.redirect.read then
       return self.redirect.read:read(n)
+    else
+      error("attempt to use a closed stream")
     end
-    return nil -- eof
   end
   if self.buffer == "" then
     self.args = table.pack(coroutine.yield(table.unpack(self.result)))
@@ -36,19 +40,24 @@ function memoryStream:read(n)
 end
 
 function memoryStream:write(value)
-  local ok
+  if not self.redirect.write and self.closed then
+    error("attempt to use a closed stream")
+  end
   if self.redirect.write then
-    ok = self.redirect.write:write(value)
+    self.redirect.write:write(value)
   end
   if not self.closed then
     self.buffer = self.buffer .. value
     self.result = table.pack(coroutine.resume(self.next, table.unpack(self.args)))
-    ok = true
+    if coroutine.status(self.next) == "dead" then
+      self:close()
+    end
+    if not self.result[1] then
+      error(self.result[2], 0)
+    end
+    table.remove(self.result, 1)
   end
-  if ok then
-    return true
-  end
-  return nil, "stream is closed"
+  return true
 end
 
 function memoryStream.new()
@@ -328,16 +337,15 @@ local function execute(env, command, ...)
       result = table.pack(coroutine.resume(threads[i], table.unpack(args, 2, args.n)))
       if coroutine.status(threads[i]) ~= "dead" then
         args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-      elseif not args[1] then
-        args[2] = debug.traceback(threads[i], args[2])
       end
     end
     if pipes[i] then
-      pipes[i]:close()
+      pcall(pipes[i].close, pipes[i])
     end
     if not result[1] then
       if type(result[2]) == "table" and result[2].reason == "terminated" then
         if result[2].code then
+          result[1] = true
           result.n = 1
         else
           result[2] = "terminated"
@@ -473,7 +481,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
           term.write("\n")
         end
         if not result then
-          io.stderr:write((tostring(reason) or "unknown error").. "\n")
+          io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
         end
       end
     end
@@ -491,7 +499,7 @@ elseif #args == 0 and (io.input() ~= io.stdin) then
     elseif command ~= "" then
       local result, reason = os.execute(command)
       if not result then
-        io.stderr:write((tostring(reason) or "unknown error").. "\n")
+        io.stderr:write((reason and tostring(reason) or "unknown error") .. "\n")
       end
     end
   end

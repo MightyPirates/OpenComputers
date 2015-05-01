@@ -210,7 +210,6 @@ function event.pullFiltered(...)
     if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
       return table.unpack(signal, 1, signal.n)
     end
-
   until computer.uptime() >= deadline
 end
 

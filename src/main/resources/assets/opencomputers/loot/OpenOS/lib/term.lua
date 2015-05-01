@@ -383,7 +383,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
     end
     term.setCursorBlink(false)
     if term.getCursor() > 1 and dobreak ~= false then
-      print()
+      term.write("\n")
     end
   end
 
