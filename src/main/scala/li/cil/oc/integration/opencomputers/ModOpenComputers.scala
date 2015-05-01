@@ -160,7 +160,6 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
-      Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2)
     blacklistHost(classOf[internal.Microcontroller],
