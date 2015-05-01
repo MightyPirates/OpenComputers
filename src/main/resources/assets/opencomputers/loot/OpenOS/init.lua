@@ -175,7 +175,7 @@ local function motd()
     os.execute("/etc/motd")
   else
     f:seek("set", 0)
-    print(f:read("*a"))
+    io.write(f:read("*a") .. "\n")
     f:close()
   end
 end
@@ -185,7 +185,7 @@ while true do
   local result, reason = os.execute(os.getenv("SHELL"))
   if not result then
     io.stderr:write((tostring(reason) or "unknown error") .. "\n")
-    print("Press any key to continue.")
+    io.write("Press any key to continue.\n")
     os.sleep(0.5)
     require("event").pull("key")
   end
