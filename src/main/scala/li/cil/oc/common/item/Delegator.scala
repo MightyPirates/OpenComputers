@@ -5,6 +5,11 @@ import java.util.Random
 
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.driver
+import li.cil.oc.api.driver.item.Chargeable
+import li.cil.oc.api.event.RobotRenderEvent.MountPoint
+import li.cil.oc.api.internal.Robot
+import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import net.minecraft.client.resources.model.ModelResourceLocation
@@ -34,7 +39,7 @@ object Delegator {
     else None
 }
 
-class Delegator extends Item {
+class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
 
@@ -210,4 +215,24 @@ class Delegator extends Item {
     }
 
   override def toString = getUnlocalizedName
+
+  // ----------------------------------------------------------------------- //
+
+  def canCharge(stack: ItemStack): Boolean =
+    Delegator.subItem(stack) match {
+      case Some(subItem: Chargeable) => true
+      case _ => false
+    }
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double =
+    Delegator.subItem(stack) match {
+      case Some(subItem: Chargeable) => subItem.charge(stack, amount, simulate)
+      case _ => 0.0
+    }
+
+  // ----------------------------------------------------------------------- //
+
+  override def computePreferredMountPoint(stack: ItemStack, robot: Robot, availableMountPoints: util.Set[String]): String = UpgradeRenderer.preferredMountPoint(stack, availableMountPoints)
+
+  override def render(stack: ItemStack, mountPoint: MountPoint, robot: Robot, pt: Float): Unit = UpgradeRenderer.render(stack, mountPoint)
 }

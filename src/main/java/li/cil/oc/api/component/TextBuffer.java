@@ -563,7 +563,7 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
     /**
      * Used when setting a buffer's maximum color depth.
      */
-    public static enum ColorDepth {
+    enum ColorDepth {
         /**
          * Monochrome color, black and white.
          */

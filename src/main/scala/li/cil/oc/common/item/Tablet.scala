@@ -16,6 +16,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Machine
+import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
@@ -53,7 +54,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Tablet(val parent: Delegator) extends Delegate with CustomModel {
+class Tablet(val parent: Delegator) extends Delegate with CustomModel with Chargeable {
   final val TimeToAnalyze = 10
 
   // Must be assembled to be usable so we hide it in the item list.
@@ -119,6 +120,20 @@ class Tablet(val parent: Delegator) extends Delegate with CustomModel {
       ModelBakery.addVariantName(parent, location.getResourceDomain + ":" + location.getResourcePath)
     }
   }
+
+  def canCharge(stack: ItemStack): Boolean = true
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
+    val data = new TabletData(stack)
+    val charge = math.min(data.maxEnergy - data.energy, amount)
+    if (!simulate) {
+      data.energy += charge
+      data.save(stack)
+    }
+    amount - charge
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def update(stack: ItemStack, world: World, entity: Entity, slot: Int, selected: Boolean) =
     entity match {
@@ -344,7 +359,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     })
 
   override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case slot if isComponentSlot(slot) && getStackInSlot(slot) != null => getStackInSlot(slot)
+    case slot if getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
   }
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))

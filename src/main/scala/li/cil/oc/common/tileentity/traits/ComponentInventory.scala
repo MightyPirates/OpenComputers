@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.inventory
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -9,7 +10,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 trait ComponentInventory extends Environment with Inventory with inventory.ComponentInventory {
   override def host = this
 
-  override def isComponentSlot(slot: Int) = isServer
+  override def isComponentSlot(slot: Int, stack: ItemStack) = isServer
 
   override def onConnect(node: Node) {
     super.onConnect(node)

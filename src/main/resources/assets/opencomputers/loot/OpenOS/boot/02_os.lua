@@ -8,8 +8,6 @@ local function env()
   -- copy parent env when first requested; easiest way to keep things
   -- like number of env vars trivial (#vars).
   local data = require("process").info().data
-  --[[ TODO breaking change; will require set to be a shell built-in and
-            may break other programs relying on setenv being global.
   if not rawget(data, "vars") then
     local vars = {}
     for k, v in pairs(data.vars or {}) do
@@ -17,7 +15,6 @@ local function env()
     end
     data.vars = vars
   end
-  --]]
   data.vars = data.vars or {}
   return data.vars
 end

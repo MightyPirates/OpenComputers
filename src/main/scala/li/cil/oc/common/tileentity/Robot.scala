@@ -35,6 +35,7 @@ import net.minecraft.init.Blocks
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
@@ -375,7 +376,10 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   override def shouldRenderInPass(pass: Int) = true
 
   override def getRenderBoundingBox =
-    getBlockType.getCollisionBoundingBox(world, getPos, world.getBlockState(getPos)).expand(0.5, 0.5, 0.5)
+    if (getBlockType != null && world != null)
+      getBlockType.getCollisionBoundingBox(world, getPos, world.getBlockState(getPos)).expand(0.5, 0.5, 0.5)
+    else
+      AxisAlignedBB.fromBounds(0, 0, 0, 1, 1, 1)
 
   // ----------------------------------------------------------------------- //
 
@@ -594,7 +598,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       if (isFloppySlot(slot)) {
         common.Sound.playDiskInsert(this)
       }
-      if (isComponentSlot(slot)) {
+      if (isComponentSlot(slot, stack)) {
         super.onItemAdded(slot, stack)
         world.notifyBlocksOfNeighborChange(position, getBlockType)
       }
@@ -620,7 +624,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
       if (isInventorySlot(slot)) {
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
-      if (isComponentSlot(slot)) {
+      if (isComponentSlot(slot, stack)) {
         world.notifyBlocksOfNeighborChange(position, getBlockType)
       }
     }
@@ -666,7 +670,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     }
   }
 
-  override def isComponentSlot(slot: Int) = (containerSlots ++ componentSlots) contains slot
+  override def isComponentSlot(slot: Int, stack: ItemStack) = (containerSlots ++ componentSlots) contains slot
 
   def containerSlotType(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
@@ -692,13 +696,13 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   def isInventorySlot(slot: Int) = inventorySlots contains slot
 
-  def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
-    case Some(stack) => Option(Driver.driverFor(stack, getClass)) match {
+  def isFloppySlot(slot: Int) = getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) && {
+    val stack = getStackInSlot(slot)
+    Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver) => driver.slot(stack) == Slot.Floppy
       case _ => false
     }
-    case _ => false
-  })
+  }
 
   def isUpgradeSlot(slot: Int) = containerSlotType(slot) == Slot.Upgrade
 
@@ -766,7 +770,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
     if (slot < getSizeInventory - componentCount && (isItemValidForSlot(slot, stack) || stack == null)) {
-      if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
+      if (stack != null && stack.stackSize > 1 && isComponentSlot(slot, stack)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
           player().inventory.addItemStackToInventory(stack)
@@ -886,5 +890,5 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   override def getTankInfo(from: EnumFacing) =
     components.collect {
       case Some(t: IFluidTank) => t.getInfo
-    }.toArray
+    }
 }

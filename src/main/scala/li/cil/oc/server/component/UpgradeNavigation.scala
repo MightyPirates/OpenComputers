@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.EnvironmentHost
@@ -11,6 +12,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.item.data.NavigationUpgradeData
+import li.cil.oc.server.network.Waypoints
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -20,6 +22,7 @@ import net.minecraft.util.EnumFacing
 class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("navigation", Visibility.Neighbors).
+    withConnector().
     create()
 
   val data = new NavigationUpgradeData()
@@ -47,6 +50,27 @@ class UpgradeNavigation(val host: EnvironmentHost with Rotatable) extends prefab
     val info = data.mapData(host.world)
     val size = 128 * (1 << info.scale)
     result(size / 2)
+  }
+
+  @Callback(doc = """function(range:number):table -- Find waypoints in the specified range.""")
+  def findWaypoints(context: Context, args: Arguments): Array[AnyRef] = {
+    val range = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange
+    if (range <= 0) return result(Array.empty)
+    if (!node.tryChangeBuffer(-range * Settings.get.wirelessCostPerRange * 0.25)) return result(Unit, "not enough energy")
+    context.pause(0.5)
+    val position = BlockPosition(host)
+    val positionVec = position.toVec3
+    val rangeSq = range * range
+    val waypoints = Waypoints.findWaypoints(position, range).
+      filter(waypoint => waypoint.getDistanceSq(positionVec.xCoord, positionVec.yCoord, positionVec.zCoord) <= rangeSq)
+    result(waypoints.map(waypoint => {
+      val delta = waypoint.position.offset(waypoint.facing).toVec3.subtract(positionVec)
+      Map(
+        "position" -> Array(delta.xCoord, delta.yCoord, delta.zCoord),
+        "redstone" -> waypoint.maxInput,
+        "label" -> waypoint.label
+      )
+    }).toArray)
   }
 
   override def onMessage(message: Message): Unit = {

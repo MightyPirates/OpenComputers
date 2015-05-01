@@ -8,10 +8,12 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.template.DisassemblerTemplates
+import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent
 
@@ -52,8 +54,17 @@ object IMC {
       }
       else if (message.key == "registerWrenchTool" && message.isStringMessage) {
         OpenComputers.log.info(s"Registering new wrench tool '${message.getStringValue}' from mod ${message.getSender}.")
-        try Wrench.add(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[Int], classOf[Int], classOf[Int], classOf[Boolean])) catch {
+        try Wrench.add(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[BlockPos], classOf[Boolean])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering wrench tool.", t)
+        }
+      }
+      else if (message.key == "registerItemCharge" && message.isNBTMessage) {
+        OpenComputers.log.info(s"Registering new item charge implementation '${message.getNBTValue.getString("name")}' from mod ${message.getSender}.")
+        try ItemCharge.add(
+          getStaticMethod(message.getNBTValue.getString("canCharge"), classOf[ItemStack]),
+          getStaticMethod(message.getNBTValue.getString("charge"), classOf[ItemStack], classOf[Double], classOf[Boolean])
+        ) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering item charge implementation.", t)
         }
       }
       else if (message.key == "blacklistPeripheral" && message.isStringMessage) {

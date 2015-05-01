@@ -46,6 +46,8 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Screen(t.origin.buffer, t.tier > 0, () => t.origin.hasKeyboard, () => t.origin.buffer.isRenderingEnabled)
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new gui.Switch(player.inventory, t)
+          case t: tileentity.Waypoint if id == GuiType.Waypoint.id =>
+            new gui.Waypoint(t)
           case _ => null
         }
       case Some(GuiType.Category.Entity) =>

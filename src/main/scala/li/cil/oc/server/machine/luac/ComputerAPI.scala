@@ -19,9 +19,6 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     // The time the computer has been running, as opposed to the CPU time.
     lua.pushScalaFunction(lua => {
-      // World time is in ticks, and each second has 20 ticks. Since we
-      // want uptime() to return real seconds, though, we'll divide it
-      // accordingly.
       lua.pushNumber(machine.upTime())
       1
     })

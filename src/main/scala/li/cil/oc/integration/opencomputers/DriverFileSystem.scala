@@ -24,8 +24,8 @@ object DriverFileSystem extends Item {
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host)
-      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, host)
+      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host, hdd.tier + 2)
+      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, host, 1)
       case _ => null
     }
 
@@ -42,14 +42,14 @@ object DriverFileSystem extends Item {
       case _ => 0
     }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost) = if (DimensionManager.getWorld(0) != null) {
+  private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost, speed: Int) = if (DimensionManager.getWorld(0) != null) {
     // We have a bit of a chicken-egg problem here, because we want to use the
     // node's address as the folder name... so we generate the address here,
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(dataTag(stack))
     val isFloppy = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy)
     val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
-    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ReadWriteItemLabel(stack), host, Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access"))
+    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ReadWriteItemLabel(stack), host, Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access"), speed)
     if (environment != null && environment.node != null) {
       environment.node.asInstanceOf[oc.server.network.Node].address = address
     }

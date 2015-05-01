@@ -55,6 +55,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ServerSide => onServerSide(p)
       case PacketType.ServerSwitchMode => onServerSwitchMode(p)
       case PacketType.TextBufferInit => onTextBufferInit(p)
+      case PacketType.WaypointLabel => onWaypointLabel(p)
       case _ => // Invalid packet.
     }
   }
@@ -268,4 +269,18 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
   }
+
+  def onWaypointLabel(p: PacketParser) =
+    p.readTileEntity[Waypoint]() match {
+      case Some(waypoint) => p.player match {
+        case player: EntityPlayerMP if player.getDistanceSq(waypoint.x + 0.5, waypoint.y + 0.5, waypoint.z + 0.5) <= 64 =>
+          val label = p.readUTF().take(32)
+          if (label != waypoint.label) {
+            waypoint.label = label
+            PacketSender.sendWaypointLabel(waypoint)
+          }
+        case _ =>
+      }
+      case _ => // Invalid packet.
+    }
 }

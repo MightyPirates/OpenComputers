@@ -31,9 +31,9 @@ import net.minecraftforge.fml.common.registry.GameRegistry
 import scala.collection.mutable
 
 object Items extends ItemAPI {
-  private val descriptors = mutable.Map.empty[String, ItemInfo]
+  val descriptors = mutable.Map.empty[String, ItemInfo]
 
-  private val names = mutable.Map.empty[Any, String]
+  val names = mutable.Map.empty[Any, String]
 
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
 
@@ -247,9 +247,9 @@ object Items extends ItemAPI {
       Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
 
       Option(createLuaBios()),
-      Option(createOpenOS()),
       Option(get(Constants.ItemName.HDDTier3).createItemStack(1))
-    )
+    ).padTo(32, None)
+    data.items(31) = Option(createOpenOS())
     data.container = Option(get(Constants.BlockName.DiskDrive).createItemStack(1))
 
     val stack = get(Constants.ItemName.Tablet).createItemStack(1)
@@ -393,6 +393,10 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.UpgradeTankController(upgrades), Constants.ItemName.TankControllerUpgrade, "oc:tankControllerUpgrade")
     Recipes.addSubItem(new item.UpgradeTractorBeam(upgrades), Constants.ItemName.TractorBeamUpgrade, "oc:tractorBeamUpgrade")
     Recipes.addSubItem(new item.UpgradeLeash(upgrades), Constants.ItemName.LeashUpgrade, "oc:leashUpgrade")
+
+    // 1.5.8
+    Recipes.addSubItem(new item.UpgradeHover(upgrades, Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
+    Recipes.addSubItem(new item.UpgradeHover(upgrades, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
   }
 
   // Storage media of all kinds.

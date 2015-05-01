@@ -2,10 +2,8 @@ package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.block.BlockRedstoneWire
 import net.minecraftforge.fml.common.Optional
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -17,7 +15,6 @@ import mods.immibis.redlogic.api.wiring.IRedstoneUpdatable
 import mods.immibis.redlogic.api.wiring.IWire
 */
 
-import net.minecraft.init.Blocks
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 
@@ -50,7 +47,15 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     this
   }
 
-  def input(side: EnumFacing) = _input(side.ordinal())
+  def input(side: EnumFacing) = _input(side.ordinal()) max 0
+
+  def input(side: EnumFacing, newInput: Int): Unit = {
+    val oldInput = _input(side.ordinal())
+    _input(side.ordinal()) = newInput
+    if (oldInput >= 0 && newInput != oldInput) {
+      onRedstoneInputChanged(side, oldInput, newInput)
+    }
+  }
 
   def maxInput = EnumFacing.values.map(input).max
 
@@ -81,12 +86,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   }
 
   def updateRedstoneInput(side: EnumFacing) {
-    val oldInput = _input(side.ordinal())
-    val newInput = computeInput(side)
-    _input(side.ordinal()) = newInput
-    if (oldInput >= 0 && newInput != oldInput) {
-      onRedstoneInputChanged(side, oldInput, newInput)
-    }
+    input(side, BundledRedstone.computeInput(position, side))
   }
 
   // ----------------------------------------------------------------------- //
@@ -121,32 +121,6 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   }
 
   // ----------------------------------------------------------------------- //
-
-  protected def computeInput(side: EnumFacing) = {
-    val blockPos = BlockPosition(x, y, z).offset(side)
-    if (!world.blockExists(blockPos)) 0
-    else {
-      // See BlockRedstoneLogic.getInputStrength() for reference.
-      val vanilla = math.max(world.getIndirectPowerLevelTo(blockPos, side),
-        if (world.getBlock(blockPos) == Blocks.redstone_wire) world.getBlockMetadata(blockPos).getValue(BlockRedstoneWire.POWER).asInstanceOf[Integer].intValue() else 0)
-      val redLogic = 0
-      /* TODO RedLogic
-            val redLogic = if (Mods.RedLogic.isAvailable) {
-              world.getTileEntity(blockPos) match {
-                case emitter: IRedstoneEmitter =>
-                  var strength = 0
-                  for (i <- -1 to 5) {
-                    strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
-                  }
-                  strength
-                case _ => 0
-              }
-            }
-            else 0
-      */
-      math.max(vanilla, redLogic)
-    }
-  }
 
   protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {}
 
