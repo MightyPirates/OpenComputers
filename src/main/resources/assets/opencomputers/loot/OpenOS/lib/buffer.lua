@@ -25,7 +25,7 @@ function buffer.new(mode, stream)
 end
 
 function buffer:close()
-  if not self.closed and (self.mode.w or self.mode.a) then
+  if self.mode.w or self.mode.a then
     self:flush()
   end
   self.closed = true
@@ -33,14 +33,16 @@ function buffer:close()
 end
 
 function buffer:flush()
-  local result, reason = self.stream:write(self.bufferWrite)
-  if result then
-    self.bufferWrite = ""
-  else
-    if reason then
-      return nil, reason
+  if #self.bufferWrite > 0 then
+    local result, reason = self.stream:write(self.bufferWrite)
+    if result then
+      self.bufferWrite = ""
     else
-      return nil, "bad file descriptor"
+      if reason then
+        return nil, reason
+      else
+        return nil, "bad file descriptor"
+      end
     end
   end
 
