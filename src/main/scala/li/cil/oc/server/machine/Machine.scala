@@ -53,7 +53,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   val tmp = if (Settings.get.tmpSize > 0) {
     Option(FileSystem.asManagedEnvironment(FileSystem.
-      fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
+      fromMemory(Settings.get.tmpSize * 1024), "tmpfs", null, null, 5))
   } else None
 
   var architecture: Architecture = _
@@ -166,6 +166,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (uptime < 0) {
       uptime = worldTime + uptime
     }
+    // World time is in ticks, and each second has 20 ticks. Since we
+    // want uptime() to return real seconds, though, we'll divide it
+    // accordingly.
     uptime / 20.0
   }
 
@@ -232,10 +235,6 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       false
   })
 
-  private def beep(pattern: String) {
-    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, pattern)
-  }
-
   override def pause(seconds: Double): Boolean = {
     val ticksToPause = math.max((seconds * 20).toInt, 0)
     def shouldPause(state: Machine.State.Value) = state match {
@@ -266,6 +265,14 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       EventHandler.scheduleClose(this)
       true
   })
+
+  override def beep(frequency: Short, duration: Short): Unit = {
+    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, duration)
+  }
+
+  override def beep(pattern: String) {
+    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, pattern)
+  }
 
   override def crash(message: String) = {
     this.message = Option(message)

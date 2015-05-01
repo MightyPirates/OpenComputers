@@ -303,7 +303,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
     apis.foreach(_.initialize())
 
-    lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=kernel", "t")
+    lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "machine.lua"), "=machine", "t")
     lua.newThread() // Left as the first value on the stack.
 
     true

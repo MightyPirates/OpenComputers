@@ -25,7 +25,7 @@ function buffer.new(mode, stream)
 end
 
 function buffer:close()
-  if self.mode.w or self.mode.a then
+  if not self.closed and (self.mode.w or self.mode.a) then
     self:flush()
   end
   self.closed = true

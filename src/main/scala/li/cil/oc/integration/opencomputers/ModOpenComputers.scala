@@ -7,6 +7,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.Wrench
 import li.cil.oc.api.manual.PathProvider
@@ -33,6 +34,7 @@ import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
+import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -55,6 +57,11 @@ object ModOpenComputers extends ModProxy {
     TemplateBlacklist.register()
 
     FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
+    val chargerNbt = new NBTTagCompound()
+    chargerNbt.setString("name", "OpenComputers")
+    chargerNbt.setString("canCharge", "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge")
+    chargerNbt.setString("charge", "li.cil.oc.integration.opencomputers.ModOpenComputers.charge")
+    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerItemCharge", chargerNbt)
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
@@ -73,6 +80,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(Waypoints)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
     MinecraftForge.EVENT_BUS.register(li.cil.oc.client.ComponentTracker)
@@ -109,6 +117,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeDatabase)
     api.Driver.add(DriverUpgradeExperience)
     api.Driver.add(DriverUpgradeGenerator)
+    api.Driver.add(DriverUpgradeHover)
     api.Driver.add(DriverUpgradeInventory)
     api.Driver.add(DriverUpgradeInventoryController)
     api.Driver.add(DriverUpgradeLeash)
@@ -132,6 +141,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2,
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.NavigationUpgrade,
       Constants.ItemName.PistonUpgrade,
@@ -149,7 +160,9 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
-      Constants.ItemName.ExperienceUpgrade)
+      Constants.ItemName.ExperienceUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2)
     blacklistHost(classOf[internal.Microcontroller],
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
@@ -164,6 +177,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.DatabaseUpgradeTier3,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2,
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.InventoryControllerUpgrade,
       Constants.ItemName.NavigationUpgrade,
@@ -185,6 +200,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.DatabaseUpgradeTier3,
       Constants.ItemName.ExperienceUpgrade,
       Constants.ItemName.GeneratorUpgrade,
+      Constants.ItemName.HoverUpgradeTier1,
+      Constants.ItemName.HoverUpgradeTier2,
       Constants.ItemName.InventoryUpgrade,
       Constants.ItemName.InventoryControllerUpgrade,
       Constants.ItemName.TankUpgrade,
@@ -223,6 +240,18 @@ object ModOpenComputers extends ModProxy {
     player.getCurrentEquippedItem.getItem match {
       case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, x, y, z, !changeDurability)
       case _ => false
+    }
+  }
+
+  def canCharge(stack: ItemStack): Boolean = stack.getItem match {
+    case chargeable: Chargeable => chargeable.canCharge(stack)
+    case _ => false
+  }
+
+  def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
+    stack.getItem match {
+      case chargeable: Chargeable => chargeable.charge(stack, amount, simulate)
+      case _ => 0.0
     }
   }
 

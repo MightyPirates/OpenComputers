@@ -39,7 +39,7 @@ class EEPROM extends prefab.ManagedEnvironment {
     if (!node.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
       return result(Unit, "not enough energy")
     }
-    val newData = args.optByteArray(0, Array.empty)
+    val newData = args.optByteArray(0, Array.empty[Byte])
     if (newData.length > Settings.get.eepromSize) throw new IllegalArgumentException("not enough space")
     codeData = newData
     context.pause(2) // deliberately slow to discourage use as normal storage medium
@@ -85,7 +85,7 @@ class EEPROM extends prefab.ManagedEnvironment {
     if (!node.tryChangeBuffer(-Settings.get.eepromWriteCost)) {
       return result(Unit, "not enough energy")
     }
-    val newData = args.optByteArray(0, Array.empty)
+    val newData = args.optByteArray(0, Array.empty[Byte])
     if (newData.length > Settings.get.eepromDataSize) throw new IllegalArgumentException("not enough space")
     volatileData = newData
     context.pause(1) // deliberately slow to discourage use as normal storage medium

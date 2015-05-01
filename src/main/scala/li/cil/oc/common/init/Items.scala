@@ -32,9 +32,9 @@ import net.minecraft.world.World
 import scala.collection.mutable
 
 object Items extends ItemAPI {
-  private val descriptors = mutable.Map.empty[String, ItemInfo]
+  val descriptors = mutable.Map.empty[String, ItemInfo]
 
-  private val names = mutable.Map.empty[Any, String]
+  val names = mutable.Map.empty[Any, String]
 
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
 
@@ -239,9 +239,9 @@ object Items extends ItemAPI {
       Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
 
       Option(createLuaBios()),
-      Option(createOpenOS()),
       Option(get(Constants.ItemName.HDDTier3).createItemStack(1))
-    )
+    ).padTo(32, None)
+    data.items(31) = Option(createOpenOS())
     data.container = Option(get(Constants.BlockName.DiskDrive).createItemStack(1))
 
     val stack = get(Constants.ItemName.Tablet).createItemStack(1)
@@ -448,5 +448,10 @@ object Items extends ItemAPI {
     // 1.5.7
     Recipes.addSubItem(new item.Manual(multi), Constants.ItemName.Manual, "oc:manual", "craftingBook")
     Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
+
+    // 1.5.8
+    Recipes.addSubItem(new item.UpgradeHover(multi, Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
+    Recipes.addSubItem(new item.UpgradeHover(multi, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
+
   }
 }

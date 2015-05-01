@@ -15,6 +15,7 @@ import net.minecraftforge.common.util.ForgeDirection
 @Injectable.InterfaceList(Array(
   new Injectable.Interface(value = "appeng.api.implementations.items.IAEWrench", modid = Mods.IDs.AppliedEnergistics2),
   new Injectable.Interface(value = "buildcraft.api.tools.IToolWrench", modid = Mods.IDs.BuildCraftTools),
+  new Injectable.Interface(value = "com.bluepowermod.api.misc.IScrewdriver", modid = Mods.IDs.BluePower),
   new Injectable.Interface(value = "cofh.api.item.IToolHammer", modid = Mods.IDs.CoFHItem),
   new Injectable.Interface(value = "crazypants.enderio.tool.ITool", modid = Mods.IDs.EnderIO),
   new Injectable.Interface(value = "mekanism.api.IMekWrench", modid = Mods.IDs.Mekanism),
@@ -47,6 +48,9 @@ class Wrench extends SimpleItem with api.internal.Wrench {
   // Applied Energistics 2
 
   def canWrench(stack: ItemStack, player: EntityPlayer, x: Int, y: Int, z: Int): Boolean = true
+
+  // BluePower
+  def damage(stack: ItemStack, damage: Int, player: EntityPlayer, simulated: Boolean): Boolean = damage == 0
 
   // BuildCraft
 

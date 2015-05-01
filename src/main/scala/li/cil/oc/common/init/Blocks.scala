@@ -34,6 +34,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 
     Recipes.addBlock(new AccessPoint(), Constants.BlockName.AccessPoint, "oc:accessPoint")
     Recipes.addBlock(new Adapter(), Constants.BlockName.Adapter, "oc:adapter")
@@ -70,5 +71,6 @@ object Blocks {
     Items.registerBlock(new Print(), "print")
     Recipes.addBlock(new Printer(), "printer", "oc:printer")
     Recipes.addBlock(new ChameliumBlock(), "chameliumBlock", "oc:chameliumBlock")
+    Recipes.addBlock(new Waypoint(), Constants.BlockName.Waypoint, "oc:waypoint")
   }
 }

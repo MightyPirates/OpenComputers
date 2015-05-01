@@ -32,6 +32,7 @@ object GuiType extends ScalaEnum {
   val Tablet = new EnumVal { def name = "Tablet"; def subType = GuiType.Category.Item }
   val TabletInner = new EnumVal { def name = "TabletInner"; def subType = GuiType.Category.Item }
   val Terminal = new EnumVal { def name = "Terminal"; def subType = GuiType.Category.Item }
+  val Waypoint = new EnumVal { def name = "Waypoint"; def subType = GuiType.Category.Block }
 
   object Category extends ScalaEnum {
     sealed trait EnumVal extends Value

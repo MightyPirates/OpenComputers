@@ -141,6 +141,51 @@ public interface Machine extends ManagedEnvironment, Context {
      */
     double cpuTime();
 
+    // ----------------------------------------------------------------------- //
+
+    /**
+     * Play a sound using the machine's built-in speaker.
+     * <p/>
+     * This is what's used to emit beep codes when an error occurs while trying
+     * to start the computer, for example, and what's used for playing sounds
+     * when <tt>computer.beep</tt> is called.
+     * <p/>
+     * Be responsible in how you limit calls to this, as each call will cause
+     * a packet to be sent to all nearby clients, and will cause the receiving
+     * clients to generate the required sound sample on-the-fly. It is
+     * therefore recommended to not call this too frequently, and to limit the
+     * length of the sound to something relatively short (not longer than a few
+     * seconds at most).
+     * <p/>
+     * The audio will be played at the machine's host's location.
+     *
+     * @param frequency the frequency of the tone to generate.
+     * @param duration  the duration of the tone to generate, in milliseconds.
+     */
+    void beep(short frequency, short duration);
+
+    /**
+     * Utility method for playing beep codes.
+     * <p/>
+     * The underlying functionality is similar to that of {@link #beep(short, short)},
+     * except that this will play tones at a fixed frequency, and two different
+     * durations - in a pattern as defined in the passed string.
+     * <p/>
+     * This is useful for generating beep codes, such as for boot errors. It
+     * has the advantage of only generating a single network packet, and
+     * generating a single, longer sound sample for the full pattern. As such
+     * the same considerations should be made as for {@link #beep(short, short)},
+     * i.e. prefer not to use overly long patterns.
+     * <p/>
+     * The passed pattern must consist of dots (<tt>.</tt>) and dashes (<tt>-</tt>),
+     * where a dot is short tone, and a dash is a long tone.
+     * <p/>
+     * The audio will be played at the machine's host's location.
+     *
+     * @param pattern the beep pattern to play.
+     */
+    void beep(String pattern);
+
     /**
      * Crashes the computer.
      * <p/>
@@ -220,6 +265,8 @@ public interface Machine extends ManagedEnvironment, Context {
      * @throws Exception                if the callback throws an exception.
      */
     Object[] invoke(Value value, String method, Object[] args) throws Exception;
+
+    // ----------------------------------------------------------------------- //
 
     /**
      * The list of users registered on this machine.

@@ -37,6 +37,7 @@ object Constants {
     final val ScreenTier3 = "screen3"
     final val ServerRack = "serverRack"
     final val Switch = "switch"
+    final val Waypoint = "waypoint"
 
     def Case(tier: Int) = ItemUtils.caseNameWithTierSuffix("case", tier)
   }
@@ -91,6 +92,8 @@ object Constants {
     final val HDDTier1 = "hdd1"
     final val HDDTier2 = "hdd2"
     final val HDDTier3 = "hdd3"
+    final val HoverUpgradeTier1 = "hoverUpgrade1"
+    final val HoverUpgradeTier2 = "hoverUpgrade2"
     final val InkCartridgeEmpty = "inkCartridgeEmpty"
     final val InkCartridge = "inkCartridge"
     final val InternetCard = "internetCard"

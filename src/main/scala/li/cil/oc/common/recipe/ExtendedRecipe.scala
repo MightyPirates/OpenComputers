@@ -7,6 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.common.init.Items
+import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
@@ -126,7 +127,8 @@ object ExtendedRecipe {
         new ItemStack(net.minecraft.init.Blocks.diamond_block)
       )
 
-      val glowstone = new ItemStack(net.minecraft.init.Items.glowstone_dust)
+      val glowstoneDust = new ItemStack(net.minecraft.init.Items.glowstone_dust)
+      val glowstone = new ItemStack(net.minecraft.init.Blocks.glowstone)
       for (stack <- inputs) {
         if (beaconBlocks.exists(_.isItemEqual(stack))) {
           if (data.isBeaconBase) {
@@ -135,12 +137,19 @@ object ExtendedRecipe {
           }
           data.isBeaconBase = true
         }
-        if (glowstone.isItemEqual(stack)) {
+        if (glowstoneDust.isItemEqual(stack)) {
           if (data.lightLevel == 15) {
             // Crafting wouldn't change anything, prevent accidental resource loss.
             return null
           }
           data.lightLevel = math.min(15, data.lightLevel + 1)
+        }
+        if (glowstone.isItemEqual(stack)) {
+          if (data.lightLevel == 15) {
+            // Crafting wouldn't change anything, prevent accidental resource loss.
+            return null
+          }
+          data.lightLevel = math.min(15, data.lightLevel + 4)
         }
       }
 
@@ -168,7 +177,7 @@ object ExtendedRecipe {
 
     // Swapping EEPROM in devices.
     recraft(craftedStack, inventory, mcu, stack => new MCUDataWrapper(stack))
-    recraft(craftedStack, inventory, drone, stack => new MCUDataWrapper(stack))
+    recraft(craftedStack, inventory, drone, stack => new DroneDataWrapper(stack))
     recraft(craftedStack, inventory, robot, stack => new RobotDataWrapper(stack))
     recraft(craftedStack, inventory, tablet, stack => new TabletDataWrapper(stack))
 
@@ -212,6 +221,16 @@ object ExtendedRecipe {
 
   private class MCUDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
     val data = new MicrocontrollerData(stack)
+
+    override def components = data.components
+
+    override def components_=(value: Array[ItemStack]) = data.components = value
+
+    override def save(stack: ItemStack) = data.save(stack)
+  }
+
+  private class DroneDataWrapper(val stack: ItemStack) extends ItemDataWrapper {
+    val data = new DroneData(stack)
 
     override def components = data.components
 

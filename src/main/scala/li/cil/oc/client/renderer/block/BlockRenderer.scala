@@ -140,32 +140,37 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     }
   }
 
+  private def needsFlipping(block: Block) =
+    block.isInstanceOf[Hologram] ||
+      block.isInstanceOf[Printer] ||
+      block.isInstanceOf[Print]
+
   // The texture flip this works around only seems to occur for blocks with custom block renderers?
   def patchedRenderer(renderer: RenderBlocks, block: Block) =
-    if (block.isInstanceOf[Hologram] || block.isInstanceOf[Printer] || block.isInstanceOf[Print]) {
-    PatchedRenderBlocks.blockAccess = renderer.blockAccess
-    PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
-    PatchedRenderBlocks.flipTexture = renderer.flipTexture
-    PatchedRenderBlocks.renderAllFaces = renderer.renderAllFaces
-    PatchedRenderBlocks.useInventoryTint = renderer.useInventoryTint
-    PatchedRenderBlocks.renderFromInside = renderer.renderFromInside
-    PatchedRenderBlocks.renderMinX = renderer.renderMinX
-    PatchedRenderBlocks.renderMaxX = renderer.renderMaxX
-    PatchedRenderBlocks.renderMinY = renderer.renderMinY
-    PatchedRenderBlocks.renderMaxY = renderer.renderMaxY
-    PatchedRenderBlocks.renderMinZ = renderer.renderMinZ
-    PatchedRenderBlocks.renderMaxZ = renderer.renderMaxZ
-    PatchedRenderBlocks.lockBlockBounds = renderer.lockBlockBounds
-    PatchedRenderBlocks.partialRenderBounds = renderer.partialRenderBounds
-    PatchedRenderBlocks.uvRotateEast = renderer.uvRotateEast
-    PatchedRenderBlocks.uvRotateWest = renderer.uvRotateWest
-    PatchedRenderBlocks.uvRotateSouth = renderer.uvRotateSouth
-    PatchedRenderBlocks.uvRotateNorth = renderer.uvRotateNorth
-    PatchedRenderBlocks.uvRotateTop = renderer.uvRotateTop
-    PatchedRenderBlocks.uvRotateBottom = renderer.uvRotateBottom
-    PatchedRenderBlocks
-  }
-  else renderer
+    if (needsFlipping(block)) {
+      PatchedRenderBlocks.blockAccess = renderer.blockAccess
+      PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
+      PatchedRenderBlocks.flipTexture = renderer.flipTexture
+      PatchedRenderBlocks.renderAllFaces = renderer.renderAllFaces
+      PatchedRenderBlocks.useInventoryTint = renderer.useInventoryTint
+      PatchedRenderBlocks.renderFromInside = renderer.renderFromInside
+      PatchedRenderBlocks.renderMinX = renderer.renderMinX
+      PatchedRenderBlocks.renderMaxX = renderer.renderMaxX
+      PatchedRenderBlocks.renderMinY = renderer.renderMinY
+      PatchedRenderBlocks.renderMaxY = renderer.renderMaxY
+      PatchedRenderBlocks.renderMinZ = renderer.renderMinZ
+      PatchedRenderBlocks.renderMaxZ = renderer.renderMaxZ
+      PatchedRenderBlocks.lockBlockBounds = renderer.lockBlockBounds
+      PatchedRenderBlocks.partialRenderBounds = renderer.partialRenderBounds
+      PatchedRenderBlocks.uvRotateEast = renderer.uvRotateEast
+      PatchedRenderBlocks.uvRotateWest = renderer.uvRotateWest
+      PatchedRenderBlocks.uvRotateSouth = renderer.uvRotateSouth
+      PatchedRenderBlocks.uvRotateNorth = renderer.uvRotateNorth
+      PatchedRenderBlocks.uvRotateTop = renderer.uvRotateTop
+      PatchedRenderBlocks.uvRotateBottom = renderer.uvRotateBottom
+      PatchedRenderBlocks
+    }
+    else renderer
 
   object PatchedRenderBlocks extends RenderBlocks {
     override def renderFaceXPos(block: Block, x: Double, y: Double, z: Double, texture: IIcon) {

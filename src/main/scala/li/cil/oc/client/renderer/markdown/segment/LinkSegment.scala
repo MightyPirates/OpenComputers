@@ -3,8 +3,10 @@ package li.cil.oc.client.renderer.markdown.segment
 import java.net.URI
 
 import li.cil.oc.Localization
+import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.client.Manual
+import li.cil.oc.client.renderer.markdown.MarkupFormat
 import net.minecraft.client.Minecraft
 
 private[markdown] class LinkSegment(parent: Segment, text: String, val url: String) extends TextSegment(parent, text) with InteractiveSegment {
@@ -54,5 +56,10 @@ private[markdown] class LinkSegment(parent: Segment, text: String, val url: Stri
     }
   }
 
-  override def toString: String = s"{LinkSegment: text = $text, url = $url}"
+  override def toString(format: MarkupFormat.Value): String = format match {
+    case MarkupFormat.Markdown => s"[$text]($url)"
+    case MarkupFormat.IGWMod =>
+      if (url.startsWith("http://") || url.startsWith("https://")) text
+      else s"[link{${OpenComputers.ID}:$url}]$text [link{}]"
+  }
 }

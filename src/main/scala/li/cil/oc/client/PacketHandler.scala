@@ -75,6 +75,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case PacketType.SoundPattern => onSoundPattern(p)
+      case PacketType.WaypointLabel => onWaypointLabel(p)
       case _ => // Invalid packet.
     }
   }
@@ -266,7 +267,7 @@ object PacketHandler extends CommonPacketHandler {
         for (i <- 0 until count) {
           def rv(f: ForgeDirection => Int) = direction match {
             case Some(d) => world.rand.nextFloat - 0.5 + f(d) * 0.5
-            case _ => world.rand.nextFloat * 2 - 1
+            case _ => world.rand.nextFloat * 2.0 - 1
           }
           val vx = rv(_.offsetX)
           val vy = rv(_.offsetY)
@@ -610,4 +611,10 @@ object PacketHandler extends CommonPacketHandler {
       Audio.play(x + 0.5f, y + 0.5f, z + 0.5f, pattern)
     }
   }
+
+  def onWaypointLabel(p: PacketParser) =
+    p.readTileEntity[Waypoint]() match {
+      case Some(waypoint) => waypoint.label = p.readUTF()
+      case _ => // Invalid packet.
+    }
 }
