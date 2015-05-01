@@ -278,7 +278,7 @@ oc:tooltip.MaterialCosts=Hold [§f%s§7] for material costs.
 oc:tooltip.Materials=Materials:
 oc:tooltip.Memory=Required to get computers to run. The more you have, the more complex the programs you can run.
 oc:tooltip.Microchip=The chip formerly known as Integrated Circuit. I have no idea why this works with redstone, but it does.
-oc:tooltip.Microcontroller=Microcontrollers are computers boiled down to the essentials. They are intended to take care of very specific tasks, running only a single program that is provided on the EEPROM built into them.
+oc:tooltip.Microcontroller=Microcontrollers are computers boiled down to the essentials. They are intended to take care of very specific tasks, running only a single program that is provided on the EEPROM built into them.[nl] §cCan not connect to external components.§7
 oc:tooltip.MicrocontrollerCase=Base component for building microcontrollers. Place it into an assembler to add further components and assemble a microcontroller.
 oc:tooltip.MotionSensor=Can detect movement of nearby living beings. Requires clear line-of-sight.
 oc:tooltip.NetworkCard=Allows distant computers connected by other blocks (such as cable) to communicate by sending messages to each other.
@@ -306,7 +306,7 @@ oc:tooltip.RedstoneCard.RedNet=§fRedNet§7 is §asupported§7.
 oc:tooltip.RedstoneCard.WirelessCBE=§fWireless Redstone (ChickenBones)§7 is §asupported§7.
 oc:tooltip.RedstoneCard.WirelessSV=§fWireless Redstone (SlimeVoid)§7 is §asupported§7.
 oc:tooltip.RedstoneCard=Allows reading and emitting redstone signals around the computer or robot.
-oc:tooltip.Robot=Unlike computers, robots can move around and interact with the world much like a player can. They can §onot§r§7 interact with external components, however!
+oc:tooltip.Robot=Unlike computers, robots can move around and interact with the world much like a player can.[nl] §cCan not connect to external components.§7
 # The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fLevel§7: §a%s§7
 oc:tooltip.Robot_StoredEnergy=§fStored energy§7: §a%s§7
