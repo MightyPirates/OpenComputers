@@ -23,20 +23,17 @@ end
 
 -- If there are no arguments, print 'y' and new line, if there is print it.
 if #args == 0 then
-  while ( true )
-  do
-    io.write("y\n")
+  while pcall(io.write, "y\n") do
     os.sleep(0)
   end
 else
-  while ( true )
-  do
-    for i=1, #args, 1
-    do
-      io.write(args[i], " ")
+  repeat
+    local ok = true
+    for i=1, #args, 1 do
+      ok = ok and pcall(io.write, args[i], " ")
     end
-    io.write("\n")
+    pcall(io.write, "\n")
     os.sleep(0)
-  end
+  until not ok
 end
 return 0
