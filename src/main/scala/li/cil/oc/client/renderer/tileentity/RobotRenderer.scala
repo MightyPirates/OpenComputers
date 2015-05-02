@@ -291,6 +291,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     val worldTime = tileEntity.getWorld.getTotalWorldTime + f
 
     RenderState.pushMatrix()
+    RenderState.pushAttrib()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     // If the move started while we were rendering and we have a reference to
@@ -484,6 +485,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
 
     RenderState.popMatrix()
+    RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
