@@ -127,7 +127,7 @@ object Recipes {
           val value = recipes.getValue(name)
           value.valueType match {
             case ConfigValueType.OBJECT =>
-              addRecipe(stack, recipes.getConfig(name), "'" + name + "'")
+              addRecipe(stack, recipes.getConfig(name), s"'$name'")
             case ConfigValueType.BOOLEAN =>
               // Explicitly disabled, keep in NEI if true.
               if (!value.unwrapped.asInstanceOf[Boolean]) {
@@ -150,7 +150,7 @@ object Recipes {
         for (recipe <- lootRecipes) {
           val name = recipe.getString("name")
           Loot.builtInDisks.get(name) match {
-            case Some((stack, _)) => addRecipe(stack, recipe, "loot disk '" + name + "'")
+            case Some((stack, _)) => addRecipe(stack, recipe, s"loot disk '$name'")
             case _ =>
               OpenComputers.log.warn(s"Failed adding recipe for loot disk '$name': No such global loot disk.")
               hadErrors = true
@@ -160,6 +160,24 @@ object Recipes {
       catch {
         case t: Throwable =>
           OpenComputers.log.warn("Failed parsing loot disk recipes.", t)
+          hadErrors = true
+      }
+
+      if (recipes.hasPath("generic")) try {
+        val genericRecipes = recipes.getConfigList("generic")
+        for (recipe <- genericRecipes) {
+          val result = recipe.getValue("result").unwrapped()
+          parseIngredient(result) match {
+            case stack: ItemStack => addRecipe(stack, recipe, s"'$result'")
+            case _ =>
+              OpenComputers.log.warn(s"Failed adding generic recipe for '$result': Invalid output (make sure it's not an OreDictionary name).")
+              hadErrors = true
+          }
+        }
+      }
+      catch {
+        case t: Throwable =>
+          OpenComputers.log.warn("Failed parsing generic recipes.", t)
           hadErrors = true
       }
 
@@ -314,7 +332,7 @@ object Recipes {
 
   def tryGetCount(recipe: Config) = if (recipe.hasPath("output")) recipe.getInt("output") else 1
 
-  def parseIngredient(entry: AnyRef) = entry match {
+  def parseIngredient(entry: AnyRef): AnyRef = entry match {
     case map: java.util.Map[AnyRef, AnyRef]@unchecked =>
       if (map.contains("oreDict")) {
         map.get("oreDict") match {

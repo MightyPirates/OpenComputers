@@ -57,7 +57,7 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
   class Environment(tileEntity: AETile) extends ManagedTileEntityEnvironment[AETile](tileEntity, "me_controller") with NamedBlock {
     override def preferredName = "me_controller"
 
-    override def priority = 0
+    override def priority = 5
 
     @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
     def getCpus(context: Context, args: Arguments): Array[AnyRef] =
