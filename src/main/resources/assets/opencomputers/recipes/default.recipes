@@ -36,6 +36,15 @@ luaBios {
   type: shapeless
   input: ["oc:eeprom", "oc:manual"]
 }
+generic: [
+  {
+    result: {block="minecraft:end_stone"}
+    input: [[enderPearl, sandstone, enderPearl]
+            [sandstone, blockCoal, sandstone]
+            [enderPearl, sandstone, enderPearl]]
+    output: 4
+  }
+]
 
 droneCase1 {
   input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]

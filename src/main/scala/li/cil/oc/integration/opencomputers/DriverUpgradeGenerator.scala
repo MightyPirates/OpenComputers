@@ -5,7 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
-import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.server.component
@@ -17,7 +17,7 @@ object DriverUpgradeGenerator extends Item with HostAware with EnvironmentAware 
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     host match {
-      case robot: Robot => new component.UpgradeGenerator(robot)
+      case host: internal.Agent => new component.UpgradeGenerator(host)
       case _ => null
     }
 
