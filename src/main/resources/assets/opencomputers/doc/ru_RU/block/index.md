@@ -27,6 +27,7 @@
 * [Геоанализатор](geolyzer.md)
 * [Датчик движения](motionSensor.md)
 * [Редстоун I/O](redstone.md)
+* [Путевая точка](waypoint.md)
 
 ## Сборка / Печать
 * [3D печать](print.md)
