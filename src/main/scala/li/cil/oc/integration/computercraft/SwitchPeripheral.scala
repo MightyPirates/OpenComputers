@@ -26,11 +26,11 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
       result(switch.openPorts(computer).add(port))
     }),
     "isOpen" -> ((computer, context, arguments) => {
-      val port = optPort(arguments, 0)
+      val port = checkPort(arguments, 0)
       result(switch.openPorts(computer).contains(port))
     }),
     "close" -> ((computer, context, arguments) => {
-      val port = optPort(arguments, 0)
+      val port = checkPort(arguments, 0)
       result(switch.openPorts(computer).remove(port))
     }),
     "closeAll" -> ((computer, context, arguments) => {
@@ -45,7 +45,9 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
       result(switch.tryEnqueuePacket(None, packet))
     }),
     "isWireless" -> ((computer, context, arguments) => {
-      result(switch.isInstanceOf[AccessPoint])
+      // Let's pretend we're always wired, to allow accessing OC components
+      // as remote peripherals when using an Access Point, too...
+      result(false)
     }),
 
     // Undocumented modem messages.
@@ -82,6 +84,9 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
     }),
 
     // OC specific.
+    "isAccessPoint" -> ((computer, context, arguments) => {
+      result(switch.isInstanceOf[AccessPoint])
+    }),
     "maxPacketSize" -> ((computer, context, arguments) => {
       result(Settings.get.maxNetworkPacketSize)
     })
@@ -114,15 +119,8 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
     if (args.length < index - 1 || !args(index).isInstanceOf[Double])
       throw new IllegalArgumentException(s"bad argument #${index + 1} (number expected)")
     val port = args(index).asInstanceOf[Double].toInt
-    if (port < 1 || port > 0xFFFF)
+    if (port < 0 || port > 0xFFFF)
       throw new IllegalArgumentException(s"bad argument #${index + 1} (number in [1, 65535] expected)")
-    port
-  }
-
-  private def optPort(args: Array[AnyRef], index: Int): Int = {
-    if (args.length < index - 1 || !args(index).isInstanceOf[Double])  return 0
-    val port = args(index).asInstanceOf[Double].toInt
-    if (port < 1 || port > 0xFFFF) return 0
     port
   }
 
