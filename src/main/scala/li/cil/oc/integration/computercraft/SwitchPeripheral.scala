@@ -1,6 +1,7 @@
 package li.cil.oc.integration.computercraft
 
 import dan200.computercraft.api.lua.ILuaContext
+import dan200.computercraft.api.lua.LuaException
 import dan200.computercraft.api.peripheral.IComputerAccess
 import dan200.computercraft.api.peripheral.IPeripheral
 import li.cil.oc.Settings
@@ -108,7 +109,11 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
 
   override def getMethodNames = methodNames
 
-  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) = methods(methodNames(method))(computer, context, arguments)
+  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) =
+    try methods(methodNames(method))(computer, context, arguments) catch {
+      case e: LuaException => throw e
+      case t: Throwable => throw new LuaException(t.getMessage)
+    }
 
   override def equals(other: IPeripheral) = other match {
     case peripheral: SwitchPeripheral => peripheral.switch == switch
