@@ -41,7 +41,7 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
     "transmit" -> ((computer, context, arguments) => {
       val sendPort = checkPort(arguments, 0)
       val answerPort = checkPort(arguments, 1)
-      val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
+      val data = arguments.drop(2) ++ Seq(Int.box(answerPort))
       val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
       result(switch.tryEnqueuePacket(None, packet))
     }),
