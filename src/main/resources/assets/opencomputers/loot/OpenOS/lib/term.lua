@@ -105,7 +105,14 @@ function term.isWide(x, y)
 end
 
 function term.isAvailable()
-  return component.isAvailable("gpu") and component.isAvailable("screen")
+  if component.isAvailable("gpu") and component.isAvailable("screen") then
+    -- Ensure our primary GPU is bound to our primary screen.
+    if component.gpu.getScreen() ~= component.screen.address then
+      component.gpu.bind(component.screen.address)
+    end
+    return true
+  end
+  return false
 end
 
 function term.read(history, dobreak, hint, pwchar, filter)
