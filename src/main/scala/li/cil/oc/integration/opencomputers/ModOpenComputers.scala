@@ -1,7 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -37,10 +36,8 @@ import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.Color
-import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
@@ -57,16 +54,13 @@ object ModOpenComputers extends ModProxy {
     TabletTemplate.register()
     TemplateBlacklist.register()
 
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
-
-    val chargerNbt = new NBTTagCompound()
-    chargerNbt.setString("name", "OpenComputers")
-    chargerNbt.setString("canCharge", "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge")
-    chargerNbt.setString("charge", "li.cil.oc.integration.opencomputers.ModOpenComputers.charge")
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerItemCharge", chargerNbt)
-
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerInkProvider", "li.cil.oc.integration.opencomputers.ModOpenComputers.inkCartridgeInkProvider")
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerInkProvider", "li.cil.oc.integration.opencomputers.ModOpenComputers.dyeInkProvider")
+    api.IMC.registerWrenchTool("li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
+    api.IMC.registerItemCharge(
+      "OpenComputers",
+      "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge",
+      "li.cil.oc.integration.opencomputers.ModOpenComputers.charge")
+    api.IMC.registerInkProvider("li.cil.oc.integration.opencomputers.ModOpenComputers.inkCartridgeInkProvider")
+    api.IMC.registerInkProvider("li.cil.oc.integration.opencomputers.ModOpenComputers.dyeInkProvider")
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
@@ -275,11 +269,7 @@ object ModOpenComputers extends ModProxy {
 
   private def blacklistHost(host: Class[_], itemNames: String*) {
     for (itemName <- itemNames) {
-      val nbt = new NBTTagCompound()
-      nbt.setString("name", itemName)
-      nbt.setString("host", host.getName)
-      nbt.setNewCompoundTag("item", api.Items.get(itemName).createItemStack(1).writeToNBT)
-      FMLInterModComms.sendMessage("OpenComputers", "blacklistHost", nbt)
+      api.IMC.blacklistHost(itemName, host, api.Items.get(itemName).createItemStack(1))
     }
   }
 
