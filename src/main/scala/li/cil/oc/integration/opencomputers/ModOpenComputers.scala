@@ -36,6 +36,7 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
+import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -57,11 +58,15 @@ object ModOpenComputers extends ModProxy {
     TemplateBlacklist.register()
 
     FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
+
     val chargerNbt = new NBTTagCompound()
     chargerNbt.setString("name", "OpenComputers")
     chargerNbt.setString("canCharge", "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge")
     chargerNbt.setString("charge", "li.cil.oc.integration.opencomputers.ModOpenComputers.charge")
     FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerItemCharge", chargerNbt)
+
+    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerInkProvider", "li.cil.oc.integration.opencomputers.ModOpenComputers.inkCartridgeInkProvider")
+    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerInkProvider", "li.cil.oc.integration.opencomputers.ModOpenComputers.dyeInkProvider")
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
@@ -252,6 +257,20 @@ object ModOpenComputers extends ModProxy {
       case chargeable: Chargeable => chargeable.charge(stack, amount, simulate)
       case _ => 0.0
     }
+  }
+
+  def inkCartridgeInkProvider(stack: ItemStack): Int = {
+    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.InkCartridge))
+      Settings.get.printInkValue
+    else
+      0
+  }
+
+  def dyeInkProvider(stack: ItemStack): Int = {
+    if (Color.isDye(stack))
+      Settings.get.printInkValue / 10
+    else
+      0
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {

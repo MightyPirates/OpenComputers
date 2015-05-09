@@ -1,9 +1,11 @@
 package li.cil.oc.common.item.data
 
+import java.lang.reflect.Method
+
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.util.Color
+import li.cil.oc.common.IMC
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
@@ -103,6 +105,10 @@ object PrintData {
   private val step = stepping / 16f
   private val invMaxVolume = 1f / (stepping * stepping * stepping)
 
+  private val inkProviders = mutable.LinkedHashSet.empty[Method]
+
+  def addInkProvider(provider: Method): Unit = inkProviders += provider
+
   def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]) = {
     var volume = 1f
     if (shapes.size > 0) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
@@ -133,7 +139,6 @@ object PrintData {
   }
 
   private val materialPerItem = Settings.get.printMaterialValue
-  private val inkPerCartridge = Settings.get.printInkValue
 
   def materialValue(stack: ItemStack) = {
     if (api.Items.get(stack) == api.Items.get(Constants.ItemName.Chamelium))
@@ -148,12 +153,14 @@ object PrintData {
     else 0
   }
 
-  def inkValue(stack: ItemStack) = {
-    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.InkCartridge))
-      inkPerCartridge
-    else if (Color.isDye(stack))
-      inkPerCartridge / 10
-    else 0
+  def inkValue(stack: ItemStack): Int = {
+    for (provider <- inkProviders) {
+      val value = IMC.tryInvokeStatic(provider, stack)(0)
+      if (value > 0) {
+        return value
+      }
+    }
+    0
   }
 
   def nbtToShape(nbt: NBTTagCompound): Shape = {

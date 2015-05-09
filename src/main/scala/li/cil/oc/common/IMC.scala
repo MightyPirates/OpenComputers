@@ -7,6 +7,7 @@ import com.typesafe.config.Config
 import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.template.DisassemblerTemplates
 import li.cil.oc.integration.util.ItemCharge
@@ -82,6 +83,12 @@ object IMC {
         OpenComputers.log.info(s"Registering new assembler template filter '${message.getStringValue}' from mod ${message.getSender}.")
         try AssemblerTemplates.addFilter(message.getStringValue) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering assembler template filter.", t)
+        }
+      }
+      else if (message.key == "registerInkProvider" && message.isStringMessage) {
+        OpenComputers.log.info(s"Registering new ink provider '${message.getStringValue}' from mod ${message.getSender}.")
+        try PrintData.addInkProvider(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering ink provider.", t)
         }
       }
       else {
