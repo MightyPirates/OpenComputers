@@ -76,11 +76,11 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
                 case 4 => 96
                 case _ => 1
               }
-              // We need reflection here to avoid compiling against the return type,
-              // which has changed in rv2-beta-20 or so.
-              val fuzzyMode = export.getConfigManager.
-                getClass.getMethod("getSetting", classOf[Enum[_]]).
-                invoke(export.getConfigManager, Settings.FUZZY_MODE).asInstanceOf[FuzzyMode]
+              // We need reflection here to avoid compiling against the return and
+              // argument type, which has changed in rv2-beta-20 or so.
+              val fuzzyMode = (try export.getConfigManager.getClass.getMethod("getSetting", classOf[Enum[_]]) catch {
+                case _: NoSuchMethodException => export.getConfigManager.getClass.getMethod("getSetting", classOf[Settings])
+              }).invoke(export.getConfigManager, Settings.FUZZY_MODE).asInstanceOf[FuzzyMode]
               val source = new MachineSource(export)
               var didSomething = false
               for (slot <- 0 until config.getSizeInventory if count > 0) {
@@ -90,7 +90,7 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
                     itemStorage.getStorageList.findFuzzy(filter, fuzzyMode).toSeq
                   else
                     Seq(itemStorage.getStorageList.findPrecise(filter))
-                for (ais <- stacks if count > 0 && ais != null) {
+                for (ais <- stacks.filter(_ != null).map(_.copy()) if count > 0) {
                   val is = ais.getItemStack
                   is.stackSize = count
                   if (InventoryUtils.insertIntoInventorySlot(is, inventory, Option(side.getOpposite), targetSlot, count, simulate = true)) {
