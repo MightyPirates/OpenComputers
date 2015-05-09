@@ -4,6 +4,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 import com.typesafe.config.Config
+import cpw.mods.fml.common.FMLLog
 import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -47,7 +48,9 @@ object IMC {
         }
       }
       else if (message.key == "requestSettings" && message.isStringMessage) {
+        // TODO Remove in OC 1.6
         OpenComputers.log.info(s"Got a request for our configuration from mod ${message.getSender}.")
+        FMLLog.bigWarning("The IMC message `requestSettings` is deprecated. Use `li.cil.oc.api.API.config` instead.")
         try tryInvokeStaticVoid(getStaticMethod(message.getStringValue, classOf[Config]), Settings.get.config) catch {
           case t: Throwable => OpenComputers.log.warn("Failed sending config.", t)
         }

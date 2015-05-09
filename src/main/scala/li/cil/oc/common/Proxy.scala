@@ -64,6 +64,8 @@ class Proxy {
     api.API.machine = machine.Machine
     api.API.network = network.Network
 
+    api.API.config = Settings.get.config
+
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
