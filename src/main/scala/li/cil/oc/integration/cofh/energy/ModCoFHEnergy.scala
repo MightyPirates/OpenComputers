@@ -1,15 +1,10 @@
 package li.cil.oc.integration.cofh.energy
 
-import cpw.mods.fml.common.ModAPIManager
-import cpw.mods.fml.common.event.FMLInterModComms
-import cpw.mods.fml.common.versioning.VersionRange
+import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
-
-import scala.collection.convert.WrapAsScala._
 
 object ModCoFHEnergy extends ModProxy {
   override def getMod = Mods.CoFHEnergy
@@ -17,12 +12,11 @@ object ModCoFHEnergy extends ModProxy {
   private val versionsUsingSplitEnergyAPI = VersionRange.createFromVersionSpec("[1.0.0,)")
 
   override def initialize() {
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerToolDurabilityProvider", "li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.getDurability")
-    val chargerNbt = new NBTTagCompound()
-    chargerNbt.setString("name", "RedstoneFlux")
-    chargerNbt.setString("canCharge", "li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.canCharge")
-    chargerNbt.setString("charge", "li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.charge")
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerItemCharge", chargerNbt)
+    api.IMC.registerToolDurabilityProvider("li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.getDurability")
+    api.IMC.registerItemCharge(
+      "RedstoneFlux",
+      "li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.canCharge",
+      "li.cil.oc.integration.cofh.energy.EventHandlerRedstoneFlux.charge")
 
     MinecraftForge.EVENT_BUS.register(EventHandlerRedstoneFlux)
 

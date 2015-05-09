@@ -100,16 +100,29 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     result(host.zPosition)
   }
 
-  @Callback(doc = """function():userdata -- Get the container's world object.""")
+  @Callback(doc = """function([id:number]):userdata -- Get the world object for the specified dimension ID, or the container's.""")
   def getWorld(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
-    result(new DebugCard.WorldValue(host.world))
+    if (args.count() > 0) result(new DebugCard.WorldValue(DimensionManager.getWorld(args.checkInteger(0))))
+    else result(new DebugCard.WorldValue(host.world))
+  }
+
+  @Callback(doc = """function():table -- Get a list of all world IDs, loaded and unloaded.""")
+  def getWorlds(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    result(DimensionManager.getStaticDimensionIDs)
   }
 
   @Callback(doc = """function(name:string):userdata -- Get the entity of a player.""")
   def getPlayer(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
     result(new DebugCard.PlayerValue(args.checkString(0)))
+  }
+
+  @Callback(doc = """function():table -- Get a list of currently logged-in players.""")
+  def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    result(MinecraftServer.getServer.getAllUsernames)
   }
 
   @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")

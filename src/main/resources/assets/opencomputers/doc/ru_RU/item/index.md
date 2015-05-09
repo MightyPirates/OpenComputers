@@ -38,6 +38,7 @@
 * [База данных](databaseUpgrade1.md)
 * [Опыт](experienceUpgrade.md)
 * [Генератор](generatorUpgrade.md)
+* [Парение](hoverUpgrade1.md)
 * [Контроллер инвентаря](inventoryControllerUpgrade.md)
 * [Инвентарь](inventoryUpgrade.md)
 * [Поводок](leashUpgrade.md)

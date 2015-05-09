@@ -5,8 +5,6 @@ import li.cil.oc.api
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fml.common.event.FMLInterModComms
 
 import scala.language.postfixOps
 
@@ -27,13 +25,8 @@ object ServerTemplate {
 
   def register() {
     // Disassembler
-    {
-      val nbt = new NBTTagCompound()
-      nbt.setString("name", "Server")
-      nbt.setString("select", "li.cil.oc.common.template.ServerTemplate.selectDisassembler")
-      nbt.setString("disassemble", "li.cil.oc.common.template.ServerTemplate.disassemble")
-
-      FMLInterModComms.sendMessage("OpenComputers", "registerDisassemblerTemplate", nbt)
-    }
+    api.IMC.registerDisassemblerTemplate("Server",
+      "li.cil.oc.common.template.ServerTemplate.selectDisassembler",
+      "li.cil.oc.common.template.ServerTemplate.disassemble")
   }
 }

@@ -232,13 +232,14 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       if (!isRunning) {
         GL11.glTranslatef(0, -2 * gap, 0)
       }
+
+      if (MinecraftForgeClient.getRenderPass > 0) return
+
       GL11.glCallList(displayList)
       GL11.glColor3f(1, 1, 1)
 
       if (isRunning) {
-        if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.disableEntityLighting()
-        }
+        RenderState.disableEntityLighting()
 
         {
           // Additive blending for the light.
@@ -275,11 +276,9 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         r.addVertexWithUV(l, gt, l, u1, v0)
         t.draw()
 
-        if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.enableEntityLighting()
-        }
-        RenderState.color(1, 1, 1, 1)
+        RenderState.enableEntityLighting()
       }
+      RenderState.color(1, 1, 1, 1)
     }
   }
 
@@ -333,16 +332,15 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-    if (MinecraftForgeClient.getRenderPass == 0) {
-      val offset = timeJitter + worldTime / 20.0
-      renderChassis(robot, offset)
-    }
+    val offset = timeJitter + worldTime / 20.0
+    renderChassis(robot, offset)
 
     if (MinecraftForgeClient.getRenderPass == 0 && !robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       val itemRenderer = Minecraft.getMinecraft.getItemRenderer
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
 
+          RenderState.pushAttrib()
           RenderState.pushMatrix()
           try {
             // Copy-paste from player render code, with minor adjustments for
@@ -398,6 +396,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           RenderState.enableCullFace()
           RenderState.disableRescaleNormal()
           RenderState.popMatrix()
+          RenderState.popAttrib()
         case _ =>
       }
 
