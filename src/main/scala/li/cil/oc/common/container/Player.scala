@@ -85,6 +85,15 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
         val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
         val itemsMoved = math.min(maxStackSize, fromStack.stackSize)
         intoSlot.putStack(from.decrStackSize(itemsMoved))
+        if (maxStackSize == 0) {
+          // Special case: we have an inventory with "phantom/ghost stacks", i.e.
+          // zero size stacks, usually used for configuring machinery. In that
+          // case we stop early if whatever we're shift clicking is already in a
+          // slot of the target inventory. This workaround can be problematic if
+          // an inventory has both real and phantom slots, but we don't have
+          // something like that, yet, so hey.
+          return
+        }
         somethingChanged = true
       }
     }
