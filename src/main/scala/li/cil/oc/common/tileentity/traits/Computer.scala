@@ -128,7 +128,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def dispose(): Unit = {
     super.dispose()
-    if (machine != null && !this.isInstanceOf[RobotProxy]) {
+    if (machine != null && !this.isInstanceOf[RobotProxy] && !moving) {
       machine.stop()
     }
   }
