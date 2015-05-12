@@ -451,7 +451,7 @@ object Network extends api.detail.NetworkAPI {
     case _ =>
   }
 
-  private def getNetworkNode(tileEntity: TileEntity, side: EnumFacing) =
+  def getNetworkNode(tileEntity: TileEntity, side: EnumFacing) =
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
       case host: Environment with SidedComponent =>

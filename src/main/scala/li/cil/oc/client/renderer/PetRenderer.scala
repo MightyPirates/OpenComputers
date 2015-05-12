@@ -22,6 +22,8 @@ import scala.collection.mutable
 object PetRenderer {
   val hidden = mutable.Set.empty[String]
 
+  var isInitialized = false
+
   // http://goo.gl/frLWYR
   private val entitledPlayers = Map(
     "Sangar" ->(0.3, 0.9, 0.6),

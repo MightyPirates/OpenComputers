@@ -225,6 +225,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   val tablet = if (world.isRemote) null else new component.Tablet(this)
 
+  var autoSave = true
+
   private var isInitialized = !world.isRemote
 
   private var lastRunning = false
@@ -248,7 +250,7 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
     }
   }
 
-  def writeToNBT() {
+  def writeToNBT(clearState: Boolean = true) {
     if (!stack.hasTagCompound) {
       stack.setTagCompound(new NBTTagCompound())
     }
@@ -260,9 +262,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       data.setNewCompoundTag(Settings.namespace + "component", tablet.save)
       data.setNewCompoundTag(Settings.namespace + "data", machine.save)
 
-      // Force tablets into stopped state to avoid errors when trying to
-      // load deleted machine states.
-      data.getCompoundTag(Settings.namespace + "data").removeTag("state")
+      if (clearState) {
+        // Force tablets into stopped state to avoid errors when trying to
+        // load deleted machine states.
+        data.getCompoundTag(Settings.namespace + "data").removeTag("state")
+      }
     }
     save(data)
   }
@@ -270,7 +274,6 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   readFromNBT()
   if (!world.isRemote) {
     api.Network.joinNewNetwork(machine.node)
-    machine.stop()
     val charge = math.max(0, this.data.energy - tablet.node.globalBuffer)
     tablet.node.changeBuffer(charge)
     writeToNBT()
@@ -481,6 +484,8 @@ object Tablet {
         // Force re-load on world change, in case some components store a
         // reference to the world object.
         if (holder.worldObj != wrapper.world) {
+          wrapper.writeToNBT(clearState = false)
+          wrapper.autoSave = false
           cache.invalidate(id)
           cache.cleanUp()
           wrapper = cache.get(id, this)
@@ -500,12 +505,12 @@ object Tablet {
       val tablet = e.getValue
       if (tablet.node != null) {
         // Server.
-        tablet.writeToNBT()
+        if (tablet.autoSave) tablet.writeToNBT()
         tablet.machine.stop()
         for (node <- tablet.machine.node.network.nodes) {
           node.remove()
         }
-        tablet.writeToNBT()
+        if (tablet.autoSave) tablet.writeToNBT()
       }
     }
 
