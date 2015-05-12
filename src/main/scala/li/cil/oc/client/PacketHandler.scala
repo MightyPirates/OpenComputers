@@ -5,6 +5,7 @@ import java.io.EOFException
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
@@ -288,6 +289,14 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onPetVisibility(p: PacketParser) {
+    if (!PetRenderer.isInitialized) {
+      PetRenderer.isInitialized = true
+      if (Settings.get.hideOwnPet) {
+        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+      }
+      PacketSender.sendPetVisibility()
+    }
+
     val count = p.readInt()
     for (i <- 0 until count) {
       val name = p.readUTF()

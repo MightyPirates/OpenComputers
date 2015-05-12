@@ -13,7 +13,6 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.client.renderer.PetRenderer
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.asm.ClassTransformer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
@@ -29,7 +28,6 @@ import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util._
-import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -190,18 +188,8 @@ object EventHandler {
 
   @SubscribeEvent
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
-    try {
-      PetRenderer.hidden.clear()
-      if (Settings.get.hideOwnPet) {
-        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
-      }
-      ClientPacketSender.sendPetVisibility()
-    }
-    catch {
-      case _: Throwable =>
-      // Reportedly, things can derp if this is called at inopportune moments,
-      // such as the server shutting down.
-    }
+    PetRenderer.isInitialized = false
+    PetRenderer.hidden.clear()
   }
 
   @SubscribeEvent
