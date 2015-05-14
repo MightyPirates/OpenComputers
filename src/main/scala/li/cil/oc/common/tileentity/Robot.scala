@@ -329,7 +329,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   def setAnimateSwing(ticks: Int) {
-    animationTicksTotal = ticks
+    animationTicksTotal = math.max(ticks, 5)
     prepareForAnimation()
     swingingTool = true
   }
@@ -854,5 +854,5 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   override def getTankInfo(from: ForgeDirection) =
     components.collect {
       case Some(t: IFluidTank) => t.getInfo
-    }.toArray
+    }
 }
