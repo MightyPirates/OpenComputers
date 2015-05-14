@@ -154,7 +154,7 @@ object Items extends ItemAPI {
   override def registerEEPROM(name: String, code: Array[Byte], data: Array[Byte], readonly: Boolean): ItemStack = {
     val nbt = new NBTTagCompound()
     if (name != null) {
-      nbt.setString(Settings.namespace + "label", name.trim.take(16))
+      nbt.setString(Settings.namespace + "label", name.trim.take(24))
     }
     if (code != null) {
       nbt.setByteArray(Settings.namespace + "eeprom", code.take(Settings.get.eepromSize))
