@@ -353,8 +353,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             GL11.glTranslatef(0, -8 * 0.0625F - 0.0078125F, -0.5F)
 
             if (robot.isAnimatingSwing) {
-              val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-              GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
+              val wantedTicksPerCycle = 10
+              val cycles = math.max(robot.animationTicksTotal / wantedTicksPerCycle, 1)
+              val ticksPerCycle = robot.animationTicksTotal / cycles
+              val remaining = (robot.animationTicksLeft - f) / ticksPerCycle.toDouble
+              GL11.glRotatef((Math.sin((remaining - remaining.toInt) * Math.PI) * 45).toFloat, 1, 0, 0)
             }
 
             val item = stack.getItem

@@ -18,6 +18,7 @@ object Constants {
     final val Charger = "charger"
     final val Disassembler = "disassembler"
     final val DiskDrive = "diskDrive"
+    final val Endstone = "endstone"
     final val Geolyzer = "geolyzer"
     final val HologramTier1 = "hologram1"
     final val HologramTier2 = "hologram2"

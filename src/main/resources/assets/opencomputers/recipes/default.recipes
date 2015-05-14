@@ -36,25 +36,16 @@ luaBios {
   type: shapeless
   input: ["oc:eeprom", "oc:manual"]
 }
-generic: [
-  {
-    result: {block="minecraft:end_stone"}
-    input: [[enderPearl, sandstone, enderPearl]
-            [sandstone, blockCoal, sandstone]
-            [enderPearl, sandstone, enderPearl]]
-    output: 4
-  }
-]
 
 droneCase1 {
-  input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
+  input: [["oc:stoneEndstone", compass, "oc:stoneEndstone"]
           ["oc:circuitChip1", "oc:microcontrollerCase1", "oc:circuitChip1"]
-          [{block="minecraft:end_stone"}, "oc:componentBus2", {block="minecraft:end_stone"}]]
+          ["oc:stoneEndstone", "oc:componentBus2", "oc:stoneEndstone"]]
 }
 droneCase2 {
-  input: [[{block="minecraft:end_stone"}, compass, {block="minecraft:end_stone"}]
+  input: [["oc:stoneEndstone", compass, "oc:stoneEndstone"]
           ["oc:circuitChip2", "oc:microcontrollerCase2", "oc:circuitChip2"]
-          [{block="minecraft:end_stone"}, "oc:componentBus3", {block="minecraft:end_stone"}]]
+          ["oc:stoneEndstone", "oc:componentBus3", "oc:stoneEndstone"]]
 }
 microcontrollerCase1 {
   input: [[nuggetIron, "oc:circuitChip1", nuggetIron]
@@ -373,6 +364,13 @@ chameliumBlock {
   input: [["oc:chamelium", "oc:chamelium", "oc:chamelium"],
           ["oc:chamelium", "oc:chamelium", "oc:chamelium"],
           ["oc:chamelium", "oc:chamelium", "oc:chamelium"]]
+}
+
+endstone {
+  input: [[enderPearl, "oc:chameliumBlock", enderPearl]
+          ["oc:chameliumBlock", enderPearl, "oc:chameliumBlock"]
+          [enderPearl, "oc:chameliumBlock", enderPearl]]
+  output: 4
 }
 inkCartridgeEmpty {
   input: [[nuggetIron, dispenser, nuggetIron],

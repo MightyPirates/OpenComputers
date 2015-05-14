@@ -353,7 +353,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
 
   def setAnimateSwing(ticks: Int) {
-    animationTicksTotal = ticks
+    animationTicksTotal = math.max(ticks, 5)
     prepareForAnimation()
     swingingTool = true
   }
