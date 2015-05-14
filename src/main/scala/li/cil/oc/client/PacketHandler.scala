@@ -13,6 +13,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.common.Loot
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import li.cil.oc.util.ExtendedWorld._
@@ -54,6 +55,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
+      case PacketType.LootDisk => onLootDisk(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
@@ -252,6 +254,13 @@ object PacketHandler extends CommonPacketHandler {
         t.translation.zCoord = p.readDouble()
       case _ => // Invalid packet.
     }
+
+  def onLootDisk(p: PacketParser) = {
+    val stack = p.readItemStack()
+    if (stack != null) {
+      Loot.disksForClient += stack
+    }
+  }
 
   def onParticleEffect(p: PacketParser) = {
     val dimension = p.readInt()

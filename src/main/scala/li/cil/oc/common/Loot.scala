@@ -40,6 +40,8 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
 
   val disksForSampling = mutable.ArrayBuffer.empty[ItemStack]
 
+  val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
+
   def registerLootDisk(name: String, color: Int, factory: Callable[FileSystem]): ItemStack = {
     val mod = Loader.instance.activeModContainer.getModId
 
@@ -78,7 +80,7 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
   }
 
   @SubscribeEvent
-  def initForWorld(e: WorldEvent.Load): Unit = {
+  def initForWorld(e: WorldEvent.Load): Unit = if (!e.world.isRemote && e.world.provider.dimensionId == 0) {
     worldDisks.clear()
     disksForSampling.clear()
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + "loot/")

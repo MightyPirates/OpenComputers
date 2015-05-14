@@ -13,7 +13,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -278,7 +277,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     isActive = nbt.getBoolean(Settings.namespace + "active")
     limit = nbt.getInteger(Settings.namespace + "limit")
     if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
     }
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")

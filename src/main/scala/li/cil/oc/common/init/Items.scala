@@ -317,13 +317,12 @@ object Items extends ItemAPI {
         createConfiguredMicrocontroller(),
         createConfiguredRobot(),
         createConfiguredTablet()
-      ) ++ registeredItems
+      ) ++ Loot.disksForClient ++ registeredItems
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
         // Workaround for MC's untyped lists...
         def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
         super.getSubItems(item, tab, list)
-        Loot.worldDisks.values.foreach(entry => add(list, entry._1))
         additionalItems.foreach(add(list, _))
       }
     }
