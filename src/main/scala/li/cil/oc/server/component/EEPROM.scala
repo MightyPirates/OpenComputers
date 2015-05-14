@@ -54,7 +54,7 @@ class EEPROM extends prefab.ManagedEnvironment {
     if (readonly) {
       return result(Unit, "storage is readonly")
     }
-    label = args.optString(0, "EEPROM").trim.take(16)
+    label = args.optString(0, "EEPROM").trim.take(24)
     if (label.length == 0) label = "EEPROM"
     result(label)
   }
