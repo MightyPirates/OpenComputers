@@ -364,7 +364,6 @@ chameliumBlock {
           ["oc:chamelium", "oc:chamelium", "oc:chamelium"],
           ["oc:chamelium", "oc:chamelium", "oc:chamelium"]]
 }
-
 endstone {
   input: [[enderPearl, "oc:chameliumBlock", enderPearl]
           ["oc:chameliumBlock", enderPearl, "oc:chameliumBlock"]

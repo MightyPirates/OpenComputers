@@ -1,11 +1,14 @@
 package li.cil.oc.common.init
 
+import java.util.concurrent.Callable
+
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.detail.ItemAPI
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.fs.FileSystem
 import li.cil.oc.common
 import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
@@ -103,6 +106,24 @@ object Items extends ItemAPI {
     instance
   }
 
+  def registerStack(stack: ItemStack, id: String) = {
+    val immutableStack = stack.copy()
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
+      override def block = null
+
+      override def createItemStack(size: Int): ItemStack = {
+        val copy = immutableStack.copy()
+        copy.stackSize = size
+        copy
+      }
+
+      override def item = immutableStack.getItem
+    }
+    stack
+  }
+
   private def getBlockOrItem(stack: ItemStack): Any =
     if (stack == null) null
     else Delegator.subItem(stack).getOrElse(stack.getItem match {
@@ -112,24 +133,60 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def createOpenOS(amount: Int = 1) = {
-    Loot.builtInDisks.get("OpenOS").map(_._1.copy()).orNull
+  val registeredItems = mutable.ArrayBuffer.empty[ItemStack]
+
+  override def registerFloppy(name: String, color: Int, factory: Callable[FileSystem]): ItemStack = {
+    val stack = Loot.registerLootDisk(name, color, factory)
+
+    registeredItems += stack
+
+    stack.copy()
   }
 
-  def createLuaBios(amount: Int = 1) = {
-    val data = new NBTTagCompound()
-    val code = new Array[Byte](4 * 1024)
-    val count = OpenComputers.getClass.getResourceAsStream(Settings.scriptPath + "bios.lua").read(code)
-    data.setByteArray(Settings.namespace + "eeprom", code.take(count))
-    data.setString(Settings.namespace + "label", "EEPROM (Lua BIOS)")
-
+  override def registerEEPROM(name: String, code: Array[Byte], data: Array[Byte], readonly: Boolean): ItemStack = {
     val nbt = new NBTTagCompound()
-    nbt.setTag(Settings.namespace + "data", data)
+    if (name != null) {
+      nbt.setString(Settings.namespace + "label", name.trim.take(16))
+    }
+    if (code != null) {
+      nbt.setByteArray(Settings.namespace + "eeprom", code.take(Settings.get.eepromSize))
+    }
+    if (data != null) {
+      nbt.setByteArray(Settings.namespace + "userdata", data.take(Settings.get.eepromDataSize))
+    }
+    nbt.setBoolean(Settings.namespace + "readonly", readonly)
 
-    val stack = get(Constants.ItemName.EEPROM).createItemStack(amount)
-    stack.setTagCompound(nbt)
+    val stackNbt = new NBTTagCompound()
+    stackNbt.setTag(Settings.namespace + "data", nbt)
 
-    stack
+    val stack = get(Constants.ItemName.EEPROM).createItemStack(1)
+    stack.setTagCompound(stackNbt)
+
+    registeredItems += stack
+
+    stack.copy()
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  // Nobody should use this anyway, since it's internal, but IIRC some people do, so let's be nice...
+  // TODO remove in OC 1.6
+  /**
+   * @deprecated use <tt>api.Items.get("openOS").createItemStack(amount)</tt> instead.
+   */
+  @Deprecated
+  def createOpenOS(amount: Int = 1) = {
+    get(Constants.ItemName.OpenOS).createItemStack(amount)
+  }
+
+  // Nobody should use this anyway, since it's internal, but IIRC some people do, so let's be nice...
+  // TODO remove in OC 1.6
+  /**
+   * @deprecated use <tt>api.Items.get("luaBios").createItemStack(amount)</tt> instead.
+   */
+  @Deprecated
+  def createLuaBios(amount: Int = 1) = {
+    get(Constants.ItemName.LuaBios).createItemStack(amount)
   }
 
   def createConfiguredDrone() = {
@@ -204,8 +261,8 @@ object Items extends ItemAPI {
       get(Constants.ItemName.RAMTier6).createItemStack(1),
       get(Constants.ItemName.RAMTier6).createItemStack(1),
 
-      createLuaBios(),
-      createOpenOS(),
+      get(Constants.ItemName.LuaBios).createItemStack(1),
+      get(Constants.ItemName.OpenOS).createItemStack(1),
       get(Constants.ItemName.HDDTier3).createItemStack(1)
     )
     data.containers = Array(
@@ -238,10 +295,10 @@ object Items extends ItemAPI {
       Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
       Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
 
-      Option(createLuaBios()),
+      Option(get(Constants.ItemName.LuaBios).createItemStack(1)),
       Option(get(Constants.ItemName.HDDTier3).createItemStack(1))
     ).padTo(32, None)
-    data.items(31) = Option(createOpenOS())
+    data.items(31) = Option(get(Constants.ItemName.OpenOS).createItemStack(1))
     data.container = Option(get(Constants.BlockName.DiskDrive).createItemStack(1))
 
     val stack = get(Constants.ItemName.Tablet).createItemStack(1)
@@ -255,20 +312,19 @@ object Items extends ItemAPI {
 
   def init() {
     val multi = new item.Delegator() {
-      def configuredItems = Array(
-        createLuaBios(),
+      def additionalItems = Array(
         createConfiguredDrone(),
         createConfiguredMicrocontroller(),
         createConfiguredRobot(),
         createConfiguredTablet()
-      )
+      ) ++ registeredItems
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
         // Workaround for MC's untyped lists...
         def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
         super.getSubItems(item, tab, list)
         Loot.worldDisks.values.foreach(entry => add(list, entry._1))
-        configuredItems.foreach(add(list, _))
+        additionalItems.foreach(add(list, _))
       }
     }
 
@@ -369,7 +425,7 @@ object Items extends ItemAPI {
     new item.FloppyDisk(multi) {
       showInItemList = false
 
-      override def createItemStack(amount: Int) = createOpenOS(amount)
+      override def createItemStack(amount: Int) = get(Constants.ItemName.OpenOS).createItemStack(1)
 
       override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
         if (player.isSneaking) get(Constants.ItemName.Floppy).createItemStack(1)
@@ -414,7 +470,13 @@ object Items extends ItemAPI {
     // 1.4.2
     val eeprom = new item.EEPROM()
     Recipes.addItem(eeprom, Constants.ItemName.EEPROM, "oc:eeprom")
-    Recipes.addRecipe(createLuaBios(), Constants.ItemName.LuaBios)
+    val luaBios = {
+      val code = new Array[Byte](4 * 1024)
+      val count = OpenComputers.getClass.getResourceAsStream(Settings.scriptPath + "bios.lua").read(code)
+      registerEEPROM("EEPROM (Lua BIOS)", code.take(count), null, readonly = false)
+    }
+    Recipes.addStack(luaBios, Constants.ItemName.LuaBios)
+
     Recipes.addSubItem(new item.MicrocontrollerCase(multi, Tier.One), Constants.ItemName.MicrocontrollerCaseTier1, "oc:microcontrollerCase1")
 
     // 1.4.3
@@ -452,6 +514,5 @@ object Items extends ItemAPI {
     // 1.5.8
     Recipes.addSubItem(new item.UpgradeHover(multi, Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
     Recipes.addSubItem(new item.UpgradeHover(multi, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
-
   }
 }

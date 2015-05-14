@@ -163,7 +163,7 @@ object Achievement {
   val OpenOS = newAchievement("openOS").
     at(10, 9).
     withParent(Floppy).
-    whenCrafting(Items.createOpenOS()).
+    whenCrafting(Constants.ItemName.OpenOS).
     add()
   val Raid = newAchievement("raid").
     at(8, 10).
