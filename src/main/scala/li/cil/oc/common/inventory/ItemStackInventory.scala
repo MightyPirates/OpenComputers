@@ -1,7 +1,6 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
-import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
@@ -33,7 +32,7 @@ trait ItemStackInventory extends Inventory {
       for (i <- 0 until (list.tagCount min items.length)) {
         val tag = list.getCompoundTagAt(i)
         if (!tag.hasNoTags) {
-          updateItems(i, ItemUtils.loadStack(tag))
+          updateItems(i, ItemStack.loadItemStackFromNBT(tag))
         }
       }
     }

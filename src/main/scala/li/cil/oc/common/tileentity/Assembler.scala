@@ -11,7 +11,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -127,11 +126,11 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     super.readFromNBTForServer(nbt)
     if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
     }
     else if (nbt.hasKey(Settings.namespace + "robot")) {
       // Backwards compatibility.
-      output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "robot")))
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "robot")))
     }
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")

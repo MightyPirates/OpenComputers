@@ -10,7 +10,6 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Sound
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -80,7 +79,7 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     if (nbt.hasKey("disk")) {
-      setInventorySlotContents(0, ItemUtils.loadStack(nbt.getCompoundTag("disk")))
+      setInventorySlotContents(0, ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("disk")))
     }
   }
 }

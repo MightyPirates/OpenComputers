@@ -2,7 +2,6 @@ package li.cil.oc.common.item.data
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemMap
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -35,7 +34,7 @@ class NavigationUpgradeData extends ItemData {
 
   override def load(nbt: NBTTagCompound) {
     if (nbt.hasKey(Settings.namespace + "map")) {
-      map = ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "map"))
+      map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
     }
   }
 

@@ -134,6 +134,7 @@ object EventHandler {
           player.addChatMessage(Localization.Chat.WarningSimpleComponent)
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
+        ServerPacketSender.sendLootDisks(player)
         // Do update check in local games and for OPs.
         if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.canSendCommands(player.getGameProfile))) {
           Future {
@@ -149,8 +150,9 @@ object EventHandler {
   @SubscribeEvent
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
     PetRenderer.isInitialized = false
-      PetRenderer.hidden.clear()
-      }
+    PetRenderer.hidden.clear()
+    Loot.disksForClient.clear()
+  }
 
   @SubscribeEvent
   def onBlockBreak(e: BlockEvent.BreakEvent): Unit = {
@@ -214,7 +216,7 @@ object EventHandler {
     didRecraft = recraft(e, navigationUpgrade, stack => {
       // Restore the map currently used in the upgrade.
       Option(api.Driver.driverFor(e.crafting)) match {
-        case Some(driver) => Option(ItemUtils.loadStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
+        case Some(driver) => Option(ItemStack.loadItemStackFromNBT(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
         case _ => None
       }
     }) || didRecraft

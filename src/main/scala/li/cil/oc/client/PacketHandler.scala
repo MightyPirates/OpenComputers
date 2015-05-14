@@ -7,6 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
+import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity._
@@ -56,6 +57,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
+      case PacketType.LootDisk => onLootDisk(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
@@ -249,6 +251,13 @@ object PacketHandler extends CommonPacketHandler {
         t.translation = new Vec3(x, y, z)
       case _ => // Invalid packet.
     }
+
+  def onLootDisk(p: PacketParser) = {
+    val stack = p.readItemStack()
+    if (stack != null) {
+      Loot.disksForClient += stack
+    }
+  }
 
   def onParticleEffect(p: PacketParser) = {
     val dimension = p.readInt()
