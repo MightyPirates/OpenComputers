@@ -34,9 +34,14 @@ object RobotCommonHandler {
         (0 until robot.equipmentInventory.getSizeInventory).
           map(robot.equipmentInventory.getStackInSlot).
           map(Delegator.subItem).
-          collect { case Some(item: UpgradeHover) => maxFlyingHeight = Settings.get.upgradeFlightHeight(item.tier) }
+          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
 
-        robot.componentCount()
+        (0 until robot.componentCount).
+          map(_ + robot.mainInventory.getSizeInventory + robot.equipmentInventory.getSizeInventory).
+          map(robot.getStackInSlot).
+          map(Delegator.subItem).
+          collect { case Some(item: UpgradeHover) => maxFlyingHeight = math.max(maxFlyingHeight, Settings.get.upgradeFlightHeight(item.tier)) }
+
         def isMovingDown = e.direction == ForgeDirection.DOWN
         def hasAdjacentBlock(pos: BlockPosition) = ForgeDirection.VALID_DIRECTIONS.exists(side => world.isSideSolid(pos.offset(side), side.getOpposite))
         def isWithinFlyingHeight(pos: BlockPosition) = (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(ForgeDirection.DOWN, n)))
