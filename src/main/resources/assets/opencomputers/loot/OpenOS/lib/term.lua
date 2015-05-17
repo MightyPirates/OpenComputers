@@ -357,9 +357,6 @@ function term.read(history, dobreak, hint, pwchar, filter)
         history[#history] = ""
         return true, nil
       end
-    elseif keyboard.isControlDown() and code == keyboard.keys.c then
-      history[#history] = ""
-      return true, nil
     elseif not keyboard.isControl(char) then
       insert(unicode.char(char))
     end
@@ -401,6 +398,10 @@ function term.read(history, dobreak, hint, pwchar, filter)
     if not ok then
       cleanup()
       error("interrupted", 0)
+    end
+    if name == "interrupted" then
+      cleanup()
+      return nil
     end
     local ncx, ncy = getCursor()
     if ocx ~= ncx or ocy ~= ncy then
