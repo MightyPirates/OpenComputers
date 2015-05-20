@@ -1,4 +1,5 @@
-## Welcome to OpenComputers
+![Welcome to OpenComputers](http://cil.li/mc/oc/banner.png)
+
 OpenComputers is a Minecraft mod that adds programmable computers and robots to the game. The built-in computer implementation uses Lua 5.2 and is fully persistent. This means programs will continue running across reloads. For more information, please [see the wiki][wiki]. Feel invited to visit the [community forums][forums] or drop by in the [IRC channel #oc on esper.net][irc].
 
 A few useful links:
@@ -64,7 +65,7 @@ dependencies {
 ```
 Adjust the version number accordingly to the version you'd like to build against.
 
-To run the mod in your development environment, download the [`dev` JAR from the build server][dev-jar] and drop it into your development environment's `eclipse/mods`(Eclipse) or `run/mods`(IntelliJ) folder.
+To run the mod in your development environment, download the [`dev` JAR from the build server][dev-jar] and drop it into your development environment's `eclipse/mods` (Eclipse) or `run/mods` (IntelliJ IDEA) folder.
 
 Alternatively, leave out the `api` classifier and you can build against the dev JAR directly. This way you don't have to add it to your mods folder, but you will have to add `-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader` to the VM options in your run configuration.
 
@@ -74,18 +75,18 @@ If you have any questions, please do not hesitate to ask, either in the [forums]
 Want to tinker with the mod itself? Here is how - for IntelliJ IDEA users.
 
 **Important**
-- Make sure you have the Gradle plugin enabled in IDEA (File->Settings->Plugins).
+- Make sure you have the Gradle plugin enabled in IntelliJ IDEA (File->Settings->Plugins).
 - Make sure you have the Scala plugin enabled.
 
 Clone the repository, then in it run  
 `gradlew setupDecompWorkspace`  
 to setup the workspace, including assets and such, then  
 `gradlew idea`  
-to create an IntellJ IDEA project.
+to create an IntelliJ IDEA project.
 
 Open the project and you will be asked to *import the Gradle project* (check your Event Log if you missed the pop-up). **Do so**. This will configure additionally referenced libraries.
 
-In the case you wish to use Eclipse rather than IDEA, the process is mostly the same, except you must run `gradlew eclipse` rather than `gradlew idea`.
+In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mostly the same, except you must run `gradlew eclipse` rather than `gradlew idea`.
 
 
 
