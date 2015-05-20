@@ -87,6 +87,7 @@ object ModOpenComputers extends ModProxy {
 
     api.Driver.add(DriverBlockEnvironments)
 
+    api.Driver.add(DriverAPU)
     api.Driver.add(DriverComponentBus)
     api.Driver.add(DriverCPU)
     api.Driver.add(DriverDebugCard)
@@ -150,6 +151,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Drone],
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
@@ -162,6 +165,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2)
     blacklistHost(classOf[internal.Microcontroller],
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
