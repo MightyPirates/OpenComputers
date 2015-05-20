@@ -130,5 +130,6 @@ object Textures {
 
     tm.bindTexture(upgradeCrafting)
     tm.bindTexture(upgradeGenerator)
+    tm.bindTexture(upgradeInventory)
   }
 }
