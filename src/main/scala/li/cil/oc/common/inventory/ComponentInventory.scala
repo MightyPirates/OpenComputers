@@ -26,7 +26,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   // ----------------------------------------------------------------------- //
 
   def updateComponents() {
-    if (updatingComponents.length > 0) {
+    if (updatingComponents.nonEmpty) {
       for (component <- updatingComponents) {
         component.update()
       }
