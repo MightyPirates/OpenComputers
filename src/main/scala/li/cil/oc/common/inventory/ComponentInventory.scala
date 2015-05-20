@@ -27,8 +27,15 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   def updateComponents() {
     if (updatingComponents.nonEmpty) {
-      for (component <- updatingComponents) {
-        component.update()
+      var i = 0
+      // ArrayBuffer.foreach caches the size for performance reasons, but that
+      // will cause issues if the list changed during iteration (e.g. because
+      // a component removed itself / another component, such as the self-
+      // destruct card from Computronics). Also, this list will generally be
+      // quite short, so it won't have any noticeable impact, anyway.
+      while (i < updatingComponents.size) {
+        updatingComponents(i).update()
+        i += 1
       }
     }
   }
