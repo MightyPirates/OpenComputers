@@ -187,6 +187,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
     ServerPacketSender.sendRobotLightChange(this)
   }
 
+  override def shouldAnimate = isRunning
+
   // ----------------------------------------------------------------------- //
 
   override def node = if (isServer) machine.node else null
