@@ -103,7 +103,7 @@ if #args == 0 or options.i then
   end
 
   component.gpu.setForeground(0xFFFFFF)
-  term.write("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio\n")
+  term.write("Lua 5.2.4 Copyright (C) 1994-2015 Lua.org, PUC-Rio\n")
   component.gpu.setForeground(0xFFFF00)
   term.write("Enter a statement and hit enter to evaluate it.\n")
   term.write("Prefix an expression with '=' to show its value.\n")
