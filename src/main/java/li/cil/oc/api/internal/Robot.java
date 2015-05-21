@@ -1,5 +1,7 @@
 package li.cil.oc.api.internal;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.inventory.ISidedInventory;
@@ -65,4 +67,14 @@ public interface Robot extends Agent, Environment, EnvironmentHost, Tiered, ISid
      * network packet to be sent.
      */
     void synchronizeSlot(int slot);
+
+    /**
+     * This essentially returns whether the robot is currently running or not.
+     * <p/>
+     * This is explicitly meant for client side use, to allow upgrade renderers
+     * to know whether to resume animations or not, based on whether the robot
+     * is currently powered on or not.
+     */
+    @SideOnly(Side.CLIENT)
+    boolean shouldAnimate();
 }

@@ -197,7 +197,8 @@ object Sound {
     }
 
     def updatePosition() {
-      soundSystem.setPosition(source, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+      if (tileEntity != null) soundSystem.setPosition(source, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+      else soundSystem.setPosition(source, 0, 0, 0)
     }
 
     def play(name: String) {
@@ -206,7 +207,8 @@ object Sound {
       val resource = (sound.func_148720_g: SoundPoolEntry).getSoundPoolEntryLocation
       if (!initialized) {
         initialized = true
-        soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16)
+        if (tileEntity != null) soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16)
+        else soundSystem.newSource(false, source, toUrl(resource), resource.toString, false, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 0)
         updateVolume()
         soundSystem.activate(source)
       }

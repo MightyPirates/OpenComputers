@@ -10,6 +10,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.PortalGun
 import li.cil.oc.integration.util.TinkersConstruct
@@ -269,7 +270,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }, repair = false)
   }
 
-  def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
+  def clickBlock(x: Int, y: Int, z: Int, side: Int, immediate: Boolean = false): Double = {
     callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side, world))) {
         return 0
@@ -344,6 +345,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       if (cancel) {
         return 0
       }
+
+      if (!immediate) {
+        EventHandler.schedule(() => new DamageOverTime(this, x, y, z, side, (adjustedBreakTime * 20).toInt).tick())
+        return adjustedBreakTime
+      }
+
+      world.destroyBlockInWorldPartially(-1, x, y, z, -1)
 
       world.playAuxSFXAtEntity(this, 2001, x, y, z, Block.getIdFromBlock(block) + (metadata << 12))
 
@@ -549,4 +557,34 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   override def func_146101_a(tileEntity: TileEntityFurnace) {}
 
   override def func_146093_a(tileEntity: TileEntityHopper) {}
+
+  // ----------------------------------------------------------------------- //
+
+  class DamageOverTime(val player: Player, val x: Int, val y: Int, val z: Int, val side: Int, val ticksTotal: Int) {
+    val world = player.world
+    var ticks = 0
+    var lastDamageSent = 0
+
+    def tick(): Unit = {
+      // Cancel if the agent stopped or our action is invalidated some other way.
+      if (world != player.world || !world.blockExists(x, y, z) || world.isAirBlock(x, y, z) || !player.agent.machine.isRunning) {
+        world.destroyBlockInWorldPartially(-1, x, y, z, -1)
+        return
+      }
+
+      val damage = 10 * ticks / math.max(ticksTotal, 1)
+      if (damage >= 10) {
+        player.clickBlock(x, y, z, side, immediate = true)
+      }
+      else {
+        ticks += 1
+        if (damage != lastDamageSent) {
+          lastDamageSent = damage
+          world.destroyBlockInWorldPartially(-1, x, y, z, damage)
+        }
+        EventHandler.schedule(() => tick())
+      }
+    }
+  }
+
 }

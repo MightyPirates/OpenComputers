@@ -1,8 +1,9 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.util.Color
+import net.minecraft.block.material.Material
 
-class ChameliumBlock extends SimpleBlock {
+class ChameliumBlock extends SimpleBlock(Material.rock) {
   override protected def customTextures = Array(
     Some("White"),
     Some("White"),

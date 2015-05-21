@@ -1,7 +1,6 @@
 package li.cil.oc.integration.opencomputers
 
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.event.FMLInterModComms
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -36,10 +35,9 @@ import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
@@ -56,12 +54,13 @@ object ModOpenComputers extends ModProxy {
     TabletTemplate.register()
     TemplateBlacklist.register()
 
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
-    val chargerNbt = new NBTTagCompound()
-    chargerNbt.setString("name", "OpenComputers")
-    chargerNbt.setString("canCharge", "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge")
-    chargerNbt.setString("charge", "li.cil.oc.integration.opencomputers.ModOpenComputers.charge")
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerItemCharge", chargerNbt)
+    api.IMC.registerWrenchTool("li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
+    api.IMC.registerItemCharge(
+      "OpenComputers",
+      "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge",
+      "li.cil.oc.integration.opencomputers.ModOpenComputers.charge")
+    api.IMC.registerInkProvider("li.cil.oc.integration.opencomputers.ModOpenComputers.inkCartridgeInkProvider")
+    api.IMC.registerInkProvider("li.cil.oc.integration.opencomputers.ModOpenComputers.dyeInkProvider")
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
@@ -88,6 +87,7 @@ object ModOpenComputers extends ModProxy {
 
     api.Driver.add(DriverBlockEnvironments)
 
+    api.Driver.add(DriverAPU)
     api.Driver.add(DriverComponentBus)
     api.Driver.add(DriverCPU)
     api.Driver.add(DriverDebugCard)
@@ -151,6 +151,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Drone],
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
@@ -163,6 +165,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2)
     blacklistHost(classOf[internal.Microcontroller],
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
@@ -254,13 +258,23 @@ object ModOpenComputers extends ModProxy {
     }
   }
 
+  def inkCartridgeInkProvider(stack: ItemStack): Int = {
+    if (api.Items.get(stack) == api.Items.get(Constants.ItemName.InkCartridge))
+      Settings.get.printInkValue
+    else
+      0
+  }
+
+  def dyeInkProvider(stack: ItemStack): Int = {
+    if (Color.isDye(stack))
+      Settings.get.printInkValue / 10
+    else
+      0
+  }
+
   private def blacklistHost(host: Class[_], itemNames: String*) {
     for (itemName <- itemNames) {
-      val nbt = new NBTTagCompound()
-      nbt.setString("name", itemName)
-      nbt.setString("host", host.getName)
-      nbt.setNewCompoundTag("item", api.Items.get(itemName).createItemStack(1).writeToNBT)
-      FMLInterModComms.sendMessage("OpenComputers", "blacklistHost", nbt)
+      api.IMC.blacklistHost(itemName, host, api.Items.get(itemName).createItemStack(1))
     }
   }
 

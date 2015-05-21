@@ -72,5 +72,8 @@ object Blocks {
     Recipes.addBlock(new Printer(), "printer", "oc:printer")
     Recipes.addBlock(new ChameliumBlock(), "chameliumBlock", "oc:chameliumBlock")
     Recipes.addBlock(new Waypoint(), Constants.BlockName.Waypoint, "oc:waypoint")
+
+    // v1.5.10
+    Recipes.addBlock(new FakeEndstone(), Constants.BlockName.Endstone, "oc:stoneEndstone")
   }
 }

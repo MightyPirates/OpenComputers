@@ -5,6 +5,7 @@ import java.io.EOFException
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
@@ -12,6 +13,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.common.Loot
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import li.cil.oc.util.ExtendedWorld._
@@ -53,6 +55,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
+      case PacketType.LootDisk => onLootDisk(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
@@ -252,6 +255,13 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onLootDisk(p: PacketParser) = {
+    val stack = p.readItemStack()
+    if (stack != null) {
+      Loot.disksForClient += stack
+    }
+  }
+
   def onParticleEffect(p: PacketParser) = {
     val dimension = p.readInt()
     world(p.player, dimension) match {
@@ -288,6 +298,14 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onPetVisibility(p: PacketParser) {
+    if (!PetRenderer.isInitialized) {
+      PetRenderer.isInitialized = true
+      if (Settings.get.hideOwnPet) {
+        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+      }
+      PacketSender.sendPetVisibility()
+    }
+
     val count = p.readInt()
     for (i <- 0 until count) {
       val name = p.readUTF()

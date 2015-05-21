@@ -230,13 +230,14 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       if (!isRunning) {
         GL11.glTranslatef(0, -2 * gap, 0)
       }
+
+      if (MinecraftForgeClient.getRenderPass > 0) return
+
       GL11.glCallList(displayList)
       GL11.glColor3f(1, 1, 1)
 
       if (isRunning) {
-        if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.disableLighting()
-        }
+        RenderState.disableLighting()
 
         // Additive blending for the light.
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
@@ -270,9 +271,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         t.addVertexWithUV(l, gt, l, u1, v0)
         t.draw()
 
-        if (MinecraftForgeClient.getRenderPass == 0) {
-          RenderState.enableLighting()
-        }
+        RenderState.enableLighting()
       }
     }
   }
@@ -330,16 +329,15 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-    if (MinecraftForgeClient.getRenderPass == 0) {
-      val offset = timeJitter + worldTime / 20.0
-      renderChassis(robot, offset)
-    }
+    val offset = timeJitter + worldTime / 20.0
+    renderChassis(robot, offset)
 
     if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
           val itemRenderer = RenderManager.instance.itemRenderer
 
+          GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
           GL11.glPushMatrix()
           try {
             // Copy-paste from player render code, with minor adjustments for
@@ -352,8 +350,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             GL11.glTranslatef(0, -8 * 0.0625F - 0.0078125F, -0.5F)
 
             if (robot.isAnimatingSwing) {
-              val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-              GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
+              val wantedTicksPerCycle = 10
+              val cycles = math.max(robot.animationTicksTotal / wantedTicksPerCycle, 1)
+              val ticksPerCycle = robot.animationTicksTotal / cycles
+              val remaining = (robot.animationTicksLeft - f) / ticksPerCycle.toDouble
+              GL11.glRotatef((Math.sin((remaining - remaining.toInt) * Math.PI) * 45).toFloat, 1, 0, 0)
             }
 
             val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
@@ -394,23 +395,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               GL11.glRotatef(20, 0, 0, 1)
             }
 
-            if (stack.getItem.requiresMultipleRenderPasses) {
-              for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
-                val tint = stack.getItem.getColorFromItemStack(stack, pass)
-                val r = ((tint >> 16) & 0xFF) / 255f
-                val g = ((tint >> 8) & 0xFF) / 255f
-                val b = ((tint >> 0) & 0xFF) / 255f
-                GL11.glColor4f(r, g, b, 1)
-                itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
-              }
-            }
-            else {
-              val tint = stack.getItem.getColorFromItemStack(stack, 0)
+            if (MinecraftForgeClient.getRenderPass < stack.getItem.getRenderPasses(stack.getItemDamage)) {
+              val tint = stack.getItem.getColorFromItemStack(stack, MinecraftForgeClient.getRenderPass)
               val r = ((tint >> 16) & 0xFF) / 255f
               val g = ((tint >> 8) & 0xFF) / 255f
               val b = ((tint >> 0) & 0xFF) / 255f
               GL11.glColor4f(r, g, b, 1)
-              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, 0)
+              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, MinecraftForgeClient.getRenderPass)
             }
           }
           catch {
@@ -421,6 +412,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           GL11.glEnable(GL11.GL_CULL_FACE)
           GL11.glDisable(GL12.GL_RESCALE_NORMAL)
           GL11.glPopMatrix()
+          GL11.glPopAttrib()
         case _ =>
       }
 

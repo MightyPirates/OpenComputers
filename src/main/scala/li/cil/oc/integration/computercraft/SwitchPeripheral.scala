@@ -1,6 +1,7 @@
 package li.cil.oc.integration.computercraft
 
 import dan200.computercraft.api.lua.ILuaContext
+import dan200.computercraft.api.lua.LuaException
 import dan200.computercraft.api.peripheral.IComputerAccess
 import dan200.computercraft.api.peripheral.IPeripheral
 import li.cil.oc.Settings
@@ -40,12 +41,14 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
     "transmit" -> ((computer, context, arguments) => {
       val sendPort = checkPort(arguments, 0)
       val answerPort = checkPort(arguments, 1)
-      val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
+      val data = arguments.drop(2) ++ Seq(Int.box(answerPort))
       val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
       result(switch.tryEnqueuePacket(None, packet))
     }),
     "isWireless" -> ((computer, context, arguments) => {
-      result(switch.isInstanceOf[AccessPoint])
+      // Let's pretend we're always wired, to allow accessing OC components
+      // as remote peripherals when using an Access Point, too...
+      result(false)
     }),
 
     // Undocumented modem messages.
@@ -82,6 +85,9 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
     }),
 
     // OC specific.
+    "isAccessPoint" -> ((computer, context, arguments) => {
+      result(switch.isInstanceOf[AccessPoint])
+    }),
     "maxPacketSize" -> ((computer, context, arguments) => {
       result(Settings.get.maxNetworkPacketSize)
     })
@@ -103,7 +109,11 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
 
   override def getMethodNames = methodNames
 
-  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) = methods(methodNames(method))(computer, context, arguments)
+  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) =
+    try methods(methodNames(method))(computer, context, arguments) catch {
+      case e: LuaException => throw e
+      case t: Throwable => throw new LuaException(t.getMessage)
+    }
 
   override def equals(other: IPeripheral) = other match {
     case peripheral: SwitchPeripheral => peripheral.switch == switch
@@ -114,7 +124,7 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
     if (args.length < index - 1 || !args(index).isInstanceOf[Double])
       throw new IllegalArgumentException(s"bad argument #${index + 1} (number expected)")
     val port = args(index).asInstanceOf[Double].toInt
-    if (port < 1 || port > 0xFFFF)
+    if (port < 0 || port > 0xFFFF)
       throw new IllegalArgumentException(s"bad argument #${index + 1} (number in [1, 65535] expected)")
     port
   }

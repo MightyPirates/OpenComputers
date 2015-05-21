@@ -6,7 +6,6 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.detail.ItemInfo
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.PrintData
@@ -28,7 +27,7 @@ import scala.util.control.Breaks._
 object ExtendedRecipe {
   private lazy val drone = api.Items.get(Constants.ItemName.Drone)
   private lazy val eeprom = api.Items.get(Constants.ItemName.EEPROM)
-  private lazy val luaBios = Items.createLuaBios()
+  private lazy val luaBios = api.Items.get(Constants.ItemName.LuaBios)
   private lazy val mcu = api.Items.get(Constants.BlockName.Microcontroller)
   private lazy val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
   private lazy val linkedCard = api.Items.get(Constants.ItemName.LinkedCard)
@@ -159,7 +158,7 @@ object ExtendedRecipe {
 
     // EEPROM copying.
     if (api.Items.get(craftedStack) == eeprom &&
-      !ItemStack.areItemStackTagsEqual(craftedStack, luaBios) &&
+      api.Items.get(craftedStack) != luaBios &&
       recipe.isInstanceOf[ExtendedShapelessOreRecipe] &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput != null &&
       recipe.asInstanceOf[ExtendedShapelessOreRecipe].getInput.size == 2) breakable {

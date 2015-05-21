@@ -12,7 +12,6 @@ import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.item.crafting.IRecipe
 import net.minecraft.item.crafting.ShapedRecipes
 import net.minecraft.item.crafting.ShapelessRecipes
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.oredict.ShapedOreRecipe
 import net.minecraftforge.oredict.ShapelessOreRecipe
 
@@ -43,8 +42,6 @@ object ItemUtils {
   }
 
   def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
-
-  def loadStack(nbt: NBTTagCompound) = ItemStack.loadItemStackFromNBT(nbt)
 
   def getIngredients(stack: ItemStack): Array[ItemStack] = try {
     def getFilteredInputs(inputs: Iterable[ItemStack], outputSize: Double) = inputs.filter(input =>

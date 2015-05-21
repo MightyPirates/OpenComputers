@@ -2,7 +2,6 @@ package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -86,7 +85,7 @@ trait Inventory extends IInventory {
     nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
-        updateItems(slot, ItemUtils.loadStack(slotNbt.getCompoundTag("item")))
+        updateItems(slot, ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
       }
     })
   }

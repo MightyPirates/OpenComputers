@@ -1,11 +1,7 @@
 package li.cil.oc.api;
 
-import li.cil.oc.api.detail.DriverAPI;
-import li.cil.oc.api.detail.FileSystemAPI;
-import li.cil.oc.api.detail.ItemAPI;
-import li.cil.oc.api.detail.MachineAPI;
-import li.cil.oc.api.detail.ManualAPI;
-import li.cil.oc.api.detail.NetworkAPI;
+import com.typesafe.config.Config;
+import li.cil.oc.api.detail.*;
 
 /**
  * Central reference for the API.
@@ -16,7 +12,7 @@ import li.cil.oc.api.detail.NetworkAPI;
  */
 public class API {
     public static final String ID_OWNER = "OpenComputers|Core";
-    public static final String VERSION = "5.2.3";
+    public static final String VERSION = "5.5.0";
 
     public static DriverAPI driver = null;
     public static FileSystemAPI fileSystem = null;
@@ -24,4 +20,6 @@ public class API {
     public static MachineAPI machine = null;
     public static ManualAPI manual = null;
     public static NetworkAPI network = null;
+
+    public static Config config = null;
 }

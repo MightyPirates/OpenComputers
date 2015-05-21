@@ -1,10 +1,11 @@
-package li.cil.oc.common.item
+package li.cil.oc.common.item.traits
 
 import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
+import li.cil.oc.common.item.Delegate
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 

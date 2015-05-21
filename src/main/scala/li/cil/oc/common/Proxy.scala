@@ -55,6 +55,9 @@ class Proxy {
     // oredict entry, but not normal obsidian, breaking some recipes.
     OreDictionary.registerOre("obsidian", net.minecraft.init.Blocks.obsidian)
 
+    // To still allow using normal endstone for crafting drones.
+    OreDictionary.registerOre("oc:stoneEndstone", net.minecraft.init.Blocks.end_stone)
+
     OpenComputers.log.info("Initializing OpenComputers API.")
 
     api.CreativeTab.instance = CreativeTab
@@ -63,6 +66,8 @@ class Proxy {
     api.API.items = Items
     api.API.machine = machine.Machine
     api.API.network = network.Network
+
+    api.API.config = Settings.get.config
 
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
