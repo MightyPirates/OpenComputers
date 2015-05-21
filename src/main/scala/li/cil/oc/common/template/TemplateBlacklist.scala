@@ -2,9 +2,9 @@ package li.cil.oc.common.template
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.event.FMLInterModComms
 
 import scala.collection.convert.WrapAsScala._
 
@@ -38,7 +38,7 @@ object TemplateBlacklist {
   }
 
   def register(): Unit = {
-    FMLInterModComms.sendMessage("OpenComputers", "registerAssemblerFilter", "li.cil.oc.common.template.TemplateBlacklist.filter")
+    api.IMC.registerAssemblerFilter("li.cil.oc.common.template.TemplateBlacklist.filter")
   }
 
   def filter(stack: ItemStack): Boolean = {

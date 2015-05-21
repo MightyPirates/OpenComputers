@@ -1,6 +1,7 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.util.Color
+import net.minecraft.block.material.Material
 import net.minecraft.block.properties.PropertyEnum
 import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
@@ -12,7 +13,7 @@ object ChameliumBlock {
   final val Color = PropertyEnum.create("color", classOf[EnumDyeColor])
 }
 
-class ChameliumBlock extends SimpleBlock {
+class ChameliumBlock extends SimpleBlock(Material.rock) {
   setDefaultState(blockState.getBaseState.withProperty(ChameliumBlock.Color, EnumDyeColor.BLACK))
 
   @SideOnly(Side.CLIENT)

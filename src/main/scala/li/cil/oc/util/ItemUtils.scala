@@ -47,12 +47,6 @@ object ItemUtils {
 
   def caseNameWithTierSuffix(name: String, tier: Int) = name + (if (tier == Tier.Four) "Creative" else (tier + 1).toString)
 
-  def loadStack(nbt: NBTTagCompound) = ItemStack.loadItemStackFromNBT(nbt)
-
-  def loadStack(data: Array[Byte]) = {
-    ItemStack.loadItemStackFromNBT(loadTag(data))
-  }
-
   def loadTag(data: Array[Byte]) = {
     val bais = new ByteArrayInputStream(data)
     CompressedStreamTools.readCompressed(bais)

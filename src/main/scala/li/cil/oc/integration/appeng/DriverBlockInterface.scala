@@ -26,10 +26,10 @@ object DriverBlockInterface extends DriverTileEntity with EnvironmentAware {
     if (AEUtil.isBlockInterface(stack)) classOf[Environment]
     else null
 
-  class Environment(tileEntity: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tileEntity, "me_interface") with NamedBlock {
+  class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] {
     override def preferredName = "me_interface"
 
-    override def priority = 1
+    override def priority = 5
 
     @Callback(doc = "function([slot:number]):table -- Get the configuration of the interface.")
     def getInterfaceConfiguration(context: Context, args: Arguments): Array[AnyRef] = {

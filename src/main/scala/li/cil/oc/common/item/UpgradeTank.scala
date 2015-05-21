@@ -9,7 +9,7 @@ import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class UpgradeTank(val parent: Delegator) extends Delegate with ItemTier {
+class UpgradeTank(val parent: Delegator) extends Delegate with traits.ItemTier {
   @SideOnly(Side.CLIENT) override
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound) {

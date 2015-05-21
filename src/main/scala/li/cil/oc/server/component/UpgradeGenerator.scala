@@ -12,7 +12,6 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -149,7 +148,7 @@ class UpgradeGenerator(val host: EnvironmentHost with internal.Agent) extends pr
     super.load(nbt)
     romGenerator.foreach(_.load(nbt.getCompoundTag("romGenerator")))
     if (nbt.hasKey("inventory")) {
-      inventory = Option(ItemUtils.loadStack(nbt.getCompoundTag("inventory")))
+      inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("inventory")))
     }
     remainingTicks = nbt.getInteger("remainingTicks")
   }

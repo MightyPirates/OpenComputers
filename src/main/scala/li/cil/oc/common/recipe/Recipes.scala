@@ -80,6 +80,13 @@ object Recipes {
     delegate
   }
 
+  def addStack(stack: ItemStack, name: String, oreDict: String*) = {
+    Items.registerStack(stack, name)
+    addRecipe(stack, name)
+    register(stack, oreDict: _*)
+    stack
+  }
+
   def addRecipe(stack: ItemStack, name: String) {
     list += stack -> name
   }
@@ -161,7 +168,7 @@ object Recipes {
         val lootRecipes = recipes.getConfigList("lootDisks")
         for (recipe <- lootRecipes) {
           val name = recipe.getString("name")
-          Loot.builtInDisks.get(name) match {
+          Loot.globalDisks.get(name) match {
             case Some((stack, _)) => addRecipe(stack, recipe, s"loot disk '$name'")
             case _ =>
               OpenComputers.log.warn(s"Failed adding recipe for loot disk '$name': No such global loot disk.")

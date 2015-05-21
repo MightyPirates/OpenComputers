@@ -38,6 +38,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Database Upgrade](databaseUpgrade1.md)
 * [Experience Upgrade](experienceUpgrade.md)
 * [Generator Upgrade](generatorUpgrade.md)
+* [Hover Upgrade](hoverUpgrade1.md)
 * [Inventory Controller](inventoryControllerUpgrade.md)
 * [Inventory Upgrade](inventoryUpgrade.md)
 * [Leash Upgrade](leashUpgrade.md)

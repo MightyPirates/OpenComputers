@@ -70,5 +70,8 @@ object Blocks {
     Items.registerBlock(new Print(), Constants.BlockName.Print)
     Items.registerBlock(new RobotAfterimage(), Constants.BlockName.RobotAfterimage)
     Items.registerBlock(new RobotProxy(), Constants.BlockName.Robot)
+
+    // v1.5.10
+    Recipes.addBlock(new FakeEndstone(), Constants.BlockName.Endstone, "oc:stoneEndstone")
   }
 }

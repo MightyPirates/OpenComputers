@@ -14,6 +14,7 @@ import li.cil.oc.common.Tier
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IChatComponent
+import org.apache.commons.lang3.tuple
 
 import scala.collection.mutable
 
@@ -117,4 +118,8 @@ abstract class Template {
   }
 
   protected def caseTier(inventory: IInventory): Int
+
+  protected def toPair(t: (String, Int)): tuple.Pair[String, java.lang.Integer] =
+    if (t == null) null
+    else tuple.Pair.of(t._1, t._2)
 }

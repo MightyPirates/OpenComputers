@@ -109,5 +109,5 @@ public interface Environment {
      *
      * @param message the message to handle.
      */
-    abstract void onMessage(Message message);
+    void onMessage(Message message);
 }

@@ -6,6 +6,7 @@ import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedEnumFacing._
 import net.minecraft.block.Block
+import net.minecraft.block.material.Material
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
@@ -15,7 +16,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import org.lwjgl.opengl.GL11
 
-class Keyboard extends SimpleBlock with traits.OmniRotatable {
+class Keyboard extends SimpleBlock(Material.rock) with traits.OmniRotatable {
   setLightOpacity(0)
 
   // For Immibis Microblock support.

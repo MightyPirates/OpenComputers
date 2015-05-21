@@ -14,9 +14,9 @@ import scala.collection.convert.WrapAsScala._
 class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler(pages) {
   def this() = this(None)
 
-  private val DocPattern = """^function(\([^)]*\)[^-]*) -- (.*)$""".r
+  private val DocPattern = """(?s)^function(\(.*?\).*?) -- (.*)$""".r
 
-  private val VexPattern = """^function(\([^)]*\)[^-]*); (.*)$""".r
+  private val VexPattern = """(?s)^function(\(.*?\).*?); (.*)$""".r
 
   override def getRecipeName = "OpenComputers API"
 

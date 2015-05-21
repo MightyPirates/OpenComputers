@@ -215,6 +215,18 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendLootDisks(p: EntityPlayerMP): Unit = {
+    // Sending as separate packets, because CompressedStreamTools hiccups otherwise...
+    val stacks = Loot.worldDisks.values.map(_._1)
+    for (stack <- stacks) {
+      val pb = new SimplePacketBuilder(PacketType.LootDisk)
+
+      pb.writeItemStack(stack)
+
+      pb.sendToPlayer(p)
+    }
+  }
+
   def sendParticleEffect(position: BlockPosition, particleType: EnumParticleTypes, count: Int, velocity: Double, direction: Option[EnumFacing] = None): Unit = if (count > 0) {
     val pb = new SimplePacketBuilder(PacketType.ParticleEffect)
 

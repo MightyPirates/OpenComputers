@@ -8,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.PortalGun
 import li.cil.oc.integration.util.TinkersConstruct
@@ -273,7 +274,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }, repair = false)
   }
 
-  def clickBlock(pos: BlockPos, side: EnumFacing): Double = {
+  def clickBlock(pos: BlockPos, side: EnumFacing, immediate: Boolean = false): Double = {
     callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, world, pos, side))) {
         return 0
@@ -349,6 +350,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       if (cancel) {
         return 0
       }
+
+      if (!immediate) {
+        EventHandler.schedule(() => new DamageOverTime(this, pos, side, (adjustedBreakTime * 20).toInt).tick())
+        return adjustedBreakTime
+      }
+
+      world.sendBlockBreakProgress(-1, pos, -1)
 
       world.playAuxSFXAtEntity(this, 2001, pos, Block.getIdFromBlock(block) + (metadata << 12))
 
@@ -542,4 +550,34 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
   override def displayGUIHorse(horse: EntityHorse, inventory: IInventory) {}
 
   override def openEditSign(signTile: TileEntitySign) {}
+
+  // ----------------------------------------------------------------------- //
+
+  class DamageOverTime(val player: Player, val pos: BlockPos, val side: EnumFacing, val ticksTotal: Int) {
+    val world = player.world
+    var ticks = 0
+    var lastDamageSent = 0
+
+    def tick(): Unit = {
+      // Cancel if the agent stopped or our action is invalidated some other way.
+      if (world != player.world || !world.isBlockLoaded(pos) || world.isAirBlock(pos) || !player.agent.machine.isRunning) {
+        world.sendBlockBreakProgress(-1, pos, -1)
+        return
+      }
+
+      val damage = 10 * ticks / math.max(ticksTotal, 1)
+      if (damage >= 10) {
+        player.clickBlock(pos, side, immediate = true)
+      }
+      else {
+        ticks += 1
+        if (damage != lastDamageSent) {
+          lastDamageSent = damage
+          world.sendBlockBreakProgress(-1, pos, damage)
+        }
+        EventHandler.schedule(() => tick())
+      }
+    }
+  }
+
 }

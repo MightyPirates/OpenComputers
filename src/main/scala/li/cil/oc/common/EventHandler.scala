@@ -7,7 +7,6 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.client.renderer.PetRenderer
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.asm.ClassTransformer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
@@ -22,7 +21,6 @@ import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util._
-import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -136,6 +134,7 @@ object EventHandler {
           player.addChatMessage(Localization.Chat.WarningSimpleComponent)
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
+        ServerPacketSender.sendLootDisks(player)
         // Do update check in local games and for OPs.
         if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.canSendCommands(player.getGameProfile))) {
           Future {
@@ -150,18 +149,12 @@ object EventHandler {
 
   @SubscribeEvent
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
-    try {
-      PetRenderer.hidden.clear()
-      if (Settings.get.hideOwnPet) {
-        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getName
-      }
-      ClientPacketSender.sendPetVisibility()
-    }
-    catch {
-      case _: Throwable =>
-      // Reportedly, things can derp if this is called at inopportune moments,
-      // such as the server shutting down.
-    }
+    PetRenderer.isInitialized = false
+    PetRenderer.hidden.clear()
+    Loot.disksForClient.clear()
+
+    client.Sound.startLoop(null, "computer_running", 0f, 0)
+    schedule(() => client.Sound.stopLoop(null))
   }
 
   @SubscribeEvent
@@ -226,7 +219,7 @@ object EventHandler {
     didRecraft = recraft(e, navigationUpgrade, stack => {
       // Restore the map currently used in the upgrade.
       Option(api.Driver.driverFor(e.crafting)) match {
-        case Some(driver) => Option(ItemUtils.loadStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
+        case Some(driver) => Option(ItemStack.loadItemStackFromNBT(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
         case _ => None
       }
     }) || didRecraft

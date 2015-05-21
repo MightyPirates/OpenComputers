@@ -1,5 +1,6 @@
 package li.cil.oc.api;
 
+import com.typesafe.config.Config;
 import li.cil.oc.api.detail.*;
 
 /**
@@ -11,7 +12,7 @@ import li.cil.oc.api.detail.*;
  */
 public class API {
     public static final String ID_OWNER = "OpenComputers|Core";
-    public static final String VERSION = "5.2.3";
+    public static final String VERSION = "5.5.0";
 
     public static DriverAPI driver = null;
     public static FileSystemAPI fileSystem = null;
@@ -19,4 +20,6 @@ public class API {
     public static MachineAPI machine = null;
     public static ManualAPI manual = null;
     public static NetworkAPI network = null;
+
+    public static Config config = null;
 }

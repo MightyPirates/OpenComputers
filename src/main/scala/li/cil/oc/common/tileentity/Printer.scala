@@ -11,7 +11,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -57,7 +56,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = data.stateOff.size > 0 && data.stateOff.size < Settings.get.maxPrintComplexity && data.stateOn.size < Settings.get.maxPrintComplexity
+  def canPrint = data.stateOff.size > 0 && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
 
   def isPrinting = output.isDefined
 
@@ -139,7 +138,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
   def addShape(context: Context, args: Arguments): Array[Object] = {
-    if (data.stateOff.size >= Settings.get.maxPrintComplexity || data.stateOn.size >= Settings.get.maxPrintComplexity) {
+    if (data.stateOff.size > Settings.get.maxPrintComplexity || data.stateOn.size > Settings.get.maxPrintComplexity) {
       return result(null, "model too complex")
     }
     val minX = (args.checkInteger(0) max 0 min 16) / 16f
@@ -278,7 +277,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     isActive = nbt.getBoolean(Settings.namespace + "active")
     limit = nbt.getInteger(Settings.namespace + "limit")
     if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
     }
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")

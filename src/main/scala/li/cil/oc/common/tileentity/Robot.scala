@@ -210,6 +210,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
     ServerPacketSender.sendRobotLightChange(this)
   }
 
+  override def shouldAnimate = isRunning
+
   // ----------------------------------------------------------------------- //
 
   override def node = if (isServer) machine.node else null
@@ -353,7 +355,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
 
   def setAnimateSwing(ticks: Int) {
-    animationTicksTotal = ticks
+    animationTicksTotal = math.max(ticks, 5)
     prepareForAnimation()
     swingingTool = true
   }
