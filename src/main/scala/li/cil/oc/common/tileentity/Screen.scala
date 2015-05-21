@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
+import li.cil.oc.client.gui
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
@@ -272,6 +273,13 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   override def dispose() {
     super.dispose()
     screens.clone().foreach(_.checkMultiBlock())
+    if (isClient) {
+      Minecraft.getMinecraft.currentScreen match {
+        case screenGui: gui.Screen if screenGui.buffer == buffer =>
+          Minecraft.getMinecraft.displayGuiScreen(null)
+        case _ =>
+      }
+    }
   }
 
   override protected def onColorChanged() {

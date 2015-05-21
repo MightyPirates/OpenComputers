@@ -401,6 +401,10 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.Server(components, Tier.One), Constants.ItemName.ServerTier1, "oc:server1")
     Recipes.addSubItem(new item.Server(components, Tier.Two), Constants.ItemName.ServerTier2, "oc:server2")
     Recipes.addSubItem(new item.Server(components, Tier.Three), Constants.ItemName.ServerTier3, "oc:server3")
+
+    // 1.5.10
+    Recipes.addSubItem(new item.APU(components, Tier.One), Constants.ItemName.APUTier1, "oc:apu1")
+    Recipes.addSubItem(new item.APU(components, Tier.Two), Constants.ItemName.APUTier2, "oc:apu2")
   }
 
   // Card components.

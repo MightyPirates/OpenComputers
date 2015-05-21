@@ -49,6 +49,8 @@ object Constants {
     final val Alu = "alu"
     final val Analyzer = "analyzer"
     final val AngelUpgrade = "angelUpgrade"
+    final val APUTier1 = "apu1"
+    final val APUTier2 = "apu2"
     final val ArrowKeys = "arrowKeys"
     final val BatteryUpgradeTier1 = "batteryUpgrade1"
     final val BatteryUpgradeTier2 = "batteryUpgrade2"

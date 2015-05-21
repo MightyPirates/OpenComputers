@@ -420,6 +420,16 @@ alu {
           ["oc:materialTransistor", "oc:circuitChip1", "oc:materialTransistor"]
           [nuggetIron, "oc:materialTransistor", nuggetIron]]
 }
+apu1 {
+  input: [[nuggetGold, "oc:circuitChip1", nuggetGold]
+          ["oc:cpu2", "oc:componentBus1", "oc:graphicsCard1"]
+          [nuggetGold, "oc:circuitChip1", nuggetGold]]
+}
+apu2 {
+  input: [[diamond, "oc:circuitChip2", diamond]
+          ["oc:cpu3", "oc:componentBus2", "oc:graphicsCard2"]
+          [diamond, "oc:circuitChip2", diamond]]
+}
 componentBus1 {
   input: [[nuggetIron, redstone, nuggetIron]
           ["oc:circuitChip1", "oc:materialCU", ""]
