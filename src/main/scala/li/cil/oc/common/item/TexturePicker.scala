@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 
-class TexturePicker(val parent: Delegator) extends Delegate {
+class TexturePicker(val parent: Delegator) extends traits.Delegate {
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     player.getEntityWorld.getBlock(position) match {
       case block: Block =>

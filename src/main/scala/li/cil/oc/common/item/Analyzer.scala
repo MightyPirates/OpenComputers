@@ -68,7 +68,7 @@ object Analyzer {
               }
               playerMP.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
               val list = machine.users
-              if (list.length > 0) {
+              if (list.nonEmpty) {
                 playerMP.addChatMessage(Localization.Analyzer.Users(list))
               }
             }
@@ -97,7 +97,7 @@ object Analyzer {
   }
 }
 
-class Analyzer(val parent: Delegator) extends Delegate {
+class Analyzer(val parent: Delegator) extends traits.Delegate {
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (player.isSneaking && stack.hasTagCompound) {
       stack.getTagCompound.removeTag(Settings.namespace + "clipboard")

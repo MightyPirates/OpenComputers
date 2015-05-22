@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class FloppyDisk(val parent: Delegator) extends Delegate with CustomModel {
+class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel {
   // Necessary for anonymous subclasses used for loot disks.
   override def unlocalizedName = "FloppyDisk"
 

@@ -1,3 +1,3 @@
 package li.cil.oc.common.item
 
-class UpgradeChunkloader(val parent: Delegator) extends Delegate with traits.ItemTier
+class UpgradeChunkloader(val parent: Delegator) extends traits.Delegate with traits.ItemTier

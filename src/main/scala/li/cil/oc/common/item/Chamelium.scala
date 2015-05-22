@@ -8,7 +8,7 @@ import net.minecraft.potion.Potion
 import net.minecraft.potion.PotionEffect
 import net.minecraft.world.World
 
-class Chamelium(val parent: Delegator) extends Delegate {
+class Chamelium(val parent: Delegator) extends traits.Delegate {
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (Settings.get.chameliumEdible) {
       player.setItemInUse(stack, getMaxItemUseDuration(stack))

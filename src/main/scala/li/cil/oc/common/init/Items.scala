@@ -15,11 +15,13 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.common.item.traits.Delegate
+import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
@@ -71,7 +73,7 @@ object Items extends ItemAPI {
     instance
   }
 
-  def registerItem[T <: common.item.Delegate](delegate: T, id: String) = {
+  def registerItem[T <: Delegate](delegate: T, id: String) = {
     if (!descriptors.contains(id)) {
       OpenComputers.proxy.registerModel(delegate, id)
       descriptors += id -> new ItemInfo {
@@ -315,6 +317,16 @@ object Items extends ItemAPI {
     stack
   }
 
+  def createChargedHoverBoots() = {
+    val data = new HoverBootsData()
+    data.charge = Settings.get.bufferHoverBoots
+
+    val stack = get(Constants.ItemName.HoverBoots).createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
   // ----------------------------------------------------------------------- //
 
   def init() {
@@ -376,6 +388,9 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.TexturePicker(tools), Constants.ItemName.TexturePicker, "oc:texturePicker")
     Recipes.addSubItem(new item.Manual(tools), Constants.ItemName.Manual, "oc:manual")
     Recipes.addItem(new item.Wrench(), Constants.ItemName.Wrench, "oc:wrench")
+
+    // 1.5.11
+    Recipes.addItem(new item.HoverBoots(), Constants.ItemName.HoverBoots, "oc:hoverBoots")
   }
 
   // General purpose components.
@@ -486,7 +501,8 @@ object Items extends ItemAPI {
         Items.createConfiguredDrone(),
         Items.createConfiguredMicrocontroller(),
         Items.createConfiguredRobot(),
-        Items.createConfiguredTablet()
+        Items.createConfiguredTablet(),
+        Items.createChargedHoverBoots()
       ) ++ Loot.disksForClient ++ registeredItems
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[_]): Unit = {

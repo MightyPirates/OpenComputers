@@ -25,7 +25,7 @@ import net.minecraft.world.World
   new Injectable.Interface(value = "mods.railcraft.api.core.items.IToolCrowbar", modid = Mods.IDs.Railcraft),
   new Injectable.Interface(value = "ic2.api.item.IBoxable", modid = Mods.IDs.IndustrialCraft2)
 ))
-class Wrench extends SimpleItem with api.internal.Wrench {
+class Wrench extends traits.SimpleItem with api.internal.Wrench {
   setHarvestLevel("wrench", 1)
 
   override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer): Boolean = true

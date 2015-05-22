@@ -4,8 +4,8 @@ import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.CustomModel
-import li.cil.oc.common.item.Delegate
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.item.traits.Delegate
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft

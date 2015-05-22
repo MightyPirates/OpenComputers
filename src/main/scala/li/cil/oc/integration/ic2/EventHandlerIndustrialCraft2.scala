@@ -65,7 +65,7 @@ object EventHandlerIndustrialCraft2 {
       case item: IElectricItem => Option(ElectricItem.manager)
       case _ => None
     }) match {
-      case Some(manager) => amount - manager.charge(stack, amount * Settings.get.ratioIndustrialCraft2, Int.MaxValue, true, false) / Settings.get.ratioIndustrialCraft2
+      case Some(manager) => amount - manager.charge(stack, amount / Settings.get.ratioIndustrialCraft2, Int.MaxValue, true, false) * Settings.get.ratioIndustrialCraft2
       case _ => amount
     }
   }
