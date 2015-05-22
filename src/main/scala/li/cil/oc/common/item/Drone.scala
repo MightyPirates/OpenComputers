@@ -7,7 +7,8 @@ import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.block.DroneModel
 import li.cil.oc.common.entity
-import li.cil.oc.common.item.data.MicrocontrollerData
+import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.integration.util.NEI
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
@@ -20,7 +21,7 @@ import net.minecraftforge.client.event.ModelBakeEvent
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Drone(val parent: Delegator) extends Delegate with CustomModel {
+class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
   NEI.hide(this)
 
   showInItemList = false
@@ -35,7 +36,7 @@ class Drone(val parent: Delegator) extends Delegate with CustomModel {
 
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     if (KeyBindings.showExtendedTooltips) {
-      val info = new MicrocontrollerData(stack)
+      val info = new DroneData(stack)
       for (component <- info.components if component != null) {
         tooltip.add("- " + component.getDisplayName)
       }
@@ -43,7 +44,7 @@ class Drone(val parent: Delegator) extends Delegate with CustomModel {
   }
 
   override def rarity(stack: ItemStack) = {
-    val data = new MicrocontrollerData(stack)
+    val data = new DroneData(stack)
     Rarity.byTier(data.tier)
   }
 

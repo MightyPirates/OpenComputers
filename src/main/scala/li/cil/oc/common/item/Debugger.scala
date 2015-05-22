@@ -10,7 +10,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 
-class Debugger(val parent: Delegator) extends Delegate {
+class Debugger(val parent: Delegator) extends traits.Delegate {
   override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
     val world = position.world.get
     player match {

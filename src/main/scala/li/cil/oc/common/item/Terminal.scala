@@ -22,7 +22,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Terminal(val parent: Delegator) extends Delegate with CustomModel {
+class Terminal(val parent: Delegator) extends traits.Delegate with CustomModel {
   override def maxStackSize = 1
 
   def hasServer(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")

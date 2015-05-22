@@ -3,7 +3,6 @@ package li.cil.oc.common.item.traits
 import java.util
 
 import li.cil.oc.Localization
-import li.cil.oc.common.item.Delegate
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.relauncher.Side

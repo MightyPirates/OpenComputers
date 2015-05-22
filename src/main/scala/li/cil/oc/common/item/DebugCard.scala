@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-class DebugCard(val parent: Delegator) extends Delegate {
+class DebugCard(val parent: Delegator) extends traits.Delegate {
   override protected def tooltipExtended(stack: ItemStack, tooltip: util.List[String]): Unit = {
     super.tooltipExtended(stack, tooltip)
     val data = new DebugCardData(stack)

@@ -76,6 +76,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(FileSystemAccessHandler)
     MinecraftForge.EVENT_BUS.register(GeolyzerHandler)
+    MinecraftForge.EVENT_BUS.register(HoverBootsHandler)
     MinecraftForge.EVENT_BUS.register(Loot)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)

@@ -1,4 +1,4 @@
-package li.cil.oc.common.item
+package li.cil.oc.common.item.traits
 
 import java.util
 import java.util.Random
@@ -20,7 +20,7 @@ import net.minecraftforge.common.ChestGenHooks
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class SimpleItem extends Item {
+trait SimpleItem extends Item {
   setCreativeTab(CreativeTab)
 
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)

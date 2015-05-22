@@ -153,6 +153,7 @@ class Settings(val config: Config) {
   val bufferAccessPoint = config.getDouble("power.buffer.accessPoint") max 0
   val bufferDrone = config.getDouble("power.buffer.drone") max 0
   val bufferMicrocontroller = config.getDouble("power.buffer.mcu") max 0
+  val bufferHoverBoots = config.getDouble("power.buffer.hoverBoots") max 1
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
@@ -187,6 +188,9 @@ class Settings(val config: Config) {
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
   val eepromWriteCost = config.getDouble("power.cost.eepromWrite") max 0
   val printCost = config.getDouble("power.cost.printerModel") max 0
+  val hoverBootJump = config.getDouble("power.cost.hoverBootJump") max 0
+  val hoverBootAbsorb = config.getDouble("power.cost.hoverBootAbsorb") max 0
+  val hoverBootMove = config.getDouble("power.cost.hoverBootMove") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0

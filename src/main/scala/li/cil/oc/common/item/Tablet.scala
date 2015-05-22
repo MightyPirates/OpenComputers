@@ -54,7 +54,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Tablet(val parent: Delegator) extends Delegate with CustomModel with Chargeable {
+class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel with Chargeable {
   final val TimeToAnalyze = 10
 
   // Must be assembled to be usable so we hide it in the item list.
@@ -124,6 +124,8 @@ class Tablet(val parent: Delegator) extends Delegate with CustomModel with Charg
   def canCharge(stack: ItemStack): Boolean = true
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
+    if (amount < 0) amount
+    else {
     val data = new TabletData(stack)
     val charge = math.min(data.maxEnergy - data.energy, amount)
     if (!simulate) {
@@ -131,6 +133,7 @@ class Tablet(val parent: Delegator) extends Delegate with CustomModel with Charg
       data.save(stack)
     }
     amount - charge
+  }
   }
 
   // ----------------------------------------------------------------------- //

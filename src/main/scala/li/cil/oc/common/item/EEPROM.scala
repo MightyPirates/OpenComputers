@@ -3,7 +3,7 @@ package li.cil.oc.common.item
 import li.cil.oc.Settings
 import net.minecraft.item.ItemStack
 
-class EEPROM(val parent: Delegator) extends Delegate {
+class EEPROM(val parent: Delegator) extends traits.Delegate {
   override def displayName(stack: ItemStack): Option[String] = {
     if (stack.hasTagCompound) {
       val tag = stack.getTagCompound

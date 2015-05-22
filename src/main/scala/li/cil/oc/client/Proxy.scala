@@ -12,7 +12,7 @@ import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.item.Delegate
+import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{Proxy => CommonProxy}

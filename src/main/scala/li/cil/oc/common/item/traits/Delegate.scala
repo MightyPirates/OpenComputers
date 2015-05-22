@@ -1,4 +1,4 @@
-package li.cil.oc.common.item
+package li.cil.oc.common.item.traits
 
 import java.util
 
@@ -6,6 +6,7 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.KeyBindings
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.Rarity
