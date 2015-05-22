@@ -39,7 +39,7 @@ object EventHandlerRedstoneFlux {
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
     stack.getItem match {
-      case item: IEnergyContainerItem => amount - item.receiveEnergy(stack, (amount * Settings.get.ratioRedstoneFlux).toInt, simulate) / Settings.get.ratioRedstoneFlux
+      case item: IEnergyContainerItem => amount - item.receiveEnergy(stack, (amount / Settings.get.ratioRedstoneFlux).toInt, simulate) * Settings.get.ratioRedstoneFlux
       case _ => amount
     }
   }
