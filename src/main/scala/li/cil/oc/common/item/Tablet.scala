@@ -126,13 +126,16 @@ class Tablet(val parent: Delegator) extends Delegate with Chargeable {
   def canCharge(stack: ItemStack): Boolean = true
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
-    val data = new TabletData(stack)
-    val charge = math.min(data.maxEnergy - data.energy, amount)
-    if (!simulate) {
-      data.energy += charge
-      data.save(stack)
+    if (amount < 0) amount
+    else {
+      val data = new TabletData(stack)
+      val charge = math.min(data.maxEnergy - data.energy, amount)
+      if (!simulate) {
+        data.energy += charge
+        data.save(stack)
+      }
+      amount - charge
     }
-    amount - charge
   }
 
   // ----------------------------------------------------------------------- //

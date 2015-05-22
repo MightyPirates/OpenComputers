@@ -19,9 +19,9 @@ import net.minecraft.util.WeightedRandomChestContent
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
 
-class SimpleItem extends Item {
+trait SimpleItem extends Item {
   setCreativeTab(CreativeTab)
-  iconString = Settings.resourceDomain + ":" + getClass.getSimpleName
+  setTextureName(Settings.resourceDomain + ":" + getClass.getSimpleName)
 
   def createItemStack(amount: Int = 1) = new ItemStack(this, amount)
 

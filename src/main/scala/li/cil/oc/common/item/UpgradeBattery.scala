@@ -31,11 +31,14 @@ class UpgradeBattery(val parent: Delegator, val tier: Int) extends Delegate with
       case Some(value) => value
       case _ => 0.0
     }
-    val charge = math.min(amount, Settings.get.bufferCapacitorUpgrades(tier).toInt - buffer)
-    if (!simulate) {
-      data.buffer = Option(buffer + charge)
-      data.save(stack)
+    if (amount < 0) amount // TODO support discharging
+    else {
+      val charge = math.min(amount, Settings.get.bufferCapacitorUpgrades(tier).toInt - buffer)
+      if (!simulate) {
+        data.buffer = Option(buffer + charge)
+        data.save(stack)
+      }
+      amount - charge
     }
-    amount - charge
   }
 }

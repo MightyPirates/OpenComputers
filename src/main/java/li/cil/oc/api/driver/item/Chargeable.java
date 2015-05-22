@@ -24,11 +24,13 @@ public interface Chargeable {
 
     /**
      * Called when checking if an item can be charged or should be charged.
+     * <p/>
+     * To discharge an item, pass a negative value.
      *
      * @param stack    the item to charge.
      * @param amount   the amount to inject into the item.
      * @param simulate whether to only simulate injection.
-     * @return the remainder of the energy that could not be injected.
+     * @return the remainder of the energy that could not be injected/extracted.
      */
     double charge(ItemStack stack, double amount, boolean simulate);
 }
