@@ -4,7 +4,6 @@ import java.util
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -14,7 +13,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Manual(val parent: Delegator) extends Delegate {
+class Manual(val parent: Delegator) extends traits.Delegate {
   @SideOnly(Side.CLIENT)
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     tooltip.add(EnumChatFormatting.DARK_GRAY.toString + "v" + OpenComputers.Version)

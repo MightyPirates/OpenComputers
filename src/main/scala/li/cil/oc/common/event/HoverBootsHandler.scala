@@ -17,13 +17,15 @@ object HoverBootsHandler {
       val hadHoverBoots = nbt.getBoolean(Settings.namespace + "hasHoverBoots")
       val hasHoverBoots = !player.isSneaking && equippedArmor(player).exists(stack => stack.getItem match {
         case boots: HoverBoots =>
-          if (player.onGround && player.worldObj.getTotalWorldTime % 20 == 0) {
-            val velocity = player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ
-            if (velocity > 0.015f) {
-              boots.charge(stack, -Settings.get.hoverBootMove, simulate = false)
+          Settings.get.ignorePower || {
+            if (player.onGround && !player.capabilities.isCreativeMode && player.worldObj.getTotalWorldTime % 20 == 0) {
+              val velocity = player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ
+              if (velocity > 0.015f) {
+                boots.charge(stack, -Settings.get.hoverBootMove, simulate = false)
+              }
             }
+            boots.getCharge(stack) > 0
           }
-          boots.getCharge(stack) > 0
         case _ => false
       })
       if (hasHoverBoots != hadHoverBoots) {
@@ -43,8 +45,9 @@ object HoverBootsHandler {
         case stack if stack.getItem.isInstanceOf[HoverBoots] =>
           val boots = stack.getItem.asInstanceOf[HoverBoots]
           val hoverJumpCost = -Settings.get.hoverBootJump
-          if (boots.charge(stack, hoverJumpCost, simulate = true) == 0) {
-            boots.charge(stack, hoverJumpCost, simulate = false)
+          val isCreative = Settings.get.ignorePower || player.capabilities.isCreativeMode
+          if (isCreative || boots.charge(stack, hoverJumpCost, simulate = true) == 0) {
+            if (!isCreative) boots.charge(stack, hoverJumpCost, simulate = false)
             if (player.isSprinting)
               player.addVelocity(player.motionX * 0.5, 0.4, player.motionZ * 0.5)
             else
@@ -61,8 +64,9 @@ object HoverBootsHandler {
         case stack if stack.getItem.isInstanceOf[HoverBoots] =>
           val boots = stack.getItem.asInstanceOf[HoverBoots]
           val hoverFallCost = -Settings.get.hoverBootAbsorb
-          if (boots.charge(stack, hoverFallCost, simulate = true) == 0) {
-            boots.charge(stack, hoverFallCost, simulate = false)
+          val isCreative = Settings.get.ignorePower || player.capabilities.isCreativeMode
+          if (isCreative || boots.charge(stack, hoverFallCost, simulate = true) == 0) {
+            if (!isCreative) boots.charge(stack, hoverFallCost, simulate = false)
             e.distance *= 0.3f
           }
       }
