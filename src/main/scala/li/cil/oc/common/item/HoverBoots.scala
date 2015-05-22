@@ -1,5 +1,7 @@
 package li.cil.oc.common.item
 
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.item.HoverBootRenderer
 import li.cil.oc.common.item.data.HoverBootsData
@@ -48,13 +50,15 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     }
   }
 
+  @SideOnly(Side.CLIENT)
   override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: Int): ModelBiped = {
     if (armorSlot == armorType) HoverBootRenderer
     else super.getArmorModel(entityLiving, itemStack, armorSlot)
   }
 
   override def getArmorTexture(stack: ItemStack, entity: Entity, slot: Int, subType: String): String = {
-    HoverBootRenderer.texture.toString
+    if (entity.worldObj.isRemote) HoverBootRenderer.texture.toString
+    else null
   }
 
   override def getDisplayDamage(stack: ItemStack): Int = {
