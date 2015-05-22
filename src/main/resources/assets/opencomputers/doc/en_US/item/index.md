@@ -83,3 +83,6 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Drone Case](droneCase1.md)
 * [Microcontroller Case](microcontrollerCase1.md)
 * [Tablet Case](tabletCase1.md)
+
+## Other
+* [Hover Boots](hoverBoots.md)

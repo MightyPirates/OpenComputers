@@ -18,6 +18,7 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
@@ -307,6 +308,16 @@ object Items extends ItemAPI {
     stack
   }
 
+  def createChargedHoverBoots() = {
+    val data = new HoverBootsData()
+    data.charge = Settings.get.bufferHoverBoots
+
+    val stack = get(Constants.ItemName.HoverBoots).createItemStack(1)
+    data.save(stack)
+
+    stack
+  }
+
   // ----------------------------------------------------------------------- //
   // Crafting
 
@@ -316,7 +327,8 @@ object Items extends ItemAPI {
         createConfiguredDrone(),
         createConfiguredMicrocontroller(),
         createConfiguredRobot(),
-        createConfiguredTablet()
+        createConfiguredTablet(),
+        createChargedHoverBoots()
       ) ++ Loot.disksForClient ++ registeredItems
 
       override def getSubItems(item: Item, tab: CreativeTabs, list: java.util.List[_]) {
@@ -517,5 +529,8 @@ object Items extends ItemAPI {
     // 1.5.10
     Recipes.addSubItem(new item.APU(multi, Tier.One), Constants.ItemName.APUTier1, "oc:apu1")
     Recipes.addSubItem(new item.APU(multi, Tier.Two), Constants.ItemName.APUTier2, "oc:apu2")
+
+    // 1.5.11
+    Recipes.addItem(new item.HoverBoots(), Constants.ItemName.HoverBoots, "oc:hoverBoots")
   }
 }
