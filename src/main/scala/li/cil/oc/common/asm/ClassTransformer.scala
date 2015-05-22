@@ -357,7 +357,7 @@ class ClassTransformer extends IClassTransformer {
     }
   }
 
-  @tailrec final def isAssignable(parent: ClassNode, child: ClassNode): Boolean = !isFinal(parent) && {
+  @tailrec final def isAssignable(parent: ClassNode, child: ClassNode): Boolean = parent != null && child != null && !isFinal(parent) && {
     parent.name == "java/lang/Object" ||
       parent.name == child.name ||
       parent.name == child.superName ||
@@ -367,7 +367,7 @@ class ClassTransformer extends IClassTransformer {
 
   def isFinal(node: ClassNode): Boolean = (node.access & Opcodes.ACC_FINAL) != 0
 
-  def isInterface(node: ClassNode): Boolean = (node.access & Opcodes.ACC_INTERFACE) != 0
+  def isInterface(node: ClassNode): Boolean = node != null && (node.access & Opcodes.ACC_INTERFACE) != 0
 
   def classNodeFor(name: String) = {
     val namePlain = name.replace('/', '.')
@@ -397,7 +397,7 @@ class ClassTransformer extends IClassTransformer {
         else if (isAssignable(node2, node1)) node2.name
         else if (isInterface(node1) || isInterface(node2)) "java/lang/Object"
         else {
-          var parent = Option(node1.superName).map(classNodeFor).orNull
+          var parent = Option(node1).map(_.superName).map(classNodeFor).orNull
           while (parent != null && parent.superName != null && !isAssignable(parent, node2)) {
             parent = classNodeFor(parent.superName)
           }
