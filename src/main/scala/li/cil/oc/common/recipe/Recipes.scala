@@ -11,8 +11,9 @@ import li.cil.oc.common.Loot
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.data.PrintData
+import li.cil.oc.common.item.traits.Delegate
+import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
@@ -51,7 +52,7 @@ object Recipes {
     instance
   }
 
-  def addSubItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String*) = {
+  def addSubItem[T <: Delegate](delegate: T, name: String, oreDict: String*) = {
     Items.registerItem(delegate, name)
     addRecipe(delegate.createItemStack(), name)
     register(delegate.createItemStack(), oreDict: _*)

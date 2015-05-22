@@ -10,7 +10,7 @@ import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemArmor
 import net.minecraft.item.ItemStack
 
-class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with SimpleItem with traits.Chargeable {
+class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with traits.SimpleItem with traits.Chargeable {
   setNoRepair()
 
   override def getRarity(stack: ItemStack): EnumRarity = EnumRarity.uncommon

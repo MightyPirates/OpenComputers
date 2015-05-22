@@ -5,7 +5,7 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.common.item.data.NodeData
 import net.minecraft.item.ItemStack
 
-class UpgradeBattery(val parent: Delegator, val tier: Int) extends Delegate with traits.ItemTier with Chargeable {
+class UpgradeBattery(val parent: Delegator, val tier: Int) extends traits.Delegate with traits.ItemTier with Chargeable {
   override val unlocalizedName = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)

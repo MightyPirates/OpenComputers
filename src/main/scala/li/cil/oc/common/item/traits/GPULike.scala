@@ -1,7 +1,6 @@
 package li.cil.oc.common.item.traits
 
 import li.cil.oc.Settings
-import li.cil.oc.common.item.Delegate
 import li.cil.oc.util.PackedColor
 
 trait GPULike extends Delegate {

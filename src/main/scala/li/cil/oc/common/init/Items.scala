@@ -15,13 +15,14 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.SimpleItem
 import li.cil.oc.common.item.UpgradeLeash
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
+import li.cil.oc.common.item.traits.Delegate
+import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
@@ -70,7 +71,7 @@ object Items extends ItemAPI {
     instance
   }
 
-  def registerItem[T <: common.item.Delegate](delegate: T, id: String) = {
+  def registerItem[T <: Delegate](delegate: T, id: String) = {
     descriptors += id -> new ItemInfo {
       override def name = id
 

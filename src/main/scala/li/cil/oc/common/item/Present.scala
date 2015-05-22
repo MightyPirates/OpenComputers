@@ -13,7 +13,7 @@ import net.minecraft.world.World
 
 import scala.collection.mutable
 
-class Present(val parent: Delegator) extends Delegate {
+class Present(val parent: Delegator) extends traits.Delegate {
   showInItemList = false
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {

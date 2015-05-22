@@ -1,4 +1,4 @@
-package li.cil.oc.common.item
+package li.cil.oc.common.item.traits
 
 import java.util
 import java.util.Random

@@ -9,7 +9,7 @@ import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-class FloppyDisk(val parent: Delegator) extends Delegate {
+class FloppyDisk(val parent: Delegator) extends traits.Delegate {
   // Necessary for anonymous subclasses used for loot disks.
   override def unlocalizedName = "FloppyDisk"
 

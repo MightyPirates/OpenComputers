@@ -55,15 +55,15 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => maxStackSize
     }
 
-  val subItems = mutable.ArrayBuffer.empty[Delegate]
+  val subItems = mutable.ArrayBuffer.empty[traits.Delegate]
 
-  def add(subItem: Delegate) = {
+  def add(subItem: traits.Delegate) = {
     val itemId = subItems.length
     subItems += subItem
     itemId
   }
 
-  def subItem(stack: ItemStack): Option[Delegate] =
+  def subItem(stack: ItemStack): Option[traits.Delegate] =
     if (stack != null) subItem(stack.getItemDamage) match {
       case Some(subItem) if stack.getItem == this => Some(subItem)
       case _ => None

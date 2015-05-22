@@ -52,7 +52,7 @@ import net.minecraftforge.event.world.WorldEvent
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Tablet(val parent: Delegator) extends Delegate with Chargeable {
+class Tablet(val parent: Delegator) extends traits.Delegate with Chargeable {
   final val TimeToAnalyze = 10
 
   // Must be assembled to be usable so we hide it in the item list.
