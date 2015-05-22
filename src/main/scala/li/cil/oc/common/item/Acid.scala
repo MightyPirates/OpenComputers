@@ -1,3 +1,3 @@
 package li.cil.oc.common.item
 
-class Acid(val parent: Delegator) extends Delegate
+class Acid(val parent: Delegator) extends traits.Delegate

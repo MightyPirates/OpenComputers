@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumChatFormatting
 import net.minecraft.world.World
 
-class Manual(val parent: Delegator) extends Delegate {
+class Manual(val parent: Delegator) extends traits.Delegate {
   @SideOnly(Side.CLIENT)
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     tooltip.add(EnumChatFormatting.DARK_GRAY.toString + "v" + OpenComputers.Version)

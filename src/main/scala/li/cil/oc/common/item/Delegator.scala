@@ -55,15 +55,15 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
       case _ => maxStackSize
     }
 
-  val subItems = mutable.ArrayBuffer.empty[Delegate]
+  val subItems = mutable.ArrayBuffer.empty[traits.Delegate]
 
-  def add(subItem: Delegate) = {
+  def add(subItem: traits.Delegate) = {
     val itemId = subItems.length
     subItems += subItem
     itemId
   }
 
-  def subItem(stack: ItemStack): Option[Delegate] =
+  def subItem(stack: ItemStack): Option[traits.Delegate] =
     if (stack != null) subItem(stack.getItemDamage) match {
       case Some(subItem) if stack.getItem == this => Some(subItem)
       case _ => None
@@ -79,7 +79,7 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
   override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[_]) {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-    (0 until subItems.length).filter(subItems(_).showInItemList).
+    subItems.indices.filter(subItems(_).showInItemList).
       map(subItems(_).createItemStack()).
       sortBy(_.getUnlocalizedName).
       foreach(add(list, _))

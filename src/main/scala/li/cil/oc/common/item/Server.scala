@@ -16,7 +16,7 @@ import net.minecraft.world.World
 
 import scala.collection.mutable
 
-class Server(val parent: Delegator, val tier: Int) extends Delegate {
+class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
   override val unlocalizedName = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)

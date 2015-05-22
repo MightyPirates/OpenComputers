@@ -18,7 +18,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
-class Terminal(val parent: Delegator) extends Delegate {
+class Terminal(val parent: Delegator) extends traits.Delegate {
   override def maxStackSize = 1
 
   private var iconOn: Option[Icon] = None

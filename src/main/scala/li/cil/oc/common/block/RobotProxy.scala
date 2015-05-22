@@ -213,7 +213,7 @@ class RobotProxy extends RedstoneAware with traits.SpecialBlock with traits.Stat
     else if (player.getCurrentEquippedItem == null) {
       if (!world.isRemote) {
         world.getTileEntity(x, y, z) match {
-          case proxy: tileentity.RobotProxy if !proxy.machine.isRunning => proxy.machine.start()
+          case proxy: tileentity.RobotProxy if !proxy.machine.isRunning && proxy.isUseableByPlayer(player) => proxy.machine.start()
           case _ =>
         }
       }

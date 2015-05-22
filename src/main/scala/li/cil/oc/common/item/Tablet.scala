@@ -52,7 +52,7 @@ import net.minecraftforge.event.world.WorldEvent
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Tablet(val parent: Delegator) extends Delegate with Chargeable {
+class Tablet(val parent: Delegator) extends traits.Delegate with Chargeable {
   final val TimeToAnalyze = 10
 
   // Must be assembled to be usable so we hide it in the item list.
@@ -126,13 +126,16 @@ class Tablet(val parent: Delegator) extends Delegate with Chargeable {
   def canCharge(stack: ItemStack): Boolean = true
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
-    val data = new TabletData(stack)
-    val charge = math.min(data.maxEnergy - data.energy, amount)
-    if (!simulate) {
-      data.energy += charge
-      data.save(stack)
+    if (amount < 0) amount
+    else {
+      val data = new TabletData(stack)
+      val charge = math.min(data.maxEnergy - data.energy, amount)
+      if (!simulate) {
+        data.energy += charge
+        data.save(stack)
+      }
+      amount - charge
     }
-    amount - charge
   }
 
   // ----------------------------------------------------------------------- //

@@ -52,6 +52,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Upgrade Container](upgradeContainer1.md)
 
 ### Other
+* [APU](apu1.md)
 * [Component Bus](componentBus1.md)
 * [CPU](cpu1.md)
 * [EEPROM](eeprom.md)
@@ -82,3 +83,6 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Drone Case](droneCase1.md)
 * [Microcontroller Case](microcontrollerCase1.md)
 * [Tablet Case](tabletCase1.md)
+
+## Other
+* [Hover Boots](hoverBoots.md)
