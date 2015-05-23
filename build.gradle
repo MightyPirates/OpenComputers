@@ -104,6 +104,10 @@ repositories {
         url = "http://mobiusstrip.eu/maven"
     }
     maven {
+        name = "builtbroken"
+        url = "http://ci.builtbroken.com/maven/"
+    }
+    maven {
         name = "ue"
         url = "http://calclavia.com/maven/"
     }
@@ -185,6 +189,7 @@ dependencies {
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
+    provided "notenoughkeys:NeK:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
 
@@ -228,6 +233,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/igw/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
+            exclude 'li/cil/oc/integration/nek/**'
             exclude 'li/cil/oc/integration/projectred/**'
             exclude 'li/cil/oc/integration/railcraft/**'
             exclude 'li/cil/oc/integration/redlogic/**'

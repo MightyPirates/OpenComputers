@@ -59,7 +59,7 @@ class Item(value: Block) extends ItemBlock(value) {
         else {
           lines.add(StatCollector.translateToLocalFormatted(
             Settings.namespace + "tooltip.MaterialCosts",
-            KeyBindings.getKeybindName(KeyBindings.materialCosts)))
+            KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
         }
       case _ =>
     }
