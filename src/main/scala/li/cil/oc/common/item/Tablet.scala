@@ -41,10 +41,13 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
@@ -458,6 +461,14 @@ object Tablet {
   @SubscribeEvent
   def onClientTick(e: ClientTickEvent) {
     Client.cleanUp()
+    MinecraftServer.getServer match {
+      case integrated: IntegratedServer if Minecraft.getMinecraft.isGamePaused =>
+        // While the game is paused, manually keep all tablets alive, to avoid
+        // them being cleared from the cache, causing them to stop.
+        Client.keepAlive()
+        Server.keepAlive()
+      case _ => // Never mind!
+    }
   }
 
   @SubscribeEvent
@@ -529,6 +540,11 @@ object Tablet {
 
     def cleanUp() {
       cache.synchronized(cache.cleanUp())
+    }
+
+    def keepAlive() = {
+      // Just touching to update last access time.
+      cache.getAllPresent(asJavaIterable(cache.asMap.keys))
     }
   }
 
