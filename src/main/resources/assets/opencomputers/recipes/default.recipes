@@ -7,7 +7,7 @@ analyzer {
           ["oc:materialCircuitBoardPrinted", nuggetGold, ""]]
 }
 hoverBoots {
-  input: [[nuggetIron, "oc:hoverUpgrade1", nuggetIron]
+  input: [[nuggetIron, "oc:hoverUpgrade2", nuggetIron]
           [leather, "oc:droneCase1", leather]
           [nuggetIron, "oc:capacitor", nuggetIron]]
 }
