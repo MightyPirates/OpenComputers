@@ -50,6 +50,7 @@ object Mods {
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
   val Mystcraft = new SimpleMod(IDs.Mystcraft)
   val NotEnoughItems = new SimpleMod(IDs.NotEnoughItems)
+  val NotEnoughKeys = new SimpleMod(IDs.NotEnoughKeys)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val PortalGun = new SimpleMod(IDs.PortalGun)
   val ProjectRedCore = new SimpleMod(IDs.ProjectRedCore)
@@ -97,6 +98,7 @@ object Mods {
     integration.ic2.ModIndustrialCraft2,
     integration.mfr.ModMineFactoryReloaded,
     integration.mystcraft.ModMystcraft,
+    integration.nek.ModNotEnoughKeys,
     integration.projectred.ModProjectRed,
     integration.railcraft.ModRailcraft,
     integration.redlogic.ModRedLogic,
@@ -177,6 +179,7 @@ object Mods {
     final val MineFactoryReloaded = "MineFactoryReloaded"
     final val Mystcraft = "Mystcraft"
     final val NotEnoughItems = "NotEnoughItems"
+    final val NotEnoughKeys = "notenoughkeys"
     final val OpenComputers = "OpenComputers"
     final val PortalGun = "PortalGun"
     final val ProjectRedCore = "ProjRed|Core"

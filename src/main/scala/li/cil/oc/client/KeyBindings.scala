@@ -2,28 +2,35 @@ package li.cil.oc.client
 
 import cpw.mods.fml.client.FMLClientHandler
 import li.cil.oc.OpenComputers
+import net.minecraft.client.settings.GameSettings
 import net.minecraft.client.settings.KeyBinding
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
 
+import scala.collection.mutable
+
 object KeyBindings {
-  def showExtendedTooltips = isKeybindPressed(extendedTooltip)
+  val keyBindingChecks = mutable.ArrayBuffer(isKeyBindingPressedVanilla _)
 
-  def showMaterialCosts = isKeybindPressed(materialCosts)
+  val keyBindingNameGetters = mutable.ArrayBuffer(getKeyBindingNameVanilla _)
 
-  def isPastingClipboard = isKeybindPressed(clipboardPaste)
+  def showExtendedTooltips = isKeyBindingPressed(extendedTooltip)
 
-  def getKeybindName(keyBinding: KeyBinding) = try {
-    if (keyBinding.getKeyCode < 0)
-      Mouse.getButtonName(keyBinding.getKeyCode + 100)
-    else
-      Keyboard.getKeyName(keyBinding.getKeyCode)
+  def showMaterialCosts = isKeyBindingPressed(materialCosts)
+
+  def isPastingClipboard = isKeyBindingPressed(clipboardPaste)
+
+  def getKeyBindingName(keyBinding: KeyBinding) = keyBindingNameGetters.map(_(keyBinding)).collectFirst {
+    case Some(name) => name
+  }.getOrElse("???")
+
+  def isKeyBindingPressed(keyBinding: KeyBinding) = keyBindingChecks.forall(_(keyBinding))
+
+  def getKeyBindingNameVanilla(keyBinding: KeyBinding) = try Some(GameSettings.getKeyDisplayString(keyBinding.getKeyCode)) catch {
+    case _: Throwable => None
   }
-  catch {
-    case _: Throwable => "???"
-  }
 
-  def isKeybindPressed(keyBinding: KeyBinding) = try {
+  def isKeyBindingPressedVanilla(keyBinding: KeyBinding) = try {
     if (keyBinding.getKeyCode < 0)
       Mouse.isCreated && Mouse.isButtonDown(keyBinding.getKeyCode + 100)
     else

@@ -7,7 +7,7 @@ analyzer {
           ["oc:materialCircuitBoardPrinted", nuggetGold, ""]]
 }
 hoverBoots {
-  input: [[nuggetIron, "oc:hoverUpgrade1", nuggetIron]
+  input: [[nuggetIron, "oc:hoverUpgrade2", nuggetIron]
           [leather, "oc:droneCase1", leather]
           [nuggetIron, "oc:capacitor", nuggetIron]]
 }
@@ -253,9 +253,9 @@ hoverUpgrade1 {
           [feather, "oc:materialCircuitBoardPrinted", feather]]
 }
 hoverUpgrade2 {
-  input: [[end_stone, "oc:circuitChip2", end_stone]
+  input: [["oc:stoneEndstone", "oc:circuitChip2", "oc:stoneEndstone"]
           [nuggetGold, ingotIron, nuggetGold]
-          [end_stone, "oc:materialCircuitBoardPrinted", end_stone]]
+          ["oc:stoneEndstone", "oc:materialCircuitBoardPrinted", "oc:stoneEndstone"]]
 }
 inventoryUpgrade {
   input: [[plankWood, hopper, plankWood]

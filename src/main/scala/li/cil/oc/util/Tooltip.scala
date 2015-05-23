@@ -21,7 +21,7 @@ object Tooltip {
     val shouldShorten = (isSubTooltip || font.getStringWidth(tooltip) > maxWidth) && !KeyBindings.showExtendedTooltips
     if (shouldShorten) {
       if (isSubTooltip) Seq.empty[String]
-      else Seq(Localization.localizeImmediately("tooltip.TooLong", KeyBindings.getKeybindName(KeyBindings.extendedTooltip)))
+      else Seq(Localization.localizeImmediately("tooltip.TooLong", KeyBindings.getKeyBindingName(KeyBindings.extendedTooltip)))
     }
     else tooltip.
       lines.
