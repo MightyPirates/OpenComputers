@@ -36,12 +36,15 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.RotationHelper
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.event.world.WorldEvent
@@ -126,14 +129,14 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
     if (amount < 0) amount
     else {
-    val data = new TabletData(stack)
-    val charge = math.min(data.maxEnergy - data.energy, amount)
-    if (!simulate) {
-      data.energy += charge
-      data.save(stack)
+      val data = new TabletData(stack)
+      val charge = math.min(data.maxEnergy - data.energy, amount)
+      if (!simulate) {
+        data.energy += charge
+        data.save(stack)
+      }
+      amount - charge
     }
-    amount - charge
-  }
   }
 
   // ----------------------------------------------------------------------- //
@@ -456,6 +459,14 @@ object Tablet {
   @SubscribeEvent
   def onClientTick(e: ClientTickEvent) {
     Client.cleanUp()
+    MinecraftServer.getServer match {
+      case integrated: IntegratedServer if Minecraft.getMinecraft.isGamePaused =>
+        // While the game is paused, manually keep all tablets alive, to avoid
+        // them being cleared from the cache, causing them to stop.
+        Client.keepAlive()
+        Server.keepAlive()
+      case _ => // Never mind!
+    }
   }
 
   @SubscribeEvent
@@ -527,6 +538,11 @@ object Tablet {
 
     def cleanUp() {
       cache.synchronized(cache.cleanUp())
+    }
+
+    def keepAlive() = {
+      // Just touching to update last access time.
+      cache.getAllPresent(asJavaIterable(cache.asMap.keys))
     }
   }
 

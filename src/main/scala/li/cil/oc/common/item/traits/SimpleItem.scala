@@ -49,7 +49,7 @@ trait SimpleItem extends Item {
       else {
         tt.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
-          KeyBindings.getKeybindName(KeyBindings.materialCosts)))
+          KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
       }
     }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
