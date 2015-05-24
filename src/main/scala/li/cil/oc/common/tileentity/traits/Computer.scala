@@ -16,6 +16,7 @@ import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
 import li.cil.oc.integration.util.Waila
+import li.cil.oc.server.agent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -194,7 +195,10 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    super.isUseableByPlayer(player) && canInteract(player.getCommandSenderName)
+    super.isUseableByPlayer(player) && (player match {
+      case fakePlayer: agent.Player => canInteract(fakePlayer.agent.ownerName())
+      case _ => canInteract(player.getCommandSenderName)
+    })
 
   override protected def onRotationChanged() {
     super.onRotationChanged()
