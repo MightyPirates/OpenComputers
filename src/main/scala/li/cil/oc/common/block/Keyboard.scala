@@ -2,9 +2,12 @@ package li.cil.oc.common.block
 
 import java.util.Random
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedEnumFacing._
+import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.IBlockState
@@ -87,10 +90,12 @@ class Keyboard extends SimpleBlock(Material.rock) with traits.OmniRotatable {
 
   override def onNeighborBlockChange(world: World, pos: BlockPos, state: IBlockState, neighborBlock: Block) =
     world.getTileEntity(pos) match {
-      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, pos, keyboard.facing) => // Can stay.
+      case keyboard: tileentity.Keyboard =>
+        if (!canPlaceBlockOnSide(world, pos, keyboard.facing)) {
+          world.setBlockToAir(pos)
+          InventoryUtils.spawnStackInWorld(BlockPosition(pos, world), api.Items.get(Constants.BlockName.Keyboard).createItemStack(1))
+        }
       case _ =>
-        dropBlockAsItem(world, pos, world.getBlockState(pos), 0)
-        world.setBlockToAir(pos)
     }
 
   override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
