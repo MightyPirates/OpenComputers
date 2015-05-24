@@ -14,12 +14,14 @@ import net.minecraft.item.ItemStack
 object DriverAPU extends DriverCPU with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.APUTier1),
-    api.Items.get(Constants.ItemName.APUTier2))
+    api.Items.get(Constants.ItemName.APUTier2),
+    api.Items.get(Constants.ItemName.APUCreative))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     gpuTier(stack) match {
       case Tier.One => new component.GraphicsCard.Tier1()
       case Tier.Two => new component.GraphicsCard.Tier2()
+      case Tier.Three => new component.GraphicsCard.Tier3()
       case _ => null
     }
 
