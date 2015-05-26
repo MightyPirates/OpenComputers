@@ -833,7 +833,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
 
   private def close() = state.synchronized(
-    if (state.size == 0 || state.top != Machine.State.Stopped) {
+    if (state.isEmpty || state.top != Machine.State.Stopped) {
       this.synchronized {
         state.clear()
         state.push(Machine.State.Stopped)
