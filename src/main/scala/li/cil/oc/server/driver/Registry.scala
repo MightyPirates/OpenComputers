@@ -113,7 +113,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       memo.get(valueRef)
     }
     else valueRef match {
-      case null | None => null
+      case null | Unit | None => null
 
       case arg: java.lang.Boolean => arg
       case arg: java.lang.Byte => arg
