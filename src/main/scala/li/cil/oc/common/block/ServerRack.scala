@@ -19,7 +19,7 @@ import scala.collection.mutable.ArrayBuffer
 class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rotatable with traits.StateAware with traits.GUI {
   @SideOnly(Side.CLIENT)
   override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {
-    world.getTileEntity(pos) match {
+    if (pos.getY >= 0 && pos.getY < 256) world.getTileEntity(pos) match {
       case rack: tileentity.ServerRack =>
         def brightness(pos: BlockPos) = world.getCombinedLight(pos, getLightValue(world, pos))
         val value = brightness(pos.offset(rack.facing))
@@ -28,6 +28,7 @@ class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rot
         ((skyBrightness * 3 / 4) << 20) | ((blockBrightness * 3 / 4) << 4)
       case _ => super.getMixedBrightnessForBlock(world, pos)
     }
+    else super.getMixedBrightnessForBlock(world, pos)
   }
 
   override def isOpaqueCube = false
