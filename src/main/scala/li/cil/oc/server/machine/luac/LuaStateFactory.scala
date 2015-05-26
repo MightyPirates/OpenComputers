@@ -1,4 +1,4 @@
-package li.cil.oc.util
+package li.cil.oc.server.machine.luac
 
 import java.io.File
 import java.io.FileInputStream
@@ -13,11 +13,55 @@ import li.cil.oc.Settings
 import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.repack.com.naef.jnlua
-import li.cil.repack.com.naef.jnlua.LuaState
 import li.cil.repack.com.naef.jnlua.NativeSupport.Loader
 import org.apache.commons.lang3.SystemUtils
 
 import scala.util.Random
+
+object LuaStateFactory {
+  def isAvailable = {
+    // Force initialization of both.
+    val lua52 = Lua52.isAvailable
+    val lua53 = Lua53.isAvailable
+    lua52 || lua53
+  }
+
+  object Lua52 extends LuaStateFactory {
+    override def version: String = "lua52"
+
+    override protected def create(maxMemory: Option[Int]) = maxMemory.fold(new jnlua.LuaState())(new jnlua.LuaState(_))
+
+    override protected def openLibs(state: jnlua.LuaState): Unit = {
+      state.openLib(jnlua.LuaState.Library.BASE)
+      state.openLib(jnlua.LuaState.Library.BIT32)
+      state.openLib(jnlua.LuaState.Library.COROUTINE)
+      state.openLib(jnlua.LuaState.Library.DEBUG)
+      state.openLib(jnlua.LuaState.Library.ERIS)
+      state.openLib(jnlua.LuaState.Library.MATH)
+      state.openLib(jnlua.LuaState.Library.STRING)
+      state.openLib(jnlua.LuaState.Library.TABLE)
+      state.pop(8)
+    }
+  }
+
+  object Lua53 extends LuaStateFactory {
+    override def version: String = "lua53"
+
+    override protected def create(maxMemory: Option[Int]) = maxMemory.fold(new jnlua.LuaStateFiveThree())(new jnlua.LuaStateFiveThree(_))
+
+    override protected def openLibs(state: jnlua.LuaState): Unit = {
+      state.openLib(jnlua.LuaState.Library.BASE)
+      state.openLib(jnlua.LuaState.Library.COROUTINE)
+      state.openLib(jnlua.LuaState.Library.DEBUG)
+      state.openLib(jnlua.LuaState.Library.ERIS)
+      state.openLib(jnlua.LuaState.Library.MATH)
+      state.openLib(jnlua.LuaState.Library.STRING)
+      state.openLib(jnlua.LuaState.Library.TABLE)
+      state.pop(7)
+    }
+  }
+
+}
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -26,7 +70,9 @@ import scala.util.Random
  * library references once during initialization and can then re-use the
  * already loaded ones.
  */
-object LuaStateFactory {
+abstract class LuaStateFactory {
+  def version: String
+
   // ----------------------------------------------------------------------- //
   // Initialization
   // ----------------------------------------------------------------------- //
@@ -55,10 +101,6 @@ object LuaStateFactory {
     else null
   }
 
-  def isAvailable = haveNativeLibrary
-
-  val is64Bit = Architecture.IS_OS_X64
-
   // Register a custom library loader with JNLua. We have to trigger
   // library loads through JNLua to ensure the LuaState class is the
   // one loading the library and not the other way around - the native
@@ -66,11 +108,21 @@ object LuaStateFactory {
   // that way, it will fail to access native methods in its static
   // initializer, because the native lib will not have been completely
   // loaded at the time the initializer runs.
-  jnlua.NativeSupport.getInstance().setLoader(new Loader {
-    def load() {
-      System.load(currentLib)
+  private def prepareLoad(lib: String): Unit = jnlua.NativeSupport.getInstance().setLoader(new Loader {
+    def load(): Unit = {
+      System.load(lib)
     }
   })
+
+  protected def create(maxMemory: Option[Int] = None): jnlua.LuaState
+
+  protected def openLibs(state: jnlua.LuaState): Unit
+
+  // ----------------------------------------------------------------------- //
+
+  def isAvailable = haveNativeLibrary
+
+  val is64Bit = Architecture.IS_OS_X64
 
   // Since we use native libraries we have to do some work. This includes
   // figuring out what we're running on, so that we can load the proper shared
@@ -94,13 +146,13 @@ object LuaStateFactory {
       }
     }
 
-    val libraryUrl = classOf[Machine].getResource("/assets/" + Settings.resourceDomain + "/lib/" + libraryName)
+    val libraryUrl = classOf[Machine].getResource(s"/assets/${Settings.resourceDomain}/lib/$version/$libraryName")
     if (libraryUrl == null) {
-      OpenComputers.log.warn(s"Native library with name '$libraryName' not found.")
+      OpenComputers.log.warn(s"Native library with name '$version/$libraryName' not found.")
       return
     }
 
-    val tmpLibName = "OpenComputersMod-" + OpenComputers.Version + "-" + libraryName
+    val tmpLibName = s"OpenComputersMod-${OpenComputers.Version}-$version-$libraryName"
     val tmpBasePath = if (Settings.get.nativeInTmpDir) {
       val path = System.getProperty("java.io.tmpdir")
       if (path == null) ""
@@ -197,7 +249,10 @@ object LuaStateFactory {
     // Try to load the lib.
     currentLib = tmpLibFile.getAbsolutePath
     try {
-      new jnlua.LuaState().close()
+      LuaStateFactory.synchronized {
+        prepareLoad(currentLib)
+        create().close()
+      }
       OpenComputers.log.info(s"Found a compatible native library: '${tmpLibFile.getName}'.")
       haveNativeLibrary = true
     }
@@ -223,24 +278,18 @@ object LuaStateFactory {
   // Factory
   // ----------------------------------------------------------------------- //
 
-  def createState(): Option[LuaState] = {
+  def createState(): Option[jnlua.LuaState] = {
     if (!haveNativeLibrary) return None
 
     try {
-      val state =
-        if (Settings.get.limitMemory) new jnlua.LuaState(Int.MaxValue)
-        else new jnlua.LuaState()
+      val state = LuaStateFactory.synchronized {
+        prepareLoad(currentLib)
+        if (Settings.get.limitMemory) create(Some(Int.MaxValue))
+        else create()
+      }
       try {
         // Load all libraries.
-        state.openLib(jnlua.LuaState.Library.BASE)
-        state.openLib(jnlua.LuaState.Library.BIT32)
-        state.openLib(jnlua.LuaState.Library.COROUTINE)
-        state.openLib(jnlua.LuaState.Library.DEBUG)
-        state.openLib(jnlua.LuaState.Library.ERIS)
-        state.openLib(jnlua.LuaState.Library.MATH)
-        state.openLib(jnlua.LuaState.Library.STRING)
-        state.openLib(jnlua.LuaState.Library.TABLE)
-        state.pop(8)
+        openLibs(state)
 
         if (!Settings.get.disableLocaleChanging) {
           state.openLib(jnlua.LuaState.Library.OS)

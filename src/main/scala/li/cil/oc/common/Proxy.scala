@@ -13,9 +13,9 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.server._
-import li.cil.oc.server.machine.luac.NativeLuaArchitecture
+import li.cil.oc.server.machine.luac.LuaStateFactory
+import li.cil.oc.server.machine.luac.NativeLua52Architecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
-import li.cil.oc.util.LuaStateFactory
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
@@ -70,7 +70,7 @@ class Proxy {
     api.API.config = Settings.get.config
 
     api.Machine.LuaArchitecture =
-      if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
+      if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLua52Architecture]
       else classOf[LuaJLuaArchitecture]
     api.Machine.add(api.Machine.LuaArchitecture)
     if (Settings.get.registerLuaJArchitecture)

@@ -33,6 +33,8 @@ import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.integration.util.WirelessRedstone
+import li.cil.oc.server.machine.luac.LuaStateFactory
+import li.cil.oc.server.machine.luac.NativeLua53Architecture
 import li.cil.oc.server.network.Waypoints
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.Color
@@ -226,6 +228,10 @@ object ModOpenComputers extends ModProxy {
         case Some(redstone: RedstoneCard) => redstone.showInItemList = true
         case _ =>
       }
+    }
+
+    if (Settings.get.enableLua53 && LuaStateFactory.Lua53.isAvailable) {
+      api.Machine.add(classOf[NativeLua53Architecture])
     }
 
     api.Manual.addProvider(DefinitionPathProvider)

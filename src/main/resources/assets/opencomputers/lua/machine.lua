@@ -732,7 +732,7 @@ sandbox = {
   tonumber = tonumber,
   tostring = tostring,
   type = type,
-  _VERSION = "Lua 5.2",
+  _VERSION = _VERSION:match("5.3") and "Lua 5.3.0" or "Lua 5.2.4",
   xpcall = function(f, msgh, ...)
     local handled = false
     local result = table.pack(xpcall(f, function(...)
@@ -803,7 +803,11 @@ sandbox = {
     rep = string.rep,
     reverse = string.reverse,
     sub = string.sub,
-    upper = string.upper
+    upper = string.upper,
+    -- Lua 5.3.
+    pack = string.pack,
+    unpack = string.unpack,
+    packsize = string.packsize
   },
 
   table = {
@@ -812,7 +816,9 @@ sandbox = {
     pack = table.pack,
     remove = table.remove,
     sort = table.sort,
-    unpack = table.unpack
+    unpack = table.unpack,
+    -- Lua 5.3.
+    move = table.move
   },
 
   math = {
@@ -851,7 +857,8 @@ sandbox = {
     tanh = math.tanh
   },
 
-  bit32 = {
+  -- No longer available in Lua 5.3.
+  bit32 = bit32 and {
     arshift = bit32.arshift,
     band = bit32.band,
     bnot = bit32.bnot,
