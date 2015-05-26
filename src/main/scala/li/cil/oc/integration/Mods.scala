@@ -34,7 +34,7 @@ object Mods {
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
-  val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
+  val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
   val EnderIO = new SimpleMod(IDs.EnderIO)
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
