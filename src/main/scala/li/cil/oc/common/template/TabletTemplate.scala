@@ -17,7 +17,14 @@ object TabletTemplate extends Template {
   override protected val suggestedComponents = Array(
     "BIOS" -> hasComponent(Constants.ItemName.EEPROM) _,
     "Keyboard" -> hasComponent(Constants.BlockName.Keyboard) _,
-    "GraphicsCard" -> ((inventory: IInventory) => Array(Constants.ItemName.GraphicsCardTier1, Constants.ItemName.GraphicsCardTier2, Constants.ItemName.GraphicsCardTier3).exists(name => hasComponent(name)(inventory))),
+    "GraphicsCard" -> ((inventory: IInventory) => Array(
+      Constants.ItemName.APUCreative,
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
+      Constants.ItemName.GraphicsCardTier1,
+      Constants.ItemName.GraphicsCardTier2,
+      Constants.ItemName.GraphicsCardTier3).
+      exists(name => hasComponent(name)(inventory))),
     "OS" -> hasFileSystem _)
 
   override protected def hostClass = classOf[internal.Tablet]

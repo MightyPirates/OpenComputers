@@ -34,7 +34,7 @@ object Mods {
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
-  val ElectricalAge = new SimpleMod(IDs.ElectricalAge)
+  val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
   val EnderIO = new SimpleMod(IDs.EnderIO)
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
@@ -79,43 +79,43 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   val Proxies = Array(
-//    integration.appeng.ModAppEng,
-//    integration.bloodmagic.ModBloodMagic,
-//    integration.bluepower.ModBluePower,
-//    integration.buildcraft.tools.ModBuildCraftAPITools,
-//    integration.buildcraft.tiles.ModBuildCraftAPITiles,
-//    integration.buildcraft.transport.ModBuildCraftAPITransport,
-//    integration.cofh.energy.ModCoFHEnergy,
-//    integration.cofh.item.ModCoFHItem,
-//    integration.cofh.tileentity.ModCoFHTileEntity,
-//    integration.cofh.transport.ModCoFHTransport,
-//    integration.enderstorage.ModEnderStorage,
-//    integration.dsu.ModDeepStorageUnit,
-//    integration.forestry.ModForestry,
-//    integration.fmp.ModForgeMultipart,
-//    integration.gc.ModGalacticraft,
-//    integration.gregtech.ModGregtech,
-//    integration.ic2.ModIndustrialCraft2,
-//    integration.mfr.ModMineFactoryReloaded,
-//    integration.mystcraft.ModMystcraft,
-//    integration.nek.ModNotEnoughKeys,
-//    integration.projectred.ModProjectRed,
-//    integration.railcraft.ModRailcraft,
-//    integration.redlogic.ModRedLogic,
-//    integration.stargatetech2.ModStargateTech2,
-//    integration.thaumcraft.ModThaumcraft,
-//    integration.thermalexpansion.ModThermalExpansion,
-//    integration.tcon.ModTinkersConstruct,
-//    integration.tmechworks.ModTMechworks,
+    //    integration.appeng.ModAppEng,
+    //    integration.bloodmagic.ModBloodMagic,
+    //    integration.bluepower.ModBluePower,
+    //    integration.buildcraft.tools.ModBuildCraftAPITools,
+    //    integration.buildcraft.tiles.ModBuildCraftAPITiles,
+    //    integration.buildcraft.transport.ModBuildCraftAPITransport,
+    //    integration.cofh.energy.ModCoFHEnergy,
+    //    integration.cofh.item.ModCoFHItem,
+    //    integration.cofh.tileentity.ModCoFHTileEntity,
+    //    integration.cofh.transport.ModCoFHTransport,
+    //    integration.enderstorage.ModEnderStorage,
+    //    integration.dsu.ModDeepStorageUnit,
+    //    integration.forestry.ModForestry,
+    //    integration.fmp.ModForgeMultipart,
+    //    integration.gc.ModGalacticraft,
+    //    integration.gregtech.ModGregtech,
+    //    integration.ic2.ModIndustrialCraft2,
+    //    integration.mfr.ModMineFactoryReloaded,
+    //    integration.mystcraft.ModMystcraft,
+    //    integration.nek.ModNotEnoughKeys,
+    //    integration.projectred.ModProjectRed,
+    //    integration.railcraft.ModRailcraft,
+    //    integration.redlogic.ModRedLogic,
+    //    integration.stargatetech2.ModStargateTech2,
+    //    integration.thaumcraft.ModThaumcraft,
+    //    integration.thermalexpansion.ModThermalExpansion,
+    //    integration.tcon.ModTinkersConstruct,
+    //    integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
     integration.versionchecker.ModVersionChecker,
     integration.waila.ModWaila,
-//    integration.wrcbe.ModWRCBE,
-//    integration.wrsve.ModWRSVE,
+    //    integration.wrcbe.ModWRCBE,
+    //    integration.wrsve.ModWRSVE,
 
-//    // Register the general IPeripheral driver last, if at all, to avoid it
-//    // being used rather than other more concrete implementations.
-//    integration.computercraft.ModComputerCraft,
+    //    // Register the general IPeripheral driver last, if at all, to avoid it
+    //    // being used rather than other more concrete implementations.
+    //    integration.computercraft.ModComputerCraft,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
@@ -123,7 +123,7 @@ object Mods {
 
     // Run IGW registration after OC registration because we use the manual
     // in there to know which pages to register.
-//    integration.igw.ModIngameWiki
+    //    integration.igw.ModIngameWiki
   )
 
   def init(): Unit = {
@@ -168,7 +168,8 @@ object Mods {
     final val Factorization = "factorization"
     final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
-    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
+    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit"
+    // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"

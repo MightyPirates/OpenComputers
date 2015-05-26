@@ -296,6 +296,8 @@ object Items extends ItemAPI {
 
       Option(get(Constants.ItemName.SignUpgrade).createItemStack(1)),
       Option(get(Constants.ItemName.PistonUpgrade).createItemStack(1)),
+      Option(get(Constants.BlockName.Geolyzer).createItemStack(1)),
+      Option(get(Constants.ItemName.NavigationUpgrade).createItemStack(1)),
 
       Option(get(Constants.ItemName.GraphicsCardTier2).createItemStack(1)),
       Option(get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)),
@@ -420,6 +422,9 @@ object Items extends ItemAPI {
     // 1.5.10
     Recipes.addSubItem(new item.APU(components, Tier.One), Constants.ItemName.APUTier1, "oc:apu1")
     Recipes.addSubItem(new item.APU(components, Tier.Two), Constants.ItemName.APUTier2, "oc:apu2")
+
+    // 1.5.12
+    registerItem(new item.APU(components, Tier.Three), Constants.ItemName.APUCreative)
   }
 
   // Card components.

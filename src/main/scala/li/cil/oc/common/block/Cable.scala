@@ -121,13 +121,15 @@ object Cable {
         case _ => !world.isAirBlock(tpos)
       }) {
         val neighborTileEntity = world.getTileEntity(tpos)
-        val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
-        val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
-        val canConnectFMP = !Mods.ForgeMultipart.isAvailable ||
-          (canConnectFromSideFMP(tileEntity, side) && canConnectFromSideFMP(neighborTileEntity, side.getOpposite))
-        val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
-        if (neighborHasNode && canConnectColor && canConnectFMP && canConnectIM) {
-          result |= (1 << side.getIndex)
+        if (neighborTileEntity != null && neighborTileEntity.getWorld != null) {
+          val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
+          val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
+          val canConnectFMP = !Mods.ForgeMultipart.isAvailable ||
+            (canConnectFromSideFMP(tileEntity, side) && canConnectFromSideFMP(neighborTileEntity, side.getOpposite))
+          val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
+          if (neighborHasNode && canConnectColor && canConnectFMP && canConnectIM) {
+            result |= (1 << side.getIndex)
+          }
         }
       }
     }

@@ -26,6 +26,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
@@ -112,7 +113,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }))
     maxCallBudget = components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
       case Some(stack) => Option(Driver.driverFor(stack, host.getClass)) match {
-        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
+        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack) max Tier.One min Tier.Three)
         case _ => 0
       }
       case _ => 0
@@ -832,7 +833,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
 
   private def close() = state.synchronized(
-    if (state.size == 0 || state.top != Machine.State.Stopped) {
+    if (state.isEmpty || state.top != Machine.State.Stopped) {
       this.synchronized {
         state.clear()
         state.push(Machine.State.Stopped)
