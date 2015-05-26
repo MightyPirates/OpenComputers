@@ -55,7 +55,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
         case Some(pattern) => pattern.getOutputs.find(_.isSameType(stack)).get
         case _ => stack.copy.setStackSize(0) // Should not be possible, but hey...
       }
-      new Craftable(tile, result)
+      new NetworkControl.Craftable(tile, result)
     }).toArray)
   }
 
@@ -101,8 +101,11 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
       filter.get("name").forall(_.equals(Item.itemRegistry.getNameForObject(stack.getItem))) &&
       filter.get("label").forall(_.equals(stack.getItemStack.getDisplayName))
   }
+}
 
-  class Craftable(var controller: AETile, var stack: IAEItemStack) extends AbstractValue with ICraftingRequester {
+object NetworkControl {
+
+  class Craftable(var controller: TileEntity with IGridProxyable with IActionHost, var stack: IAEItemStack) extends AbstractValue with ICraftingRequester {
     def this() = this(null, null)
 
     private val links = mutable.Set.empty[ICraftingLink]
@@ -186,8 +189,8 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
         EventHandler.schedule(() => {
           val world = DimensionManager.getWorld(dimension)
           val tileEntity = world.getTileEntity(x, y, z)
-          if (tileEntity != null && tileEntity.isInstanceOf[AETile]) {
-            controller = tileEntity.asInstanceOf[AETile]
+          if (tileEntity != null && tileEntity.isInstanceOf[TileEntity with IGridProxyable with IActionHost]) {
+            controller = tileEntity.asInstanceOf[TileEntity with IGridProxyable with IActionHost]
           }
         })
       }

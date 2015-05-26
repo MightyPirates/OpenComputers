@@ -77,7 +77,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       val hostAware = items.collect {
         case driver: HostAware if driver.worksWith(stack) => driver
       }
-      if (hostAware.size > 0) {
+      if (hostAware.nonEmpty) {
         hostAware.find(_.worksWith(stack, host)).orNull
       }
       else driverFor(stack)
@@ -112,7 +112,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
       memo.get(valueRef)
     }
     else valueRef match {
-      case null | Unit | None => null
+      case null | None => null
 
       case arg: java.lang.Boolean => arg
       case arg: java.lang.Byte => arg

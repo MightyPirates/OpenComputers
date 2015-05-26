@@ -17,7 +17,7 @@ object Print {
 
   def render(data: PrintData, state: Boolean, facing: ForgeDirection, x: Int, y: Int, z: Int, block: Block, renderer: RenderBlocks): Unit = {
     val shapes = if (state) data.stateOn else data.stateOff
-    if (shapes.size == 0) {
+    if (shapes.isEmpty) {
       printBlock.textureOverride = Option(resolveTexture("missingno"))
       renderer.setRenderBounds(0, 0, 0, 1, 1, 1)
       renderer.renderStandardBlock(block, x, y, z)
