@@ -30,6 +30,8 @@ object Audio {
 
   private def amplitude = Settings.get.beepAmplitude
 
+  private def maxDistance = Settings.get.beepRadius
+
   private val sources = mutable.Set.empty[Source]
 
   private def volume = Minecraft.getMinecraft.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
@@ -42,7 +44,7 @@ object Audio {
 
   def play(x: Float, y: Float, z: Float, pattern: String, frequencyInHz: Int = 1000, durationInMilliseconds: Int = 200): Unit = {
     val mc = Minecraft.getMinecraft
-    val distanceBasedGain = math.max(0, 1 - mc.thePlayer.getDistance(x, y, z) / 12).toFloat
+    val distanceBasedGain = math.max(0, 1 - mc.thePlayer.getDistance(x, y, z) / maxDistance).toFloat
     val gain = distanceBasedGain * volume
     if (gain <= 0 || amplitude <= 0) return
 
@@ -142,6 +144,8 @@ object Audio {
           checkALError()
 
           AL10.alSource3f(source, AL10.AL_POSITION, x, y, z)
+          AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, maxDistance)
+          AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, maxDistance)
           AL10.alSourcef(source, AL10.AL_GAIN, gain * 0.3f)
           checkALError()
 

@@ -37,6 +37,7 @@ class Settings(val config: Config) {
   val fontRenderer = config.getString("client.fontRenderer")
   val beepSampleRate = config.getInt("client.beepSampleRate")
   val beepAmplitude = config.getInt("client.beepVolume") max 0 min Byte.MaxValue
+  val beepRadius = config.getDouble("client.beepRadius").toFloat max 1 min 32
 
   // ----------------------------------------------------------------------- //
   // computer
