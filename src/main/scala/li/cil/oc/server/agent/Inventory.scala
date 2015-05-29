@@ -142,13 +142,21 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def getSizeInventory = agent.mainInventory.getSizeInventory
 
-  override def getStackInSlot(slot: Int) = agent.mainInventory.getStackInSlot(slot)
+  override def getStackInSlot(slot: Int) =
+    if (slot < 0) agent.equipmentInventory.getStackInSlot(~slot)
+    else agent.mainInventory.getStackInSlot(slot)
 
-  override def decrStackSize(slot: Int, amount: Int) = agent.mainInventory.decrStackSize(slot, amount)
+  override def decrStackSize(slot: Int, amount: Int) =
+    if (slot < 0) agent.equipmentInventory.decrStackSize(~slot, amount)
+    else agent.mainInventory.decrStackSize(slot, amount)
 
-  override def getStackInSlotOnClosing(slot: Int) = agent.mainInventory.getStackInSlotOnClosing(slot)
+  override def getStackInSlotOnClosing(slot: Int) =
+    if (slot < 0) agent.equipmentInventory.getStackInSlotOnClosing(~slot)
+    else agent.mainInventory.getStackInSlotOnClosing(slot)
 
-  override def setInventorySlotContents(slot: Int, stack: ItemStack) = agent.mainInventory.setInventorySlotContents(slot, stack)
+  override def setInventorySlotContents(slot: Int, stack: ItemStack) =
+    if (slot < 0) agent.equipmentInventory.setInventorySlotContents(~slot, stack)
+    else agent.mainInventory.setInventorySlotContents(slot, stack)
 
   override def getInventoryName = agent.mainInventory.getInventoryName
 
@@ -158,5 +166,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def isUseableByPlayer(player: EntityPlayer) = agent.mainInventory.isUseableByPlayer(player)
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = agent.mainInventory.isItemValidForSlot(slot, stack)
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+    if (slot < 0) agent.equipmentInventory.isItemValidForSlot(~slot, stack)
+    else agent.mainInventory.isItemValidForSlot(slot, stack)
 }
