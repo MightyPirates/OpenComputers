@@ -1,7 +1,7 @@
 package li.cil.oc.server.fs
 
 import java.io
-import java.net.URL
+import java.net.{URISyntaxException, MalformedURLException, URL}
 import java.util.UUID
 
 import li.cil.oc.OpenComputers
@@ -16,6 +16,8 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
+
+import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
   lazy val isCaseInsensitive = Settings.get.forceCaseInsensitive || (try {
@@ -50,17 +52,18 @@ object FileSystem extends api.detail.FileSystemAPI {
       else
         (codeSource, false)
 
-    val file = try {
-      val url = new URL(codeUrl)
-      try {
-        new io.File(url.toURI)
+    val url = Try {
+      new URL(codeUrl)
+    }.recoverWith {
+      case _: MalformedURLException => Try {
+        new URL("file://" + codeUrl)
       }
-      catch {
-        case _: Throwable => new io.File(url.getPath)
-      }
-    } catch {
-      case _: Throwable => new io.File(codeSource)
     }
+    val file = url.map(url => new io.File(url.toURI))
+      .recoverWith {
+      case _: URISyntaxException => url.map(url => new io.File(url.getPath))
+    }.getOrElse(new io.File(codeSource))
+
 
     if (isArchive) {
       ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
