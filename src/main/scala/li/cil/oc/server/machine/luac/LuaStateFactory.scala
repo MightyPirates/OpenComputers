@@ -57,6 +57,8 @@ object LuaStateFactory {
       state.openLib(jnlua.LuaState.Library.MATH)
       state.openLib(jnlua.LuaState.Library.STRING)
       state.openLib(jnlua.LuaState.Library.TABLE)
+      // TODO Enable once I update the natives.
+//      state.openLib(jnlua.LuaState.Library.UTF8)
       state.pop(7)
     }
   }

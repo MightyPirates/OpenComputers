@@ -786,7 +786,9 @@ sandbox = {
     end,
     yield = function(...) -- custom yield part for bubbling sysyields
       return coroutine.yield(nil, ...)
-    end
+    end,
+    -- Lua 5.3.
+    isyieldable = coroutine.isyieldable
   },
 
   string = {
@@ -854,10 +856,16 @@ sandbox = {
     sinh = math.sinh,
     sqrt = math.sqrt,
     tan = math.tan,
-    tanh = math.tanh
+    tanh = math.tanh,
+    -- Lua 5.3.
+    maxinteger = math.maxinteger,
+    mininteger = math.mininteger,
+    tointeger = math.tointeger,
+    type = math.type,
+    ult = math.ult
   },
 
-  -- No longer available in Lua 5.3.
+  -- Deprecated in Lua 5.3.
   bit32 = bit32 and {
     arshift = bit32.arshift,
     band = bit32.band,
@@ -916,6 +924,16 @@ sandbox = {
       end
     end,
     traceback = debug.traceback
+  },
+
+  -- Lua 5.3.
+  utf8 = utf8 and {
+    char = utf8.char,
+    charpattern = utf8.charpattern,
+    codes = utf8.codes,
+    codepoint = utf8.codepoint,
+    len = utf8.len,
+    offset = utf8.offset
   },
 
   checkArg = checkArg

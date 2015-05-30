@@ -9,7 +9,7 @@ if #args < 2 then
   io.write(" -r: copy directories recursively.\n")
   io.write(" -u: copy only when the SOURCE file differs from the destination\n")
   io.write("     file or when the destination file is missing.\n")
-  io.write(" -v: verbose output.")
+  io.write(" -v: verbose output.\n")
   io.write(" -x: stay on original source file system.")
   return
 end
