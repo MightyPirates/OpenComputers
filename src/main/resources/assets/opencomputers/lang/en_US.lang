@@ -59,6 +59,7 @@ item.oc.CPU0.name=Central Processing Unit (CPU) (Tier 1)
 item.oc.CPU1.name=Central Processing Unit (CPU) (Tier 2)
 item.oc.CPU2.name=Central Processing Unit (CPU) (Tier 3)
 item.oc.CuttingWire.name=Cutting Wire
+item.oc.DataCard.name=Data Card
 item.oc.DebugCard.name=Debug Card
 item.oc.Debugger.name=Network Debugger
 item.oc.Disk.name=Disk Platter
