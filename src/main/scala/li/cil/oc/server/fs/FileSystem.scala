@@ -1,7 +1,9 @@
 package li.cil.oc.server.fs
 
 import java.io
-import java.net.{URISyntaxException, MalformedURLException, URL}
+import java.net.MalformedURLException
+import java.net.URISyntaxException
+import java.net.URL
 import java.util.UUID
 
 import li.cil.oc.OpenComputers
@@ -59,11 +61,9 @@ object FileSystem extends api.detail.FileSystemAPI {
         new URL("file://" + codeUrl)
       }
     }
-    val file = url.map(url => new io.File(url.toURI))
-      .recoverWith {
+    val file = url.map(url => new io.File(url.toURI)).recoverWith {
       case _: URISyntaxException => url.map(url => new io.File(url.getPath))
     }.getOrElse(new io.File(codeSource))
-
 
     if (isArchive) {
       ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
