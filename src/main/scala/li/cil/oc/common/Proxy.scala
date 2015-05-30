@@ -18,6 +18,7 @@ import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.FMLLog
 import net.minecraftforge.fml.common.event._
 import net.minecraftforge.fml.common.network.NetworkRegistry
 import net.minecraftforge.fml.common.registry.EntityRegistry
@@ -28,6 +29,8 @@ import scala.collection.convert.WrapAsScala._
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
+    checkForBrokenJavaVersion()
+
     Settings.load(new File(e.getModConfigurationDirectory, "opencomputers" + File.separator + "settings.conf"))
 
     OpenComputers.log.info("Initializing blocks and items.")
@@ -148,5 +151,19 @@ class Proxy {
         }
       }
     }
+  }
+
+  // OK, seriously now, I've gotten one too many bug reports because of this Java version being broken.
+
+  private final val BrokenJavaVersions = Set("1.6.0_65, Apple Inc.")
+
+  def isBrokenJavaVersion = {
+    val javaVersion = System.getProperty("java.version") + ", " + System.getProperty("java.vendor")
+    BrokenJavaVersions.contains(javaVersion)
+  }
+
+  def checkForBrokenJavaVersion() = if (isBrokenJavaVersion) {
+    FMLLog.bigWarning("You're using a broken Java version! Please update now, or remove OpenComputers. DO NOT REPORT THIS! UPDATE YOUR JAVA!")
+    throw new Exception("You're using a broken Java version! Please update now, or remove OpenComputers. DO NOT REPORT THIS! UPDATE YOUR JAVA!")
   }
 }
