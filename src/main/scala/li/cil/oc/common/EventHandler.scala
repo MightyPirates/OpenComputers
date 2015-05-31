@@ -171,8 +171,8 @@ object EventHandler {
         if (ClassTransformer.hadErrors) {
           player.addChatMessage(Localization.Chat.WarningClassTransformer)
         }
-        if (ClassTransformer.hadSimpleComponentErrors) {
-          player.addChatMessage(Localization.Chat.WarningSimpleComponent)
+        if (ClassTransformer.simpleComponentErrors.nonEmpty) {
+          player.addChatMessage(Localization.Chat.WarningSimpleComponent(ClassTransformer.simpleComponentErrors:_*))
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
         ServerPacketSender.sendLootDisks(player)

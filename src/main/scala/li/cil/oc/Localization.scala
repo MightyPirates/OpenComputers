@@ -87,11 +87,11 @@ object Localization {
 
     def WarningClassTransformer = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningClassTransformer"))
 
-    def WarningSimpleComponent = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent"))
+    def WarningSimpleComponent(failed: String*) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningSimpleComponent", failed.mkString(", ")))
 
     def WarningLink(url: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.WarningLink", url))
 
-    def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion", version))
+    def InfoNewVersion(version: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.NewVersion"))
 
     def TextureName(name: String) = new ChatComponentText("§aOpenComputers§f: ").appendSibling(localizeLater("gui.Chat.TextureName", name))
   }
