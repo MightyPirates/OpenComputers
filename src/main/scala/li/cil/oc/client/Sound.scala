@@ -40,11 +40,15 @@ object Sound {
   if (Settings.get.soundVolume > 0) {
     updateTimer.scheduleAtFixedRate(new TimerTask {
       override def run() {
-        updateVolume()
-        processQueue()
+        sources.synchronized(updateCallable = Some(() => {
+          updateVolume()
+          processQueue()
+        }))
       }
     }, 500, 50)
   }
+
+  private var updateCallable = None: Option[() => Unit]
 
   // Set in init event.
   var manager: SoundManager = _
@@ -115,26 +119,33 @@ object Sound {
 
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {
-    if (!hasPreloaded && soundSystem != null) {
-      hasPreloaded = true
-      new Thread(new Runnable() {
-        override def run(): Unit = {
-          val preloadConfigLocation = new ResourceLocation(Settings.resourceDomain, "sounds/preload.cfg")
-          val preloadConfigResource = Minecraft.getMinecraft.getResourceManager.getResource(preloadConfigLocation)
-          for (location <- Source.fromInputStream(preloadConfigResource.getInputStream)(Charsets.UTF_8).getLines()) {
-            val url = getClass.getClassLoader.getResource(location)
-            if (url != null) try {
-              val sourceName = "preload_" + location
-              soundSystem.newSource(false, sourceName, url, location, true, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 16)
-              soundSystem.activate(sourceName)
-              soundSystem.removeSource(sourceName)
-            } catch {
-              case _: Throwable => // Meh.
+    if (soundSystem != null) {
+      if (!hasPreloaded) {
+        hasPreloaded = true
+        new Thread(new Runnable() {
+          override def run(): Unit = {
+            val preloadConfigLocation = new ResourceLocation(Settings.resourceDomain, "sounds/preload.cfg")
+            val preloadConfigResource = Minecraft.getMinecraft.getResourceManager.getResource(preloadConfigLocation)
+            for (location <- Source.fromInputStream(preloadConfigResource.getInputStream)(Charsets.UTF_8).getLines()) {
+              val url = getClass.getClassLoader.getResource(location)
+              if (url != null) try {
+                val sourceName = "preload_" + location
+                soundSystem.newSource(false, sourceName, url, location, true, 0, 0, 0, SoundSystemConfig.ATTENUATION_NONE, 16)
+                soundSystem.activate(sourceName)
+                soundSystem.removeSource(sourceName)
+              } catch {
+                case _: Throwable => // Meh.
+              }
+              else OpenComputers.log.warn(s"Couldn't preload sound $location!")
             }
-            else OpenComputers.log.warn(s"Couldn't preload sound $location!")
           }
-        }
-      })
+        })
+      }
+
+      sources.synchronized {
+        updateCallable.foreach(_())
+        updateCallable = None
+      }
     }
   }
 
