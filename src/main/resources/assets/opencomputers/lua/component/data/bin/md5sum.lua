@@ -8,7 +8,7 @@ if #args == 0 then
     local current = io.read("*a")
     read = read .. current
   until current ~= ""
-  io.write(data.toHex(data.sha256(read)))
+  io.write(data.toHex(data.md5(read)))
 else
   for i = 1, #args do
     local read = ""
@@ -22,6 +22,6 @@ else
       read = read .. current
     until current ~= ""
     file:close()
-    io.write(args[i].. "\t".. data.toHex(data.sha256(read)))
+    io.write(data.toHex(data.md5(read)) .. "\t".. args[i])
   end
 end

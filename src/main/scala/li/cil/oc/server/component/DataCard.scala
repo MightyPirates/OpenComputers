@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import java.security.MessageDigest
 import java.util.zip.{InflaterOutputStream, DeflaterOutputStream}
 
+import com.google.common.hash.Hashing
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, OpenComputers, api}
 import li.cil.oc.api.machine.{Arguments, Context, Callback}
@@ -21,17 +22,17 @@ class DataCard extends prefab.ManagedEnvironment{
   val romData = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/data"), "data"))
   
-  @Callback(direct = true, doc = """function(data:string):string -- Applies base64 encoding to the data.""")
+  @Callback(direct = true, doc = """function(data:string):string -- Applies base64 encoding to the data.""", limit = 32)
   def encode64(context: Context, args: Arguments): Array[AnyRef] = {
     result(Base64.encodeBase64(args.checkByteArray(0)))
   }
 
-  @Callback(direct = true, doc = """function(data:string):string -- Applies base64 decoding to the data.""")
+  @Callback(direct = true, doc = """function(data:string):string -- Applies base64 decoding to the data.""", limit = 32)
   def decode64(context: Context, args: Arguments): Array[AnyRef] = {
     result(Base64.decodeBase64(args.checkByteArray(0)))
   }
 
-  @Callback(direct = true, doc = """function(data:string):string -- Applies deflate compression to the data.""")
+  @Callback(direct = true, doc = """function(data:string):string -- Applies deflate compression to the data.""", limit = 6)
   def deflate(context: Context, args: Arguments): Array[AnyRef] = {
     val baos = new ByteArrayOutputStream(512)
     val deos = new DeflaterOutputStream(baos)
@@ -40,7 +41,7 @@ class DataCard extends prefab.ManagedEnvironment{
     result(baos.toByteArray)
   }
 
-  @Callback(direct = true, doc = """function(data:string):string -- Applies inflate decompression to the data.""")
+  @Callback(direct = true, doc = """function(data:string):string -- Applies inflate decompression to the data.""", limit = 6)
   def inflate(context: Context, args: Arguments): Array[AnyRef] = {
     val baos = new ByteArrayOutputStream(512)
     val inos = new InflaterOutputStream(baos)
@@ -49,14 +50,19 @@ class DataCard extends prefab.ManagedEnvironment{
     result(baos.toByteArray)
   }
 
-  @Callback(direct = true, doc = """function(data:string):string -- Computes SHA2-256 hash of the data.""")
+  @Callback(direct = true, doc = """function(data:string):string -- Computes SHA2-256 hash of the data. Result is in binary format.""", limit = 32)
   def sha256(context: Context, args: Arguments): Array[AnyRef] = {
-    result(Helper.sha256(args.checkByteArray(0)))
+    result(Hashing.sha256().hashBytes(args.checkByteArray(0)).asBytes())
   }
 
-  private object Helper {
-    val sha256asher = MessageDigest.getInstance("SHA-256")
-    def sha256(data: Array[Byte]) = sha256asher.clone.asInstanceOf[MessageDigest].digest(data)
+  @Callback(direct = true, doc = """function(data:string):string -- Computes MD5 hash of the data. Result is in binary format""", limit = 32)
+  def md5(context: Context, args: Arguments): Array[AnyRef] = {
+    result(Hashing.md5().hashBytes(args.checkByteArray(0)).asBytes())
+  }
+
+  @Callback(direct = true, doc = """function(data:string):string -- Computes CRC-32 hash of the data. Result is in binary format""", limit = 32)
+  def crc32(context: Context, args: Arguments): Array[AnyRef] = {
+    result(Hashing.crc32().hashBytes(args.checkByteArray(0)).asBytes())
   }
 
   // ----------------------------------------------------------------------- //

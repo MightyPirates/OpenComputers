@@ -32,6 +32,17 @@ function data.sha256(data)
   return component.data.sha256(data)
 end
 
+-- Returns raw/binary MD5 hash of data. Common form of presenting SHA is hexadecimal string, see data.toHex.
+function data.md5(data)
+  return component.data.md5(data)
+end
+
+-- Returns raw/binary CRC-32 hash of data. Common form of presenting SHA is hexadecimal string, see data.toHex.
+function data.crc32(data)
+  return component.data.crc32(data)
+end
+
+
 -- Applies DEFLATE compression.
 function data.deflate(data)
   return component.data.deflate(data)
