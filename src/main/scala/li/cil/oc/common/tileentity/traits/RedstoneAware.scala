@@ -38,7 +38,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     if (value != isOutputEnabled) {
       _isOutputEnabled = value
       if (!value) {
-        for (i <- 0 until _output.length) {
+        for (i <- _output.indices) {
           _output(i) = 0
         }
       }

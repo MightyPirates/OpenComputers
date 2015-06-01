@@ -31,7 +31,7 @@ class PrintData extends ItemData {
   var isBeaconBase = false
   var lightLevel = 0
 
-  def hasActiveState = stateOn.size > 0
+  def hasActiveState = stateOn.nonEmpty
 
   def emitLight = lightLevel > 0
 
@@ -111,7 +111,7 @@ object PrintData {
 
   def computeApproximateOpacity(shapes: Iterable[PrintData.Shape]) = {
     var volume = 1f
-    if (shapes.size > 0) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
+    if (shapes.nonEmpty) for (x <- 0 until 16 / stepping; y <- 0 until 16 / stepping; z <- 0 until 16 / stepping) {
       val bounds = AxisAlignedBB.fromBounds(
         x * step, y * step, z * step,
         (x + 1) * step, (y + 1) * step, (z + 1) * step)
