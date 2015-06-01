@@ -10,6 +10,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
+import net.minecraft.block.Block
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
@@ -229,5 +230,17 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     if (!player.capabilities.isCreativeMode) {
       InventoryUtils.spawnStackInWorld(tileEntity.position, tileEntity.data.createItemStack())
     }
+  }
+
+  override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {
+    world.getTileEntity(pos) match {
+      case print: tileentity.Print if print.data.emitRedstone(print.state) =>
+        world.notifyNeighborsOfStateChange(pos, this)
+        for (side <- EnumFacing.values) {
+          world.notifyNeighborsOfStateChange(pos.offset(side), this)
+        }
+      case _ =>
+    }
+    super.breakBlock(world, pos, state)
   }
 }
