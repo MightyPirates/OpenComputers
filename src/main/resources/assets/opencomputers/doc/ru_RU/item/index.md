@@ -52,6 +52,7 @@
 * [Улучшение](upgradeContainer1.md)
 
 ### Другое
+* [Процессор с видеркартой (APU)](apu1.md)
 * [Компонентная шина](componentBus1.md)
 * [Процессор](cpu1.md)
 * [EEPROM](eeprom.md)
@@ -82,3 +83,6 @@
 * [Корпус дрона](droneCase1.md)
 * [Корпус микроконтроллера](microcontrollerCase1.md)
 * [Корпус планшета](tabletCase1.md)
+
+## Прочее
+* [Реактивные ботинки](hoverBoots.md)
