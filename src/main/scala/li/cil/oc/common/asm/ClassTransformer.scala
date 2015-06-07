@@ -14,6 +14,7 @@ import org.objectweb.asm.tree._
 import scala.annotation.tailrec
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 object ObfNames {
   final val Class_EntityHanging = Array("net/minecraft/entity/EntityHanging", "ss")
@@ -35,7 +36,7 @@ object ObfNames {
 
 object ClassTransformer {
   var hadErrors = false
-  var hadSimpleComponentErrors = false
+  var simpleComponentErrors = mutable.Buffer[String]()
 }
 
 class ClassTransformer extends IClassTransformer {
@@ -142,7 +143,7 @@ class ClassTransformer extends IClassTransformer {
             catch {
               case e: Throwable =>
                 log.warn(s"Failed injecting component logic into class $name.", e)
-                ClassTransformer.hadSimpleComponentErrors = true
+                ClassTransformer.simpleComponentErrors += name;
             }
           }
         }
