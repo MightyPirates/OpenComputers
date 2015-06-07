@@ -71,10 +71,6 @@ if (JavaVersion.current().isJava8Compatible()) {
 
 repositories {
     maven {
-        name = "bc"
-        url = "http://mod-buildcraft.com/"
-    }
-    maven {
         name = "BluePower"
         url = "http://maven.bluepowermod.com/"
     }
@@ -111,6 +107,10 @@ repositories {
         url 'http://dvs1.progwml6.com/files/maven'
     }
 
+    ivy {
+        name "BuildCraft"
+        artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
+    }
     ivy {
         name 'Galacticraft'
         artifactPattern "http://ci.cil.li/job/Galacticraft/${config.gc.build}/artifact/build/libs/[module]-1.7-[revision].${config.gc.build}.[ext]"
@@ -170,7 +170,6 @@ dependencies {
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
-    provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "dev.calclavia.resonantengine:resonant-engine:${config.re.version}:dev"
     provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
@@ -180,6 +179,7 @@ dependencies {
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
 
+    provided name: "buildcraft", version: "${config.bc.version}", classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
     provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
     provided name: 'ProjectRed', version: config.projred.version, ext: 'jar'
