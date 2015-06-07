@@ -23,8 +23,8 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
     val localStack = inventory.getStackInSlot(localSlot)
     DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
-      val nonEmpty = database.data.getStackInSlot(dbSlot) != null
-      database.data.setInventorySlotContents(dbSlot, localStack.copy())
+      val nonEmpty = database.getStackInSlot(dbSlot) != null
+      database.setStackInSlot(dbSlot, localStack.copy())
       result(nonEmpty)
     })
   }
@@ -36,7 +36,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
     val localStack = inventory.getStackInSlot(localSlot)
     DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
-      val dbStack = database.data.getStackInSlot(dbSlot)
+      val dbStack = database.getStackInSlot(dbSlot)
       result(haveSameItemType(localStack, dbStack))
     })
   }

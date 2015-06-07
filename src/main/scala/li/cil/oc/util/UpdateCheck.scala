@@ -22,7 +22,8 @@ object UpdateCheck {
   }
 
   private def initialize(): Option[Release] = {
-    if (Settings.get.updateCheck && OpenComputers.Version != "@VERSION@") {
+    // Keep the version template split up so it's not replaced with the actual version...
+    if (Settings.get.updateCheck && OpenComputers.Version != ("@" + "VERSION" + "@")) {
       try {
         OpenComputers.log.info("Starting OpenComputers version check.")
         val reader = new JsonReader(new InputStreamReader(releasesUrl.openStream()))
