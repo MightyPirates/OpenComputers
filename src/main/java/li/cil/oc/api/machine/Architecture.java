@@ -148,7 +148,22 @@ public interface Architecture {
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
-    static @interface Name {
+    @interface Name {
         String value();
+    }
+
+    /**
+     * Architectures flagged with this annotation can potentially run without
+     * any additional memory installed in the computer.
+     * <p/>
+     * Use this to allow assembly of devices such as microcontrollers without
+     * any memory being installed in them while your architecture is being
+     * used by the CPU being installed. Note to actually make the machine
+     * start up you only need to always return <tt>true</tt> from
+     * {@link #recomputeMemory}.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    @interface NoMemoryRequirements {
     }
 }

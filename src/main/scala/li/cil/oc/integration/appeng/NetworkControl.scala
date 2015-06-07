@@ -85,7 +85,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     stack != null &&
       filter.get("damage").forall(_.equals(stack.getItemDamage.toDouble)) &&
       filter.get("maxDamage").forall(_.equals(stack.getItemStack.getMaxDamage.toDouble)) &&
-      filter.get("size").forall(_.equals(stack.getStackSize.toDouble)) &&
+      filter.get("size").collect { case size: Number => size.intValue == stack.getStackSize || size.intValue == 0 }.getOrElse(true) &&
       filter.get("maxSize").forall(_.equals(stack.getItemStack.getMaxStackSize.toDouble)) &&
       filter.get("hasTag").forall(_.equals(stack.hasTagCompound)) &&
       filter.get("name").forall(_.equals(Item.itemRegistry.getNameForObject(stack.getItem))) &&

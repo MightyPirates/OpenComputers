@@ -16,6 +16,7 @@ import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
@@ -26,12 +27,14 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
+import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraft.world.World
@@ -468,6 +471,11 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       player.openGui(OpenComputers, GuiType.Drone.id, world, getEntityId, 0, 0)
     }
     true
+  }
+
+  // No step sounds. Except on that one day.
+  override def playStepSound(pos: BlockPos, block: Block): Unit = {
+    if (EventHandler.isItTime) super.playStepSound(pos, block)
   }
 
   // ----------------------------------------------------------------------- //
