@@ -72,7 +72,7 @@ object GameTimeFormatter {
     day = yearDay
     val monthLengths = monthLengthsForYear(year)
     var month = 0
-    while (day > monthLengths(month)) {
+    while (day >= monthLengths(month)) {
       day = day - monthLengths(month)
       month = month + 1
     }
