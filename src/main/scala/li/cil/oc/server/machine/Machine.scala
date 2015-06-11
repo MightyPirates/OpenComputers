@@ -124,8 +124,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         case Some(driver: Processor) if driver.slot(stack) == Slot.CPU =>
           Option(driver.architecture(stack)) match {
             case Some(clazz) =>
-              if (architecture == null || architecture.getClass != clazz) {
+              if (architecture == null || architecture.getClass != clazz) try {
                 newArchitecture = clazz.getConstructor(classOf[machine.Machine]).newInstance(this)
+              }
+              catch {
+                case t: Throwable => OpenComputers.log.warn("Failed instantiating a CPU architecture.", t)
               }
               else {
                 newArchitecture = architecture
