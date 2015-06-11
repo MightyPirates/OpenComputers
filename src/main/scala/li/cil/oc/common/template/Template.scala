@@ -49,7 +49,7 @@ abstract class Template {
 
     val progress =
       if (!hasCPU) Localization.Assembler.InsertCPU
-      else if (!hasRAM) Localization.Assembler.InsertRAM
+      else if (!hasRAM && requiresRAM) Localization.Assembler.InsertRAM
       else Localization.Assembler.Complexity(complexity, maxComplexity)
 
     val warnings = mutable.ArrayBuffer.empty[IChatComponent]
