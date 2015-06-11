@@ -69,6 +69,18 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     }
   }
 
+  private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
+    toBufferCoordinates(mouseX, mouseY) match {
+      case Some((bx, by)) if bx.toInt != mx || by.toInt != my =>
+        if (mx >= 0 && my >= 0) buffer.mouseDrag(bx, by, button, null)
+        else buffer.mouseDown(bx, by, button, null)
+        didDrag = mx >= 0 && my >= 0
+        mx = bx.toInt
+        my = by.toInt
+      case _ =>
+    }
+  }
+
   private def toBufferCoordinates(mouseX: Int, mouseY: Int): Option[(Double, Double)] = {
     val bx = (mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth
     val by = (mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight
@@ -76,22 +88,6 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     val bh = buffer.getHeight
     if (bx >= 0 && by >= 0 && bx < bw && by < bh) Some((bx, by))
     else None
-  }
-
-  private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
-    val bx = (mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth
-    val by = (mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight
-    val bw = buffer.getWidth
-    val bh = buffer.getHeight
-    if (bx >= 0 && by >= 0 && bx < bw && by < bh) {
-      if (bx.toInt != mx || by.toInt != my) {
-        if (mx >= 0 && my >= 0) buffer.mouseDrag(bx, by, button, null)
-        else buffer.mouseDown(bx, by, button, null)
-        didDrag = mx >= 0 && my >= 0
-        mx = bx.toInt
-        my = by.toInt
-      }
-    }
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {

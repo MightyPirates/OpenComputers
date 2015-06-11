@@ -3,10 +3,7 @@ package li.cil.oc.api.machine;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * This interface abstracts away any language specific details for the Machine.
@@ -164,6 +161,7 @@ public interface Architecture {
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
+    @Inherited
     @interface NoMemoryRequirements {
     }
 }

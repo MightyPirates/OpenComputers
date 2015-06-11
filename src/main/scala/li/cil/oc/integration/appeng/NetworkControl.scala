@@ -25,6 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.existentials
 
+// Note to self: this class is used by ExtraCells (and potentially others), do not rename / drastically change it.
 trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActionHost] {
   def tile: AETile
 
