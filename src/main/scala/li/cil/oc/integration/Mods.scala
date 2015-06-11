@@ -24,6 +24,7 @@ object Mods {
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BluePower = new SimpleMod(IDs.BluePower, version = "@[0.2.928,)")
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
+  val BuildCraftLibrary = new SimpleMod(IDs.BuildCraftLibrary, version = "@[7.0.9,)")
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
   val BuildCraftTransport = new SimpleMod(IDs.BuildCraftTransport)
@@ -82,6 +83,7 @@ object Mods {
     integration.appeng.ModAppEng,
     integration.bloodmagic.ModBloodMagic,
     integration.bluepower.ModBluePower,
+    integration.buildcraft.library.ModBuildCraftAPILibrary,
     integration.buildcraft.tools.ModBuildCraftAPITools,
     integration.buildcraft.tiles.ModBuildCraftAPITiles,
     integration.buildcraft.transport.ModBuildCraftAPITransport,
@@ -152,7 +154,7 @@ object Mods {
     final val BloodMagic = "AWWayofTime"
     final val BluePower = "bluepowerAPI"
     final val BuildCraft = "BuildCraft|Core"
-    final val BuildCraftPower = "BuildCraftAPI|power"
+    final val BuildCraftLibrary = "BuildCraftAPI|library"
     final val BuildCraftTiles = "BuildCraftAPI|tiles"
     final val BuildCraftTools = "BuildCraftAPI|tools"
     final val BuildCraftTransport = "BuildCraftAPI|transport"
