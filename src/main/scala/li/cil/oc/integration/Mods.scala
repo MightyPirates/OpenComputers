@@ -24,7 +24,7 @@ object Mods {
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BluePower = new SimpleMod(IDs.BluePower, version = "@[0.2.928,)")
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
-  val BuildCraftLibrary = new SimpleMod(IDs.BuildCraftLibrary, version = "@[7.0,)")
+  val BuildCraftLibrary = new SimpleMod(IDs.BuildCraftLibrary, version = "@[7.0.9,)")
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
   val BuildCraftTransport = new SimpleMod(IDs.BuildCraftTransport)
