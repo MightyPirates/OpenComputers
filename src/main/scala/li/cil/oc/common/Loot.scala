@@ -44,7 +44,7 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
   val disksForClient = mutable.ArrayBuffer.empty[ItemStack]
 
   def randomDisk(rng: Random) =
-    if (disksForSampling.length > 0) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
+    if (disksForSampling.nonEmpty) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
     else None
 
   def registerLootDisk(name: String, color: EnumDyeColor, factory: Callable[FileSystem]): ItemStack = {
