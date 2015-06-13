@@ -21,7 +21,7 @@ class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Rot
   override def getMixedBrightnessForBlock(world: IBlockAccess, pos: BlockPos) = {
     if (pos.getY >= 0 && pos.getY < 256) world.getTileEntity(pos) match {
       case rack: tileentity.ServerRack =>
-        def brightness(pos: BlockPos) = world.getCombinedLight(pos, getLightValue(world, pos))
+        def brightness(pos: BlockPos) = world.getCombinedLight(pos, world.getBlockState(pos).getBlock.getLightValue(world, pos))
         val value = brightness(pos.offset(rack.facing))
         val skyBrightness = (value >> 20) & 15
         val blockBrightness = (value >> 4) & 15
