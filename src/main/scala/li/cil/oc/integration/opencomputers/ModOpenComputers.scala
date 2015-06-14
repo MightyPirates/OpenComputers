@@ -93,6 +93,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverAPU)
     api.Driver.add(DriverComponentBus)
     api.Driver.add(DriverCPU)
+    api.Driver.add(DriverDataCard)
     api.Driver.add(DriverDebugCard)
     api.Driver.add(DriverEEPROM)
     api.Driver.add(DriverFileSystem)

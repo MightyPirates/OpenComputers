@@ -164,7 +164,7 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
       // Update slot info in tile... kinda meh, but works.
       tile match {
         case slotted: TSlottedTile =>
-          for (i <- 0 until slotted.v_partMap.length) {
+          for (i <- slotted.v_partMap.indices) {
             if (slotted.v_partMap(i) == this)
               slotted.v_partMap(i) = null
           }

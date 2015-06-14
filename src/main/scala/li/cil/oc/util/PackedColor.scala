@@ -121,7 +121,7 @@ object PackedColor {
 
     // Initialize palette to grayscale, excluding black and white, because
     // those are already contained in the normal color cube.
-    for (i <- 0 until palette.length) {
+    for (i <- palette.indices) {
       val shade = 0xFF * (i + 1) / (palette.length + 1)
       this(i) = (shade << rShift32) | (shade << gShift32) | (shade << bShift32)
     }

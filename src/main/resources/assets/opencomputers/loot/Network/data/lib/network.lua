@@ -106,7 +106,7 @@ function network.tcp.open(addr, port)
     if internal.tcp.channels[ch] and internal.tcp.channels[ch].next then 
         internal.tcp.freeCh = internal.tcp.channels[ch].next
     else
-        internal.tcp.freeCh = #internal.tcp.channels+1
+        internal.tcp.freeCh = #internal.tcp.channels+2
     end
     internal.tcp.channels[ch] = {open = false, waiting = true, addr = addr, port = port}--mark openning
     
@@ -143,7 +143,7 @@ function internal.tcp.handle(origin, data)
             if internal.tcp.channels[ch] and internal.tcp.channels[ch].next then 
                 internal.tcp.freeCh = internal.tcp.channels[ch].next
             else
-                internal.tcp.freeCh = #internal.tcp.channels+1
+                internal.tcp.freeCh = #internal.tcp.channels+2
             end
             internal.tcp.channels[ch] = {open = true, remote = rchan, addr = origin,  port = port}
             driver.send(origin, "TA".. string.char(math.floor(ch/256))..string.char(ch%256) .. string.char(math.floor(rchan/256)) .. string.char(rchan%256))

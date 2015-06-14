@@ -186,7 +186,7 @@ object PacketHandler extends CommonPacketHandler {
   def onHologramClear(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
-        for (i <- 0 until t.volume.length) t.volume(i) = 0
+        for (i <- t.volume.indices) t.volume(i) = 0
         t.needsRendering = true
       case _ => // Invalid packet.
     }
@@ -598,7 +598,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onServerPresence(p: PacketParser) =
     p.readTileEntity[ServerRack]() match {
-      case Some(t) => for (i <- 0 until t.isPresent.length) {
+      case Some(t) => for (i <- t.isPresent.indices) {
         if (p.readBoolean()) {
           t.isPresent(i) = Some(p.readUTF())
         }

@@ -140,7 +140,7 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
   }
 
   override def generateChestContent(random: Random, newInventory: IInventory) =
-    if (disksForSampling.length > 0)
+    if (disksForSampling.nonEmpty)
       ChestGenHooks.generateStacks(random, disksForSampling(random.nextInt(disksForSampling.length)),
         theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
     else Array.empty[ItemStack]
