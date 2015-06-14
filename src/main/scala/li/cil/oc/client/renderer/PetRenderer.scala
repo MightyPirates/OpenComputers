@@ -57,7 +57,7 @@ object PetRenderer {
     })
 
     RenderState.pushMatrix()
-    RenderState.pushAttrib()
+    RenderState.pushAttrib(GL11.GL_ALL_ATTRIB_BITS)
     val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.partialRenderTick)
     val playerPos = e.entityPlayer.getPositionEyes(e.partialRenderTick)
     val correction = 1.62 - (if (e.entityPlayer.isSneaking) 0.125 else 0)
@@ -79,7 +79,6 @@ object PetRenderer {
     RobotRenderer.renderChassis(null, offset, isRunningOverride = true)
 
     RenderState.disableEntityLighting()
-    RenderState.makeItBlend()
     RenderState.disableRescaleNormal()
 
     RenderState.popAttrib()

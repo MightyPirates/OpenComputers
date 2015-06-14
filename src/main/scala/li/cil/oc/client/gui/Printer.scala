@@ -6,6 +6,7 @@ import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.opengl.GL11
 
@@ -46,7 +47,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     fontRendererObj.drawString(
       Localization.localizeImmediately(printer.getName),
       8, 6, 0x404040)
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
+    RenderState.pushAttrib()
     if (isPointInRegion(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(printerContainer.amountMaterial + "/" + printer.maxAmountMaterial)
@@ -57,11 +58,11 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
       tooltip.add(printerContainer.amountInk + "/" + printer.maxAmountInk)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    GL11.glPopAttrib()
+    RenderState.popAttrib()
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
+    RenderState.color(1, 1, 1)
     Textures.bind(Textures.GUI.Printer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     materialBar.level = printerContainer.amountMaterial / printer.maxAmountMaterial.toDouble
