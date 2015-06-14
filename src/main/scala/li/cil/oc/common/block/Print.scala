@@ -86,16 +86,22 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def isOpaqueCube = false
 
-  override def getLightValue(world: IBlockAccess, pos: BlockPos): Int =
-    world.getTileEntity(pos) match {
-      case print: tileentity.Print => print.data.lightLevel
-      case _ => super.getLightValue(world, pos)
+  override def getLightValue(blockAccess: IBlockAccess, pos: BlockPos): Int =
+    blockAccess match {
+      case world: World if world.isBlockLoaded(pos) => world.getTileEntity(pos) match {
+        case print: tileentity.Print => print.data.lightLevel
+        case _ => super.getLightValue(world, pos)
+      }
+      case _ => super.getLightOpacity(blockAccess, pos)
     }
 
-  override def getLightOpacity(world: IBlockAccess, pos: BlockPos): Int =
-    world.getTileEntity(pos) match {
-      case print: tileentity.Print if Settings.get.printsHaveOpacity => (print.data.opacity * 4).toInt
-      case _ => super.getLightOpacity(world, pos)
+  override def getLightOpacity(blockAccess: IBlockAccess, pos: BlockPos): Int =
+    blockAccess match {
+      case world: World if world.isBlockLoaded(pos) => world.getTileEntity(pos) match {
+        case print: tileentity.Print if Settings.get.printsHaveOpacity => (print.data.opacity * 4).toInt
+        case _ => super.getLightOpacity(world, pos)
+      }
+      case _ => super.getLightOpacity(blockAccess, pos)
     }
 
   override def isVisuallyOpaque = false
@@ -229,5 +235,17 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     if (!player.capabilities.isCreativeMode) {
       InventoryUtils.spawnStackInWorld(tileEntity.position, tileEntity.data.createItemStack())
     }
+  }
+
+  override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {
+    world.getTileEntity(pos) match {
+      case print: tileentity.Print if print.data.emitRedstone(print.state) =>
+        world.notifyNeighborsOfStateChange(pos, this)
+        for (side <- EnumFacing.values) {
+          world.notifyNeighborsOfStateChange(pos.offset(side), this)
+        }
+      case _ =>
+    }
+    super.breakBlock(world, pos, state)
   }
 }

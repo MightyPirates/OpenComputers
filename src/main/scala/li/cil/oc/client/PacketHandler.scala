@@ -40,7 +40,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   override def dispatch(p: PacketParser) {
-    if (p.player != null && p.player.getEntityWorld != null) p.packetType match {
+    p.packetType match {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ColorChange => onColorChange(p)
@@ -182,7 +182,7 @@ object PacketHandler extends CommonPacketHandler {
   def onHologramClear(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
-        for (i <- 0 until t.volume.length) t.volume(i) = 0
+        for (i <- t.volume.indices) t.volume(i) = 0
         t.needsRendering = true
       case _ => // Invalid packet.
     }
@@ -595,7 +595,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onServerPresence(p: PacketParser) =
     p.readTileEntity[ServerRack]() match {
-      case Some(t) => for (i <- 0 until t.isPresent.length) {
+      case Some(t) => for (i <- t.isPresent.indices) {
         if (p.readBoolean()) {
           t.isPresent(i) = Some(p.readUTF())
         }

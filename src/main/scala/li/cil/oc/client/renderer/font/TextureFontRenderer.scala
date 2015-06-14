@@ -85,7 +85,7 @@ abstract class TextureFontRenderer {
         GL11.glBegin(GL11.GL_QUADS)
         var cfg = -1
         var tx = 0f
-        for (n <- 0 until line.length) {
+        for (n <- line.indices) {
           val ch = line(n)
           val col = PackedColor.unpackForeground(color(n), format)
           // Check if color changed.

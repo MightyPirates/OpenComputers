@@ -24,7 +24,7 @@ trait ItemStackInventory extends Inventory {
     if (!container.hasTagCompound) {
       container.setTagCompound(new NBTTagCompound())
     }
-    for (i <- 0 until items.length) {
+    for (i <- items.indices) {
       updateItems(i, null)
     }
     if (container.getTagCompound.hasKey(Settings.namespace + "items")) {
@@ -41,7 +41,7 @@ trait ItemStackInventory extends Inventory {
   // Write items back to tag.
   override def markDirty() {
     val list = new NBTTagList()
-    for (i <- 0 until items.length) {
+    for (i <- items.indices) {
       val tag = new NBTTagCompound()
       items(i) match {
         case Some(stack) => stack.writeToNBT(tag)

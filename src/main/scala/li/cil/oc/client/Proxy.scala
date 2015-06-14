@@ -34,9 +34,7 @@ private[oc] class Proxy extends CommonProxy {
 
     api.API.manual = client.Manual
 
-    MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(Textures)
-    MinecraftForge.EVENT_BUS.register(HighlightRenderer)
 
     ModelInitialization.preInit()
   }
@@ -73,8 +71,10 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
+    MinecraftForge.EVENT_BUS.register(HighlightRenderer)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(ServerRack)
+    MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
 
@@ -83,6 +83,7 @@ private[oc] class Proxy extends CommonProxy {
     FMLCommonHandler.instance.bus.register(Audio)
     FMLCommonHandler.instance.bus.register(HologramRenderer)
     FMLCommonHandler.instance.bus.register(PetRenderer)
+    FMLCommonHandler.instance.bus.register(Sound)
     FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
   }
 

@@ -5,6 +5,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.client.model.ModelRenderer
+import net.minecraft.entity.Entity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
@@ -89,18 +90,27 @@ object HoverBootRenderer extends ModelBiped {
   bipedRightArm.isHidden = true
   bipedLeftArm.isHidden = true
 
+  override def render(entity: Entity, f0: Float, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float): Unit = {
+    // Because Forge is being a dummy...
+    isSneak = entity.isSneaking
+    // Because Forge is being an even bigger dummy...
+    isChild = false
+    super.render(entity, f0, f1, f2, f3, f4, f5)
+  }
+
   class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
     override def render(dt: Float): Unit = {
       RenderState.disableLighting()
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-      GL11.glDepthFunc(GL11.GL_LEQUAL)
-      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-      GL11.glColor3ub(0x66.toByte, 0xDD.toByte, 0x55.toByte)
+      RenderState.pushAttrib()
+      RenderState.depthFunc(GL11.GL_LEQUAL)
+      RenderState.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+      RenderState.color(0x66 / 255f, 0xDD / 255f, 0x55 / 255f)
 
       super.render(dt)
 
+      RenderState.color(1, 1, 1)
       RenderState.enableLighting()
-      GL11.glPopAttrib()
+      RenderState.popAttrib()
     }
   }
 

@@ -211,5 +211,5 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   }
 
   private def invert(t: Array[EnumFacing]) =
-    (0 until t.length).map(i => EnumFacing.getFront(t.indexOf(EnumFacing.getFront(i)))).toArray
+    t.indices.map(i => EnumFacing.getFront(t.indexOf(EnumFacing.getFront(i)))).toArray
 }

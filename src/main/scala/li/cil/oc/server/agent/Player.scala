@@ -409,10 +409,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     val itemsBefore = adjacentItems
     val stack = inventory.getStackInSlot(slot)
     val oldStack = if (stack != null) stack.copy() else null
+    this.inventory.currentItem = if (inventory == agent.mainInventory) slot else ~slot
     try {
       f(stack)
     }
     finally {
+      this.inventory.currentItem = 0
       val newStack = inventory.getStackInSlot(slot)
       if (newStack != null) {
         if (newStack.stackSize <= 0) {

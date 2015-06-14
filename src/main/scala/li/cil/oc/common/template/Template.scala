@@ -9,6 +9,7 @@ import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.driver.item.Inventory
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.machine.Architecture
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import net.minecraft.inventory.IInventory
@@ -40,14 +41,15 @@ abstract class Template {
     val hasCase = caseTier(inventory) != Tier.None
     val hasCPU = this.hasCPU(inventory)
     val hasRAM = this.hasRAM(inventory)
+    val requiresRAM = this.requiresRAM(inventory)
     val complexity = this.complexity(inventory)
     val maxComplexity = this.maxComplexity(inventory)
 
-    val valid = hasCase && hasCPU && hasRAM && complexity <= maxComplexity
+    val valid = hasCase && hasCPU && (hasRAM || !requiresRAM) && complexity <= maxComplexity
 
     val progress =
       if (!hasCPU) Localization.Assembler.InsertCPU
-      else if (!hasRAM) Localization.Assembler.InsertRAM
+      else if (!hasRAM && requiresRAM) Localization.Assembler.InsertRAM
       else Localization.Assembler.Complexity(complexity, maxComplexity)
 
     val warnings = mutable.ArrayBuffer.empty[IChatComponent]
@@ -56,7 +58,7 @@ abstract class Template {
         warnings += Localization.Assembler.Warning(name)
       }
     }
-    if (warnings.length > 0) {
+    if (warnings.nonEmpty) {
       warnings.prepend(Localization.Assembler.Warnings)
     }
 
@@ -77,6 +79,15 @@ abstract class Template {
 
   protected def hasRAM(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
     case _: Memory => true
+    case _ => false
+  })
+
+  protected def requiresRAM(inventory: IInventory) = !(0 until inventory.getSizeInventory).
+    map(inventory.getStackInSlot).
+    exists(stack => api.Driver.driverFor(stack, hostClass) match {
+    case driver: Processor =>
+      val architecture = driver.architecture(stack)
+      architecture != null && architecture.getAnnotation(classOf[Architecture.NoMemoryRequirements]) != null
     case _ => false
   })
 

@@ -31,6 +31,8 @@ class Keyboard extends SimpleBlock(Material.rock) with traits.OmniRotatable {
 
   override def isFullCube = false
 
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
+
   // ----------------------------------------------------------------------- //
 
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)

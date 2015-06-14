@@ -47,7 +47,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
   def neighborChanged(d: EnumFacing) {
     if (node != null && node.network != null) {
       val blockPos = getPos.offset(d)
-      world.getTileEntity(getPos) match {
+      world.getTileEntity(blockPos) match {
         case env: traits.Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
@@ -162,7 +162,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
     super.writeToNBTForServer(nbt)
 
     val blocksNbt = new NBTTagList()
-    for (i <- 0 until blocks.length) {
+    for (i <- blocks.indices) {
       val blockNbt = new NBTTagCompound()
       blocksData(i) match {
         case Some(data) =>

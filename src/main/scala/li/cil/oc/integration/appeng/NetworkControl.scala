@@ -5,8 +5,11 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Node
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
+import li.cil.oc.util.DatabaseAccess
+import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.Item
@@ -22,8 +25,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.existentials
 
+// Note to self: this class is used by ExtraCells (and potentially others), do not rename / drastically change it.
 trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActionHost] {
   def tile: AETile
+
+  def node: Node
 
   @Callback(doc = "function():table -- Get a list of tables representing the available CPUs in the network.")
   def getCpus(context: Context, args: Arguments): Array[AnyRef] =
@@ -57,6 +63,27 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     result(tile.getProxy.getStorage.getItemInventory.getStorageList.filter(stack => matches(stack, filter)).map(_.getItemStack).toArray)
   }
 
+  @Callback(doc = "function(filter:table, dbAddress:string[, startSlot:number[, count:number]]): Boolean -- Store items in the network matching the specified filter in the database with the specified address.")
+  def store(context: Context, args: Arguments): Array[AnyRef] = {
+    val filter = args.checkTable(0).collect {
+      case (key: String, value: AnyRef) => (key, value)
+    }
+    DatabaseAccess.withDatabase(node, args.checkString(1), database => {
+      val stacks = tile.getProxy.getStorage.getItemInventory.getStorageList.filter(stack => matches(stack, filter)).map(_.getItemStack).filter(_ != null).toArray
+      val offset = args.optSlot(database.data, 2, 0)
+      val count = args.optInteger(3, Int.MaxValue) min (database.size - offset) min stacks.length
+      var slot = offset
+      for (i <- 0 until count) {
+        val stack = Option(stacks(i)).map(_.copy()).orNull
+        while (database.getStackInSlot(slot) != null && slot < database.size) slot += 1
+        if (database.getStackInSlot(slot) == null) {
+          database.setStackInSlot(slot, stack)
+        }
+      }
+      result(true)
+    })
+  }
+
   @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
   def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
     result(tile.getProxy.getStorage.getFluidInventory.getStorageList.map(_.getFluidStack).toArray)
@@ -85,7 +112,7 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
     stack != null &&
       filter.get("damage").forall(_.equals(stack.getItemDamage.toDouble)) &&
       filter.get("maxDamage").forall(_.equals(stack.getItemStack.getMaxDamage.toDouble)) &&
-      filter.get("size").forall(_.equals(stack.getStackSize.toDouble)) &&
+      filter.get("size").collect { case size: Number => size.intValue == stack.getStackSize || size.intValue == 0 }.getOrElse(true) &&
       filter.get("maxSize").forall(_.equals(stack.getItemStack.getMaxStackSize.toDouble)) &&
       filter.get("hasTag").forall(_.equals(stack.hasTagCompound)) &&
       filter.get("name").forall(_.equals(Item.itemRegistry.getNameForObject(stack.getItem))) &&

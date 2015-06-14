@@ -732,7 +732,7 @@ sandbox = {
   tonumber = tonumber,
   tostring = tostring,
   type = type,
-  _VERSION = "Lua 5.2",
+  _VERSION = _VERSION:match("5.3") and "Lua 5.3.0" or "Lua 5.2.4",
   xpcall = function(f, msgh, ...)
     local handled = false
     local result = table.pack(xpcall(f, function(...)
@@ -786,7 +786,9 @@ sandbox = {
     end,
     yield = function(...) -- custom yield part for bubbling sysyields
       return coroutine.yield(nil, ...)
-    end
+    end,
+    -- Lua 5.3.
+    isyieldable = coroutine.isyieldable
   },
 
   string = {
@@ -803,7 +805,11 @@ sandbox = {
     rep = string.rep,
     reverse = string.reverse,
     sub = string.sub,
-    upper = string.upper
+    upper = string.upper,
+    -- Lua 5.3.
+    pack = string.pack,
+    unpack = string.unpack,
+    packsize = string.packsize
   },
 
   table = {
@@ -812,7 +818,9 @@ sandbox = {
     pack = table.pack,
     remove = table.remove,
     sort = table.sort,
-    unpack = table.unpack
+    unpack = table.unpack,
+    -- Lua 5.3.
+    move = table.move
   },
 
   math = {
@@ -848,10 +856,17 @@ sandbox = {
     sinh = math.sinh,
     sqrt = math.sqrt,
     tan = math.tan,
-    tanh = math.tanh
+    tanh = math.tanh,
+    -- Lua 5.3.
+    maxinteger = math.maxinteger,
+    mininteger = math.mininteger,
+    tointeger = math.tointeger,
+    type = math.type,
+    ult = math.ult
   },
 
-  bit32 = {
+  -- Deprecated in Lua 5.3.
+  bit32 = bit32 and {
     arshift = bit32.arshift,
     band = bit32.band,
     bnot = bit32.bnot,
@@ -909,6 +924,16 @@ sandbox = {
       end
     end,
     traceback = debug.traceback
+  },
+
+  -- Lua 5.3.
+  utf8 = utf8 and {
+    char = utf8.char,
+    charpattern = utf8.charpattern,
+    codes = utf8.codes,
+    codepoint = utf8.codepoint,
+    len = utf8.len,
+    offset = utf8.offset
   },
 
   checkArg = checkArg

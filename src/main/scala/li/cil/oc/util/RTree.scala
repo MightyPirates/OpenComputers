@@ -33,7 +33,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
     entries.remove(value) match {
       case Some(node) =>
         val change = root.remove(node)
-        assert(change == Some(node) || change == Some(root))
+        assert(change.contains(node) || change.contains(root))
         root.children.headOption match {
           case Some(nonLeaf: NonLeaf) if root.children.size == 1 =>
             root = nonLeaf
@@ -74,7 +74,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
 
     var bounds = new Rectangle(Point.PositiveInfinity, Point.NegativeInfinity)
 
-    override def allBounds(level: Int) = super.allBounds(level) ++ children.map(_.allBounds(level + 1)).flatten
+    override def allBounds(level: Int) = super.allBounds(level) ++ children.flatMap(_.allBounds(level + 1))
 
     override def isLeaf = children.headOption.exists(_.isInstanceOf[Leaf])
 
@@ -174,7 +174,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
       var seed1: Option[Node] = None
       var seed2: Option[Node] = None
       var worst = Double.NegativeInfinity
-      for (i <- 0 until values.length) {
+      for (i <- values.indices) {
         val si = values(i)
         for (j <- i + 1 until values.length) {
           val sj = values(j)

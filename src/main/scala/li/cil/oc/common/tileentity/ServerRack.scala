@@ -34,7 +34,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   val sides = Seq(Option(EnumFacing.UP), Option(EnumFacing.EAST), Option(EnumFacing.WEST), Option(EnumFacing.DOWN)).
     padTo(servers.length, None).toArray
 
-  val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
+  val terminals = servers.indices.map(new common.component.Terminal(this, _)).toArray
 
   var range = 16
 
@@ -79,7 +79,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     this
   }
 
-  def anyRunning = (0 until servers.length).exists(isRunning)
+  def anyRunning = servers.indices.exists(isRunning)
 
   override def currentState = {
     if (anyRunning) util.EnumSet.of(traits.State.IsWorking)
@@ -146,7 +146,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     if (internalSwitch) {
-      for (slot <- 0 until servers.length) {
+      for (slot <- servers.indices) {
         val side = sides(slot).map(toGlobal)
         if (side != sourceSide) {
           servers(slot) match {
@@ -242,7 +242,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         world.markChunkDirty(getPos, this)
       }
 
-      for (i <- 0 until servers.length) {
+      for (i <- servers.indices) {
         val isRunning = servers(i).fold(false)(_.machine.isRunning)
         if (_isRunning(i) != isRunning) {
           _isRunning(i) = isRunning
@@ -315,7 +315,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     // Kickstart initialization to avoid values getting overwritten by
     // readFromNBTForClient if that packet is handled after a manual
     // initialization / state change packet.
-    for (i <- 0 until servers.length) {
+    for (i <- servers.indices) {
       val isRunning = servers(i).fold(false)(_.machine.isRunning)
       _isRunning(i) = isRunning
     }
@@ -394,7 +394,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override protected def onPlugConnect(plug: Plug, node: Node) {
     if (node == plug.node) {
-      for (number <- 0 until servers.length) {
+      for (number <- servers.indices) {
         val serverSide = sides(number).map(toGlobal)
         servers(number) match {
           case Some(server) =>

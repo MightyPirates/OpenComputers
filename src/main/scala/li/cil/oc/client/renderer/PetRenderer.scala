@@ -57,16 +57,14 @@ object PetRenderer {
     })
 
     RenderState.pushMatrix()
-    RenderState.pushAttrib()
-    if (e.entityPlayer != Minecraft.getMinecraft.thePlayer) {
-      val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.partialRenderTick)
-      val playerPos = e.entityPlayer.getPositionEyes(e.partialRenderTick)
-      val correction = 1.62 - (if (e.entityPlayer.isSneaking) 0.125 else 0)
-      GL11.glTranslated(
-        playerPos.xCoord - localPos.xCoord,
-        playerPos.yCoord - localPos.yCoord + correction,
-        playerPos.zCoord - localPos.zCoord)
-    }
+    RenderState.pushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.partialRenderTick)
+    val playerPos = e.entityPlayer.getPositionEyes(e.partialRenderTick)
+    val correction = 1.62 - (if (e.entityPlayer.isSneaking) 0.125 else 0)
+    GL11.glTranslated(
+      playerPos.xCoord - localPos.xCoord,
+      playerPos.yCoord - localPos.yCoord + correction,
+      playerPos.zCoord - localPos.zCoord)
 
     RenderState.enableEntityLighting()
     RenderState.disableBlend()
@@ -79,6 +77,9 @@ object PetRenderer {
     GL11.glTranslatef(0, hover, 0)
 
     RobotRenderer.renderChassis(null, offset, isRunningOverride = true)
+
+    RenderState.disableEntityLighting()
+    RenderState.disableRescaleNormal()
 
     RenderState.popAttrib()
     RenderState.popMatrix()

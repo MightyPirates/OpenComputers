@@ -133,7 +133,9 @@ class ClassTransformer extends IClassTransformer {
         }
         {
           val classNode = newClassNode(transformedClass)
-          if (classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent")) {
+          if (classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent") &&
+            (classNode.visibleAnnotations == null || !classNode.visibleAnnotations.
+              exists(annotation => annotation != null && annotation.desc == "Lli/cil/oc/api/network/SimpleComponent$SkipInjection;"))) {
             try {
               transformedClass = injectEnvironmentImplementation(classNode)
               log.info(s"Successfully injected component logic into class $name.")

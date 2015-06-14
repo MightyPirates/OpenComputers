@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.util.ExtendedWorld._
+import net.minecraft.block.BlockChest
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.item.EntityMinecartContainer
 import net.minecraft.entity.player.EntityPlayer
@@ -20,9 +21,9 @@ object InventoryUtils {
    * mine carts with chests.
    */
   def inventoryAt(position: BlockPosition): Option[IInventory] = position.world match {
-    case Some(world) if world.blockExists(position) => world.getTileEntity(position) match {
-      case chest: TileEntityChest => Option(net.minecraft.init.Blocks.chest.getLockableContainer(world, chest.getPos))
-      case inventory: IInventory => Some(inventory)
+    case Some(world) if world.blockExists(position) => (world.getBlock(position), world.getTileEntity(position)) match {
+      case (block: BlockChest, chest: TileEntityChest) => Option(block.getLockableContainer(world, chest.getPos))
+      case (_, inventory: IInventory) => Some(inventory)
       case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).
         map(_.asInstanceOf[EntityMinecartContainer]).
         find(!_.isDead)

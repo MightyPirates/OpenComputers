@@ -93,8 +93,8 @@ class Geolyzer(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
       val stack = new ItemStack(item, 1, damage)
       DatabaseAccess.withDatabase(node, args.checkString(1), database => {
         val toSlot = args.checkSlot(database.data, 2)
-        val nonEmpty = database.data.getStackInSlot(toSlot) != null
-        database.data.setInventorySlotContents(toSlot, stack)
+        val nonEmpty = database.getStackInSlot(toSlot) != null
+        database.setStackInSlot(toSlot, stack)
         result(nonEmpty)
       })
     }

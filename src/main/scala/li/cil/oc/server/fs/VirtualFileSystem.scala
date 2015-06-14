@@ -350,7 +350,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       if (!isClosed) {
         val pos = position.toInt
         file.data.insertAll(file.data.length, Seq.fill[Byte]((pos + b.length) - file.data.length)(0))
-        for (i <- 0 until b.length) {
+        for (i <- b.indices) {
           file.data(pos + i) = b(i)
         }
         position += b.length

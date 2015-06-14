@@ -12,6 +12,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import net.minecraft.item.ItemStack
 
 import scala.collection.convert.WrapAsScala._
@@ -32,15 +33,21 @@ abstract class DriverCPU extends Item with Processor {
 
   def cpuTier(stack: ItemStack): Int =
     Delegator.subItem(stack) match {
-    case Some(cpu: item.CPU) => cpu.tier
-    case _ => Tier.One
-  }
+      case Some(cpu: item.CPU) => cpu.tier
+      case _ => Tier.One
+    }
 
   override def supportedComponents(stack: ItemStack) = Settings.get.cpuComponentSupport(cpuTier(stack))
 
   override def architecture(stack: ItemStack): Class[_ <: Architecture] = {
     if (stack.hasTagCompound) {
-      val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass")
+      val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass") match {
+        case clazz if clazz == classOf[NativeLuaArchitecture].getName =>
+          // Migrate old saved CPUs to new versions (since the class they refer still
+          // exists, but is abstract, which would lead to issues).
+          api.Machine.LuaArchitecture.getName
+        case clazz => clazz
+      }
       if (!archClass.isEmpty) try return Class.forName(archClass).asSubclass(classOf[Architecture]) catch {
         case t: Throwable =>
           OpenComputers.log.warn("Failed getting class for CPU architecture. Resetting CPU to use the default.", t)
