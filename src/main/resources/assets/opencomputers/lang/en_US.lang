@@ -259,6 +259,7 @@ oc:tooltip.ComponentBus=This expansion allows servers to communicate with more c
 oc:tooltip.CPU=An essential component of all computers. The clock rate is a bit unreliable, but what do you expect when it runs on a pocket sundial?[nl] Supported components: §f%s§7
 oc:tooltip.CPU.Architecture=Architecture: §f%s§7
 oc:tooltip.CuttingWire=Used to cut clay blocks into circuit board shape. Breaks after one use, which probably makes it the most inefficient tool ever.
+oc:tooltip.DataCard=Provides a couple of advanced algorithms such as hashing and deflate/inflate.
 oc:tooltip.DebugCard=Creative mode item, allows manipulating the world to make testing easier. Use at your own peril.
 oc:tooltip.Debugger=Can be used to output debug information on OC's internal network grid. Only use if so instructed by a dev.
 oc:tooltip.Disassembler=Separates items into their original components. §lWarning§7: returned items have a %s%% chance of breaking in the process!
