@@ -134,8 +134,13 @@ object EventHandler {
         if (ClassTransformer.hadSimpleComponentErrors) {
           player.addChatMessage(Localization.Chat.WarningSimpleComponent)
         }
-        ServerPacketSender.sendPetVisibility(None, Some(player))
-        ServerPacketSender.sendLootDisks(player)
+        // Gaaah, MC 1.8 y u do this to me? Sending the packets here directly can lead to them
+        // arriving on the client before it has a world and player instance, which causes all
+        // sorts of trouble. It worked perfectly fine in MC 1.7.10... oSWDEG'PIl;dg'poinEG\a'pi=
+        EventHandler.schedule(() => {
+          ServerPacketSender.sendPetVisibility(None, Some(player))
+          ServerPacketSender.sendLootDisks(player)
+        })
         // Do update check in local games and for OPs.
         if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.canSendCommands(player.getGameProfile))) {
           Future {

@@ -40,7 +40,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   override def dispatch(p: PacketParser) {
-    if (p.player != null && p.player.getEntityWorld != null) p.packetType match {
+    p.packetType match {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ColorChange => onColorChange(p)
