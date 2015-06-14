@@ -115,7 +115,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   @Callback(doc = """function() -- Clears the hologram.""")
   def clear(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    for (i <- 0 until volume.length) volume(i) = 0
+    for (i <- volume.indices) volume(i) = 0
     ServerPacketSender.sendHologramClear(this)
     resetDirtyFlag()
     litRatio = 0
@@ -348,7 +348,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
       if (world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
         if (litRatio < 0) this.synchronized {
           litRatio = 0
-          for (i <- 0 until volume.length) {
+          for (i <- volume.indices) {
             if (volume(i) != 0) litRatio += 1
           }
           litRatio /= volume.length

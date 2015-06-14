@@ -33,10 +33,10 @@ class CallbackDocHandler(pages: Option[Array[String]]) extends PagedUsageHandler
                   driver.providedEnvironment(stack)
                 else null
               case driver: EnvironmentAware => driver.providedEnvironment(stack)
-            }.filter(_ != null).map(getCallbacks).flatten
+            }.filter(_ != null).flatMap(getCallbacks)
           }
 
-          if (callbacks.size > 0) {
+          if (callbacks.nonEmpty) {
             val fullDocumentation = callbacks.toArray.sorted.mkString("\n\n")
             val pages = fullDocumentation.lines.grouped(12).map(_.mkString("\n")).toArray
             Option(new CallbackDocHandler(Option(pages)))
