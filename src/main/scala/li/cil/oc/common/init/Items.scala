@@ -443,7 +443,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.LinkedCard(cards), Constants.ItemName.LinkedCard, "oc:linkedCard")
 
     // 1.5.13
-    Recipes.addSubItem(new item.DataCard(multi), Constants.ItemName.DataCard, "oc:dataCard")
+    Recipes.addSubItem(new item.DataCard(cards), Constants.ItemName.DataCard, "oc:dataCard")
   }
 
   // Upgrade components.
