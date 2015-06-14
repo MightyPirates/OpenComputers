@@ -4,6 +4,7 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -334,7 +335,7 @@ class Screen(val tier: Int) extends RedstoneAware {
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                  side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float, force: Boolean) = {
     if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z)) && getValidRotations(world, x, y, z).contains(side) && !force) false
-    else if (api.Items.get(player.getHeldItem) == api.Items.get("analyzer")) false
+    else if (api.Items.get(player.getHeldItem) == api.Items.get(Constants.ItemName.Analyzer)) false
     else world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this

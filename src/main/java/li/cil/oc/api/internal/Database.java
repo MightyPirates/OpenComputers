@@ -35,6 +35,16 @@ public interface Database {
     ItemStack getStackInSlot(int slot);
 
     /**
+     * Set the contents of a slot in the database upgrade.
+     * <p/>
+     * Use this to change the configuration of a database upgrade.
+     *
+     * @param slot  the slot to configure.
+     * @param stack the stack to configure the slot to, <tt>null</tt> to clear.
+     */
+    void setStackInSlot(int slot, ItemStack stack);
+
+    /**
      * Get an item stack with the specified hash stored in this database.
      * <p/>
      * This will return a negative value if there is no entry with a matching

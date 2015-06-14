@@ -161,7 +161,6 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the raw value at that index.
-     * @throws IllegalArgumentException if there is no argument at that index.
      */
     Object optAny(int index, Object def);
 
@@ -173,8 +172,7 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the boolean value at the specified index.
-     * @throws IllegalArgumentException if there is no argument at that index,
-     *                                  or if the argument is not a boolean.
+     * @throws IllegalArgumentException if the argument exists and is not a boolean.
      */
     boolean optBoolean(int index, boolean def);
 
@@ -186,8 +184,7 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the integer value at the specified index.
-     * @throws IllegalArgumentException if there is no argument at that index,
-     *                                  or if the argument is not a number.
+     * @throws IllegalArgumentException if the argument exists but is not a number.
      */
     int optInteger(int index, int def);
 
@@ -199,8 +196,7 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the double value at the specified index.
-     * @throws IllegalArgumentException if there is no argument at that index,
-     *                                  or if the argument is not a number.
+     * @throws IllegalArgumentException if the argument exists and is not a number.
      */
     double optDouble(int index, double def);
 
@@ -215,8 +211,7 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the boolean value at the specified index.
-     * @throws IllegalArgumentException if there is no argument at that index,
-     *                                  or if the argument is not a string.
+     * @throws IllegalArgumentException if the argument exists and is not a string.
      */
     String optString(int index, String def);
 
@@ -228,8 +223,7 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the byte array at the specified index.
-     * @throws IllegalArgumentException if there is no argument at that index,
-     *                                  or if the argument is not a byte array.
+     * @throws IllegalArgumentException if the argument exists and is not a byte array.
      */
     byte[] optByteArray(int index, byte[] def);
 
@@ -241,8 +235,7 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the table at the specified index.
-     * @throws IllegalArgumentException if there is no argument at that index,
-     *                                  or if the argument is not a table.
+     * @throws IllegalArgumentException if the argument exists and is not a table.
      */
     Map optTable(int index, Map def);
 
@@ -254,8 +247,7 @@ public interface Arguments extends Iterable<Object> {
      *
      * @param index the index from which to get the argument.
      * @return the item stack at the specified index.
-     * @throws IllegalArgumentException if there is no argument at that index,
-     *                                  or if the argument is not an item stack.
+     * @throws IllegalArgumentException if the argument exists and is not an item stack.
      */
     ItemStack optItemStack(int index, ItemStack def);
 

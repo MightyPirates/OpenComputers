@@ -13,12 +13,15 @@ object PacketType extends Enumeration {
   DisassemblerActiveChange,
   FileSystemActivity,
   FloppyChange,
+  HologramArea,
   HologramClear,
   HologramColor,
   HologramPowerChange,
   HologramScale,
-  HologramSet,
   HologramTranslation,
+  HologramValues,
+  LootDisk,
+  ParticleEffect,
   PetVisibility, // Goes both ways.
   PowerState,
   PrinterState,
@@ -51,6 +54,7 @@ object PacketType extends Enumeration {
   ServerPresence,
   Sound,
   SoundPattern,
+  WaypointLabel, // Goes both ways.
 
   // Client -> Server
   ComputerPower,

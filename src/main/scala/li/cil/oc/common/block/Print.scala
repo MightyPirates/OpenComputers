@@ -12,6 +12,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
+import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.EnumCreatureType
@@ -50,11 +51,34 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override protected def tooltipBody(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
     super.tooltipBody(metadata, stack, player, tooltip, advanced)
     val data = new PrintData(stack)
-    if (data.isBeaconBase) {
-      tooltip.add(Localization.Tooltip.BeaconBase)
-    }
     data.tooltip.foreach(s => tooltip.addAll(s.lines.toIterable))
   }
+
+  override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
+    super.tooltipTail(metadata, stack, player, tooltip, advanced)
+    val data = new PrintData(stack)
+    if (data.isBeaconBase) {
+      tooltip.add(Localization.Tooltip.PrintBeaconBase)
+    }
+    if (data.emitRedstone) {
+      tooltip.add(Localization.Tooltip.PrintRedstoneLevel(data.redstoneLevel))
+    }
+    if (data.emitLight) {
+      tooltip.add(Localization.Tooltip.PrintLightValue(data.lightLevel))
+    }
+  }
+
+  override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int): Int =
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print => print.data.lightLevel
+      case _ => super.getLightValue(world, x, y, z)
+    }
+
+  override def getLightOpacity(world: IBlockAccess, x: Int, y: Int, z: Int): Int =
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print if Settings.get.printsHaveOpacity => (print.data.opacity * 4).toInt
+      case _ => super.getLightOpacity(world, x, y, z)
+    }
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
@@ -175,6 +199,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     super.doCustomInit(tileEntity, player, stack)
     tileEntity.data.load(stack)
     tileEntity.updateBounds()
+    tileEntity.world.func_147451_t(tileEntity.x, tileEntity.y, tileEntity.z)
   }
 
   override protected def doCustomDrops(tileEntity: tileentity.Print, player: EntityPlayer, willHarvest: Boolean): Unit = {
@@ -182,5 +207,17 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     if (!player.capabilities.isCreativeMode) {
       dropBlockAsItem(tileEntity.world, tileEntity.x, tileEntity.y, tileEntity.z, tileEntity.data.createItemStack())
     }
+  }
+
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, block: Block, metadata: Int): Unit = {
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print if print.data.emitRedstone(print.state) =>
+        world.notifyBlocksOfNeighborChange(x, y, z, this)
+        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          world.notifyBlocksOfNeighborChange(x + side.offsetX, y + side.offsetY, z + side.offsetZ, this)
+        }
+      case _ =>
+    }
+    super.breakBlock(world, x, y, z, block, metadata)
   }
 }

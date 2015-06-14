@@ -1,0 +1,13 @@
+# Assembler
+
+![Harder, better, faster, stronger.](oredict:oc:assembler)
+
+The assembler is an advanced workstation that can be used to build more complex electronic devices, such as [robots](robot.md), [drones](../item/drone.md) and [tablets](../item/tablet.md). They require a large amount of energy to assemble devices, so it is recommended to power them sufficiently with a [capacitor bank](capacitor.md).
+
+To build a device using an assembler, insert the base part for that device. For [robots](robot.md), that is a [computer case](case1.md) of any tier; and for [tablets](../item/tablet.md), a [tablet case](../item/tabletCase1.md). As with all OpenComputers inventories, the parts that can be inserted into specific slots; hovering over a slot highlights the parts in your inventory that can go into the slot. If you have NEI open, filtered to show OpenComputers items, compatible items will be highlighted in NEI as well. Continue to insert any parts you would like the device to contain. Take particular care to provide an operating system, or a way to install one later on (for robots you can install a [disk drive](diskDrive.md) to insert and remove [floppies](../item/floppy.md) later on, for example). For most devices, their [EEPROM](../item/eeprom.md) can be changed later on, by crafting the device together with a different [EEPROM](../item/eeprom.md) to insert in them. Existing [EEPROM](../item/eeprom.md) on the device will be returned to your inventory.
+
+Also note that for [robots](robot.md) to have a [screen](screen1.md), you will need to install a [screen (tier 1)](screen1.md) in them, and to allow typing on the [screen](screen1.md), you will need to install a [keyboard](keyboard.md). For [tablets](../item/tablet.md), the [screen](screen1.md) is pre-installed in the [tablet case](../item/tabletCase1.md), but you will need to install a [keyboard](keyboard.md) if you wish to type on the [tablet](../item/tablet.md).
+
+Once everything is in place, press the start button and wait for the device to be assembled and charged. It is important to remember that you *cannot* change the device after it has been assembled. If you forgot something or made a mistake, you will have to disassemble the device using the [disassembler](disassembler.md), which has a slight chance of breaking parts in the process.
+
+A final note on complexity: the tier of an item determines how much complexity it requires, with tier 1 items requiring 1 complexity, tier 2 requiring 2 and tier 3 requiring 3. Container upgrades are the exception, where the complexity is twice the tier of the container (eg: a tier 2 [upgrade containers](../item/upgradeContainer1.md) requires 4 complexity, and likewise for [card containers](../item/cardContainer1.md)).

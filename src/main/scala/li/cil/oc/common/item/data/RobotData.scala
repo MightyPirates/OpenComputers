@@ -2,12 +2,12 @@ package li.cil.oc.common.item.data
 
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.integration.opencomputers.DriverScreen
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
@@ -62,9 +62,9 @@ class RobotData extends ItemData {
     robotEnergy = nbt.getInteger(Settings.namespace + "robotEnergy")
     tier = nbt.getInteger(Settings.namespace + "tier")
     components = nbt.getTagList(Settings.namespace + "components", NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(ItemUtils.loadStack)
+      toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
     containers = nbt.getTagList(Settings.namespace + "containers", NBT.TAG_COMPOUND).
-      toArray[NBTTagCompound].map(ItemUtils.loadStack)
+      toArray[NBTTagCompound].map(ItemStack.loadItemStackFromNBT)
     if (nbt.hasKey(Settings.namespace + "lightColor")) {
       lightColor = nbt.getInteger(Settings.namespace + "lightColor")
     }
@@ -86,7 +86,7 @@ class RobotData extends ItemData {
   }
 
   def createItemStack() = {
-    val stack = api.Items.get("robot").createItemStack(1)
+    val stack = api.Items.get(Constants.BlockName.Robot).createItemStack(1)
     save(stack)
     stack
   }

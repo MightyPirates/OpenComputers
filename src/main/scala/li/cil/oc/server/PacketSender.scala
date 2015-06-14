@@ -5,6 +5,7 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
+import li.cil.oc.common.tileentity.Waypoint
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
@@ -176,8 +177,8 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendHologramSet(t: tileentity.Hologram) {
-    val pb = new CompressedPacketBuilder(PacketType.HologramSet)
+  def sendHologramArea(t: tileentity.Hologram) {
+    val pb = new CompressedPacketBuilder(PacketType.HologramArea)
 
     pb.writeTileEntity(t)
     pb.writeByte(t.dirtyFromX)
@@ -194,6 +195,22 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendHologramValues(t: tileentity.Hologram): Unit = {
+    val pb = new CompressedPacketBuilder(PacketType.HologramValues)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.dirty.size)
+    for (xz <- t.dirty) {
+      val x = (xz >> 8).toByte
+      val z = xz.toByte
+      pb.writeShort(xz)
+      pb.writeInt(t.volume(x + z * t.width))
+      pb.writeInt(t.volume(x + z * t.width + t.width * t.width))
+    }
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendHologramOffset(t: tileentity.Hologram) {
     val pb = new SimplePacketBuilder(PacketType.HologramTranslation)
 
@@ -205,6 +222,32 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendLootDisks(p: EntityPlayerMP): Unit = {
+    // Sending as separate packets, because CompressedStreamTools hiccups otherwise...
+    val stacks = Loot.worldDisks.values.map(_._1)
+    for (stack <- stacks) {
+      val pb = new SimplePacketBuilder(PacketType.LootDisk)
+
+      pb.writeItemStack(stack)
+
+      pb.sendToPlayer(p)
+    }
+  }
+
+  def sendParticleEffect(position: BlockPosition, name: String, count: Int, velocity: Double, direction: Option[ForgeDirection] = None): Unit = if (count > 0) {
+    val pb = new SimplePacketBuilder(PacketType.ParticleEffect)
+
+    pb.writeInt(position.world.get.provider.dimensionId)
+    pb.writeInt(position.x)
+    pb.writeInt(position.y)
+    pb.writeInt(position.z)
+    pb.writeDouble(velocity)
+    pb.writeDirection(direction)
+    pb.writeUTF(name)
+    pb.writeByte(count.toByte)
+
+    pb.sendToNearbyPlayers(position.world.get, position.x, position.y, position.z, Some(32.0))
+  }
 
   def sendPetVisibility(name: Option[String] = None, player: Option[EntityPlayerMP] = None) {
     val pb = new SimplePacketBuilder(PacketType.PetVisibility)
@@ -550,7 +593,7 @@ object PacketSender {
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
 
-    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+    pb.sendToNearbyPlayers(world, x, y, z, Option(32))
   }
 
   def sendSound(world: World, x: Double, y: Double, z: Double, pattern: String) {
@@ -563,6 +606,15 @@ object PacketSender {
     pb.writeInt(blockPos.z)
     pb.writeUTF(pattern)
 
-    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+    pb.sendToNearbyPlayers(world, x, y, z, Option(32))
+  }
+
+  def sendWaypointLabel(t: Waypoint): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.WaypointLabel)
+
+    pb.writeTileEntity(t)
+    pb.writeUTF(t.label)
+
+    pb.sendToPlayersNearTileEntity(t)
   }
 }

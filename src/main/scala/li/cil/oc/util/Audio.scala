@@ -8,7 +8,9 @@ import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
+import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.audio.SoundCategory
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10
@@ -28,6 +30,8 @@ object Audio {
 
   private def amplitude = Settings.get.beepAmplitude
 
+  private def maxDistance = Settings.get.beepRadius
+
   private val sources = mutable.Set.empty[Source]
 
   private def volume = Minecraft.getMinecraft.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
@@ -39,10 +43,29 @@ object Audio {
   }
 
   def play(x: Float, y: Float, z: Float, pattern: String, frequencyInHz: Int = 1000, durationInMilliseconds: Int = 200): Unit = {
-    if (!disableAudio) {
-      val distanceBasedGain = math.max(0, 1 - Minecraft.getMinecraft.thePlayer.getDistance(x, y, z) / 12).toFloat
-      val gain = distanceBasedGain * volume
-      if (gain > 0 && amplitude > 0 && AL.isCreated) {
+    val mc = Minecraft.getMinecraft
+    val distanceBasedGain = math.max(0, 1 - mc.thePlayer.getDistance(x, y, z) / maxDistance).toFloat
+    val gain = distanceBasedGain * volume
+    if (gain <= 0 || amplitude <= 0) return
+
+    if (disableAudio) {
+      // Fallback audio generation, using built-in Minecraft sound. This can be
+      // necessary on certain systems with audio cards that do not have enough
+      // memory. May still fail, but at least we can say we tried!
+      // Valid range is 20-2000Hz, clamp it to that and get a relative value.
+      // MC's pitch system supports a minimum pitch of 0.5, however, so up it
+      // by that.
+      val clampedFrequency = ((frequencyInHz - 20) max 0 min 1980) / 1980f + 0.5f
+      var delay = 0
+      for (ch <- pattern) {
+        val record = new PositionedSoundRecord(new ResourceLocation("note.harp"), gain, clampedFrequency, x, y, z)
+        if (delay == 0) mc.getSoundHandler.playSound(record)
+        else mc.getSoundHandler.playDelayedSound(record, delay)
+        delay += ((if (ch == '.') durationInMilliseconds else 2 * durationInMilliseconds) * 20 / 1000) max 1
+      }
+    }
+    else {
+      if (AL.isCreated) {
         val sampleCounts = pattern.toCharArray.
           map(ch => if (ch == '.') durationInMilliseconds else 2 * durationInMilliseconds).
           map(_ * sampleRate / 1000)
@@ -121,6 +144,8 @@ object Audio {
           checkALError()
 
           AL10.alSource3f(source, AL10.AL_POSITION, x, y, z)
+          AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, maxDistance)
+          AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, maxDistance)
           AL10.alSourcef(source, AL10.AL_GAIN, gain * 0.3f)
           checkALError()
 

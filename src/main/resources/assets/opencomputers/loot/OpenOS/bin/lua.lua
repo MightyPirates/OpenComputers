@@ -27,14 +27,83 @@ if #args == 0 or options.i then
       return module
     end
   end
-  setmetatable(env, {__index = function(t, k)
-    return _ENV[k] or optrequire(k)
-  end})
+  setmetatable(env, {
+    __index = function(t, k)
+      _ENV[k] = _ENV[k] or optrequire(k)
+      return _ENV[k]
+    end,
+    __pairs = function(self)
+      local t = self
+      return function(_, key)
+        local k, v = next(t, key)
+        if not k and t == env then
+          t = _ENV
+          k, v = next(t)
+        end
+        if not k and t == _ENV then
+          t = package.loaded
+          k, v = next(t)
+        end
+        return k, v
+      end
+    end
+  })
 
   local history = {}
 
+  local function findTable(t, path)
+    if type(t) ~= "table" then return nil end
+    if not path or #path == 0 then return t end
+    local name = string.match(path, "[^.]+")
+    for k, v in pairs(t) do
+      if k == name then
+        return findTable(v, string.sub(path, #name + 2))
+      end
+    end
+    local mt = getmetatable(t)
+    if t == env then mt = {__index=_ENV} end
+    if mt then
+      return findTable(mt.__index, path)
+    end
+    return nil
+  end
+  local function findKeys(t, r, prefix, name)
+    if type(t) ~= "table" then return end
+    for k, v in pairs(t) do
+      if string.match(k, "^"..name) then
+        local postfix = ""
+        if type(v) == "function" then postfix = "()"
+        elseif type(v) == "table" and getmetatable(v) and getmetatable(v).__call then postfix = "()"
+        elseif type(v) == "table" then postfix = "."
+        end
+        r[prefix..k..postfix] = true
+      end
+    end
+    local mt = getmetatable(t)
+    if t == env then mt = {__index=_ENV} end
+    if mt then
+      return findKeys(mt.__index, r, prefix, name)
+    end
+  end
+  local function hint(line, index)
+    line = (line or ""):sub(1, index - 1)
+    local path = string.match(line, "[a-zA-Z_][a-zA-Z0-9_.]*$")
+    if not path then return nil end
+    local suffix = string.match(path, "[^.]+$") or ""
+    local prefix = string.sub(path, 1, #path - #suffix)
+    local t = findTable(env, prefix)
+    if not t then return nil end
+    local r1, r2 = {}, {}
+    findKeys(t, r1, string.sub(line, 1, #line - #suffix), suffix)
+    for k in pairs(r1) do
+      table.insert(r2, k)
+    end
+    table.sort(r2)
+    return r2
+  end
+
   component.gpu.setForeground(0xFFFFFF)
-  term.write("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio\n")
+  term.write(_VERSION .. " Copyright (C) 1994-2015 Lua.org, PUC-Rio\n")
   component.gpu.setForeground(0xFFFF00)
   term.write("Enter a statement and hit enter to evaluate it.\n")
   term.write("Prefix an expression with '=' to show its value.\n")
@@ -45,7 +114,7 @@ if #args == 0 or options.i then
     local foreground = component.gpu.setForeground(0x00FF00)
     term.write(tostring(env._PROMPT or "lua> "))
     component.gpu.setForeground(foreground)
-    local command = term.read(history)
+    local command = term.read(history, nil, hint)
     if command == nil then -- eof
       return
     end

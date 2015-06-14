@@ -33,24 +33,11 @@ class Settings(val config: Config) {
   val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
-  val hologramMaxScaleByTier = Array(config.getDoubleList("client.hologramMaxScale"): _*) match {
-    case Array(tier1, tier2) =>
-      Array((tier1: Double) max 1.0, (tier2: Double) max 1.0)
-    case _ =>
-      OpenComputers.log.warn("Bad number of hologram max scales, ignoring.")
-      Array(3.0, 4.0)
-  }
-  val hologramMaxTranslationByTier = Array(config.getDoubleList("client.hologramMaxTranslation"): _*) match {
-    case Array(tier1, tier2) =>
-      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
-    case _ =>
-      OpenComputers.log.warn("Bad number of hologram max translations, ignoring.")
-      Array(0.25, 0.5)
-  }
   val monochromeColor = Integer.decode(config.getString("client.monochromeColor"))
   val fontRenderer = config.getString("client.fontRenderer")
   val beepSampleRate = config.getInt("client.beepSampleRate")
   val beepAmplitude = config.getInt("client.beepVolume") max 0 min Byte.MaxValue
+  val beepRadius = config.getDouble("client.beepRadius").toFloat max 1 min 32
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -81,6 +68,7 @@ class Settings(val config: Config) {
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
+  val enableLua53 = config.getBoolean("computer.lua.enableLua53")
   val ramSizes = Array(config.getIntList("computer.lua.ramSizes"): _*) match {
     case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
       Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
@@ -102,6 +90,13 @@ class Settings(val config: Config) {
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1
   val nameFormat = config.getString("robot.nameFormat")
   val uuidFormat = config.getString("robot.uuidFormat")
+  val upgradeFlightHeight = Array(config.getIntList("robot.upgradeFlightHeight"): _*) match {
+    case Array(tier1, tier2) =>
+      Array(tier1: Int, tier2: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hover flight height counts, ignoring.")
+      Array(64, 256)
+  }
 
   // robot.xp
   val baseXpToLevel = config.getDouble("robot.xp.baseValue") max 0
@@ -160,6 +155,7 @@ class Settings(val config: Config) {
   val bufferAccessPoint = config.getDouble("power.buffer.accessPoint") max 0
   val bufferDrone = config.getDouble("power.buffer.drone") max 0
   val bufferMicrocontroller = config.getDouble("power.buffer.mcu") max 0
+  val bufferHoverBoots = config.getDouble("power.buffer.hoverBoots") max 1
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
@@ -194,6 +190,9 @@ class Settings(val config: Config) {
   val pistonCost = config.getDouble("power.cost.pistonPush") max 0
   val eepromWriteCost = config.getDouble("power.cost.eepromWrite") max 0
   val printCost = config.getDouble("power.cost.printerModel") max 0
+  val hoverBootJump = config.getDouble("power.cost.hoverBootJump") max 0
+  val hoverBootAbsorb = config.getDouble("power.cost.hoverBootAbsorb") max 0
+  val hoverBootMove = config.getDouble("power.cost.hoverBootMove") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -264,6 +263,24 @@ class Settings(val config: Config) {
   val switchRelayAmountUpgrade = config.getInt("switch.relayAmountUpgrade") max 0
 
   // ----------------------------------------------------------------------- //
+  // hologram
+  val hologramMaxScaleByTier = Array(config.getDoubleList("hologram.maxScale"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 1.0, (tier2: Double) max 1.0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hologram max scales, ignoring.")
+      Array(3.0, 4.0)
+  }
+  val hologramMaxTranslationByTier = Array(config.getDoubleList("hologram.maxTranslation"): _*) match {
+    case Array(tier1, tier2) =>
+      Array((tier1: Double) max 0.0, (tier2: Double) max 0.0)
+    case _ =>
+      OpenComputers.log.warn("Bad number of hologram max translations, ignoring.")
+      Array(0.25, 0.5)
+  }
+  val hologramSetRawDelay = config.getDouble("hologram.setRawDelay") max 0
+
+  // ----------------------------------------------------------------------- //
   // misc
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
@@ -289,13 +306,23 @@ class Settings(val config: Config) {
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
-  val databaseEntriesPerTier = Array(9, 25, 81) // Not configurable because of GUI design.
+  val databaseEntriesPerTier = Array(9, 25, 81)
+  // Not configurable because of GUI design.
   val presentChance = config.getDouble("misc.presentChance") max 0 min 1
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
   val threadPriority = config.getInt("misc.threadPriority")
-  val maxPrintComplexity = config.getInt("misc.maxPrinterShapes")
-  val printRecycleRate = config.getDouble("misc.printRecycleRate")
-  val chameliumEdible = config.getBoolean("misc.chameliumEdible")
+  val giveManualToNewPlayers = config.getBoolean("misc.giveManualToNewPlayers")
+
+  // ----------------------------------------------------------------------- //
+  // printer
+  val maxPrintComplexity = config.getInt("printer.maxShapes")
+  val printRecycleRate = config.getDouble("printer.recycleRate")
+  val chameliumEdible = config.getBoolean("printer.chameliumEdible")
+  val maxPrintLightLevel = config.getInt("printer.maxBaseLightLevel") max 0 min 15
+  val printCustomRedstone = config.getInt("printer.customRedstoneCost") max 0
+  val printMaterialValue = config.getInt("printer.materialValue") max 0
+  val printInkValue = config.getInt("printer.inkValue") max 0
+  val printsHaveOpacity = config.getBoolean("printer.printsHaveOpacity")
 
   // ----------------------------------------------------------------------- //
   // integration

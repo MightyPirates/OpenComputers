@@ -18,24 +18,22 @@ import codechicken.multipart.TSlottedPart
 import codechicken.multipart.scalatraits.TSlottedTile
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api.Items
 import li.cil.oc.client.renderer.block.Print
 import li.cil.oc.common.block.Print
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ExtendedWorld._
-import mods.immibis.redlogic.api.wiring.IRedstoneEmitter
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
@@ -104,11 +102,13 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   // ----------------------------------------------------------------------- //
 
-  override def simpleBlock = Items.get("print").block().asInstanceOf[Print]
+  override def simpleBlock = Items.get(Constants.BlockName.Print).block().asInstanceOf[Print]
 
-  def getType = Settings.namespace + "print"
+  def getType = Settings.namespace + Constants.BlockName.Print
 
   override def doesTick = false
+
+  override def getLightValue: Int = data.lightLevel
 
   override def getBounds = new Cuboid6(if (state) boundsOn else boundsOff)
 
@@ -135,20 +135,20 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   // ----------------------------------------------------------------------- //
 
-  override def conductsRedstone: Boolean = data.emitRedstone && state
+  override def conductsRedstone: Boolean = if (state) data.emitRedstoneWhenOn else data.emitRedstoneWhenOff
 
-  override def redstoneConductionMap: Int = if (data.emitRedstone && state) 0xFF else 0
+  override def redstoneConductionMap: Int = if (conductsRedstone) 0xFF else 0
 
   override def canConnectRedstone(side: Int): Boolean = true
 
   override def strongPowerLevel(side: Int): Int = weakPowerLevel(side)
 
-  override def weakPowerLevel(side: Int): Int = if (data.emitRedstone && state) 15 else 0
+  override def weakPowerLevel(side: Int): Int = if (data.emitRedstone(state)) data.redstoneLevel else 0
 
   // ----------------------------------------------------------------------- //
 
   override def activate(player: EntityPlayer, hit: MovingObjectPosition, item: ItemStack): Boolean = {
-    if (data.stateOn.size > 0) {
+    if (data.hasActiveState) {
       if (!state || !data.isButtonMode) {
         toggleState()
         return true
@@ -259,41 +259,18 @@ class PrintPart(val original: Option[tileentity.Print] = None) extends SimpleBlo
 
   protected def checkRedstone(): Unit = {
     val newMaxValue = computeInput()
-    val newState = newMaxValue > 1 // Fixes oddities in cycling updates.
-    if (!data.emitRedstone && data.stateOn.size > 0 && state != newState) {
+    val newState = newMaxValue > 1 // >1 Fixes oddities in cycling updates.
+    if (!data.emitRedstone && data.hasActiveState && state != newState) {
       toggleState()
     }
   }
 
   protected def computeInput(): Int = {
-    val inner = tile.partList.foldLeft(false)((powered, part) => part match {
-      case print: PrintPart => powered || (print.state && print.data.emitRedstone)
-      case _ => powered
+    val inner = tile.partList.foldLeft(0)((power, part) => part match {
+      case print: PrintPart if print.data.emitRedstone(print.state) => math.max(power, print.data.redstoneLevel)
+      case _ => power
     })
-    if (inner) 15 else ForgeDirection.VALID_DIRECTIONS.map(computeInput).max
-  }
-
-  protected def computeInput(side: ForgeDirection): Int = {
-    val blockPos = BlockPosition(x, y, z).offset(side)
-    if (!world.blockExists(blockPos)) 0
-    else {
-      // See BlockRedstoneLogic.getInputStrength() for reference.
-      val vanilla = math.max(world.getIndirectPowerLevelTo(blockPos, side),
-        if (world.getBlock(blockPos) == Blocks.redstone_wire) world.getBlockMetadata(blockPos) else 0)
-      val redLogic = if (Mods.RedLogic.isAvailable) {
-        world.getTileEntity(blockPos) match {
-          case emitter: IRedstoneEmitter =>
-            var strength = 0
-            for (i <- -1 to 5) {
-              strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
-            }
-            strength
-          case _ => 0
-        }
-      }
-      else 0
-      math.max(vanilla, redLogic)
-    }
+    math.max(inner, ForgeDirection.VALID_DIRECTIONS.map(BundledRedstone.computeInput(BlockPosition(x, y, z, world), _)).max)
   }
 
   // ----------------------------------------------------------------------- //

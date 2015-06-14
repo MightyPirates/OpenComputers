@@ -25,6 +25,10 @@ object Textures {
   val guiDisassembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/disassembler.png")
   val guiDrone = new ResourceLocation(Settings.resourceDomain, "textures/gui/drone.png")
   val guiKeyboardMissing = new ResourceLocation(Settings.resourceDomain, "textures/gui/keyboard_missing.png")
+  val guiManual = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual.png")
+  val guiManualHome = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual_home.png")
+  val guiManualMissingItem = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual_missing_item.png")
+  val guiManualTab = new ResourceLocation(Settings.resourceDomain, "textures/gui/manual_tab.png")
   val guiPrinter = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer.png")
   val guiPrinterInk = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_ink.png")
   val guiPrinterMaterial = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_material.png")
@@ -37,6 +41,7 @@ object Textures {
   val guiRobotSelection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
   val guiServer = new ResourceLocation(Settings.resourceDomain, "textures/gui/server.png")
   val guiSlot = new ResourceLocation(Settings.resourceDomain, "textures/gui/slot.png")
+  val guiWaypoint = new ResourceLocation(Settings.resourceDomain, "textures/gui/waypoint.png")
 
   val blockCaseFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontOn.png")
   val blockCaseFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontActivity.png")
@@ -125,5 +130,6 @@ object Textures {
 
     tm.bindTexture(upgradeCrafting)
     tm.bindTexture(upgradeGenerator)
+    tm.bindTexture(upgradeInventory)
   }
 }

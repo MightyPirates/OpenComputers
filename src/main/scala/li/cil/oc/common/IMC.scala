@@ -4,11 +4,14 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 import com.typesafe.config.Config
+import cpw.mods.fml.common.FMLLog
 import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.template.AssemblerTemplates
 import li.cil.oc.common.template.DisassemblerTemplates
+import li.cil.oc.integration.util.ItemCharge
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
@@ -45,7 +48,9 @@ object IMC {
         }
       }
       else if (message.key == "requestSettings" && message.isStringMessage) {
+        // TODO Remove in OC 1.6
         OpenComputers.log.info(s"Got a request for our configuration from mod ${message.getSender}.")
+        FMLLog.bigWarning("The IMC message `requestSettings` is deprecated. Use `li.cil.oc.api.API.config` instead.")
         try tryInvokeStaticVoid(getStaticMethod(message.getStringValue, classOf[Config]), Settings.get.config) catch {
           case t: Throwable => OpenComputers.log.warn("Failed sending config.", t)
         }
@@ -54,6 +59,15 @@ object IMC {
         OpenComputers.log.info(s"Registering new wrench tool '${message.getStringValue}' from mod ${message.getSender}.")
         try Wrench.add(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[Int], classOf[Int], classOf[Int], classOf[Boolean])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering wrench tool.", t)
+        }
+      }
+      else if (message.key == "registerItemCharge" && message.isNBTMessage) {
+        OpenComputers.log.info(s"Registering new item charge implementation '${message.getNBTValue.getString("name")}' from mod ${message.getSender}.")
+        try ItemCharge.add(
+          getStaticMethod(message.getNBTValue.getString("canCharge"), classOf[ItemStack]),
+          getStaticMethod(message.getNBTValue.getString("charge"), classOf[ItemStack], classOf[Double], classOf[Boolean])
+        ) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering item charge implementation.", t)
         }
       }
       else if (message.key == "blacklistPeripheral" && message.isStringMessage) {
@@ -72,6 +86,12 @@ object IMC {
         OpenComputers.log.info(s"Registering new assembler template filter '${message.getStringValue}' from mod ${message.getSender}.")
         try AssemblerTemplates.addFilter(message.getStringValue) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering assembler template filter.", t)
+        }
+      }
+      else if (message.key == "registerInkProvider" && message.isStringMessage) {
+        OpenComputers.log.info(s"Registering new ink provider '${message.getStringValue}' from mod ${message.getSender}.")
+        try PrintData.addInkProvider(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering ink provider.", t)
         }
       }
       else {

@@ -8,6 +8,10 @@ if #dirs == 0 then
   table.insert(dirs, ".")
 end
 
+local function formatOutput()
+  return component.isAvailable("gpu") and io.output() == io.stdout
+end
+
 io.output():setvbuf("line")
 for i = 1, #dirs do
   local path = shell.resolve(dirs[i])
@@ -22,7 +26,7 @@ for i = 1, #dirs do
     io.write(reason .. "\n")
   else
     local function setColor(c)
-      if component.isAvailable("gpu") and component.gpu.getForeground() ~= c then
+      if formatOutput() and component.gpu.getForeground() ~= c then
         io.stdout:flush()
         component.gpu.setForeground(c)
       end
@@ -48,15 +52,16 @@ for i = 1, #dirs do
 
     local col = 1
     local columns = math.huge
-    if component.isAvailable("gpu") and io.output() == io.stdout then
+    if formatOutput() then
       columns = math.max(1, math.floor((component.gpu.getResolution() - 1) / m))
     end
 
     for _, d in ipairs(lsd) do
       if options.a or d:sub(1, 1) ~= "." then
-        io.write(text.padRight(d, m))
-        if options.l or io.output() ~= io.stdout or col % columns == 0 then
-          io.write("\n")
+        if options.l or not formatOutput() or col % columns == 0 then
+          io.write(d .. "\n")
+        else
+          io.write(text.padRight(d, m))
         end
         col = col + 1
       end
@@ -71,12 +76,20 @@ for i = 1, #dirs do
         setColor(0xFFFFFF)
       end
       if options.a or f:sub(1, 1) ~= "." then
-        io.write(text.padRight(f, m))
-        if options.l then
-          setColor(0xFFFFFF)
-          io.write(fs.size(fs.concat(path, f)), "\n")
-        elseif io.output() ~= io.stdout or col % columns == 0 then
+        if not formatOutput() then
+          io.write(f)
+          if options.l then
+            io.write(" " .. fs.size(fs.concat(path, f)))
+          end
           io.write("\n")
+        else
+          io.write(text.padRight(f, m))
+          if options.l then
+            setColor(0xFFFFFF)
+            io.write(fs.size(fs.concat(path, f)), "\n")
+          elseif col % columns == 0 then
+            io.write("\n")
+          end
         end
         col = col + 1
       end

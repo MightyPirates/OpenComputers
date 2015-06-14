@@ -33,14 +33,16 @@ function buffer:close()
 end
 
 function buffer:flush()
-  local result, reason = self.stream:write(self.bufferWrite)
-  if result then
-    self.bufferWrite = ""
-  else
-    if reason then
-      return nil, reason
+  if #self.bufferWrite > 0 then
+    local result, reason = self.stream:write(self.bufferWrite)
+    if result then
+      self.bufferWrite = ""
     else
-      return nil, "bad file descriptor"
+      if reason then
+        return nil, reason
+      else
+        return nil, "bad file descriptor"
+      end
     end
   end
 

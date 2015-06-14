@@ -203,10 +203,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def isItemValidForSlot(i: Int, stack: ItemStack) = {
     val descriptor = api.Items.get(stack)
-    descriptor == api.Items.get("server1") ||
-      descriptor == api.Items.get("server2") ||
-      descriptor == api.Items.get("server3") ||
-      descriptor == api.Items.get("serverCreative")
+    descriptor == api.Items.get(Constants.ItemName.ServerTier1) ||
+      descriptor == api.Items.get(Constants.ItemName.ServerTier2) ||
+      descriptor == api.Items.get(Constants.ItemName.ServerTier3) ||
+      descriptor == api.Items.get(Constants.ItemName.ServerCreative)
   }
 
   // ----------------------------------------------------------------------- //
@@ -214,19 +214,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     slotAt(ForgeDirection.getOrientation(side), hitX, hitY, hitZ) match {
       case Some(slot) => servers(slot) match {
-        case Some(server) =>
-          val computer = server.machine
-          computer.lastError match {
-            case value if value != null =>
-              player.addChatMessage(Localization.Analyzer.LastError(value))
-            case _ =>
-          }
-          player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, computer.maxComponents))
-          val list = computer.users
-          if (list.size > 0) {
-            player.addChatMessage(Localization.Analyzer.Users(list))
-          }
-          Array(computer.node)
+        case Some(server) => Array(server.machine.node)
         case _ => null
       }
       case _ => Array(sidedNode(ForgeDirection.getOrientation(side)))

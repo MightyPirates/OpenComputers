@@ -60,5 +60,9 @@ io.stderr = buffer.new("w", stderrStream)
 io.stdout:setvbuf("no")
 io.stderr:setvbuf("no")
 
+io.stdin.close = stdinStream.close
+io.stdout.close = stdinStream.close
+io.stderr.close = stdinStream.close
+
 io.input(io.stdin)
 io.output(io.stdout)

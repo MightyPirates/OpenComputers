@@ -26,6 +26,7 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.Slot
+import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
@@ -53,7 +54,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   val tmp = if (Settings.get.tmpSize > 0) {
     Option(FileSystem.asManagedEnvironment(FileSystem.
-      fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
+      fromMemory(Settings.get.tmpSize * 1024), "tmpfs", null, null, 5))
   } else None
 
   var architecture: Architecture = _
@@ -112,24 +113,25 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }))
     maxCallBudget = components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
       case Some(stack) => Option(Driver.driverFor(stack, host.getClass)) match {
-        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack))
+        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack) max Tier.One min Tier.Three)
         case _ => 0
       }
       case _ => 0
     }))
-    val oldArchitecture = architecture
-    architecture = null
+    var newArchitecture: Architecture = null
     components.find {
       case stack: ItemStack => Option(Driver.driverFor(stack, host.getClass)) match {
         case Some(driver: Processor) if driver.slot(stack) == Slot.CPU =>
           Option(driver.architecture(stack)) match {
             case Some(clazz) =>
-              if (oldArchitecture == null || oldArchitecture.getClass != clazz) {
-                architecture = clazz.getConstructor(classOf[machine.Machine]).newInstance(this)
-                if (node.network != null) architecture.onConnect()
+              if (architecture == null || architecture.getClass != clazz) try {
+                newArchitecture = clazz.getConstructor(classOf[machine.Machine]).newInstance(this)
+              }
+              catch {
+                case t: Throwable => OpenComputers.log.warn("Failed instantiating a CPU architecture.", t)
               }
               else {
-                architecture = oldArchitecture
+                newArchitecture = architecture
               }
               true
             case _ => false
@@ -137,6 +139,12 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         case _ => false
       }
       case _ => false
+    }
+    // This needs to operate synchronized against the worker thread, to avoid the
+    // architecture changing while it is currently being executed.
+    if (newArchitecture != architecture) this.synchronized {
+      architecture = newArchitecture
+      if (architecture != null && node.network != null) architecture.onConnect()
     }
     hasMemory = Option(architecture).fold(false)(_.recomputeMemory(components))
   }
@@ -162,6 +170,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (uptime < 0) {
       uptime = worldTime + uptime
     }
+    // World time is in ticks, and each second has 20 ticks. Since we
+    // want uptime() to return real seconds, though, we'll divide it
+    // accordingly.
     uptime / 20.0
   }
 
@@ -182,7 +193,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   override def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
   override def start(): Boolean = state.synchronized(state.top match {
-    case Machine.State.Stopped =>
+    case Machine.State.Stopped if node.network != null =>
       onHostChanged()
       processAddedComponents()
       verifyComponents()
@@ -222,14 +233,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       true
     case Machine.State.Stopping =>
       switchTo(Machine.State.Restarting)
+      EventHandler.unscheduleClose(this)
       true
     case _ =>
       false
   })
-
-  private def beep(pattern: String) {
-    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, pattern)
-  }
 
   override def pause(seconds: Double): Boolean = {
     val ticksToPause = math.max((seconds * 20).toInt, 0)
@@ -261,6 +269,14 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       EventHandler.scheduleClose(this)
       true
   })
+
+  override def beep(frequency: Short, duration: Short): Unit = {
+    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, duration)
+  }
+
+  override def beep(pattern: String) {
+    PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, pattern)
+  }
 
   override def crash(message: String) = {
     this.message = Option(message)
@@ -612,7 +628,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   private def processAddedComponents() {
-    if (addedComponents.size > 0) {
+    if (addedComponents.nonEmpty) {
       for (component <- addedComponents) {
         if (component.canBeSeenFrom(node)) {
           _components.synchronized(_components += component.address -> component.name)
@@ -671,7 +687,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       else fs.load(SaveHandler.loadNBT(nbt, node.address + "_tmp"))
     })
 
-    if (state.size > 0 && isRunning && init()) try {
+    if (state.nonEmpty && isRunning && init()) try {
       architecture.load(nbt)
 
       signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((signalNbt: NBTTagCompound) => {
@@ -820,7 +836,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
 
   private def close() = state.synchronized(
-    if (state.size == 0 || state.top != Machine.State.Stopped) {
+    if (state.isEmpty || state.top != Machine.State.Stopped) {
       this.synchronized {
         state.clear()
         state.push(Machine.State.Stopped)

@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.Analyzable
@@ -15,7 +16,7 @@ class Keyboard extends traits.Environment with traits.Rotatable with traits.Immi
   override def validFacings = ForgeDirection.VALID_DIRECTIONS
 
   val keyboard = {
-    val keyboardItem = api.Items.get("keyboard").createItemStack(1)
+    val keyboardItem = api.Items.get(Constants.BlockName.Keyboard).createItemStack(1)
     api.Driver.driverFor(keyboardItem, getClass).createEnvironment(keyboardItem, this)
   }
 

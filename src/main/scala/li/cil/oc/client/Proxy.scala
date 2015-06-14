@@ -6,8 +6,10 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event.FMLInitializationEvent
 import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.network.NetworkRegistry
+import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.client
 import li.cil.oc.client.renderer.HighlightRenderer
 import li.cil.oc.client.renderer.PetRenderer
@@ -32,9 +34,9 @@ private[oc] class Proxy extends CommonProxy {
   override def preInit(e: FMLPreInitializationEvent) {
     super.preInit(e)
 
-    MinecraftForge.EVENT_BUS.register(Sound)
+    api.API.manual = client.Manual
+
     MinecraftForge.EVENT_BUS.register(gui.Icons)
-    MinecraftForge.EVENT_BUS.register(HighlightRenderer)
   }
 
   override def init(e: FMLInitializationEvent) {
@@ -66,14 +68,16 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 
-    MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
-    MinecraftForgeClient.registerItemRenderer(Items.get("print").createItemStack(1).getItem, ItemRenderer)
+    MinecraftForgeClient.registerItemRenderer(Items.get(Constants.ItemName.Floppy).createItemStack(1).getItem, ItemRenderer)
+    MinecraftForgeClient.registerItemRenderer(Items.get(Constants.BlockName.Print).createItemStack(1).getItem, ItemRenderer)
 
     ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
+    MinecraftForge.EVENT_BUS.register(HighlightRenderer)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(ServerRack)
+    MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
 
@@ -82,6 +86,7 @@ private[oc] class Proxy extends CommonProxy {
     FMLCommonHandler.instance.bus.register(Audio)
     FMLCommonHandler.instance.bus.register(HologramRenderer)
     FMLCommonHandler.instance.bus.register(PetRenderer)
+    FMLCommonHandler.instance.bus.register(Sound)
     FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
   }
 }

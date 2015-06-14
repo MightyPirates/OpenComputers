@@ -91,7 +91,7 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.node || !world.blockExists(x, y, z)) {
       api.Network.leaveWirelessNetwork(this)
     }
   }

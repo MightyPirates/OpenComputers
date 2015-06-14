@@ -77,7 +77,9 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
     val custom = customTextures
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       custom(side.ordinal) match {
-        case Some(name) => icons(side.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":" + name)
+        case Some(name) =>
+          if (name.contains(":")) icons(side.ordinal) = iconRegister.registerIcon(name)
+          else icons(side.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":" + name)
         case _ =>
       }
     }

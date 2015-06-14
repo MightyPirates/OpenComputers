@@ -1,6 +1,7 @@
 package li.cil.oc.client.renderer
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.client.Textures
@@ -24,7 +25,7 @@ import scala.util.Random
 object HighlightRenderer {
   private val random = new Random()
 
-  lazy val tablet = api.Items.get("tablet")
+  lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
 
   @SubscribeEvent
   def onDrawBlockHighlight(e: DrawBlockHighlightEvent): Unit = {

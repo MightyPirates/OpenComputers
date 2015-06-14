@@ -5,6 +5,7 @@ import java.io.EOFException
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
+import li.cil.oc.Settings
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
@@ -12,6 +13,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.common.Loot
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import li.cil.oc.util.ExtendedWorld._
@@ -46,12 +48,15 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.DisassemblerActiveChange => onDisassemblerActiveChange(p)
       case PacketType.FileSystemActivity => onFileSystemActivity(p)
       case PacketType.FloppyChange => onFloppyChange(p)
+      case PacketType.HologramArea => onHologramArea(p)
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
-      case PacketType.HologramSet => onHologramSet(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
+      case PacketType.HologramValues => onHologramValues(p)
+      case PacketType.LootDisk => onLootDisk(p)
+      case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.PrinterState => onPrinterState(p)
@@ -73,6 +78,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case PacketType.SoundPattern => onSoundPattern(p)
+      case PacketType.WaypointLabel => onWaypointLabel(p)
       case _ => // Invalid packet.
     }
   }
@@ -181,7 +187,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         for (i <- 0 until t.volume.length) t.volume(i) = 0
-        t.dirty = true
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -191,7 +197,7 @@ object PacketHandler extends CommonPacketHandler {
         val index = p.readInt()
         val value = p.readInt()
         t.colors(index) = value & 0xFFFFFF
-        t.dirty = true
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -208,7 +214,7 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onHologramSet(p: PacketParser) =
+  def onHologramArea(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         val fromX = p.readByte(): Int
@@ -221,7 +227,22 @@ object PacketHandler extends CommonPacketHandler {
             t.volume(x + z * t.width + t.width * t.width) = p.readInt()
           }
         }
-        t.dirty = true
+        t.needsRendering = true
+      case _ => // Invalid packet.
+    }
+
+  def onHologramValues(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        val count = p.readInt()
+        for (i <- 0 until count) {
+          val xz = p.readShort()
+          val x = (xz >> 8).toByte
+          val z = xz.toByte
+          t.volume(x + z * t.width) = p.readInt()
+          t.volume(x + z * t.width + t.width * t.width) = p.readInt()
+        }
+        t.needsRendering = true
       case _ => // Invalid packet.
     }
 
@@ -234,7 +255,57 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onLootDisk(p: PacketParser) = {
+    val stack = p.readItemStack()
+    if (stack != null) {
+      Loot.disksForClient += stack
+    }
+  }
+
+  def onParticleEffect(p: PacketParser) = {
+    val dimension = p.readInt()
+    world(p.player, dimension) match {
+      case Some(world) =>
+        val x = p.readInt()
+        val y = p.readInt()
+        val z = p.readInt()
+        val velocity = p.readDouble()
+        val direction = p.readDirection()
+        val name = p.readUTF()
+        val count = p.readUnsignedByte()
+
+        for (i <- 0 until count) {
+          def rv(f: ForgeDirection => Int) = direction match {
+            case Some(d) => world.rand.nextFloat - 0.5 + f(d) * 0.5
+            case _ => world.rand.nextFloat * 2.0 - 1
+          }
+          val vx = rv(_.offsetX)
+          val vy = rv(_.offsetY)
+          val vz = rv(_.offsetZ)
+          if (vx * vx + vy * vy + vz * vz < 1) {
+            def rp(x: Int, v: Double, f: ForgeDirection => Int) = direction match {
+              case Some(d) => x + 0.5 + v * velocity * 0.5 + f(d) * velocity
+              case _ => x + 0.5 + v * velocity
+            }
+            val px = rp(x, vx, _.offsetX)
+            val py = rp(y, vy, _.offsetY)
+            val pz = rp(z, vz, _.offsetZ)
+            world.spawnParticle(name, px, py, pz, vx, vy + velocity * 0.25, vz)
+          }
+        }
+      case _ => // Invalid packet.
+    }
+  }
+
   def onPetVisibility(p: PacketParser) {
+    if (!PetRenderer.isInitialized) {
+      PetRenderer.isInitialized = true
+      if (Settings.get.hideOwnPet) {
+        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+      }
+      PacketSender.sendPetVisibility()
+    }
+
     val count = p.readInt()
     for (i <- 0 until count) {
       val name = p.readUTF()
@@ -558,4 +629,10 @@ object PacketHandler extends CommonPacketHandler {
       Audio.play(x + 0.5f, y + 0.5f, z + 0.5f, pattern)
     }
   }
+
+  def onWaypointLabel(p: PacketParser) =
+    p.readTileEntity[Waypoint]() match {
+      case Some(waypoint) => waypoint.label = p.readUTF()
+      case _ => // Invalid packet.
+    }
 }

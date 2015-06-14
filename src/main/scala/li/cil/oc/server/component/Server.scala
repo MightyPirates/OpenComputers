@@ -10,10 +10,10 @@ import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
@@ -31,7 +31,7 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
 
   machine.onHostChanged()
 
-  def tier = Items.multi.subItem(rack.getStackInSlot(slot)) match {
+  def tier = Delegator.subItem(rack.getStackInSlot(slot)) match {
     case Some(server: item.Server) => server.tier
     case _ => 0
   }
@@ -39,7 +39,7 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
   // ----------------------------------------------------------------------- //
 
   override def internalComponents(): Iterable[ItemStack] = (0 until inventory.getSizeInventory).collect {
-    case i if inventory.isComponentSlot(i) && inventory.getStackInSlot(i) != null => inventory.getStackInSlot(i)
+    case i if inventory.getStackInSlot(i) != null && inventory.isComponentSlot(i, inventory.getStackInSlot(i)) => inventory.getStackInSlot(i)
   }
 
   override def componentSlot(address: String) = inventory.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))

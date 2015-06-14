@@ -505,6 +505,7 @@ local function installPackage(pack,path,update)
   term.write("Done.\n")
   saveToFile(tPacks)
   print("Successfully installed package "..pack)
+  return true
 end
 
 local function uninstallPackage(pack)
@@ -565,7 +566,7 @@ if options.iKnowWhatIAmDoing then
     provideInfo(args[2])
   elseif args[1] == "install" then
     if not getInternet() then return end
-    installPackage(args[2],args[3],false)
+    return installPackage(args[2],args[3],false)
   elseif args[1] == "update" then
     if not getInternet() then return end
     updatePackage(args[2])
@@ -629,6 +630,10 @@ local mnt = choice.address:sub(1, 3)
 local result, reason = shell.execute("oppm", nil, "install", "-f", "oppm", "/mnt/" .. mnt .. "/usr/", "--iKnowWhatIAmDoing")
 if not result then
   error(reason, 0)
+end
+
+if not reason then
+  return
 end
 
 print("All done! Please remove the Floppy Disk used for installation! Reboot now? [Y/n]")

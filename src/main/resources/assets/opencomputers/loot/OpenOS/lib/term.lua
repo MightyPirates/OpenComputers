@@ -105,7 +105,14 @@ function term.isWide(x, y)
 end
 
 function term.isAvailable()
-  return component.isAvailable("gpu") and component.isAvailable("screen")
+  if component.isAvailable("gpu") and component.isAvailable("screen") then
+    -- Ensure our primary GPU is bound to our primary screen.
+    if component.gpu.getScreen() ~= component.screen.address then
+      component.gpu.bind(component.screen.address)
+    end
+    return true
+  end
+  return false
 end
 
 function term.read(history, dobreak, hint, pwchar, filter)
@@ -350,9 +357,6 @@ function term.read(history, dobreak, hint, pwchar, filter)
         history[#history] = ""
         return true, nil
       end
-    elseif keyboard.isControlDown() and code == keyboard.keys.c then
-      history[#history] = ""
-      return true, nil
     elseif not keyboard.isControl(char) then
       insert(unicode.char(char))
     end
@@ -383,7 +387,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
     end
     term.setCursorBlink(false)
     if term.getCursor() > 1 and dobreak ~= false then
-      print()
+      term.write("\n")
     end
   end
 
@@ -394,6 +398,10 @@ function term.read(history, dobreak, hint, pwchar, filter)
     if not ok then
       cleanup()
       error("interrupted", 0)
+    end
+    if name == "interrupted" then
+      cleanup()
+      return nil
     end
     local ncx, ncy = getCursor()
     if ocx ~= ncx or ocy ~= ncy then

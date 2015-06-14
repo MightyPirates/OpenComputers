@@ -5,10 +5,10 @@ import li.cil.oc.Settings
 import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.entity
-import li.cil.oc.common.init.Items
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
 import net.minecraft.client.Minecraft
@@ -44,6 +44,8 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Screen(t.origin.buffer, t.tier > 0, () => t.origin.hasKeyboard, () => t.origin.buffer.isRenderingEnabled)
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new gui.Switch(player.inventory, t)
+          case t: tileentity.Waypoint if id == GuiType.Waypoint.id =>
+            new gui.Waypoint(t)
           case _ => null
         }
       case Some(GuiType.Category.Entity) =>
@@ -53,7 +55,7 @@ object GuiHandler extends CommonGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Items.multi.subItem(player.getCurrentEquippedItem) match {
+        Delegator.subItem(player.getCurrentEquippedItem) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
               override def tier = database.tier
@@ -123,6 +125,9 @@ object GuiHandler extends CommonGuiHandler {
             null
           case _ => null
         }
+      case Some(GuiType.Category.None) =>
+        if (id == GuiType.Manual.id) new gui.Manual()
+        else null
       case _ => null
     }
   }

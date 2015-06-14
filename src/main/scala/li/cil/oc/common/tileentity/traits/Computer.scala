@@ -5,7 +5,6 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
-import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api.Machine
 import li.cil.oc.api.machine.MachineHost
@@ -17,6 +16,7 @@ import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
 import li.cil.oc.integration.util.Waila
+import li.cil.oc.server.agent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -75,7 +75,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   // ----------------------------------------------------------------------- //
 
   override def internalComponents(): lang.Iterable[ItemStack] = (0 until getSizeInventory).collect {
-    case i if isComponentSlot(i) && getStackInSlot(i) != null => getStackInSlot(i)
+    case slot if getStackInSlot(slot) != null && isComponentSlot(slot, getStackInSlot(slot)) => getStackInSlot(slot)
   }
 
   override def installedComponents = components collect {
@@ -129,7 +129,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def dispose(): Unit = {
     super.dispose()
-    if (machine != null && !this.isInstanceOf[RobotProxy]) {
+    if (machine != null && !this.isInstanceOf[RobotProxy] && !moving) {
       machine.stop()
     }
   }
@@ -195,7 +195,10 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    super.isUseableByPlayer(player) && canInteract(player.getCommandSenderName)
+    super.isUseableByPlayer(player) && (player match {
+      case fakePlayer: agent.Player => canInteract(fakePlayer.agent.ownerName())
+      case _ => canInteract(player.getCommandSenderName)
+    })
 
   override protected def onRotationChanged() {
     super.onRotationChanged()
@@ -209,17 +212,5 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    machine.lastError match {
-      case value if value != null =>
-        player.addChatMessage(Localization.Analyzer.LastError(value))
-      case _ =>
-    }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
-    val list = machine.users
-    if (list.size > 0) {
-      player.addChatMessage(Localization.Analyzer.Users(list))
-    }
-    Array(machine.node)
-  }
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
 }

@@ -12,9 +12,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -39,9 +37,6 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   var totalRequiredEnergy = 0.0
   var requiredEnergy = 0.0
 
-  val materialPerItem = 2000
-  val inkPerCartridge = 50000
-
   val slotMaterial = 0
   val slotInk = 1
   val slotOutput = 2
@@ -61,7 +56,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = data.stateOff.size > 0 && data.stateOff.size + data.stateOn.size <= Settings.get.maxPrintComplexity
+  def canPrint = data.stateOff.size > 0 && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
 
   def isPrinting = output.isDefined
 
@@ -104,16 +99,29 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     result(data.tooltip.orNull)
   }
 
-  @Callback(doc = """function(value:boolean) -- Set whether the printed block should emit redstone when in its active state.""")
-  def setRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
-    data.emitRedstone = args.checkBoolean(0)
+  @Callback(doc = """function(value:number) -- Set what light level the printed block should have.""")
+  def setLightLevel(context: Context, args: Arguments): Array[Object] = {
+    data.lightLevel = args.checkInteger(0) max 0 min Settings.get.maxPrintLightLevel
     isActive = false // Needs committing.
     null
   }
 
-  @Callback(doc = """function():boolean -- Get whether the printed block should emit redstone when in its active state.""")
+  @Callback(doc = """function():number -- Get which light level the printed block should have.""")
+  def getLightLevel(context: Context, args: Arguments): Array[Object] = {
+    result(data.lightLevel)
+  }
+
+  @Callback(doc = """function(value:boolean or number) -- Set whether the printed block should emit redstone when in its active state.""")
+  def setRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
+    if (args.isBoolean(0)) data.redstoneLevel = if (args.checkBoolean(0)) 15 else 0
+    else data.redstoneLevel = args.checkInteger(0) max 0 min 15
+    isActive = false // Needs committing.
+    null
+  }
+
+  @Callback(doc = """function():boolean, number -- Get whether the printed block should emit redstone when in its active state.""")
   def isRedstoneEmitter(context: Context, args: Arguments): Array[Object] = {
-    result(data.emitRedstone)
+    result(data.emitRedstone, data.redstoneLevel)
   }
 
   @Callback(doc = """function(value:boolean) -- Set whether the printed block should automatically return to its off state.""")
@@ -130,7 +138,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
   def addShape(context: Context, args: Arguments): Array[Object] = {
-    if (data.stateOff.size + data.stateOn.size >= Settings.get.maxPrintComplexity) {
+    if (data.stateOff.size > Settings.get.maxPrintComplexity || data.stateOn.size > Settings.get.maxPrintComplexity) {
       return result(null, "model too complex")
     }
     val minX = (args.checkInteger(0) max 0 min 16) / 16f
@@ -164,7 +172,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   }
 
   @Callback(doc = """function():number -- Get the number of shapes in the current configuration.""")
-  def getShapeCount(context: Context, args: Arguments): Array[Object] = result(data.stateOff.size + data.stateOn.size)
+  def getShapeCount(context: Context, args: Arguments): Array[Object] = result(data.stateOff.size, data.stateOn.size)
 
   @Callback(doc = """function():number -- Get the maximum allowed number of shapes.""")
   def getMaxShapeCount(context: Context, args: Arguments): Array[Object] = result(Settings.get.maxPrintComplexity)
@@ -188,34 +196,6 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def computeCosts(data: PrintData) = {
-    val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
-    val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
-
-    if (totalVolume > 0) {
-      val materialRequired = (totalVolume / 2) max 1
-      val inkRequired = (totalSurface / 6) max 1
-
-      Option((materialRequired, inkRequired))
-    }
-    else None
-  }
-
-  def materialValue(stack: ItemStack) = {
-    if (api.Items.get(stack) == api.Items.get("chamelium"))
-      materialPerItem
-    else if (api.Items.get(stack) == api.Items.get("print")) {
-      val data = new PrintData(stack)
-      computeCosts(data) match {
-        case Some((materialRequired, inkRequired)) => (materialRequired * Settings.get.printRecycleRate).toInt
-        case _ => 0
-      }
-    }
-    else 0
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def canUpdate = isServer
 
   override def updateEntity() {
@@ -228,7 +208,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     }
 
     if (isActive && output.isEmpty && canMergeOutput) {
-      computeCosts(data) match {
+      PrintData.computeCosts(data) match {
         case Some((materialRequired, inkRequired)) =>
           totalRequiredEnergy = Settings.get.printCost
           requiredEnergy = totalRequiredEnergy
@@ -269,7 +249,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       ServerPacketSender.sendPrinting(this, have > 0.5 && output.isDefined)
     }
 
-    val inputValue = materialValue(getStackInSlot(slotMaterial))
+    val inputValue = PrintData.materialValue(getStackInSlot(slotMaterial))
     if (inputValue > 0 && maxAmountMaterial - amountMaterial >= inputValue) {
       val material = decrStackSize(slotMaterial, 1)
       if (material != null) {
@@ -277,10 +257,14 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
       }
     }
 
-    if (maxAmountInk - amountInk >= inkPerCartridge) {
-      if (api.Items.get(getStackInSlot(slotInk)) == api.Items.get("inkCartridge")) {
-        setInventorySlotContents(slotInk, api.Items.get("inkCartridgeEmpty").createItemStack(1))
-        amountInk += inkPerCartridge
+    val inkValue = PrintData.inkValue(getStackInSlot(slotInk))
+    if (inkValue > 0 && maxAmountInk - amountInk >= inkValue) {
+      val material = decrStackSize(slotInk, 1)
+      if (material != null) {
+        amountInk += inkValue
+        if (material.getItem.hasContainerItem(material)) {
+          setInventorySlotContents(slotInk, material.getItem.getContainerItem(material))
+        }
       }
     }
   }
@@ -293,7 +277,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     isActive = nbt.getBoolean(Settings.namespace + "active")
     limit = nbt.getInteger(Settings.namespace + "limit")
     if (nbt.hasKey(Settings.namespace + "output")) {
-      output = Option(ItemUtils.loadStack(nbt.getCompoundTag(Settings.namespace + "output")))
+      output = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "output")))
     }
     totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
@@ -332,9 +316,9 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot == slotMaterial)
-      materialValue(stack) > 0
+      PrintData.materialValue(stack) > 0
     else if (slot == slotInk)
-      api.Items.get(stack) == api.Items.get("inkCartridge")
+      PrintData.inkValue(stack) > 0
     else false
 
   // ----------------------------------------------------------------------- //

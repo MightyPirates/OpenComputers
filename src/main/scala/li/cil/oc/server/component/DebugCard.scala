@@ -1,6 +1,8 @@
 package li.cil.oc.server.component
 
 import com.google.common.base.Strings
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.ModAPIManager
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
@@ -96,10 +98,17 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     result(host.zPosition)
   }
 
-  @Callback(doc = """function():userdata -- Get the container's world object.""")
+  @Callback(doc = """function([id:number]):userdata -- Get the world object for the specified dimension ID, or the container's.""")
   def getWorld(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
-    result(new DebugCard.WorldValue(host.world))
+    if (args.count() > 0) result(new DebugCard.WorldValue(DimensionManager.getWorld(args.checkInteger(0))))
+    else result(new DebugCard.WorldValue(host.world))
+  }
+
+  @Callback(doc = """function():table -- Get a list of all world IDs, loaded and unloaded.""")
+  def getWorlds(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    result(DimensionManager.getStaticDimensionIDs)
   }
 
   @Callback(doc = """function(name:string):userdata -- Get the entity of a player.""")
@@ -108,12 +117,25 @@ class DebugCard(host: EnvironmentHost) extends prefab.ManagedEnvironment {
     result(new DebugCard.PlayerValue(args.checkString(0)))
   }
 
+  @Callback(doc = """function():table -- Get a list of currently logged-in players.""")
+  def getPlayers(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    result(MinecraftServer.getServer.getAllUsernames)
+  }
+
+  @Callback(doc = """function(name:string):boolean -- Get whether a mod or API is loaded.""")
+  def isModLoaded(context: Context, args: Arguments): Array[AnyRef] = {
+    checkEnabled()
+    val name = args.checkString(0)
+    result(Loader.isModLoaded(name) || ModAPIManager.INSTANCE.hasAPI(name))
+  }
+
   @Callback(doc = """function(command:string):number -- Runs an arbitrary command using a fake player.""")
   def runCommand(context: Context, args: Arguments): Array[AnyRef] = {
     checkEnabled()
     val commands =
       if (args.isTable(0)) collectionAsScalaIterable(args.checkTable(0).values())
-      else Iterable (args.checkString(0))
+      else Iterable(args.checkString(0))
 
     CommandSender.synchronized {
       CommandSender.prepare()

@@ -6,14 +6,13 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.client.renderer.PetRenderer
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.asm.ClassTransformer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
@@ -24,18 +23,24 @@ import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
+import li.cil.oc.server.machine.Callbacks
 import li.cil.oc.server.machine.Machine
+import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util._
-import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.BlockEvent
+import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 
 import scala.collection.convert.WrapAsScala._
@@ -45,8 +50,6 @@ import scala.concurrent.Future
 
 object EventHandler {
   private val pending = mutable.Buffer.empty[() => Unit]
-
-  var totalWorldTicks = 0L
 
   private val runningRobots = mutable.Set.empty[Robot]
 
@@ -60,7 +63,9 @@ object EventHandler {
 
   def addKeyboard(keyboard: Keyboard): Unit = keyboards += keyboard
 
-  def scheduleClose(machine: Machine) = machines += machine
+  def scheduleClose(machine: Machine): Unit = machines += machine
+
+  def unscheduleClose(machine: Machine): Unit = machines -= machine
 
   def schedule(tileEntity: TileEntity) {
     if (SideTracker.isServer) pending.synchronized {
@@ -137,15 +142,17 @@ object EventHandler {
       else if (robot.world != null) robot.machine.update()
     })
     runningRobots --= invalid
-
-    val closed = mutable.ArrayBuffer.empty[Machine]
-    machines.foreach(machine => if (machine.tryClose()) closed += machine)
-    machines --= closed
   }
-
-  @SubscribeEvent
-  def onClientTick(e: ClientTickEvent) = if (e.phase == TickEvent.Phase.START) {
-    totalWorldTicks += 1
+  else if (e.phase == TickEvent.Phase.END) {
+    // Clean up machines *after* a tick, to allow stuff to be saved, first.
+    val closed = mutable.ArrayBuffer.empty[Machine]
+    machines.foreach(machine => if (machine.tryClose()) {
+      closed += machine
+      if (machine.host.world == null || !machine.host.world.blockExists(BlockPosition(machine.host))) {
+        if (machine.node != null) machine.node.remove()
+      }
+    })
+    machines --= closed
   }
 
   @SubscribeEvent
@@ -168,6 +175,7 @@ object EventHandler {
           player.addChatMessage(Localization.Chat.WarningSimpleComponent)
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
+        ServerPacketSender.sendLootDisks(player)
         // Do update check in local games and for OPs.
         if (!Mods.VersionChecker.isAvailable && (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.func_152596_g(player.getGameProfile))) {
           Future {
@@ -182,18 +190,12 @@ object EventHandler {
 
   @SubscribeEvent
   def clientLoggedIn(e: ClientConnectedToServerEvent) {
-    try {
-      PetRenderer.hidden.clear()
-      if (Settings.get.hideOwnPet) {
-        PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
-      }
-      ClientPacketSender.sendPetVisibility()
-    }
-    catch {
-      case _: Throwable =>
-      // Reportedly, things can derp if this is called at inopportune moments,
-      // such as the server shutting down.
-    }
+    PetRenderer.isInitialized = false
+    PetRenderer.hidden.clear()
+    Loot.disksForClient.clear()
+
+    client.Sound.startLoop(null, "computer_running", 0f, 0)
+    schedule(() => client.Sound.stopLoop(null))
   }
 
   @SubscribeEvent
@@ -227,12 +229,29 @@ object EventHandler {
     keyboards.foreach(_.releasePressedKeys(e.player))
   }
 
-  lazy val drone = api.Items.get("drone")
-  lazy val eeprom = api.Items.get("eeprom")
-  lazy val mcu = api.Items.get("microcontroller")
-  lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
-  lazy val robot = api.Items.get("robot")
-  lazy val tablet = api.Items.get("tablet")
+  @SubscribeEvent
+  def onEntityJoinWorld(e: EntityJoinWorldEvent): Unit = {
+    if (Settings.get.giveManualToNewPlayers && !e.world.isRemote) e.entity match {
+      case player: EntityPlayer if !player.isInstanceOf[FakePlayer] =>
+        val nbt = player.getEntityData
+        if (!nbt.hasKey(EntityPlayer.PERSISTED_NBT_TAG)) {
+          nbt.setTag(EntityPlayer.PERSISTED_NBT_TAG, new NBTTagCompound())
+        }
+        val ocData = nbt.getCompoundTag(EntityPlayer.PERSISTED_NBT_TAG)
+        if (!ocData.getBoolean(Settings.namespace + "receivedManual")) {
+          ocData.setBoolean(Settings.namespace + "receivedManual", true)
+          player.inventory.addItemStackToInventory(api.Items.get(Constants.ItemName.Manual).createItemStack(1))
+        }
+      case _ =>
+    }
+  }
+
+  lazy val drone = api.Items.get(Constants.ItemName.Drone)
+  lazy val eeprom = api.Items.get(Constants.ItemName.EEPROM)
+  lazy val mcu = api.Items.get(Constants.BlockName.Microcontroller)
+  lazy val navigationUpgrade = api.Items.get(Constants.ItemName.NavigationUpgrade)
+  lazy val robot = api.Items.get(Constants.BlockName.Robot)
+  lazy val tablet = api.Items.get(Constants.ItemName.Tablet)
 
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
@@ -241,7 +260,7 @@ object EventHandler {
     didRecraft = recraft(e, navigationUpgrade, stack => {
       // Restore the map currently used in the upgrade.
       Option(api.Driver.driverFor(e.crafting)) match {
-        case Some(driver) => Option(ItemUtils.loadStack(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
+        case Some(driver) => Option(ItemStack.loadItemStackFromNBT(driver.dataTag(stack).getCompoundTag(Settings.namespace + "map")))
         case _ => None
       }
     }) || didRecraft
@@ -274,7 +293,7 @@ object EventHandler {
         if (Settings.get.presentChance > 0 && !didRecraft && api.Items.get(e.crafting) != null &&
           e.player.getRNG.nextFloat() < Settings.get.presentChance && timeForPresents) {
           // Presents!
-          val present = api.Items.get("present").createItemStack(1)
+          val present = api.Items.get(Constants.ItemName.Present).createItemStack(1)
           e.player.worldObj.playSoundAtEntity(e.player, "note.pling", 0.2f, 1f)
           InventoryUtils.addToPlayerInventory(present, e.player)
         }
@@ -297,6 +316,13 @@ object EventHandler {
       (month == Calendar.DECEMBER && dayOfMonth == 14)
   }
 
+  def isItTime = {
+    val now = Calendar.getInstance()
+    val month = now.get(Calendar.MONTH)
+    val dayOfMonth = now.get(Calendar.DAY_OF_MONTH)
+    month == Calendar.APRIL && dayOfMonth == 1
+  }
+
   private def recraft(e: ItemCraftedEvent, item: ItemInfo, callback: ItemStack => Option[ItemStack]): Boolean = {
     if (api.Items.get(e.crafting) == item) {
       for (slot <- 0 until e.craftMatrix.getSizeInventory) {
@@ -314,10 +340,25 @@ object EventHandler {
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     if (!e.world.isRemote) {
-      import scala.collection.convert.WrapAsScala._
       e.world.loadedTileEntityList.collect {
         case te: tileentity.traits.TileEntity => te.dispose()
       }
+      e.world.loadedEntityList.collect {
+        case host: MachineHost => host.machine.stop()
+      }
+
+      Callbacks.clear()
+    }
+  }
+
+  @SubscribeEvent
+  def onChunkUnload(e: ChunkEvent.Unload): Unit = {
+    if (!e.world.isRemote) {
+      e.getChunk.entityLists.foreach(_.collect {
+        case host: MachineHost => host.machine match {
+          case machine: Machine => scheduleClose(machine)
+        }
+      })
     }
   }
 }

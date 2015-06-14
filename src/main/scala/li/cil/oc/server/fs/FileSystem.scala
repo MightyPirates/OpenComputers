@@ -1,6 +1,8 @@
 package li.cil.oc.server.fs
 
 import java.io
+import java.net.MalformedURLException
+import java.net.URISyntaxException
 import java.net.URL
 import java.util.UUID
 
@@ -16,6 +18,8 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
+
+import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
   lazy val isCaseInsensitive = Settings.get.forceCaseInsensitive || (try {
@@ -50,17 +54,16 @@ object FileSystem extends api.detail.FileSystemAPI {
       else
         (codeSource, false)
 
-    val file = try {
-      val url = new URL(codeUrl)
-      try {
-        new io.File(url.toURI)
+    val url = Try {
+      new URL(codeUrl)
+    }.recoverWith {
+      case _: MalformedURLException => Try {
+        new URL("file://" + codeUrl)
       }
-      catch {
-        case _: Throwable => new io.File(url.getPath)
-      }
-    } catch {
-      case _: Throwable => new io.File(codeSource)
     }
+    val file = url.map(url => new io.File(url.toURI)).recoverWith {
+      case _: URISyntaxException => url.map(url => new io.File(url.getPath))
+    }.getOrElse(new io.File(codeSource))
 
     if (isArchive) {
       ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
@@ -104,20 +107,26 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
     else null
 
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, accessSound: String, speed: Int) =
+    Option(fileSystem).flatMap(fs => Some(component.FileSystem(fs, label, Option(host), Option(accessSound), speed))).orNull
+
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, accessSound: String, speed: Int) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, accessSound, speed)
+
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, sound: String) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(host), Option(sound)))).orNull
+    asManagedEnvironment(fileSystem, label, host, sound, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, host: EnvironmentHost, sound: String) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound)
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), host, sound, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull
+    asManagedEnvironment(fileSystem, label, null, null, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String) =
-    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label))
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), null, null, 1)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem) =
-    asManagedEnvironment(fileSystem, null: Label)
+    asManagedEnvironment(fileSystem, null: Label, null, null, 1)
 
   abstract class ItemLabel(val stack: ItemStack) extends Label
 

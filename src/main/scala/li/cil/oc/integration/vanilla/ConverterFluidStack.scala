@@ -12,7 +12,7 @@ object ConverterFluidStack extends api.driver.Converter {
     value match {
       case stack: net.minecraftforge.fluids.FluidStack =>
         if (Settings.get.insertIdsInConverters) {
-          output += "id" -> Int.box(stack.fluidID)
+          output += "id" -> Int.box(stack.getFluid.getID)
         }
         output += "amount" -> Int.box(stack.amount)
         output += "hasTag" -> Boolean.box(stack.tag != null)

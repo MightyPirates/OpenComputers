@@ -138,7 +138,7 @@ object WirelessNetwork {
         val x = (origin.xCoord + v.xCoord * rGap + side.xCoord * rSide + top.xCoord * rTop).toInt
         val y = (origin.yCoord + v.yCoord * rGap + side.yCoord * rSide + top.yCoord * rTop).toInt
         val z = (origin.zCoord + v.zCoord * rGap + side.zCoord * rSide + top.zCoord * rTop).toInt
-        Option(world.getBlock(x, y, z)) match {
+        if (world.blockExists(x, y, z)) Option(world.getBlock(x, y, z)) match {
           case Some(block) => hardness += block.getBlockHardness(world, x, y, z)
           case _ =>
         }

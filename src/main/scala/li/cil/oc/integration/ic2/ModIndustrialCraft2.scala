@@ -1,6 +1,6 @@
 package li.cil.oc.integration.ic2
 
-import cpw.mods.fml.common.event.FMLInterModComms
+import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
@@ -10,8 +10,12 @@ object ModIndustrialCraft2 extends ModProxy {
   override def getMod = Mods.IndustrialCraft2
 
   override def initialize() {
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerToolDurabilityProvider", "li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.getDurability")
-    FMLInterModComms.sendMessage(Mods.IDs.OpenComputers, "registerWrenchTool", "li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.useWrench")
+    api.IMC.registerToolDurabilityProvider("li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.getDurability")
+    api.IMC.registerWrenchTool("li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.useWrench")
+    api.IMC.registerItemCharge(
+      "IndustrialCraft2",
+      "li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.canCharge",
+      "li.cil.oc.integration.ic2.EventHandlerIndustrialCraft2.charge")
 
     MinecraftForge.EVENT_BUS.register(EventHandlerIndustrialCraft2)
 

@@ -5,6 +5,7 @@ import java.util.UUID
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -17,6 +18,7 @@ import li.cil.oc.api.internal.MultiTank
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network._
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
@@ -27,6 +29,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
+import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
@@ -205,19 +208,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    machine.lastError match {
-      case value if value != null =>
-        player.addChatMessage(Localization.Analyzer.LastError(value))
-      case _ =>
-    }
-    player.addChatMessage(Localization.Analyzer.Components(machine.componentCount, machine.maxComponents))
-    val list = machine.users
-    if (list.size > 0) {
-      player.addChatMessage(Localization.Analyzer.Users(list))
-    }
-    Array(machine.node)
-  }
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
 
   // ----------------------------------------------------------------------- //
 
@@ -342,23 +333,6 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       targetX = x.toFloat
       targetY = y.toFloat
       targetZ = z.toFloat
-    }
-  }
-
-  override def setDead() {
-    super.setDead()
-    if (!world.isRemote) {
-      machine.stop()
-      machine.node.remove()
-      components.disconnectComponents()
-      components.saveComponents()
-      val stack = api.Items.get("drone").createItemStack(1)
-      info.storedEnergy = control.node.localBuffer.toInt
-      info.save(stack)
-      val entity = new EntityItem(world, posX, posY, posZ, stack)
-      entity.delayBeforeCanPickup = 15
-      world.spawnEntityInWorld(entity)
-      InventoryUtils.dropAllSlots(BlockPosition(this: Entity), mainInventory)
     }
   }
 
@@ -497,17 +471,70 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
     true
   }
 
+  // No step sounds. Except on that one day.
+  override def func_145780_a(x: Int, y: Int, z: Int, block: Block): Unit = {
+    if (EventHandler.isItTime) super.func_145780_a(x, y, z, block)
+  }
+
   // ----------------------------------------------------------------------- //
 
+  private var isChangingDimension = false
+
   override def travelToDimension(dimension: Int) {
-    // Store relative target and update after teleportation, because our frame
-    // of reference most certainly changed (i.e. we'll spawn at different
-    // coordinates than the ones we started traveling from).
-    val relativeTarget = Vec3.createVectorHelper(targetX - posX, targetY - posY, targetZ - posZ)
-    super.travelToDimension(dimension)
-    targetX = (posX + relativeTarget.xCoord).toFloat
-    targetY = (posY + relativeTarget.yCoord).toFloat
-    targetZ = (posZ + relativeTarget.zCoord).toFloat
+    // Store relative target as target, to allow adding that in our "new self"
+    // (entities get re-created after changing dimension).
+    targetX = (targetX - posX).toFloat
+    targetY = (targetY - posY).toFloat
+    targetZ = (targetZ - posZ).toFloat
+    try {
+      isChangingDimension = true
+      super.travelToDimension(dimension)
+    }
+    finally {
+      isChangingDimension = false
+      setDead() // Again, to actually close old machine state after copying it.
+    }
+  }
+
+  override def copyDataFrom(entity: Entity, unused: Boolean): Unit = {
+    super.copyDataFrom(entity, unused)
+    // Compute relative target based on old position and update, because our
+    // frame of reference most certainly changed (i.e. we'll spawn at different
+    // coordinates than the ones we started traveling from, e.g. when porting
+    // to the nether it'll be oldpos / 8).
+    entity match {
+      case drone: Drone =>
+        targetX = (posX + drone.targetX).toFloat
+        targetY = (posY + drone.targetY).toFloat
+        targetZ = (posZ + drone.targetZ).toFloat
+      case _ =>
+        targetX = posX.toFloat
+        targetY = posY.toFloat
+        targetZ = posZ.toFloat
+    }
+  }
+
+  override def setDead() {
+    super.setDead()
+    if (!world.isRemote && !isChangingDimension) {
+      machine.stop()
+      machine.node.remove()
+      components.disconnectComponents()
+      components.saveComponents()
+    }
+  }
+
+  override def kill(): Unit = {
+    super.kill()
+    if (!world.isRemote) {
+      val stack = api.Items.get(Constants.ItemName.Drone).createItemStack(1)
+      info.storedEnergy = control.node.localBuffer.toInt
+      info.save(stack)
+      val entity = new EntityItem(world, posX, posY, posZ, stack)
+      entity.delayBeforeCanPickup = 15
+      world.spawnEntityInWorld(entity)
+      InventoryUtils.dropAllSlots(BlockPosition(this: Entity), mainInventory)
+    }
   }
 
   override def getCommandSenderName = Localization.localizeImmediately("entity.oc.Drone.name")

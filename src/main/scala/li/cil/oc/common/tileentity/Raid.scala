@@ -81,7 +81,7 @@ class Raid extends traits.Environment with traits.Inventory with traits.Rotatabl
       filesystem.foreach(fs => if (fs.node != null) fs.node.remove())
       val fs = api.FileSystem.asManagedEnvironment(
         api.FileSystem.fromSaveDirectory(id, wipeDisksAndComputeSpace, Settings.get.bufferChanges),
-        label, this, Settings.resourceDomain + ":hdd_access").
+        label, this, Settings.resourceDomain + ":hdd_access", 6).
         asInstanceOf[FileSystem]
       val nbtToSetAddress = new NBTTagCompound()
       nbtToSetAddress.setString("address", id)

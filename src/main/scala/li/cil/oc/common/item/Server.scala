@@ -16,7 +16,7 @@ import net.minecraft.world.World
 
 import scala.collection.mutable
 
-class Server(val parent: Delegator, val tier: Int) extends Delegate {
+class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
   override val unlocalizedName = super.unlocalizedName + tier
 
   override protected def tooltipName = Option(super.unlocalizedName)
@@ -43,7 +43,7 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
         val itemName = item.getDisplayName
         items += itemName -> (if (items.contains(itemName)) items(itemName) + 1 else 1)
       }
-      if (items.size > 0) {
+      if (items.nonEmpty) {
         tooltip.addAll(Tooltip.get("Server.Components"))
         for (itemName <- items.keys.toArray.sorted) {
           tooltip.add("- " + items(itemName) + "x " + itemName)

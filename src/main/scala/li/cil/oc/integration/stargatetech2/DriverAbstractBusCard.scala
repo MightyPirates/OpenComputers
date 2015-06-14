@@ -1,5 +1,6 @@
 package li.cil.oc.integration.stargatetech2
 
+import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
@@ -12,7 +13,7 @@ import net.minecraft.item.ItemStack
 
 object DriverAbstractBusCard extends Item with HostAware with EnvironmentAware {
   override def worksWith(stack: ItemStack) =
-    isOneOf(stack, api.Items.get("abstractBusCard"))
+    isOneOf(stack, api.Items.get(Constants.ItemName.AbstractBusCard))
 
   override def worksWith(stack: ItemStack, host: Class[_ <: EnvironmentHost]) =
     worksWith(stack) && (isComputer(host) || isRobot(host) || isServer(host) || isMicrocontroller(host))

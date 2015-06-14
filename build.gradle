@@ -71,8 +71,8 @@ if (JavaVersion.current().isJava8Compatible()) {
 
 repositories {
     maven {
-        name = "bc"
-        url = "http://mod-buildcraft.com/"
+        name = "BluePower"
+        url = "http://maven.bluepowermod.com/"
     }
     maven {
         name = "chickenbones"
@@ -83,8 +83,16 @@ repositories {
         url = "http://maven.ic2.player.to/"
     }
     maven {
+        name = "IGW"
+        url = "http://maven.k-4u.nl/"
+    }
+    maven {
         name = "mobius"
         url = "http://mobiusstrip.eu/maven"
+    }
+    maven {
+        name = "builtbroken"
+        url = "http://ci.builtbroken.com/maven/"
     }
     maven {
         name = "ue"
@@ -99,6 +107,10 @@ repositories {
         url 'http://dvs1.progwml6.com/files/maven'
     }
 
+    ivy {
+        name "BuildCraft"
+        artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
+    }
     ivy {
         name 'Galacticraft'
         artifactPattern "http://ci.cil.li/job/Galacticraft/${config.gc.build}/artifact/build/libs/[module]-1.7-[revision].${config.gc.build}.[ext]"
@@ -156,14 +168,18 @@ dependencies {
     provided "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
     provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
+    provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
-    provided "com.mod-buildcraft:buildcraft:${config.bc.version}:dev"
     provided "dev.calclavia.resonantengine:resonant-engine:${config.re.version}:dev"
+    provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
+    provided "notenoughkeys:NeK:${config.minecraft.version}-${config.nek.version}:deobf-dev"
+    provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
 
+    provided name: "buildcraft", version: "${config.bc.version}", classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
     provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
     provided name: 'ProjectRed', version: config.projred.version, ext: 'jar'
@@ -188,7 +204,6 @@ idea.module.scopes.PROVIDED.plus += [configurations.provided]
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
 
-    replaceIn "li/cil/oc/OpenComputers.scala"
     replace "@VERSION@", project.simpleVersion
 }
 
@@ -207,20 +222,27 @@ processResources {
         exclude 'mcmod.info'
         exclude 'application.conf'
     }
+
+    // Move access transformer to META-INF
+    rename '(.+_at.cfg)', 'META-INF/$1'
+}
+
+def commonManifest = {
+    attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+    attributes FMLCorePluginContainsFMLMod: "true"
+    attributes FMLAT: "oc_at.cfg"
 }
 
 jar {
     exclude "cofh/**"
+    exclude "mods/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
         }
     }
     classifier = 'universal'
-    manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-        attributes FMLCorePluginContainsFMLMod: "true"
-    }
+    manifest commonManifest
 }
 
 javadoc {
@@ -231,16 +253,14 @@ javadoc {
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     exclude "cofh/**"
+    exclude "mods/**"
     configurations.embedded.each { dep ->
         from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'
         }
     }
     classifier = 'dev'
-    manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
-        attributes FMLCorePluginContainsFMLMod: "true"
-    }
+    manifest commonManifest
 }
 
 task apiJar(type: Jar) {

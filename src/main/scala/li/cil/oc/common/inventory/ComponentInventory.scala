@@ -26,9 +26,16 @@ trait ComponentInventory extends Inventory with network.Environment {
   // ----------------------------------------------------------------------- //
 
   def updateComponents() {
-    if (updatingComponents.length > 0) {
-      for (component <- updatingComponents) {
-        component.update()
+    if (updatingComponents.nonEmpty) {
+      var i = 0
+      // ArrayBuffer.foreach caches the size for performance reasons, but that
+      // will cause issues if the list changed during iteration (e.g. because
+      // a component removed itself / another component, such as the self-
+      // destruct card from Computronics). Also, this list will generally be
+      // quite short, so it won't have any noticeable impact, anyway.
+      while (i < updatingComponents.size) {
+        updatingComponents(i).update()
+        i += 1
       }
     }
   }
@@ -38,7 +45,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   def connectComponents() {
     for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
       val stack = getStackInSlot(slot)
-      if (stack != null && components(slot).isEmpty && isComponentSlot(slot)) {
+      if (stack != null && components(slot).isEmpty && isComponentSlot(slot, stack)) {
         components(slot) = Option(Driver.driverFor(stack)) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, host)) match {
@@ -98,7 +105,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   override def getInventoryStackLimit = 1
 
-  override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot)) {
+  override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot, stack)) {
     Option(Driver.driverFor(stack)).foreach(driver =>
       Option(driver.createEnvironment(stack, host)) match {
         case Some(component) => this.synchronized {
@@ -140,7 +147,7 @@ trait ComponentInventory extends Inventory with network.Environment {
     }
   }
 
-  def isComponentSlot(slot: Int) = true
+  def isComponentSlot(slot: Int, stack: ItemStack) = true
 
   protected def connectItemNode(node: Node) {
     if (this.node != null && node != null) {

@@ -1,5 +1,6 @@
 package li.cil.oc.common.template
 
+import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -8,20 +9,29 @@ import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.driver.item.Inventory
 import li.cil.oc.api.driver.item.Memory
 import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.machine.Architecture
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IChatComponent
+import org.apache.commons.lang3.tuple
 
 import scala.collection.mutable
 
 abstract class Template {
   protected val suggestedComponents = Array(
-    "BIOS" -> hasComponent("eeprom") _,
-    "Screen" -> hasComponent("screen1") _,
-    "Keyboard" -> hasComponent("keyboard") _,
-    "GraphicsCard" -> ((inventory: IInventory) => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(name => hasComponent(name)(inventory))),
+    "BIOS" -> hasComponent(Constants.ItemName.EEPROM) _,
+    "Screen" -> hasComponent(Constants.BlockName.ScreenTier1) _,
+    "Keyboard" -> hasComponent(Constants.BlockName.Keyboard) _,
+    "GraphicsCard" -> ((inventory: IInventory) => Array(
+      Constants.ItemName.APUCreative,
+      Constants.ItemName.APUTier1,
+      Constants.ItemName.APUTier2,
+      Constants.ItemName.GraphicsCardTier1,
+      Constants.ItemName.GraphicsCardTier2,
+      Constants.ItemName.GraphicsCardTier3).
+      exists(name => hasComponent(name)(inventory))),
     "Inventory" -> hasInventory _,
     "OS" -> hasFileSystem _)
 
@@ -31,14 +41,15 @@ abstract class Template {
     val hasCase = caseTier(inventory) != Tier.None
     val hasCPU = this.hasCPU(inventory)
     val hasRAM = this.hasRAM(inventory)
+    val requiresRAM = this.requiresRAM(inventory)
     val complexity = this.complexity(inventory)
     val maxComplexity = this.maxComplexity(inventory)
 
-    val valid = hasCase && hasCPU && hasRAM && complexity <= maxComplexity
+    val valid = hasCase && hasCPU && (hasRAM || !requiresRAM) && complexity <= maxComplexity
 
     val progress =
       if (!hasCPU) Localization.Assembler.InsertCPU
-      else if (!hasRAM) Localization.Assembler.InsertRAM
+      else if (!hasRAM && requiresRAM) Localization.Assembler.InsertRAM
       else Localization.Assembler.Complexity(complexity, maxComplexity)
 
     val warnings = mutable.ArrayBuffer.empty[IChatComponent]
@@ -47,7 +58,7 @@ abstract class Template {
         warnings += Localization.Assembler.Warning(name)
       }
     }
-    if (warnings.length > 0) {
+    if (warnings.nonEmpty) {
       warnings.prepend(Localization.Assembler.Warnings)
     }
 
@@ -68,6 +79,15 @@ abstract class Template {
 
   protected def hasRAM(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
     case _: Memory => true
+    case _ => false
+  })
+
+  protected def requiresRAM(inventory: IInventory) = !(0 until inventory.getSizeInventory).
+    map(inventory.getStackInSlot).
+    exists(stack => api.Driver.driverFor(stack, hostClass) match {
+    case driver: Processor =>
+      val architecture = driver.architecture(stack)
+      architecture != null && architecture.getAnnotation(classOf[Architecture.NoMemoryRequirements]) != null
     case _ => false
   })
 
@@ -116,4 +136,8 @@ abstract class Template {
   }
 
   protected def caseTier(inventory: IInventory): Int
+
+  protected def toPair(t: (String, Int)): tuple.Pair[String, java.lang.Integer] =
+    if (t == null) null
+    else tuple.Pair.of(t._1, t._2)
 }

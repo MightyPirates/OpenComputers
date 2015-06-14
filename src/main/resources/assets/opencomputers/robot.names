@@ -5,14 +5,17 @@
 # Names of more or less famous robots and AIs, are welcome. Feel free to add
 # more via pull requests. Let's hope this won't get us sued...
 
-# When adding names, please keep the list sorted alphabetially, make sure it's
+# When adding names, please keep the list sorted alphabetically, make sure it's
 # not already in the list, and, where appropriate, provide a concise source.
+# And since we now also have that special case, ignore special characters when
+# sorting.
 
 Adventure Core     # Portal
 Anson Argyris      # Perry Rhodan
 ASIMO              # Honda
 Atlas              # Portal
 Augustus           # Perry Rhodan
+Baymax             # Big Hero 6
 Bender             # Futurama
 BMO                # Adventure Time
 BraitenBurg        # Simple intelligent agents.
@@ -24,14 +27,16 @@ Clamps             # Futurama
 Clank              # Ratchet & Clank
 Claptrap           # Borderlands
 Crypto             # Kodos
+Curiosity          # Mars Rover
 Daedalus           # Deus Ex
 Dalek Sec          # Doctor Who
-Deputy ANDY        # Eureka
 Death Trap         # Borderlands 2's Mechromancer
+Deputy ANDY        # Eureka
 Dog                # Half-Life
 Donald Duck        # Perry Rhodan
 Elmer              # One of the first two robots developed by William Gray Walter.
 Elsie              # One of the first two robots developed by William Gray Walter.
+*Emilia            # Digital: A Love Story
 Eve                # Wall-E
 Fact Core          # Portal
 Flexo              # Futurama
@@ -41,10 +46,11 @@ HAL 9000           # Space Odyssey
 Harkness           # Fallout 3
 Heron              # Vexatos
 Homunk             # Perry Rhodan
+*Hyun-ae           # Analogue: A Hate Story / Hate Plus
 Icarus             # Deus Ex
 J.A.R.V.I.S        # Iron Man
-JoshTheEnder       # Contributor
 Johnny 5           # Short Circuit
+JoshTheEnder       # Contributor
 K-9                # Doctor Who
 KARR               # Knight Rider
 Kilobyte           # Contributor
@@ -55,12 +61,13 @@ Loader 1340        # Borderlands 2
 LordFokas          # Contributor
 Marvin             # Hitchhiker's Guide to the Galaxy
 Michiyo            # Contributor
+*Mute              # Analogue: A Hate Story / Hate Plus
 P-Body             # Portal
 PixelToast         # Contributor
 QT-1               # I, Robot
-R2-D2              # Star Wars
 R. Daneel Olivaw   # Isaac Asimov's
 R. Giskard Reventlov # Isaac Asimov's
+R2-D2              # Star Wars
 Replicator         # Stargate
 Robby              # Forbidden Planet
 Roomba             # Under your couch... wait.
