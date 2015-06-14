@@ -152,10 +152,6 @@ repositories {
         name 'BloodMagic'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.bloodmagic.cf}/[module]-${config.minecraft.version}-[revision].[ext]"
     }
-	ivy {
-        name 'ExtraCells'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.ec.cf}/[module]-[revision].[ext]"
-    }
 }
 
 configurations {
@@ -195,7 +191,6 @@ dependencies {
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
-	provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 

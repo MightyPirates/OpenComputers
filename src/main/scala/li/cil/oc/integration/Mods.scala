@@ -35,7 +35,6 @@ object Mods {
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
-  val ExtraCells = new SimpleMod(IDs.ExtraCells,  version = "@[2.2.73,)")
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
   val EnderIO = new SimpleMod(IDs.EnderIO)
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
@@ -48,7 +47,6 @@ object Mods {
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
-  val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
   val Mystcraft = new SimpleMod(IDs.Mystcraft)
@@ -93,7 +91,6 @@ object Mods {
     integration.cofh.item.ModCoFHItem,
     integration.cofh.tileentity.ModCoFHTileEntity,
     integration.cofh.transport.ModCoFHTransport,
-    integration.ec.ModExtraCells,
     integration.enderstorage.ModEnderStorage,
     integration.dsu.ModDeepStorageUnit,
     integration.forestry.ModForestry,
@@ -101,7 +98,6 @@ object Mods {
     integration.gc.ModGalacticraft,
     integration.gregtech.ModGregtech,
     integration.ic2.ModIndustrialCraft2,
-    integration.mekanism.gas.ModMekanismGas,
     integration.mfr.ModMineFactoryReloaded,
     integration.mystcraft.ModMystcraft,
     integration.nek.ModNotEnoughKeys,
@@ -168,7 +164,6 @@ object Mods {
     final val CoFHTransport = "CoFHAPI|transport"
     final val ComputerCraft = "ComputerCraft"
     final val CraftingCosts = "CraftingCosts"
-    final val ExtraCells = "extracells"
     final val ElectricalAge = "Eln"
     final val EnderIO = "EnderIO"
     final val EnderStorage = "EnderStorage"
@@ -182,7 +177,6 @@ object Mods {
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val IngameWiki = "IGWMod"
     final val Mekanism = "Mekanism"
-    final val MekanismGas = "MekanismAPI|gas"
     final val Minecraft = "Minecraft"
     final val MineFactoryReloaded = "MineFactoryReloaded"
     final val Mystcraft = "Mystcraft"
