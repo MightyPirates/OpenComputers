@@ -5,6 +5,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.client.model.ModelRenderer
+import net.minecraft.entity.Entity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
@@ -88,6 +89,12 @@ object HoverBootRenderer extends ModelBiped {
   bipedBody.isHidden = true
   bipedRightArm.isHidden = true
   bipedLeftArm.isHidden = true
+
+  override def render(entity: Entity, f0: Float, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float): Unit = {
+    // Because Forge is being a dummy...
+    isSneak = entity.isSneaking
+    super.render(entity, f0, f1, f2, f3, f4, f5)
+  }
 
   class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
     override def render(dt: Float): Unit = {

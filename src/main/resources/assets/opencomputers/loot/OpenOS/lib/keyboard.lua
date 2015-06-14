@@ -42,6 +42,7 @@ keyboard.keys = {
   at              = 0x91,
   back            = 0x0E, -- backspace
   backslash       = 0x2B,
+  capital         = 0x3A, -- capslock
   colon           = 0x92,
   comma           = 0x33,
   enter           = 0x1C,
