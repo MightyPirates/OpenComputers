@@ -193,6 +193,8 @@ class Settings(val config: Config) {
   val hoverBootJump = config.getDouble("power.cost.hoverBootJump") max 0
   val hoverBootAbsorb = config.getDouble("power.cost.hoverBootAbsorb") max 0
   val hoverBootMove = config.getDouble("power.cost.hoverBootMove") max 0
+  val dataCardSimple = config.getDouble("power.cost.dataCardSimple") max 0
+  val dataCardComplex = config.getDouble("power.cost.dataCardComplex") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -312,6 +314,9 @@ class Settings(val config: Config) {
   val assemblerBlacklist = config.getStringList("misc.assemblerBlacklist")
   val threadPriority = config.getInt("misc.threadPriority")
   val giveManualToNewPlayers = config.getBoolean("misc.giveManualToNewPlayers")
+  val dataCardSoftLimit = config.getInt("misc.dataCardSoftLimit") max 0
+  val dataCardHardLimit = config.getInt("misc.dataCardHardLimit") max 0
+  val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
 
   // ----------------------------------------------------------------------- //
   // printer

@@ -441,6 +441,9 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.WirelessNetworkCard(cards), Constants.ItemName.WirelessNetworkCard, "oc:wlanCard")
     Recipes.addSubItem(new item.InternetCard(cards), Constants.ItemName.InternetCard, "oc:internetCard")
     Recipes.addSubItem(new item.LinkedCard(cards), Constants.ItemName.LinkedCard, "oc:linkedCard")
+
+    // 1.5.13
+    Recipes.addSubItem(new item.DataCard(multi), Constants.ItemName.DataCard, "oc:dataCard")
   }
 
   // Upgrade components.
