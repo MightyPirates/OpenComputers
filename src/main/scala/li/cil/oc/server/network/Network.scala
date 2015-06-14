@@ -144,7 +144,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
         val targets = Iterable(node) ++ (entry.data.reachability match {
           case Visibility.None => Iterable.empty[ImmutableNode]
           case Visibility.Neighbors => entry.edges.map(_.other(entry).data)
-          case Visibility.Network => subGraphs.map(_.values.map(_.data)).flatten
+          case Visibility.Network => subGraphs.flatMap(_.values.map(_.data))
         })
         handleSplit(subGraphs)
         targets.foreach(_.asInstanceOf[MutableNode].onDisconnect(node))
@@ -328,7 +328,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       }
       subGraphs.tail.foreach(new Network(_))
 
-      for (indexA <- 0 until subGraphs.length) {
+      for (indexA <- subGraphs.indices) {
         val nodesA = nodes(indexA)
         val visibleNodesA = visibleNodes(indexA)
         for (indexB <- (indexA + 1) until subGraphs.length) {
@@ -718,7 +718,7 @@ object Network extends api.detail.NetworkAPI {
       nbt.setInteger("ttl", ttl)
       val dataArray = data.toArray
       nbt.setInteger("dataLength", dataArray.length)
-      for (i <- 0 until dataArray.length) dataArray(i) match {
+      for (i <- dataArray.indices) dataArray(i) match {
         case null | Unit | None =>
         case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
         case value: java.lang.Integer => nbt.setInteger("data" + i, value)
