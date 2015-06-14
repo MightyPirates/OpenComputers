@@ -52,7 +52,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
 
   @SideOnly(Side.CLIENT)
   override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: Int): ModelBiped = {
-    if (armorSlot == armorType) HoverBootRenderer
+    if (armorSlot == 4 - armorType) HoverBootRenderer
     else super.getArmorModel(entityLiving, itemStack, armorSlot)
   }
 
