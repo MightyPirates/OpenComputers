@@ -241,5 +241,5 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   }
 
   private def invert(t: Array[ForgeDirection]) =
-    (0 until t.length).map(i => ForgeDirection.getOrientation(t.indexOf(ForgeDirection.getOrientation(i))))
+    t.indices.map(i => ForgeDirection.getOrientation(t.indexOf(ForgeDirection.getOrientation(i))))
 }

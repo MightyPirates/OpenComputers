@@ -30,7 +30,7 @@ class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.Powe
   override def getMixedBrightnessForBlock(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     if (y >= 0 && y < world.getHeight) world.getTileEntity(x, y, z) match {
       case rack: tileentity.ServerRack =>
-        def brightness(x: Int, y: Int, z: Int) = world.getLightBrightnessForSkyBlocks(x, y, z, getLightValue(world, x, y, z))
+        def brightness(x: Int, y: Int, z: Int) = world.getLightBrightnessForSkyBlocks(x, y, z, world.getBlock(x, y, z).getLightValue(world, x, y, z))
         val value = brightness(x + rack.facing.offsetX, y + rack.facing.offsetY, z + rack.facing.offsetZ)
         val skyBrightness = (value >> 20) & 15
         val blockBrightness = (value >> 4) & 15

@@ -12,6 +12,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
+import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.EnumCreatureType
@@ -206,5 +207,17 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     if (!player.capabilities.isCreativeMode) {
       dropBlockAsItem(tileEntity.world, tileEntity.x, tileEntity.y, tileEntity.z, tileEntity.data.createItemStack())
     }
+  }
+
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, block: Block, metadata: Int): Unit = {
+    world.getTileEntity(x, y, z) match {
+      case print: tileentity.Print if print.data.emitRedstone(print.state) =>
+        world.notifyBlocksOfNeighborChange(x, y, z, this)
+        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          world.notifyBlocksOfNeighborChange(x + side.offsetX, y + side.offsetY, z + side.offsetZ, this)
+        }
+      case _ =>
+    }
+    super.breakBlock(world, x, y, z, block, metadata)
   }
 }

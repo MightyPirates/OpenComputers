@@ -1,6 +1,7 @@
 package li.cil.oc.common
 
 import com.google.common.base.Strings
+import cpw.mods.fml.common.FMLLog
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.EntityRegistry
@@ -13,9 +14,9 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.integration.Mods
 import li.cil.oc.server._
-import li.cil.oc.server.machine.luac.NativeLuaArchitecture
+import li.cil.oc.server.machine.luac.LuaStateFactory
+import li.cil.oc.server.machine.luac.NativeLua52Architecture
 import li.cil.oc.server.machine.luaj.LuaJLuaArchitecture
-import li.cil.oc.util.LuaStateFactory
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
@@ -23,6 +24,8 @@ import scala.collection.convert.WrapAsScala._
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
+    checkForBrokenJavaVersion()
+
     Settings.load(e.getSuggestedConfigurationFile)
 
     OpenComputers.log.info("Initializing blocks and items.")
@@ -70,7 +73,7 @@ class Proxy {
     api.API.config = Settings.get.config
 
     api.Machine.LuaArchitecture =
-      if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
+      if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLua52Architecture]
       else classOf[LuaJLuaArchitecture]
     api.Machine.add(api.Machine.LuaArchitecture)
     if (Settings.get.registerLuaJArchitecture)
@@ -140,5 +143,19 @@ class Proxy {
         }
       }
     }
+  }
+
+  // OK, seriously now, I've gotten one too many bug reports because of this Java version being broken.
+
+  private final val BrokenJavaVersions = Set("1.6.0_65, Apple Inc.")
+
+  def isBrokenJavaVersion = {
+    val javaVersion = System.getProperty("java.version") + ", " + System.getProperty("java.vendor")
+    BrokenJavaVersions.contains(javaVersion)
+  }
+
+  def checkForBrokenJavaVersion() = if (isBrokenJavaVersion) {
+    FMLLog.bigWarning("You're using a broken Java version! Please update now, or remove OpenComputers. DO NOT REPORT THIS! UPDATE YOUR JAVA!")
+    throw new Exception("You're using a broken Java version! Please update now, or remove OpenComputers. DO NOT REPORT THIS! UPDATE YOUR JAVA!")
   }
 }

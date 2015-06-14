@@ -69,7 +69,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
   @Callback(doc = "function():string -- Get the name of the agent.")
   def name(context: Context, args: Arguments): Array[AnyRef] = result(agent.name)
 
-  @Callback
+  @Callback(doc = "function(side:number[, face:number=side[, sneaky:boolean=false]]):boolean, string -- Perform a 'left click' towards the specified side. The `face' allows a more precise click calibration, and is relative to the targeted blockspace.")
   def swing(context: Context, args: Arguments): Array[AnyRef] = {
     // Swing the equipped tool (left click).
     val facing = checkSideForAction(args, 0)
@@ -153,7 +153,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     result(false, reason.orNull)
   }
 
-  @Callback
+  @Callback(doc = "function(side:number[, face:number=side[, sneaky:boolean=false[, duration:number=0]]]):boolean, string -- Perform a 'right click' towards the specified side. The `face' allows a more precise click calibration, and is relative to the targeted blockspace.")
   def use(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val sides =
@@ -232,7 +232,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
     result(false)
   }
 
-  @Callback
+  @Callback(doc = "function(side:number[, face:number=side[, sneaky:boolean=false]]):boolean -- Place a block towards the specified side. The `face' allows a more precise click calibration, and is relative to the targeted blockspace.")
   def place(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val sides =

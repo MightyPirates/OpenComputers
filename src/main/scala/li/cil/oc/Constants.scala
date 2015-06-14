@@ -79,6 +79,7 @@ object Constants {
     final val DatabaseUpgradeTier1 = "databaseUpgrade1"
     final val DatabaseUpgradeTier2 = "databaseUpgrade2"
     final val DatabaseUpgradeTier3 = "databaseUpgrade3"
+    final val DataCard = "dataCard"
     final val DebugCard = "debugCard"
     final val Debugger = "debugger"
     final val Disk = "disk"

@@ -43,7 +43,8 @@ object ExtendedWorld {
 
     def getBlockHarvestTool(position: BlockPosition) = getBlock(position).getHarvestTool(getBlockMetadata(position))
 
-    def computeRedstoneSignal(position: BlockPosition, side: ForgeDirection) = math.max(world.isBlockProvidingPowerTo(position.offset(side), side.getOpposite), world.getIndirectPowerLevelTo(position.offset(side), side.getOpposite))
+    // Passing `side` instead of `side.getOpposite` is *correct* here, because Minecraft.
+    def computeRedstoneSignal(position: BlockPosition, side: ForgeDirection) = math.max(world.isBlockProvidingPowerTo(position.offset(side), side), world.getIndirectPowerLevelTo(position.offset(side), side))
 
     def isBlockProvidingPowerTo(position: BlockPosition, side: ForgeDirection) = world.isBlockProvidingPowerTo(position.x, position.y, position.z, side.ordinal)
 

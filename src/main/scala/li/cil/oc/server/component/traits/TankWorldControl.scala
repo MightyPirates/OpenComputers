@@ -14,7 +14,7 @@ import net.minecraftforge.fluids.IFluidBlock
 import net.minecraftforge.fluids.IFluidHandler
 
 trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
-  @Callback
+  @Callback(doc = "function(side:number):boolean -- Compare the fluid in the selected tank with the fluid on the specified side. Returns true if equal.")
   def compareFluid(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     fluidInTank(selectedTank) match {
@@ -33,7 +33,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
     }
   }
 
-  @Callback
+  @Callback(doc = "function(side:boolean[, amount:number=1000]):boolean, number or string -- Drains the specified amount of fluid from the specified side. Returns the amount drained, or an error message.")
   def drain(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = args.optionalFluidCount(1)
@@ -94,7 +94,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
     }
   }
 
-  @Callback
+  @Callback(doc = "function(side:number[, amount:number=1000]):boolean, number of string -- Eject the specified amount of fluid to the specified side. Returns the amount ejected or an error message.")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = args.optionalFluidCount(1)

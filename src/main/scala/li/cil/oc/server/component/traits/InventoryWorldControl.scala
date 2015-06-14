@@ -13,7 +13,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraftforge.common.util.ForgeDirection
 
 trait InventoryWorldControl extends InventoryAware with WorldAware with SideRestricted {
-  @Callback
+  @Callback(doc = "function(side:number):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     stackInSlot(selectedSlot) match {
@@ -30,7 +30,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     result(false)
   }
 
-  @Callback
+  @Callback(doc = "function(side:number[, count:number=64]):boolean -- Drops items from the selected slot towards the specified side.")
   def drop(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(1)
@@ -66,7 +66,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     else result(false)
   }
 
-  @Callback
+  @Callback(doc = "function(side:number[, count:number=64]):boolean -- Suck up items from the specified side.")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(1)

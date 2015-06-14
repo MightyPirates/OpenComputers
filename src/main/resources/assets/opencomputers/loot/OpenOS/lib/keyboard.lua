@@ -42,6 +42,7 @@ keyboard.keys = {
   at              = 0x91,
   back            = 0x0E, -- backspace
   backslash       = 0x2B,
+  capital         = 0x3A, -- capslock
   colon           = 0x92,
   comma           = 0x33,
   enter           = 0x1C,
@@ -158,7 +159,7 @@ end
 function keyboard.isKeyDown(charOrCode)
   checkArg(1, charOrCode, "string", "number")
   if type(charOrCode) == "string" then
-    return keyboard.pressedChars[charOrCode]
+    return keyboard.pressedChars[utf8 and utf8.codepoint(charOrCode) or charOrCode:byte()]
   elseif type(charOrCode) == "number" then
     return keyboard.pressedCodes[charOrCode]
   end

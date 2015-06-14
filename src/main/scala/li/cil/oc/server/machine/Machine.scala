@@ -124,8 +124,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         case Some(driver: Processor) if driver.slot(stack) == Slot.CPU =>
           Option(driver.architecture(stack)) match {
             case Some(clazz) =>
-              if (architecture == null || architecture.getClass != clazz) {
+              if (architecture == null || architecture.getClass != clazz) try {
                 newArchitecture = clazz.getConstructor(classOf[machine.Machine]).newInstance(this)
+              }
+              catch {
+                case t: Throwable => OpenComputers.log.warn("Failed instantiating a CPU architecture.", t)
               }
               else {
                 newArchitecture = architecture
@@ -625,7 +628,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   private def processAddedComponents() {
-    if (addedComponents.size > 0) {
+    if (addedComponents.nonEmpty) {
       for (component <- addedComponents) {
         if (component.canBeSeenFrom(node)) {
           _components.synchronized(_components += component.address -> component.name)
@@ -684,7 +687,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       else fs.load(SaveHandler.loadNBT(nbt, node.address + "_tmp"))
     })
 
-    if (state.size > 0 && isRunning && init()) try {
+    if (state.nonEmpty && isRunning && init()) try {
       architecture.load(nbt)
 
       signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((signalNbt: NBTTagCompound) => {

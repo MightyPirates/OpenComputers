@@ -593,7 +593,7 @@ object PacketSender {
     pb.writeShort(frequency.toShort)
     pb.writeShort(duration.toShort)
 
-    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+    pb.sendToNearbyPlayers(world, x, y, z, Option(32))
   }
 
   def sendSound(world: World, x: Double, y: Double, z: Double, pattern: String) {
@@ -606,7 +606,7 @@ object PacketSender {
     pb.writeInt(blockPos.z)
     pb.writeUTF(pattern)
 
-    pb.sendToNearbyPlayers(world, x, y, z, Option(16))
+    pb.sendToNearbyPlayers(world, x, y, z, Option(32))
   }
 
   def sendWaypointLabel(t: Waypoint): Unit = {

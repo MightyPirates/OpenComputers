@@ -57,8 +57,8 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     val dbAddress = args.checkString(2)
     def store(stack: ItemStack) = DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 3)
-      val nonEmpty = database.data.getStackInSlot(dbSlot) != null
-      database.data.setInventorySlotContents(dbSlot, stack.copy())
+      val nonEmpty = database.getStackInSlot(dbSlot) != null
+      database.setStackInSlot(dbSlot, stack.copy())
       result(nonEmpty)
     })
     withInventory(facing, inventory => store(inventory.getStackInSlot(args.checkSlot(inventory, 1))))

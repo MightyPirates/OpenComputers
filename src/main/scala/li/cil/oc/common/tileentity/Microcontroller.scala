@@ -134,6 +134,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override protected def connectItemNode(node: Node) {
     if (machine.node != null && node != null) {
+      api.Network.joinNewNetwork(machine.node)
       machine.node.connect(node)
     }
   }

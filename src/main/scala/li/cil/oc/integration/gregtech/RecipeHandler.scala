@@ -7,7 +7,6 @@ import com.typesafe.config.ConfigValue
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.recipe.Recipes.RecipeException
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._

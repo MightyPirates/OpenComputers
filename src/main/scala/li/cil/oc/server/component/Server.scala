@@ -69,7 +69,7 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
       rack.sides(this.slot) == None && // Only if we're in internal mode.
       message.source != machine.node && // In this case it was relayed from another internal machine.
       node.network.node(message.source.address) != null) {
-      for (slot <- 0 until rack.servers.length) {
+      for (slot <- rack.servers.indices) {
         rack.servers(slot) match {
           case Some(server) if server != this => server.machine.node.sendToNeighbors(message.name, message.data: _*)
           case _ =>

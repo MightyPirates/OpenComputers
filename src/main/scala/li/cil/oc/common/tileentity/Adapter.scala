@@ -162,7 +162,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
     super.writeToNBTForServer(nbt)
 
     val blocksNbt = new NBTTagList()
-    for (i <- 0 until blocks.length) {
+    for (i <- blocks.indices) {
       val blockNbt = new NBTTagCompound()
       blocksData(i) match {
         case Some(data) =>
