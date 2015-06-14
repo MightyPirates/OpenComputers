@@ -21,7 +21,7 @@ trait PartEnvironmentBase extends ManagedEnvironment {
     val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
     host.getPart(side) match {
       case part: PartType =>
-        val config = part.getInventoryByName("config")
+        val config = part.getInventoryByName("config");
         val slot = args.optSlot(config, 1, 0)
         val stack = config.getStackInSlot(slot)
         result(stack)
