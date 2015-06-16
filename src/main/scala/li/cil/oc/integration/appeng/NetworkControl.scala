@@ -17,6 +17,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
+import li.cil.oc.integration.ec.ECUtil
+import li.cil.oc.integration.Mods
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
@@ -96,7 +98,12 @@ trait NetworkControl[AETile >: Null <: TileEntity with IGridProxyable with IActi
 
   @Callback(doc = "function():table -- Get a list of the stored fluids in the network.")
   def getFluidsInNetwork(context: Context, args: Arguments): Array[AnyRef] =
-    result(tile.getProxy.getStorage.getFluidInventory.getStorageList.map(_.getFluidStack).toArray)
+    result(tile.getProxy.getStorage.getFluidInventory.getStorageList.filter(stack => {
+            if(Mods.ExtraCells.isAvailable)
+              ECUtil.canSeeFluidInNetwork(stack)
+            else
+              true
+        }).map(_.getFluidStack).toArray)
 
   @Callback(doc = "function():number -- Get the average power injection into the network.")
   def getAvgPowerInjection(context: Context, args: Arguments): Array[AnyRef] =
