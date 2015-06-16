@@ -20,6 +20,7 @@
 
 ### Карты
 * [Карта абстрактной шины](abstractBusCard.md)
+* [Карта данных](dataCard.md)
 * [Отладочная карта](debugCard.md)
 * [Видеокарта](graphicsCard1.md)
 * [Интернет карта](internetCard.md)
