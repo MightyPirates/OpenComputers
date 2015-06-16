@@ -25,7 +25,6 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
     if (AEUtil.isController(stack)) classOf[Environment]
     else null
 
-  class Environment(val tile: TileController) extends ManagedTileEntityEnvironment[TileController](tile, "me_controller") with NetworkControl[TileController] {
-  }
+  class Environment(val tile: TileController) extends ManagedTileEntityEnvironment[TileController](tile, "me_controller") with NetworkControl[TileController]
 
 }

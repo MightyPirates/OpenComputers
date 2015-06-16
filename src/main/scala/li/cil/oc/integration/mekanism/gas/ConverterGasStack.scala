@@ -2,7 +2,8 @@ package li.cil.oc.integration.mekanism.gas
 
 import java.util
 
-import li.cil.oc.{Settings, api}
+import li.cil.oc.Settings
+import li.cil.oc.api
 
 import scala.collection.convert.WrapAsScala._
 
