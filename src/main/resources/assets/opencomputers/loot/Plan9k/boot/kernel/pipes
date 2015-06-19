@@ -54,12 +54,14 @@ do
         
     function kernel._println(msg)
         if gpu and screen then
-            kernel._K.component.invoke(gpu, "set", 1, y, msg)
-            if y == h then
-                kernel._K.component.invoke(gpu, "copy", 1, 2, w, h - 1, 0, -1)
-                kernel._K.component.invoke(gpu, "fill", 1, h, w, 1, " ")
-            else
-                y = y + 1
+            for line in string.gmatch(tostring(msg), "([^\n]+)") do
+                kernel._K.component.invoke(gpu, "set", 1, y, line)
+                if y == h then
+                    kernel._K.component.invoke(gpu, "copy", 1, 2, w, h - 1, 0, -1)
+                    kernel._K.component.invoke(gpu, "fill", 1, h, w, 1, " ")
+                else
+                    y = y + 1
+                end
             end
         end
     end

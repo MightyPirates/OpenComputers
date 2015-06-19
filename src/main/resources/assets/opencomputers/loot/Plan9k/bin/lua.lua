@@ -12,7 +12,7 @@ end
 
 local hist = {}
 while true do
-    io.write("lua> ")
+    io.write(tostring(env._PROMPT or "lua> "))
     local command = term.read(hist)
     local code, reason
     if string.sub(command, 1, 1) == "=" then

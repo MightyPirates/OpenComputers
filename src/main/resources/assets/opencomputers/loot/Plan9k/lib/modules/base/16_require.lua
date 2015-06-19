@@ -10,23 +10,46 @@ local function preloadSearcher(module)
     return kernel.userspace.package.preload[module]
 end
 
+function kernel.userspace.package.searchpath(name, path, sep, rep)
+  checkArg(1, name, "string")
+  checkArg(2, path, "string")
+  sep = sep or '.'
+  rep = rep or '/'
+  sep, rep = '%' .. sep, rep
+  name = string.gsub(name, sep, rep)
+  local fs = kernel.modules.vfs
+  local errorFiles = {}
+  for subPath in string.gmatch(path, "([^;]+)") do
+    subPath = string.gsub(subPath, "?", name)
+    if subPath:sub(1, 1) ~= "/" and os.getenv then
+      subPath = fs.concat(kernel.userspace.os.getenv("PWD") or "/", subPath)
+    end
+    if fs.exists(subPath) then
+      local file = kernel.modules.io.io.open(subPath, "r")
+      if file then
+        file:close()
+        return subPath
+      end
+    end
+    table.insert(errorFiles, "\tno file '" .. subPath .. "'")
+  end
+  return nil, table.concat(errorFiles, "\n")
+end
+
 local function pathSearcher(module)
-    for dir in string.gmatch(kernel.userspace.os.getenv("LIBPATH"), "[^:$]+") do
-        if dir:sub(1,1) ~= "/" then
-            local dir = kernel.modules.vfs.concat(kernel.userspace.os.getenv("PWD") or "/", dir)
-        end
-        local file = kernel.modules.vfs.concat(dir, module .. ".lua")
-        if kernel.modules.vfs.exists(file) then
-            local loader, reason = kernel.userspace.loadfile(file, "bt", setmetatable({},{__index = kernel.userspace}))
-            if loader then
-                local state, mod = pcall(loader)
-                if state then
-                    return mod
-                else
-                    kernel.io.println("Module '" .. tostring(module) .. "' loading failed: " .. tostring(mod))
-                end
+    local filepath, reason = kernel.userspace.package.searchpath(module, kernel.userspace.os.getenv("LIBPATH"))
+    if filepath then
+        local loader, reason = kernel.userspace.loadfile(filepath, "bt", setmetatable({},{__index = kernel.userspace}))
+        if loader then
+            local state, mod = pcall(loader)
+            if state then
+                return mod
+            else
+                kernel.io.println("Module '" .. tostring(module) .. "' loading failed: " .. tostring(mod))
             end
         end
+    else
+        return nil, reason
     end
 end
 

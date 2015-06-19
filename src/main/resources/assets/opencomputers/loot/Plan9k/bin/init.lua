@@ -3,7 +3,7 @@ local pipes = require("pipes")
 local component = require("component")
 local filesystem = require("filesystem")
 
-os.setenv("LIBPATH", "/usr/local/lib:/usr/lib:/lib:.")
+os.setenv("LIBPATH", "/lib/?.lua;/usr/lib/?.lua;/home/lib/?.lua;./?.lua;/lib/?/init.lua;/usr/lib/?/init.lua;/home/lib/?/init.lua;./?/init.lua")
 os.setenv("PATH", "/usr/local/bin:/usr/bin:/bin:.")
 os.setenv("PWD", "/")
 os.setenv("PS1", "\x1b[33m$PWD\x1b[31m#\x1b[39m ")
@@ -88,6 +88,8 @@ end
 for address, ctype in component.list() do
     computer.pushSignal("component_added", address, ctype)
 end
+
+computer.pushSignal("init")
 
 while true do
     local sig = {computer.pullSignal()}

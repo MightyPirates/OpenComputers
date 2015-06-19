@@ -7,7 +7,7 @@ function add(func, time)
     local timer = {
         func = func,
         time = time,
-        thread = kernel.modules.threading.currentThread,
+        thread = kernel.modules.threading.currentThread or "kernel",
         next = computer.uptime() + time
     }
     
@@ -41,11 +41,15 @@ thread = kernel.modules.threading.spawn(function()
         for n, timer in ipairs(timers) do
             if timer.thread then
                 if timer.next <= now then
-                    kernel.modules.manageg.protect(timer.thread.sandbox)
-                    kernel.modules.threading.currentThread = timer.thread
+                    if type(timer.thread) == "table" then
+                        kernel.modules.manageg.protect(timer.thread.sandbox)
+                        kernel.modules.threading.currentThread = timer.thread
+                    end
                     local res, reason = pcall(timer.func)
-                    kernel.modules.threading.currentThread = thread
-                    kernel.modules.manageg.unprotect()
+                    if type(timer.thread) == "table" then
+                        kernel.modules.threading.currentThread = thread
+                        kernel.modules.manageg.unprotect()
+                    end
                     if res then
                         timer.next = now + timer.time
                         if deadline > timer.next then

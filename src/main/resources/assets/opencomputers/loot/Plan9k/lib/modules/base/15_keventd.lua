@@ -20,4 +20,5 @@ function start()
             end
         end
     end, 0, "[keventd]")
+    setmetatable(thread.env, {__index = kernel.modules.init.thread.env})
 end
