@@ -83,6 +83,11 @@ local function boot(kernel)
     dofile(kernel.address, kernel.fpx .. kernel.file)
 end
 
+local function labelText(fs)
+  local lbl = component.invoke(fs, "getLabel")
+  if lbl then return " ('"..lbl.."')" else return "" end
+end
+
 status(_OSVERSION)
 status("Select what to boot:")
 
@@ -92,7 +97,7 @@ for fs in component.list("filesystem") do
     if component.invoke(fs, "isDirectory", "boot/kernel/")then
         for _,file in ipairs(component.invoke(fs, "list", "boot/kernel/")) do
             osList[#osList+1] = {fpx = "boot/kernel/", file = file, address = fs}
-            status(tostring(#osList).."."..file.." from "..(fs:sub(1,3)))
+            status(tostring(#osList).."."..file.." from "..(fs:sub(1,3))..labelText(fs))
         end
     end
     if fs ~= computer.getBootAddress() and component.invoke(fs, "exists", "init.lua") then
@@ -104,7 +109,7 @@ for fs in component.list("filesystem") do
             end)
         end
         osList[#osList+1] = {fpx = "", file = "init.lua", address = fs}
-        status(tostring(#osList).."."..osName.." from "..(fs:sub(1,3)))
+        status(tostring(#osList).."."..osName.." from "..(fs:sub(1,3))..labelText(fs))
     end
 end
 status("Select os: ")
