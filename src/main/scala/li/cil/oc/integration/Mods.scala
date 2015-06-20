@@ -202,7 +202,7 @@ object Mods {
     final val VersionChecker = "VersionChecker"
     final val Waila = "Waila"
     final val WirelessRedstoneCBE = "WR-CBE|Core"
-    final val WirelessRedstoneSV = "WirelessRedstoneCore"
+    final val WirelessRedstoneSV = "WirelessRedstone"
   }
 
   // ----------------------------------------------------------------------- //
