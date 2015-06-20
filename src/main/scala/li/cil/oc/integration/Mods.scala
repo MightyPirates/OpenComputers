@@ -32,12 +32,13 @@ object Mods {
   val CoFHItem = new SimpleMod(IDs.CoFHItem)
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
-  val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
+  val ComputerCraft = new SimpleMod(IDs.ComputerCraft, version = "@[1.73,)")
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
   val EnderIO = new SimpleMod(IDs.EnderIO)
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
+  val ExtraCells = new SimpleMod(IDs.ExtraCells,  version = "@[2.2.73,)")
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
   val Forestry = new SimpleMod(IDs.Forestry)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
@@ -47,6 +48,7 @@ object Mods {
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
+  val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
   val MineFactoryReloaded = new SimpleMod(IDs.MineFactoryReloaded)
   val Mystcraft = new SimpleMod(IDs.Mystcraft)
@@ -91,6 +93,7 @@ object Mods {
     //    integration.cofh.item.ModCoFHItem,
     //    integration.cofh.tileentity.ModCoFHTileEntity,
     //    integration.cofh.transport.ModCoFHTransport,
+    //    integration.ec.ModExtraCells,
     //    integration.enderstorage.ModEnderStorage,
     //    integration.dsu.ModDeepStorageUnit,
     //    integration.forestry.ModForestry,
@@ -167,6 +170,7 @@ object Mods {
     final val ElectricalAge = "Eln"
     final val EnderIO = "EnderIO"
     final val EnderStorage = "EnderStorage"
+    final val ExtraCells = "extracells"
     final val Factorization = "factorization"
     final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
@@ -178,6 +182,7 @@ object Mods {
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val IngameWiki = "IGWMod"
     final val Mekanism = "Mekanism"
+    final val MekanismGas = "MekanismAPI|gas"
     final val Minecraft = "Minecraft"
     final val MineFactoryReloaded = "MineFactoryReloaded"
     final val Mystcraft = "Mystcraft"

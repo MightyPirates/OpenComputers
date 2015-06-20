@@ -3,6 +3,7 @@ package li.cil.oc.integration.computercraft;
 import dan200.computercraft.api.filesystem.IMount;
 import dan200.computercraft.api.filesystem.IWritableMount;
 import dan200.computercraft.api.lua.ILuaContext;
+import dan200.computercraft.api.lua.ILuaTask;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
@@ -237,6 +238,16 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
 
             public static UnsupportedLuaContext instance() {
                 return Instance;
+            }
+
+            @Override
+            public long issueMainThreadTask(ILuaTask task) throws LuaException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Object[] executeMainThreadTask(ILuaTask task) throws LuaException, InterruptedException {
+                throw new UnsupportedOperationException();
             }
 
             @Override

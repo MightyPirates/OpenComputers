@@ -365,14 +365,14 @@ local function find()
       local sx, sy
       for syo = 1, #buffer do -- iterate lines with wraparound
         sy = (iby + syo - 1 + #buffer - 1) % #buffer + 1
-        sx = string.find(buffer[sy], findText, syo == 1 and ibx or 1)
+        sx = string.find(buffer[sy], findText, syo == 1 and ibx or 1, true)
         if sx and (sx >= ibx or syo > 1) then
           break
         end
       end
       if not sx then -- special case for single matches
         sy = iby
-        sx = string.find(buffer[sy], findText)
+        sx = string.find(buffer[sy], findText, nil, true)
       end
       if sx then
         cbx, cby = sx, sy
