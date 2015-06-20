@@ -32,7 +32,7 @@ object Mods {
   val CoFHItem = new SimpleMod(IDs.CoFHItem)
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
-  val ComputerCraft = new SimpleMod(IDs.ComputerCraft)
+  val ComputerCraft = new SimpleMod(IDs.ComputerCraft, version = "@[1.73,)")
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
