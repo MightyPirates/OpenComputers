@@ -146,6 +146,7 @@ object Constants {
     final val TexturePicker = "texturePicker"
     final val TractorBeamUpgrade = "tractorBeamUpgrade"
     final val Transistor = "transistor"
+    final val FarmingUpgrade = "farmingUpgrade"
     final val UpgradeContainerTier1 = "upgradeContainer1"
     final val UpgradeContainerTier2 = "upgradeContainer2"
     final val UpgradeContainerTier3 = "upgradeContainer3"

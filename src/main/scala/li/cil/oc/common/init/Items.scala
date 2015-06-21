@@ -14,8 +14,7 @@ import li.cil.oc.common.Loot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
-import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.item.UpgradeLeash
+import li.cil.oc.common.item.{UpgradeFarming, Delegator, UpgradeLeash}
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
@@ -538,5 +537,9 @@ object Items extends ItemAPI {
 
     // 1.5.12
     registerItem(new item.APU(multi, Tier.Three), Constants.ItemName.APUCreative)
+
+    //???
+    registerItem(new UpgradeFarming(multi),Constants.ItemName.FarmingUpgrade)
+
   }
 }

@@ -19,6 +19,7 @@ object Mods {
 
   def All = knownMods.clone()
 
+  val AgriCraft = new SimpleMod(IDs.AgriCraft)
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
@@ -79,6 +80,7 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   val Proxies = Array(
+    integration.agricraft.ModAgriCraft,
     integration.appeng.ModAppEng,
     integration.bloodmagic.ModBloodMagic,
     integration.bluepower.ModBluePower,
@@ -147,6 +149,7 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   object IDs {
+    final val AgriCraft = "AgriCraft"
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
     final val BloodMagic = "AWWayofTime"
@@ -168,7 +171,8 @@ object Mods {
     final val Factorization = "factorization"
     final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
-    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
+    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit"
+    // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
