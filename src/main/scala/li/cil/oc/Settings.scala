@@ -328,6 +328,7 @@ class Settings(val config: Config) {
   val printMaterialValue = config.getInt("printer.materialValue") max 0
   val printInkValue = config.getInt("printer.inkValue") max 0
   val printsHaveOpacity = config.getBoolean("printer.printsHaveOpacity")
+  val noclipMultiplier = config.getDouble("printer.noclipMultiplier") max 0
 
   // ----------------------------------------------------------------------- //
   // integration

@@ -56,7 +56,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   // ----------------------------------------------------------------------- //
 
-  def canPrint = data.stateOff.size > 0 && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
+  def canPrint = data.stateOff.nonEmpty && data.stateOff.size <= Settings.get.maxPrintComplexity && data.stateOn.size <= Settings.get.maxPrintComplexity
 
   def isPrinting = output.isDefined
 
@@ -134,6 +134,19 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
   @Callback(doc = """function():boolean -- Get whether the printed block should automatically return to its off state.""")
   def isButtonMode(context: Context, args: Arguments): Array[Object] = {
     result(data.isButtonMode)
+  }
+
+  @Callback(doc = """function(collideOff:boolean, collideOn:boolean) -- Get whether the printed block should be collidable or not.""")
+  def setCollidable(context: Context, args: Arguments): Array[Object] = {
+    val (collideOff, collideOn) = (args.checkBoolean(0), args.checkBoolean(1))
+    data.noclipOff = !collideOff
+    data.noclipOn = !collideOn
+    null
+  }
+
+  @Callback(doc = """function():boolean, boolean -- Get whether the printed block should be collidable or not.""")
+  def isCollidable(context: Context, args: Arguments): Array[Object] = {
+    result(!data.noclipOff, !data.noclipOn)
   }
 
   @Callback(doc = """function(minX:number, minY:number, minZ:number, maxX:number, maxY:number, maxZ:number, texture:string[, state:boolean=false][,tint:number]) -- Adds a shape to the printers configuration, optionally specifying whether it is for the off or on state.""")
