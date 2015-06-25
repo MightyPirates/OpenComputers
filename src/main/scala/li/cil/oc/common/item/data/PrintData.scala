@@ -134,7 +134,7 @@ object PrintData {
         else baseMaterialRequired
       val inkRequired = (totalSurface / 6) max 1
 
-      Option((materialRequired * multiplier, inkRequired))
+      Option(((materialRequired * multiplier).toInt, inkRequired))
     }
     else None
   }
