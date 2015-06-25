@@ -30,6 +30,8 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
   val stateOn = mutable.Set.empty[PrintData.Shape]
   var isBeaconBase = false
   var lightLevel = 0
+  var noclipOff = false
+  var noclipOn = false
 
   def hasActiveState = stateOn.nonEmpty
 
@@ -68,6 +70,8 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
     stateOn ++= nbt.getTagList("stateOn", NBT.TAG_COMPOUND).map(PrintData.nbtToShape)
     isBeaconBase = nbt.getBoolean("isBeaconBase")
     lightLevel = (nbt.getByte("lightLevel") & 0xFF) max 0 min 15
+    noclipOff = nbt.getBoolean("noclipOff")
+    noclipOn = nbt.getBoolean("noclipOn")
 
     opacityDirty = true
   }
@@ -82,6 +86,8 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
     nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
     nbt.setBoolean("isBeaconBase", isBeaconBase)
     nbt.setByte("lightLevel", lightLevel.toByte)
+    nbt.setBoolean("noclipOff", noclipOff)
+    nbt.setBoolean("noclipOn", noclipOn)
   }
 }
 
@@ -119,6 +125,7 @@ object PrintData {
   def computeCosts(data: PrintData) = {
     val totalVolume = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.volume) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.volume)
     val totalSurface = data.stateOn.foldLeft(0)((acc, shape) => acc + shape.bounds.surface) + data.stateOff.foldLeft(0)((acc, shape) => acc + shape.bounds.surface)
+    val multiplier = if (data.noclipOff || data.noclipOn) Settings.get.noclipMultiplier else 1
 
     if (totalVolume > 0) {
       val baseMaterialRequired = (totalVolume / 2) max 1
@@ -127,7 +134,7 @@ object PrintData {
         else baseMaterialRequired
       val inkRequired = (totalSurface / 6) max 1
 
-      Option((materialRequired, inkRequired))
+      Option((materialRequired * multiplier, inkRequired))
     }
     else None
   }

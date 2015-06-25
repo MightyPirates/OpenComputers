@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.item
 
+import com.google.common.base.Strings
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -149,6 +150,11 @@ object ItemRenderer extends IItemRenderer {
   private def drawShape(shape: PrintData.Shape) {
     val bounds = shape.bounds
     val texture = Print.resolveTexture(shape.texture)
+
+    if (Strings.isNullOrEmpty(shape.texture)) {
+      RenderState.makeItBlend()
+      GL11.glColor4f(1, 1, 1, 0.25f)
+    }
 
     shape.tint.foreach(color => {
       val r = (color >> 16).toByte

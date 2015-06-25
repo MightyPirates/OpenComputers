@@ -144,6 +144,7 @@ hdd3 {
           ["oc:materialCircuitBoardPrinted", "oc:materialDisk", craftingPiston]
           ["oc:circuitChip3", "oc:materialDisk", diamond]]
 }
+
 dataCard {
   input: [[nuggetIron, "oc:materialALU", "oc:circuitChip2"]
           ["", "oc:materialCard", ""]]
