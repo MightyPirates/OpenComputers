@@ -43,8 +43,6 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   NEI.hide(this)
 
   // ----------------------------------------------------------------------- //
-  // Again, used in model rendering, used to know whether we can potentially skip rendering sides.
-  var isSingleShape = false
 
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
@@ -111,18 +109,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def isFullCube = false
 
-  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = !isSingleShape || (world.getTileEntity(pos) match {
-    case print: tileentity.Print if isSideSolid(world, pos, side.getOpposite) =>
-      side match {
-        case EnumFacing.DOWN => minY > 0
-        case EnumFacing.UP => maxY < 1
-        case EnumFacing.NORTH => minZ > 0
-        case EnumFacing.SOUTH => maxZ < 1
-        case EnumFacing.WEST => minX > 0
-        case EnumFacing.EAST => maxX < 1
-      }
-    case _ => super.shouldSideBeRendered(world, pos, side)
-  })
+  override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 
   override def isBlockSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = isSideSolid(world, pos, side)
 
