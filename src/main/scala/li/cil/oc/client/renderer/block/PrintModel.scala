@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.block
 
 import com.google.common.base.Strings
 import li.cil.oc.Settings
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.item.data.PrintData
@@ -52,14 +53,17 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
       Textures.Block.bind()
-      for (shape <- data.stateOff) {
+      val shapes =
+        if (data.hasActiveState && KeyBindings.showExtendedTooltips)
+          data.stateOn
+        else
+          data.stateOff
+      for (shape <- shapes) {
         val bounds = shape.bounds
         val texture = resolveTexture(shape.texture)
-        if (Strings.isNullOrEmpty(shape.texture))
-          Tessellator.getInstance.getWorldRenderer.setColorRGBA_F(1, 1, 1, 0.25f)
         faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
       }
-      if (data.stateOff.isEmpty) {
+      if (shapes.isEmpty) {
         val bounds = ExtendedAABB.unitBounds
         val texture = resolveTexture(Settings.resourceDomain + ":blocks/white")
         faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), Color.rgbValues(EnumDyeColor.LIME))
