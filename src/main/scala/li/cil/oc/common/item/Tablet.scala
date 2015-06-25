@@ -92,7 +92,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
     if (stack.hasTagCompound) {
       val data = new TabletData()
       data.load(stack.getTagCompound)
-      data.energy / data.maxEnergy
+      1 - data.energy / data.maxEnergy
     }
     else 1.0
   }
