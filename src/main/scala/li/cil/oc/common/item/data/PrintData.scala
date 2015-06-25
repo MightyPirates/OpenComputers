@@ -15,7 +15,7 @@ import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class PrintData extends ItemData {
+class PrintData extends ItemData(Constants.BlockName.Print) {
   def this(stack: ItemStack) {
     this()
     load(stack)
@@ -82,12 +82,6 @@ class PrintData extends ItemData {
     nbt.setNewTagList("stateOn", stateOn.map(PrintData.shapeToNBT))
     nbt.setBoolean("isBeaconBase", isBeaconBase)
     nbt.setByte("lightLevel", lightLevel.toByte)
-  }
-
-  def createItemStack() = {
-    val stack = api.Items.get(Constants.BlockName.Print).createItemStack(1)
-    save(stack)
-    stack
   }
 }
 

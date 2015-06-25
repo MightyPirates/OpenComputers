@@ -122,7 +122,6 @@ object RecipeHandler {
         }
       //all values required
       case _ =>
-
     }
   }
 
@@ -163,7 +162,6 @@ object RecipeHandler {
       gregtech.api.GregTech_API.sRecipeAdder.addWiremillRecipe(primaryInput, output, duration, eu)
     }
   }
-
 
   private def parseRecipe(output: ItemStack, recipe: Config) = {
     val inputs = parseIngredientList(recipe.getValue("input")).toBuffer
