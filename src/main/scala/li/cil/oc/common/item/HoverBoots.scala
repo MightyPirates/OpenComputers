@@ -61,6 +61,8 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     else null
   }
 
+  override def showDurabilityBar(stack: ItemStack): Boolean = true
+
   override def getDurabilityForDisplay(stack: ItemStack): Double = {
     val data = new HoverBootsData(stack)
     1 - data.charge / Settings.get.bufferHoverBoots

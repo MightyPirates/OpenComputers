@@ -9,6 +9,7 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.block.Block;
+import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityCommandBlock;
@@ -63,8 +64,9 @@ public final class DriverCommandBlock extends DriverTileEntity implements Enviro
         @Callback(doc = "function():number -- Execute the currently set command. This has a slight delay to allow the command block to properly update.")
         public Object[] executeCommand(final Context context, final Arguments args) {
             context.pause(0.1); // Make sure the command block has time to do its thing.
-            tileEntity.getCommandBlockLogic().trigger(tileEntity.getWorld());
-            return new Object[]{true};
+            final CommandBlockLogic commandSender = tileEntity.getCommandBlockLogic();
+            commandSender.trigger(tileEntity.getWorld());
+            return new Object[]{commandSender.getSuccessCount(), commandSender.getLastOutput().getUnformattedText()};
         }
     }
 }

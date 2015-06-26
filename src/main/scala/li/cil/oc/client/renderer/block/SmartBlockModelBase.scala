@@ -154,7 +154,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   protected def quadData(vertices: Array[Vec3], facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int): Array[Int] = {
     val (uAxis, vAxis) = Planes(facing.getIndex)
     val rot = (rotation + 4) % 4
-    vertices.map(vertex => {
+    vertices.flatMap(vertex => {
       var u = vertex.dotProduct(uAxis)
       var v = vertex.dotProduct(vAxis)
       if (uAxis.xCoord + uAxis.yCoord + uAxis.zCoord < 0) u = 1 + u
@@ -166,7 +166,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
         v = (-(tmp - 0.5)) + 0.5
       }
       rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, facing, texture, texture.getInterpolatedU(u * 16), texture.getInterpolatedV(v * 16))
-    }).flatten
+    })
   }
 
   // See FaceBakery#storeVertexData.

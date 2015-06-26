@@ -77,7 +77,13 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   // Project Red
 
+  def canUse(entityPlayer: EntityPlayer, itemStack: ItemStack): Boolean = true
+
+  // pre v4.7
   def damageScrewdriver(world: World, player: EntityPlayer): Unit = {}
+
+  // v4.7+
+  def damageScrewdriver(player: EntityPlayer, stack: ItemStack): Unit = {}
 
   // Railcraft
 

@@ -199,6 +199,8 @@ object Items extends ItemAPI {
     get(Constants.ItemName.LuaBios).createItemStack(amount)
   }
 
+  private def safeGetStack(name: String) = Option(get(name)).map(_.createItemStack(1)).orNull
+
   def createConfiguredDrone() = {
     val data = new DroneData()
 
@@ -206,18 +208,18 @@ object Items extends ItemAPI {
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferDrone.toInt
     data.components = Array(
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.LeashUpgrade).createItemStack(1),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryControllerUpgrade),
+      safeGetStack(Constants.ItemName.TankUpgrade),
+      safeGetStack(Constants.ItemName.TankControllerUpgrade),
+      safeGetStack(Constants.ItemName.LeashUpgrade),
 
-      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
+      safeGetStack(Constants.ItemName.WirelessNetworkCard),
 
-      get(Constants.ItemName.CPUTier3).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1)
+      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(Constants.ItemName.RAMTier6),
+      safeGetStack(Constants.ItemName.RAMTier6)
     )
 
     data.createItemStack()
@@ -229,15 +231,15 @@ object Items extends ItemAPI {
     data.tier = Tier.Four
     data.storedEnergy = Settings.get.bufferMicrocontroller.toInt
     data.components = Array(
-      get(Constants.ItemName.SignUpgrade).createItemStack(1),
-      get(Constants.ItemName.PistonUpgrade).createItemStack(1),
+      safeGetStack(Constants.ItemName.SignUpgrade),
+      safeGetStack(Constants.ItemName.PistonUpgrade),
 
-      get(Constants.ItemName.RedstoneCardTier2).createItemStack(1),
-      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
+      safeGetStack(Constants.ItemName.RedstoneCardTier2),
+      safeGetStack(Constants.ItemName.WirelessNetworkCard),
 
-      get(Constants.ItemName.CPUTier3).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1)
+      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(Constants.ItemName.RAMTier6),
+      safeGetStack(Constants.ItemName.RAMTier6)
     )
 
     data.createItemStack()
@@ -251,34 +253,34 @@ object Items extends ItemAPI {
     data.robotEnergy = Settings.get.bufferRobot.toInt
     data.totalEnergy = data.robotEnergy
     data.components = Array(
-      get(Constants.BlockName.ScreenTier1).createItemStack(1),
-      get(Constants.BlockName.Keyboard).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryUpgrade).createItemStack(1),
-      get(Constants.ItemName.InventoryControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankUpgrade).createItemStack(1),
-      get(Constants.ItemName.TankControllerUpgrade).createItemStack(1),
-      get(Constants.ItemName.CraftingUpgrade).createItemStack(1),
+      safeGetStack(Constants.BlockName.ScreenTier1),
+      safeGetStack(Constants.BlockName.Keyboard),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryUpgrade),
+      safeGetStack(Constants.ItemName.InventoryControllerUpgrade),
+      safeGetStack(Constants.ItemName.TankUpgrade),
+      safeGetStack(Constants.ItemName.TankControllerUpgrade),
+      safeGetStack(Constants.ItemName.CraftingUpgrade),
 
-      get(Constants.ItemName.GraphicsCardTier3).createItemStack(1),
-      get(Constants.ItemName.RedstoneCardTier2).createItemStack(1),
-      get(Constants.ItemName.WirelessNetworkCard).createItemStack(1),
-      get(Constants.ItemName.InternetCard).createItemStack(1),
+      safeGetStack(Constants.ItemName.GraphicsCardTier3),
+      safeGetStack(Constants.ItemName.RedstoneCardTier2),
+      safeGetStack(Constants.ItemName.WirelessNetworkCard),
+      safeGetStack(Constants.ItemName.InternetCard),
 
-      get(Constants.ItemName.CPUTier3).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
-      get(Constants.ItemName.RAMTier6).createItemStack(1),
+      safeGetStack(Constants.ItemName.CPUTier3),
+      safeGetStack(Constants.ItemName.RAMTier6),
+      safeGetStack(Constants.ItemName.RAMTier6),
 
-      get(Constants.ItemName.LuaBios).createItemStack(1),
-      get(Constants.ItemName.OpenOS).createItemStack(1),
-      get(Constants.ItemName.HDDTier3).createItemStack(1)
+      safeGetStack(Constants.ItemName.LuaBios),
+      safeGetStack(Constants.ItemName.OpenOS),
+      safeGetStack(Constants.ItemName.HDDTier3)
     )
     data.containers = Array(
-      get(Constants.ItemName.CardContainerTier3).createItemStack(1),
-      get(Constants.ItemName.UpgradeContainerTier3).createItemStack(1),
-      get(Constants.BlockName.DiskDrive).createItemStack(1)
+      safeGetStack(Constants.ItemName.CardContainerTier3),
+      safeGetStack(Constants.ItemName.UpgradeContainerTier3),
+      safeGetStack(Constants.BlockName.DiskDrive)
     )
 
     data.createItemStack()
@@ -291,42 +293,36 @@ object Items extends ItemAPI {
     data.energy = Settings.get.bufferTablet
     data.maxEnergy = data.energy
     data.items = Array(
-      Option(get(Constants.BlockName.ScreenTier1).createItemStack(1)),
-      Option(get(Constants.BlockName.Keyboard).createItemStack(1)),
+      Option(safeGetStack(Constants.BlockName.ScreenTier1)),
+      Option(safeGetStack(Constants.BlockName.Keyboard)),
 
-      Option(get(Constants.ItemName.SignUpgrade).createItemStack(1)),
-      Option(get(Constants.ItemName.PistonUpgrade).createItemStack(1)),
-      Option(get(Constants.BlockName.Geolyzer).createItemStack(1)),
-      Option(get(Constants.ItemName.NavigationUpgrade).createItemStack(1)),
+      Option(safeGetStack(Constants.ItemName.SignUpgrade)),
+      Option(safeGetStack(Constants.ItemName.PistonUpgrade)),
+      Option(safeGetStack(Constants.BlockName.Geolyzer)),
+      Option(safeGetStack(Constants.ItemName.NavigationUpgrade)),
 
-      Option(get(Constants.ItemName.GraphicsCardTier2).createItemStack(1)),
-      Option(get(Constants.ItemName.RedstoneCardTier2).createItemStack(1)),
-      Option(get(Constants.ItemName.WirelessNetworkCard).createItemStack(1)),
+      Option(safeGetStack(Constants.ItemName.GraphicsCardTier2)),
+      Option(safeGetStack(Constants.ItemName.RedstoneCardTier2)),
+      Option(safeGetStack(Constants.ItemName.WirelessNetworkCard)),
 
-      Option(get(Constants.ItemName.CPUTier3).createItemStack(1)),
-      Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
-      Option(get(Constants.ItemName.RAMTier6).createItemStack(1)),
+      Option(safeGetStack(Constants.ItemName.CPUTier3)),
+      Option(safeGetStack(Constants.ItemName.RAMTier6)),
+      Option(safeGetStack(Constants.ItemName.RAMTier6)),
 
-      Option(get(Constants.ItemName.LuaBios).createItemStack(1)),
-      Option(get(Constants.ItemName.HDDTier3).createItemStack(1))
+      Option(safeGetStack(Constants.ItemName.LuaBios)),
+      Option(safeGetStack(Constants.ItemName.HDDTier3))
     ).padTo(32, None)
-    data.items(31) = Option(get(Constants.ItemName.OpenOS).createItemStack(1))
-    data.container = Option(get(Constants.BlockName.DiskDrive).createItemStack(1))
+    data.items(31) = Option(safeGetStack(Constants.ItemName.OpenOS))
+    data.container = Option(safeGetStack(Constants.BlockName.DiskDrive))
 
-    val stack = get(Constants.ItemName.Tablet).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   def createChargedHoverBoots() = {
     val data = new HoverBootsData()
     data.charge = Settings.get.bufferHoverBoots
 
-    val stack = get(Constants.ItemName.HoverBoots).createItemStack(1)
-    data.save(stack)
-
-    stack
+    data.createItemStack()
   }
 
   // ----------------------------------------------------------------------- //

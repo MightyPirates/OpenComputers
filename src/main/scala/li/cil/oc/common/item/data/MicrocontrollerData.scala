@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
-class MicrocontrollerData extends ItemData {
+class MicrocontrollerData(itemName: String = Constants.BlockName.Microcontroller) extends ItemData(itemName) {
   def this(stack: ItemStack) {
     this()
     load(stack)
@@ -38,12 +38,6 @@ class MicrocontrollerData extends ItemData {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     nbt.setNewTagList(Settings.namespace + "components", components.filter(_ != null).toIterable)
     nbt.setInteger(Settings.namespace + "storedEnergy", storedEnergy)
-  }
-
-  def createItemStack() = {
-    val stack = api.Items.get(Constants.BlockName.Microcontroller).createItemStack(1)
-    save(stack)
-    stack
   }
 
   def copyItemStack() = {

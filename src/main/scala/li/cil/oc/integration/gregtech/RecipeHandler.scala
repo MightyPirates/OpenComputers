@@ -20,7 +20,10 @@ object RecipeHandler {
     Recipes.registerRecipeHandler("gt_chemical", addGTChemicalRecipe)
     Recipes.registerRecipeHandler("gt_cnc", addGTCNCRecipe)
     Recipes.registerRecipeHandler("gt_cutter", addGTCutterRecipe)
+    Recipes.registerRecipeHandler("gt_fluidCanner", addGTFluidCannerRecipe)
+    Recipes.registerRecipeHandler("gt_formingPress", addGTFormingPressRecipe)
     Recipes.registerRecipeHandler("gt_lathe", addGTLatheRecipe)
+    Recipes.registerRecipeHandler("gt_laserEngraver", addGTLaserEngraverRecipe)
     Recipes.registerRecipeHandler("gt_wiremill", addGTWireMillRecipe)
   }
 
@@ -110,11 +113,46 @@ object RecipeHandler {
     }
   }
 
+  def addGTFluidCannerRecipe(output: ItemStack, recipe: Config) {
+    val (primaryInputs, secondaryInputs, fluidInput, fluidOutput, _, _, _) = parseRecipe(output, recipe)
+    secondaryInputs match {
+      case Some(value) =>
+        for (primaryInput <- primaryInputs; secondaryOutput <- value) {
+          gregtech.api.GregTech_API.sRecipeAdder.addFluidCannerRecipe(primaryInput, output, fluidInput.orNull, fluidOutput.orNull)
+        }
+      //all values required
+      case _ =>
+    }
+  }
+
+  def addGTFormingPressRecipe(output: ItemStack, recipe: Config) {
+    val (primaryInputs, secondaryInputs, _, _, _, eu, duration) = parseRecipe(output, recipe)
+    secondaryInputs match {
+      case Some(value) =>
+        for (primaryInput <- primaryInputs; secondaryInput <- value) {
+          gregtech.api.GregTech_API.sRecipeAdder.addFormingPressRecipe(primaryInput, secondaryInput, output, duration, eu)
+        }
+      //all values required
+      case _ =>
+    }
+  }
+
   def addGTLatheRecipe(output: ItemStack, recipe: Config) {
     val (primaryInputs, _, _, _, secondaryOutputs, eu, duration) = parseRecipe(output, recipe)
     val secondaryOutput = secondaryOutputs.headOption.orNull
     for (primaryInput <- primaryInputs) {
       gregtech.api.GregTech_API.sRecipeAdder.addLatheRecipe(primaryInput, output, secondaryOutput, duration, eu)
+    }
+  }
+
+  def addGTLaserEngraverRecipe(output: ItemStack, recipe: Config) {
+    val (primaryInputs, secondaryInputs, _, _, _, eu, duration) = parseRecipe(output, recipe)
+    secondaryInputs match {
+      case Some(value) =>
+        for (primaryInput <- primaryInputs; secondaryInput <- value) {
+          gregtech.api.GregTech_API.sRecipeAdder.addLaserEngraverRecipe(primaryInput, secondaryInput, output, duration, eu)
+        }
+      case _ =>
     }
   }
 

@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import java.util
 import java.util.Random
 
+import com.google.common.base.Strings
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.common.item.data.PrintData
@@ -116,7 +117,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     world.getTileEntity(pos) match {
       case print: tileentity.Print =>
         val shapes = if (print.state) print.data.stateOn else print.data.stateOff
-        for (shape <- shapes) {
+        for (shape <- shapes if !Strings.isNullOrEmpty(shape.texture)) {
           val bounds = shape.bounds.rotateTowards(print.facing)
           val fullX = bounds.minX == 0 && bounds.maxX == 1
           val fullY = bounds.minY == 0 && bounds.maxY == 1
@@ -146,6 +147,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override def addCollisionBoxesToList(world: World, pos: BlockPos, state: IBlockState, mask: AxisAlignedBB, list: util.List[_], entity: Entity): Unit = {
     world.getTileEntity(pos) match {
       case print: tileentity.Print =>
+        if (if (print.state) print.data.noclipOn else print.data.noclipOff) return
+
         def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
         val shapes = if (print.state) print.data.stateOn else print.data.stateOff
         for (shape <- shapes) {

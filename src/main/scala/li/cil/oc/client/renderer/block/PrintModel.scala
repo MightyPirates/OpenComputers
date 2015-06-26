@@ -1,6 +1,8 @@
 package li.cil.oc.client.renderer.block
 
+import com.google.common.base.Strings
 import li.cil.oc.Settings
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.item.data.PrintData
@@ -9,6 +11,7 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
@@ -32,7 +35,7 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
         case print: tileentity.Print =>
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-          for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
+          for (shape <- if (print.state) print.data.stateOn else print.data.stateOff if !Strings.isNullOrEmpty(shape.texture)) {
             val bounds = shape.bounds.rotateTowards(print.facing)
             val texture = resolveTexture(shape.texture)
             faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
@@ -50,12 +53,17 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
       Textures.Block.bind()
-      for (shape <- data.stateOff) {
+      val shapes =
+        if (data.hasActiveState && KeyBindings.showExtendedTooltips)
+          data.stateOn
+        else
+          data.stateOff
+      for (shape <- shapes) {
         val bounds = shape.bounds
         val texture = resolveTexture(shape.texture)
         faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
       }
-      if (data.stateOff.isEmpty) {
+      if (shapes.isEmpty) {
         val bounds = ExtendedAABB.unitBounds
         val texture = resolveTexture(Settings.resourceDomain + ":blocks/white")
         faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), Color.rgbValues(EnumDyeColor.LIME))
