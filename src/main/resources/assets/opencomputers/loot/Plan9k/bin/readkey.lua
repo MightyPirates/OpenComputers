@@ -162,13 +162,27 @@ function on.key_down(_, source, ascii, keycode, user)
     keyboard.pressedCodes[keycode] = true
     
     if ascii == 13 then ascii = 10 end
-    if ascii ~= 0 then 
+    if ascii ~= 0 and ascii ~= 127 then 
         io.stdout:write(unicode.char(ascii))
     else
         if keycode == 200 then io.stdout:write("\x1b[A")
         elseif keycode == 208 then io.stdout:write("\x1b[B")
         elseif keycode == 205 then io.stdout:write("\x1b[C")
         elseif keycode == 203 then io.stdout:write("\x1b[D")
+            
+        elseif keycode == keyboard.keys.f1 then io.stdout:write("\x1b[0P")
+        elseif keycode == keyboard.keys.f2 then io.stdout:write("\x1b[0Q")
+        elseif keycode == keyboard.keys.f3 then io.stdout:write("\x1b[0R")
+        elseif keycode == keyboard.keys.f4 then io.stdout:write("\x1b[0S")
+        
+        elseif keycode == keyboard.keys.delete then io.stdout:write("\x1b[3~")
+        elseif keycode == keyboard.keys.insert then io.stdout:write("\x1b[2~")
+        elseif keycode == keyboard.keys.pageUp then io.stdout:write("\x1b[5~")
+        elseif keycode == keyboard.keys.pageDown then io.stdout:write("\x1b[6~")
+        elseif keycode == keyboard.keys.home then io.stdout:write("\x1b0H")
+        elseif keycode == keyboard.keys["end"] then io.stdout:write("\x1b0F")
+        elseif keycode == keyboard.keys.tab then io.stdout:write("\t")
+        --TODO: rest fX keys
         end
     end
 end
@@ -180,6 +194,7 @@ function on.key_up(_, source, ascii, keycode, user)
 end
 
 function on.clipboard(_, source, data, user)
+    if not keyboards[source] then return end
     io.stdout:write(data)
 end
 

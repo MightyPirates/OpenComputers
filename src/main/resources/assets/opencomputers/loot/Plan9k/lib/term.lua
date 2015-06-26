@@ -1,7 +1,61 @@
 local term = {}
 
+local function read(from, to)
+    local started, data
+    while true do
+        local char = io.read(1)
+        if not char then
+            error("Broken pipe")
+        end
+        if not started and char == from then
+            started = true
+            data = char
+        elseif started then
+            if char == to then
+                return data .. char
+            else
+                data = data .. char
+            end
+        end
+    end
+end
+
 function term.clear()
     io.write("\x1b[2J")
+end
+
+function term.clearLine()
+    --io.write("\x1b[K")
+end
+
+function term.getCursor()
+    io.write("\x1b[6n")
+    local code = read("\x1b", "R")
+    local y, x = code:match("\x1b%[(%d+);(%d+)R")
+    
+    return tonumber(x), tonumber(y)
+end
+
+function term.getResolution()
+    --io.write("\x1b[6n")
+    --local code = read("\x1b", "R")
+    --local y, x = code:match("\x1b%[(%d+);(%d+)R")
+    
+    --return tonumber(x), tonumber(y)
+end
+
+function term.setCursor(col, row)
+  checkArg(1, col, "number")
+  checkArg(2, row, "number")
+  io.write("\x1b[" .. row .. ";" .. col .. "H")
+end
+
+function term.isAvailable()
+    return true
+end
+
+function term.setCursorBlink(enabled)
+
 end
 
 function term.read(history)
@@ -74,12 +128,32 @@ function term.read(history)
                         io.write("\x1b[" .. (x - 1) .. "D\x1b[K" .. line)
                         x = unicode.len(line) + 1
                     end
+                elseif act == "3" and io.read(1) == "~" then
+                    local pre = unicode.sub(getLine(), 1, x - 1)
+                    local after = unicode.sub(getLine(), x + 1)
+                    setLine(pre .. after)
+                    --x = x
+                    io.write("\x1b[K" .. after .. "\x1b[" .. unicode.len(after) .. "D")
+                end
+            elseif mode == "0" then
+                local act = io.read(1)
+                if act == "H" then
+                    io.write("\x1b["..(x - 1).."D")
+                    x = 1
+                elseif act == "F" then
+                    local line = getLine()
+                    io.write("\x1b[" .. (x - 1)  .. "D\x1b[" .. (unicode.len(line)) .. "C")
+                    x = unicode.len(line) + 1
                 end
             end
         elseif char:match("[%g%s]") then
             insert(char)
         end
     end
+end
+
+function term.write(value, wrap)
+    io.write(value)
 end
 
 return term

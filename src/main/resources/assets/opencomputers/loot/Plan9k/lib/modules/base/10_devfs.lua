@@ -32,18 +32,18 @@ proxy.open = function(path)
     local hnd = allocator:get()
     hnd.file = file
     if hnd.file.open then
-        hnd.file:open()
+        hnd.file.open(hnd)
     end
     return hnd.id
 end
 proxy.read = function(h, ...)
-    return handles[h].file:read(...)
+    return handles[h].file.read(handles[h], ...)
 end
 proxy.close = function(h)
     allocator:unset(handles[h])
 end
 proxy.write = function(h, ...)
-    return handles[h].file:write(...)
+    return handles[h].file.write(handles[h], ...)
 end
 proxy.isDirectory = function(path)
     local seg = kernel.modules.vfs.segments(path)

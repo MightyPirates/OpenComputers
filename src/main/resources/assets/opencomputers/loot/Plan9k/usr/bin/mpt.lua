@@ -236,6 +236,7 @@ mptFrontend = {
         for _, file in ipairs(data.files) do
             backend.copyFile(config.cacheDir.."mpt/"..data.name.."/".. data.checksum ..file, file)
         end
+        backend.removeFile(config.cacheDir.."mpt/"..data.name.."/".. data.checksum)
     end,
 
     removePackage = function(package)
@@ -304,6 +305,7 @@ mirrorFrontend = {
         for _, file in ipairs(data.files) do
             backend.copyFile(config.cacheDir.."mpt/"..data.name.."/".. data.checksum ..file, file)
         end
+        backend.removeFile(config.cacheDir.."mpt/"..data.name.."/".. data.checksum)
     end,
     removePackage = function(package)
         for _, file in ipairs(base.installed[package].data.files) do

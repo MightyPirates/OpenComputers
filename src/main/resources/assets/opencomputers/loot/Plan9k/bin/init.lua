@@ -37,7 +37,7 @@ for gpu in component.list("gpu") do
         print("SIGINT!!")
     end
     
-    os.spawnp("/bin/getty.lua", mi, nil, nil, gpu)
+    os.spawnp("/bin/getty.lua", mi, mo, nil, gpu)
     os.spawnp("/bin/readkey.lua", nil, mo, mo, screen, interruptHandler)
     
     if not sout then

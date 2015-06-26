@@ -29,12 +29,34 @@ local function checkCoord()
     if y > h then y = h end
 end
 
+local preblinkbg = 0x000000
+local preblinkfg = 0x000000
+
 local function unblink()
     if blinkState then
         blinkState = not blinkState
-        component.invoke(gpu, "setBackground", blinkState and 0xFFFFFF or 0x000000)
-        component.invoke(gpu, "set", x, y, component.invoke(gpu, "get", x, y) or " ")
-        component.invoke(gpu, "setBackground", 0x000000)
+        local char, fg, bg = component.invoke(gpu, "get", x, y)
+        preblinkbg = blinkState and bg or preblinkbg
+        preblinkfg = blinkState and fg or preblinkfg
+        local oribg, obpal = component.invoke(gpu, "setBackground", blinkState and 0xFFFFFF or preblinkbg)
+        local orifg, ofpal = component.invoke(gpu, "setForeground", blinkState and 0x000000 or preblinkfg)
+        component.invoke(gpu, "set", x, y, char  or " ")
+        component.invoke(gpu, "setBackground", oribg)
+        component.invoke(gpu, "setForeground", orifg)
+    end
+end
+
+local function reblink()
+    if not blinkState then
+        blinkState = not blinkState
+        local char, fg, bg = component.invoke(gpu, "get", x, y)
+        preblinkbg = blinkState and bg or preblinkbg
+        preblinkfg = blinkState and fg or preblinkfg
+        local oribg, obpal = component.invoke(gpu, "setBackground", blinkState and 0xFFFFFF or preblinkbg)
+        local orifg, ofpal = component.invoke(gpu, "setForeground", blinkState and 0x000000 or preblinkfg)
+        component.invoke(gpu, "set", x, y, char  or " ")
+        component.invoke(gpu, "setBackground", oribg)
+        component.invoke(gpu, "setForeground", orifg)
     end
 end
 
@@ -51,6 +73,7 @@ local function scroll()
     else
         y = y + 1
     end
+    reblink()
 end
 
 local printBuf = ""
@@ -77,6 +100,7 @@ local function backDelChar()
         x = x - 1
         unblink()
         component.invoke(gpu, "set", x, y, " ")
+        reblink()
     end
 end
 
@@ -92,6 +116,7 @@ function charHandlers.base(char)
         unblink()
         printBuffer()
         x = 1
+        reblink()
     elseif char == "\t" then
         printBuf = printBuf .. "  "
     elseif char == "\b" then
@@ -159,10 +184,15 @@ local lcommands = {}
 
 lcommands["4"] = function()end --Reset to replacement mode
 
+local ncommands = {}
+
+ncommands["6"] = function()io.write("\x1b[" .. y .. ";" .. x .. "R")end
 
 local commandMode = ""
 local commandBuf = ""
 local commandList = {}
+
+--TODO \1b[C -- reset term to initial state
 
 function charHandlers.control(char)
     if char == "\x1b" then
@@ -174,6 +204,7 @@ function charHandlers.control(char)
     elseif char == "[" then
         if commandMode ~= "" or commandBuf ~= "" then
             charHandlers.active = charHandlers.base
+            reblink()
             return
         end
         commandMode = "["
@@ -181,6 +212,7 @@ function charHandlers.control(char)
     elseif char == "(" then
         if commandMode ~= "" or commandBuf ~= "" then
             charHandlers.active = charHandlers.base
+            reblink()
             return
         end
         commandMode = "("
@@ -213,6 +245,18 @@ function charHandlers.control(char)
             end
             lcommands[command]()
         end
+    elseif char == "n" then
+        commandList[#commandList + 1] = commandBuf
+        if not commandList[1] or commandList[1] == "" then
+            commandList[1] = "0"
+        end
+        for _, command in ipairs(commandList) do
+            if not ncommands[command] then
+                pipes.log("Unknown escape code: " .. tostring(command))
+                break
+            end
+            ncommands[command]()
+        end
     elseif char == "d" then
         commandList[#commandList + 1] = commandBuf
         local n = tonumber(commandList[1]) or 1
@@ -225,9 +269,9 @@ function charHandlers.control(char)
         scrBot = nb
     elseif char == "H" or char == "f" then --set pos
         commandList[#commandList + 1] = commandBuf
-        local nx, ny = tonumber(commandList[1]), tonumber(commandList[2])
-        x = nx or 1
-        y = ny or 1
+        local ny, nx = tonumber(commandList[1]), tonumber(commandList[2])
+        x = math.min(nx or 1, w)
+        y = math.min(ny or 1, h)
         checkCoord()
     elseif char == "A" then --move up
         commandList[#commandList + 1] = commandBuf
@@ -237,6 +281,7 @@ function charHandlers.control(char)
     elseif char == "B" then --move down
         if commandMode == "(" then
             charHandlers.active = charHandlers.base
+            reblink()
             return
         end
         commandList[#commandList + 1] = commandBuf
@@ -274,6 +319,7 @@ function charHandlers.control(char)
         return
     end
     charHandlers.active = charHandlers.base
+    reblink()
     commandList = {}
     commandBuf = ""
     commandMode = ""
@@ -296,9 +342,14 @@ end
 
 pipes.setTimer(function()
     blinkState = not blinkState
-    component.invoke(gpu, "setBackground", blinkState and 0xFFFFFF or 0x000000)
-    component.invoke(gpu, "set", x, y, component.invoke(gpu, "get", x, y) or " ")
-    component.invoke(gpu, "setBackground", 0x000000)
+    local char, fg, bg = component.invoke(gpu, "get", x, y)
+    preblinkbg = blinkState and bg or preblinkbg
+    preblinkfg = blinkState and fg or preblinkfg
+    local oribg, obpal = component.invoke(gpu, "setBackground", blinkState and 0xFFFFFF or preblinkbg)
+    local orifg, ofpal = component.invoke(gpu, "setForeground", blinkState and 0x000000 or preblinkfg)
+    component.invoke(gpu, "set", x, y, char  or " ")
+    component.invoke(gpu, "setBackground", oribg)
+    component.invoke(gpu, "setForeground", orifg)
 end, 0.5)
 
 while true do

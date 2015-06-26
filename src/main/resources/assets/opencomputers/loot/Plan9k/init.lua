@@ -1,4 +1,4 @@
-_G._OSVERSION = "OpenLoader 0.2"
+_G._OSVERSION = "OpenLoader 0.3"
 local component = component or require('component')
 local computer = computer or require('computer')
 local unicode = unicode or require('unicode')
@@ -15,29 +15,45 @@ local gpu = component.list("gpu")()
 local w, h
 
 local screen = component.list('screen')()
-for address in component.list('screen') do
-    if #component.invoke(address, 'getKeyboards') > 0 then
-        screen = address
+
+local function gpucast(op, arg, ...)
+    local res = {}
+    local n = 1
+    for address in component.list('screen') do
+        component.invoke(gpu, "bind", address)
+        if type(arg) == "table" then
+            res[#res + 1] = {component.invoke(gpu, op, table.unpack(arg[n]))}
+        else
+            res[#res + 1] = {component.invoke(gpu, op, arg, ...)}
+        end
+        n = n + 1
     end
+    return res
 end
 
 local cls = function()end
 if gpu and screen then
-    component.invoke(gpu, "bind", screen)
+    --component.invoke(gpu, "bind", screen)
     w, h = component.invoke(gpu, "getResolution")
-    component.invoke(gpu, "setResolution", w, h)
-    component.invoke(gpu, "setBackground", 0x000000)
-    component.invoke(gpu, "setForeground", 0xFFFFFF)
-    component.invoke(gpu, "fill", 1, 1, w, h, " ")
-    cls = function()component.invoke(gpu,"fill", 1, 1, w, h, " ")end
+    local res = gpucast("getResolution")
+    gpucast("setResolution", res)
+    gpucast("setBackground", 0x000000)
+    gpucast("setForeground", 0xFFFFFF)
+    for _, e in ipairs(res)do
+        table.insert(e, 1, 1)
+        table.insert(e, 1, 1)
+        e[#e+1] = " "
+    end
+    gpucast("fill", res)
+    cls = function()gpucast("fill", res)end
 end
 local y = 1
 local function status(msg)
     if gpu and screen then
-        component.invoke(gpu, "set", 1, y, msg)
+        gpucast("set", 1, y, msg)
         if y == h then
-            component.invoke(gpu, "copy", 1, 2, w, h - 1, 0, -1)
-            component.invoke(gpu, "fill", 1, h, w, 1, " ")
+            gpucast("copy", 1, 2, w, h - 1, 0, -1)
+            gpucast("fill", 1, h, w, 1, " ")
         else
             y = y + 1
         end
