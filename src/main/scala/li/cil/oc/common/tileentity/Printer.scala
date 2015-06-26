@@ -136,7 +136,7 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
     result(data.isButtonMode)
   }
 
-  @Callback(doc = """function(collideOff:boolean, collideOn:boolean) -- Get whether the printed block should be collidable or not.""")
+  @Callback(doc = """function(collideOff:boolean, collideOn:boolean) -- Set whether the printed block should be collidable or not.""")
   def setCollidable(context: Context, args: Arguments): Array[Object] = {
     val (collideOff, collideOn) = (args.checkBoolean(0), args.checkBoolean(1))
     data.noclipOff = !collideOff
