@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import java.util
 import java.util.Random
 
+import com.google.common.base.Strings
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
@@ -40,6 +41,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   var colorMultiplierOverride: Option[Int] = None
   // Also used in model rendering, can't use renderer's override logic because that'll disable tinting.
   var textureOverride: Option[IIcon] = None
+  // Again, used in model rendering, used to know whether we can potentially skip rendering sides.
+  var isSingleShape = false
 
   @SideOnly(Side.CLIENT)
   override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, globalSide: ForgeDirection, localSide: ForgeDirection): IIcon =
@@ -80,7 +83,19 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       case _ => super.getLightOpacity(world, x, y, z)
     }
 
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = !isSingleShape || (world.getTileEntity(x, y, z) match {
+    case print: tileentity.Print if isSideSolid(world, x, y, z, side.getOpposite) =>
+      side match {
+        case ForgeDirection.DOWN => minY > 0
+        case ForgeDirection.UP => maxY < 1
+        case ForgeDirection.NORTH => minZ > 0
+        case ForgeDirection.SOUTH => maxZ < 1
+        case ForgeDirection.WEST => minX > 0
+        case ForgeDirection.EAST => maxX < 1
+        case _ => true
+      }
+    case _ => super.shouldSideBeRendered(world, x, y, z, side)
+  })
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = isSideSolid(world, x, y, z, side)
 
@@ -88,7 +103,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     world.getTileEntity(x, y, z) match {
       case print: tileentity.Print =>
         val shapes = if (print.state) print.data.stateOn else print.data.stateOff
-        for (shape <- shapes) {
+        for (shape <- shapes if !Strings.isNullOrEmpty(shape.texture)) {
           val bounds = shape.bounds.rotateTowards(print.facing)
           val fullX = bounds.minX == 0 && bounds.maxX == 1
           val fullY = bounds.minY == 0 && bounds.maxY == 1
@@ -118,6 +133,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   override def addCollisionBoxesToList(world: World, x: Int, y: Int, z: Int, mask: AxisAlignedBB, list: util.List[_], entity: Entity): Unit = {
     world.getTileEntity(x, y, z) match {
       case print: tileentity.Print =>
+        if (if (print.state) print.data.noclipOn else print.data.noclipOff) return
+
         def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
         val shapes = if (print.state) print.data.stateOn else print.data.stateOff
         for (shape <- shapes) {

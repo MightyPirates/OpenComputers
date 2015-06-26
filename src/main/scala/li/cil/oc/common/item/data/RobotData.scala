@@ -29,7 +29,7 @@ object RobotData {
   def randomName = if (names.length > 0) names((math.random * names.length).toInt) else "Robot"
 }
 
-class RobotData extends ItemData {
+class RobotData extends ItemData(Constants.BlockName.Robot) {
   def this(stack: ItemStack) {
     this()
     load(stack)
@@ -83,12 +83,6 @@ class RobotData extends ItemData {
     nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
     nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
     nbt.setInteger(Settings.namespace + "lightColor", lightColor)
-  }
-
-  def createItemStack() = {
-    val stack = api.Items.get(Constants.BlockName.Robot).createItemStack(1)
-    save(stack)
-    stack
   }
 
   def copyItemStack() = {
