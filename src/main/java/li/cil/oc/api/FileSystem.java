@@ -108,6 +108,19 @@ public final class FileSystem {
     }
 
     /**
+     * Wrap a file system retrieved via one of the <tt>from???</tt> methods to
+     * make it read-only.
+     *
+     * @param fileSystem the file system to wrap.
+     * @return the specified file system wrapped to be read-only.
+     */
+    public static li.cil.oc.api.fs.FileSystem asReadOnly(final li.cil.oc.api.fs.FileSystem fileSystem) {
+        if (API.fileSystem != null)
+            return API.fileSystem.asReadOnly(fileSystem);
+        return null;
+    }
+
+    /**
      * Creates a network node that makes the specified file system available via
      * the common file system driver.
      * <p/>
