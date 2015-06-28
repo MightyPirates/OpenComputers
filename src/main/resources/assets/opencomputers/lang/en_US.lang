@@ -155,6 +155,7 @@ oc:gui.Analyzer.AddressCopied=Address copied to clipboard.
 oc:gui.Analyzer.ChargerSpeed=§6Charge speed§f: %s
 oc:gui.Analyzer.ComponentName=§6Component name§f: %s
 oc:gui.Analyzer.Components=§6Number of connected components§f: %s
+oc:gui.Analyzer.CopyToClipboard=Click to copy to clipboard.
 oc:gui.Analyzer.LastError=§6Last error§f: %s
 oc:gui.Analyzer.RobotName=§6Name§f: %s
 oc:gui.Analyzer.RobotOwner=§6Owner§f: %s

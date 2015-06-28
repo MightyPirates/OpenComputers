@@ -34,6 +34,8 @@ private[oc] class Proxy extends CommonProxy {
 
     api.API.manual = client.Manual
 
+    CommandHandler.register()
+
     MinecraftForge.EVENT_BUS.register(Textures)
 
     ModelInitialization.preInit()

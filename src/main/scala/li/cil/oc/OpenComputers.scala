@@ -2,7 +2,7 @@ package li.cil.oc
 
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
-import li.cil.oc.server.CommandHandler
+import li.cil.oc.server.command.CommandHandler
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.SidedProxy
