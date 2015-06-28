@@ -15,6 +15,7 @@ kernel.userspace.computer.addUser = kernel._K.computer.addUser
 kernel.userspace.computer.removeUser = kernel._K.computer.removeUser
 kernel.userspace.computer.pushSignal = kernel._K.computer.pushSignal
 kernel.userspace.computer.uptime = kernel._K.computer.uptime
+kernel.userspace.computer.getBootAddress = kernel._K.computer.getBootAddress
 
 kernel.userspace.computer.pullSignal = function(timeout)
     return coroutine.yield("signal", timeout)

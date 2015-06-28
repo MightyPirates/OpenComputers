@@ -457,23 +457,23 @@ function filesystem.copy(fromPath, toPath)
   end
   local input, reason = kernel.modules.io.io.open(fromPath, "rb")
   if not input then
-    return nil, reason
+    return nil, reason, "open input"
   end
   local output, reason = kernel.modules.io.io.open(toPath, "wb")
   if not output then
     input:close()
-    return nil, reason
+    return nil, reason, "open output"
   end
   repeat
     local buffer, reason = input:read(1024)
     if not buffer and reason then
-      return nil, reason
+      return nil, reason, "read input"
     elseif buffer then
       local result, reason = output:write(buffer)
       if not result then
         input:close()
         output:close()
-        return nil, reason
+        return nil, reason, "write to output"
       end
     end
   until not buffer
@@ -543,10 +543,5 @@ end
 
 for k,v in pairs(filesystem) do
     _G[k] = v
-end
-
-
-function start()
-    mount(computer.getBootAddress(), "/")
 end
 

@@ -507,7 +507,7 @@ core = {
             end
         end
         
-        core.promptUser("Do you want to continue?[Y/n] ")
+        core.promptUser("Do you want to continue?[y/N] ")
         
         if core.data.remove then
             core.log(1, "Core", "Removing packages")

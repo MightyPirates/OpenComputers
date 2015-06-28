@@ -10,7 +10,7 @@ if not args[1] then
     return
 end
 
-local file = args[1]
+local file = args[1] or ""
 
 local function read(from, to)
     local started, data

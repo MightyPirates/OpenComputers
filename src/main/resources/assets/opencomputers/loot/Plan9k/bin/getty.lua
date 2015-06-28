@@ -158,7 +158,6 @@ mcommands["3"] = function()end --Italic
 mcommands["4"] = function()end --Underscore
 mcommands["10"] = function()end --Select primary font (LA100)
 
-
 mcommands["30"] = function()component.invoke(gpu, "setForeground", 0x000000)end
 mcommands["31"] = function()component.invoke(gpu, "setForeground", 0xFF0000)end
 mcommands["32"] = function()component.invoke(gpu, "setForeground", 0x00FF00)end

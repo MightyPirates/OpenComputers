@@ -27,5 +27,5 @@ function start()
     end
     
     kernel.userspace.package.preload.pipes.openPty = kernel.modules.pty.new
-    
+    kernel.userspace.package.preload.pipes.cowProxy = kernel.modules.cowfs.new
 end
