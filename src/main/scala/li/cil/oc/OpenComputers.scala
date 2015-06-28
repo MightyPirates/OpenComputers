@@ -8,7 +8,7 @@ import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Proxy
-import li.cil.oc.server.CommandHandler
+import li.cil.oc.server.command.CommandHandler
 import org.apache.logging.log4j.LogManager
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
