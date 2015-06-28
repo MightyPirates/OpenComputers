@@ -154,6 +154,7 @@ oc:gui.Analyzer.AddressCopied=Адрес скопирован в буфер об
 oc:gui.Analyzer.ChargerSpeed=§6Скорость зарядки§f: %s
 oc:gui.Analyzer.ComponentName=§6Имя компонента§f: %s
 oc:gui.Analyzer.Components=§6Количество подключенных компонентов§f: %s
+oc:gui.Analyzer.CopyToClipboard=Кликните для копирования в буфер обмена.
 oc:gui.Analyzer.LastError=§6Последняя ошибка§f: %s
 oc:gui.Analyzer.RobotName=§6Имя§f: %s
 oc:gui.Analyzer.RobotOwner=§6Владелец§f: %s
