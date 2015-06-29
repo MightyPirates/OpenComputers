@@ -46,25 +46,41 @@ do
         component.invoke(gpu, "bind", screen)
         w, h = component.invoke(gpu, "getResolution")
         component.invoke(gpu, "setResolution", w, h)
+        h = h - 3
+        component.invoke(gpu, "setBackground", 0x555555)
+        component.invoke(gpu, "fill", 1, 1, w, 3, " ")
+        component.invoke(gpu, "setBackground", 0xAAAAAA)
+        component.invoke(gpu, "fill", 4, 2, w-7, 1, "-")
         component.invoke(gpu, "setBackground", 0x000000)
         component.invoke(gpu, "setForeground", 0xFFFFFF)
-        component.invoke(gpu, "fill", 1, 1, w, h, " ")
+        component.invoke(gpu, "fill", 1, 4, w, h, " ")
     end
     local y = 1
         
     function kernel._println(msg)
         if gpu and screen then
             for line in string.gmatch(tostring(msg), "([^\n]+)") do
-                kernel._K.component.invoke(gpu, "set", 1, y, line)
+                kernel._K.component.invoke(gpu, "set", 1, y + 3, line)
                 if y == h then
-                    kernel._K.component.invoke(gpu, "copy", 1, 2, w, h - 1, 0, -1)
-                    kernel._K.component.invoke(gpu, "fill", 1, h, w, 1, " ")
+                    kernel._K.component.invoke(gpu, "copy", 1, 2+3, w, h - 1, 0, -1)
+                    kernel._K.component.invoke(gpu, "fill", 1, h+3, w, 1, " ")
                 else
                     y = y + 1
                 end
             end
         end
     end
+    
+    function kernel._status(done)
+        if gpu and screen then
+            component.invoke(gpu, "setBackground", 0xFF0000)
+            component.invoke(gpu, "setForeground", 0x000000)
+            component.invoke(gpu, "fill", 4, 2, (w-7) * done, 1, "X")
+            component.invoke(gpu, "setBackground", 0x000000)
+            component.invoke(gpu, "setForeground", 0xFFFFFF)
+        end
+    end
+    
     kernel.io.println = kernel._println
 end
 
@@ -151,7 +167,7 @@ for i = 1, #modules do
             kernel.io.println(result[2])
             kernel.panic()
         end
-        
+        kernel._status((0.5 / (#modules)) * i)
     else
         kernel.io.println(reason)
         kernel.panic()
@@ -169,6 +185,7 @@ for i = 1, #modules do
             kernel.panic()
         end
     end
+    kernel._status(0.5 + (0.5 / (#modules)) * i)
 end
 
 kernel.panic()
