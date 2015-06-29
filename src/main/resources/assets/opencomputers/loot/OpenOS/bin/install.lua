@@ -9,7 +9,7 @@ local args, options = shell.parse(...)
 
 local fromAddress = options.from and component.get(options.from) or filesystem.get(os.getenv("_")).address
 local candidates = {}
-for address in component.list("filesystem") do
+for address in component.list("filesystem", true) do
   local dev = component.proxy(address)
   if not dev.isReadOnly() and dev.address ~= computer.tmpAddress() and dev.address ~= fromAddress then
     table.insert(candidates, dev)
