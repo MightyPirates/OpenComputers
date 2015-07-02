@@ -179,10 +179,10 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
 
   override def recolourBlock(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, colour: Int) =
     world.getTileEntity(x, y, z) match {
-      case colored: Colored if colored.color != colour =>
-        colored.color = colour
+      case colored: Colored if colored.color != Color.byMeta(colour) =>
+        colored.color = Color.byMeta(colour)
         world.markBlockForUpdate(x, y, z)
-        false // Don't consume items.
+        true // Blame Vexatos.
       case _ => super.recolourBlock(world, x, y, z, side, colour)
     }
 
