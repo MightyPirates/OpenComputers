@@ -13,6 +13,9 @@ local unicode = require("unicode")
 local memoryStream = {}
 
 function memoryStream:close()
+  if (self.empty) then
+    self:write('')
+  end
   self.closed = true
 end
 
@@ -37,6 +40,7 @@ function memoryStream:read(n)
 end
 
 function memoryStream:write(value)
+  self.empty = false
   if not self.redirect.write and self.closed then
     error("attempt to use a closed stream")
   end
@@ -59,7 +63,7 @@ end
 
 function memoryStream.new()
   local stream = {closed = false, buffer = "",
-                  redirect = {}, result = {}, args = {}}
+                  redirect = {}, result = {}, args = {}, empty = true}
   local metatable = {__index = memoryStream,
                      __gc = memoryStream.close,
                      __metatable = "memorystream"}
