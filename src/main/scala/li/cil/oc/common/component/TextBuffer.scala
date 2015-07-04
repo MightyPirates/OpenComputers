@@ -63,6 +63,10 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   private var _pendingCommands: Option[PacketBuilder] = None
 
+  private val syncInterval = 100
+
+  private var syncCooldown = syncInterval
+
   private def pendingCommands = _pendingCommands.getOrElse {
     val pb = new CompressedPacketBuilder(PacketType.TextBufferMulti)
     pb.writeUTF(node.address)
@@ -88,6 +92,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     else new TextBuffer.ServerProxy(this)
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
+
+  def markInitialized(): Unit = syncCooldown = -1 // Stop polling for init state.
 
   // ----------------------------------------------------------------------- //
 
@@ -127,6 +133,14 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     this.synchronized {
       _pendingCommands.foreach(_.sendToPlayersNearHost(host, Option(Settings.get.maxWirelessRange * Settings.get.maxWirelessRange)))
       _pendingCommands = None
+    }
+
+    if (syncCooldown > 0) {
+      syncCooldown -= 1
+      if (syncCooldown == 0) {
+        syncCooldown = syncInterval
+        ClientPacketSender.sendTextBufferInit(proxy.nodeAddress)
+      }
     }
   }
 

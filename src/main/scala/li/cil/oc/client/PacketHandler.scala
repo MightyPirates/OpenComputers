@@ -445,6 +445,7 @@ object PacketHandler extends CommonPacketHandler {
         }
         buffer.data.load(nbt)
         buffer.proxy.markDirty()
+        buffer.markInitialized()
       case _ => // Invalid packet.
     }
   }
