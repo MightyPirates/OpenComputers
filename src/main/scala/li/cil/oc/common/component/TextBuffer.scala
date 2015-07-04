@@ -135,7 +135,7 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       _pendingCommands = None
     }
 
-    if (syncCooldown > 0) {
+    if (SideTracker.isClient && syncCooldown > 0) {
       syncCooldown -= 1
       if (syncCooldown == 0) {
         syncCooldown = syncInterval
