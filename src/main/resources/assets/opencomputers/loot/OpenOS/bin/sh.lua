@@ -13,9 +13,6 @@ local unicode = require("unicode")
 local memoryStream = {}
 
 function memoryStream:close()
-  if (self.empty) then
-    self:write('')
-  end
   self.closed = true
 end
 
@@ -40,7 +37,6 @@ function memoryStream:read(n)
 end
 
 function memoryStream:write(value)
-  self.empty = false
   if not self.redirect.write and self.closed then
     error("attempt to use a closed stream")
   end
@@ -63,7 +59,7 @@ end
 
 function memoryStream.new()
   local stream = {closed = false, buffer = "",
-                  redirect = {}, result = {}, args = {}, empty = true}
+                  redirect = {}, result = {}, args = {}}
   local metatable = {__index = memoryStream,
                      __gc = memoryStream.close,
                      __metatable = "memorystream"}
@@ -310,6 +306,7 @@ local function execute(env, command, ...)
       elseif pipes[i] then
         io.output(pipes[i])
       end
+    io.write('')
     end, command)
     if not threads[i] then
       return false, reason
