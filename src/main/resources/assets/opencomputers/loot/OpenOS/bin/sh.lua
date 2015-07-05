@@ -42,7 +42,11 @@ end
 function memoryStream:write(value)
   self.empty = false
   if not self.redirect.write and self.closed then
-    error("attempt to use a closed stream")
+    -- if next is dead, ignore all writes
+    if coroutine.status(self.next) ~= "dead" then
+      error("attempt to use a closed stream")
+    end
+    return true
   end
   if self.redirect.write then
     self.redirect.write:write(value)
