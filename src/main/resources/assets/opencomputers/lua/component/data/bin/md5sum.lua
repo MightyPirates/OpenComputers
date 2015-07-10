@@ -22,6 +22,6 @@ else
       read = read .. current
     until current ~= ""
     file:close()
-    io.write(data.toHex(data.md5(read)) .. "\t".. args[i])
+    io.write(data.toHex(data.md5(read)) .. "\t".. args[i] .. "\n")
   end
 end

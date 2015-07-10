@@ -22,6 +22,6 @@ else
       read = read .. current
     until current ~= ""
     file:close()
-    io.write(data.toHex(data.sha256(read)) .. "\t".. args[i])
+    io.write(data.toHex(data.sha256(read)) .. "\t".. args[i] .. "\n")
   end
 end
