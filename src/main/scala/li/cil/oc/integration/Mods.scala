@@ -56,6 +56,7 @@ object Mods {
   val NotEnoughKeys = new SimpleMod(IDs.NotEnoughKeys)
   val OpenComputers = new SimpleMod(IDs.OpenComputers)
   val PortalGun = new SimpleMod(IDs.PortalGun)
+  val PowerAdvantage = new SimpleMod(IDs.PowerAdvantage, version = "@[1.2.0,)", providesPower = true)
   val ProjectRedCore = new SimpleMod(IDs.ProjectRedCore)
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
@@ -105,6 +106,7 @@ object Mods {
     //    integration.mystcraft.ModMystcraft,
     //    integration.nek.ModNotEnoughKeys,
     //    integration.projectred.ModProjectRed,
+    integration.poweradvantage.ModPowerAdvantage,
     //    integration.railcraft.ModRailcraft,
     //    integration.redlogic.ModRedLogic,
     //    integration.stargatetech2.ModStargateTech2,
@@ -190,6 +192,7 @@ object Mods {
     final val NotEnoughKeys = "notenoughkeys"
     final val OpenComputers = "OpenComputers"
     final val PortalGun = "PortalGun"
+    final val PowerAdvantage = "poweradvantage"
     final val ProjectRedCore = "ProjRed|Core"
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val Railcraft = "Railcraft"

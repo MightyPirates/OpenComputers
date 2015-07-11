@@ -78,6 +78,10 @@ repositories {
         name = "mobius"
         url = "http://mobiusstrip.eu/maven"
     }
+    maven {
+        name = "fallback"
+        url = "http://maven.cil.li/"
+    }
     /*
     maven {
         name = "BluePower"
@@ -209,8 +213,9 @@ dependencies {
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
     provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
-
 */
+    provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
+
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
     embedded files('libs/OpenComputers-JNLua.jar', 'libs/OpenComputers-LuaJ.jar')
