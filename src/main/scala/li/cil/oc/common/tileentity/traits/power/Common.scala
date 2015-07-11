@@ -38,6 +38,14 @@ trait Common extends TileEntity {
     !Settings.get.ignorePower && side != null && side != ForgeDirection.UNKNOWN &&
       (if (isClient) hasConnector(side) else connector(side).isDefined)
 
+  /**
+   * Tries to inject the specified amount of energy into the buffer via the specified side.
+   *
+   * @param side the side to change the buffer through.
+   * @param amount the amount to change the buffer by.
+   * @param doReceive whether to actually inject energy or only simulate it.
+   * @return the amount of energy that was actually injected.
+   */
   def tryChangeBuffer(side: ForgeDirection, amount: Double, doReceive: Boolean = true): Double =
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
