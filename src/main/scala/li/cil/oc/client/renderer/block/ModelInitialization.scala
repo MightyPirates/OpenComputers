@@ -29,6 +29,8 @@ import scala.collection.mutable
 object ModelInitialization {
   final val CableBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "normal")
   final val CableItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "inventory")
+  final val NetSplitterBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.NetSplitter, "normal")
+  final val NetSplitterItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.NetSplitter, "inventory")
   final val PrintBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "normal")
   final val PrintItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "inventory")
   final val RobotBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "normal")
@@ -45,6 +47,7 @@ object ModelInitialization {
     MinecraftForge.EVENT_BUS.register(this)
 
     registerModel(Constants.BlockName.Cable, CableBlockLocation, CableItemLocation)
+    registerModel(Constants.BlockName.NetSplitter, NetSplitterBlockLocation, NetSplitterItemLocation)
     registerModel(Constants.BlockName.Print, PrintBlockLocation, PrintItemLocation)
     registerModel(Constants.BlockName.Robot, RobotBlockLocation, RobotItemLocation)
     registerModel(Constants.BlockName.RobotAfterimage, RobotAfterimageBlockLocation, RobotAfterimageItemLocation)
@@ -137,6 +140,8 @@ object ModelInitialization {
 
     registry.putObject(CableBlockLocation, CableModel)
     registry.putObject(CableItemLocation, CableModel)
+    registry.putObject(NetSplitterBlockLocation, NetSplitterModel)
+    registry.putObject(NetSplitterItemLocation, NetSplitterModel)
     registry.putObject(PrintBlockLocation, PrintModel)
     registry.putObject(PrintItemLocation, PrintModel)
     registry.putObject(RobotBlockLocation, RobotModel)

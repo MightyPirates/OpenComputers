@@ -144,7 +144,8 @@ object Textures {
     val Cable = L("cable")
     val CableCap = L("cableCap")
     val GenericTop = L("generic_top", load = false)
-    val NetSplitter = L("netSplitter")
+    val NetSplitterSide = L("netSplitter_side")
+    val NetSplitterTop = L("netSplitter_top")
     val RackFront = L("serverRack_front", load = false)
     val RackSide = L("serverRack_side", load = false)
 

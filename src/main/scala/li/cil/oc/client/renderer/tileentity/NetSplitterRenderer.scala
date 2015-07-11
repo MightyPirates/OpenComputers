@@ -16,20 +16,22 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer {
 
     val splitter = tileEntity.asInstanceOf[tileentity.NetSplitter]
     if (splitter.openSides.contains(!splitter.isInverted)) {
-      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-
-      RenderState.disableLighting()
+      RenderState.pushAttrib()
+      RenderState.disableEntityLighting()
       RenderState.makeItBlend()
 
-      GL11.glPushMatrix()
+      RenderState.pushMatrix()
 
       GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
       GL11.glScaled(1.0025, -1.0025, 1.0025)
       GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
       bindTexture(TextureMap.locationBlocksTexture)
+
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
+
+      Textures.Block.bind()
       r.startDrawingQuads()
 
       val sideActivity = Textures.getSprite(Textures.Block.NetSplitterOn)
@@ -78,10 +80,10 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer {
 
       t.draw()
 
-      RenderState.enableLighting()
+      RenderState.enableEntityLighting()
 
-      GL11.glPopMatrix()
-      GL11.glPopAttrib()
+      RenderState.popMatrix()
+      RenderState.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

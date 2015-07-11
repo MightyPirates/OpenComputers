@@ -23,7 +23,14 @@ object NetSplitterModel extends SmartBlockModelBase with ISmartItemModel {
 
   override def handleItemState(stack: ItemStack) = new ItemModel(stack)
 
-  protected def splitterTexture = Array.fill(6)(Textures.getSprite(Textures.Block.NetSplitter))
+  protected def splitterTexture = Array(
+    Textures.getSprite(Textures.Block.NetSplitterTop),
+    Textures.getSprite(Textures.Block.NetSplitterTop),
+    Textures.getSprite(Textures.Block.NetSplitterSide),
+    Textures.getSprite(Textures.Block.NetSplitterSide),
+    Textures.getSprite(Textures.Block.NetSplitterSide),
+    Textures.getSprite(Textures.Block.NetSplitterSide)
+  )
 
   protected final val BaseModel = {
     val faces = mutable.ArrayBuffer.empty[BakedQuad]
