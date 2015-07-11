@@ -36,7 +36,7 @@ tile.oc.screen2.name=Screen (Tier 2)
 tile.oc.screen3.name=Screen (Tier 3)
 tile.oc.serverRack.name=Server Rack
 tile.oc.switch.name=Switch
-tile.oc.toggleThinger.name=Net Splitter
+tile.oc.netSplitter.name=Net Splitter
 tile.oc.waypoint.name=Waypoint
 
 # Items
@@ -332,7 +332,7 @@ oc:tooltip.TabletCase=Basic case for tablets. Place it into the assembler to add
 oc:tooltip.Terminal=Allows controlling a server remotely, as long as you are in range of it. Acts like a portable screen and keyboard. Shift-right-click a server in a server rack to bind the terminal to it.
 oc:tooltip.TexturePicker=This tool allows showing a string describing a block's surface, for use in 3D printer shape definitions. Totally not texture names, nope. No sir.
 oc:tooltip.Tier=§8Tier %s
-oc:tooltip.ToggleThinger=Acts as a dynamic connector. Connectivity of each side can be toggled by hitting it with a wrench. Connectivity of all sides can be inverted by applying a redstone signal.
+oc:tooltip.NetSplitter=Acts as a dynamic connector. Connectivity of each side can be toggled by hitting it with a wrench. Connectivity of all sides can be inverted by applying a redstone signal.
 oc:tooltip.TooLong=Hold [§f%s§7] for a detailed tooltip.
 oc:tooltip.Transistor=A basic element in most other computer parts. It's a bit twisted, but it does the job.
 oc:tooltip.UpgradeAngel=Allows robots to place blocks in thin air, even if there is no point of reference.

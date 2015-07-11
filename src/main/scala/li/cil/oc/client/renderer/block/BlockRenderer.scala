@@ -25,14 +25,14 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     val renderer = patchedRenderer(realRenderer, block)
     GL11.glPushMatrix()
     block match {
-      case assembler: Assembler =>
+      case _: Assembler =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         Assembler.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
-      case cable: Cable =>
+      case _: Cable =>
         GL11.glScalef(1.6f, 1.6f, 1.6f)
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
@@ -40,33 +40,33 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable")
-      case hologram: Hologram =>
+      case _: Hologram =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         Hologram.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram")
-      case printer: Printer =>
+      case _: Printer =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         Printer.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: printer")
-      case proxy@(_: RobotProxy | _: RobotAfterimage) =>
+      case _@(_: RobotProxy | _: RobotAfterimage) =>
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         GL11.glTranslatef(-0.5f, -0.4f, -0.5f)
         RobotRenderer.renderChassis()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")
-      case toggle: ToggleThinger =>
+      case _: NetSplitter =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
-        ToggleThinger.render(block, metadata, renderer)
+        NetSplitter.render(block, metadata, renderer)
         Tessellator.instance.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: toggleThinger")
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: splitter")
       case _ =>
         block match {
           case simple: SimpleBlock =>
@@ -139,10 +139,10 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
 
         true
-      case toggle: tileentity.ToggleThinger =>
-        ToggleThinger.render(ForgeDirection.VALID_DIRECTIONS.map(toggle.isSideOpen), block, x, y, z, renderer)
+      case splitter: tileentity.NetSplitter =>
+        NetSplitter.render(ForgeDirection.VALID_DIRECTIONS.map(splitter.isSideOpen), block, x, y, z, renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: toggleThinger")
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: splitter")
 
         true
       case _ =>
@@ -158,7 +158,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     block.isInstanceOf[Hologram] ||
       block.isInstanceOf[Printer] ||
       block.isInstanceOf[Print] ||
-      block.isInstanceOf[ToggleThinger]
+      block.isInstanceOf[NetSplitter]
 
   // The texture flip this works around only seems to occur for blocks with custom block renderers?
   def patchedRenderer(renderer: RenderBlocks, block: Block) =

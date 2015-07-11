@@ -10,7 +10,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class ToggleThinger extends traits.Environment with traits.RedstoneAware with api.network.SidedEnvironment {
+class NetSplitter extends traits.Environment with traits.RedstoneAware with api.network.SidedEnvironment {
   private final val SideCount = ForgeDirection.VALID_DIRECTIONS.length
 
   val node = api.Network.newNode(this, Visibility.None).
@@ -34,7 +34,8 @@ class ToggleThinger extends traits.Environment with traits.RedstoneAware with ap
     if (isServer) {
       node.remove()
       api.Network.joinOrCreateNetwork(this)
-      ServerPacketSender.sendToggleThingerState(this)
+      ServerPacketSender.sendNetSplitterState(this)
+      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.out", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
     }
     else {
       world.markBlockForUpdate(x, y, z)
@@ -67,7 +68,8 @@ class ToggleThinger extends traits.Environment with traits.RedstoneAware with ap
       if (isServer) {
         node.remove()
         api.Network.joinOrCreateNetwork(this)
-        ServerPacketSender.sendToggleThingerState(this)
+        ServerPacketSender.sendNetSplitterState(this)
+        world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.in", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
       }
       else {
         world.markBlockForUpdate(x, y, z)

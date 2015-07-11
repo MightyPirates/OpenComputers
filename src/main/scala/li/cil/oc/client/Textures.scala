@@ -97,7 +97,7 @@ object Textures {
     var iconSideActivity: IIcon = _
   }
 
-  object ToggleThinger {
+  object NetSplitter {
     var iconOn: IIcon = _
   }
 

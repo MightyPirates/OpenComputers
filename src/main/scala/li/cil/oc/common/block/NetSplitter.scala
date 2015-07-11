@@ -13,27 +13,27 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class ToggleThinger extends RedstoneAware {
+class NetSplitter extends RedstoneAware {
   override protected def customTextures = Array(
-    Some("ToggleThingerTop"),
-    Some("ToggleThingerTop"),
-    Some("ToggleThingerSide"),
-    Some("ToggleThingerSide"),
-    Some("ToggleThingerSide"),
-    Some("ToggleThingerSide")
+    Some("NetSplitterTop"),
+    Some("NetSplitterTop"),
+    Some("NetSplitterSide"),
+    Some("NetSplitterSide"),
+    Some("NetSplitterSide"),
+    Some("NetSplitterSide")
   )
 
   @SideOnly(Side.CLIENT) override
   def registerBlockIcons(iconRegister: IIconRegister): Unit = {
     super.registerBlockIcons(iconRegister)
-    Textures.ToggleThinger.iconOn = iconRegister.registerIcon(Settings.resourceDomain + ":ToggleThingerOn")
+    Textures.NetSplitter.iconOn = iconRegister.registerIcon(Settings.resourceDomain + ":NetSplitterOn")
   }
 
   override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection): Boolean = false
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.ToggleThinger()
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.NetSplitter()
 
   // ----------------------------------------------------------------------- //
 
@@ -41,10 +41,10 @@ class ToggleThinger extends RedstoneAware {
     if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z))) {
       val sideToToggle = if (player.isSneaking) side.getOpposite else side
       world.getTileEntity(x, y, z) match {
-        case toggleThinger: tileentity.ToggleThinger =>
+        case splitter: tileentity.NetSplitter =>
           if (!world.isRemote) {
-            val oldValue = toggleThinger.openSides(sideToToggle.ordinal())
-            toggleThinger.setSideOpen(sideToToggle, !oldValue)
+            val oldValue = splitter.openSides(sideToToggle.ordinal())
+            splitter.setSideOpen(sideToToggle, !oldValue)
           }
           true
         case _ => false

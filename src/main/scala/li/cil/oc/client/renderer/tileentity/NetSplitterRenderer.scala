@@ -10,12 +10,12 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-object ToggleThingerRenderer extends TileEntitySpecialRenderer {
+object NetSplitterRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val toggleThinger = tileEntity.asInstanceOf[tileentity.ToggleThinger]
-    if (toggleThinger.openSides.contains(!toggleThinger.isInverted)) {
+    val splitter = tileEntity.asInstanceOf[tileentity.NetSplitter]
+    if (splitter.openSides.contains(!splitter.isInverted)) {
       GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       RenderState.disableLighting()
@@ -31,44 +31,44 @@ object ToggleThingerRenderer extends TileEntitySpecialRenderer {
       val t = Tessellator.instance
       t.startDrawingQuads()
 
-      val sideActivity = Textures.ToggleThinger.iconOn
+      val sideActivity = Textures.NetSplitter.iconOn
 
-      if (toggleThinger.isSideOpen(ForgeDirection.DOWN)) {
+      if (splitter.isSideOpen(ForgeDirection.DOWN)) {
         t.addVertexWithUV(0, 1, 0, sideActivity.getMaxU, sideActivity.getMinV)
         t.addVertexWithUV(1, 1, 0, sideActivity.getMinU, sideActivity.getMinV)
         t.addVertexWithUV(1, 1, 1, sideActivity.getMinU, sideActivity.getMaxV)
         t.addVertexWithUV(0, 1, 1, sideActivity.getMaxU, sideActivity.getMaxV)
       }
 
-      if (toggleThinger.isSideOpen(ForgeDirection.UP)) {
+      if (splitter.isSideOpen(ForgeDirection.UP)) {
         t.addVertexWithUV(0, 0, 0, sideActivity.getMaxU, sideActivity.getMaxV)
         t.addVertexWithUV(0, 0, 1, sideActivity.getMaxU, sideActivity.getMinV)
         t.addVertexWithUV(1, 0, 1, sideActivity.getMinU, sideActivity.getMinV)
         t.addVertexWithUV(1, 0, 0, sideActivity.getMinU, sideActivity.getMaxV)
       }
 
-      if (toggleThinger.isSideOpen(ForgeDirection.NORTH)) {
+      if (splitter.isSideOpen(ForgeDirection.NORTH)) {
         t.addVertexWithUV(1, 1, 0, sideActivity.getMinU, sideActivity.getMaxV)
         t.addVertexWithUV(0, 1, 0, sideActivity.getMaxU, sideActivity.getMaxV)
         t.addVertexWithUV(0, 0, 0, sideActivity.getMaxU, sideActivity.getMinV)
         t.addVertexWithUV(1, 0, 0, sideActivity.getMinU, sideActivity.getMinV)
       }
 
-      if (toggleThinger.isSideOpen(ForgeDirection.SOUTH)) {
+      if (splitter.isSideOpen(ForgeDirection.SOUTH)) {
         t.addVertexWithUV(0, 1, 1, sideActivity.getMinU, sideActivity.getMaxV)
         t.addVertexWithUV(1, 1, 1, sideActivity.getMaxU, sideActivity.getMaxV)
         t.addVertexWithUV(1, 0, 1, sideActivity.getMaxU, sideActivity.getMinV)
         t.addVertexWithUV(0, 0, 1, sideActivity.getMinU, sideActivity.getMinV)
       }
 
-      if (toggleThinger.isSideOpen(ForgeDirection.WEST)) {
+      if (splitter.isSideOpen(ForgeDirection.WEST)) {
         t.addVertexWithUV(0, 1, 0, sideActivity.getMinU, sideActivity.getMaxV)
         t.addVertexWithUV(0, 1, 1, sideActivity.getMaxU, sideActivity.getMaxV)
         t.addVertexWithUV(0, 0, 1, sideActivity.getMaxU, sideActivity.getMinV)
         t.addVertexWithUV(0, 0, 0, sideActivity.getMinU, sideActivity.getMinV)
       }
 
-      if (toggleThinger.isSideOpen(ForgeDirection.EAST)) {
+      if (splitter.isSideOpen(ForgeDirection.EAST)) {
         t.addVertexWithUV(1, 1, 1, sideActivity.getMinU, sideActivity.getMaxV)
         t.addVertexWithUV(1, 1, 0, sideActivity.getMaxU, sideActivity.getMaxV)
         t.addVertexWithUV(1, 0, 0, sideActivity.getMaxU, sideActivity.getMinV)

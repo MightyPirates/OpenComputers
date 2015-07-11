@@ -38,7 +38,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 ## Networking
 * [Access Point](accessPoint.md)
 * [Cable](cable.md)
-* [Net Splitter](toggleThinger.md)
+* [Net Splitter](netSplitter.md)
 * [Switch](switch.md)
 
 ## Power management

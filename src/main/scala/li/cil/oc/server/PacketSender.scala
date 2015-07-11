@@ -529,8 +529,8 @@ object PacketSender {
     pb.sendToPlayersNearHost(host)
   }
 
-  def sendToggleThingerState(t: tileentity.ToggleThinger): Unit = {
-    val pb = new SimplePacketBuilder(PacketType.ToggleThingerState)
+  def sendNetSplitterState(t: tileentity.NetSplitter): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.NetSplitterState)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isInverted)

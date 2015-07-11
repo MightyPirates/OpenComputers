@@ -4,7 +4,7 @@ import net.minecraft.block.Block
 import net.minecraft.client.renderer.RenderBlocks
 import net.minecraftforge.common.util.ForgeDirection
 
-object ToggleThinger {
+object NetSplitter {
   def render(openSides: Array[Boolean], block: Block, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
     val previousRenderAllFaces = renderer.renderAllFaces
     renderer.renderAllFaces = true
