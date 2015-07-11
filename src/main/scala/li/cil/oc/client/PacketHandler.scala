@@ -74,6 +74,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferInit => onTextBufferInit(p)
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferMulti => onTextBufferMulti(p)
+      case PacketType.ToggleThingerState => onToggleThingerState(p)
       case PacketType.ScreenTouchMode => onScreenTouchMode(p)
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
@@ -590,6 +591,15 @@ object PacketHandler extends CommonPacketHandler {
 
     buffer.rawSetForeground(col, row, color)
   }
+
+  def onToggleThingerState(p: PacketParser) =
+    p.readTileEntity[ToggleThinger]() match {
+      case Some(t) =>
+        t.isInverted = p.readBoolean()
+        t.openSides = t.uncompressSides(p.readByte())
+        t.world.markBlockForUpdate(t.x, t.y, t.z)
+      case _ => // Invalid packet.
+    }
 
   def onScreenTouchMode(p: PacketParser) =
     p.readTileEntity[Screen]() match {

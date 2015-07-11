@@ -97,6 +97,10 @@ object Textures {
     var iconSideActivity: IIcon = _
   }
 
+  object ToggleThinger {
+    var iconOn: IIcon = _
+  }
+
   def init(tm: TextureManager) {
     tm.bindTexture(fontAntiAliased)
     tm.bindTexture(fontAliased)

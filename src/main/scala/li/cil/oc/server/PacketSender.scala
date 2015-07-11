@@ -529,6 +529,16 @@ object PacketSender {
     pb.sendToPlayersNearHost(host)
   }
 
+  def sendToggleThingerState(t: tileentity.ToggleThinger): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.ToggleThingerState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(t.isInverted)
+    pb.writeByte(t.compressSides)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendScreenTouchMode(t: tileentity.Screen, value: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.ScreenTouchMode)
 

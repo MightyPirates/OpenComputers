@@ -60,6 +60,13 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RobotRenderer.renderChassis()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")
+      case toggle: ToggleThinger =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        ToggleThinger.render(block, metadata, renderer)
+        Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: toggleThinger")
       case _ =>
         block match {
           case simple: SimpleBlock =>
@@ -132,6 +139,12 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
 
         true
+      case toggle: tileentity.ToggleThinger =>
+        ToggleThinger.render(ForgeDirection.VALID_DIRECTIONS.map(toggle.isSideOpen), block, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: toggleThinger")
+
+        true
       case _ =>
         val result = renderer.renderStandardBlock(block, x, y, z)
 
@@ -144,7 +157,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   private def needsFlipping(block: Block) =
     block.isInstanceOf[Hologram] ||
       block.isInstanceOf[Printer] ||
-      block.isInstanceOf[Print]
+      block.isInstanceOf[Print] ||
+      block.isInstanceOf[ToggleThinger]
 
   // The texture flip this works around only seems to occur for blocks with custom block renderers?
   def patchedRenderer(renderer: RenderBlocks, block: Block) =

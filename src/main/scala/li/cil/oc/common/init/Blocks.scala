@@ -34,6 +34,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntity(classOf[tileentity.ToggleThinger], Settings.namespace + "toggleThinger")
     GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 
     Recipes.addBlock(new AccessPoint(), Constants.BlockName.AccessPoint, "oc:accessPoint")
@@ -75,5 +76,8 @@ object Blocks {
 
     // v1.5.10
     Recipes.addBlock(new FakeEndstone(), Constants.BlockName.Endstone, "oc:stoneEndstone")
+
+    // v1.5.14
+    Recipes.addBlock(new ToggleThinger(), Constants.BlockName.ToggleThinger, "oc:toggleThinger")
   }
 }
