@@ -38,7 +38,7 @@ trait Common extends TileEntity {
     !Settings.get.ignorePower && side != null && side != ForgeDirection.UNKNOWN &&
       (if (isClient) hasConnector(side) else connector(side).isDefined)
 
-  def tryChangeBuffer(side: ForgeDirection, amount: Double, doReceive: Boolean = true) =
+  def tryChangeBuffer(side: ForgeDirection, amount: Double, doReceive: Boolean = true): Double =
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
@@ -48,14 +48,14 @@ trait Common extends TileEntity {
       case _ => 0
     }
 
-  def globalBuffer(side: ForgeDirection) =
+  def globalBuffer(side: ForgeDirection): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBuffer
       case _ => 0
     }
 
-  def globalBufferSize(side: ForgeDirection) =
+  def globalBufferSize(side: ForgeDirection): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBufferSize
