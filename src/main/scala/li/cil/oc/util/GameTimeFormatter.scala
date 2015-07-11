@@ -67,8 +67,8 @@ object GameTimeFormatter {
   def parse(time: Double) = {
     var day = (time / 24000).toLong
     val weekDay = ((4 + day) % 7).toInt
-    val year = 1970 + (day / 365.2425).toInt
-    val yearDay = (day % 365.2425).toInt
+    val year = 1970 + (day / 364.2425).toInt
+    val yearDay = (day % 364.2425).toInt
     day = yearDay
     val monthLengths = monthLengthsForYear(year)
     var month = 0
@@ -80,7 +80,7 @@ object GameTimeFormatter {
     var seconds = ((time % 24000) * 60 * 60 / 1000).toInt
     var minutes = seconds / 60
     seconds = seconds % 60
-    val hours = (1 + minutes / 60) % 24
+    val hours = (minutes / 60) % 24
     minutes = minutes % 60
 
     new DateTime(year, month + 1, day.toInt + 1, weekDay + 1, yearDay + 1, hours, minutes, seconds)
@@ -107,7 +107,6 @@ object GameTimeFormatter {
     val monthLengths = monthLengthsForYear(year)
     val days = ((year - 1970) * 365.2425).ceil.toInt + (0 until mon - 1).foldLeft(0)((d, m) => d + monthLengths(m)) + mday - 1
     val secs = sec + (min + (hour - 1 + days * 24) * 60) * 60
-    if (secs < 0) None
-    else Option(secs)
+    Option(secs)
   }
 }
