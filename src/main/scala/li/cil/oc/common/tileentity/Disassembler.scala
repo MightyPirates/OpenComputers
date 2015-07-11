@@ -36,7 +36,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   var disassembleNextInstantly = false
 
-  def progress = if (queue.isEmpty) 0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
+  def progress = if (queue.isEmpty) 0.0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
 
   private def setActive(value: Boolean) = if (value != isActive) {
     isActive = value
@@ -113,7 +113,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   private def drop(stack: ItemStack) {
     if (stack != null) {
       for (side <- EnumFacing.values if stack.stackSize > 0) {
-        InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), side.getOpposite)
+        InventoryUtils.insertIntoInventoryAt(stack, BlockPosition(this).offset(side), Some(side.getOpposite))
       }
       if (stack.stackSize > 0) {
         spawnStackInWorld(stack, Option(EnumFacing.UP))
@@ -160,7 +160,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     allowDisassembling(stack) &&
       (((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||
-        DisassemblerTemplates.select(stack) != None)
+        DisassemblerTemplates.select(stack).isDefined)
 
   private def allowDisassembling(stack: ItemStack) = stack != null && (!stack.hasTagCompound || !stack.getTagCompound.getBoolean(Settings.namespace + "undisassemblable"))
 
