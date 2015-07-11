@@ -15,7 +15,7 @@ trait Common extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  protected def energyThroughput: Double
+  def energyThroughput: Double
 
   protected def tryAllSides(provider: (Double, ForgeDirection) => Double, ratio: Double) {
     // We make sure to only call this every `Settings.get.tickFrequency` ticks,

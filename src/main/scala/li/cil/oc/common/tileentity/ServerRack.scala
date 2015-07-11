@@ -61,7 +61,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) sidedNode(side).asInstanceOf[Connector] else null)
 
-  override protected def energyThroughput = Settings.get.serverRackRate
+  override def energyThroughput = Settings.get.serverRackRate
 
   override def getWorld = world
 

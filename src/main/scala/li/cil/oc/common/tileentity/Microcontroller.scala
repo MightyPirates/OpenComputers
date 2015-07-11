@@ -57,7 +57,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) snooperNode else null)
 
-  override protected def energyThroughput = Settings.get.caseRate(Tier.One)
+  override def energyThroughput = Settings.get.caseRate(Tier.One)
 
   override def getWorld = world
 

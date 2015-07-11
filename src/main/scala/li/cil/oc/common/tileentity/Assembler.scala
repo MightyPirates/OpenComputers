@@ -41,7 +41,7 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
 
-  override protected def energyThroughput = Settings.get.assemblerRate
+  override def energyThroughput = Settings.get.assemblerRate
 
   override def currentState = {
     if (isAssembling) util.EnumSet.of(traits.State.IsWorking)
