@@ -23,7 +23,6 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 ### Extensions
 * [Adapter](adapter.md)
-* [Cable](cable.md)
 * [Geolyzer](geolyzer.md)
 * [Motion Sensor](motionSensor.md)
 * [Redstone I/O](redstone.md)
@@ -38,6 +37,8 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 ## Networking
 * [Access Point](accessPoint.md)
+* [Cable](cable.md)
+* [Net Splitter](netSplitter.md)
 * [Switch](switch.md)
 
 ## Power management

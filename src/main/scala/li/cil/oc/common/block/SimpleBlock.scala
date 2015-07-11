@@ -190,10 +190,10 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
 
   override def recolorBlock(world: World, pos: BlockPos, side: EnumFacing, color: EnumDyeColor) =
     world.getTileEntity(pos) match {
-      case colored: Colored if colored.color != color =>
-        colored.color = color
+      case colored: Colored if colored.color != Color.byMeta(color) =>
+        colored.color = Color.byMeta(color)
         world.markBlockForUpdate(pos)
-        false // Don't consume items.
+        true // Blame Vexatos.
       case _ => super.recolorBlock(world, pos, side, color)
     }
 

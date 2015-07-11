@@ -49,6 +49,7 @@ object PacketType extends Enumeration {
   TextBufferMultiRawSetBackground,
   TextBufferMultiRawSetForeground,
   TextBufferPowerChange,
+  NetSplitterState,
   ScreenTouchMode,
   ServerPresence,
   Sound,

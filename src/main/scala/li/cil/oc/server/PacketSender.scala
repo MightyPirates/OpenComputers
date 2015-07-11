@@ -522,6 +522,16 @@ object PacketSender {
     pb.sendToPlayersNearHost(host)
   }
 
+  def sendNetSplitterState(t: tileentity.NetSplitter): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.NetSplitterState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(t.isInverted)
+    pb.writeByte(t.compressSides)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendScreenTouchMode(t: tileentity.Screen, value: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.ScreenTouchMode)
 

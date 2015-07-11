@@ -14,8 +14,9 @@ import scala.collection.convert.WrapAsScala._
 
 object LightWeightPowerAcceptor extends ILightWeightPowerAcceptor {
   def init(): Unit = {
-    for (b: Block <- Block.blockRegistry if b.isInstanceOf[block.traits.PowerAcceptor]) {
-      LightWeightPowerRegistry.registerLightWeightPowerAcceptor(b, this)
+    Block.blockRegistry.collect {
+      case b: Block with block.traits.PowerAcceptor =>
+        LightWeightPowerRegistry.registerLightWeightPowerAcceptor(b, this)
     }
   }
 
@@ -33,13 +34,13 @@ object LightWeightPowerAcceptor extends ILightWeightPowerAcceptor {
 
   def addEnergy(tileEntity: TileEntity, amountAdded: Float, powerType: ConduitType) = tileEntity match {
     case acceptor: PowerAcceptor if canAcceptEnergyType(powerType) =>
-      var remainingEnergy = math.min(amountAdded, acceptor.energyThroughput.toFloat)
+      var remainingEnergy = math.min(amountAdded, acceptor.energyThroughput)
       // .exists() for early exit.
       EnumFacing.values().exists(side => {
         remainingEnergy -= acceptor.tryChangeBuffer(side, remainingEnergy)
         remainingEnergy <= 0
       })
-      amountAdded - remainingEnergy
+      amountAdded - remainingEnergy.toFloat
     case _ => 0
   }
 }

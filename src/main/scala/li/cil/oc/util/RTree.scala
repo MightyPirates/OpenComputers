@@ -12,13 +12,14 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
 
   private var root = new NonLeaf()
 
-  def apply(value: Data): Option[(Double, Double, Double)] =
+  def apply(value: Data): Option[(Double, Double, Double)] = this.synchronized {
     entries.get(value).fold(None: Option[(Double, Double, Double)])(position => Some(position.bounds.min.asTuple))
+  }
 
   // Allows debug rendering of the tree.
-  def allBounds = root.allBounds(0)
+  def allBounds = this.synchronized(root.allBounds(0))
 
-  def add(value: Data): Boolean = {
+  def add(value: Data): Boolean = this.synchronized {
     val replaced = remove(value)
     val entry = new Leaf(value, new Point(value))
     entries += value -> entry
@@ -29,7 +30,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
     !replaced
   }
 
-  def remove(value: Data): Boolean =
+  def remove(value: Data): Boolean = this.synchronized {
     entries.remove(value) match {
       case Some(node) =>
         val change = root.remove(node)
@@ -43,9 +44,11 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
         true
       case _ => false
     }
+  }
 
-  def query(from: (Double, Double, Double), to: (Double, Double, Double)) =
+  def query(from: (Double, Double, Double), to: (Double, Double, Double)) = this.synchronized {
     root.query(new Rectangle(new Point(from), new Point(to)))
+  }
 
   private abstract class Node {
     def bounds: Rectangle

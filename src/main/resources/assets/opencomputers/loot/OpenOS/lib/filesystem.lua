@@ -242,7 +242,7 @@ end
 function filesystem.proxy(filter)
   checkArg(1, filter, "string")
   local address
-  for c in component.list("filesystem") do
+  for c in component.list("filesystem", true) do
     if component.invoke(c, "getLabel") == filter then
       address = c
       break

@@ -51,7 +51,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override protected def connector(side: EnumFacing) = Option(if (side != EnumFacing.UP) node else null)
 
-  override protected def energyThroughput = Settings.get.disassemblerRate
+  override def energyThroughput = Settings.get.disassemblerRate
 
   override def currentState = {
     if (isActive) util.EnumSet.of(traits.State.IsWorking)

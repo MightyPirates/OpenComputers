@@ -25,7 +25,7 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         else "%d/%m/%y %H:%M:%S"
       val time =
         if (lua.getTop > 1 && lua.isNumber(2)) lua.toNumber(2) * 1000 / 60 / 60
-        else machine.worldTime + 5000
+        else machine.worldTime + 6000
 
       val dt = GameTimeFormatter.parse(time)
       def fmt(format: String) {

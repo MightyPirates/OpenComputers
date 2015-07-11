@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -78,10 +79,15 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
     if (isServer) {
       if (shouldUpdateInput) {
         shouldUpdateInput = false
-        for (side <- EnumFacing.values) {
-          updateRedstoneInput(side)
-        }
+        EnumFacing.values().foreach(updateRedstoneInput)
       }
+    }
+  }
+
+  override def validate(): Unit = {
+    super.validate()
+    if (!canUpdate) {
+      EventHandler.schedule(() => EnumFacing.values().foreach(updateRedstoneInput))
     }
   }
 

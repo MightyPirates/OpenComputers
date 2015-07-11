@@ -29,7 +29,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override protected def connector(side: EnumFacing) = Option(if (side != facing && machine != null) machine.node.asInstanceOf[Connector] else null)
 
-  override protected def energyThroughput = Settings.get.caseRate(tier)
+  override def energyThroughput = Settings.get.caseRate(tier)
 
 
   def isCreative = tier == Tier.Four
