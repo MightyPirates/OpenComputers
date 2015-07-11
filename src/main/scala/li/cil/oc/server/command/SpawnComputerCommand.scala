@@ -48,6 +48,10 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
               case t: tileentity.traits.Rotatable => t.setFromFacing(EnumFacing.UP)
               case _ => // ???
             }
+            world.getTileEntity(screenPos) match {
+              case t: tileentity.traits.Rotatable => t.setFromFacing(EnumFacing.NORTH)
+              case _ => // ???
+            }
 
             api.Network.joinOrCreateNetwork(world.getTileEntity(casePos))
 
