@@ -24,23 +24,23 @@ object LightWeightPowerAcceptor extends ILightWeightPowerAcceptor {
 
   def getEnergyDemand(tileEntity: TileEntity, powerType: ConduitType) = tileEntity match {
     case acceptor: PowerAcceptor if canAcceptEnergyType(powerType) =>
-      EnumFacing.values().map(side => {
-        val capacity = (acceptor.globalBufferSize(side) / Settings.get.ratioRedstoneFlux).toInt
-        val stored = (acceptor.globalBuffer(side) / Settings.get.ratioRedstoneFlux).toInt
+      (EnumFacing.values().map(side => {
+        val capacity = acceptor.globalBufferSize(side)
+        val stored = acceptor.globalBuffer(side)
         capacity - stored
-      }).max
+      }).max / Settings.get.ratioPowerAdvantage).toInt
     case _ => 0
   }
 
   def addEnergy(tileEntity: TileEntity, amountAdded: Float, powerType: ConduitType) = tileEntity match {
     case acceptor: PowerAcceptor if canAcceptEnergyType(powerType) =>
-      var remainingEnergy = math.min(amountAdded, acceptor.energyThroughput)
+      var remainingEnergy = math.min(amountAdded, acceptor.energyThroughput) * Settings.get.ratioPowerAdvantage
       // .exists() for early exit.
       EnumFacing.values().exists(side => {
         remainingEnergy -= acceptor.tryChangeBuffer(side, remainingEnergy)
         remainingEnergy <= 0
       })
-      amountAdded - remainingEnergy.toFloat
+      amountAdded - (remainingEnergy / Settings.get.ratioPowerAdvantage).toFloat
     case _ => 0
   }
 }
