@@ -33,7 +33,7 @@ abstract class DriverCPU extends Item with Processor {
 
   def cpuTier(stack: ItemStack): Int =
     Delegator.subItem(stack) match {
-      case Some(cpu: item.CPU) => cpu.tier
+      case Some(cpu: item.CPU) => cpu.cpuTier
       case _ => Tier.One
     }
 

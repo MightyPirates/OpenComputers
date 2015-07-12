@@ -30,7 +30,7 @@ object DriverGraphicsCard extends Item with HostAware with EnvironmentAware {
 
   override def tier(stack: ItemStack) =
     Delegator.subItem(stack) match {
-      case Some(gpu: common.item.GraphicsCard) => gpu.tier
+      case Some(gpu: common.item.GraphicsCard) => gpu.gpuTier
       case _ => Tier.One
     }
 

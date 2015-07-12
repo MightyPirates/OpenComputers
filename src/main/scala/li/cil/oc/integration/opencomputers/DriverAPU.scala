@@ -27,7 +27,7 @@ object DriverAPU extends DriverCPU with HostAware with EnvironmentAware {
 
   override def cpuTier(stack: ItemStack) =
     Delegator.subItem(stack) match {
-      case Some(apu: common.item.APU) => apu.tier
+      case Some(apu: common.item.APU) => apu.cpuTier
       case _ => Tier.One
     }
 
