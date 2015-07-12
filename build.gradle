@@ -110,6 +110,10 @@ repositories {
         name 'ProjectRed'
         url 'http://files.projectredwiki.com/maven/'
     }
+    maven {
+        name 'ColoredLightCore'
+        url "http://coloredlightscore.us.to/maven/clc/"
+    }
     ivy {
         name "BuildCraft"
         artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
@@ -185,8 +189,9 @@ dependencies {
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
     provided("mrtjp:ProjectRed:${config.projred.version}:dev") {
-    	exclude module: 'CoFHCore'
+        exclude module: 'CoFHCore'
     }
+    provided "coloredlightscore:ColoredLightsCore:${config.coloredlights.version}:api"
 
     provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'

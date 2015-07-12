@@ -3,11 +3,14 @@ package li.cil.oc.common.block
 import java.util.Random
 
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.coloredlights.ModColoredLights
 import net.minecraft.block.Block
 import net.minecraft.world.World
 
 class Capacitor extends SimpleBlock {
-  setLightLevel(0.34f)
+  ModColoredLights.setLightLevel(this, 5, 5, 5)
+
   setTickRandomly(true)
 
   override protected def customTextures = Array(

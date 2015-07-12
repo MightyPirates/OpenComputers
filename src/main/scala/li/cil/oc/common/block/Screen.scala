@@ -10,6 +10,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util._
 import net.minecraft.client.Minecraft
@@ -25,7 +26,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Screen(val tier: Int) extends RedstoneAware {
-  setLightLevel(0.34f)
+  ModColoredLights.setLightLevel(this, 5, 5, 5)
 
   override def isSideSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = toLocal(world, x, y, z, side) != ForgeDirection.SOUTH
 
