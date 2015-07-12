@@ -337,7 +337,7 @@ class Screen(val tier: Int) extends RedstoneAware {
     if (Wrench.holdsApplicableWrench(player, BlockPosition(x, y, z)) && getValidRotations(world, x, y, z).contains(side) && !force) false
     else if (api.Items.get(player.getHeldItem) == api.Items.get(Constants.ItemName.Analyzer)) false
     else world.getTileEntity(x, y, z) match {
-      case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.invertTouchMode) =>
+      case screen: tileentity.Screen if screen.hasKeyboard && (force || player.isSneaking == screen.origin.invertTouchMode) =>
         // Yep, this GUI is actually purely client side. We could skip this
         // if, but it is clearer this way (to trigger it from the server we
         // would have to give screens a "container", which we do not want).
