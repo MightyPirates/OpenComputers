@@ -56,6 +56,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
       case PacketType.LootDisk => onLootDisk(p)
+      case PacketType.NetSplitterState => onNetSplitterState(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
@@ -445,6 +446,7 @@ object PacketHandler extends CommonPacketHandler {
         }
         buffer.data.load(nbt)
         buffer.proxy.markDirty()
+        buffer.markInitialized()
       case _ => // Invalid packet.
     }
   }
@@ -589,6 +591,15 @@ object PacketHandler extends CommonPacketHandler {
 
     buffer.rawSetForeground(col, row, color)
   }
+
+  def onNetSplitterState(p: PacketParser) =
+    p.readTileEntity[NetSplitter]() match {
+      case Some(t) =>
+        t.isInverted = p.readBoolean()
+        t.openSides = t.uncompressSides(p.readByte())
+        t.world.markBlockForUpdate(t.x, t.y, t.z)
+      case _ => // Invalid packet.
+    }
 
   def onScreenTouchMode(p: PacketParser) =
     p.readTileEntity[Screen]() match {

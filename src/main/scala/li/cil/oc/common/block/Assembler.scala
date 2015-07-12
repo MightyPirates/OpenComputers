@@ -4,13 +4,14 @@ import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.coloredlights.ModColoredLights
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Assembler extends SimpleBlock with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
-  setLightLevel(0.34f)
+  ModColoredLights.setLightLevel(this, 0, 3, 5)
 
   override protected def customTextures = Array(
     None,

@@ -243,7 +243,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         }
       })
     }
-    if (arrows.size > 0) {
+    if (arrows.nonEmpty) {
       for (arrow <- arrows) {
         val hitX = arrow.posX - x
         val hitY = arrow.posY - y

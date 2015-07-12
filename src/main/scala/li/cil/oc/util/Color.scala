@@ -69,6 +69,8 @@ object Color {
 
   val byTier = Array(LightGray, Yellow, Cyan, Magenta)
 
+  def byMeta(meta: Int) = byOreName(dyes(15 - meta))
+
   def findDye(stack: ItemStack) = byOreName.keys.find(OreDictionary.getOres(_).exists(oreStack => OreDictionary.itemMatches(stack, oreStack, false)))
 
   def isDye(stack: ItemStack) = findDye(stack).isDefined

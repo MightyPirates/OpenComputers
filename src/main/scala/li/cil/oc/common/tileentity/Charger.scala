@@ -44,7 +44,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
 
-  override protected def energyThroughput = Settings.get.chargerRate
+  override def energyThroughput = Settings.get.chargerRate
 
   override def currentState = {
     // TODO Refine to only report working if present robots/drones actually *need* power.

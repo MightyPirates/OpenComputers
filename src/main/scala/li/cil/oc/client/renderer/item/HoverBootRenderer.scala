@@ -100,8 +100,8 @@ object HoverBootRenderer extends ModelBiped {
 
   class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
     override def render(dt: Float): Unit = {
-      RenderState.disableLighting()
       GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+      RenderState.disableLighting()
       GL11.glDepthFunc(GL11.GL_LEQUAL)
       GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
       GL11.glColor3ub(0x66.toByte, 0xDD.toByte, 0x55.toByte)

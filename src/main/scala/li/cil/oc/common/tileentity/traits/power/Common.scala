@@ -15,7 +15,7 @@ trait Common extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  protected def energyThroughput: Double
+  def energyThroughput: Double
 
   protected def tryAllSides(provider: (Double, ForgeDirection) => Double, ratio: Double) {
     // We make sure to only call this every `Settings.get.tickFrequency` ticks,
@@ -38,7 +38,15 @@ trait Common extends TileEntity {
     !Settings.get.ignorePower && side != null && side != ForgeDirection.UNKNOWN &&
       (if (isClient) hasConnector(side) else connector(side).isDefined)
 
-  def tryChangeBuffer(side: ForgeDirection, amount: Double, doReceive: Boolean = true) =
+  /**
+   * Tries to inject the specified amount of energy into the buffer via the specified side.
+   *
+   * @param side the side to change the buffer through.
+   * @param amount the amount to change the buffer by.
+   * @param doReceive whether to actually inject energy or only simulate it.
+   * @return the amount of energy that was actually injected.
+   */
+  def tryChangeBuffer(side: ForgeDirection, amount: Double, doReceive: Boolean = true): Double =
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
@@ -48,14 +56,14 @@ trait Common extends TileEntity {
       case _ => 0
     }
 
-  def globalBuffer(side: ForgeDirection) =
+  def globalBuffer(side: ForgeDirection): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBuffer
       case _ => 0
     }
 
-  def globalBufferSize(side: ForgeDirection) =
+  def globalBufferSize(side: ForgeDirection): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBufferSize

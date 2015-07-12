@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -75,10 +76,15 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     if (isServer) {
       if (shouldUpdateInput) {
         shouldUpdateInput = false
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          updateRedstoneInput(side)
-        }
+        ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput)
       }
+    }
+  }
+
+  override def validate(): Unit = {
+    super.validate()
+    if (!canUpdate) {
+      EventHandler.schedule(() => ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput))
     }
   }
 

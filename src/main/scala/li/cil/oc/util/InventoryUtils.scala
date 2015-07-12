@@ -211,8 +211,8 @@ object InventoryUtils {
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
    * in the world.
    */
-  def insertIntoInventoryAt(stack: ItemStack, position: BlockPosition, side: ForgeDirection, limit: Int = 64, simulate: Boolean = false): Boolean =
-    inventoryAt(position).exists(insertIntoInventory(stack, _, Option(side), limit, simulate))
+  def insertIntoInventoryAt(stack: ItemStack, position: BlockPosition, side: Option[ForgeDirection] = None, limit: Int = 64, simulate: Boolean = false): Boolean =
+    inventoryAt(position).exists(insertIntoInventory(stack, _, side, limit, simulate))
 
   /**
    * Utility method for calling <tt>extractFromInventory</tt> on an inventory

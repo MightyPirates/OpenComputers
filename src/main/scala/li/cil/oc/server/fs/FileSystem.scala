@@ -107,6 +107,10 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
     else null
 
+  override def asReadOnly(fileSystem: api.fs.FileSystem) =
+    if (fileSystem.isReadOnly) fileSystem
+    else new ReadOnlyWrapper(fileSystem)
+
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, host: EnvironmentHost, accessSound: String, speed: Int) =
     Option(fileSystem).flatMap(fs => Some(component.FileSystem(fs, label, Option(host), Option(accessSound), speed))).orNull
 

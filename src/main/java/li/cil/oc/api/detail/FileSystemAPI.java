@@ -82,6 +82,15 @@ public interface FileSystemAPI {
     FileSystem fromComputerCraft(Object mount);
 
     /**
+     * Wrap a file system retrieved via one of the <tt>from???</tt> methods to
+     * make it read-only.
+     *
+     * @param fileSystem the file system to wrap.
+     * @return the specified file system wrapped to be read-only.
+     */
+    FileSystem asReadOnly(final FileSystem fileSystem);
+
+    /**
      * Creates a network node that makes the specified file system available via
      * the common file system driver.
      * <p/>
