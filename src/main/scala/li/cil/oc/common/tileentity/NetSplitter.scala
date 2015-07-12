@@ -13,6 +13,8 @@ import net.minecraftforge.fml.relauncher.SideOnly
 class NetSplitter extends traits.Environment with traits.RedstoneAware with api.network.SidedEnvironment {
   private final val SideCount = EnumFacing.values().length
 
+  _isOutputEnabled = true
+
   val node = api.Network.newNode(this, Visibility.None).
     create()
 

@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.coloredlights.ModColoredLights
 import net.minecraft.block.state.IBlockState
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
@@ -10,7 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
 class Assembler extends SimpleBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
-  setLightLevel(0.34f)
+  ModColoredLights.setLightLevel(this, 0, 3, 5)
 
   override def isOpaqueCube = false
 

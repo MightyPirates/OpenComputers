@@ -32,6 +32,7 @@ object Mods {
   val CoFHItem = new SimpleMod(IDs.CoFHItem)
   val CoFHTileEntity = new SimpleMod(IDs.CoFHTileEntity)
   val CoFHTransport = new SimpleMod(IDs.CoFHTransport)
+  val ColoredLights = new SimpleMod(IDs.ColoredLights)
   val ComputerCraft = new SimpleMod(IDs.ComputerCraft, version = "@[1.73,)")
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
@@ -167,6 +168,7 @@ object Mods {
     final val CoFHItem = "CoFHAPI|item"
     final val CoFHTileEntity = "CoFHAPI|tileentity"
     final val CoFHTransport = "CoFHAPI|transport"
+    final val ColoredLights = "easycoloredlights"
     final val ComputerCraft = "ComputerCraft"
     final val CraftingCosts = "CraftingCosts"
     final val ElectricalAge = "Eln"
@@ -176,8 +178,7 @@ object Mods {
     final val Factorization = "factorization"
     final val Forestry = "Forestry"
     final val ForgeMultipart = "ForgeMultipart"
-    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit"
-    // Doesn't really exist.
+    final val DeepStorageUnit = "MineFactoryReloaded|DeepStorageUnit" // Doesn't really exist.
     final val Galacticraft = "Galacticraft API"
     final val GregTech = "gregtech"
     final val IndustrialCraft2 = "IC2"
