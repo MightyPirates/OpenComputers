@@ -83,17 +83,17 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
   class BlockModel(val state: IExtendedBlockState) extends SmartBlockModelBase {
     override def getGeneralQuads =
       state.getValue(block.property.PropertyTile.Tile) match {
-        case cable: tileentity.Cable =>
+        case t: tileentity.Cable =>
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-          val color = Some(cable.color)
-          val mask = Cable.neighbors(cable.world, cable.getPos)
+          val color = Some(t.color)
+          val mask = Cable.neighbors(t.world, t.getPos)
           faces ++= bakeQuads(Middle, cableTexture, color)
           for (side <- EnumFacing.values) {
             val connected = (mask & (1 << side.getIndex)) != 0
             val (plug, shortBody, longBody) = Connected(side.getIndex)
             if (connected) {
-              if (isCable(cable.position.offset(side))) {
+              if (isCable(t.position.offset(side))) {
                 faces ++= bakeQuads(longBody, cableTexture, color)
               }
               else {

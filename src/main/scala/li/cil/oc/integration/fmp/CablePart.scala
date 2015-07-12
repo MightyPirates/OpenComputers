@@ -4,6 +4,10 @@ import codechicken.lib.data.MCDataInput
 import codechicken.lib.data.MCDataOutput
 import codechicken.lib.vec.Cuboid6
 import codechicken.lib.vec.Vector3
+import codechicken.microblock.ISidedHollowConnect
+import codechicken.multipart._
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -27,7 +31,7 @@ import net.minecraft.util.MovingObjectPosition
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._
 
-class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlockPart with TCuboidPart with TNormalOcclusion with network.Environment {
+class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlockPart with TCuboidPart with TSlottedPart with ISidedHollowConnect with TNormalOcclusion with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   private var _color = Color.LightGray
@@ -63,6 +67,11 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
   override def getOcclusionBoxes = WrapAsJava.asJavaIterable(Iterable(new Cuboid6(AxisAlignedBB.getBoundingBox(-0.125 + 0.5, -0.125 + 0.5, -0.125 + 0.5, 0.125 + 0.5, 0.125 + 0.5, 0.125 + 0.5))))
 
   override def getRenderBounds = new Cuboid6(Cable.bounds(world, x, y, z).offset(x, y, z))
+
+  override def getHollowSize(side: Int) = 4 // 4 pixels as this is width of cable.
+
+  override def getSlotMask = 1 << 6 // 6 is center part.
+
 
   // ----------------------------------------------------------------------- //
 

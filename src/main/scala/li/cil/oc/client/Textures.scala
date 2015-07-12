@@ -131,6 +131,7 @@ object Textures {
     val GeolyzerTopOn = L("overlay/geolyzer_top_on")
     val MicrocontrollerFrontLight = L("overlay/microcontroller_front_light")
     val MicrocontrollerFrontOn = L("overlay/microcontroller_front_on")
+    val NetSplitterOn = L("overlay/netSplitter_on")
     val PowerDistributorSideOn = L("overlay/powerDistributor_side_on")
     val PowerDistributorTopOn = L("overlay/powerDistributor_top_on")
     val RackFrontActivity = L("overlay/serverRack_front_activity")
@@ -143,6 +144,8 @@ object Textures {
     val Cable = L("cable")
     val CableCap = L("cableCap")
     val GenericTop = L("generic_top", load = false)
+    val NetSplitterSide = L("netSplitter_side")
+    val NetSplitterTop = L("netSplitter_top")
     val RackFront = L("serverRack_front", load = false)
     val RackSide = L("serverRack_side", load = false)
 

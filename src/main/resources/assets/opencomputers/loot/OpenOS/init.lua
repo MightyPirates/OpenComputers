@@ -28,8 +28,8 @@ do
   function rom.inits() return ipairs(rom.invoke("list", "boot")) end
   function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
 
-  local screen = component.list('screen')()
-  for address in component.list('screen') do
+  local screen = component.list('screen', true)()
+  for address in component.list('screen', true) do
     if #component.invoke(address, 'getKeyboards') > 0 then
       screen = address
     end

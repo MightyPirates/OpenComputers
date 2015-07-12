@@ -116,7 +116,7 @@ end
 
 -------------------------------------------------------------------------------
 
-for address in component.list('screen') do
+for address in component.list('screen', true) do
   if #component.invoke(address,'getKeyboards') > 0 then
     component.setPrimary('screen',address)
   end

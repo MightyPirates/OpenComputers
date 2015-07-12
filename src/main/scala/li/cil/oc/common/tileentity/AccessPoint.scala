@@ -34,7 +34,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
     case _ => None
   }
 
-  override protected def energyThroughput = Settings.get.accessPointRate
+  override def energyThroughput = Settings.get.accessPointRate
 
   // ----------------------------------------------------------------------- //
 

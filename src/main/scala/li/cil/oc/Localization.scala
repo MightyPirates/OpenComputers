@@ -1,5 +1,8 @@
 package li.cil.oc
 
+import li.cil.oc.client.CommandHandler.SetClipboardCommand
+import net.minecraft.event.ClickEvent
+import net.minecraft.event.HoverEvent
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.util.StatCollector
@@ -23,7 +26,12 @@ object Localization {
   def localizeImmediately(key: String) = StatCollector.translateToLocal(resolveKey(key)).split(nl).map(_.trim).mkString("\n")
 
   object Analyzer {
-    def Address(value: String) = localizeLater("gui.Analyzer.Address", value)
+    def Address(value: String) = {
+      val result = localizeLater("gui.Analyzer.Address", value)
+      result.getChatStyle.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, s"/${SetClipboardCommand.name} $value"))
+      result.getChatStyle.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, localizeLater("gui.Analyzer.CopyToClipboard")))
+      result
+    }
 
     def AddressCopied = localizeLater("gui.Analyzer.AddressCopied")
 

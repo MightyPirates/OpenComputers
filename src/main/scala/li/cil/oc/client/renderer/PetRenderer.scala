@@ -31,7 +31,10 @@ object PetRenderer {
     "DaKaTotal" ->(0.5, 0.7, 1.0),
     "MichiyoRavencroft" ->(1.0, 0.0, 0.0),
     "Vexatos" ->(0.18, 0.95, 0.922),
-    "StoneNomad" ->(0.8, 0.77, 0.75)
+    "StoneNomad" ->(0.8, 0.77, 0.75),
+    "LizzyTheSiren" ->(0.3, 0.3, 1.0),
+    "vifino" ->(0.2, 1.0, 0.1),
+    "Izaya" ->(0.0, 0.2, 0.6)
   )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().

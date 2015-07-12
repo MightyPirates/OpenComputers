@@ -64,6 +64,8 @@ object Color {
 
   val byTier = Array(EnumDyeColor.SILVER, EnumDyeColor.YELLOW, EnumDyeColor.CYAN, EnumDyeColor.MAGENTA)
 
+  def byMeta(meta: EnumDyeColor) = byOreName(dyes(meta.getDyeDamage))
+
   def findDye(stack: ItemStack) = byOreName.keys.find(OreDictionary.getOres(_).exists(oreStack => OreDictionary.itemMatches(stack, oreStack, false)))
 
   def isDye(stack: ItemStack) = findDye(stack).isDefined

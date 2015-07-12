@@ -1,11 +1,12 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.coloredlights.ModColoredLights
 import net.minecraft.block.state.IBlockState
 import net.minecraft.world.World
 
 class PowerDistributor extends SimpleBlock {
-  setLightLevel(0.34f)
+  ModColoredLights.setLightLevel(this, 5, 5, 3)
 
   // ----------------------------------------------------------------------- //
 

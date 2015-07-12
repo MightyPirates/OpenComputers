@@ -48,8 +48,8 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
     (state, world.getTileEntity(pos)) match {
-      case (extendedState: IExtendedBlockState, print: tileentity.Print) =>
-        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, print), world, pos)
+      case (extendedState: IExtendedBlockState, t: tileentity.Print) =>
+        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, t), world, pos)
       case _ => None
     }
 

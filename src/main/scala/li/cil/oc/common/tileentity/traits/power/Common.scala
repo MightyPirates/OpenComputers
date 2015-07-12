@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.tileentity.traits.TileEntity
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.fml.relauncher.Side
+import net.minecraftforge.fml.relauncher.SideOnly
 
 trait Common extends TileEntity {
   @SideOnly(Side.CLIENT)
@@ -15,7 +15,7 @@ trait Common extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  protected def energyThroughput: Double
+  def energyThroughput: Double
 
   protected def tryAllSides(provider: (Double, EnumFacing) => Double, ratio: Double) {
     // We make sure to only call this every `Settings.get.tickFrequency` ticks,
@@ -37,7 +37,15 @@ trait Common extends TileEntity {
   def canConnectPower(side: EnumFacing) =
     !Settings.get.ignorePower && (if (isClient) hasConnector(side) else connector(side).isDefined)
 
-  def tryChangeBuffer(side: EnumFacing, amount: Double, doReceive: Boolean = true) =
+  /**
+   * Tries to inject the specified amount of energy into the buffer via the specified side.
+   *
+   * @param side the side to change the buffer through.
+   * @param amount the amount to change the buffer by.
+   * @param doReceive whether to actually inject energy or only simulate it.
+   * @return the amount of energy that was actually injected.
+   */
+  def tryChangeBuffer(side: EnumFacing, amount: Double, doReceive: Boolean = true): Double =
     if (isClient || Settings.get.ignorePower) 0
     else connector(side) match {
       case Some(node) =>
@@ -47,14 +55,14 @@ trait Common extends TileEntity {
       case _ => 0
     }
 
-  def globalBuffer(side: EnumFacing) =
+  def globalBuffer(side: EnumFacing): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBuffer
       case _ => 0
     }
 
-  def globalBufferSize(side: EnumFacing) =
+  def globalBufferSize(side: EnumFacing): Double =
     if (isClient) 0
     else connector(side) match {
       case Some(node) => node.globalBufferSize

@@ -135,7 +135,7 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
 
   def createLootDisk(name: String, path: String, external: Boolean, color: Option[EnumDyeColor] = None) = {
     val callable = if (external) new Callable[FileSystem] {
-      override def call(): FileSystem = api.FileSystem.fromSaveDirectory("loot/" + path, 0, false)
+      override def call(): FileSystem = api.FileSystem.asReadOnly(api.FileSystem.fromSaveDirectory("loot/" + path, 0, false))
     } else new Callable[FileSystem] {
       override def call(): FileSystem = api.FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "loot/" + path)
     }
