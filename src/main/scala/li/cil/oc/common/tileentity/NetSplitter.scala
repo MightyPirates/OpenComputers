@@ -13,6 +13,8 @@ import net.minecraftforge.common.util.ForgeDirection
 class NetSplitter extends traits.Environment with traits.RedstoneAware with api.network.SidedEnvironment {
   private final val SideCount = ForgeDirection.VALID_DIRECTIONS.length
 
+  _isOutputEnabled = true
+
   val node = api.Network.newNode(this, Visibility.None).
     create()
 
