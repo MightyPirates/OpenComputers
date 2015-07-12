@@ -106,7 +106,10 @@ repositories {
         name 'DVS1 Maven FS'
         url 'http://dvs1.progwml6.com/files/maven'
     }
-
+    maven {
+        name 'ProjectRed'
+        url 'http://files.projectredwiki.com/maven/'
+    }
     ivy {
         name "BuildCraft"
         artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
@@ -120,17 +123,16 @@ repositories {
         artifactPattern "http://ci.cil.li/job/Mekanism/${config.mekanism.build}/artifact/output/[module]-${config.minecraft.version}-[revision].${config.mekanism.build}.[ext]"
     }
     ivy {
-        name 'ProjectRed'
-        artifactPattern "http://projectredwiki.com/maven/mrtjp/[module]/${config.minecraft.version}-[revision]/[module]-${config.minecraft.version}-[revision]-dev.[ext]"
-    }
-    ivy {
         name 'immibis'
         artifactPattern "https://dl.dropboxusercontent.com/u/2944265/mods/autobuilt/files/[module]-[revision].[ext]"
     }
-
     ivy {
         name 'CoFHLib'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.cofhlib.cf}/[module]-[revision].[ext]"
+    }
+    ivy {
+        name 'CoFHCore'
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cofhcore.cf}/[module]-[revision].[ext]"
     }
     ivy {
         name 'MineFactoryReloaded'
@@ -182,14 +184,17 @@ dependencies {
     provided "notenoughkeys:NeK:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
+    provided("mrtjp:ProjectRed:${config.projred.version}:dev") {
+    	exclude module: 'CoFHCore'
+    }
 
-    provided name: "buildcraft", version: "${config.bc.version}", classifier: "dev", ext: 'jar'
+    provided name: 'buildcraft', version: config.bc.version, classifier: "dev", ext: 'jar'
     provided name: 'GalacticraftCoreAll', version: config.gc.version, ext: 'jar'
     provided name: 'MekanismAll', version: config.mekanism.version, ext: 'jar'
-    provided name: 'ProjectRed', version: config.projred.version, ext: 'jar'
     provided name: 'redlogic', version: config.redlogic.version, ext: 'jar'
 
     provided name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
+    provided name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar'
     provided name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
     provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
