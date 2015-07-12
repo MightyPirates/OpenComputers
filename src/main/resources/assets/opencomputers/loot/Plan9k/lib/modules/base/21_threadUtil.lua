@@ -1,0 +1,54 @@
+function joinThread(pid)
+    while true do
+        local dead = coroutine.yield("kill")
+        if pid == dead then
+            break
+        end
+    end
+end
+
+function getThreadInfo()
+    local info = {}
+    kernel.modules.threading.eachThread(function(thread)
+        info[thread.pid] = {
+            pid = thread.pid,
+            uid = thread.uid,
+            name = thread.name
+        }
+    end)
+    return info
+end
+
+function userKill(pid, signal, ...)
+    if not kernel.modules.threading.threads[pid]
+      or not kernel.modules.threading.threads[pid].coro then
+        return nil, "Thread does not exists"
+    end
+    if not kernel.modules.threading.threads[pid].kill[signal] then
+        return nil, "Unknown signal"
+    end
+    local args = {...}
+    local thread = kernel.modules.threading.threads[pid]
+    kernel.modules.manageg.protect(thread.sandbox)
+    --TODO: probably ser threading.currentThread here
+    local res, reason = pcall(function()
+        thread.kill[signal](table.unpack(args))
+    end)
+    kernel.modules.manageg.unprotect()
+    if not res then
+        kernel.modules.threading.kill(pid)
+    end
+    return true
+end
+
+function setKillHandler(signal, handler)
+    if not kernel.modules.threading.threads[pid]
+      or not kernel.modules.threading.threads[pid].coro then
+        return nil, "Thread does not exists"
+    end
+    if signal == "kill" then
+        return nil, "Cannot override kill"
+    end
+    kernel.modules.threading.threads[pid].kill[signal] = handler
+    return true
+end
