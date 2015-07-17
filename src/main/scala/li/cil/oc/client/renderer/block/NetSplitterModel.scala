@@ -9,8 +9,10 @@ import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
+import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.client.model.ISmartItemModel
 import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.convert.WrapAsJava.bufferAsJavaList
 import scala.collection.mutable
@@ -32,7 +34,7 @@ object NetSplitterModel extends SmartBlockModelBase with ISmartItemModel {
     Textures.getSprite(Textures.Block.NetSplitterSide)
   )
 
-  protected final val BaseModel = {
+  protected def GenerateBaseModel() = {
     val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
     // Bottom.
@@ -52,6 +54,13 @@ object NetSplitterModel extends SmartBlockModelBase with ISmartItemModel {
     faces ++= bakeQuads(makeBox(new Vec3(5 / 16f, 11 / 16f, 11 / 16f), new Vec3(11 / 16f, 16 / 16f, 16 / 16f)), splitterTexture, None)
 
     faces.toArray
+  }
+
+  protected var BaseModel = Array.empty[BakedQuad]
+
+  @SubscribeEvent
+  def onTextureStitch(e: TextureStitchEvent.Post): Unit = {
+    BaseModel = GenerateBaseModel()
   }
 
   protected def addSideQuads(faces: mutable.ArrayBuffer[BakedQuad], openSides: Array[Boolean]): Unit = {
