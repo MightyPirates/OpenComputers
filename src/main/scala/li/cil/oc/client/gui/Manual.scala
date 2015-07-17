@@ -150,7 +150,7 @@ class Manual extends GuiScreen {
       })
     }
 
-    if (isCoordinateOverScrollBar(mouseX - guiLeft, mouseY - guiTop) || isDragging) {
+    if (canScroll && (isCoordinateOverScrollBar(mouseX - guiLeft, mouseY - guiTop) || isDragging)) {
       drawHoveringText(seqAsJavaList(Seq(s"${100 * offset / maxOffset}%")), guiLeft + scrollPosX + scrollWidth, scrollButton.yPosition + scrollButton.height + 1, fontRendererObj)
     }
   }
