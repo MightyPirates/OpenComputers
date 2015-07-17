@@ -16,7 +16,7 @@ object BufferRenderer {
 
   private var displayLists = 0
 
-  def init(tm: TextureManager) = this.synchronized(if (!textureManager.isDefined) {
+  def init(tm: TextureManager) = this.synchronized(if (textureManager.isEmpty) {
     RenderState.checkError(getClass.getName + ".displayLists: entering (aka: wasntme)")
 
     textureManager = Some(tm)
