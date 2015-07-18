@@ -19,6 +19,7 @@ else
       local blob = file:read(1024)
       if blob then
         io.write(blob)
+        os.sleep( 0 )
       end
     until not blob
     file:close()
