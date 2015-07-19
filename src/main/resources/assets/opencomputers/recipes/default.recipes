@@ -149,6 +149,14 @@ dataCard {
   input: [[nuggetIron, "oc:materialALU", "oc:circuitChip2"]
           ["", "oc:materialCard", ""]]
 }
+dataCard2 {
+  input: [[nuggetGold, "oc:materialALU", "oc:circuitChip3"]
+          ["", "oc:dataCard", ""]]
+}
+dataCard3 {
+  input: [[diamond, "oc:cpu2", "oc:circuitChip3"]
+          ["", "oc:dataCard2", ""]]
+}
 graphicsCard1 {
   input: [["oc:circuitChip1", "oc:materialALU", "oc:ram1"]
           ["", "oc:materialCard", ""]]

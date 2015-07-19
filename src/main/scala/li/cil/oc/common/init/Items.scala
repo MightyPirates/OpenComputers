@@ -536,6 +536,10 @@ object Items extends ItemAPI {
     registerItem(new item.APU(multi, Tier.Three), Constants.ItemName.APUCreative)
 
     // 1.5.13
-    Recipes.addSubItem(new item.DataCard(multi), Constants.ItemName.DataCard, "oc:dataCard")
+    Recipes.addSubItem(new item.DataCard(multi, Tier.One), Constants.ItemName.DataCardTier1, "oc:dataCard")
+
+    // ?.?.?
+    Recipes.addSubItem(new item.DataCard(multi, Tier.Two), Constants.ItemName.DataCardTier2, "oc:dataCard2")
+    Recipes.addSubItem(new item.DataCard(multi, Tier.Three), Constants.ItemName.DataCardTier3, "oc:dataCard3")
   }
 }
