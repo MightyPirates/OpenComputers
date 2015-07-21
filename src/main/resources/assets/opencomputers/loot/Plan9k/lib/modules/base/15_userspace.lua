@@ -9,13 +9,14 @@ kernel.userspace.computer.totalMemory = kernel._K.computer.totalMemory
 kernel.userspace.computer.energy = kernel._K.computer.energy
 kernel.userspace.computer.maxEnergy = kernel._K.computer.maxEnergy
 kernel.userspace.computer.isAvailable = kernel._K.computer.isAvailable
-kernel.userspace.computer.shutdown = kernel._K.computer.shutdown
 kernel.userspace.computer.users = kernel._K.computer.users
 kernel.userspace.computer.addUser = kernel._K.computer.addUser
 kernel.userspace.computer.removeUser = kernel._K.computer.removeUser
 kernel.userspace.computer.pushSignal = kernel._K.computer.pushSignal
 kernel.userspace.computer.uptime = kernel._K.computer.uptime
 kernel.userspace.computer.getBootAddress = kernel._K.computer.getBootAddress
+
+kernel.userspace.computer.shutdown = kernel.modules.gc.shutdown
 
 kernel.userspace.computer.pullSignal = function(timeout)
     return coroutine.yield("signal", timeout)
@@ -117,7 +118,7 @@ function kernel.userspace.loadfile(filename, mode, env)
       source = ""
     end
   end
-  return load(source, "=" .. filename, mode, env or kernel._G)
+  return kernel._G.load(source, "=" .. filename, mode, env or kernel._G)
 end
 
 function kernel.userspace.load(ld, source, mode, env)
@@ -138,3 +139,10 @@ function kernel.userspace.print(...)
   kernel.modules.io.io.stdout:setvbuf("no")
   kernel.modules.io.io.stdout:flush()
 end
+
+kernel.userspace.coroutine = {}
+
+kernel.userspace.coroutine.yield = function(...)
+    return coroutine.yield(...)--TODO: FIX; move to debug
+end
+

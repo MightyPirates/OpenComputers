@@ -1,7 +1,7 @@
-local component = require("component")
 local fs = require("filesystem")
 local shell = require("shell")
 local text = require('text')
+local term = require('term')
 
 local dirs, options = shell.parse(...)
 if #dirs == 0 then
@@ -48,7 +48,8 @@ for i = 1, #dirs do
     local col = 1
     local columns = math.huge
     if formatOutput() then
-      columns = math.max(1, math.floor((component.gpu.getResolution() - 1) / m))
+      --columns = math.max(1, math.floor((term.getResolution() - 1) / m))
+      columns = math.max(1, math.floor(79 / m))
     end
 
     for _, d in ipairs(lsd) do

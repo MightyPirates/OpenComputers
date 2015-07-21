@@ -45,7 +45,7 @@ if options.of == "-" then
 else
     local outHnd = filesystem.open(options.of, "w")
     writer = {
-        write = function(...)return outHnd:write(...)end,
+        write = function(data)return outHnd:write(data) and #data end,
         close = function()outHnd:close()end
     }
 end
@@ -64,6 +64,9 @@ for n = 1, options.count do
     if not wrote then
         print("Output full")
         break
+    end
+    if options.wait then
+        os.sleep(tonumber(options.wait))
     end
 end
 
