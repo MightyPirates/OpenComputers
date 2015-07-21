@@ -1,4 +1,5 @@
 local kernel = require("pipes")
+local term = require("term")
 local fs = require("filesystem")
 
 local builtin = {}
@@ -11,7 +12,7 @@ local function tokenize(cmd)
     for char in string.gmatch(cmd, ".") do
         if char:match("[%w%._%-/~=:]") then
             currentWord = currentWord .. char
-        elseif char:match("[|><&]") then
+        elseif char:match("[|><&]+") then
             if #currentWord > 0 then
                 res[#res + 1] = currentWord
                 currentWord = ""
@@ -59,6 +60,11 @@ local function parse(tokens)
                 if not tokens[k + 1]:match("[%w%._%-/~]+") then error("Syntax error") end
                 nextout = tokens[k + 1]
                 skip = true
+            elseif token == ">>" then
+                if not tokens[k + 1]:match("[%w%._%-/~]+") then error("Syntax error") end
+                nextout = tokens[k + 1]
+                skip = true
+                print("APPEND MODE IS NOT FULLY IMPLEMENTED")
             elseif token == "&" then
                 res[#res + 1] = {arg = arg, stdin = nextin, stdout = nextout, nowait = true}
                 nextout = "-"
@@ -86,6 +92,10 @@ local function resolveProgram(name)
             local dir = fs.concat(os.getenv("PWD") or "/", dir)
         end
         local file = fs.concat(dir, name .. ".lua")
+        if fs.exists(file) then
+            return file
+        end
+        file = fs.concat(dir, name)
         if fs.exists(file) then
             return file
         end
@@ -190,6 +200,9 @@ local function log(cmd)
 end
 
 while run do
+    if term.getCursor() > 1 then
+        io.write("\n")
+    end
     io.write(expand(os.getenv("PS1")))
     local cmd = term.read(history)--io.read("*l")
     --print("--IN: ", cmd)

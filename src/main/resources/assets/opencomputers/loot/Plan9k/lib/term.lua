@@ -37,11 +37,13 @@ function term.getCursor()
 end
 
 function term.getResolution()
-    --io.write("\x1b[6n")
-    --local code = read("\x1b", "R")
-    --local y, x = code:match("\x1b%[(%d+);(%d+)R")
-    
-    --return tonumber(x), tonumber(y)
+    io.write("\x1b[6n\x1b[999;999H\x1b[6n")
+    local code = read("\x1b", "R")
+    local y, x = code:match("\x1b%[(%d+);(%d+)R")
+    code = read("\x1b", "R")
+    local h, w = code:match("\x1b%[(%d+);(%d+)R")
+    io.write("\x1b[" .. y .. ";" .. x .. "H")
+    return tonumber(w), tonumber(h)
 end
 
 function term.setCursor(col, row)
@@ -88,6 +90,9 @@ function term.read(history)
             io.write("\n")
             local line = getLine()
             if y == 1 and line ~= "" and line ~= history[2] then
+                table.insert(history, 1, "")
+            elseif y > 1 and line ~= "" and line ~= history[2] then
+                history[1] = line
                 table.insert(history, 1, "")
             else
                 history[1] = ""
