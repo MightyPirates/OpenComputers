@@ -301,6 +301,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     if (isClient) {
       ServerRack.list -= this
     }
+    else {
+      servers collect {
+        case Some(server) => server.machine.stop()
+      }
+    }
   }
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
