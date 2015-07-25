@@ -185,13 +185,19 @@ lcommands["4"] = function()end --Reset to replacement mode
 
 local ncommands = {}
 
-ncommands["6"] = function()io.write("\x1b[" .. y .. ";" .. x .. "R")end
+ncommands["6"] = function()io.write("\x1b[" .. math.floor(y) .. ";" .. math.floor(x) .. "R")end
 
 local commandMode = ""
 local commandBuf = ""
 local commandList = {}
 
---TODO \1b[C -- reset term to initial state
+--TODO \x1b[C -- reset term to initial state
+--TODO: REFACTOR INTO FUNCTION ARRAY
+
+--TODO: p9-codes:
+-- \x1b9[H];[W]R - set resolution
+-- \x1b9[Row];[Col];[Height];[Width]F -- fill
+-- \x1b9[Row];[Col];[Height];[Width];[Dest Row];[Dest Col]c -- copy
 
 function charHandlers.control(char)
     if char == "\x1b" then
@@ -215,6 +221,9 @@ function charHandlers.control(char)
             return
         end
         commandMode = "("
+        return
+    elseif char == "9" and commandMode == "" and commandBuf == "" then
+        commandMode = "9"
         return
     elseif char == ";" then
         commandList[#commandList + 1] = commandBuf
@@ -256,12 +265,21 @@ function charHandlers.control(char)
             end
             ncommands[command]()
         end
-    elseif char == "d" then
+    elseif char == "d" then 
         commandList[#commandList + 1] = commandBuf
         local n = tonumber(commandList[1]) or 1
         y = math.max(n, 1)
         checkCoord()
-    elseif char == "r" then
+    elseif char == "R" and commandMode == "9" then --set resolution
+        commandList[#commandList + 1] = commandBuf
+        local nh, nw = tonumber(commandList[1]) or h, tonumber(commandList[2]) or w
+        if x > nw then x = math.max(nw, 1) end
+        if y > nh then y = math.max(nw, 1) end
+        if component.invoke(gpu, "setResolution", nw, nh) then
+            w = nw
+            h = nh
+        end
+    elseif char == "r" then --set scroll region
         commandList[#commandList + 1] = commandBuf
         local nt, nb = tonumber(commandList[1]) or 1, tonumber(commandList[2]) or h
         scrTop = nt

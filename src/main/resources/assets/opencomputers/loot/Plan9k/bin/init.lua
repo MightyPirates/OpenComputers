@@ -22,8 +22,21 @@ if hostname then
     os.setenv("PS1", "\x1b[33m$HOSTNAME\x1b[32m:\x1b[33m$PWD\x1b[31m#\x1b[39m ")
     computer.pushSignal("hostname", name)
 end
+local services
+services = function()
+    local results = require('rc').allRunCommand('start')
+    
+    for name, result in pairs(results) do
+      local ok, reason = table.unpack(result)
+      if not ok then
+        io.stdout:write("\x1b[31m" .. reason .. "\x1b[39m\n")
+      end
+    end
+    services = function()end
+end
 
 local sin, sout
+
 
 local screens = component.list("screen")
 for gpu in component.list("gpu") do
@@ -48,18 +61,15 @@ for gpu in component.list("gpu") do
         io.input(sin)
         
         print("\x1b[32m>>\x1b[39m Starting services")
-        local results = require('rc').allRunCommand('start')
-        
-        for name, result in pairs(results) do
-          local ok, reason = table.unpack(result)
-          if not ok then
-            io.stdout:write("\x1b[31m" .. reason .. "\x1b[39m\n")
-          end
-        end
+        pcall(services)
     end
     
     io.output(so)
     io.input(si)
+    
+    if debug.kexec then
+        print("\x1b[32m>>\x1b[31m KERNEL DEBUG MODULE IS LOADED\x1b39m")
+    end
     
     print("\x1b[32m>>\x1b[39m Starting Plan9k shell")
 
@@ -67,9 +77,12 @@ for gpu in component.list("gpu") do
     
 end
 
+if not sout then
+    sout = io.open("/dev/null", "w")
+    io.output(sout)
+end
 
---local ttyout = io.popen("/bin/getty.lua", "w", ttyconfig)
---local ttyin = io.popen("/bin/readkey.lua", "r", ttyconfig)
+pcall(services)
 
 local kout = io.popen(function()
     pipes.setThreadName("/bin/tee.lua")
@@ -90,6 +103,7 @@ for address, ctype in component.list() do
 end
 
 computer.pushSignal("init")
+os.sleep(0)
 
 while true do
     local sig = {computer.pullSignal()}

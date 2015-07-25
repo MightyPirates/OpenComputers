@@ -154,8 +154,8 @@ function new(readfs, writefs)
             if writefs.isDirectory(path) then
                 return nil, "Cannot open a directory"
             end
-            local hnd = writefs.open(path, mode)
-            return hnd * 2
+            local hnd, reason = writefs.open(path, mode)
+            return hnd and hnd * 2, reason
         elseif mode:sub(1, 1) == "r" then
             local fs = getFileFS(path)
             if not fs then return nil, "file not found" end
