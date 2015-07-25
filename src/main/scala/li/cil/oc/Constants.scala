@@ -80,7 +80,7 @@ object Constants {
     final val DatabaseUpgradeTier1 = "databaseUpgrade1"
     final val DatabaseUpgradeTier2 = "databaseUpgrade2"
     final val DatabaseUpgradeTier3 = "databaseUpgrade3"
-    final val DataCardTier1 = "dataCard"
+    final val DataCardTier1 = "dataCard1"
     final val DataCardTier2 = "dataCard2"
     final val DataCardTier3 = "dataCard3"
     final val DebugCard = "debugCard"

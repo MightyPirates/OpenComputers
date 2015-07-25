@@ -536,9 +536,10 @@ object Items extends ItemAPI {
     registerItem(new item.APU(multi, Tier.Three), Constants.ItemName.APUCreative)
 
     // 1.5.13
-    Recipes.addSubItem(new item.DataCard(multi, Tier.One), Constants.ItemName.DataCardTier1, "oc:dataCard")
+    // TODO 1.6 Remove oc:dataCard oredict entry.
+    Recipes.addSubItem(new item.DataCard(multi, Tier.One), Constants.ItemName.DataCardTier1, "oc:dataCard", "oc:dataCard1")
 
-    // ?.?.?
+    // 1.5.14
     Recipes.addSubItem(new item.DataCard(multi, Tier.Two), Constants.ItemName.DataCardTier2, "oc:dataCard2")
     Recipes.addSubItem(new item.DataCard(multi, Tier.Three), Constants.ItemName.DataCardTier3, "oc:dataCard3")
   }
