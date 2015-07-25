@@ -835,9 +835,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       true
     }
 
-  private def close() = state.synchronized(
-    if (state.isEmpty || state.top != Machine.State.Stopped) {
-      this.synchronized {
+  private def close() =
+    if (state.synchronized(state.isEmpty || state.top != Machine.State.Stopped)) {
+      // Give up the state lock, then get the more generic lock on this instance first
+      // before locking on state again. Always must be in that order to avoid deadlocks.
+      this.synchronized(state.synchronized {
         state.clear()
         state.push(Machine.State.Stopped)
         Option(architecture).foreach(_.close())
@@ -846,11 +848,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         cpuTotal = 0
         cpuStart = 0
         remainIdle = 0
-      }
+      })
 
       // Mark state change in owner, to send it to clients.
       host.markChanged()
-    })
+    }
 
   // ----------------------------------------------------------------------- //
 
