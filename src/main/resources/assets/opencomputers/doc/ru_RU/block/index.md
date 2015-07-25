@@ -25,7 +25,7 @@
 * [Адаптер](adapter.md)
 * [Геоанализатор](geolyzer.md)
 * [Датчик движения](motionSensor.md)
-* [Редстоун I/O](redstone.md)
+* [Редстоун-I/O](redstone.md)
 * [Путевая точка](waypoint.md)
 
 ## Сборка / Печать
