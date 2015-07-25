@@ -18,21 +18,21 @@ function data.fromHex(hex)
 end
 
 if component.isAvailable("data") then
-    local wrappedFunctions = { 'encode64', 'decode64', 'sha256', 'md5', 'crc32', 'deflate', 'inflate',
-                               'getLimit', 'tier', 'encrypt', 'decrypt', 'random', 'generateKeyPair',
-                               'deserializeKey', 'ecdh', 'ecdsa' }
+  local wrappedFunctions = { 'encode64', 'decode64', 'sha256', 'md5', 'crc32', 'deflate', 'inflate',
+                             'getLimit', 'tier', 'encrypt', 'decrypt', 'random', 'generateKeyPair',
+                             'deserializeKey', 'ecdh', 'ecdsa' }
 
-    function data.present()
-        return true
-    end
+  function data.present()
+    return true
+  end
 
-    for i, v in ipairs(wrappedFunctions) do
-      data[v] = component.data[v]
-    end
+  for _, v in ipairs(wrappedFunctions) do
+    data[v] = component.data[v]
+  end
 else
-    function data.present()
-        return false
-    end
+  function data.present()
+    return false
+  end
 end
 
 return data
