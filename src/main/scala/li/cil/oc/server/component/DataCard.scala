@@ -1,23 +1,34 @@
 package li.cil.oc.server.component
 
 import java.security._
-import java.security.interfaces.{ECPrivateKey, ECPublicKey}
-import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
-import java.util.zip.{DeflaterOutputStream, InflaterOutputStream}
-import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
-import javax.crypto.{Cipher, KeyAgreement, Mac}
+import java.security.interfaces.ECPublicKey
+import java.security.spec.PKCS8EncodedKeySpec
+import java.security.spec.X509EncodedKeySpec
+import java.util.zip.DeflaterOutputStream
+import java.util.zip.InflaterOutputStream
+import javax.crypto.Cipher
+import javax.crypto.KeyAgreement
+import javax.crypto.Mac
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 import com.google.common.hash.Hashing
-import li.cil.oc.{OpenComputers, Settings, api}
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
-import li.cil.oc.api.network.{Node, Visibility}
-import li.cil.oc.api.{Network, prefab}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.Network
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.prefab
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
 
-class DataCard extends prefab.ManagedEnvironment {
+abstract class DataCard extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("data", Visibility.Neighbors).
     withConnector().
@@ -26,10 +37,13 @@ class DataCard extends prefab.ManagedEnvironment {
   val romData = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/data"), "data"))
 
+  // ----------------------------------------------------------------------- //
+
   protected def checkCost(context: Context, args: Arguments, baseCost: Double, byteCost: Double): Array[Byte] = {
     val data = args.checkByteArray(0)
     if (data.length > Settings.get.dataCardHardLimit) throw new IllegalArgumentException("data size limit exceeded")
-    if (!node.tryChangeBuffer(-baseCost - data.length * byteCost)) throw new Exception("not enough energy")
+    val cost = baseCost + data.length * byteCost
+    if (!node.tryChangeBuffer(-cost)) throw new Exception("not enough energy")
     if (data.length > Settings.get.dataCardSoftLimit) context.pause(Settings.get.dataCardTimeout)
     data
   }
@@ -49,6 +63,13 @@ class DataCard extends prefab.ManagedEnvironment {
 
   protected def asymmetricCost(context: Context, args: Arguments) =
     checkCost(context, args, Settings.get.dataCardAsymmetric, Settings.get.dataCardComplexByte)
+
+  // ----------------------------------------------------------------------- //
+
+  @Callback(direct = true, doc = """function():number -- The maximum size of data that can be passed to other functions of the card.""")
+  def getLimit(context: Context, args: Arguments): Array[AnyRef] = {
+    result(Settings.get.dataCardHardLimit)
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -83,11 +104,6 @@ object DataCard {
   }
 
   class Tier1 extends DataCard {
-    @Callback(direct = true, doc = """function():number -- The maximum size of data that can be passed to other functions of the card.""")
-    def getLimit(context: Context, args: Arguments): Array[AnyRef] = {
-      result(Settings.get.dataCardHardLimit)
-    }
-
     @Callback(direct = true, limit = 32, doc = """function(data:string):string -- Applies base64 encoding to the data.""")
     def encode64(context: Context, args: Arguments): Array[AnyRef] = {
       result(Base64.encodeBase64(trivialCost(context, args)))
@@ -118,149 +134,96 @@ object DataCard {
       result(baos.toByteArray)
     }
 
-    @Callback(direct = true, limit = 4, doc = """function(data:string):string -- Computes SHA2-256 hash of the data. Result is in binary format.""")
-    def sha256(context: Context, args: Arguments): Array[AnyRef] = {
-      val data = complexCost(context, args)
-      result(Hashing.sha256().hashBytes(data).asBytes())
-    }
-
-    @Callback(direct = true, limit = 8, doc = """function(data:string):string -- Computes MD5 hash of the data. Result is in binary format""")
-    def md5(context: Context, args: Arguments): Array[AnyRef] = {
-      val data = simpleCost(context, args)
-      result(Hashing.md5().hashBytes(data).asBytes())
-    }
-
-    @Callback(direct = true, limit = 32, doc = """function(data:string):string -- Computes CRC-32 hash of the data. Result is in binary format""")
+    @Callback(direct = true, limit = 32, doc = """function(data:string):string -- Computes CRC-32 hash of the data. Result is binary data.""")
     def crc32(context: Context, args: Arguments): Array[AnyRef] = {
       val data = trivialCost(context, args)
       result(Hashing.crc32().hashBytes(data).asBytes())
     }
 
-    @Callback(direct = true, limit = 32, doc = """function():number -- Returns a tier of the card""")
-    def tier(context: Context, args: Arguments): Array[AnyRef] = result(1)
+    @Callback(direct = true, limit = 8, doc = """function(data:string):string -- Computes MD5 hash of the data. Result is binary data.""")
+    def md5(context: Context, args: Arguments): Array[AnyRef] = {
+      val data = simpleCost(context, args)
+      result(Hashing.md5().hashBytes(data).asBytes())
+    }
+
+    @Callback(direct = true, limit = 4, doc = """function(data:string):string -- Computes SHA2-256 hash of the data. Result is binary data.""")
+    def sha256(context: Context, args: Arguments): Array[AnyRef] = {
+      val data = complexCost(context, args)
+      result(Hashing.sha256().hashBytes(data).asBytes())
+    }
   }
 
   class Tier2 extends Tier1 {
-    @Callback(direct = true, limit = 32, doc = """function():number -- Returns a tier of the card""")
-    override def tier(context: Context, args: Arguments): Array[AnyRef] = result(2)
+    @Callback(direct = true, limit = 8, doc = """function(data:string[, hmacKey:string]):string -- Computes MD5 hash of the data. Result is binary data.""")
+    override def md5(context: Context, args: Arguments): Array[AnyRef] =
+      if (args.count() > 1) {
+        val data = simpleCost(context, args)
+        val key = args.checkByteArray(1)
+        hash(data, key, "MD5", "HmacMD5")
+      }
+      else super.md5(context, args)
+
+    @Callback(direct = true, limit = 4, doc = """function(data:string[, hmacKey:string]):string -- Computes SHA2-256 hash of the data. Result is binary data.""")
+    override def sha256(context: Context, args: Arguments): Array[AnyRef] =
+      if (args.count() > 1) {
+        val data = complexCost(context, args)
+        val key = args.checkByteArray(1)
+        hash(data, key, "SHA-256", "HmacSHA256")
+      }
+      else super.sha256(context, args)
+
+    @Callback(direct = true, limit = 8, doc = """function(data:string, key: string, iv:string):string -- Encrypt data with AES. Result is binary data.""")
+    def encrypt(context: Context, args: Arguments): Array[AnyRef] = crypt(context, args, Cipher.ENCRYPT_MODE)
+
+    @Callback(direct = true, limit = 8, doc = """function(data:string, key:string, iv:string):string -- Decrypt data with AES.""")
+    def decrypt(context: Context, args: Arguments): Array[AnyRef] = crypt(context, args, Cipher.DECRYPT_MODE)
+
+    @Callback(direct = true, limit = 4, doc = """function(len:number):string -- Generates secure random binary data.""")
+    def random(context: Context, args: Arguments): Array[AnyRef] = {
+      val len = args.checkInteger(0)
+
+      if (len <= 0 || len > 1024)
+        throw new IllegalArgumentException("length must be in range [1..1024]")
+
+      checkCost(Settings.get.dataCardComplex + Settings.get.dataCardComplexByte * len)
+      val target = new Array[Byte](len)
+      SecureRandomInstance.get.nextBytes(target)
+      result(target)
+    }
+
+    // ----------------------------------------------------------------------- //
 
     private def crypt(context: Context, args: Arguments, mode: Int): Array[AnyRef] = {
       val data = simpleCost(context, args)
 
       val key = args.checkByteArray(1)
       if (key.length != 16)
-        throw new IllegalArgumentException("Expected a 128-bit AES key")
+        throw new IllegalArgumentException("expected a 128-bit AES key")
 
       val iv = args.checkByteArray(2)
       if (iv.length != 16)
-        throw new IllegalArgumentException("Expected a 128-bit AES IV")
+        throw new IllegalArgumentException("expected a 128-bit AES IV")
 
       val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
       cipher.init(mode, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv))
       result(cipher.doFinal(data))
     }
 
-    @Callback(direct = true, limit = 8, doc = """function(data:string, key: string, iv:string):string -- Encrypt data with AES. Result is in binary format.""")
-    def encrypt(context: Context, args: Arguments): Array[AnyRef] = crypt(context, args, Cipher.ENCRYPT_MODE)
-
-    @Callback(direct = true, limit = 8, doc = """function(data:string, key:string, iv:string):string -- Decrypt data with AES""")
-    def decrypt(context: Context, args: Arguments): Array[AnyRef] = crypt(context, args, Cipher.DECRYPT_MODE)
-
-    private def hash(context: Context, args: Arguments, mode: String, hmacMode: String, simple: Boolean = false): Array[AnyRef] = {
-      val data = if (simple) simpleCost(context, args) else complexCost(context, args)
-
-      if (args.count() > 1) {
-        val key = args.checkByteArray(1)
-
-        val hmac = Mac.getInstance(hmacMode)
-        hmac.init(new SecretKeySpec(key, hmacMode))
-        result(hmac.doFinal(data))
-      } else {
-        result(MessageDigest.getInstance(mode).digest(data))
-      }
-    }
-
-    @Callback(direct = true, limit = 4, doc = """function(data:string[, hmacKey:string]):string -- Computes SHA2-256 hash of the data. Result is in binary format.""")
-    override def sha256(context: Context, args: Arguments): Array[AnyRef] = hash(context, args, "SHA-256", "HmacSHA256")
-
-    @Callback(direct = true, limit = 8, doc = """function(data:string[, hmacKey:string]):string -- Computes MD5 hash of the data. Result is in binary format""")
-    override def md5(context: Context, args: Arguments): Array[AnyRef] = hash(context, args, "MD5", "HmacMD5", simple = true)
-
-    @Callback(direct = true, limit = 4, doc = """function(len:number):string -- Generates secure random binary data""")
-    def random(context: Context, args: Arguments): Array[AnyRef] = {
-      checkCost(Settings.get.dataCardComplex)
-      val len = args.checkInteger(0)
-
-      if (len <= 0 || len > 1024)
-        throw new IllegalArgumentException("Length must be in range [1..1024]")
-
-      val target = new Array[Byte](len)
-      SecureRandomInstance.get.nextBytes(target)
-      result(target)
-    }
-  }
-
-  object ECUserdata {
-    def deserializeKey(t: String, data: Array[Byte]): Key = {
-      val fact = KeyFactory.getInstance("EC")
-
-      t match {
-        case "ec-private" => fact.generatePrivate(new PKCS8EncodedKeySpec(data))
-        case "ec-public" => fact.generatePublic(new X509EncodedKeySpec(data))
-        case _ => throw new IllegalArgumentException("Wrong key type. Currently supported: ec-public, ec-private")
-      }
-    }
-  }
-
-  class ECUserdata extends prefab.AbstractValue {
-    var k: Key = null
-
-    // Hack to keep empty constructor for deserialization
-    def this(_k: Key) = {
-      this()
-      k = _k
-    }
-
-    private def keyType = k match {
-      case x: ECPrivateKey => "ec-private"
-      case x: ECPublicKey => "ec-public"
-    }
-
-    @Callback(direct = true, limit = 32, doc = "function():string -- Returns type of key")
-    def keyType(context: Context, args: Arguments): Array[AnyRef] = result(keyType)
-
-    @Callback(direct = true, limit = 4, doc = "function():string -- Returns string representation of key. Result is in binary format.")
-    def serialize(context: Context, args: Arguments): Array[AnyRef] = result(k.getEncoded)
-
-    @Callback(direct = true, limit = 32, doc = "function():boolean -- Returns whether key is public")
-    def isPublic(context: Context, args: Arguments): Array[AnyRef] = result(isPublic)
-
-    def isPublic = k.isInstanceOf[ECPublicKey]
-
-    override def load(nbt: NBTTagCompound): Unit =
-      k = ECUserdata.deserializeKey(nbt.getString("Type"), nbt.getByteArray("Data"))
-
-    override def save(nbt: NBTTagCompound): Unit = {
-      nbt.setString("Type", keyType)
-      nbt.setByteArray("Data", k.getEncoded)
+    private def hash(data: Array[Byte], key: Array[Byte], mode: String, hmacMode: String): Array[AnyRef] = {
+      val hmac = Mac.getInstance(hmacMode)
+      hmac.init(new SecretKeySpec(key, hmacMode))
+      result(hmac.doFinal(data))
     }
   }
 
   class Tier3 extends Tier2 {
-    @Callback(direct = true, limit = 32, doc = """function():number -- Returns a tier of the card""")
-    override def tier(context: Context, args: Arguments): Array[AnyRef] = result(3)
-
-    @Callback(direct = true, limit = 1, doc = """function([bitLen:number]):eckey,eckey -- Generates key pair. Returns: public, private keys. Allowed key lengths: 256, 384 bits""")
+    @Callback(direct = true, limit = 1, doc = """function([bitLen:number]):userdata, userdata -- Generates key pair. Returns: public, private keys. Allowed key lengths: 256, 384 bits.""")
     def generateKeyPair(context: Context, args: Arguments): Array[AnyRef] = {
       checkCost(Settings.get.dataCardAsymmetric)
-      var bitLen = 384
 
-      if (args.count() > 0) {
-        bitLen = args.checkInteger(0)
-
-        if (bitLen != 256 && bitLen != 384)
-          throw new IllegalArgumentException("Invalid key length. Allowed: 256, 384")
-      }
+      val bitLen = args.optInteger(0, 384)
+      if (bitLen != 256 && bitLen != 384)
+        throw new IllegalArgumentException("invalid key length, must be 256 or 384")
 
       val kpg = KeyPairGenerator.getInstance("EC")
       kpg.initialize(bitLen, SecureRandomInstance.get)
@@ -269,7 +232,7 @@ object DataCard {
       result(new ECUserdata(kp.getPublic), new ECUserdata(kp.getPrivate))
     }
 
-    @Callback(direct = true, limit = 8, doc = """function(data:string, type:string):eckey -- Restores key from its string representation.""")
+    @Callback(direct = true, limit = 8, doc = """function(data:string, type:string):userdata -- Restores key from its string representation.""")
     def deserializeKey(context: Context, args: Arguments): Array[AnyRef] = {
       val data = simpleCost(context, args)
       val t = args.checkString(1)
@@ -277,19 +240,11 @@ object DataCard {
       result(new ECUserdata(ECUserdata.deserializeKey(t, data)))
     }
 
-    private def checkUserdata(args: Arguments, i: Int, isPublic: Boolean = false, anyAccepted: Boolean = false) =
-      args.checkAny(i) match {
-        case x: ECUserdata =>
-          if (anyAccepted || x.isPublic == isPublic) x
-          else throw new IllegalArgumentException((if (isPublic) "Public" else "Private") + " key expected at " + i)
-        case x => throw new IllegalArgumentException("Userdata expected at " + i)
-      }
-
-    @Callback(direct = true, limit = 1, doc = """function(priv:eckey, pub:eckey):string -- Generates a shared key. ecdh(a.priv, b.pub) == ecdh(b.priv, a.pub)""")
+    @Callback(direct = true, limit = 1, doc = """function(priv:userdata, pub:userdata):string -- Generates a shared key. ecdh(a.priv, b.pub) == ecdh(b.priv, a.pub)""")
     def ecdh(context: Context, args: Arguments): Array[AnyRef] = {
       checkCost(Settings.get.dataCardAsymmetric)
-      val privKey = checkUserdata(args, 0, isPublic = false).k
-      val pubKey = checkUserdata(args, 1, isPublic = true).k
+      val privKey = checkUserdata(args, 0, isPublic = Option(false)).value
+      val pubKey = checkUserdata(args, 1, isPublic = Option(true)).value
 
       val ka = KeyAgreement.getInstance("ECDH")
       ka.init(privKey)
@@ -297,30 +252,93 @@ object DataCard {
       result(ka.generateSecret)
     }
 
-    @Callback(direct = true, limit = 1, doc = """function(data:string, key:eckey[, sig:string]):string|boolean -- Signs or verifies data""")
+    @Callback(direct = true, limit = 1, doc = """function(data:string, key:userdata[, sig:string]):string or boolean -- Signs or verifies data.""")
     def ecdsa(context: Context, args: Arguments): Array[AnyRef] = {
       val data = asymmetricCost(context, args)
-      val key = checkUserdata(args, 1, anyAccepted = true)
+      val key = checkUserdata(args, 1)
       val sig = args.optByteArray(2, null)
 
       val sign = Signature.getInstance("SHA256withECDSA")
       if (sig != null) {
         // Verify mode
-        if (!key.isPublic)
-          throw new IllegalArgumentException("Public key expected")
-
-        sign.initVerify(key.k.asInstanceOf[PublicKey])
-        sign.update(data)
-        result(sign.verify(sig))
-      } else {
+        key.value match {
+          case public: PublicKey =>
+            sign.initVerify(public)
+            sign.update(data)
+            result(sign.verify(sig))
+          case _ => throw new IllegalArgumentException("public key expected")
+        }
+      }
+      else {
         // Sign mode
-        if (key.isPublic)
-          throw new IllegalArgumentException("Private key expected")
-
-        sign.initSign(key.k.asInstanceOf[PrivateKey])
-        sign.update(data)
-        result(sign.sign())
+        key.value match {
+          case k: PrivateKey =>
+            sign.initSign(k)
+            sign.update(data)
+            result(sign.sign())
+          case _ =>
+            throw new IllegalArgumentException("private key expected")
+        }
       }
     }
+
+    // ----------------------------------------------------------------------- //
+
+    private def checkUserdata(args: Arguments, i: Int, isPublic: Option[Boolean] = None) =
+      args.checkAny(i) match {
+        case value: ECUserdata =>
+          if (isPublic.fold(true)(_ == value.isPublic)) value
+          else throw new IllegalArgumentException(
+            s"${if (isPublic.get) "public" else "private"} key expected at ${i + 1}")
+        case null => throw new IllegalArgumentException(
+          s"bad argument #${i + 1} (userdata expected, got no value)")
+        case value => throw new IllegalArgumentException(
+          s"bad argument #${i + 1} (userdata expected, got ${value.getClass.getName})")
+      }
   }
+
+  class ECUserdata(var value: Key) extends prefab.AbstractValue {
+    // Empty constructor for deserialization.
+    def this() = this(null)
+
+    def isPublic = value.isInstanceOf[ECPublicKey]
+
+    def keyType = if (isPublic) ECUserdata.PublicTypeName else ECUserdata.PrivateTypeName
+
+    // ----------------------------------------------------------------------- //
+
+    @Callback(direct = true, doc = "function():boolean -- Returns whether key is public.")
+    def isPublic(context: Context, args: Arguments): Array[AnyRef] = result(isPublic)
+
+    @Callback(direct = true, doc = "function():string -- Returns type of key.")
+    def keyType(context: Context, args: Arguments): Array[AnyRef] = result(keyType)
+
+    @Callback(direct = true, limit = 4, doc = "function():string -- Returns string representation of key. Result is binary data.")
+    def serialize(context: Context, args: Arguments): Array[AnyRef] = result(value.getEncoded)
+
+    // ----------------------------------------------------------------------- //
+
+    override def load(nbt: NBTTagCompound): Unit = {
+      val keyType = nbt.getString("Type")
+      val data = nbt.getByteArray("Data")
+      value = ECUserdata.deserializeKey(keyType, data)
+    }
+
+    override def save(nbt: NBTTagCompound): Unit = {
+      nbt.setString("Type", keyType)
+      nbt.setByteArray("Data", value.getEncoded)
+    }
+  }
+
+  object ECUserdata {
+    final val PrivateTypeName = "ec-private"
+    final val PublicTypeName = "ec-public"
+
+    def deserializeKey(typeName: String, data: Array[Byte]): Key = {
+      if (typeName == PrivateTypeName) KeyFactory.getInstance("EC").generatePrivate(new PKCS8EncodedKeySpec(data))
+      else if (typeName == PublicTypeName) KeyFactory.getInstance("EC").generatePublic(new X509EncodedKeySpec(data))
+      else throw new IllegalArgumentException("invalid key type, must be ec-public or ec-private")
+    }
+  }
+
 }
