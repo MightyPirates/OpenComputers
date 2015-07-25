@@ -439,7 +439,12 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.LinkedCard(cards), Constants.ItemName.LinkedCard, "oc:linkedCard")
 
     // 1.5.13
-    Recipes.addSubItem(new item.DataCard(cards), Constants.ItemName.DataCard, "oc:dataCard")
+    // TODO 1.6 Remove oc:dataCard oredict entry.
+    Recipes.addSubItem(new item.DataCard(cards, Tier.One), Constants.ItemName.DataCardTier1, "oc:dataCard", "oc:dataCard1")
+
+    // 1.5.15
+    Recipes.addSubItem(new item.DataCard(cards, Tier.Two), Constants.ItemName.DataCardTier2, "oc:dataCard2")
+    Recipes.addSubItem(new item.DataCard(cards, Tier.Three), Constants.ItemName.DataCardTier3, "oc:dataCard3")
   }
 
   // Upgrade components.

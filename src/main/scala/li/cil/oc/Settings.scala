@@ -193,8 +193,13 @@ class Settings(val config: Config) {
   val hoverBootJump = config.getDouble("power.cost.hoverBootJump") max 0
   val hoverBootAbsorb = config.getDouble("power.cost.hoverBootAbsorb") max 0
   val hoverBootMove = config.getDouble("power.cost.hoverBootMove") max 0
+  val dataCardTrivial = config.getDouble("power.cost.dataCardTrivial") max 0
+  val dataCardTrivialByte = config.getDouble("power.cost.dataCardTrivialByte") max 0
   val dataCardSimple = config.getDouble("power.cost.dataCardSimple") max 0
+  val dataCardSimpleByte = config.getDouble("power.cost.dataCardSimpleByte") max 0
   val dataCardComplex = config.getDouble("power.cost.dataCardComplex") max 0
+  val dataCardComplexByte = config.getDouble("power.cost.dataCardComplexByte") max 0
+  val dataCardAsymmetric = config.getDouble("power.cost.dataCardAsymmetric") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0

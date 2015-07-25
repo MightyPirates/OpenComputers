@@ -130,6 +130,7 @@ class Proxy {
 
   // Example usage: OpenComputers.ID + ":tabletCase" -> "tabletCase1"
   private val itemRenames = Map[String, String](
+    OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

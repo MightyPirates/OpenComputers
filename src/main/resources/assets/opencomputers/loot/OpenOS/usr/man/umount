@@ -13,5 +13,5 @@ EXAMPLES
   umount /mnt/82f
     Unmounts the automatically generated mountpoint at `/mnt/82f`.
 
-  unmount -a 82f
+  umount -a 82f
     Removes all mounts of the file system for which the address starts with `82f`.
