@@ -10,3 +10,7 @@ env:
 
 install: gradle setupCIWorkspace
 script: gradle build
+
+cache:
+  directories:
+  - $HOME/.gradle/caches
