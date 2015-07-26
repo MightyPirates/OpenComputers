@@ -9,6 +9,7 @@ import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
 import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
@@ -325,6 +326,7 @@ class Settings(val config: Config) {
   val dataCardSoftLimit = config.getInt("misc.dataCardSoftLimit") max 0
   val dataCardHardLimit = config.getInt("misc.dataCardHardLimit") max 0
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
+  val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
 
   // ----------------------------------------------------------------------- //
   // printer
