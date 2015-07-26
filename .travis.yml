@@ -1,12 +1,16 @@
 sudo: false
 language: scala
 scala: 2.11.1
-jdk: openjdk7
+jdk:
+  - openjdk7
+  - openjdk8
+  - oraclejdk7
+  - oraclejdk8
 
 notifications:
   email: false
 env:
   global: TERM=dumb
 
-install: ./gradlew setupCIWorkspace
-script: ./gradlew build
+install: gradle setupCIWorkspace
+script: gradle build

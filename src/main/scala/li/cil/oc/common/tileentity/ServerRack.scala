@@ -54,6 +54,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   // Used on client side to check whether to render disk activity indicators.
   var lastAccess = Array.fill(4)(0L)
 
+  val builtInSwitchTier = Settings.get.serverRackSwitchTier
+  relayDelay = math.max(1, relayBaseDelay - (builtInSwitchTier + 1) * relayDelayPerUpgrade)
+  relayAmount = math.max(1, relayBaseAmount + (builtInSwitchTier + 1) * relayAmountPerUpgrade)
+  maxQueueSize = math.max(1, queueBaseSize + (builtInSwitchTier + 1) * queueSizePerUpgrade)
+
   override def server(slot: Int) = servers(slot).orNull
 
   @SideOnly(Side.CLIENT)

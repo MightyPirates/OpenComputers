@@ -12,6 +12,7 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion
 import cpw.mods.fml.common.versioning.VersionRange
 import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 
@@ -323,6 +324,7 @@ class Settings(val config: Config) {
   val dataCardSoftLimit = config.getInt("misc.dataCardSoftLimit") max 0
   val dataCardHardLimit = config.getInt("misc.dataCardHardLimit") max 0
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
+  val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
 
   // ----------------------------------------------------------------------- //
   // printer
