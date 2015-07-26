@@ -10,6 +10,7 @@ import net.minecraft.item
 import net.minecraft.item.Item
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
 
@@ -19,6 +20,7 @@ object ConverterItemStack extends api.driver.Converter {
       case stack: item.ItemStack =>
         if (Settings.get.insertIdsInConverters) {
           output += "id" -> Int.box(Item.getIdFromItem(stack.getItem))
+          output += "oreNames" -> OreDictionary.getOreIDs(stack).map(OreDictionary.getOreName)
         }
         output += "damage" -> Int.box(stack.getItemDamage)
         output += "maxDamage" -> Int.box(stack.getMaxDamage)
@@ -32,7 +34,7 @@ object ConverterItemStack extends api.driver.Converter {
           stack.getTagCompound.getCompoundTag("display").hasKey("Lore", NBT.TAG_LIST)) {
           output += "lore" -> stack.getTagCompound.
             getCompoundTag("display").
-            getTagList("Lore", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString()).
+            getTagList("Lore", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString).
             mkString("\n")
         }
 

@@ -7,6 +7,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.server.component.result
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
+import net.minecraftforge.oredict.OreDictionary
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
   @Callback(doc = """function([slot:number]):table -- Get a description of the stack in the specified slot or the selected slot.""")
@@ -15,6 +16,16 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
     result(inventory.getStackInSlot(slot))
   }
   else result(Unit, "not enabled in config")
+
+  @Callback(doc = """function(otherSlot:number):boolean -- Get whether the stack in the selected slot is equivalent to the item in the specified slot (have shared OreDictionary IDs).""")
+  def isEquivalentTo(context: Context, args: Arguments): Array[AnyRef] = {
+    val slot = args.checkSlot(inventory, 0)
+    result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
+      case (Some(stackA), Some(stackB)) => OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty
+      case (None, None) => true
+      case _ => false
+    })
+  }
 
   @Callback(doc = """function(slot:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack description in the specified slot of the database with the specified address.""")
   def storeInternal(context: Context, args: Arguments): Array[AnyRef] = {

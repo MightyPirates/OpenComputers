@@ -349,7 +349,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   }
 
   def setAnimateMove(fromPosition: BlockPos, ticks: Int) {
-    animationTicksTotal = ticks
+    animationTicksTotal = ticks + 2
     prepareForAnimation()
     moveFrom = Some(fromPosition)
   }

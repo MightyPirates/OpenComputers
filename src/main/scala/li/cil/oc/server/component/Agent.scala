@@ -106,10 +106,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       val breakTime = player.clickBlock(pos, side)
       val broke = breakTime > 0
       if (broke) {
-        // Subtract one tick because we take one to trigger the action - a bit
-        // more than one tick avoid floating point inaccuracy incurring another
-        // tick of delay.
-        triggerDelay(breakTime - 0.055)
+        triggerDelay(breakTime)
       }
       (broke, "block")
     }
