@@ -19,6 +19,7 @@ import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
@@ -26,9 +27,9 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
-import net.minecraft.nbt.NBTBase.NBTPrimitive
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.IChatComponent
 import net.minecraft.world.World
 import net.minecraft.world.WorldServer
@@ -317,76 +318,6 @@ object DebugCard {
 
     // ----------------------------------------------------------------------- //
 
-    def getMap(tag: NBTTagCompound): java.util.Map[String, Any] = {
-      val keys = tag.func_150296_c().asInstanceOf[java.util.Set[String]]
-      val map = new java.util.HashMap[String, Any]()
-      for (key <- keys) {
-        val keyMap = new java.util.HashMap[String, Any]()
-        map.put(key, keyMap)
-        val nbt = tag.getTag(key)
-        keyMap.put("type", nbt.getId)
-        if (nbt.isInstanceOf[NBTTagCompound]) keyMap.put("value", getMap(nbt.asInstanceOf[NBTTagCompound]))
-        else if (nbt.isInstanceOf[NBTPrimitive]) keyMap.put("value", nbt.asInstanceOf[NBTPrimitive].func_150286_g())
-        else if (nbt.isInstanceOf[NBTTagString]) keyMap.put("value", nbt.asInstanceOf[NBTTagString].func_150285_a_())
-        else if (nbt.isInstanceOf[NBTTagList]) {
-          val array = new java.util.HashMap[Integer, Any]()
-          val tagList = nbt.asInstanceOf[NBTTagList]
-          for (i <- 0 until tagList.tagCount()) array.put(i + 1, getMap(tagList.getCompoundTagAt(i)))
-          keyMap.put("value", array)
-        } else if (nbt.isInstanceOf[NBTTagIntArray]) {
-          val array = new java.util.HashMap[Integer, Any]()
-          val tagIntList = nbt.asInstanceOf[NBTTagIntArray].func_150302_c()
-          for (i <- 0 until tagIntList.length) array.put(i + 1, tagIntList(i))
-          keyMap.put("value", array)
-        } else if (nbt.isInstanceOf[NBTTagByteArray]) {
-          val array = new java.util.HashMap[Integer, Any]()
-          val tagByteList = nbt.asInstanceOf[NBTTagByteArray].func_150292_c()
-          for (i <- 0 until tagByteList.length) array.put(i + 1, tagByteList(i))
-          keyMap.put("value", array)
-        } else throw new Exception("NBT tag " + NBTBase.NBTTypes(nbt.getId) + " is unsupported")
-      }
-      map
-    }
-
-    def getTag(map: java.util.Map[String, Any]): NBTTagCompound = {
-      val tag = new NBTTagCompound()
-      for ((key, value) <- map) {
-        val keyObject = value.asInstanceOf[java.util.Map[String, Any]]
-        val `type` = keyObject.get("type").asInstanceOf[Double].intValue()
-        val element = keyObject.get("value")
-        `type` match {
-          case 1 => tag.setByte(key, element.asInstanceOf[Double].byteValue())
-          case 2 => tag.setShort(key, element.asInstanceOf[Double].shortValue())
-          case 3 => tag.setInteger(key, element.asInstanceOf[Double].intValue())
-          case 4 => tag.setLong(key, element.asInstanceOf[Double].longValue())
-          case 5 => tag.setFloat(key, element.asInstanceOf[Double].floatValue())
-          case 6 => tag.setDouble(key, element.asInstanceOf[Double])
-          case 7 => 
-            var jbArray = element.asInstanceOf[java.util.Map[Integer, Any]]
-            var bArray = Array.ofDim[Byte](jbArray.size)
-            for (i <- 0 until jbArray.size) bArray(i) = jbArray.get(i + 1).asInstanceOf[Double].byteValue()
-            tag.setByteArray(key, bArray)
-
-          case 8 => tag.setString(key, element.asInstanceOf[String])
-          case 9 => 
-            var array = element.asInstanceOf[java.util.Map[Integer, Any]]
-            var tagList = new NBTTagList()
-            for ((key, value) <- array) tagList.appendTag(getTag(value.asInstanceOf[java.util.Map[String, Any]]))
-            tag.setTag(key, tagList)
-
-          case 10 => tag.setTag(key, getTag(element.asInstanceOf[java.util.Map[String, Any]]))
-          case 11 => 
-            var ibArray = element.asInstanceOf[java.util.Map[Integer, Any]]
-            var iArray = Array.ofDim[Int](ibArray.size)
-            for (i <- 0 until ibArray.size) iArray(i) = ibArray.get(i + 1).asInstanceOf[Double].intValue()
-            tag.setIntArray(key, iArray)
-
-          case _ => throw new Exception("NBT type #" + `type` + " is unsupported")
-        }
-      }
-      tag
-    }
-
     @Callback(doc = """function():number -- Gets the numeric id of the current dimension.""")
     def getDimensionId(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
@@ -489,27 +420,28 @@ object DebugCard {
     def getTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
-      val tileEntity = world.getTileEntity(x, y, z)
-      if (tileEntity != null) {
-        val tag = new NBTTagCompound()
-        tileEntity.writeToNBT(tag)
-        return result(getMap(tag))
+      world.getTileEntity(x, y, z) match {
+        case tileEntity: TileEntity => result(toNbt(tileEntity).toTypedMap)
+        case _ => null
       }
-      result(null)
     }
 
     @Callback(doc = """function(x:number, y:number, z:number, nbt:table):boolean -- Set the NBT of the block at the specified coordinates.""")
     def setTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
-      val nbt = args.checkTable(3).asInstanceOf[java.util.Map[String,Any]]
-      val tileEntity = world.getTileEntity(x, y, z)
-      if (tileEntity != null) {
-        val tag = getTag(nbt)
-        tileEntity.readFromNBT(tag)
-        return result(true)
+      world.getTileEntity(x, y, z) match {
+        case tileEntity: TileEntity =>
+          typedMapToNbt(mapAsScalaMap(args.checkTable(3)).toMap) match {
+            case nbt: NBTTagCompound =>
+              tileEntity.readFromNBT(nbt)
+              tileEntity.markDirty()
+              world.markBlockForUpdate(x, y, z)
+              result(true)
+            case nbt => result(null, s"nbt tag compound expected, got '${NBTBase.NBTTypes(nbt.getId)}'")
+          }
+        case _ => result(null, "no tile entity")
       }
-      result(null)
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light opacity of the block at the specified coordinates.""")
