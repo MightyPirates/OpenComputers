@@ -11,6 +11,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.internal.ServerRack
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.asm.ClassTransformer
@@ -357,7 +358,15 @@ object EventHandler {
       e.getChunk.entityLists.foreach(_.collect {
         case host: MachineHost => host.machine match {
           case machine: Machine => scheduleClose(machine)
+          case _ => // Dafuq?
         }
+        case rack: ServerRack =>
+          (0 until rack.getSizeInventory).
+            map(rack.server).
+            filter(_ != null).
+            map(_.machine()).
+            filter(_ != null).
+            foreach(_.stop())
       })
     }
   }
