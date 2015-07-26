@@ -1,11 +1,7 @@
 sudo: false
 language: scala
 scala: 2.11.1
-jdk:
-  - openjdk7
-  - openjdk8
-  - oraclejdk7
-  - oraclejdk8
+jdk: oraclejdk8
 
 notifications:
   email: false

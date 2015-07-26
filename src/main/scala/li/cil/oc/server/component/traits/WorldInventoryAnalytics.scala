@@ -11,6 +11,7 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.oredict.OreDictionary
 
 trait WorldInventoryAnalytics extends WorldAware with SideRestricted with NetworkAware {
   @Callback(doc = """function(side:number):number -- Get the number of slots in the inventory on the specified side of the device.""")
@@ -41,6 +42,18 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
         (stackA != null && stackB != null &&
           stackA.getItem == stackB.getItem &&
           (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)))
+    })
+  }
+
+  @Callback(doc = """function(side:number, slotA:number, slotB:number):boolean -- Get whether the items in the two specified slots of the inventory on the specified side of the device are equivalent (have shared OreDictionary IDs).""")
+  def areStacksEquivalent(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    withInventory(facing, inventory => {
+      val stackA = inventory.getStackInSlot(args.checkSlot(inventory, 1))
+      val stackB = inventory.getStackInSlot(args.checkSlot(inventory, 2))
+      result(stackA == stackB ||
+        (stackA != null && stackB != null &&
+          OreDictionary.getOreIDs(stackA).intersect(OreDictionary.getOreIDs(stackB)).nonEmpty))
     })
   }
 
