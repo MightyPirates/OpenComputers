@@ -40,6 +40,10 @@ object Items extends ItemAPI {
 
   val names = mutable.Map.empty[Any, String]
 
+  val aliases = Map(
+    "dataCard" -> Constants.ItemName.DataCardTier1
+  )
+
   override def get(name: String): ItemInfo = descriptors.get(name).orNull
 
   override def get(stack: ItemStack) = names.get(getBlockOrItem(stack)) match {
@@ -336,6 +340,11 @@ object Items extends ItemAPI {
     initStorage()
     initSpecial()
     initIntegration()
+
+    // Register aliases.
+    for ((k, v) <- aliases) {
+      descriptors.getOrElseUpdate(k, descriptors(v))
+    }
   }
 
   // Crafting materials.
