@@ -338,8 +338,12 @@ object EventHandler {
     else false
   }
 
+  // This is called from the ServerThread *and* the ClientShutdownThread, which
+  // can potentially happen at the same time... for whatever reason. So let's
+  // synchronize what we're doing here to avoid race conditions (e.g. when
+  // disposing networks, where this actually triggered an assert).
   @SubscribeEvent
-  def onWorldUnload(e: WorldEvent.Unload) {
+  def onWorldUnload(e: WorldEvent.Unload): Unit = this.synchronized {
     if (!e.world.isRemote) {
       e.world.loadedTileEntityList.collect {
         case te: tileentity.traits.TileEntity => te.dispose()
