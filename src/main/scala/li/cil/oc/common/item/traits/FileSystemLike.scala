@@ -37,7 +37,7 @@ trait FileSystemLike extends Delegate {
   }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
-    if (!player.isSneaking) {
+    if (!player.isSneaking && (!stack.hasTagCompound || !stack.getTagCompound.hasKey(Settings.namespace + "lootFactory"))) {
       player.openGui(OpenComputers, GuiType.Drive.id, world, 0, 0, 0)
       player.swingItem()
     }
