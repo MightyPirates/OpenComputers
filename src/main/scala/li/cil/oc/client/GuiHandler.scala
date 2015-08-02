@@ -56,6 +56,8 @@ object GuiHandler extends CommonGuiHandler {
         }
       case Some(GuiType.Category.Item) =>
         Delegator.subItem(player.getCurrentEquippedItem) match {
+          case Some(drive: item.traits.FileSystemLike) if id == GuiType.Drive.id =>
+            new gui.Drive(player.inventory, () => player.getCurrentEquippedItem)
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
               override def tier = database.tier

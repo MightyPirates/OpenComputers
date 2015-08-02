@@ -21,7 +21,7 @@ import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
 
-abstract class DynamicGuiContainer(container: Container) extends CustomGuiContainer(container) {
+abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomGuiContainer(container) {
   protected var hoveredSlot: Option[Slot] = None
 
   protected var hoveredStackNEI: Option[ItemStack] = None

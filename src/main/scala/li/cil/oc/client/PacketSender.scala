@@ -26,6 +26,14 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendDriveMode(unmanaged: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.DriveMode)
+
+    pb.writeBoolean(unmanaged)
+
+    pb.sendToServer()
+  }
+
   def sendDronePower(e: Drone, power: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.DronePower)
 

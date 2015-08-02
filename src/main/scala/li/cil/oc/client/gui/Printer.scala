@@ -35,8 +35,6 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     override def barTexture = Textures.guiPrinterProgress
   })
 
-  private def printerContainer = inventorySlots.asInstanceOf[container.Printer]
-
   override def initGui() {
     super.initGui()
   }
@@ -49,12 +47,12 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (func_146978_c(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(printerContainer.amountMaterial + "/" + printer.maxAmountMaterial)
+      tooltip.add(inventoryContainer.amountMaterial + "/" + printer.maxAmountMaterial)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     if (func_146978_c(inkBar.x, inkBar.y, inkBar.width, inkBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(printerContainer.amountInk + "/" + printer.maxAmountInk)
+      tooltip.add(inventoryContainer.amountInk + "/" + printer.maxAmountInk)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()
@@ -64,14 +62,12 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     mc.renderEngine.bindTexture(Textures.guiPrinter)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
-    materialBar.level = printerContainer.amountMaterial / printer.maxAmountMaterial.toDouble
-    inkBar.level = printerContainer.amountInk / printer.maxAmountInk.toDouble
-    progressBar.level = printerContainer.progress
+    materialBar.level = inventoryContainer.amountMaterial / printer.maxAmountMaterial.toDouble
+    inkBar.level = inventoryContainer.amountInk / printer.maxAmountInk.toDouble
+    progressBar.level = inventoryContainer.progress
     drawWidgets()
     drawInventorySlots()
   }
 
   override protected def drawDisabledSlot(slot: ComponentSlot) {}
-
-  override def doesGuiPauseGame = false
 }

@@ -246,10 +246,19 @@ class Settings(val config: Config) {
       OpenComputers.log.warn("Bad number of HDD sizes, ignoring.")
       Array(1024, 2048, 4096)
   }
+  val hddPlatterCounts = Array(config.getIntList("filesystem.hddPlatterCounts"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Int, tier2: Int, tier3: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of HDD platter counts, ignoring.")
+      Array(2, 4, 6)
+  }
   val floppySize = config.getInt("filesystem.floppySize") max 0
   val tmpSize = config.getInt("filesystem.tmpSize") max 0
   val maxHandles = config.getInt("filesystem.maxHandles") max 0
   val maxReadBuffer = config.getInt("filesystem.maxReadBuffer") max 0
+  val sectorSeekThreshold = config.getInt("filesystem.sectorSeekThreshold")
+  val sectorSeekTime = config.getDouble("filesystem.sectorSeekTime")
 
   // ----------------------------------------------------------------------- //
   // internet
