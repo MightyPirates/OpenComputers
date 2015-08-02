@@ -10,6 +10,8 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.FloppyDisk
 import li.cil.oc.common.item.HardDiskDrive
+import li.cil.oc.common.item.data.DriveData
+import li.cil.oc.server.component.Drive
 import li.cil.oc.server.fs.FileSystem.ItemLabel
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -25,8 +27,8 @@ object DriverFileSystem extends Item {
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     Delegator.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, host, hdd.tier + 2)
-      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, host, 1)
+      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, hdd.platterCount, host, hdd.tier + 2)
+      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, 1, host, 1)
       case _ => null
     }
 
@@ -43,7 +45,7 @@ object DriverFileSystem extends Item {
       case _ => 0
     }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, host: EnvironmentHost, speed: Int) = if (DimensionManager.getWorld(0) != null) {
+  private def createEnvironment(stack: ItemStack, capacity: Int, platterCount: Int, host: EnvironmentHost, speed: Int) = if (DimensionManager.getWorld(0) != null) {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootFactory")) {
       // Loot disk, create file system using factory callback.
       Loot.factories.get(stack.getTagCompound.getString(Settings.namespace + "lootFactory")) match {
@@ -61,9 +63,17 @@ object DriverFileSystem extends Item {
       // node's address as the folder name... so we generate the address here,
       // if necessary. No one will know, right? Right!?
       val address = addressFromTag(dataTag(stack))
+      val label = new ReadWriteItemLabel(stack)
       val isFloppy = api.Items.get(stack) == api.Items.get(Constants.ItemName.Floppy)
-      val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
-      val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ReadWriteItemLabel(stack), host, Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access"), speed)
+      val sound = Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access")
+      val drive = new DriveData(stack)
+      val environment = if (drive.isUnmanaged) {
+        Drive(capacity, platterCount, label, Option(host), Option(sound), speed)
+      }
+      else {
+        val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
+        oc.api.FileSystem.asManagedEnvironment(fs, label, host, sound, speed)
+      }
       if (environment != null && environment.node != null) {
         environment.node.asInstanceOf[oc.server.network.Node].address = address
       }

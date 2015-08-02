@@ -1,7 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.api
 import li.cil.oc.client.Textures
@@ -10,17 +8,15 @@ import li.cil.oc.client.renderer.markdown.segment.InteractiveSegment
 import li.cil.oc.client.renderer.markdown.segment.Segment
 import li.cil.oc.client.{Manual => ManualAPI}
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.gui.ScaledResolution
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-class Manual extends GuiScreen {
+class Manual extends GuiScreen with traits.Window {
   final val documentMaxWidth = 230
   final val documentMaxHeight = 176
   final val scrollPosX = 244
@@ -33,10 +29,11 @@ class Manual extends GuiScreen {
   final val tabHeight = 26
   final val maxTabsPerSide = 7
 
-  var guiLeft = 0
-  var guiTop = 0
-  var xSize = 0
-  var ySize = 0
+  override val windowWidth = 256
+  override val windowHeight = 192
+
+  override def backgroundImage = Textures.GUI.Manual
+
   var isDragging = false
   var document: Segment = null
   var documentHeight = 0
@@ -48,8 +45,6 @@ class Manual extends GuiScreen {
   def offset = ManualAPI.history.top.offset
 
   def maxOffset = documentHeight - documentMaxHeight
-
-  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   def resolveLink(path: String, current: String): String =
     if (path.startsWith("/")) path
@@ -84,8 +79,6 @@ class Manual extends GuiScreen {
     }
   }
 
-  override def doesGuiPauseGame = false
-
   override def actionPerformed(button: GuiButton): Unit = {
     if (button.id >= 0 && button.id < ManualAPI.tabs.length) {
       api.Manual.navigate(ManualAPI.tabs(button.id).path)
@@ -94,14 +87,6 @@ class Manual extends GuiScreen {
 
   override def initGui(): Unit = {
     super.initGui()
-
-    val screenSize = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
-    val guiSize = new ScaledResolution(mc, 256, 192)
-    val (midX, midY) = (screenSize.getScaledWidth / 2, screenSize.getScaledHeight / 2)
-    guiLeft = midX - guiSize.getScaledWidth / 2
-    guiTop = midY - guiSize.getScaledHeight / 2
-    xSize = guiSize.getScaledWidth
-    ySize = guiSize.getScaledHeight
 
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val x = guiLeft + tabPosX
@@ -116,13 +101,10 @@ class Manual extends GuiScreen {
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
-    Textures.bind(Textures.GUI.Manual)
-    Gui.drawModalRectWithCustomSizedTexture(guiLeft, guiTop, 0, 0, xSize, ySize, 256, 192)
+    super.drawScreen(mouseX, mouseY, dt)
 
     scrollButton.enabled = canScroll
     scrollButton.hoverOverride = isDragging
-
-    super.drawScreen(mouseX, mouseY, dt)
 
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttonList.get(i).asInstanceOf[ImageButton]

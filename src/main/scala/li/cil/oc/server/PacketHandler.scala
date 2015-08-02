@@ -8,6 +8,9 @@ import li.cil.oc.common.Achievement
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
+import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.item.data.DriveData
+import li.cil.oc.common.item.traits.FileSystemLike
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.tileentity.traits.TileEntity
@@ -38,6 +41,7 @@ object PacketHandler extends CommonPacketHandler {
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
       case PacketType.CopyToAnalyzer => onCopyToAnalyzer(p)
+      case PacketType.DriveMode => onDriveMode(p)
       case PacketType.DronePower => onDronePower(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
@@ -81,6 +85,18 @@ object PacketHandler extends CommonPacketHandler {
       case Some(buffer: TextBuffer) => buffer.copyToAnalyzer(p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
+  }
+
+  def onDriveMode(p: PacketParser) = p.player match {
+    case player: EntityPlayerMP =>
+      Delegator.subItem(player.getCurrentEquippedItem) match {
+        case Some(drive: FileSystemLike) =>
+          val data = new DriveData(player.getCurrentEquippedItem)
+          data.isUnmanaged = p.readBoolean()
+          data.save(player.getCurrentEquippedItem)
+        case _ => // Invalid packet.
+      }
+    case _ => // Invalid packet.
   }
 
   def onDronePower(p: PacketParser) =

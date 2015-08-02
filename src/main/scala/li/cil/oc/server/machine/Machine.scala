@@ -303,13 +303,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         signals.enqueue(new Machine.Signal(name, args.map {
           case null | Unit | None => null
           case arg: java.lang.Boolean => arg
-          case arg: java.lang.Byte => Double.box(arg.doubleValue)
           case arg: java.lang.Character => Double.box(arg.toDouble)
-          case arg: java.lang.Short => Double.box(arg.doubleValue)
-          case arg: java.lang.Integer => Double.box(arg.doubleValue)
-          case arg: java.lang.Long => Double.box(arg.doubleValue)
-          case arg: java.lang.Float => Double.box(arg.doubleValue)
-          case arg: java.lang.Double => arg
+          case arg: java.lang.Long => arg
+          case arg: java.lang.Number => Double.box(arg.doubleValue)
           case arg: java.lang.String => arg
           case arg: Array[Byte] => arg
           case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
@@ -697,6 +693,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
             case tag: NBTTagByte if tag.getByte == -1 => null
             case tag: NBTTagByte => Boolean.box(tag.getByte == 1)
+            case tag: NBTTagLong => Long.box(tag.getLong)
             case tag: NBTTagDouble => Double.box(tag.getDouble)
             case tag: NBTTagString => tag.getString
             case tag: NBTTagByteArray => tag.getByteArray
@@ -770,6 +767,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           s.args.zipWithIndex.foreach {
             case (null, i) => args.setByte("arg" + i, -1)
             case (arg: java.lang.Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
+            case (arg: java.lang.Long, i) => args.setLong("arg" + i, arg)
             case (arg: java.lang.Double, i) => args.setDouble("arg" + i, arg)
             case (arg: String, i) => args.setString("arg" + i, arg)
             case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)

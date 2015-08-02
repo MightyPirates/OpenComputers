@@ -72,7 +72,7 @@ trait Buffered extends OutputStreamFileSystem {
       }
       setLastModified(path, directory.lastModified())
     }
-    if (fileRoot.list() == null || fileRoot.list().length == 0) {
+    if (fileRoot.list() == null || fileRoot.list().isEmpty) {
       fileRoot.delete()
     }
     else recurse("", fileRoot)
@@ -114,7 +114,7 @@ trait Buffered extends OutputStreamFileSystem {
       }
       directory.setLastModified(lastModified(path))
     }
-    if (list("") == null || list("").length == 0) {
+    if (list("") == null || list("").isEmpty) {
       fileRoot.delete()
     }
     else recurse("")
