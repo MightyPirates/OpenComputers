@@ -549,14 +549,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // might turn into a deadlock depending on where it currently is.
     state.synchronized(state.top) match {
       // Computer is shutting down.
-      case Machine.State.Stopping => Machine.this.synchronized(state.synchronized {
-        close()
-        tmp.foreach(_.node.remove()) // To force deleting contents.
-        if (node.network != null) {
-          tmp.foreach(tmp => node.connect(tmp.node))
-        }
-        node.sendToReachable("computer.stopped")
-      })
+      case Machine.State.Stopping => Machine.this.synchronized(state.synchronized(tryClose()))
       case _ =>
     }
   }
@@ -661,7 +654,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = Machine.this.synchronized {
+  override def load(nbt: NBTTagCompound) = Machine.this.synchronized(state.synchronized {
     assert(state.top == Machine.State.Stopped)
     assert(_users.isEmpty)
     assert(signals.isEmpty)
@@ -727,9 +720,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       // Clean up in case we got a weird state stack.
       close()
     }
-  }
+  })
 
-  override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized {
+  override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
     assert(!isExecuting) // Lock on 'this' should guarantee this.
 
     // Make sure we don't continue running until everything has saved.
@@ -795,7 +788,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
-  }
+  })
 
   // ----------------------------------------------------------------------- //
 
@@ -830,6 +823,11 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (isExecuting) false
     else {
       close()
+      tmp.foreach(_.node.remove()) // To force deleting contents.
+      if (node.network != null) {
+        tmp.foreach(tmp => node.connect(tmp.node))
+      }
+      node.sendToReachable("computer.stopped")
       true
     }
 
@@ -854,7 +852,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  private def switchTo(value: Machine.State.Value) = {
+  private def switchTo(value: Machine.State.Value) = state.synchronized {
     val result = state.pop()
     if (value == Machine.State.Stopping || value == Machine.State.Restarting) {
       state.clear()
