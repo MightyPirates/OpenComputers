@@ -4,6 +4,7 @@ import java.lang.Iterable
 
 import li.cil.oc.api
 import li.cil.oc.api.Machine
+import li.cil.oc.api.driver
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Environment
@@ -16,12 +17,13 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment with MachineHost with internal.Server {
+class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment with driver.item.RackMountable with MachineHost with internal.Server {
   val machine = Machine.create(this)
 
   val inventory = new NetworkedInventory()
@@ -35,6 +37,18 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
     case Some(server: item.Server) => server.tier
     case _ => 0
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getNodeCount: Int = ???
+
+  override def getNodeAt(index: Int): Node = ???
+
+  override def update(): Unit = ???
+
+  override def canUpdate: Boolean = ???
+
+  override def onActivate(player: EntityPlayer): Unit = ???
 
   // ----------------------------------------------------------------------- //
 
@@ -66,7 +80,7 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
     // Ensure the message originated in our local network, to avoid infinite
     // recursion if two unconnected servers are in one server rack.
     if (rack.internalSwitch && message.name == "network.message" &&
-      rack.sides(this.slot) == None && // Only if we're in internal mode.
+      rack.sides(this.slot).isEmpty && // Only if we're in internal mode.
       message.source != machine.node && // In this case it was relayed from another internal machine.
       node.network.node(message.source.address) != null) {
       for (slot <- rack.servers.indices) {

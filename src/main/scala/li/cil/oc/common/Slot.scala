@@ -15,9 +15,10 @@ object Slot {
   val Floppy = driver.item.Slot.Floppy
   val HDD = driver.item.Slot.HDD
   val Memory = driver.item.Slot.Memory
+  val RackMountable = driver.item.Slot.RackMountable
   val Tablet = driver.item.Slot.Tablet
   val Tool = "tool"
   val Upgrade = driver.item.Slot.Upgrade
 
-  val All = Array(Card, ComponentBus, Container, CPU, EEPROM, Floppy, HDD, Memory, Tablet, Tool, Upgrade)
+  val All = Array(Card, ComponentBus, Container, CPU, EEPROM, Floppy, HDD, Memory, RackMountable, Tablet, Tool, Upgrade)
 }
