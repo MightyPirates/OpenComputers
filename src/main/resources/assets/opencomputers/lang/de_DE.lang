@@ -36,6 +36,7 @@ tile.oc.screen2.name=Bildschirm (Stufe 2)
 tile.oc.screen3.name=Bildschirm (Stufe 3)
 tile.oc.serverRack.name=Serverschrank
 tile.oc.switch.name=Switch
+tile.oc.netSplitter.name=Net Splitter
 tile.oc.waypoint.name=Wegpunkt
 
 # Items
@@ -157,6 +158,7 @@ oc:gui.Analyzer.AddressCopied=Adresse wurde in die Zwischenablage kopiert.
 oc:gui.Analyzer.ChargerSpeed=§6Ladegeschwindigkeit§f: %s
 oc:gui.Analyzer.ComponentName=§6Komponentenname§f: %s
 oc:gui.Analyzer.Components=§6Anzahl verbundener Komponenten§f: %s
+oc:gui.Analyzer.CopyToClipboard=In die Zwischenablage kopieren.
 oc:gui.Analyzer.LastError=§6Letzter Fehler§f: %s
 oc:gui.Analyzer.RobotName=§6Name§f: %s
 oc:gui.Analyzer.RobotOwner=§6Besitzer§f: %s
@@ -189,6 +191,9 @@ oc:gui.Chat.WarningPower=Es ist keine unterstützte, Strom erzeugende Mod verfü
 oc:gui.Chat.WarningProjectRed=Die verwendete Version von Project: Red ist nicht mit OpenComputers kompatibel. Aktualisiere bitte deine Version von Project: Red.
 oc:gui.Chat.WarningRecipes=Es gab Fehler beim Laden eines oder mehrerer Rezepte. Einige Gegenstände können unter Umständen nicht gefertigt werden. Bitte wirf einen Blick in deine Log-Datei für weitere Informationen.
 oc:gui.Chat.WarningSimpleComponent=Eine Erweiterung (deine?) welche das §aSimpleComponent§f-Interface verwendet, hat etwas §efalsch gemacht§f. Komponentenlogik konnte nicht eingefügt werden. Bitte wirf einen Blick in deine Log-Datei für weitere Informationen.
+oc:gui.Drive.Managed=Managed
+oc:gui.Drive.Unmanaged=Unmanaged
+oc:gui.Drive.Warning=§lWarnung§r: Umschalten der Modi führt zum Datenverlust.
 oc:gui.Error.ComponentOverflow=Zu viele Komponenten sind mit dem Computer verbunden.
 oc:gui.Error.InternalError=Interner Fehler, bitte sieh in der Logdatei nach. Das ist wahrscheinlich ein Bug.
 oc:gui.Error.NoCPU=Im Computer ist kein Hauptprozessor (CPU) installiert.
@@ -270,6 +275,9 @@ oc:tooltip.Disassembler=Zerlegt Gegenstände in ihre Einzelteile. §lWarnung§7:
 oc:tooltip.Disk=Sehr einfaches Speichermedium, das verwendet werden kann, um Disketten und Festplatten zu fertigen.
 oc:tooltip.DiskDrive.CC=ComputerCraft-Disketten werden §aauch unterstützt§7.
 oc:tooltip.DiskDrive=Erlaubt es, Disketten zu lesen und zu beschreiben. Kann in Robotern installiert werden, um später Disketten einlegen zu können.
+oc:tooltip.DiskUsage=Festplattennutzung: %s/%s Byte
+oc:tooltip.DiskModeManaged=Modus: Managed
+oc:tooltip.DiskModeUnmanaged=Modus: Unmanaged
 oc:tooltip.Drone=Drohnen sind schlichte, flinke Aufklärungseinheiten mit limitierter Inventargröße.
 oc:tooltip.DroneCase=Dieses Gehäuse wird verwendet, um Drohnen in der Elektronik-Werkbank zu bauen. Es bietet Platz für wenige Komponenten und kommt mit endsteinbetriebener Levitation.
 oc:tooltip.EEPROM=Kleiner, programmierbarer Speicher für das BIOS, das Computer zum starten verwenden.
@@ -334,6 +342,7 @@ oc:tooltip.TabletCase=Einfaches Gehäuse für Tablet-PCs. Kann in der Elektronik
 oc:tooltip.Terminal=Erlaubt es, einen Server aus der Ferne zu steuern, so lange man sich in Reichweite des Servers befindet. Verhält sich wie Bildschirm und Tastatur in einem. Kann mit Shift-Rechtsklick an einen Server in einem Serverschrank gebunden werden.
 oc:tooltip.TexturePicker=Dieses Werkzeug erlaubt es, eine Zeichenkette anzuzeigen, die die Oberfläche eines Blocks beschreibt und in Form-Definitionen für 3D-Drucker verwendet werden kann. Definiv keine Texturnamen, oh nein. Nix da.
 oc:tooltip.Tier=§8Stufe %s
+oc:tooltip.NetSplitter=Kann Netzwerke dynamisch verbinden. Die Konnektivität jeder Seite kann umgeschaltet werden, in dem man "Professionelle Wartungsarbeiten" mit einem Schraubenschlüssel durchführt. Sie kann auch mit einem Redstone-Signal an entsprechenden Seiten invertiert werden.
 oc:tooltip.TooLong=Halte [§f%s§7] gedrückt für mehr Infos.
 oc:tooltip.Transistor=Elementarer Baustein der meisten Computerkomponenten. Nicht zu verwechseln mit Steinelementaren.
 oc:tooltip.UpgradeAngel=Erlaubt es Robotern, Blöcke in die Luft zu setzen, selbst wenn kein Referenzblock daneben existiert.
@@ -361,7 +370,7 @@ oc:tooltip.WirelessNetworkCard=Erlaubt das drahtlose Senden von Netzwerknachrich
 oc:tooltip.WorldSensorCard=Erlaubt es, Informationen über die Welt auszulesen, wie etwa Gravitation und ob die Atmosphäre atembar ist. Verwendung von Messergebnissen auf eigene Gefahr. Der Hersteller übernimmt keinerlei Garantie.
 oc:tooltip.Wrench=Eine Mischung aus Schraubenzieher und Schraubenschlüssel, einfach zu benutzen, aber schwer zu meistern.
 
-# Achievements
+#Achievements
 achievement.oc.adapter=Steck mich ein
 achievement.oc.adapter.desc=Interagiert mit Blöcken aus anderen Mods, und sogar Vanilla-Minecraft!
 achievement.oc.assembler=Wundervoll
