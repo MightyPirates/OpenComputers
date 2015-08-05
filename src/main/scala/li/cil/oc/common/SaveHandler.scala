@@ -232,7 +232,7 @@ object SaveHandler {
         // systems, to avoid deleting in-use folders here.
         System.currentTimeMillis() - file.lastModified() > TimeToHoldOntoOldSaves && {
         val list = file.list()
-        list == null || list.length == 0
+        list == null || list.isEmpty
       }
     })
     if (emptyDirs != null) {

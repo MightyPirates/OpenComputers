@@ -9,6 +9,7 @@ import com.google.common.net.InetAddresses
 import com.mojang.authlib.GameProfile
 import com.typesafe.config._
 import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
@@ -193,8 +194,13 @@ class Settings(val config: Config) {
   val hoverBootJump = config.getDouble("power.cost.hoverBootJump") max 0
   val hoverBootAbsorb = config.getDouble("power.cost.hoverBootAbsorb") max 0
   val hoverBootMove = config.getDouble("power.cost.hoverBootMove") max 0
+  val dataCardTrivial = config.getDouble("power.cost.dataCardTrivial") max 0
+  val dataCardTrivialByte = config.getDouble("power.cost.dataCardTrivialByte") max 0
   val dataCardSimple = config.getDouble("power.cost.dataCardSimple") max 0
+  val dataCardSimpleByte = config.getDouble("power.cost.dataCardSimpleByte") max 0
   val dataCardComplex = config.getDouble("power.cost.dataCardComplex") max 0
+  val dataCardComplexByte = config.getDouble("power.cost.dataCardComplexByte") max 0
+  val dataCardAsymmetric = config.getDouble("power.cost.dataCardAsymmetric") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -242,10 +248,19 @@ class Settings(val config: Config) {
       OpenComputers.log.warn("Bad number of HDD sizes, ignoring.")
       Array(1024, 2048, 4096)
   }
+  val hddPlatterCounts = Array(config.getIntList("filesystem.hddPlatterCounts"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Int, tier2: Int, tier3: Int)
+    case _ =>
+      OpenComputers.log.warn("Bad number of HDD platter counts, ignoring.")
+      Array(2, 4, 6)
+  }
   val floppySize = config.getInt("filesystem.floppySize") max 0
   val tmpSize = config.getInt("filesystem.tmpSize") max 0
   val maxHandles = config.getInt("filesystem.maxHandles") max 0
   val maxReadBuffer = config.getInt("filesystem.maxReadBuffer") max 0
+  val sectorSeekThreshold = config.getInt("filesystem.sectorSeekThreshold")
+  val sectorSeekTime = config.getDouble("filesystem.sectorSeekTime")
 
   // ----------------------------------------------------------------------- //
   // internet
@@ -308,6 +323,7 @@ class Settings(val config: Config) {
   val geolyzerNoise = config.getDouble("misc.geolyzerNoise").toFloat max 0
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
+  val disassemblerInputBlacklist = config.getStringList("misc.disassemblerInputBlacklist")
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
   val databaseEntriesPerTier = Array(9, 25, 81)
@@ -319,6 +335,7 @@ class Settings(val config: Config) {
   val dataCardSoftLimit = config.getInt("misc.dataCardSoftLimit") max 0
   val dataCardHardLimit = config.getInt("misc.dataCardHardLimit") max 0
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
+  val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
 
   // ----------------------------------------------------------------------- //
   // printer

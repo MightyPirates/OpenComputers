@@ -33,14 +33,14 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(direct = true, doc = """function():string -- Get the current label of the file system.""")
+  @Callback(direct = true, doc = """function():string -- Get the current label of the drive.""")
   def getLabel(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     if (label != null) result(label.getLabel) else null
   }
 
-  @Callback(doc = """function(value:string):string -- Sets the label of the file system. Returns the new value, which may be truncated.""")
+  @Callback(doc = """function(value:string):string -- Sets the label of the drive. Returns the new value, which may be truncated.""")
   def setLabel(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
-    if (label == null) throw new Exception("filesystem does not support labeling")
+    if (label == null) throw new Exception("drive does not support labeling")
     if (args.checkAny(0) == null) label.setLabel(null)
     else label.setLabel(args.checkString(0))
     result(label.getLabel)

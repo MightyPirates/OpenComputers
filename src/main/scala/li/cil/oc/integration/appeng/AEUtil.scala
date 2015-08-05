@@ -19,7 +19,7 @@ object AEUtil {
     else areChannelsEnabledOld
   }
 
-  private def areChannelsEnabledNew: Boolean = AEApi.instance.definitions.blocks.controller.maybeStack(0).isPresent
+  private def areChannelsEnabledNew: Boolean = AEApi.instance.definitions.blocks.controller.maybeStack(1).isPresent
 
   private def areChannelsEnabledOld: Boolean = AEApi.instance.blocks != null && AEApi.instance.blocks.blockController != null && AEApi.instance.blocks.blockController.item != null
 

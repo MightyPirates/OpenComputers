@@ -12,5 +12,5 @@ EXAMPLES
   resolution
     Displays the current screen resolution.
 
-  resoltution 30 10
+  resolution 30 10
     Sets the screen's resolution to 30 by 10 characters.

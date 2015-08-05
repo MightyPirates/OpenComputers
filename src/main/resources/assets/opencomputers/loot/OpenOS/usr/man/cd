@@ -5,7 +5,7 @@ SYNOPSIS
   cd path
 
 DESCRIPTION
-  `cd` allows changing the current working directory, i.e the directory based on which relative paths are resloved.
+  `cd` allows changing the current working directory, i.e the directory based on which relative paths are resolved.
 
 EXAMPLES
   cd a

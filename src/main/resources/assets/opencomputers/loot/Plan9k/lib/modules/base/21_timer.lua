@@ -57,6 +57,7 @@ thread = kernel.modules.threading.spawn(function()
                         end
                     else
                         kernel.io.println("Timer " .. n .. " died: " .. tostring(reason))
+                        remove(n)
                     end
                 else
                     if deadline > timer.next then

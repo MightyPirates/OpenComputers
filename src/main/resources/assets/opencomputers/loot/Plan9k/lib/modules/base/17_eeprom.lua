@@ -14,7 +14,10 @@ function start()
             if h.pos > 1 then
                 data = component.invoke(component.list("eeprom")() or "", "get"):sub(1,h.pos) .. data
             end
+            h.pos = h.pos + #data
             component.invoke(component.list("eeprom")() or "", "set", data)
+            return true
+            --todo: handle overflow 
         end,
         read = function(h, len)
             local res = component.invoke(component.list("eeprom")() or "", "get")
@@ -38,7 +41,9 @@ function start()
             if h.pos > 1 then
                 data = component.invoke(component.list("eeprom")() or "", "getData"):sub(1,h.pos) .. data
             end
+            h.pos = h.pos + #data
             component.invoke(component.list("eeprom")() or "", "setData", data)
+            return true
         end,
         read = function(h, len)
             local res = component.invoke(component.list("eeprom")() or "", "getData")

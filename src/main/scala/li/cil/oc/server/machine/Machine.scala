@@ -261,7 +261,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     false
   }
 
-  override def stop() = state.synchronized(state.top match {
+  override def stop() = state.synchronized(state.headOption match {
     case Machine.State.Stopped | Machine.State.Stopping =>
       false
     case _ =>
@@ -303,13 +303,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         signals.enqueue(new Machine.Signal(name, args.map {
           case null | Unit | None => null
           case arg: java.lang.Boolean => arg
-          case arg: java.lang.Byte => Double.box(arg.doubleValue)
           case arg: java.lang.Character => Double.box(arg.toDouble)
-          case arg: java.lang.Short => Double.box(arg.doubleValue)
-          case arg: java.lang.Integer => Double.box(arg.doubleValue)
-          case arg: java.lang.Long => Double.box(arg.doubleValue)
-          case arg: java.lang.Float => Double.box(arg.doubleValue)
-          case arg: java.lang.Double => arg
+          case arg: java.lang.Long => arg
+          case arg: java.lang.Number => Double.box(arg.doubleValue)
           case arg: java.lang.String => arg
           case arg: Array[Byte] => arg
           case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
@@ -553,14 +549,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     // might turn into a deadlock depending on where it currently is.
     state.synchronized(state.top) match {
       // Computer is shutting down.
-      case Machine.State.Stopping => Machine.this.synchronized(state.synchronized {
-        close()
-        tmp.foreach(_.node.remove()) // To force deleting contents.
-        if (node.network != null) {
-          tmp.foreach(tmp => node.connect(tmp.node))
-        }
-        node.sendToReachable("computer.stopped")
-      })
+      case Machine.State.Stopping => Machine.this.synchronized(state.synchronized(tryClose()))
       case _ =>
     }
   }
@@ -665,7 +654,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = Machine.this.synchronized {
+  override def load(nbt: NBTTagCompound) = Machine.this.synchronized(state.synchronized {
     assert(state.top == Machine.State.Stopped)
     assert(_users.isEmpty)
     assert(signals.isEmpty)
@@ -697,6 +686,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
             case tag: NBTTagByte if tag.getByte == -1 => null
             case tag: NBTTagByte => Boolean.box(tag.getByte == 1)
+            case tag: NBTTagLong => Long.box(tag.getLong)
             case tag: NBTTagDouble => Double.box(tag.getDouble)
             case tag: NBTTagString => tag.getString
             case tag: NBTTagByteArray => tag.getByteArray
@@ -730,9 +720,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       // Clean up in case we got a weird state stack.
       close()
     }
-  }
+  })
 
-  override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized {
+  override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
     assert(!isExecuting) // Lock on 'this' should guarantee this.
 
     // Make sure we don't continue running until everything has saved.
@@ -770,6 +760,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           s.args.zipWithIndex.foreach {
             case (null, i) => args.setByte("arg" + i, -1)
             case (arg: java.lang.Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
+            case (arg: java.lang.Long, i) => args.setLong("arg" + i, arg)
             case (arg: java.lang.Double, i) => args.setDouble("arg" + i, arg)
             case (arg: String, i) => args.setString("arg" + i, arg)
             case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
@@ -797,7 +788,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
           s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
-  }
+  })
 
   // ----------------------------------------------------------------------- //
 
@@ -832,12 +823,19 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (isExecuting) false
     else {
       close()
+      tmp.foreach(_.node.remove()) // To force deleting contents.
+      if (node.network != null) {
+        tmp.foreach(tmp => node.connect(tmp.node))
+      }
+      node.sendToReachable("computer.stopped")
       true
     }
 
-  private def close() = state.synchronized(
-    if (state.isEmpty || state.top != Machine.State.Stopped) {
-      this.synchronized {
+  private def close() =
+    if (state.synchronized(state.isEmpty || state.top != Machine.State.Stopped)) {
+      // Give up the state lock, then get the more generic lock on this instance first
+      // before locking on state again. Always must be in that order to avoid deadlocks.
+      this.synchronized(state.synchronized {
         state.clear()
         state.push(Machine.State.Stopped)
         Option(architecture).foreach(_.close())
@@ -846,15 +844,15 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         cpuTotal = 0
         cpuStart = 0
         remainIdle = 0
-      }
+      })
 
       // Mark state change in owner, to send it to clients.
       host.markChanged()
-    })
+    }
 
   // ----------------------------------------------------------------------- //
 
-  private def switchTo(value: Machine.State.Value) = {
+  private def switchTo(value: Machine.State.Value) = state.synchronized {
     val result = state.pop()
     if (value == Machine.State.Stopping || value == Machine.State.Restarting) {
       state.clear()

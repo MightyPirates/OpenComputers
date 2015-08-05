@@ -44,8 +44,17 @@ function internal.udp.checkPortRange(port)
 end
 
 function network.udp.open(port)
+    if not port then
+        port = 49151 + math.floor(math.random() * 16384)
+        --TODO: check allocated port
+    end
     internal.udp.checkPortRange(port)
-    internal.udp.ports[port] = true
+    if kernel.modules.threading.currentThread then
+        internal.udp.ports[port] = kernel.modules.threading.currentThread.pid
+    else
+        internal.udp.ports[port] = true
+    end
+    return port
 end
 
 function network.udp.close(port)
@@ -65,6 +74,14 @@ function internal.udp.handle(origin, data)
     end
 end
 
+function internal.udp.cleanProcess(thread)
+    for port, pid in pairs(internal.udp.ports) do
+        if pid == thread.pid then
+            internal.udp.ports[port] = nil
+        end
+    end
+end
+
 -----------
 --TCP - TCP like protocol
 
@@ -79,7 +96,11 @@ internal.tcp = {ports = {}, channels = {}, freeCh = 1}
 
 function network.tcp.listen(port)
     internal.udp.checkPortRange(port)
-    internal.tcp.ports[port] = true
+    if kernel.modules.threading.currentThread then
+        internal.tcp.ports[port] = kernel.modules.threading.currentThread.pid
+    else
+        internal.tcp.ports[port] = true
+    end
 end
 
 function network.tcp.unlisten(port)
@@ -88,6 +109,10 @@ function network.tcp.unlisten(port)
 end
 
 function network.tcp.open(addr, port)
+    if not port then
+        port = 49151 + math.floor(math.random() * 16384)
+        --TODO: check allocated port
+    end
     internal.udp.checkPortRange(port)
     local ch = internal.tcp.freeCh
     if internal.tcp.channels[ch] and internal.tcp.channels[ch].next then 
@@ -97,7 +122,9 @@ function network.tcp.open(addr, port)
     end
     --kernel.io.println("TCP: use ch " .. ch)
     internal.tcp.channels[ch] = {open = false, waiting = true, addr = addr, port = port}--mark openning
-    
+    if kernel.modules.threading.currentThread then
+        internal.tcp.channels[ch].owner = kernel.modules.threading.currentThread.pid
+    end
     driver.send(addr, "TO".. string.char(math.floor(port/256))..string.char(port%256).. string.char(math.floor(ch/256))..string.char(ch%256))
     return ch
 end
@@ -135,6 +162,9 @@ function internal.tcp.handle(origin, data)
             end
             --kernel.io.println("TCP: use ch " .. ch)
             internal.tcp.channels[ch] = {open = true, remote = rchan, addr = origin,  port = port}
+            if type(internal.tcp.ports[port]) == "number" then
+                internal.tcp.channels[ch].owner = internal.tcp.ports[port]
+            end
             driver.send(origin, "TA".. string.char(math.floor(ch/256))..string.char(ch%256) .. string.char(math.floor(rchan/256)) .. string.char(rchan%256))
             computer.pushSignal("tcp", "connection", ch, internal.tcp.channels[ch].addr, internal.tcp.channels[ch].port, "incoming")
         else
@@ -171,6 +201,31 @@ function internal.tcp.handle(origin, data)
     end
 end
 
+function internal.tcp.cleanup()
+    for channel, _ in pairs(internal.tcp.channels) do
+        if internal.tcp.channels[channel].open or internal.tcp.channels[channel].waiting then
+            if internal.tcp.channels[channel].open or internal.tcp.channels[channel].waiting then
+                driver.send(internal.tcp.channels[channel].addr, "TC"..  string.char(math.floor(internal.tcp.channels[channel].remote/256))..string.char(internal.tcp.channels[channel].remote%256))
+            end
+            internal.tcp.channels[channel] = {next = internal.tcp.freeCh}
+            internal.tcp.freeCh = channel
+        end
+    end
+end
+
+function internal.tcp.cleanProcess(thread)
+    for channel, _ in pairs(internal.tcp.channels) do
+        if internal.tcp.channels[channel].owner == thread.pid then
+            network.tcp.close(channel)
+        end
+    end
+    for port, pid in pairs(internal.tcp.ports) do
+        if pid == thread.pid then
+            internal.tcp.ports[port] = nil
+        end
+    end
+end
+
 -----------
 --IP
 
@@ -187,7 +242,6 @@ function handleData(origin, data)
     if data:sub(1,1) == "I" then internal.icmp.handle(origin, data)
     elseif data:sub(1,1) == "T" then internal.tcp.handle(origin, data)
     elseif data:sub(1,1) == "D" then internal.udp.handle(origin, data) end
-    
 end
 
 
@@ -213,4 +267,13 @@ function start()
         routetab = kernel.modules.network.getRoutingTable,
         arptab = kernel.modules.network.getArpTable,
     }
+    
+    kernel.modules.gc.onShutdown(function()
+        internal.tcp.cleanup()
+    end)
+    
+    kernel.modules.gc.onProcessKilled(function(thread)
+        internal.tcp.cleanProcess(thread)
+        internal.udp.cleanProcess(thread)
+    end)
 end

@@ -13,7 +13,6 @@ import li.cil.oc.common.init.Items
 import li.cil.oc.util.Color
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.EnumDyeColor
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.WeightedRandomChestContent
@@ -26,7 +25,17 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, Settings.get.lootProbability) {
+class Loot extends WeightedRandomChestContent(api.Items.get(Constants.ItemName.Floppy).createItemStack(1), 1, 1, Settings.get.lootProbability) {
+  override def generateChestContent(random: Random, newInventory: IInventory) =
+    Loot.randomDisk(random) match {
+      case Some(disk) =>
+        ChestGenHooks.generateStacks(random, disk,
+          theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
+      case _ => Array.empty[ItemStack]
+    }
+}
+
+object Loot {
   val containers = Array(
     ChestGenHooks.DUNGEON_CHEST,
     ChestGenHooks.PYRAMID_DESERT_CHEST,
@@ -74,7 +83,7 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
 
   def init() {
     for (container <- containers) {
-      ChestGenHooks.addItem(container, Loot)
+      ChestGenHooks.addItem(container, new Loot())
     }
 
     val list = new java.util.Properties()
@@ -145,12 +154,4 @@ object Loot extends WeightedRandomChestContent(new ItemStack(null: Item), 1, 1, 
     }
     stack
   }
-
-  override def generateChestContent(random: Random, newInventory: IInventory) =
-    Loot.randomDisk(random) match {
-      case Some(disk) =>
-        ChestGenHooks.generateStacks(random, disk,
-          theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
-      case _ => Array.empty[ItemStack]
-    }
 }

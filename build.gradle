@@ -199,7 +199,6 @@ dependencies {
     provided "codechicken:WR-CBE:${config.minecraft.version}-${config.wrcbe.version}:dev"
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
-    provided "dev.calclavia.resonantengine:resonant-engine:${config.re.version}:dev"
     provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"

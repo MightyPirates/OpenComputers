@@ -112,6 +112,14 @@ object Localization {
     def Power = localizeImmediately("gui.Robot.Power")
   }
 
+  object Drive {
+    def Managed = localizeImmediately("gui.Drive.Managed")
+
+    def Unmanaged = localizeImmediately("gui.Drive.Unmanaged")
+
+    def Warning = localizeImmediately("gui.Drive.Warning")
+  }
+
   object Raid {
     def Warning = localizeImmediately("gui.Raid.Warning")
   }
@@ -151,6 +159,10 @@ object Localization {
   }
 
   object Tooltip {
+    def DiskUsage(used: Long, capacity: Long) = localizeImmediately("tooltip.DiskUsage", used.toString, capacity.toString)
+
+    def DiskMode(isUnmanaged: Boolean) = localizeImmediately(if (isUnmanaged) "tooltip.DiskModeUnmanaged" else "tooltip.DiskModeManaged")
+
     def Materials = localizeImmediately("tooltip.Materials")
 
     def Tier(tier: Int) = localizeImmediately("tooltip.Tier", tier.toString)

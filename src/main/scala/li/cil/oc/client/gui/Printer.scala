@@ -8,7 +8,6 @@ import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.entity.player.InventoryPlayer
-import org.lwjgl.opengl.GL11
 
 class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer) extends DynamicGuiContainer(new container.Printer(playerInventory, printer)) {
   xSize = 176
@@ -36,8 +35,6 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     override def barTexture = Textures.GUI.PrinterProgress
   })
 
-  private def printerContainer = inventorySlots.asInstanceOf[container.Printer]
-
   override def initGui() {
     super.initGui()
   }
@@ -50,12 +47,12 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     RenderState.pushAttrib()
     if (isPointInRegion(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(printerContainer.amountMaterial + "/" + printer.maxAmountMaterial)
+      tooltip.add(inventoryContainer.amountMaterial + "/" + printer.maxAmountMaterial)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     if (isPointInRegion(inkBar.x, inkBar.y, inkBar.width, inkBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(printerContainer.amountInk + "/" + printer.maxAmountInk)
+      tooltip.add(inventoryContainer.amountInk + "/" + printer.maxAmountInk)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     RenderState.popAttrib()
@@ -65,14 +62,12 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     RenderState.color(1, 1, 1)
     Textures.bind(Textures.GUI.Printer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
-    materialBar.level = printerContainer.amountMaterial / printer.maxAmountMaterial.toDouble
-    inkBar.level = printerContainer.amountInk / printer.maxAmountInk.toDouble
-    progressBar.level = printerContainer.progress
+    materialBar.level = inventoryContainer.amountMaterial / printer.maxAmountMaterial.toDouble
+    inkBar.level = inventoryContainer.amountInk / printer.maxAmountInk.toDouble
+    progressBar.level = inventoryContainer.progress
     drawWidgets()
     drawInventorySlots()
   }
 
   override protected def drawDisabledSlot(slot: ComponentSlot) {}
-
-  override def doesGuiPauseGame = false
 }
