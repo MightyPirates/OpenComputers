@@ -16,12 +16,16 @@ import scala.collection.convert.WrapAsScala._
 // transformations that break things! Such fun. Many annoyed. And yes, this
 // is a common issue, have a look at EnderIO and Enchanting Plus. They have
 // to work around this, too.
-abstract class CustomGuiContainer(container: Container) extends GuiContainer(container) with WidgetContainer {
+abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C) extends GuiContainer(inventoryContainer) with WidgetContainer {
   override def windowX = guiLeft
 
   override def windowY = guiTop
 
   override def windowZ = zLevel
+
+  override def doesGuiPauseGame = false
+
+  protected def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   // Pretty much Scalaified copy-pasta from base-class.
   override def drawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer) {

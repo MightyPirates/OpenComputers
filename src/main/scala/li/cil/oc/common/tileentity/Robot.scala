@@ -323,7 +323,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   }
 
   def setAnimateMove(fromPosition: BlockPosition, ticks: Int) {
-    animationTicksTotal = ticks
+    animationTicksTotal = ticks + 2
     prepareForAnimation()
     moveFromX = fromPosition.x
     moveFromY = fromPosition.y

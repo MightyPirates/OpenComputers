@@ -121,7 +121,8 @@ class Proxy {
   private val itemRenames = Map[String, String](
     OpenComputers.ID + ":microcontrollerCase" -> Constants.ItemName.MicrocontrollerCaseTier1,
     OpenComputers.ID + ":droneCase" -> Constants.ItemName.DroneCaseTier1,
-    OpenComputers.ID + ":tabletCase" -> Constants.ItemName.TabletCaseTier1
+    OpenComputers.ID + ":tabletCase" -> Constants.ItemName.TabletCaseTier1,
+    OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {

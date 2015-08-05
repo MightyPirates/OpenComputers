@@ -1,7 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
@@ -15,8 +13,6 @@ import scala.collection.convert.WrapAsJava._
 
 class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
   protected var powerButton: ImageButton = _
-
-  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   protected override def actionPerformed(button: GuiButton) {
     if (button.id == 0) {
@@ -52,6 +48,4 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
     mc.renderEngine.bindTexture(Textures.guiComputer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
-
-  override def doesGuiPauseGame = false
 }

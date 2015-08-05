@@ -58,6 +58,7 @@ kernel.userspace.package.searchers[#kernel.userspace.package.searchers + 1] = pa
 
 --TODO: possibly wrap result into metatable
 kernel.userspace.require = function(module)
+    --kernel.io.println(module)
     if kernel.userspace.package.loaded[module] then
         return kernel.userspace.package.loaded[module]
     else
@@ -66,13 +67,13 @@ kernel.userspace.require = function(module)
         else
             kernel.userspace.package.loading[module] = true
             for _, searcher in ipairs(kernel.userspace.package.searchers) do
-                local res, mod = pcall(searcher, module)
+                local res, mod, reason = pcall(searcher, module)
                 if res and mod then
                     kernel.userspace.package.loading[module] = nil
                     kernel.userspace.package.loaded[module] = mod
                     return mod
-                elseif not res then
-                    kernel.io.println("Searcher for '" .. tostring(module) .. "' loading failed: " .. tostring(mod))
+                elseif not mod and reason then
+                    kernel.io.println("Searcher for '" .. tostring(module) .. "' loading failed: " .. tostring(reason))
                 end
             end
             kernel.userspace.package.loading[module] = nil

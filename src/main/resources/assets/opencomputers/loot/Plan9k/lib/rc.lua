@@ -7,18 +7,6 @@ local loaded = {}
 
 local rc = {}
 
-local function loadConfig()
-  local env = {}
-  local result, reason = loadfile('/etc/rc.cfg', 't', env)
-  if result then
-    result, reason = xpcall(result, debug.traceback)
-    if result then
-      return env
-    end
-  end
-  return nil, reason
-end
-
 local function saveConfig(conf)
   local file, reason = io.open('/etc/rc.cfg', 'w')
   if not file then
@@ -30,6 +18,21 @@ local function saveConfig(conf)
   
   file:close()
   return true
+end
+
+local function loadConfig()
+  local env = {}
+  if not fs.exists('/etc/rc.cfg') then
+    saveConfig({enabled={}})
+  end
+  local result, reason = loadfile('/etc/rc.cfg', 't', env)
+  if result then
+    result, reason = xpcall(result, debug.traceback)
+    if result then
+      return env
+    end
+  end
+  return nil, reason
 end
 
 function rc.load(name, args)

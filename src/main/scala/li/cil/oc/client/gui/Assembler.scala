@@ -1,7 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.client.gui.widget.ProgressBar
@@ -36,17 +34,13 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   var info: Option[(Boolean, IChatComponent, Array[IChatComponent])] = None
 
-  private def assemblerContainer = inventorySlots.asInstanceOf[container.Assembler]
-
   protected var runButton: ImageButton = _
 
   private val progress = addWidget(new ProgressBar(28, 92))
 
-  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+  private def validate = AssemblerTemplates.select(inventoryContainer.getSlot(0).getStack).map(_.validate(inventoryContainer.otherInventory))
 
-  private def validate = AssemblerTemplates.select(assemblerContainer.getSlot(0).getStack).map(_.validate(assemblerContainer.otherInventory))
-
-  private def canBuild = !assemblerContainer.isAssembling && validate.exists(_._1)
+  private def canBuild = !inventoryContainer.isAssembling && validate.exists(_._1)
 
   protected override def actionPerformed(button: GuiButton) {
     if (button.id == 0 && canBuild) {
@@ -62,14 +56,14 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
-    if (!assemblerContainer.isAssembling) {
+    if (!inventoryContainer.isAssembling) {
       val message =
-        if (!assemblerContainer.getSlot(0).getHasStack) {
+        if (!inventoryContainer.getSlot(0).getHasStack) {
           Localization.Assembler.InsertTemplate
         }
         else info match {
           case Some((_, value, _)) if value != null => value.getUnformattedText
-          case _ if assemblerContainer.getSlot(0).getHasStack => Localization.Assembler.CollectResult
+          case _ if inventoryContainer.getSlot(0).getHasStack => Localization.Assembler.CollectResult
           case _ => ""
         }
       fontRendererObj.drawString(message, 30, 94, 0x404040)
@@ -86,8 +80,8 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     }
     else if (func_146978_c(progress.x, progress.y, progress.width, progress.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      val timeRemaining = formatTime(assemblerContainer.assemblyRemainingTime)
-      tooltip.add(Localization.Assembler.Progress(assemblerContainer.assemblyProgress, timeRemaining))
+      val timeRemaining = formatTime(inventoryContainer.assemblyRemainingTime)
+      tooltip.add(Localization.Assembler.Progress(inventoryContainer.assemblyProgress, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()
@@ -103,13 +97,11 @@ class Assembler(playerInventory: InventoryPlayer, val assembler: tileentity.Asse
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     mc.renderEngine.bindTexture(Textures.guiRobotAssembler)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
-    if (assemblerContainer.isAssembling) progress.level = assemblerContainer.assemblyProgress / 100.0
+    if (inventoryContainer.isAssembling) progress.level = inventoryContainer.assemblyProgress / 100.0
     else progress.level = 0
     drawWidgets()
     drawInventorySlots()
   }
 
   override protected def drawDisabledSlot(slot: ComponentSlot) {}
-
-  override def doesGuiPauseGame = false
 }

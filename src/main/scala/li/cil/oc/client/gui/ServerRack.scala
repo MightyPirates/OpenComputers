@@ -1,7 +1,5 @@
 package li.cil.oc.client.gui
 
-import java.util
-
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
@@ -35,8 +33,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
     case _ => Localization.ServerRack.None
   }
 
-  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-
   protected override def actionPerformed(button: GuiButton) {
     if (button.id >= 0 && button.id <= 3) {
       ClientPacketSender.sendServerPower(rack, button.id, !rack.isRunning(button.id))
@@ -46,7 +42,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       val sides = ForgeDirection.VALID_DIRECTIONS.map(Option(_)) ++ Seq(None)
       val currentSide = sides.indexOf(rack.sides(number))
       val searchSides = sides.drop(currentSide + 1) ++ sides.take(currentSide + 1)
-      val nextSide = searchSides.find(side => side != Option(ForgeDirection.SOUTH) && (!rack.sides.contains(side) || side == None)) match {
+      val nextSide = searchSides.find(side => side != Option(ForgeDirection.SOUTH) && (!rack.sides.contains(side) || side.isEmpty)) match {
         case Some(side) => side
         case _ => None
       }

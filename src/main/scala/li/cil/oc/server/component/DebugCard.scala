@@ -19,16 +19,17 @@ import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.server.component.DebugCard.CommandSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.JsonToNBT
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.management.UserListOpsEntry
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.IChatComponent
 import net.minecraft.world.World
 import net.minecraft.world.WorldServer
@@ -413,6 +414,34 @@ object DebugCard {
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       val block = world.getBlock(x, y, z)
       result(block != null && block.hasTileEntity(world.getBlockMetadata(x, y, z)))
+    }
+
+    @Callback(doc = """function(x:number, y:number, z:number):table -- Get the NBT of the block at the specified coordinates.""")
+    def getTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      world.getTileEntity(x, y, z) match {
+        case tileEntity: TileEntity => result(toNbt(tileEntity).toTypedMap)
+        case _ => null
+      }
+    }
+
+    @Callback(doc = """function(x:number, y:number, z:number, nbt:table):boolean -- Set the NBT of the block at the specified coordinates.""")
+    def setTileNBT(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      world.getTileEntity(x, y, z) match {
+        case tileEntity: TileEntity =>
+          typedMapToNbt(mapAsScalaMap(args.checkTable(3)).toMap) match {
+            case nbt: NBTTagCompound =>
+              tileEntity.readFromNBT(nbt)
+              tileEntity.markDirty()
+              world.markBlockForUpdate(x, y, z)
+              result(true)
+            case nbt => result(null, s"nbt tag compound expected, got '${NBTBase.NBTTypes(nbt.getId)}'")
+          }
+        case _ => result(null, "no tile entity")
+      }
     }
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the light opacity of the block at the specified coordinates.""")

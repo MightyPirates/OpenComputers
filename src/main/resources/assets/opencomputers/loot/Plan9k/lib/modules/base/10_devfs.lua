@@ -27,6 +27,9 @@ proxy.open = function(path)
     local seg = kernel.modules.vfs.segments(path)
     local file = data
     for _, d in pairs(seg) do
+        if not file[d] then
+            return nil, "File not found"
+        end
         file = file[d]
     end
     local hnd = allocator:get()

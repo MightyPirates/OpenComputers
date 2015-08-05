@@ -35,12 +35,15 @@ local firstFree = 1
 local nextUid = 1
 
 function kill(pid)
+    kernel.modules.gc.processkilled(threads[pid])
     threads[pid] = {next = firstFree}
     firstFree = pid
     eachThread(function(thread)
         if thread.coro then
             if thread.currentHandler == "kill" then
                 thread.eventQueue[#thread.eventQueue + 1] = {"kill", pid}
+            else
+                thread.eventQueue[#thread.eventQueue + 1] = {"signal", "kill", pid}
             end
             thread.eventQueue[#thread.eventQueue + 1] = sig
         end
@@ -112,18 +115,18 @@ computer.pullSignal = function()
     pcall(kernel._println, "Attempted to use non threaded signal pulling")
     pcall(kernel._println, debug.traceback())
     kernel.panic()
-    --error("Attempted to use non threaded signal pulling")
 end
 
 
 local function processSignals()
     deadline = math.huge
     for _, thread in ipairs(threads) do
-        if (thread.currentHandler == "yield" or thread.currentHandler == "signal") and deadline > (thread.currentHandlerArg or math.huge) then
+        if (thread.currentHandler == "yield" or thread.currentHandler == "signal")
+                and deadline > (tonumber(thread.currentHandlerArg) or math.huge) then
             deadline = thread.currentHandlerArg or math.huge
         end
     end
-    
+    --kernel.io.println("Deadline: "..(deadline - computer.uptime()))
     local sig = {"signal", pullSignal(deadline - computer.uptime())}
     
     for _, thread in ipairs(threads) do
@@ -133,7 +136,8 @@ local function processSignals()
                 table.remove(thread.eventQueue, oldest)
             end
             if thread.currentHandler == "yield" then
-                if thread.currentHandlerArg <= computer.uptime() then
+                --kernel.io.println("yield ck: "..tostring((thread.currentHandlerArg or math.huge) - computer.uptime()))
+                if (thread.currentHandlerArg or math.huge) <= computer.uptime() then
                     thread.eventQueue[#thread.eventQueue + 1] = {"yield"}
                 end
             end
@@ -163,8 +167,28 @@ end
 
 function start()
     while true do
-        local pending = getPendingThreads()
-        local resumable = getResumableThreads(pending)
+        -- pending = getPendingThreads()
+        --local resumable = getResumableThreads(pending)
+        
+        local pending = {}
+        for _, thread in ipairs(threads) do
+            if thread.coro and #thread.eventQueue > 0 then
+                pending[#pending + 1] = thread
+            end
+        end
+        
+        local resumable = {}
+        for _,thread in ipairs(pending) do
+            for n,event in ipairs(thread.eventQueue) do
+                if event[1] == thread.currentHandler then
+                    table.remove(thread.eventQueue, n)
+                    thread.currentEvent = event
+                    resumable[#resumable + 1] = thread
+                    break
+                end
+            end
+        end
+        
         lastYield = computer.uptime()
         while #resumable > 0 do
             for _, thread in ipairs(resumable) do
