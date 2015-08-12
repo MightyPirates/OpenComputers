@@ -50,7 +50,7 @@ trait InventoryControl extends InventoryAware {
   @Callback(doc = "function(toSlot:number[, amount:number]):boolean -- Move up to the specified amount of items from the selected slot into the specified slot.")
   def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
-    val count = args.optionalItemCount(1)
+    val count = args.optItemCount(1)
     if (slot == selectedSlot || count == 0) {
       result(true)
     }

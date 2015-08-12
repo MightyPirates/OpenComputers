@@ -12,17 +12,13 @@ object ExtendedArguments {
   implicit def extendedArguments(args: Arguments): ExtendedArguments = new ExtendedArguments(args)
 
   class ExtendedArguments(val args: Arguments) {
-    def optionalItemCount(n: Int) =
-      if (args.count > n && args.checkAny(n) != null) {
-        math.max(0, math.min(64, args.checkInteger(n)))
-      }
-      else 64
+    def optItemCount(index: Int, default: Int = 64) =
+      if (!isDefined(index) || !hasValue(index)) default
+      else math.max(0, math.min(64, args.checkInteger(index)))
 
-    def optionalFluidCount(n: Int) =
-      if (args.count > n && args.checkAny(n) != null) {
-        math.max(0, args.checkInteger(n))
-      }
-      else 1000
+    def optFluidCount(index: Int, default: Int = 1000) =
+      if (!isDefined(index) || !hasValue(index)) default
+      else math.max(0, args.checkInteger(index))
 
     def checkSlot(inventory: IInventory, n: Int) = {
       val slot = args.checkInteger(n) - 1
@@ -32,9 +28,9 @@ object ExtendedArguments {
       slot
     }
 
-    def optSlot(inventory: IInventory, n: Int, default: Int) = {
-      if (n >= 0 && n < args.count()) checkSlot(inventory, n)
-      else default
+    def optSlot(inventory: IInventory, index: Int, default: Int) = {
+      if (!isDefined(index)) default
+      else checkSlot(inventory, index)
     }
 
     def checkTank(multi: MultiTank, n: Int) = {
@@ -45,14 +41,26 @@ object ExtendedArguments {
       tank
     }
 
-    def checkSideForAction(n: Int) = checkSide(n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
+    def checkSideForAction(index: Int) = checkSide(index, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
 
-    def checkSideForMovement(n: Int) = checkSide(n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN)
+    def optSideForAction(index: Int, default: ForgeDirection) =
+      if (!isDefined(index)) default
+      else checkSideForAction(index)
 
-    def checkSideForFace(n: Int, facing: ForgeDirection) = checkSide(n, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite): _*)
+    def checkSideForMovement(index: Int) = checkSide(index, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN)
 
-    def checkSide(n: Int, allowed: ForgeDirection*) = {
-      val side = args.checkInteger(n)
+    def optSideForMovement(index: Int, default: ForgeDirection) =
+      if (!isDefined(index)) default
+      else checkSideForMovement(index)
+
+    def checkSideForFace(index: Int, facing: ForgeDirection) = checkSide(index, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite): _*)
+
+    def optSideForFace(index: Int, default: ForgeDirection) =
+      if (!isDefined(index)) default
+      else checkSideForAction(index)
+
+    def checkSide(index: Int, allowed: ForgeDirection*) = {
+      val side = args.checkInteger(index)
       if (side < 0 || side > 5) {
         throw new IllegalArgumentException("invalid side")
       }
@@ -60,6 +68,15 @@ object ExtendedArguments {
       if (allowed.isEmpty || (allowed contains direction)) direction
       else throw new IllegalArgumentException("unsupported side")
     }
+
+    def optSide(index: Int, default: ForgeDirection, allowed: ForgeDirection*) = {
+      if (!isDefined(index)) default
+      else checkSide(index, allowed: _*)
+    }
+
+    private def isDefined(index: Int) = index >= 0 && index < args.count()
+
+    private def hasValue(index: Int) = args.checkAny(index) != null
   }
 
 }
