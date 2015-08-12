@@ -66,7 +66,7 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
     // Ensure the message originated in our local network, to avoid infinite
     // recursion if two unconnected servers are in one server rack.
     if (rack.internalSwitch && message.name == "network.message" &&
-      rack.sides(this.slot) == None && // Only if we're in internal mode.
+      rack.sides(this.slot).isEmpty && // Only if we're in internal mode.
       message.source != machine.node && // In this case it was relayed from another internal machine.
       node.network.node(message.source.address) != null) {
       for (slot <- rack.servers.indices) {

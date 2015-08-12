@@ -55,7 +55,7 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     }
   }
 
-  @Callback(doc = """function(address:string[,reset:boolean=true]):boolean -- Binds the GPU to the screen with the specified address and resets screen settings if `reset` is true.""")
+  @Callback(doc = """function(address:string[, reset:boolean=true]):boolean -- Binds the GPU to the screen with the specified address and resets screen settings if `reset` is true.""")
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val reset = args.optBoolean(1, true)
@@ -74,6 +74,7 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
             s.setForegroundColor(0xFFFFFF)
             s.setBackgroundColor(0x000000)
           }
+          else context.pause(0.2) // To discourage outputting "in realtime" to multiple screens using one GPU.
           result(true)
         })
       case _ => result(Unit, "not a screen")
