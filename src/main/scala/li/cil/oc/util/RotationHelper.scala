@@ -21,12 +21,12 @@ object RotationHelper {
     inverseTranslationFor(pitch, yaw)(value.ordinal)
 
   def translationFor(pitch: ForgeDirection, yaw: ForgeDirection) =
-    translationCache.
+    translationCache.synchronized(translationCache.
       getOrElseUpdate(pitch, mutable.Map.empty).
-      getOrElseUpdate(yaw, translations(pitch.ordinal)(yaw.ordinal - 2))
+      getOrElseUpdate(yaw, translations(pitch.ordinal)(yaw.ordinal - 2)))
 
   def inverseTranslationFor(pitch: ForgeDirection, yaw: ForgeDirection) =
-    inverseTranslationCache.
+    inverseTranslationCache.synchronized(inverseTranslationCache.
       getOrElseUpdate(pitch, mutable.Map.empty).
       getOrElseUpdate(yaw, {
       val t = translationFor(pitch, yaw)
@@ -35,7 +35,7 @@ object RotationHelper {
         map(t.indexOf).
         map(ForgeDirection.getOrientation).
         toArray
-    })
+    }))
 
   // ----------------------------------------------------------------------- //
 
