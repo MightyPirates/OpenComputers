@@ -55,22 +55,26 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     }
   }
 
-  @Callback(doc = """function(address:string):boolean -- Binds the GPU to the screen with the specified address.""")
+  @Callback(doc = """function(address:string[, reset:boolean=true]):boolean -- Binds the GPU to the screen with the specified address and resets screen settings if `reset` is true.""")
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
+    val reset = args.optBoolean(1, true)
     node.network.node(address) match {
       case null => result(Unit, "invalid address")
       case node: Node if node.host.isInstanceOf[TextBuffer] =>
         screenAddress = Option(address)
         screenInstance = Some(node.host.asInstanceOf[TextBuffer])
         screen(s => {
-          val (gmw, gmh) = maxResolution
-          val smw = s.getMaximumWidth
-          val smh = s.getMaximumHeight
-          s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
-          s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
-          s.setForegroundColor(0xFFFFFF)
-          s.setBackgroundColor(0x000000)
+          if (reset) {
+            val (gmw, gmh) = maxResolution
+            val smw = s.getMaximumWidth
+            val smh = s.getMaximumHeight
+            s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
+            s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+            s.setForegroundColor(0xFFFFFF)
+            s.setBackgroundColor(0x000000)
+          }
+          else context.pause(0.2) // To discourage outputting "in realtime" to multiple screens using one GPU.
           result(true)
         })
       case _ => result(Unit, "not a screen")

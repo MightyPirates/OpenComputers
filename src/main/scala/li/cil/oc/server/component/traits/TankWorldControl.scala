@@ -36,7 +36,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
   @Callback(doc = "function(side:boolean[, amount:number=1000]):boolean, number or string -- Drains the specified amount of fluid from the specified side. Returns the amount drained, or an error message.")
   def drain(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = args.optionalFluidCount(1)
+    val count = args.optFluidCount(1)
     getTank(selectedTank) match {
       case Some(tank) =>
         val space = tank.getCapacity - tank.getFluidAmount
@@ -97,7 +97,7 @@ trait TankWorldControl extends TankAware with WorldAware with SideRestricted {
   @Callback(doc = "function(side:number[, amount:number=1000]):boolean, number of string -- Eject the specified amount of fluid to the specified side. Returns the amount ejected or an error message.")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = args.optionalFluidCount(1)
+    val count = args.optFluidCount(1)
     getTank(selectedTank) match {
       case Some(tank) =>
         val amount = math.min(count, tank.getFluidAmount)

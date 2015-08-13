@@ -241,9 +241,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: EnumFacing) = value // -T-O-D-O- do we care? no we don't
+  override def toLocal(value: EnumFacing) =
+    RotationHelper.toLocal(EnumFacing.NORTH, facing, value)
 
-  override def toGlobal(value: EnumFacing) = value // -T-O-D-O- do we care? no we don't
+  override def toGlobal(value: EnumFacing) =
+    RotationHelper.toGlobal(EnumFacing.NORTH, facing, value)
 
   def readFromNBT() {
     if (stack.hasTagCompound) {

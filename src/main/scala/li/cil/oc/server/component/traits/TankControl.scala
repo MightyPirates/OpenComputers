@@ -53,7 +53,7 @@ trait TankControl extends TankAware {
   @Callback(doc = "function(index:number[, count:number=1000]):boolean -- Move the specified amount of fluid from the selected tank into the specified tank.")
   def transferFluidTo(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkTank(tank, 0)
-    val count = args.optionalFluidCount(1)
+    val count = args.optFluidCount(1)
     if (index == selectedTank || count == 0) {
       result(true)
     }

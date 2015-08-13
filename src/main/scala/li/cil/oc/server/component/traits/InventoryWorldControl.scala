@@ -33,7 +33,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
   @Callback(doc = "function(side:number[, count:number=64]):boolean -- Drops items from the selected slot towards the specified side.")
   def drop(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = args.optionalItemCount(1)
+    val count = args.optItemCount(1)
     val stack = inventory.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
       val blockPos = position.offset(facing)
@@ -69,7 +69,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
   @Callback(doc = "function(side:number[, count:number=64]):boolean -- Suck up items from the specified side.")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = args.optionalItemCount(1)
+    val count = args.optItemCount(1)
 
     val blockPos = position.offset(facing)
     if (InventoryUtils.inventoryAt(blockPos).exists(inventory => {
