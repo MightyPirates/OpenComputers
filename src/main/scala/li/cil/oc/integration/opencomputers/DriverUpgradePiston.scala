@@ -5,7 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
-import li.cil.oc.api.internal.Rotatable
+import li.cil.oc.api.internal
 import li.cil.oc.common.Slot
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
@@ -15,7 +15,9 @@ object DriverUpgradePiston extends Item with HostAware with EnvironmentAware {
     api.Items.get(Constants.ItemName.PistonUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = host match {
-    case rotatable: Rotatable with EnvironmentHost => new component.UpgradePiston(rotatable)
+    case host: internal.Drone => new component.UpgradePiston.Drone(host)
+    case host: internal.Tablet => new component.UpgradePiston.Tablet(host)
+    case host: internal.Rotatable with EnvironmentHost => new component.UpgradePiston.Rotatable(host)
     case _ => null
   }
 
