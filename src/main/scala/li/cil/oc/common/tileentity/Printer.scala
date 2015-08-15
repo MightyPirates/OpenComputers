@@ -6,6 +6,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -48,10 +49,10 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
 
-  override def currentState = {
-    if (isPrinting) util.EnumSet.of(traits.State.IsWorking)
-    else if (canPrint) util.EnumSet.of(traits.State.CanWork)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isPrinting) util.EnumSet.of(internal.StateAware.State.IsWorking)
+    else if (canPrint) util.EnumSet.of(internal.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

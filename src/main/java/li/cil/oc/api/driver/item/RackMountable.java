@@ -1,5 +1,7 @@
 package li.cil.oc.api.driver.item;
 
+import li.cil.oc.api.internal.StateAware;
+import li.cil.oc.api.network.Analyzable;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Node;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,8 +15,14 @@ import net.minecraft.entity.player.EntityPlayer;
  * access nodes provided by the environment (e.g. multiple "interfacing"
  * nodes for a switch), and connect the nodes to the corresponding buses as
  * defined by the rack's configuration.
+ * <p/>
+ * Note: mountables may implement the {@link li.cil.oc.api.driver.EnvironmentHost}
+ * interface together with the {@link net.minecraft.inventory.IInventory} interface.
+ * In this case, if they contain a redstone card and have a state of <tt>State.IsWorking</tt>
+ * the rack will visually connect to redstone, for example. Same goes for
+ * abstract bus cards, and potentially more things in the future.
  */
-public interface RackMountable extends ManagedEnvironment {
+public interface RackMountable extends ManagedEnvironment, Analyzable, StateAware {
     /**
      * The number of nodes exposed by the environment.
      */

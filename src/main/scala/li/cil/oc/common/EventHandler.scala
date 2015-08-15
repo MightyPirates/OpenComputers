@@ -366,7 +366,7 @@ object EventHandler {
         }
         case rack: ServerRack =>
           (0 until rack.getSizeInventory).
-            map(rack.server).
+            map(rack.getMountable).
             filter(_ != null).
             map(_.machine()).
             filter(_ != null).

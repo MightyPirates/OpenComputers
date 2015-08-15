@@ -7,12 +7,12 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.Machine
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Node
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
-import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
 import li.cil.oc.integration.util.Waila
@@ -67,9 +67,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     _users ++= list
   }
 
-  override def currentState = {
-    if (isRunning) util.EnumSet.of(traits.State.IsWorking)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isRunning) util.EnumSet.of(internal.StateAware.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

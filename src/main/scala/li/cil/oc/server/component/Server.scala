@@ -1,11 +1,13 @@
 package li.cil.oc.server.component
 
 import java.lang.Iterable
+import java.util
 
 import li.cil.oc.api
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver
 import li.cil.oc.api.internal
+import li.cil.oc.api.internal.StateAware.State
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
@@ -39,6 +41,10 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def getCurrentState: util.EnumSet[State] = ???
+
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = ???
 
   override def getNodeCount: Int = ???
 

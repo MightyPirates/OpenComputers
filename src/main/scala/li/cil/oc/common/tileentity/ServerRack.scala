@@ -9,6 +9,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.item.RackMountable
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._
@@ -59,7 +60,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   relayAmount = math.max(1, relayBaseAmount + (builtInSwitchTier + 1) * relayAmountPerUpgrade)
   maxQueueSize = math.max(1, queueBaseSize + (builtInSwitchTier + 1) * queueSizePerUpgrade)
 
-  override def server(slot: Int) = servers(slot).orNull
+  override def getMountable(slot: Int): RackMountable = null
+
+  def server(slot: Int) = servers(slot).orNull
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
@@ -97,9 +100,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   def anyRunning = servers.indices.exists(isRunning)
 
-  override def currentState = {
-    if (anyRunning) util.EnumSet.of(traits.State.IsWorking)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (anyRunning) util.EnumSet.of(internal.StateAware.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

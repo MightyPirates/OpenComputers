@@ -8,6 +8,7 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.internal
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
@@ -46,13 +47,13 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def energyThroughput = Settings.get.chargerRate
 
-  override def currentState = {
+  override def getCurrentState = {
     // TODO Refine to only report working if present robots/drones actually *need* power.
     if (connectors.nonEmpty) {
-      if (hasPower) util.EnumSet.of(traits.State.IsWorking)
-      else util.EnumSet.of(traits.State.CanWork)
+      if (hasPower) util.EnumSet.of(internal.StateAware.State.IsWorking)
+      else util.EnumSet.of(internal.StateAware.State.CanWork)
     }
-    else util.EnumSet.noneOf(classOf[traits.State])
+    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
   }
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {

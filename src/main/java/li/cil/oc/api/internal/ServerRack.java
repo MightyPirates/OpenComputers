@@ -1,5 +1,6 @@
 package li.cil.oc.api.internal;
 
+import li.cil.oc.api.driver.item.RackMountable;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.inventory.IInventory;
@@ -29,10 +30,5 @@ public interface ServerRack extends Environment, SidedEnvironment, Rotatable, II
      *
      * @return the server currently hosted in the specified slot.
      */
-    Server server(int slot);
-
-    /**
-     * The currently set wireless range in which remote terminals work.
-     */
-    int range();
+    RackMountable getMountable(int slot);
 }

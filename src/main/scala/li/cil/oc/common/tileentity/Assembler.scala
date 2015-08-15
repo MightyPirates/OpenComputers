@@ -6,6 +6,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -43,10 +44,10 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override def energyThroughput = Settings.get.assemblerRate
 
-  override def currentState = {
-    if (isAssembling) util.EnumSet.of(traits.State.IsWorking)
-    else if (canAssemble) util.EnumSet.of(traits.State.CanWork)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isAssembling) util.EnumSet.of(internal.StateAware.State.IsWorking)
+    else if (canAssemble) util.EnumSet.of(internal.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //
