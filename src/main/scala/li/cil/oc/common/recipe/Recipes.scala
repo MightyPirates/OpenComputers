@@ -326,6 +326,12 @@ object Recipes {
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(
         lightPrint,
         print.createItemStack(1), new ItemStack(net.minecraft.init.Blocks.glowstone)))
+
+      // Switch/AccessPoint -> Relay conversion
+      GameRegistry.addShapelessRecipe(api.Items.get(Constants.BlockName.Relay).createItemStack(1),
+        api.Items.get(Constants.BlockName.AccessPoint).createItemStack(1))
+      GameRegistry.addShapelessRecipe(api.Items.get(Constants.BlockName.Relay).createItemStack(1),
+        api.Items.get(Constants.BlockName.Switch).createItemStack(1))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

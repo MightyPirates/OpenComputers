@@ -59,6 +59,7 @@ object Textures {
     val RobotSelection = L("robot_selection")
     val Server = L("server")
     val Slot = L("slot")
+    val UpgradeTab = L("upgrade_tab")
     val Waypoint = L("waypoint")
 
     override protected def basePath = "textures/gui/%s.png"

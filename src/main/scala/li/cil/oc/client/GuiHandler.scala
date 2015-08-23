@@ -36,12 +36,14 @@ object GuiHandler extends CommonGuiHandler {
             new gui.DiskDrive(player.inventory, t)
           case t: tileentity.Printer if id == GuiType.Printer.id =>
             new gui.Printer(player.inventory, t)
-          case t: tileentity.Raid if id == GuiType.Raid.id =>
-            new gui.Raid(player.inventory, t)
-          case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
-            new gui.Robot(player.inventory, t.robot)
           case t: tileentity.ServerRack if id == GuiType.Rack.id =>
             new gui.ServerRack(player.inventory, t)
+          case t: tileentity.Raid if id == GuiType.Raid.id =>
+            new gui.Raid(player.inventory, t)
+          case t: tileentity.Relay if id == GuiType.Relay.id =>
+            new gui.Relay(player.inventory, t)
+          case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
+            new gui.Robot(player.inventory, t.robot)
           case t: tileentity.Screen if id == GuiType.Screen.id =>
             new gui.Screen(t.origin.buffer, t.tier > 0, () => t.origin.hasKeyboard, () => t.origin.buffer.isRenderingEnabled)
           case t: tileentity.Switch if id == GuiType.Switch.id =>

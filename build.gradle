@@ -45,11 +45,12 @@ def getGitRef() {
 
 if (System.getenv("BUILD_NUMBER") != null)
     version += ".${System.getenv("BUILD_NUMBER")}"
-else
-    version += "-" + getGitRef()
 
 if (config.oc.subversion != null && config.oc.subversion != "")
     version += "-${config.oc.subversion}"
+
+if (System.getenv("BUILD_NUMBER") == null)
+    version += "+" + getGitRef()
 
 ext.simpleVersion = version
 version = "MC${config.minecraft.version}-${project.version}"

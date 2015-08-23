@@ -5,11 +5,11 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.nbt.NBTTagCompound
 
-// TODO Remove in 1.7
-class Switch(playerInventory: InventoryPlayer, switch: tileentity.Switch) extends Player(playerInventory, switch) {
+class Relay(playerInventory: InventoryPlayer, relay: tileentity.Relay) extends Player(playerInventory, relay) {
   addSlotToContainer(151, 15, Slot.CPU)
   addSlotToContainer(151, 34, Slot.Memory)
   addSlotToContainer(151, 53, Slot.HDD)
+  addSlotToContainer(178, 15, Slot.Card)
   addPlayerInventorySlots(8, 84)
 
   def relayDelay = synchronizedData.getInteger("relayDelay")
@@ -23,11 +23,11 @@ class Switch(playerInventory: InventoryPlayer, switch: tileentity.Switch) extend
   def queueSize = synchronizedData.getInteger("queueSize")
 
   override protected def detectCustomDataChanges(nbt: NBTTagCompound): Unit = {
-    synchronizedData.setInteger("relayDelay", switch.relayDelay)
-    synchronizedData.setInteger("relayAmount", switch.relayAmount)
-    synchronizedData.setInteger("maxQueueSize", switch.maxQueueSize)
-    synchronizedData.setInteger("packetsPerCycleAvg", switch.packetsPerCycleAvg())
-    synchronizedData.setInteger("queueSize", switch.queue.size)
+    synchronizedData.setInteger("relayDelay", relay.relayDelay)
+    synchronizedData.setInteger("relayAmount", relay.relayAmount)
+    synchronizedData.setInteger("maxQueueSize", relay.maxQueueSize)
+    synchronizedData.setInteger("packetsPerCycleAvg", relay.packetsPerCycleAvg())
+    synchronizedData.setInteger("queueSize", relay.queue.size)
     super.detectCustomDataChanges(nbt)
   }
 }

@@ -15,6 +15,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
+// TODO Remove in 1.7
 class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor {
   var strength = Settings.get.maxWirelessRange
 
@@ -23,6 +24,8 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withComponent("access_point").
     create())
+
+  override def isWirelessEnabled = true
 
   // ----------------------------------------------------------------------- //
 
@@ -71,7 +74,7 @@ class AccessPoint extends Switch with WirelessEndpoint with traits.PowerAcceptor
 
   override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     super.relayPacket(sourceSide, packet)
-    if (strength > 0 && (sourceSide != None || isRepeater)) {
+    if (strength > 0 && (sourceSide.isDefined || isRepeater)) {
       val cost = Settings.get.wirelessCostPerRange
       val tryChangeBuffer = sourceSide match {
         case Some(side) =>

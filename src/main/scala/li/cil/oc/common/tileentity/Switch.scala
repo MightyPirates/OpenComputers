@@ -6,25 +6,49 @@ import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.server.PacketSender
+import li.cil.oc.integration.Mods
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 
-class Switch extends traits.Hub with traits.NotAnalyzable with traits.ComponentInventory {
-  var lastMessage = 0L
+// TODO Remove in 1.7
+class Switch extends traits.SwitchLike with traits.NotAnalyzable with traits.ComponentInventory {
+  override def isWirelessEnabled = false
+
+  override def isLinkedEnabled = false
 
   override def canUpdate = isServer
 
   // ----------------------------------------------------------------------- //
 
+  protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
+    /* TODO ComputerCraft
+    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
+      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
+      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
+        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
+          case x: Array[Byte] => new String(x, Charsets.UTF_8)
+          case x => x
+        }: _*))
+    }
+    */
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def tryEnqueuePacket(sourceSide: Option[EnumFacing], packet: Packet): Boolean = {
+    if (Mods.ComputerCraft.isAvailable) {
+      packet.data.headOption match {
+        case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
+        case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+      }
+    }
+    super.tryEnqueuePacket(sourceSide, packet)
+  }
+
   override protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
     super.relayPacket(sourceSide, packet)
-    val now = System.currentTimeMillis()
-    if (now - lastMessage >= (relayDelay - 1) * 50) {
-      lastMessage = now
-      PacketSender.sendSwitchActivity(this)
-    }
+    onSwitchActivity()
   }
 
   // ----------------------------------------------------------------------- //
