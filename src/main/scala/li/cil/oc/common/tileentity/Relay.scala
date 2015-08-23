@@ -47,7 +47,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   var tunnel = "creative"
 
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
-    withComponent("access_point").
+    withComponent("relay").
     create())
 
   override def canUpdate = isServer
@@ -148,7 +148,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
       }
     }
 
-    if (isLinkedEnabled && (sourceSide.isDefined || isRepeater)) {
+    if (isLinkedEnabled && sourceSide.isDefined) {
       val cost = packet.size / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5
       if (tryChangeBuffer(-cost)) {
         val endpoints = QuantumNetwork.getEndpoints(tunnel).filter(_ != this)
