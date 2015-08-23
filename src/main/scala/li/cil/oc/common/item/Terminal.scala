@@ -73,7 +73,7 @@ class Terminal(val parent: Delegator) extends traits.Delegate {
                 }
                 keys += key
                 terminal.connect(server.machine.node)
-                ServerPacketSender.sendServerState(rack, slot)
+//                ServerPacketSender.sendServerState(rack, slot)
                 stack.getTagCompound.setString(Settings.namespace + "key", key)
                 stack.getTagCompound.setString(Settings.namespace + "server", server.machine.node.address)
                 player.inventory.markDirty()

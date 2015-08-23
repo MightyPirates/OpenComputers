@@ -61,7 +61,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
   // AbstractBusAware
 
-  override def installedComponents: Iterable[ManagedEnvironment] = ???
+  override def installedComponents: Iterable[ManagedEnvironment] = Iterable.empty // TODO
 
   @Method(modid = Mods.IDs.StargateTech2)
   override def getInterfaces(side: Int) = if (side != facing.ordinal) {
@@ -125,7 +125,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     if (isServer) {
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
-      //      ServerPacketSender.sendServerPresence(this) TODO
+      ServerPacketSender.sendServerPresence(this)
     }
     else {
       world.markBlockForUpdate(x, y, z)
@@ -142,7 +142,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
       components.zipWithIndex.collect {
         case (Some(mountable: RackMountable), slot) if isWorking(mountable) != lastWorking(slot) =>
           lastWorking(slot) = isWorking(mountable)
-//          ServerPacketSender.sendServerState(this, slot) TODO
+          ServerPacketSender.sendServerState(this, slot)
           world.notifyBlocksOfNeighborChange(x, y, z, block)
           // These are working state dependent, so recompute them.
           isOutputEnabled = hasRedstoneCard
@@ -157,11 +157,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   def stacksForSide(side: ForgeDirection): IndexedSeq[ItemStack] =
     if (side == facing) new Array[ItemStack](4)
-    else nodeMapping(toLocal(side.ordinal)).map(info => getStackInSlot(info._1))
+    else nodeMapping(toLocal(side).ordinal).map(info => getStackInSlot(info._1))
 
   def nodesForSide(side: ForgeDirection): IndexedSeq[Node] =
     if (side == facing) new Array[Node](4)
-    else nodeMapping(toLocal(side.ordinal)).map {
+    else nodeMapping(toLocal(side).ordinal).map {
       case (slot, nodeNum) => (components(slot), nodeNum)
     }.collect {
       case (Some(mountable: RackMountable), nodeNum) => mountable.getNodeAt(nodeNum)

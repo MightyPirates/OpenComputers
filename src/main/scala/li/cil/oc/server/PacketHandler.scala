@@ -225,7 +225,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(rack) => p.player match {
         case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           rack.range = math.min(math.max(0, p.readInt()), Settings.get.maxWirelessRange).toInt
-          PacketSender.sendServerState(rack)
+//          PacketSender.sendServerState(rack)
         case _ =>
       }
       case _ => // Invalid packet.
@@ -243,9 +243,9 @@ object PacketHandler extends CommonPacketHandler {
               case Some(server) => rack.reconnectServer(number, server)
               case _ =>
             }
-            PacketSender.sendServerState(rack, number)
+//            PacketSender.sendServerState(rack, number)
           }
-          else PacketSender.sendServerState(rack, number, Some(player))
+//          else PacketSender.sendServerState(rack, number, Some(player))
         case _ =>
       }
       case _ => // Invalid packet.

@@ -110,14 +110,14 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   def markForSaving() = markChunkDirty = true
 
   override def installedComponents = servers.flatMap {
-    case Some(server) => server.inventory.components collect {
+    case Some(server) => server.components collect {
       case Some(component) => component
     }
     case _ => Iterable.empty
   }
 
   def hasAbstractBusCard = servers exists {
-    case Some(server) => server.machine.isRunning && server.inventory.items.exists {
+    case Some(server) => server.machine.isRunning && server.items.exists {
       case Some(stack) => DriverAbstractBusCard.worksWith(stack, server.getClass)
       case _ => false
     }
@@ -125,7 +125,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   }
 
   def hasRedstoneCard = servers exists {
-    case Some(server) => server.machine.isRunning && server.inventory.items.exists {
+    case Some(server) => server.machine.isRunning && server.items.exists {
       case Some(stack) => DriverRedstoneCard.worksWith(stack, server.getClass)
       case _ => false
     }
@@ -280,7 +280,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
         val isRunning = servers(i).fold(false)(_.machine.isRunning)
         if (_isRunning(i) != isRunning) {
           _isRunning(i) = isRunning
-          ServerPacketSender.sendServerState(this, i)
+//          ServerPacketSender.sendServerState(this, i)
           world.notifyBlocksOfNeighborChange(x, y, z, block)
         }
       }
@@ -289,7 +289,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
       servers collect {
         case Some(server) =>
-          server.inventory.updateComponents()
+          server.updateComponents()
           terminals(server.slot).buffer.update()
       }
     }
@@ -320,8 +320,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.readFromNBTForServer(nbt)
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
-        val server = new component.Server(this, slot)
-        servers(slot) = Option(server)
+//        val server = new component.Server(this, slot)
+//        servers(slot) = Option(server)
       }
     }
     nbt.getTagList(Settings.namespace + "servers", NBT.TAG_COMPOUND).toArray[NBTTagCompound].
@@ -456,11 +456,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
     if (isServer) {
-      val server = new component.Server(this, slot)
-      servers(slot) = Some(server)
-      reconnectServer(slot, server)
-      Network.joinNewNetwork(server.machine.node)
-      terminals(slot).connect(server.machine.node)
+//      val server = new component.Server(this, slot)
+//      servers(slot) = Some(server)
+//      reconnectServer(slot, server)
+//      Network.joinNewNetwork(server.machine.node)
+//      terminals(slot).connect(server.machine.node)
     }
   }
 
@@ -470,9 +470,9 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
       servers(slot) match {
         case Some(server) =>
           server.machine.node.remove()
-          server.inventory.containerOverride = stack
-          server.inventory.save(new NBTTagCompound()) // Only flush components.
-          server.inventory.markDirty()
+//          server.containerOverride = stack
+          server.save(new NBTTagCompound()) // Only flush components.
+          server.markDirty()
         case _ =>
       }
       servers(slot) = None
@@ -485,7 +485,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     if (isServer) {
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
-      ServerPacketSender.sendServerPresence(this)
+//      ServerPacketSender.sendServerPresence(this)
     }
     else {
       world.markBlockForUpdate(x, y, z)

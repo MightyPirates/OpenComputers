@@ -19,7 +19,7 @@ object OpenComputers {
 
   final val Name = "OpenComputers"
 
-  final val Version = "1.5.15"
+  final val Version = "@VERSION@"
 
   var log = LogManager.getLogger(Name)
 

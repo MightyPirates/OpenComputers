@@ -2,7 +2,9 @@ package li.cil.oc.server
 
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.item.RackMountable
 import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.internal.StateAware
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
 import li.cil.oc.common.tileentity.Waypoint
@@ -548,14 +550,14 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendServerPresence(t: tileentity.ServerRack) {
+  def sendServerPresence(t: tileentity.Rack) {
     val pb = new SimplePacketBuilder(PacketType.ServerPresence)
 
     pb.writeTileEntity(t)
-    t.servers.foreach {
-      case Some(server) =>
+    t.components.foreach {
+      case Some(mountable: RackMountable) =>
         pb.writeBoolean(true)
-        pb.writeUTF(server.machine.node.address)
+        pb.writeUTF(mountable.node.address)
       case _ =>
         pb.writeBoolean(false)
     }
@@ -563,28 +565,31 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendServerState(t: tileentity.ServerRack) {
+  def sendServerState(t: tileentity.Rack) {
     val pb = new SimplePacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
     pb.writeInt(-1)
-    pb.writeInt(t.range)
+//    pb.writeInt(t.range) TODO
 
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendServerState(t: tileentity.ServerRack, number: Int, player: Option[EntityPlayerMP] = None) {
+  def sendServerState(t: tileentity.Rack, number: Int, player: Option[EntityPlayerMP] = None) {
     val pb = new SimplePacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
     pb.writeInt(number)
-    pb.writeBoolean(t.isRunning(number))
-    pb.writeDirection(t.sides(number))
-    val keys = t.terminals(number).keys
-    pb.writeInt(keys.length)
-    for (key <- keys) {
-      pb.writeUTF(key)
-    }
+    pb.writeBoolean(t.components(number) match {
+      case Some(mountable: RackMountable) => mountable.getCurrentState.contains(StateAware.State.IsWorking)
+      case _ => false
+    })
+//    pb.writeDirection(t.sides(number)) TODO
+//    val keys = t.terminals(number).keys
+//    pb.writeInt(keys.length)
+//    for (key <- keys) {
+//      pb.writeUTF(key)
+//    }
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

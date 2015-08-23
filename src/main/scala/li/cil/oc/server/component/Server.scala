@@ -25,44 +25,77 @@ import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment with driver.item.RackMountable with MachineHost with internal.Server {
+class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with driver.item.RackMountable with internal.Server {
   val machine = Machine.create(this)
-
-  val inventory = new NetworkedInventory()
 
   // Used to grab messages when not connected to any side in the server rack.
   val node = api.Network.newNode(this, Visibility.Network).create()
 
-  machine.onHostChanged()
+  machine.onHostChanged() // TODO ???
 
-  def tier = Delegator.subItem(rack.getStackInSlot(slot)) match {
-    case Some(server: item.Server) => server.tier
-    case _ => 0
+  // ----------------------------------------------------------------------- //
+  // Environment
+
+  override def onConnect(node: Node) {
+    if (node == this.node) {
+      connectComponents()
+    }
+  }
+
+  override def onDisconnect(node: Node) {
+    if (node == this.node) {
+      disconnectComponents()
+    }
+  }
+
+  override def onMessage(message: Message) {
+    // If we're internal mode and this server is not connected to any side, we
+    // must manually propagate network messages to other servers in the rack.
+    // Ensure the message originated in our local network, to avoid infinite
+    // recursion if two unconnected servers are in one server rack.
+    //    if (rack.internalSwitch && message.name == "network.message" &&
+    //      rack.sides(this.slot).isEmpty && // Only if we're in internal mode.
+    //      message.source != machine.node && // In this case it was relayed from another internal machine.
+    //      node.network.node(message.source.address) != null) {
+    //      for (slot <- rack.servers.indices) {
+    //        rack.servers(slot) match {
+    //          case Some(server) if server != this => server.machine.node.sendToNeighbors(message.name, message.data: _*)
+    //          case _ =>
+    //        }
+    //      }
+    //    }
+  }
+
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    machine.load(nbt.getCompoundTag("machine"))
+  }
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+    nbt.setNewCompoundTag("machine", machine.save)
   }
 
   // ----------------------------------------------------------------------- //
+  // MachineHost
 
-  override def getCurrentState: util.EnumSet[State] = ???
-
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = ???
-
-  override def getNodeCount: Int = ???
-
-  override def getNodeAt(index: Int): Node = ???
-
-  override def update(): Unit = ???
-
-  override def canUpdate: Boolean = ???
-
-  override def onActivate(player: EntityPlayer): Unit = ???
-
-  // ----------------------------------------------------------------------- //
-
-  override def internalComponents(): Iterable[ItemStack] = (0 until inventory.getSizeInventory).collect {
-    case i if inventory.getStackInSlot(i) != null && inventory.isComponentSlot(i, inventory.getStackInSlot(i)) => inventory.getStackInSlot(i)
+  override def internalComponents(): Iterable[ItemStack] = (0 until getSizeInventory).collect {
+    case i if getStackInSlot(i) != null && isComponentSlot(i, getStackInSlot(i)) => getStackInSlot(i)
   }
 
-  override def componentSlot(address: String) = inventory.components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+  override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
+
+  override def onMachineConnect(node: Node) {
+    if (node == machine.node) {
+      node.connect(this.node)
+    }
+    onConnect(node)
+  }
+
+  override def onMachineDisconnect(node: Node) = onDisconnect(node)
+
+  // ----------------------------------------------------------------------- //
+  // EnvironmentHost
 
   override def xPosition = rack.x + 0.5
 
@@ -75,76 +108,56 @@ class Server(val rack: tileentity.ServerRack, val slot: Int) extends Environment
   override def markChanged() = rack.markChanged()
 
   // ----------------------------------------------------------------------- //
+  // ServerInventory
 
-  override def onConnect(node: Node) {}
+  override def tier = Delegator.subItem(container) match {
+    case Some(server: item.Server) => server.tier
+    case _ => 0
+  }
 
-  override def onDisconnect(node: Node) {}
+  // ----------------------------------------------------------------------- //
+  // ItemStackInventory
 
-  override def onMessage(message: Message) {
-    // If we're internal mode and this server is not connected to any side, we
-    // must manually propagate network messages to other servers in the rack.
-    // Ensure the message originated in our local network, to avoid infinite
-    // recursion if two unconnected servers are in one server rack.
-    if (rack.internalSwitch && message.name == "network.message" &&
-      rack.sides(this.slot).isEmpty && // Only if we're in internal mode.
-      message.source != machine.node && // In this case it was relayed from another internal machine.
-      node.network.node(message.source.address) != null) {
-      for (slot <- rack.servers.indices) {
-        rack.servers(slot) match {
-          case Some(server) if server != this => server.machine.node.sendToNeighbors(message.name, message.data: _*)
-          case _ =>
-        }
-      }
+  override def host = rack
+
+  // ----------------------------------------------------------------------- //
+  // ComponentInventory
+
+  override def container = rack.getStackInSlot(slot)
+
+  override protected def connectItemNode(node: Node) {
+    if (machine.node != null && node != null) {
+      api.Network.joinNewNetwork(machine.node)
+      machine.node.connect(node)
     }
   }
 
-  override def onMachineConnect(node: Node) {
-    if (node == machine.node) {
-      node.connect(this.node)
-    }
-    inventory.onConnect(node)
+  // ----------------------------------------------------------------------- //
+  // RackMountable
+
+  override def getNodeCount: Int = ???
+
+  override def getNodeAt(index: Int): Node = ???
+
+  override def onActivate(player: EntityPlayer): Unit = ???
+
+  // ----------------------------------------------------------------------- //
+  // ManagedEnvironment
+
+  override def canUpdate: Boolean = ???
+
+  override def update(): Unit = ???
+
+  // ----------------------------------------------------------------------- //
+  // StateAware
+
+  override def getCurrentState: util.EnumSet[State] = {
+    if (machine.isRunning) util.EnumSet.of(internal.StateAware.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
   }
 
-  override def onMachineDisconnect(node: Node) = inventory.onDisconnect(node)
+  // ----------------------------------------------------------------------- //
+  // Analyzable
 
-  def load(nbt: NBTTagCompound) {
-    machine.load(nbt.getCompoundTag("machine"))
-  }
-
-  def save(nbt: NBTTagCompound) {
-    nbt.setNewCompoundTag("machine", machine.save)
-    inventory.saveComponents()
-    inventory.markDirty()
-  }
-
-  // Required due to abstract overrides in component inventory.
-  class NetworkedInventory extends ServerInventory with ComponentInventory {
-    override def onConnect(node: Node) {
-      if (node == this.node) {
-        connectComponents()
-      }
-    }
-
-    override def onDisconnect(node: Node) {
-      if (node == this.node) {
-        disconnectComponents()
-      }
-    }
-
-    override def tier = Server.this.tier
-
-    var containerOverride: ItemStack = _
-
-    override def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(slot)
-
-    override def node() = machine.node
-
-    override def onMessage(message: Message) {}
-
-    override def host = rack
-
-    // Resolves conflict between ComponentInventory and ServerInventory.
-    override def getInventoryStackLimit = 1
-  }
-
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(machine.node)
 }

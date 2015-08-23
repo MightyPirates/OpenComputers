@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.RenderBlocks
 import net.minecraftforge.common.util.ForgeDirection
 
 object ServerRack {
-  def render(rack: tileentity.ServerRack, x: Int, y: Int, z: Int, block: Block, renderer: RenderBlocks): Unit = {
+  def render(rack: tileentity.Rack, x: Int, y: Int, z: Int, block: Block, renderer: RenderBlocks): Unit = {
     val previousRenderAllFaces = renderer.renderAllFaces
     val u1 = 1 / 16f
     val u2 = 15 / 16f
@@ -26,7 +26,7 @@ object ServerRack {
     val front = rack.facing
     def renderSide(side: ForgeDirection, lx: Double, lz: Double, hx: Double, hz: Double) {
       if (side == front) {
-        for (i <- 0 until 4 if rack.isPresent(i).isDefined) {
+        for (i <- 0 until 4 if rack.getStackInSlot(i) != null) {
           side match {
             case ForgeDirection.WEST =>
               renderer.setRenderBounds(lx, v2 - (i + 1) * fs, lz + u1, u2, v2 - i * fs, hz - u1)

@@ -365,12 +365,13 @@ object EventHandler {
           case _ => // Dafuq?
         }
         case rack: ServerRack =>
-          (0 until rack.getSizeInventory).
-            map(rack.getMountable).
-            filter(_ != null).
-            map(_.machine()).
-            filter(_ != null).
-            foreach(_.stop())
+          // TODO
+//          (0 until rack.getSizeInventory).
+//            map(rack.getMountable).
+//            filter(_ != null).
+//            map(_.machine()).
+//            filter(_ != null).
+//            foreach(_.stop())
       })
     }
   }
