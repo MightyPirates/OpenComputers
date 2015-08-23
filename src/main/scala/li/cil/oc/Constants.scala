@@ -31,6 +31,7 @@ object Constants {
     final val Printer = "printer"
     final val Raid = "raid"
     final val Redstone = "redstone"
+    final val Relay = "relay"
     final val Robot = "robot"
     final val RobotAfterimage = "robotAfterimage"
     final val ScreenTier1 = "screen1"

@@ -423,7 +423,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onSwitchActivity(p: PacketParser) =
-    p.readTileEntity[Switch]() match {
+    p.readTileEntity[traits.SwitchLike]() match {
       case Some(t) => t.lastMessage = System.currentTimeMillis()
       case _ => // Invalid packet.
     }

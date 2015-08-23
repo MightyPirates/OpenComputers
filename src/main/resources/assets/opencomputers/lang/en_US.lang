@@ -3,7 +3,7 @@
 # Use [nl] to for a line break.
 
 # Blocks
-tile.oc.accessPoint.name=Access Point
+tile.oc.accessPoint.name=§cAccess Point§7
 tile.oc.adapter.name=Adapter
 tile.oc.assembler.name=Electronics Assembler
 tile.oc.cable.name=Cable
@@ -29,13 +29,14 @@ tile.oc.print.name=3D Print
 tile.oc.printer.name=3D Printer
 tile.oc.raid.name=Raid
 tile.oc.redstone.name=Redstone I/O
+tile.oc.relay.name=Relay
 tile.oc.robot.name=Robot
 tile.oc.robotAfterimage.name=Robot
 tile.oc.screen1.name=Screen (Tier 1)
 tile.oc.screen2.name=Screen (Tier 2)
 tile.oc.screen3.name=Screen (Tier 3)
 tile.oc.serverRack.name=Server Rack
-tile.oc.switch.name=Switch
+tile.oc.switch.name=§cSwitch§7
 tile.oc.netSplitter.name=Net Splitter
 tile.oc.waypoint.name=Waypoint
 
@@ -235,6 +236,7 @@ oc:container.Disassembler=Disassembler
 oc:container.DiskDrive=Disk Drive
 oc:container.Printer=Printer
 oc:container.Raid=Raid
+oc:container.Relay=Relay
 oc:container.Server=Server
 oc:container.ServerRack=Server Rack
 oc:container.Switch=Switch
@@ -328,6 +330,7 @@ oc:tooltip.RedstoneCard.RedNet=§fRedNet§7 is §asupported§7.
 oc:tooltip.RedstoneCard.WirelessCBE=§fWireless Redstone (ChickenBones)§7 is §asupported§7.
 oc:tooltip.RedstoneCard.WirelessSV=§fWireless Redstone (SlimeVoid)§7 is §asupported§7.
 oc:tooltip.RedstoneCard=Allows reading and emitting redstone signals around the computer or robot.
+oc:tooltip.Relay=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
 oc:tooltip.Robot=Unlike computers, robots can move around and interact with the world much like a player can.[nl] §cCan not connect to external components.§7
 # The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fLevel§7: §a%s§7

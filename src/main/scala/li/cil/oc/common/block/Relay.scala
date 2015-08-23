@@ -7,8 +7,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.world.World
 
-// TODO Remove in 1.7
-class Switch extends SimpleBlock with traits.GUI {
+class Relay extends SimpleBlock with traits.GUI with traits.PowerAcceptor {
   override protected def customTextures = Array(
     None,
     Some("SwitchTop"),
@@ -25,9 +24,11 @@ class Switch extends SimpleBlock with traits.GUI {
 
   // ----------------------------------------------------------------------- //
 
-  override def guiType = GuiType.Switch
+  override def guiType = GuiType.Relay
+
+  override def energyThroughput = Settings.get.accessPointRate
 
   override def hasTileEntity(metadata: Int) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Switch()
+  override def createTileEntity(world: World, metadata: Int) = new tileentity.Relay()
 }

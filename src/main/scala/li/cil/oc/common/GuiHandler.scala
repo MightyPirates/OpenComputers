@@ -28,6 +28,8 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Printer(player.inventory, t)
           case t: tileentity.Raid if id == GuiType.Raid.id =>
             new container.Raid(player.inventory, t)
+          case t: tileentity.Relay if id == GuiType.Relay.id =>
+            new container.Relay(player.inventory, t)
           case t: tileentity.RobotProxy if id == GuiType.Robot.id =>
             new container.Robot(player.inventory, t.robot)
           case t: tileentity.ServerRack if id == GuiType.Rack.id =>
