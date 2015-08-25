@@ -3,7 +3,7 @@
 # Use [nl] to for a line break.
 
 # Blocks
-tile.oc.accessPoint.name=Точка доступа
+tile.oc.accessPoint.name=§cТочка доступа§7
 tile.oc.adapter.name=Адаптер
 tile.oc.assembler.name=Сборщик роботов
 tile.oc.cable.name=Кабель
@@ -35,7 +35,7 @@ tile.oc.screen1.name=Монитор (1-ый уровень)
 tile.oc.screen2.name=Монитор (2-ой уровень)
 tile.oc.screen3.name=Монитор (3-ий уровень)
 tile.oc.serverRack.name=Серверная стойка
-tile.oc.switch.name=Коммутатор
+tile.oc.switch.name=§cКоммутатор§7
 tile.oc.netSplitter.name=Сетевой переключатель
 tile.oc.waypoint.name=Путевая точка
 
@@ -232,6 +232,7 @@ oc:container.Disassembler=Разборщик
 oc:container.DiskDrive=Дисковод
 oc:container.Printer=Принтер
 oc:container.Raid=RAID
+oc:container.Relay=Ретранслятор
 oc:container.Server=Сервер
 oc:container.ServerRack=Серверная стойка
 oc:container.Switch=Коммутатор
@@ -325,6 +326,7 @@ oc:tooltip.RedstoneCard.RedNet=Мод §fRedNet§7 §aподдерживаетс
 oc:tooltip.RedstoneCard.WirelessCBE=Мод §fWireless Redstone (ChickenBones)§7 §aподдерживается§7.
 oc:tooltip.RedstoneCard.WirelessSV=Мод §fWireless Redstone (SlimeVoid)§7 §aподдерживается§7.
 oc:tooltip.RedstoneCard=Позволяет принимать и излучать сигналы красного камня вокруг компьютера или робота.
+oc:tooltip.Relay=Позволяет соединять различные сети между собой. Передаются только сообщения, компоненты между сетями недоступны. Используйте его для разделения сетей с возможностью пересылать сообщения между ними.
 oc:tooltip.Robot=В отличие от компьютеров, роботы могут передвигаться и взаимодействовать с миром, как игрок.[nl] §cНе могут взаимодействовать с внешними компонентами.§7
 # The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fУровень§7: §a%s§7.

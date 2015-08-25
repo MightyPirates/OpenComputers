@@ -5,7 +5,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.driver.item.Processor
+import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.common.Slot
@@ -14,12 +14,14 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 
+import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
 object DriverCPU extends DriverCPU
 
-abstract class DriverCPU extends Item with Processor {
+abstract class DriverCPU extends Item with MutableProcessor {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.CPUTier1),
     api.Items.get(Constants.ItemName.CPUTier2),
@@ -39,6 +41,8 @@ abstract class DriverCPU extends Item with Processor {
 
   override def supportedComponents(stack: ItemStack) = Settings.get.cpuComponentSupport(cpuTier(stack))
 
+  override def allArchitectures = api.Machine.architectures.toList
+
   override def architecture(stack: ItemStack): Class[_ <: Architecture] = {
     if (stack.hasTagCompound) {
       val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass") match {
@@ -57,4 +61,18 @@ abstract class DriverCPU extends Item with Processor {
     }
     api.Machine.architectures.headOption.orNull
   }
+
+  override def setArchitecture(stack: ItemStack, architecture: Class[_ <: Architecture]): Unit = {
+    if (!worksWith(stack)) throw new IllegalArgumentException("Unsupported processor type.")
+    if (!stack.hasTagCompound) stack.setTagCompound(new NBTTagCompound())
+    stack.getTagCompound.setString(Settings.namespace + "archClass", architecture.getName)
+    stack.getTagCompound.setString(Settings.namespace + "archName", getArchitectureName(architecture))
+  }
+
+  // TODO Move to Machine API in 1.6
+  def getArchitectureName(architecture: Class[_ <: Architecture]) =
+    architecture.getAnnotation(classOf[Architecture.Name]) match {
+      case annotation: Architecture.Name => annotation.value
+      case _ => architecture.getSimpleName
+    }
 }
