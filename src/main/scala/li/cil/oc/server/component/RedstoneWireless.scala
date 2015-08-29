@@ -6,6 +6,7 @@ import codechicken.wirelessredstone.core.WirelessReceivingDevice
 import codechicken.wirelessredstone.core.WirelessTransmittingDevice
 */
 
+import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -51,7 +52,8 @@ trait RedstoneWireless extends RedstoneSignaller /* with WirelessReceivingDevice
 
       util.WirelessRedstone.updateOutput(this)
 
-      context.pause(0.1)
+      if (Settings.get.redstoneDelay > 0)
+        context.pause(Settings.get.redstoneDelay)
     }
 
     result(oldValue)
