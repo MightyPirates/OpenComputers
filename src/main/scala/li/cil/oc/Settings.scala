@@ -335,6 +335,7 @@ class Settings(val config: Config) {
   val dataCardHardLimit = config.getInt("misc.dataCardHardLimit") max 0
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
   val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
+  val redstoneDelay = config.getDouble("misc.redstoneDelay") max 0
 
   // ----------------------------------------------------------------------- //
   // printer
