@@ -104,6 +104,10 @@ object Textures {
     var iconOn: IIcon = _
   }
 
+  object Transposer {
+    var iconOn: IIcon = _
+  }
+
   def init(tm: TextureManager) {
     tm.bindTexture(fontAntiAliased)
     tm.bindTexture(fontAliased)

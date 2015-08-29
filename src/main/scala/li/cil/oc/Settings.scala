@@ -201,6 +201,7 @@ class Settings(val config: Config) {
   val dataCardComplex = config.getDouble("power.cost.dataCardComplex") max 0
   val dataCardComplexByte = config.getDouble("power.cost.dataCardComplexByte") max 0
   val dataCardAsymmetric = config.getDouble("power.cost.dataCardAsymmetric") max 0
+  val transposerCost = config.getDouble("power.cost.transposer") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0

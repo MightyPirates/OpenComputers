@@ -24,6 +24,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
     GameRegistry.registerTileEntity(classOf[tileentity.Microcontroller], Settings.namespace + "microcontroller")
     GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motion_sensor")
+    GameRegistry.registerTileEntity(classOf[tileentity.NetSplitter], Settings.namespace + "netSplitter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Print], Settings.namespace + "print")
@@ -35,7 +36,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
-    GameRegistry.registerTileEntity(classOf[tileentity.NetSplitter], Settings.namespace + "netSplitter")
+    GameRegistry.registerTileEntity(classOf[tileentity.Transposer], Settings.namespace + "transposer")
     GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 
     Items.registerBlock(new AccessPoint(), Constants.BlockName.AccessPoint)
@@ -81,5 +82,8 @@ object Blocks {
 
     // v1.5.14
     Recipes.addBlock(new NetSplitter(), Constants.BlockName.NetSplitter, "oc:netSplitter")
+
+    // v1.5.16
+    Recipes.addBlock(new Transposer(), Constants.BlockName.Transposer, "oc:transposer")
   }
 }

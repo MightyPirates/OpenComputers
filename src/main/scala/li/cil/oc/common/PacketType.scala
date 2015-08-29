@@ -21,6 +21,7 @@ object PacketType extends Enumeration {
   HologramTranslation,
   HologramValues,
   LootDisk,
+  NetSplitterState,
   ParticleEffect,
   PetVisibility, // Goes both ways.
   PowerState,
@@ -50,11 +51,11 @@ object PacketType extends Enumeration {
   TextBufferMultiRawSetBackground,
   TextBufferMultiRawSetForeground,
   TextBufferPowerChange,
-  NetSplitterState,
   ScreenTouchMode,
   ServerPresence,
   Sound,
   SoundPattern,
+  TransposerActivity,
   WaypointLabel, // Goes both ways.
 
   // Client -> Server
