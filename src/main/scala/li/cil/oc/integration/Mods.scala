@@ -19,7 +19,7 @@ object Mods {
 
   def All = knownMods.clone()
 
-  val AgriCraft = new SimpleMod(IDs.AgriCraft)
+  val AgriCraft = new SimpleMod(IDs.AgriCraft, version = "@[1.4.0,)")
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
   val BetterRecords = new SimpleMod(IDs.BetterRecords)
