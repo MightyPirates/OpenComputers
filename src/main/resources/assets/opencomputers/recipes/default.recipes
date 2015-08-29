@@ -634,6 +634,12 @@ screen3 {
           [yellowDust, "oc:circuitChip3", glass]
           [obsidian, yellowDust, obsidian]]
 }
+transposer {
+  input: [[ingotIron, "oc:inventoryControllerUpgrade", ingotIron]
+          [hopper, bucket, hopper]
+          [ingotIron, "oc:tankControllerUpgrade", ingotIron]]
+  output: 4
+}
 waypoint {
   input: [[ingotIron, "oc:circuitChip1", ingotIron]
           ["oc:materialTransistor", "oc:materialInterweb", "oc:materialTransistor"],

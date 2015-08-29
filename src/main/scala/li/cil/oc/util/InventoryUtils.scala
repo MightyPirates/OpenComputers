@@ -222,6 +222,48 @@ object InventoryUtils {
     inventoryAt(position).exists(extractFromInventory(consumer, _, side, limit))
 
   /**
+   * Transfers some items between two inventories.
+   * <p/>
+   * This will try to extract up the specified number of items from any inventory,
+   * then insert it into the specified sink inventory. If the insertion fails, the
+   * items will remain in the source inventory.
+   * <p/>
+   * This uses the <tt>extractFromInventory</tt> and <tt>insertIntoInventory</tt>
+   * methods, and therefore handles special cases such as sided inventories and
+   * stack size limits.
+   * <p/>
+   * This returns <tt>true</tt> if at least one item was transferred.
+   */
+  def transferBetweenInventories(source: IInventory, sourceSide: EnumFacing, sink: IInventory, sinkSide: Option[EnumFacing], limit: Int = 64) =
+    extractFromInventory(
+      insertIntoInventory(_, sink, sinkSide, limit), source, sourceSide, limit)
+
+  /**
+   * Like <tt>transferBetweenInventories</tt> but moving between specific slots.
+   */
+  def transferBetweenInventoriesSlots(source: IInventory, sourceSide: EnumFacing, sourceSlot: Int, sink: IInventory, sinkSide: Option[EnumFacing], sinkSlot: Int, limit: Int = 64) =
+    extractFromInventorySlot(
+      insertIntoInventorySlot(_, sink, sinkSide, sinkSlot, limit), source, sourceSide, sourceSlot, limit)
+
+  /**
+   * Utility method for calling <tt>transferBetweenInventories</tt> on inventories
+   * in the world.
+   */
+  def transferBetweenInventoriesAt(source: BlockPosition, sourceSide: EnumFacing, sink: BlockPosition, sinkSide: Option[EnumFacing], limit: Int = 64) =
+    inventoryAt(source).exists(sourceInventory =>
+      inventoryAt(sink).exists(sinkInventory =>
+        transferBetweenInventories(sourceInventory, sourceSide, sinkInventory, sinkSide, limit)))
+
+  /**
+   * Utility method for calling <tt>transferBetweenInventoriesSlots</tt> on inventories
+   * in the world.
+   */
+  def transferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[EnumFacing], sinkSlot: Int, limit: Int = 64) =
+    inventoryAt(sourcePos).exists(sourceInventory =>
+      inventoryAt(sinkPos).exists(sinkInventory =>
+        transferBetweenInventoriesSlots(sourceInventory, sourceSide, sourceSlot, sinkInventory, sinkSide, sinkSlot, limit)))
+
+  /**
    * Utility method for dropping contents from a single inventory slot into
    * the world.
    */
