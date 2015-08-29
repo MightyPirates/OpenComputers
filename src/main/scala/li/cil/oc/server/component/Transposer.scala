@@ -61,7 +61,9 @@ class Transposer(val host: tileentity.Transposer) extends prefab.ManagedEnvironm
     if (node.tryChangeBuffer(-Settings.get.transposerCost)) {
       ServerPacketSender.sendTransposerActivity(host)
 
-      result(FluidUtils.transferBetweenFluidHandlersAt(sourcePos, sourceSide.getOpposite, sinkPos, sinkSide.getOpposite, count))
+      val moved = FluidUtils.transferBetweenFluidHandlersAt(sourcePos, sourceSide.getOpposite, sinkPos, sinkSide.getOpposite, count)
+      if (moved > 0) context.pause(moved / 1000 * 0.25) // Allow up to 4 buckets per second.
+      result(moved > 0, moved)
     }
     else result(Unit, "not enough energy")
   }
