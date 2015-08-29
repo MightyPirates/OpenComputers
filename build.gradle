@@ -239,6 +239,7 @@ idea.module.scopes.PROVIDED.plus += [configurations.provided]
 sourceSets {
     main {
         scala {
+            exclude 'li/cil/oc/integration/agricraft/**'
             exclude 'li/cil/oc/integration/appeng/**'
             exclude 'li/cil/oc/integration/bloodmagic/**'
             exclude 'li/cil/oc/integration/bluepower/**'
