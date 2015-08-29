@@ -31,6 +31,16 @@ function term.clear()
   cursorX, cursorY = 1, 1
 end
 
+function term.reset()
+  if term.isAvailable() then
+    local maxw, maxh = component.gpu.maxResolution()
+    component.gpu.setResolution(maxw, maxh)
+    component.gpu.setBackground(0x000000)
+    component.gpu.setForeground(0xFFFFFF)
+    term.clear()
+  end
+end
+
 function term.clearLine()
   if term.isAvailable() then
     local w = component.gpu.getResolution()
