@@ -4,14 +4,18 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Driver
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.BundledRedstone
+import li.cil.oc.integration.util.{Crop, BundledRedstone}
 import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
+import li.cil.oc.integration.util.Crop.CropProvider
+import li.cil.oc.server.component._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
-import net.minecraft.init.Blocks
+import net.minecraft.block._
+import net.minecraft.init.{Items, Blocks}
+import net.minecraft.item.Item
 import net.minecraftforge.common.util.ForgeDirection
 
-object ModVanilla extends ModProxy with RedstoneProvider {
+object ModVanilla extends ModProxy with RedstoneProvider with CropProvider {
   def getMod = Mods.Minecraft
 
   def initialize() {
@@ -44,6 +48,7 @@ object ModVanilla extends ModProxy with RedstoneProvider {
     RecipeHandler.init()
 
     BundledRedstone.addProvider(this)
+    Crop.addProvider(this)
   }
 
   override def computeInput(pos: BlockPosition, side: ForgeDirection): Int = {
@@ -53,4 +58,57 @@ object ModVanilla extends ModProxy with RedstoneProvider {
   }
 
   override def computeBundledInput(pos: BlockPosition, side: ForgeDirection): Array[Int] = null
+
+  override def getInformation(pos: BlockPosition): Array[AnyRef] = {
+    val world = pos.world.get
+    val target = world.getBlock(pos.x, pos.y, pos.z)
+    target match {
+      case crop: BlockBush => {
+        val meta = world.getBlockMetadata(pos.x, pos.y, pos.z)
+        var name = crop.getLocalizedName
+        var modifier = 7
+        crop match {
+
+          case Blocks.wheat => {
+            name = Item.itemRegistry.getNameForObject(Items.wheat)
+          }
+          case Blocks.melon_stem => {
+            //Localize this?
+            name = "Melon stem"
+          }
+          case Blocks.pumpkin_stem => {
+            name = "Pumpkin stem"
+          }
+          case Blocks.nether_wart => {
+            modifier = 3
+          }
+          case _ =>
+        }
+        result(name, meta * 100 / modifier)
+      }
+      case cocoa: BlockCocoa => {
+        val meta = world.getBlockMetadata(pos.x, pos.y, pos.z)
+        val value = meta * 100 / 2
+
+        result(cocoa.getLocalizedName, Math.min(value, 100))
+      }
+      case _: BlockMelon | _: BlockPumpkin => {
+        result(target.getLocalizedName, 100)
+      }
+      case _: BlockCactus | _: BlockReed => {
+        val meta = world.getBlockMetadata(pos.x, pos.y, pos.z)
+        result(target.getLocalizedName, meta)
+      }
+      case _ => result(Unit, "Not a crop")
+    }
+  }
+
+  override def isValidFor(block: Block): Boolean = {
+    block match {
+      //has to be specified for crops otherwise overriding blocks of other mods might not get their own Provider
+      case _: BlockStem | Blocks.wheat | Blocks.carrots | Blocks.potatoes | _: BlockCocoa | _: BlockMelon | _: BlockPumpkin | _: BlockCactus | _: BlockReed => true
+      case _ => false
+    }
+
+  }
 }
