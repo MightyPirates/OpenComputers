@@ -155,7 +155,10 @@ object InventoryUtils {
     (stack != null && limit > 0) && {
       var success = false
       var remaining = limit
-      val range = slots.getOrElse(0 until inventory.getSizeInventory)
+      val range = slots.getOrElse(inventory match {
+        case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.getOrElse(ForgeDirection.UNKNOWN).ordinal).toIterable
+        case _ => 0 until inventory.getSizeInventory
+      })
 
       if (range.nonEmpty) {
         // This is a special case for inserting with an explicit ordering,
@@ -204,8 +207,13 @@ object InventoryUtils {
    * <p/>
    * This returns <tt>true</tt> if at least one item was extracted.
    */
-  def extractFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, limit: Int = 64) =
-    (0 until inventory.getSizeInventory).exists(slot => extractFromInventorySlot(consumer, inventory, side, slot, limit))
+  def extractFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, limit: Int = 64) = {
+    val range = inventory match {
+      case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.ordinal).toIterable
+      case _ => 0 until inventory.getSizeInventory
+    }
+    range.exists(slot => extractFromInventorySlot(consumer, inventory, side, slot, limit))
+  }
 
   /**
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
