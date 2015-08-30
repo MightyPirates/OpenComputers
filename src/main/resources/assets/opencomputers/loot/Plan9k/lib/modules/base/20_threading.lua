@@ -71,6 +71,8 @@ function spawn(exec, child, name, isthread, _, ...)
         currentHandlerArg = nil,
         eventQueue = {{"arg", ...}},
         name = name or "unnamed",
+        maxPendingSignals = 32,
+        maxOpenFiles = 8,
         uid = nextUid
     }
     
@@ -132,7 +134,7 @@ local function processSignals()
     for _, thread in ipairs(threads) do
         if thread.coro then
             local nsig, oldest = countThreadSignals(thread, "signal")
-            if nsig > 32 then --TODO: make it a bit more intelligent
+            if nsig > thread.maxPendingSignals then --TODO: make it a bit more intelligent
                 table.remove(thread.eventQueue, oldest)
             end
             if thread.currentHandler == "yield" then
