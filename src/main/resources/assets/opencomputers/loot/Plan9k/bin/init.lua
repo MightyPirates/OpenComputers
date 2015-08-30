@@ -1,12 +1,27 @@
 --Plan9k userspace init for pipes kernel
+
+--TODO: pcall all + emergency shell(or do it higher, in pipes)
+
 local pipes = require("pipes")
-local component = require("component")
 local filesystem = require("filesystem")
+local component = require("component")
 
 os.setenv("LIBPATH", "/lib/?.lua;/usr/lib/?.lua;/home/lib/?.lua;./?.lua;/lib/?/init.lua;/usr/lib/?/init.lua;/home/lib/?/init.lua;./?/init.lua")
 os.setenv("PATH", "/usr/local/bin:/usr/bin:/bin:.")
 os.setenv("PWD", "/")
 os.setenv("PS1", "\x1b[33m$PWD\x1b[31m#\x1b[39m ")
+
+pipes.log("INIT: Mounting filesystems")
+
+if filesystem.exists("/etc/fstab") then
+    for entry in io.lines("/etc/fstab") do
+        if entry:sub(1,1) ~= "#" then
+            
+        end
+    end
+end
+
+pipes.log("INIT: Starting terminals")
 
 if not filesystem.exists("/root") then
     filesystem.makeDirectory("/root")
@@ -36,7 +51,6 @@ services = function()
 end
 
 local sin, sout
-
 
 local screens = component.list("screen")
 for gpu in component.list("gpu") do
@@ -85,7 +99,11 @@ end
 pcall(services)
 
 local kout = io.popen(function()
-    pipes.setThreadName("/bin/tee.lua")
+    if filesystem.exists("/kern.log") then
+        filesystem.remove("/kern.log.old")
+        filesystem.rename("/kern.log", "/kern.log.old")
+    end
+    pipes.setThreadName("[init]/logd")
     io.output(sout)
     loadfile("/bin/tee.lua", nil, _G)("/kern.log")
 end, "w")

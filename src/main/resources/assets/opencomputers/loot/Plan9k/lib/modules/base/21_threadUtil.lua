@@ -1,4 +1,5 @@
 function joinThread(pid)
+    --coroutine.yield("yield", 0)
     while true do
         local dead = coroutine.yield("kill")
         if pid == dead then
@@ -30,7 +31,7 @@ function userKill(pid, signal, ...)
     local args = {...}
     local thread = kernel.modules.threading.threads[pid]
     kernel.modules.manageg.protect(thread.sandbox)
-    --TODO: probably ser threading.currentThread here
+    --TODO: probably set threading.currentThread here
     local res, reason = pcall(function()
         thread.kill[signal](table.unpack(args))
     end)
@@ -41,7 +42,7 @@ function userKill(pid, signal, ...)
     return true
 end
 
-function setKillHandler(signal, handler)
+function setKillHandler(signal, handler) --WAT
     if not kernel.modules.threading.threads[pid]
       or not kernel.modules.threading.threads[pid].coro then
         return nil, "Thread does not exists"

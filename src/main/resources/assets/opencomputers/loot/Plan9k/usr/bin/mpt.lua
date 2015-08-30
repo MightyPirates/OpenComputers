@@ -81,16 +81,24 @@ ocBackend = {
             print("        Upgrade all packages that are out-of-date on the")
             print("        local system. Only package versions are used to find outdated packages;")
             print("        replacements are not checked here. This is a ?remove-then-add? process.")
+            print("    -f, --force")
+            print("        Force operation, in case of upgrade it redownloads all packages")
             print("    --root='/some/dir'")
             print("        Set alternative root directory")
             print("    -v")
             print("        More output")
             print("    -y")
             print("        Don't ask any questions, answer automatically")
+            print("    -r, --reboot")
+            print("        reboot after operation")
             return
         end
         
         if options.v then loglevel = 0 end
+        
+        if options.f or options.force then
+            core.data.force = true
+        end
         
         if options.S or options.sync then
             for _, pack in ipairs(args) do
@@ -114,6 +122,8 @@ ocBackend = {
         if options.y then
             ocBackend.prompt = function()return true end
         end
+        
+        core.reboot = optionsr or options.reboot
         core.doWork()
     end,
     
@@ -208,7 +218,8 @@ ocBackend = {
         if p:sub(1,1):upper() ~= "Y" then
             error("User stopped")
         end
-    end
+    end,
+    reboot = function()computer.shutdown(true) end
 }
 
 local mptFrontend
@@ -249,7 +260,7 @@ mptFrontend = {
         local toCheck = {}
         for pack, data in pairs(base.installed) do
             if data.frontend == mptFrontend.name then
-                toCheck[pack] = base.installed[pack].data.checksum
+                toCheck[pack] = base.installed[pack].data.checksum .. (core.data.force and "WAT" or "")
             end
         end
         local updateResp = backend.getText(config.frontend.mpt.api.."update", toCheck)
@@ -367,6 +378,8 @@ core = {
         install = false,
         upgrade = false,
         remove = false,
+        
+        force = false,
         
         --User requested packages
         userInstall = {},
@@ -603,7 +616,8 @@ end
 core.log(1, "Main", "> Saving settings")
 core.finalize()
 
-
-
+if core.reboot then
+    backend.reboot()
+end
 
 
