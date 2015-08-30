@@ -1,5 +1,8 @@
 local serialization = require("serialization")
 local term = require("term")
+local fs = require("filesystem")
+
+local args = {...}
 
 local env = setmetatable({}, {__index = _ENV})
 
@@ -8,6 +11,13 @@ local function optrequire(...)
     if success then
         return module
     end
+end
+
+if args[1] and fs.exists(args[1]) then --non standard, require -i !!!
+    local f = io.open(args[1])
+    local code = load(f:read("*all"), "="..args[1], "t", env)
+    f:close()
+    xpcall(code, debug.traceback)
 end
 
 local hist = {}

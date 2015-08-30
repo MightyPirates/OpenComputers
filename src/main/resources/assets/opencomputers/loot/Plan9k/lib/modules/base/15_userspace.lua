@@ -78,6 +78,7 @@ end
 
 function kernel.userspace.os.exit()
     kernel.modules.threading.kill(kernel.modules.threading.currentThread.pid)
+    coroutine.yield("yield", 0)
 end
 
 function kernel.userspace.os.sleep(time)
@@ -142,7 +143,12 @@ end
 
 kernel.userspace.coroutine = {}
 
-kernel.userspace.coroutine.yield = function(...)
-    return coroutine.yield(...)--TODO: FIX; move to debug
-end
-
+--lua 5.3 <-> 5.2 compat
+kernel.userspace.bit32 = bit32 or load([[return {
+    band = function(a, b) return a & b end,
+    bor = function(a, b) return a | b end,
+    bxor = function(a, b) return a ~ b end,
+    bnot = function(a) return ~a end,
+    rshift = function(a, n) return a >> n end,
+    lshift = function(a, n) return a << n end,
+}]])()

@@ -321,6 +321,7 @@ startNetwork  = function()
                 end
                 sent = nil
             else
+                
                 --we've already requested this addr so if we get the route
                 --we'll respond
                 routeRequests[dest][#routeRequests[dest]+1] = {type = "R", host = origin}
