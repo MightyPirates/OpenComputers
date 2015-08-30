@@ -51,6 +51,7 @@ function kernel.userspace.os.spawn(prog, ...)
     local thread = kernel.modules.threading.spawn(prog, 0, name, isThread, _, ...)
     thread.io_output = kernel.modules.threading.currentThread.io_output
     thread.io_input = kernel.modules.threading.currentThread.io_input
+    thread.io_error = kernel.modules.threading.currentThread.io_error
     return thread.pid
 end
 
