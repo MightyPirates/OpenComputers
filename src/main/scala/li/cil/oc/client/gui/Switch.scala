@@ -7,6 +7,7 @@ import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 
+// TODO Remove in 1.7
 class Switch(playerInventory: InventoryPlayer, val switch: tileentity.Switch) extends DynamicGuiContainer(new container.Switch(playerInventory, switch)) {
   private val format = new DecimalFormat("#.##hz")
 

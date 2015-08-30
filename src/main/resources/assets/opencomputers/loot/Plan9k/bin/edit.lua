@@ -73,6 +73,7 @@ local code = ""
 codeHandler = function(char)
     if char == "[" then code = code .. char
     elseif char == "0" then code = code .. char
+    elseif char == "3" then code = code .. char
     elseif code == "[" and char == "A" then
         charHandler = baseHandler
         if y - 1 < 1 then return end
@@ -139,6 +140,16 @@ codeHandler = function(char)
             out:write(text)
             out:close()
         end
+    elseif code == "[3" and char == "~" then
+        charHandler = baseHandler
+        if x > unicode.len(lines[y]) then
+            lines[y] = lines[y] .. (lines[y + 1] or "")
+            table.remove(lines, y + 1)
+            render(y, atline + edith - y)
+            return
+        end
+        lines[y] = lines[y]:sub(1, x-1) .. lines[y]:sub(x+1)
+        render(y, 1)
     else
         charHandler = baseHandler
     end
@@ -149,7 +160,7 @@ baseHandler = function(char)
         code = ""
         charHandler = codeHandler
     elseif char == "\n" then
-        line = lines[y]
+        local line = lines[y]
         lines[y] = unicode.sub(line or "", 1, x - 1)
         table.insert(lines, y + 1, unicode.sub(line or "", x))
         x = 1

@@ -86,7 +86,6 @@ trait RotatableTile extends Rotatable {
       _yaw = yaw
     }
     if (changed) {
-      cacheDirty = true
       updateTranslation()
     }
     changed

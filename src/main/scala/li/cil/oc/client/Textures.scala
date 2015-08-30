@@ -59,6 +59,7 @@ object Textures {
     val RobotSelection = L("robot_selection")
     val Server = L("server")
     val Slot = L("slot")
+    val UpgradeTab = L("upgrade_tab")
     val Waypoint = L("waypoint")
 
     override protected def basePath = "textures/gui/%s.png"
@@ -142,6 +143,7 @@ object Textures {
     val RaidFrontError = L("overlay/raid_front_error")
     val ScreenUpIndicator = L("overlay/screen_up_indicator")
     val SwitchSideOn = L("overlay/switch_side_on")
+    val TransposerOn = L("overlay/transposer_on")
 
     val Cable = L("cable")
     val CableCap = L("cableCap")

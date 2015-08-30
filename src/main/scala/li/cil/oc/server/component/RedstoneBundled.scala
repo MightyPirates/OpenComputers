@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -36,14 +37,16 @@ trait RedstoneBundled extends RedstoneVanilla {
         case (color, number: Number) => redstone.bundledOutput(side, color, number.intValue())
         case _ =>
       }
-      context.pause(0.1)
+      if (Settings.get.redstoneDelay > 0)
+        context.pause(Settings.get.redstoneDelay)
       result(true)
     }
     else {
       val color = checkColor(args, 1)
       val value = args.checkInteger(2)
       redstone.bundledOutput(side, color, value)
-      context.pause(0.1)
+      if (Settings.get.redstoneDelay > 0)
+        context.pause(Settings.get.redstoneDelay)
       result(redstone.bundledOutput(side, color))
     }
   }

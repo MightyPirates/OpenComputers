@@ -8,8 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Component
-import li.cil.oc.common.tileentity.AccessPoint
-import li.cil.oc.common.tileentity.Switch
+import li.cil.oc.common.tileentity.traits.SwitchLike
 import li.cil.oc.util.ResultWrapper._
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -17,7 +16,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class SwitchPeripheral(val switch: Switch) extends IPeripheral {
+class SwitchPeripheral(val switch: SwitchLike) extends IPeripheral {
   private val methods = Map[String, (IComputerAccess, ILuaContext, Array[AnyRef]) => Array[AnyRef]](
     // Generic modem methods.
     "open" -> ((computer, context, arguments) => {
@@ -86,7 +85,10 @@ class SwitchPeripheral(val switch: Switch) extends IPeripheral {
 
     // OC specific.
     "isAccessPoint" -> ((computer, context, arguments) => {
-      result(switch.isInstanceOf[AccessPoint])
+      result(switch.isWirelessEnabled)
+    }),
+    "isTunnel" -> ((computer, context, arguments) => {
+      result(switch.isLinkedEnabled)
     }),
     "maxPacketSize" -> ((computer, context, arguments) => {
       result(Settings.get.maxNetworkPacketSize)

@@ -11,6 +11,7 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.BlockRedstoneWire
 import net.minecraft.init.Blocks
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.MinecraftForge
 
 object ModVanilla extends ModProxy with RedstoneProvider {
   def getMod = Mods.Minecraft
@@ -45,6 +46,8 @@ object ModVanilla extends ModProxy with RedstoneProvider {
     RecipeHandler.init()
 
     BundledRedstone.addProvider(this)
+
+    MinecraftForge.EVENT_BUS.register(EventHandlerVanilla)
   }
 
   override def computeInput(pos: BlockPosition, side: EnumFacing): Int = {

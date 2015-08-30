@@ -199,6 +199,8 @@ local commandList = {}
 -- \x1b9[Row];[Col];[Height];[Width]F -- fill
 -- \x1b9[Row];[Col];[Height];[Width];[Dest Row];[Dest Col]c -- copy
 
+--Add fake gpu component for compat(?)
+
 function charHandlers.control(char)
     if char == "\x1b" then
         commandList = {}

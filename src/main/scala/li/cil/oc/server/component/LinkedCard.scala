@@ -12,7 +12,7 @@ import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsScala._
 
-class LinkedCard extends prefab.ManagedEnvironment {
+class LinkedCard extends prefab.ManagedEnvironment with QuantumNetwork.QuantumNode {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("tunnel", Visibility.Neighbors).
     withConnector().
@@ -28,8 +28,8 @@ class LinkedCard extends prefab.ManagedEnvironment {
     // Cast to iterable to use Scala's toArray instead of the Arguments' one (which converts byte arrays to Strings).
     val packet = Network.newPacket(node.address, null, 0, args.asInstanceOf[java.lang.Iterable[AnyRef]].toArray)
     if (node.tryChangeBuffer(-(packet.size / 32.0 + Settings.get.wirelessCostPerRange * Settings.get.maxWirelessRange * 5))) {
-      for (card <- endpoints) {
-        card.receivePacket(packet)
+      for (endpoint <- endpoints) {
+        endpoint.receivePacket(packet)
       }
       result(true)
     }

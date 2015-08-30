@@ -5,6 +5,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.world.World
 
+// TODO Remove in 1.7
 class Switch extends SimpleBlock with traits.GUI {
   override def guiType = GuiType.Switch
 

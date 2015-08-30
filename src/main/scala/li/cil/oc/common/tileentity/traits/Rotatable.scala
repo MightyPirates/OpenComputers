@@ -5,6 +5,7 @@ import li.cil.oc.common.block
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedEnumFacing._
 import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.RotationHelper
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.util.EnumFacing
@@ -15,69 +16,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // Lookup tables
   // ----------------------------------------------------------------------- //
 
-  /**
-   * Translates forge directions based on the block's pitch and yaw. The base
-   * forward direction is facing south with no pitch. The outer array is for
-   * the three different pitch states, the inner for the four different yaw
-   * states.
-   */
-  private val translations = Array(
-    // Pitch = Down
-    Array(
-      // Yaw = North
-      Array(D.south, D.north, D.up, D.down, D.east, D.west),
-      // Yaw = South
-      Array(D.south, D.north, D.down, D.up, D.west, D.east),
-      // Yaw = West
-      Array(D.south, D.north, D.west, D.east, D.up, D.down),
-      // Yaw = East
-      Array(D.south, D.north, D.east, D.west, D.down, D.up)),
-    // Pitch = Up
-    Array(
-      // Yaw = North
-      Array(D.north, D.south, D.down, D.up, D.east, D.west),
-      // Yaw = South
-      Array(D.north, D.south, D.up, D.down, D.west, D.east),
-      // Yaw = West
-      Array(D.north, D.south, D.west, D.east, D.down, D.up),
-      // Yaw = East
-      Array(D.north, D.south, D.east, D.west, D.up, D.down)),
-    // Pitch = Forward (North|East|South|West)
-    Array(
-      // Yaw = North
-      Array(D.down, D.up, D.south, D.north, D.east, D.west),
-      // Yaw = South
-      Array(D.down, D.up, D.north, D.south, D.west, D.east),
-      // Yaw = West
-      Array(D.down, D.up, D.west, D.east, D.south, D.north),
-      // Yaw = East
-      Array(D.down, D.up, D.east, D.west, D.north, D.south)))
+  private val pitch2Direction = Array(EnumFacing.UP, EnumFacing.NORTH, EnumFacing.DOWN)
 
-  private val pitch2Direction = Array(D.up, D.north, D.down)
-
-  private val yaw2Direction = Array(D.south, D.west, D.north, D.east)
-
-  /** Shortcuts for forge directions to make the above more readable. */
-  private object D {
-    val down = EnumFacing.DOWN
-    val up = EnumFacing.UP
-    val north = EnumFacing.NORTH
-    val south = EnumFacing.SOUTH
-    val west = EnumFacing.WEST
-    val east = EnumFacing.EAST
-  }
-
-  // ----------------------------------------------------------------------- //
-  // State
-  // ----------------------------------------------------------------------- //
-
-  /** Translation for facings based on current pitch and yaw. */
-  private var cachedTranslation: Array[EnumFacing] = null
-
-  /** Translation from local to global coordinates. */
-  private var cachedInverseTranslation: Array[EnumFacing] = null
-
-  protected var cacheDirty = true
+  private val yaw2Direction = Array(EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST)
 
   // ----------------------------------------------------------------------- //
   // Accessors
@@ -148,17 +89,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     else false
   }
 
-  override def toLocal(value: EnumFacing) = if (value != null) this.synchronized {
-    updateTranslation()
-    cachedTranslation(value.ordinal)
-  }
-  else null
+  override def toLocal(value: EnumFacing) = if (value == null) null else RotationHelper.toLocal(pitch, yaw, value)
 
-  override def toGlobal(value: EnumFacing) = if (value != null) this.synchronized {
-    updateTranslation()
-    cachedInverseTranslation(value.ordinal)
-  }
-  else null
+  override def toGlobal(value: EnumFacing) = if (value == null) null else RotationHelper.toGlobal(pitch, yaw, value)
 
   def validFacings = Array(EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST)
 
@@ -177,16 +110,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // ----------------------------------------------------------------------- //
 
   /** Updates cached translation array and sends notification to clients. */
-  protected def updateTranslation(): Unit = if (cacheDirty) {
-    cacheDirty = false
-
-    val newTranslation = translations(pitch.ordinal)(yaw.ordinal - 2)
-    if (cachedTranslation != newTranslation) {
-      cachedTranslation = newTranslation
-      cachedInverseTranslation = invert(cachedTranslation)
-      if (world != null) {
-        onRotationChanged()
-      }
+  protected def updateTranslation(): Unit = {
+    if (world != null) {
+      onRotationChanged()
     }
   }
 
@@ -196,7 +122,6 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     def setState(newState: IBlockState): Boolean = {
       if (oldState.hashCode() != newState.hashCode()) {
         world.setBlockState(getPos, newState)
-        cacheDirty = true
         true
       }
       else false
@@ -209,7 +134,4 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       case _ => false
     }
   }
-
-  private def invert(t: Array[EnumFacing]) =
-    t.indices.map(i => EnumFacing.getFront(t.indexOf(EnumFacing.getFront(i)))).toArray
 }

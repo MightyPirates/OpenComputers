@@ -201,6 +201,7 @@ class Settings(val config: Config) {
   val dataCardComplex = config.getDouble("power.cost.dataCardComplex") max 0
   val dataCardComplexByte = config.getDouble("power.cost.dataCardComplexByte") max 0
   val dataCardAsymmetric = config.getDouble("power.cost.dataCardAsymmetric") max 0
+  val transposerCost = config.getDouble("power.cost.transposer") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -336,6 +337,7 @@ class Settings(val config: Config) {
   val dataCardHardLimit = config.getInt("misc.dataCardHardLimit") max 0
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
   val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
+  val redstoneDelay = config.getDouble("misc.redstoneDelay") max 0
 
   // ----------------------------------------------------------------------- //
   // printer

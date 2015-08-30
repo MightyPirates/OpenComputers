@@ -81,6 +81,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case PacketType.SoundPattern => onSoundPattern(p)
+      case PacketType.TransposerActivity => onTransposerActivity(p)
       case PacketType.WaypointLabel => onWaypointLabel(p)
       case _ => // Invalid packet.
     }
@@ -260,6 +261,15 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
+  def onNetSplitterState(p: PacketParser) =
+    p.readTileEntity[NetSplitter]() match {
+      case Some(t) =>
+        t.isInverted = p.readBoolean()
+        t.openSides = t.uncompressSides(p.readByte())
+        t.world.markBlockForUpdate(t.getPos)
+      case _ => // Invalid packet.
+    }
+
   def onParticleEffect(p: PacketParser) = {
     val dimension = p.readInt()
     world(p.player, dimension) match {
@@ -420,7 +430,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onSwitchActivity(p: PacketParser) =
-    p.readTileEntity[Switch]() match {
+    p.readTileEntity[traits.SwitchLike]() match {
       case Some(t) => t.lastMessage = System.currentTimeMillis()
       case _ => // Invalid packet.
     }
@@ -589,15 +599,6 @@ object PacketHandler extends CommonPacketHandler {
     buffer.rawSetForeground(col, row, color)
   }
 
-  def onNetSplitterState(p: PacketParser) =
-    p.readTileEntity[NetSplitter]() match {
-      case Some(t) =>
-        t.isInverted = p.readBoolean()
-        t.openSides = t.uncompressSides(p.readByte())
-        t.world.markBlockForUpdate(t.getPos)
-      case _ => // Invalid packet.
-    }
-
   def onScreenTouchMode(p: PacketParser) =
     p.readTileEntity[Screen]() match {
       case Some(t) => t.invertTouchMode = p.readBoolean()
@@ -637,6 +638,12 @@ object PacketHandler extends CommonPacketHandler {
       Audio.play(x + 0.5f, y + 0.5f, z + 0.5f, pattern)
     }
   }
+
+  def onTransposerActivity(p: PacketParser) =
+    p.readTileEntity[Transposer]() match {
+      case Some(transposer) => transposer.lastOperation = System.currentTimeMillis()
+      case _ => // Invalid packet.
+    }
 
   def onWaypointLabel(p: PacketParser) =
     p.readTileEntity[Waypoint]() match {

@@ -6,6 +6,7 @@ import codechicken.wirelessredstone.core.WirelessReceivingDevice
 import codechicken.wirelessredstone.core.WirelessTransmittingDevice
 */
 
+import li.cil.oc.Settings
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -44,11 +45,17 @@ trait RedstoneWireless extends RedstoneSignaller /* with WirelessReceivingDevice
   @Callback(doc = """function(value:boolean):boolean -- Set the wireless redstone output.""")
   def setWirelessOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val oldValue = wirelessOutput
-    wirelessOutput = args.checkBoolean(0)
+    val newValue = args.checkBoolean(0)
 
-    util.WirelessRedstone.updateOutput(this)
+    if (oldValue != newValue) {
+      wirelessOutput = newValue
 
-    context.pause(0.1)
+      util.WirelessRedstone.updateOutput(this)
+
+      if (Settings.get.redstoneDelay > 0)
+        context.pause(Settings.get.redstoneDelay)
+    }
+
     result(oldValue)
   }
 
@@ -60,16 +67,19 @@ trait RedstoneWireless extends RedstoneSignaller /* with WirelessReceivingDevice
     val oldValue = wirelessFrequency
     val newValue = args.checkInteger(0)
 
-    util.WirelessRedstone.removeReceiver(this)
-    util.WirelessRedstone.removeTransmitter(this)
+    if (oldValue != newValue) {
+      util.WirelessRedstone.removeReceiver(this)
+      util.WirelessRedstone.removeTransmitter(this)
 
-    wirelessFrequency = newValue
-    wirelessInput = false
-    wirelessOutput = false
+      wirelessFrequency = newValue
+      wirelessInput = false
+      wirelessOutput = false
 
-    util.WirelessRedstone.addReceiver(this)
+      util.WirelessRedstone.addReceiver(this)
 
-    context.pause(0.5)
+      context.pause(0.5)
+    }
+
     result(oldValue)
   }
 
