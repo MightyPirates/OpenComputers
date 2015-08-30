@@ -13,7 +13,7 @@ object SwitchRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val switch = tileEntity.asInstanceOf[tileentity.Switch]
+    val switch = tileEntity.asInstanceOf[tileentity.traits.SwitchLike]
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
       GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)

@@ -12,7 +12,7 @@ Most programs can be interrupted by pressing Ctrl+Alt+C.
 Paste the contents of the clipboard using the middle mouse button or a configurable key (default: insert).
 Computers will consume less power while idling - i.e. when os.sleep(n > 0.05) is called.
 Screens will consume more power the more lit characters they display.
-Most blocks act as 'cables' - use switches and power distributers to create separate networks.
+Most blocks act as 'cables' - use relays and power distributors to create separate networks.
 Welcome to the dark side - here, have some cookies.
 Screens can display Unicode - paste the special chars or use unicode.char.
 Run `help` or `man programname` for ingame help on programs shipped with OpenOS - start with `man man`.

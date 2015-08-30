@@ -39,18 +39,17 @@ end
 local function pathSearcher(module)
     local filepath, reason = kernel.userspace.package.searchpath(module, kernel.userspace.os.getenv("LIBPATH"))
     if filepath then
-        local loader, reason = kernel.userspace.loadfile(filepath, "bt", setmetatable({},{__index = kernel.userspace}))
+        local loader
+        loader, reason = kernel.userspace.loadfile(filepath, "bt", setmetatable({},{__index = kernel.userspace}))
         if loader then
-            local state, mod = pcall(loader)
+            local state
+            state, reason = pcall(loader)
             if state then
-                return mod
-            else
-                kernel.io.println("Module '" .. tostring(module) .. "' loading failed: " .. tostring(mod))
+                return reason
             end
         end
-    else
-        return nil, reason
     end
+    return nil, reason
 end
 
 kernel.userspace.package.searchers[#kernel.userspace.package.searchers + 1] = preloadSearcher
@@ -65,19 +64,23 @@ kernel.userspace.require = function(module)
         if kernel.userspace.package.loading[module] then
             error("Already loading "..tostring(module))
         else
+            local reason
+            
             kernel.userspace.package.loading[module] = true
             for _, searcher in ipairs(kernel.userspace.package.searchers) do
-                local res, mod, reason = pcall(searcher, module)
-                if res and mod then
+                local success, mod, res = pcall(searcher, module)
+                if success and mod then
                     kernel.userspace.package.loading[module] = nil
                     kernel.userspace.package.loaded[module] = mod
                     return mod
-                elseif not mod and reason then
-                    kernel.io.println("Searcher for '" .. tostring(module) .. "' loading failed: " .. tostring(reason))
+                elseif (not success) and mod then
+                    reason = mod
+                elseif res then
+                    reason = res
                 end
             end
             kernel.userspace.package.loading[module] = nil
-            error("Could not load module " .. tostring(module))
+            error(string.format("Could not load module '%s': %s", module, reason or "module returned nil"))
         end
     end
 end

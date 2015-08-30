@@ -19,8 +19,10 @@ object Mods {
 
   def All = knownMods.clone()
 
+  val AgriCraft = new SimpleMod(IDs.AgriCraft, version = "@[1.4.0,)")
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val BetterRecords = new SimpleMod(IDs.BetterRecords)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BluePower = new SimpleMod(IDs.BluePower, version = "@[0.2.928,)")
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
@@ -83,7 +85,9 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   val Proxies = Array(
+    integration.agricraft.ModAgriCraft,
     integration.appeng.ModAppEng,
+    integration.betterrecords.ModBetterRecords,
     integration.bloodmagic.ModBloodMagic,
     integration.bluepower.ModBluePower,
     integration.buildcraft.library.ModBuildCraftAPILibrary,
@@ -154,8 +158,10 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   object IDs {
+    final val AgriCraft = "AgriCraft"
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
+    final val BetterRecords = "betterrecords"
     final val BloodMagic = "AWWayofTime"
     final val BluePower = "bluepowerAPI"
     final val BuildCraft = "BuildCraft|Core"

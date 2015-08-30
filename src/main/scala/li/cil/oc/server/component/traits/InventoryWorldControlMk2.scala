@@ -14,7 +14,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
   @Callback(doc = """function(facing:number, slot:number[, count:number]):boolean -- Drops the selected item stack into the specified slot of an inventory.""")
   def dropIntoSlot(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = args.optionalItemCount(2)
+    val count = args.optItemCount(2)
     val stack = inventory.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
       withInventory(facing, inventory => {
@@ -43,7 +43,7 @@ trait InventoryWorldControlMk2 extends InventoryAware with WorldAware with SideR
   @Callback(doc = """function(facing:number, slot:number[, count:number]):boolean -- Sucks items from the specified slot of an inventory.""")
   def suckFromSlot(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = args.optionalItemCount(2)
+    val count = args.optItemCount(2)
     withInventory(facing, inventory => {
       val slot = args.checkSlot(inventory, 1)
       if (InventoryUtils.extractFromInventorySlot(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, facing.getOpposite, slot, count)) {

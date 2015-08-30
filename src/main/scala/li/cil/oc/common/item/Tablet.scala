@@ -243,9 +243,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
+  override def toLocal(value: ForgeDirection) =
+    RotationHelper.toLocal(ForgeDirection.NORTH, facing, value)
 
-  override def toGlobal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
+  override def toGlobal(value: ForgeDirection) =
+    RotationHelper.toGlobal(ForgeDirection.NORTH, facing, value)
 
   def readFromNBT() {
     if (stack.hasTagCompound) {

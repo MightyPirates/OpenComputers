@@ -67,6 +67,13 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: splitter")
+      case _: Transposer =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        Transposer.render(block, metadata, renderer)
+        Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: transposer")
       case _ =>
         block match {
           case simple: SimpleBlock =>
@@ -103,7 +110,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler")
 
         true
-      case cable: tileentity.Cable =>
+      case _: tileentity.Cable =>
         Cable.render(world, x, y, z, block, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: cable")
@@ -127,7 +134,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: print")
 
         true
-      case printer: tileentity.Printer =>
+      case _: tileentity.Printer =>
         Printer.render(block, x, y, z, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: printer")
@@ -145,6 +152,12 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: splitter")
 
         true
+      case _: tileentity.Transposer =>
+        Transposer.render(block, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: transposer")
+
+        true
       case _ =>
         val result = renderer.renderStandardBlock(block, x, y, z)
 
@@ -158,7 +171,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     block.isInstanceOf[Hologram] ||
       block.isInstanceOf[Printer] ||
       block.isInstanceOf[Print] ||
-      block.isInstanceOf[NetSplitter]
+      block.isInstanceOf[NetSplitter] ||
+      block.isInstanceOf[Transposer]
 
   // The texture flip this works around only seems to occur for blocks with custom block renderers?
   def patchedRenderer(renderer: RenderBlocks, block: Block) =

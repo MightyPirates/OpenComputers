@@ -25,12 +25,14 @@ object Constants {
     final val Keyboard = "keyboard"
     final val Microcontroller = "microcontroller"
     final val MotionSensor = "motionSensor"
+    final val NetSplitter = "netSplitter"
     final val PowerConverter = "powerConverter"
     final val PowerDistributor = "powerDistributor"
     final val Print = "print"
     final val Printer = "printer"
     final val Raid = "raid"
     final val Redstone = "redstone"
+    final val Relay = "relay"
     final val Robot = "robot"
     final val RobotAfterimage = "robotAfterimage"
     final val ScreenTier1 = "screen1"
@@ -38,7 +40,7 @@ object Constants {
     final val ScreenTier3 = "screen3"
     final val ServerRack = "serverRack"
     final val Switch = "switch"
-    final val NetSplitter = "netSplitter"
+    final val Transposer = "transposer"
     final val Waypoint = "waypoint"
 
     def Case(tier: Int) = ItemUtils.caseNameWithTierSuffix("case", tier)

@@ -9,7 +9,6 @@ proxy.isReadOnly = function() return true end
 proxy.rename = function() error("Permission Denied") end
 proxy.remove = function() error("Permission Denied") end
 proxy.setLabel = function() error("Permission Denied") end
-proxy.seek = function() error("Not supported") end
 proxy.size = function(path)
     local seg = kernel.modules.vfs.segments(path)
     local file = data
@@ -22,7 +21,17 @@ proxy.getLabel = function() return "devfs" end
 
 local allocator, handles = kernel.modules.util.getAllocator()
 
-proxy.exists = function()end
+proxy.exists = function(path)
+    local seg = kernel.modules.vfs.segments(path)
+    local file = data
+    for _, d in pairs(seg) do
+        if not file[d] then
+            return false
+        end
+        file = file[d]
+    end
+    return file and true or false
+end
 proxy.open = function(path)
     local seg = kernel.modules.vfs.segments(path)
     local file = data
@@ -48,6 +57,9 @@ end
 proxy.write = function(h, ...)
     return handles[h].file.write(handles[h], ...)
 end
+proxy.seek = function(h, ...)
+    return handles[h].file.seek(handles[h], ...)
+end
 proxy.isDirectory = function(path)
     local seg = kernel.modules.vfs.segments(path)
     local dir = data
@@ -69,8 +81,8 @@ proxy.list = function(path)
         error("File is not a directory")
     end
     local list = {}
-    for f in pairs(dir) do
-        list[#list + 1] = f
+    for f, node in pairs(dir) do
+        list[#list + 1] = f .. (node.__type and "" or "/")
     end
     return list
 end
@@ -79,6 +91,12 @@ data.pts = {}
 data.null = {
     __type = "f",
     write = function()end
+}
+data.kmsg = {
+    __type = "f",
+    write = function(h, data)
+        kernel.io.println(data)
+    end
 }
 data.zero = {
     __type = "f",

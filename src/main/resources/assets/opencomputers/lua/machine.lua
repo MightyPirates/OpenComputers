@@ -1320,6 +1320,23 @@ local libcomputer = {
 
   beep = function(...)
     libcomponent.invoke(computer.address(), "beep", ...)
+  end,
+
+  getArchitectures = function(...)
+    return spcall(computer.getArchitectures, ...)
+  end,
+  getArchitecture = function(...)
+    return spcall(computer.getArchitecture, ...)
+  end,
+  setArchitecture = function(...)
+    local result, reason = spcall(computer.setArchitecture, ...)
+    if not result then
+      if reason then
+        return result, reason
+      end
+    else
+      coroutine.yield(true) -- reboot
+    end
   end
 }
 sandbox.computer = libcomputer

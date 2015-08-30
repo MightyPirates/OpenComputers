@@ -7,6 +7,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.world.World
 
+// TODO Remove in 1.7
 class Switch extends SimpleBlock with traits.GUI {
   override protected def customTextures = Array(
     None,

@@ -3,7 +3,7 @@
 # Use [nl] to for a line break.
 
 # Blocks
-tile.oc.accessPoint.name=Access Point
+tile.oc.accessPoint.name=§cAccess Point§7
 tile.oc.adapter.name=Adapter
 tile.oc.assembler.name=Electronics Assembler
 tile.oc.cable.name=Cable
@@ -23,20 +23,22 @@ tile.oc.hologram2.name=Hologram Projector (Tier 2)
 tile.oc.keyboard.name=Keyboard
 tile.oc.microcontroller.name=Microcontroller
 tile.oc.motionSensor.name=Motion Sensor
+tile.oc.netSplitter.name=Net Splitter
 tile.oc.powerConverter.name=Power Converter
 tile.oc.powerDistributor.name=Power Distributor
 tile.oc.print.name=3D Print
 tile.oc.printer.name=3D Printer
 tile.oc.raid.name=Raid
 tile.oc.redstone.name=Redstone I/O
+tile.oc.relay.name=Relay
 tile.oc.robot.name=Robot
 tile.oc.robotAfterimage.name=Robot
 tile.oc.screen1.name=Screen (Tier 1)
 tile.oc.screen2.name=Screen (Tier 2)
 tile.oc.screen3.name=Screen (Tier 3)
 tile.oc.serverRack.name=Server Rack
-tile.oc.switch.name=Switch
-tile.oc.netSplitter.name=Net Splitter
+tile.oc.switch.name=§cSwitch§7
+tile.oc.transposer.name=Transposer
 tile.oc.waypoint.name=Waypoint
 
 # Items
@@ -235,6 +237,7 @@ oc:container.Disassembler=Disassembler
 oc:container.DiskDrive=Disk Drive
 oc:container.Printer=Printer
 oc:container.Raid=Raid
+oc:container.Relay=Relay
 oc:container.Server=Server
 oc:container.ServerRack=Server Rack
 oc:container.Switch=Switch
@@ -328,6 +331,7 @@ oc:tooltip.RedstoneCard.RedNet=§fRedNet§7 is §asupported§7.
 oc:tooltip.RedstoneCard.WirelessCBE=§fWireless Redstone (ChickenBones)§7 is §asupported§7.
 oc:tooltip.RedstoneCard.WirelessSV=§fWireless Redstone (SlimeVoid)§7 is §asupported§7.
 oc:tooltip.RedstoneCard=Allows reading and emitting redstone signals around the computer or robot.
+oc:tooltip.Relay=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
 oc:tooltip.Robot=Unlike computers, robots can move around and interact with the world much like a player can.[nl] §cCan not connect to external components.§7
 # The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fLevel§7: §a%s§7
@@ -345,6 +349,7 @@ oc:tooltip.Tier=§8Tier %s
 oc:tooltip.NetSplitter=Acts as a dynamic connector. Connectivity of each side can be toggled by hitting it with a wrench. Connectivity of all sides can be inverted by applying a redstone signal.
 oc:tooltip.TooLong=Hold [§f%s§7] for a detailed tooltip.
 oc:tooltip.Transistor=A basic element in most other computer parts. It's a bit twisted, but it does the job.
+oc:tooltip.Transposer=Allows automated transferral of items and fluids between adjacent inventories and fluid containers.
 oc:tooltip.UpgradeAngel=Allows robots to place blocks in thin air, even if there is no point of reference.
 oc:tooltip.UpgradeBattery=Increase the amount of energy a device can store, allowing it work longer without having to be recharged. [nl] Capacity: §f%s§7
 oc:tooltip.UpgradeChunkloader=If a robot moves in a forest and no one is around to see it, does it really move? This upgrades makes sure it does. It keeps the chunk a device is in loaded, but continually consumes energy while active.

@@ -35,7 +35,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
 
   @Callback(doc = """function([amount:number]):boolean -- Transfers fluid from a tank in the selected inventory slot to the selected tank.""")
   def drain(context: Context, args: Arguments): Array[AnyRef] = {
-    val amount = args.optionalFluidCount(0)
+    val amount = args.optFluidCount(0)
     Option(tank.getFluidTank(selectedTank)) match {
       case Some(into) => inventory.getStackInSlot(selectedSlot) match {
         case stack: ItemStack =>
@@ -77,7 +77,7 @@ trait TankInventoryControl extends WorldAware with InventoryAware with TankAware
 
   @Callback(doc = """function([amount:number]):boolean -- Transfers fluid from the selected tank to a tank in the selected inventory slot.""")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
-    val amount = args.optionalFluidCount(0)
+    val amount = args.optFluidCount(0)
     Option(tank.getFluidTank(selectedTank)) match {
       case Some(from) => inventory.getStackInSlot(selectedSlot) match {
         case stack: ItemStack =>

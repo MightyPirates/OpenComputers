@@ -9,6 +9,7 @@ import li.cil.oc.integration.util.BundledRedstone.RedstoneProvider
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.init.Blocks
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
 object ModVanilla extends ModProxy with RedstoneProvider {
@@ -44,6 +45,8 @@ object ModVanilla extends ModProxy with RedstoneProvider {
     RecipeHandler.init()
 
     BundledRedstone.addProvider(this)
+
+    MinecraftForge.EVENT_BUS.register(EventHandlerVanilla)
   }
 
   override def computeInput(pos: BlockPosition, side: ForgeDirection): Int = {

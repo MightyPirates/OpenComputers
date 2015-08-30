@@ -67,6 +67,8 @@ for n = 1, options.count do
     end
     if options.wait then
         os.sleep(tonumber(options.wait))
+    else
+        os.sleep(0)
     end
 end
 

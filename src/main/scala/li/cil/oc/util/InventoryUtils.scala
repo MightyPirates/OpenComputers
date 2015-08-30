@@ -155,7 +155,10 @@ object InventoryUtils {
     (stack != null && limit > 0) && {
       var success = false
       var remaining = limit
-      val range = slots.getOrElse(0 until inventory.getSizeInventory)
+      val range = slots.getOrElse(inventory match {
+        case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.getOrElse(ForgeDirection.UNKNOWN).ordinal).toIterable
+        case _ => 0 until inventory.getSizeInventory
+      })
 
       if (range.nonEmpty) {
         // This is a special case for inserting with an explicit ordering,
@@ -204,8 +207,13 @@ object InventoryUtils {
    * <p/>
    * This returns <tt>true</tt> if at least one item was extracted.
    */
-  def extractFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, limit: Int = 64) =
-    (0 until inventory.getSizeInventory).exists(slot => extractFromInventorySlot(consumer, inventory, side, slot, limit))
+  def extractFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: ForgeDirection, limit: Int = 64) = {
+    val range = inventory match {
+      case sided: ISidedInventory => sided.getAccessibleSlotsFromSide(side.ordinal).toIterable
+      case _ => 0 until inventory.getSizeInventory
+    }
+    range.exists(slot => extractFromInventorySlot(consumer, inventory, side, slot, limit))
+  }
 
   /**
    * Utility method for calling <tt>insertIntoInventory</tt> on an inventory
@@ -220,6 +228,48 @@ object InventoryUtils {
    */
   def extractFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: ForgeDirection, limit: Int = 64) =
     inventoryAt(position).exists(extractFromInventory(consumer, _, side, limit))
+
+  /**
+   * Transfers some items between two inventories.
+   * <p/>
+   * This will try to extract up the specified number of items from any inventory,
+   * then insert it into the specified sink inventory. If the insertion fails, the
+   * items will remain in the source inventory.
+   * <p/>
+   * This uses the <tt>extractFromInventory</tt> and <tt>insertIntoInventory</tt>
+   * methods, and therefore handles special cases such as sided inventories and
+   * stack size limits.
+   * <p/>
+   * This returns <tt>true</tt> if at least one item was transferred.
+   */
+  def transferBetweenInventories(source: IInventory, sourceSide: ForgeDirection, sink: IInventory, sinkSide: Option[ForgeDirection], limit: Int = 64) =
+    extractFromInventory(
+      insertIntoInventory(_, sink, sinkSide, limit), source, sourceSide, limit)
+
+  /**
+   * Like <tt>transferBetweenInventories</tt> but moving between specific slots.
+   */
+  def transferBetweenInventoriesSlots(source: IInventory, sourceSide: ForgeDirection, sourceSlot: Int, sink: IInventory, sinkSide: Option[ForgeDirection], sinkSlot: Int, limit: Int = 64) =
+    extractFromInventorySlot(
+      insertIntoInventorySlot(_, sink, sinkSide, sinkSlot, limit), source, sourceSide, sourceSlot, limit)
+
+  /**
+   * Utility method for calling <tt>transferBetweenInventories</tt> on inventories
+   * in the world.
+   */
+  def transferBetweenInventoriesAt(source: BlockPosition, sourceSide: ForgeDirection, sink: BlockPosition, sinkSide: Option[ForgeDirection], limit: Int = 64) =
+    inventoryAt(source).exists(sourceInventory =>
+      inventoryAt(sink).exists(sinkInventory =>
+        transferBetweenInventories(sourceInventory, sourceSide, sinkInventory, sinkSide, limit)))
+
+  /**
+   * Utility method for calling <tt>transferBetweenInventoriesSlots</tt> on inventories
+   * in the world.
+   */
+  def transferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: ForgeDirection, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[ForgeDirection], sinkSlot: Int, limit: Int = 64) =
+    inventoryAt(sourcePos).exists(sourceInventory =>
+      inventoryAt(sinkPos).exists(sinkInventory =>
+        transferBetweenInventoriesSlots(sourceInventory, sourceSide, sourceSlot, sinkInventory, sinkSide, sinkSlot, limit)))
 
   /**
    * Utility method for dropping contents from a single inventory slot into

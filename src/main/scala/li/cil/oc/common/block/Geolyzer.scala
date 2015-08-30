@@ -1,5 +1,7 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
@@ -19,6 +21,7 @@ class Geolyzer extends SimpleBlock {
     Some("GeolyzerSide")
   )
 
+  @SideOnly(Side.CLIENT)
   override def registerBlockIcons(iconRegister: IIconRegister) = {
     super.registerBlockIcons(iconRegister)
     Textures.Geolyzer.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":GeolyzerTopOn")

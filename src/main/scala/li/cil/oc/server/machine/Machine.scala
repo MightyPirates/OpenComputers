@@ -478,7 +478,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     // Check if we should switch states. These are all the states in which we're
     // guaranteed that the executor thread isn't running anymore.
-    state.synchronized(state.top match {
+    state.synchronized(state.top) match {
       // Booting up.
       case Machine.State.Starting =>
         verifyComponents()
@@ -539,10 +539,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         finally {
           inSynchronizedCall = false
         }
-
-        assert(!isExecuting)
       case _ => // Nothing special to do, just avoid match errors.
-    })
+    }
 
     // Finally check if we should stop the computer. We cannot lock the state
     // because we may have to wait for the executor thread to finish, which
@@ -946,6 +944,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           case Machine.State.Stopping =>
             state.clear()
             state.push(Machine.State.Stopping)
+          case Machine.State.Restarting =>
+            // Nothing to do!
           case _ => throw new AssertionError("Invalid state in executor post-processing.")
         }
         assert(!isExecuting)

@@ -234,6 +234,16 @@ object PacketSender {
     }
   }
 
+  def sendNetSplitterState(t: tileentity.NetSplitter): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.NetSplitterState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(t.isInverted)
+    pb.writeByte(t.compressSides)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendParticleEffect(position: BlockPosition, name: String, count: Int, velocity: Double, direction: Option[ForgeDirection] = None): Unit = if (count > 0) {
     val pb = new SimplePacketBuilder(PacketType.ParticleEffect)
 
@@ -392,7 +402,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendSwitchActivity(t: tileentity.Switch) {
+  def sendSwitchActivity(t: tileentity.traits.SwitchLike) {
     val pb = new SimplePacketBuilder(PacketType.SwitchActivity)
 
     pb.writeTileEntity(t)
@@ -529,16 +539,6 @@ object PacketSender {
     pb.sendToPlayersNearHost(host)
   }
 
-  def sendNetSplitterState(t: tileentity.NetSplitter): Unit = {
-    val pb = new SimplePacketBuilder(PacketType.NetSplitterState)
-
-    pb.writeTileEntity(t)
-    pb.writeBoolean(t.isInverted)
-    pb.writeByte(t.compressSides)
-
-    pb.sendToPlayersNearTileEntity(t)
-  }
-
   def sendScreenTouchMode(t: tileentity.Screen, value: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.ScreenTouchMode)
 
@@ -617,6 +617,14 @@ object PacketSender {
     pb.writeUTF(pattern)
 
     pb.sendToNearbyPlayers(world, x, y, z, Option(32))
+  }
+
+  def sendTransposerActivity(t: tileentity.Transposer) {
+    val pb = new SimplePacketBuilder(PacketType.TransposerActivity)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToPlayersNearTileEntity(t, Option(32))
   }
 
   def sendWaypointLabel(t: Waypoint): Unit = {
