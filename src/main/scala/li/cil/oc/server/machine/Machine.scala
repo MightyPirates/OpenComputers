@@ -980,6 +980,13 @@ object Machine extends MachineAPI {
 
   override def architectures = checked.toSeq
 
+  // TODO Expose in Machine API in 1.6
+  def getArchitectureName(architecture: Class[_ <: Architecture]) =
+    architecture.getAnnotation(classOf[Architecture.Name]) match {
+      case annotation: Architecture.Name => annotation.value
+      case _ => architecture.getSimpleName
+    }
+
   override def create(host: MachineHost) = new Machine(host)
 
   /** Possible states of the computer, and in particular its executor. */
