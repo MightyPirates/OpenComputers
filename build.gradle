@@ -92,8 +92,8 @@ repositories {
         url = "http://mobiusstrip.eu/maven"
     }
     maven {
-        name = "builtbroken"
-        url = "http://ci.builtbroken.com/maven/"
+        name = "dmodoomsirius"
+        url = "http://ci.dmodoomsirius.me/maven/"
     }
     maven {
         name = "ue"
