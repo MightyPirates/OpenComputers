@@ -6,9 +6,13 @@ import li.cil.oc.common.item.data.HoverBootsData
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemArmor
 import net.minecraft.item.ItemStack
+import net.minecraft.potion.Potion
+import net.minecraft.potion.PotionEffect
+import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
@@ -61,6 +65,13 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     else null
   }
 
+  override def onArmorTick(world: World, player: EntityPlayer, stack: ItemStack): Unit = {
+    super.onArmorTick(world, player, stack)
+    if (player.getActivePotionEffect(Potion.moveSlowdown) == null && getCharge(stack) == 0) {
+      player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.getId, 20, 1))
+    }
+  }
+
   override def showDurabilityBar(stack: ItemStack): Boolean = true
 
   override def getDurabilityForDisplay(stack: ItemStack): Double = {
@@ -72,4 +83,15 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
 
   // Always show energy bar.
   override def isDamaged(stack: ItemStack): Boolean = true
+
+  // Contradictory as it may seem with the above, this avoids actual damage value changing.
+  override def isDamageable: Boolean = false
+
+  override def setDamage(stack: ItemStack, damage: Int): Unit = {
+    // Subtract energy when taking damage instead of actually damaging the item.
+    charge(stack, -damage, simulate = false)
+
+    // Set to 0 for old boots that may have been damaged before.
+    super.setDamage(stack, 0)
+  }
 }
