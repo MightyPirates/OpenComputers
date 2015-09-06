@@ -526,7 +526,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def onItemPickup(entity: Entity, count: Int) {}
 
-  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack) {}
+  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack): Unit = {
+    if (slot == 0 && agent.equipmentInventory.getSizeInventory > 0) {
+      agent.equipmentInventory.setInventorySlotContents(slot, stack)
+    }
+    // else: armor slots, which are unsupported in agents.
+  }
 
   override def setRevengeTarget(entity: EntityLivingBase) {}
 
