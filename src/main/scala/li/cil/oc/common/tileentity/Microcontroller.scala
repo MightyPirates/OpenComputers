@@ -237,6 +237,9 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   // Nope.
   override def decrStackSize(slot: Int, amount: Int) = null
 
+  // Nope.
+  override def getStackInSlotOnClosing(slot: Int) = null
+
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack) = {
     val oldEepromIndex = info.components.indexWhere(api.Items.get(_) == api.Items.get(Constants.ItemName.EEPROM))
