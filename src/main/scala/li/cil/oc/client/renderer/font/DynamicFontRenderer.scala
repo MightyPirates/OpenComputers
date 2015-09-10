@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.font
 
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
-import li.cil.oc.util.FontUtil
+import li.cil.oc.util.FontUtils
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.IReloadableResourceManager
@@ -75,7 +75,7 @@ class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloa
   }
 
   private def createCharIcon(char: Char): DynamicFontRenderer.CharIcon = {
-    if (FontUtil.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
+    if (FontUtils.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
       else charMap.getOrElseUpdate('?', createCharIcon('?'))
     }
@@ -121,10 +121,10 @@ object DynamicFontRenderer {
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
     }
 
-    def isFull(char: Char) = chars + FontUtil.wcwidth(char) > capacity
+    def isFull(char: Char) = chars + FontUtils.wcwidth(char) > capacity
 
     def add(char: Char) = {
-      val glyphWidth = FontUtil.wcwidth(char)
+      val glyphWidth = FontUtils.wcwidth(char)
       val w = owner.charWidth * glyphWidth
       val h = owner.charHeight
       // Force line break if we have a char that's wider than what space remains in this row.

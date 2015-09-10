@@ -33,7 +33,6 @@ import li.cil.oc.util._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
@@ -234,13 +233,9 @@ object EventHandler {
   def onEntityJoinWorld(e: EntityJoinWorldEvent): Unit = {
     if (Settings.get.giveManualToNewPlayers && !e.world.isRemote) e.entity match {
       case player: EntityPlayer if !player.isInstanceOf[FakePlayer] =>
-        val nbt = player.getEntityData
-        if (!nbt.hasKey(EntityPlayer.PERSISTED_NBT_TAG)) {
-          nbt.setTag(EntityPlayer.PERSISTED_NBT_TAG, new NBTTagCompound())
-        }
-        val ocData = nbt.getCompoundTag(EntityPlayer.PERSISTED_NBT_TAG)
-        if (!ocData.getBoolean(Settings.namespace + "receivedManual")) {
-          ocData.setBoolean(Settings.namespace + "receivedManual", true)
+        val persistedData = PlayerUtils.persistedData(player)
+        if (!persistedData.getBoolean(Settings.namespace + "receivedManual")) {
+          persistedData.setBoolean(Settings.namespace + "receivedManual", true)
           player.inventory.addItemStackToInventory(api.Items.get(Constants.ItemName.Manual).createItemStack(1))
         }
       case _ =>
