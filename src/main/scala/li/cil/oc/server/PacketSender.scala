@@ -215,6 +215,30 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendHologramRotation(t: tileentity.Hologram) {
+    val pb = new SimplePacketBuilder(PacketType.HologramRotation)
+
+    pb.writeTileEntity(t)
+    pb.writeFloat(t.rotationAngle)
+    pb.writeFloat(t.rotationX)
+    pb.writeFloat(t.rotationY)
+    pb.writeFloat(t.rotationZ)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendHologramRotationSpeed(t: tileentity.Hologram) {
+    val pb = new SimplePacketBuilder(PacketType.HologramRotationSpeed)
+
+    pb.writeTileEntity(t)
+    pb.writeFloat(t.rotationSpeed)
+    pb.writeFloat(t.rotationSpeedX)
+    pb.writeFloat(t.rotationSpeedY)
+    pb.writeFloat(t.rotationSpeedZ)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendLootDisks(p: EntityPlayerMP): Unit = {
     // Sending as separate packets, because CompressedStreamTools hiccups otherwise...
     val stacks = Loot.worldDisks.values.map(_._1)

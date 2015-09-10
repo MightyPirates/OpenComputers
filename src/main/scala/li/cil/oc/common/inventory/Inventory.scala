@@ -1,15 +1,12 @@
 package li.cil.oc.common.inventory
 
-import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
-trait Inventory extends IInventory {
+trait Inventory extends SimpleInventory {
   def items: Array[Option[ItemStack]]
 
   def updateItems(slot: Int, stack: ItemStack) = items(slot) = Option(stack)
@@ -18,24 +15,6 @@ trait Inventory extends IInventory {
 
   override def getStackInSlot(slot: Int) =
     if (slot >= 0 && slot < getSizeInventory) items(slot).orNull
-    else null
-
-  override def decrStackSize(slot: Int, amount: Int) =
-    if (slot >= 0 && slot < getSizeInventory) {
-      (items(slot) match {
-        case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
-          setInventorySlotContents(slot, null)
-          stack
-        case Some(stack) =>
-          val result = stack.splitStack(amount)
-          markDirty()
-          result
-        case _ => null
-      }) match {
-        case stack: ItemStack if stack.stackSize > 0 => stack
-        case _ => null
-      }
-    }
     else null
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
@@ -67,29 +46,9 @@ trait Inventory extends IInventory {
     }
   }
 
-  def getInventoryStackRequired = 1
-
-  override def getStackInSlotOnClosing(slot: Int) = null
-
-  override def openInventory(player: EntityPlayer) {}
-
-  override def closeInventory(player: EntityPlayer) {}
-
-  override def clear() {} // TODO implement?
-
   override def getName = Settings.namespace + "container." + inventoryName
 
-  override def hasCustomName = false
-
-  override def getDisplayName = Localization.localizeLater(getName)
-
   protected def inventoryName = getClass.getSimpleName
-
-  override def getField(id: Int) = 0
-
-  override def setField(id: Int, value: Int) {}
-
-  override def getFieldCount = 0
 
   // ----------------------------------------------------------------------- //
 

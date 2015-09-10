@@ -325,8 +325,6 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def getSizeInventory = 3
 
-  override def getInventoryStackLimit = 64
-
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot == slotMaterial)
       PrintData.materialValue(stack) > 0
