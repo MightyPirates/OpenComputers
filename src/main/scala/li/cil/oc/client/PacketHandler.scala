@@ -52,6 +52,8 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
+      case PacketType.HologramRotation => onHologramRotation(p)
+      case PacketType.HologramRotationSpeed => onHologramRotationSpeed(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
@@ -254,6 +256,26 @@ object PacketHandler extends CommonPacketHandler {
         t.translation.xCoord = p.readDouble()
         t.translation.yCoord = p.readDouble()
         t.translation.zCoord = p.readDouble()
+      case _ => // Invalid packet.
+    }
+
+  def onHologramRotation(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.rotationAngle = p.readFloat()
+        t.rotationX = p.readFloat()
+        t.rotationY = p.readFloat()
+        t.rotationZ = p.readFloat()
+      case _ => // Invalid packet.
+    }
+
+  def onHologramRotationSpeed(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.rotationSpeed = p.readFloat()
+        t.rotationSpeedX = p.readFloat()
+        t.rotationSpeedY = p.readFloat()
+        t.rotationSpeedZ = p.readFloat()
       case _ => // Invalid packet.
     }
 

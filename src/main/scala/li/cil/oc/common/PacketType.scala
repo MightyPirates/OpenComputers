@@ -17,6 +17,8 @@ object PacketType extends Enumeration {
   HologramClear,
   HologramColor,
   HologramPowerChange,
+  HologramRotation,
+  HologramRotationSpeed,
   HologramScale,
   HologramTranslation,
   HologramValues,
