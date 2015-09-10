@@ -6,6 +6,8 @@ import li.cil.oc.client.gui.widget.WidgetContainer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.inventory.Container
 
 import scala.collection.convert.WrapAsScala._
@@ -32,9 +34,10 @@ abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C) ext
 
   protected def copiedDrawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer): Unit = {
     if (!text.isEmpty) {
-      RenderState.disableRescaleNormal()
-      RenderState.disableEntityLighting()
-      RenderState.disableDepth()
+      GlStateManager.disableRescaleNormal()
+      RenderHelper.disableStandardItemLighting()
+      GlStateManager.disableLighting()
+      GlStateManager.disableDepth()
 
       val textWidth = text.map(line => font.getStringWidth(line.asInstanceOf[String])).max
 
@@ -52,6 +55,7 @@ abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C) ext
       }
 
       zLevel = 300f
+      itemRender.zLevel = 300f
       val bg = 0xF0100010
       drawGradientRect(posX - 3, posY - 4, posX + textWidth + 3, posY - 3, bg, bg)
       drawGradientRect(posX - 3, posY + textHeight + 3, posX + textWidth + 3, posY + textHeight + 4, bg, bg)
@@ -59,7 +63,7 @@ abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C) ext
       drawGradientRect(posX - 4, posY - 3, posX - 3, posY + textHeight + 3, bg, bg)
       drawGradientRect(posX + textWidth + 3, posY - 3, posX + textWidth + 4, posY + textHeight + 3, bg, bg)
       val color1 = 0x505000FF
-      val color2 = 0x505000FE
+      val color2 = (color1 & 0x00FEFEFE) >> 1 | (color1 & 0xFF000000)
       drawGradientRect(posX - 3, posY - 3 + 1, posX - 3 + 1, posY + textHeight + 3 - 1, color1, color2)
       drawGradientRect(posX + textWidth + 2, posY - 3 + 1, posX + textWidth + 3, posY + textHeight + 3 - 1, color1, color2)
       drawGradientRect(posX - 3, posY - 3, posX + textWidth + 3, posY - 3 + 1, color1, color1)
@@ -73,10 +77,12 @@ abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C) ext
         posY += 10
       }
       zLevel = 0f
+      itemRender.zLevel = 0f
 
-      RenderState.enableEntityLighting()
-      RenderState.enableDepth()
-      RenderState.enableRescaleNormal()
+      GlStateManager.enableLighting()
+      GlStateManager.enableDepth()
+      RenderHelper.enableStandardItemLighting()
+      GlStateManager.enableRescaleNormal()
     }
   }
 
