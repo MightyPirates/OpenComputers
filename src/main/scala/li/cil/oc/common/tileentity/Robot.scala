@@ -34,7 +34,6 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
@@ -676,6 +675,8 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
   // ----------------------------------------------------------------------- //
 
   var getSizeInventory = actualInventorySize
+
+  override def getInventoryStackLimit = 64
 
   override def getStackInSlot(slot: Int) = {
     if (slot >= getSizeInventory) null // Required to always show 16 inventory slots in GUI.
