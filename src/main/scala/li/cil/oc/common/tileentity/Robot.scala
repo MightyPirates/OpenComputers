@@ -524,6 +524,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
     }
+    else super.onItemAdded(slot, stack)
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
