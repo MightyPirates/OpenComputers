@@ -540,6 +540,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
     }
+    else super.onItemAdded(slot, stack)
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
@@ -691,6 +692,8 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   // ----------------------------------------------------------------------- //
 
   var getSizeInventory = actualInventorySize
+
+  override def getInventoryStackLimit = 64
 
   override def getStackInSlot(slot: Int) = {
     if (slot >= getSizeInventory) null // Required to always show 16 inventory slots in GUI.
