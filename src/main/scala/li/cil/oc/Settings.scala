@@ -11,6 +11,7 @@ import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion
 import cpw.mods.fml.common.versioning.VersionRange
+import li.cil.oc.Settings.DebugCardAccess
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
@@ -380,7 +381,11 @@ class Settings(val config: Config) {
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
   val periodicallyForceLightUpdate = config.getBoolean("debug.periodicallyForceLightUpdate")
   val insertIdsInConverters = config.getBoolean("debug.insertIdsInConverters")
-  val enableDebugCard = config.getBoolean("debug.enableDebugCard")
+  val debugCardAccess = config.getAnyRef("debug.debugCardAccess") match {
+    case s: String => DebugCardAccess.Password(s)
+    case java.lang.Boolean.TRUE => DebugCardAccess.Allowed
+    case java.lang.Boolean.FALSE => DebugCardAccess.Forbidden
+  }
   val registerLuaJArchitecture = config.getBoolean("debug.registerLuaJArchitecture")
   val disableLocaleChanging = config.getBoolean("debug.disableLocaleChanging")
 }
@@ -520,4 +525,12 @@ object Settings {
     def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
 
+  object DebugCardAccess {
+    sealed abstract class Base
+
+    object Forbidden extends Base
+    object Allowed extends Base
+
+    case class Password(pwd: String) extends Base
+  }
 }
