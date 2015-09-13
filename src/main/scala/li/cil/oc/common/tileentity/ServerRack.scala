@@ -69,6 +69,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def canConnect(side: EnumFacing) = side != facing
 
+  override def sidedNode(side: EnumFacing): Node = if (side != facing) super.sidedNode(side) else null
+
   // ----------------------------------------------------------------------- //
 
   def isRunning(number: Int) =
@@ -107,7 +109,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     sides(number) match {
       case Some(serverSide) =>
         val serverNode = server.machine.node
-        for (side <- EnumFacing.values) {
+        for (side <- EnumFacing.values if side != facing) {
           if (toLocal(side) == serverSide) sidedNode(side).connect(serverNode)
           else sidedNode(side).disconnect(serverNode)
         }
