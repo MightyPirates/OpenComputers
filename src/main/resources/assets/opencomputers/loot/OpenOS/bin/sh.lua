@@ -450,7 +450,12 @@ local function hintHandler(line, cursor)
     partialPrefix = partialPrefix:sub(1, -name:len() - 1)
     result = getMatchingFiles(partialPrefix, name)
   end
-  local resultSuffix = ((searchInPath or #result == 1) and " " or "")
+  local resultSuffix = ""
+  if searchInPath then
+    resultSuffix  = " "
+  elseif #result == 1 and result[1]:sub(-1) ~= '/' then
+    resultSuffix = " "
+  end
   prefix = prefix or ""
   for i = 1, #result do
     result[i] = prefix .. result[i] .. resultSuffix
