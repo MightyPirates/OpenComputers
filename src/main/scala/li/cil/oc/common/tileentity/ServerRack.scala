@@ -74,6 +74,8 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   override def canConnect(side: ForgeDirection) = side != facing
 
+  override def sidedNode(side: ForgeDirection): Node = if (side != facing) super.sidedNode(side) else null
+
   @Method(modid = Mods.IDs.StargateTech2)
   override def getInterfaces(side: Int) = if (side != facing.ordinal) {
     super.getInterfaces(side)
@@ -133,7 +135,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     sides(number) match {
       case Some(serverSide) =>
         val serverNode = server.machine.node
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        for (side <- ForgeDirection.VALID_DIRECTIONS if side != facing) {
           if (toLocal(side) == serverSide) sidedNode(side).connect(serverNode)
           else sidedNode(side).disconnect(serverNode)
         }

@@ -62,6 +62,6 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment {
 
   private def isPrimary(connector: Connector) = {
     val nodes = connectors
-    connector != null && nodes(nodes.indexWhere(_.network == connector.network)) == connector
+    connector != null && nodes(nodes.indexWhere(node => node != null && node.network == connector.network)) == connector
   }
 }
