@@ -404,7 +404,8 @@ local function getMatchingPrograms(baseName)
   return result
 end
 
-local function getMatchingFiles(baseName)
+local function getMatchingFiles(partialPrefix, name)
+  local baseName = shell.resolve(partialPrefix .. name)
   local result, basePath = {}
   -- note: we strip the trailing / to make it easier to navigate through
   -- directories using tab completion (since entering the / will then serve
@@ -421,7 +422,7 @@ local function getMatchingFiles(baseName)
   for file in fs.list(basePath) do
     local match = file:match(baseName)
     if match then
-      table.insert(result, fs.concat(basePath, match))
+      table.insert(result, partialPrefix ..  match)
     end
   end
   -- (cont.) but if there's only one match and it's a directory, *then* we
@@ -444,10 +445,15 @@ local function hintHandler(line, cursor)
     -- first part and no path, look for programs in the $PATH
     result = getMatchingPrograms(line)
   else -- just look normal files
-    result = getMatchingFiles(shell.resolve(partial or line))
+    local partialPrefix = (partial or line)
+    local name = fs.name(partialPrefix)
+    partialPrefix = partialPrefix:sub(1, -name:len() - 1)
+    result = getMatchingFiles(partialPrefix, name)
   end
+  local resultSuffix = ((searchInPath or #result == 1) and " " or "")
+  prefix = prefix or ""
   for i = 1, #result do
-    result[i] = (prefix or "") .. result[i] .. (searchInPath and " " or "")
+    result[i] = prefix .. result[i] .. resultSuffix
   end
   table.sort(result)
   return result
