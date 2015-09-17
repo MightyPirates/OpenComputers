@@ -398,6 +398,9 @@ object Items extends ItemAPI {
 
     // 1.5.11
     Recipes.addItem(new item.HoverBoots(), Constants.ItemName.HoverBoots, "oc:hoverBoots")
+
+    // 1.5.18
+    Recipes.addSubItem(new item.Nanomachines(tools), Constants.ItemName.Nanomachines, "oc:nanomachines")
   }
 
   // General purpose components.
