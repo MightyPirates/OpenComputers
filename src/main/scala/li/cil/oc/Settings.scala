@@ -354,7 +354,7 @@ class Settings(val config: Config) {
   val nanomachineConnectorQuota = config.getDouble("nanomachines.connectorQuota") max 0
   val nanomachineMaxInputs = config.getInt("nanomachines.maxInputs") max 1
   val nanomachineMaxOutputs = config.getInt("nanomachines.maxOutputs") max 1
-  val nanomachinesSafeInputCount = config.getDouble("nanomachines.safeInputCount") max 0 min 1
+  val nanomachinesSafeInputCount = config.getInt("nanomachines.safeInputCount") max 0
   val nanomachineReconfigureTimeout = config.getDouble("nanomachines.reconfigureCooldown") max 0
   val nanomachineMagnetRange = config.getDouble("nanomachines.magnetRange") max 0
   val nanomachineDisintegrationRange = config.getInt("nanomachines.disintegrationRange") max 0
