@@ -92,7 +92,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
-    for (side <- EnumFacing.values if Option(side) != sourceSide) {
+    for (side <- EnumFacing.values if Option(side) != sourceSide && sidedNode(side) != null) {
       sidedNode(side).sendToReachable("network.message", packet)
     }
   }

@@ -4,7 +4,7 @@ package li.cil.oc.api.nanomachines;
  * Implemented by single behaviors.
  * <p/>
  * If you need a reference to the player this behavior applies to (which you'll
- * probably usually want to have), pass it along from {@link BehaviorProvider#createBehavior}.
+ * probably usually want to have), pass it along from {@link BehaviorProvider#createBehaviors}.
  */
 public interface Behavior {
     /**
