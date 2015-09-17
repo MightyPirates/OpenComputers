@@ -8,6 +8,7 @@ import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.network._
 import li.cil.oc.common.Slot
 import li.cil.oc.common.entity.Drone
@@ -29,7 +30,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     withConnector(Settings.get.bufferConverter).
     create()
 
-  val connectors = mutable.Set.empty[(Vec3, Connector)]
+  val connectors = mutable.Set.empty[Chargeable]
 
   var chargeSpeed = 0.0
 
@@ -80,9 +81,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         val charge = Settings.get.chargeRateExternal * chargeSpeed * Settings.get.tickFrequency
         canCharge ||= charge > 0 && node.globalBuffer >= charge * 0.5
         if (canCharge) {
-          connectors.foreach {
-            case (_, connector) => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge)))
-          }
+          connectors.foreach(connector => node.changeBuffer(connector.changeBuffer(charge + node.changeBuffer(-charge))))
         }
       }
 
@@ -110,15 +109,15 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     if (isClient && chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
-      connectors.foreach {
-        case (position, _) =>
-          val theta = world.rand.nextDouble * Math.PI
-          val phi = world.rand.nextDouble * Math.PI * 2
-          val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
-          val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
-          val dz = 0.45 * Math.cos(theta)
-          world.spawnParticle("happyVillager", position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
-      }
+      connectors.foreach(connector => {
+        val position = connector.pos
+        val theta = world.rand.nextDouble * Math.PI
+        val phi = world.rand.nextDouble * Math.PI * 2
+        val dx = 0.45 * Math.sin(theta) * Math.cos(phi)
+        val dy = 0.45 * Math.sin(theta) * Math.sin(phi)
+        val dz = 0.45 * Math.cos(theta)
+        world.spawnParticle("happyVillager", position.xCoord + dx, position.yCoord + dz, position.zCoord + dy, 0, 0, 0)
+      })
     }
   }
 
@@ -192,23 +191,60 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   }
 
   def updateConnectors() {
-    val robotConnectors = ForgeDirection.VALID_DIRECTIONS.map(side => {
+    val robots = ForgeDirection.VALID_DIRECTIONS.map(side => {
       val blockPos = BlockPosition(this).offset(side)
       if (world.blockExists(blockPos)) Option(world.getTileEntity(blockPos))
       else None
     }).collect {
-      case Some(t: RobotProxy) => (BlockPosition(t).toVec3, t.robot.node.asInstanceOf[Connector])
+      case Some(t: RobotProxy) => new RobotChargeable(t.robot)
     }
-    val droneConnectors = world.getEntitiesWithinAABB(classOf[Drone], BlockPosition(this).bounds.expand(1, 1, 1)).collect {
-      case drone: Drone => (Vec3.createVectorHelper(drone.posX, drone.posY, drone.posZ), drone.components.node.asInstanceOf[Connector])
+
+    val bounds = BlockPosition(this).bounds.expand(1, 1, 1)
+    val drones = world.getEntitiesWithinAABB(classOf[Drone], bounds).collect {
+      case drone: Drone => new DroneChargeable(drone)
+    }
+
+    val players = world.getEntitiesWithinAABB(classOf[EntityPlayer], bounds).collect {
+      case player: EntityPlayer => new PlayerChargeable(player)
     }
 
     // Only update list when we have to, keeps pointless block updates to a minimum.
-    if (connectors.size != robotConnectors.length + droneConnectors.size || (connectors.size > 0 && connectors.map(_._2).diff((robotConnectors ++ droneConnectors).map(_._2).toSet).size > 0)) {
+
+    val newConnectors = robots ++ drones ++ players
+    if (connectors.size != newConnectors.length || (connectors.nonEmpty && (connectors -- newConnectors).nonEmpty)) {
       connectors.clear()
-      connectors ++= robotConnectors
-      connectors ++= droneConnectors
+      connectors ++= newConnectors
       world.notifyBlocksOfNeighborChange(x, y, z, block)
     }
   }
+
+  trait Chargeable {
+    def pos: Vec3
+
+    def changeBuffer(delta: Double): Double
+  }
+
+  abstract class ConnectorChargeable(val connector: Connector) extends Chargeable {
+    override def changeBuffer(delta: Double): Double = connector.changeBuffer(delta)
+  }
+
+  class RobotChargeable(val robot: Robot) extends ConnectorChargeable(robot.node.asInstanceOf[Connector]) {
+    override def pos: Vec3 = BlockPosition(robot).toVec3
+  }
+
+  class DroneChargeable(val drone: Drone) extends ConnectorChargeable(drone.components.node.asInstanceOf[Connector]) {
+    override def pos: Vec3 = Vec3.createVectorHelper(drone.posX, drone.posY, drone.posZ)
+  }
+
+  class PlayerChargeable(val player: EntityPlayer) extends Chargeable {
+    override def pos: Vec3 = Vec3.createVectorHelper(player.posX, player.posY, player.posZ)
+
+    override def changeBuffer(delta: Double): Double = {
+      api.Nanomachines.getController(player) match {
+        case controller: Controller => controller.changeBuffer(delta)
+        case _ => delta // Cannot charge.
+      }
+    }
+  }
+
 }

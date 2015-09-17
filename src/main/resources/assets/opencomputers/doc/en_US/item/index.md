@@ -87,3 +87,4 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 ## Other
 * [Hover Boots](hoverBoots.md)
+* [Nanomachines](nanomachines.md)

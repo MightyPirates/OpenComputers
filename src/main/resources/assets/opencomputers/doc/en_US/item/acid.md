@@ -2,4 +2,6 @@
 
 ![Reflux?](oredict:oc:materialAcid)
 
-Encountered only when using hard-mode recipes, it is used to etch [circuit boards](circuitBoard.md) before crafting [printed circuit boards](printedCircuitBoard.md).
+This tasty [citation needed] concoction can be consumed if you ever feel the need for some... fun. Or ruining your digestive tract. Or both. It can also serve as ingredient in other, more useful items.
+
+When using hard-mode recipes, it is used to etch [circuit boards](circuitBoard.md) before crafting [printed circuit boards](printedCircuitBoard.md).

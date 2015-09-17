@@ -299,7 +299,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       block.onBlockClicked(world, x, y, z, this)
       world.extinguishFire(this, x, y, z, side)
 
-      val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
+      val hardness = block.getBlockHardness(world, x, y, z)
+      val isBlockUnbreakable = hardness < 0
       val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
       if (!canDestroyBlock) {
         return 0
@@ -315,7 +316,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         return 0
       }
 
-      val hardness = block.getBlockHardness(world, x, y, z)
       val strength = getBreakSpeed(block, false, metadata, x, y, z)
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay

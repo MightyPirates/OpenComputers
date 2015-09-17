@@ -39,6 +39,13 @@ class Settings(val config: Config) {
   val beepSampleRate = config.getInt("client.beepSampleRate")
   val beepAmplitude = config.getInt("client.beepVolume") max 0 min Byte.MaxValue
   val beepRadius = config.getDouble("client.beepRadius").toFloat max 1 min 32
+  val nanomachineHudPos = Array(config.getDoubleList("client.nanomachineHudPos"): _*) match {
+    case Array(x, y) =>
+      (x: Double, y: Double)
+    case _ =>
+      OpenComputers.log.warn("Bad number of HUD coordiantes, ignoring.")
+      (-1.0, -1.0)
+  }
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -157,6 +164,7 @@ class Settings(val config: Config) {
   val bufferDrone = config.getDouble("power.buffer.drone") max 0
   val bufferMicrocontroller = config.getDouble("power.buffer.mcu") max 0
   val bufferHoverBoots = config.getDouble("power.buffer.hoverBoots") max 1
+  val bufferNanomachines = config.getDouble("power.buffer.nanomachines") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
@@ -202,6 +210,8 @@ class Settings(val config: Config) {
   val dataCardComplexByte = config.getDouble("power.cost.dataCardComplexByte") max 0
   val dataCardAsymmetric = config.getDouble("power.cost.dataCardAsymmetric") max 0
   val transposerCost = config.getDouble("power.cost.transposer") max 0
+  val nanomachineCost = config.getDouble("power.cost.nanomachineInput") max 0
+  val nanomachineReconfigureCost = config.getDouble("power.cost.nanomachinesReconfigure") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -305,7 +315,8 @@ class Settings(val config: Config) {
   val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
-  val maxNetworkPacketParts = config.getInt("misc.maxNetworkPacketParts") max 0
+  // Need at least 4 for nanomachine protocol. Because I can!
+  val maxNetworkPacketParts = config.getInt("misc.maxNetworkPacketParts") max 4
   val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
   val rTreeMaxEntries = 10
@@ -336,6 +347,18 @@ class Settings(val config: Config) {
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
   val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
   val redstoneDelay = config.getDouble("misc.redstoneDelay") max 0
+
+  // ----------------------------------------------------------------------- //
+  // nanomachines
+  val nanomachineTriggerQuota = config.getDouble("nanomachines.triggerQuota") max 0
+  val nanomachineConnectorQuota = config.getDouble("nanomachines.connectorQuota") max 0
+  val nanomachineMaxInputs = config.getInt("nanomachines.maxInputs") max 1
+  val nanomachineMaxOutputs = config.getInt("nanomachines.maxOutputs") max 1
+  val nanomachinesSafeInputCount = config.getDouble("nanomachines.safeInputCount") max 0 min 1
+  val nanomachineReconfigureTimeout = config.getDouble("nanomachines.reconfigureCooldown") max 0
+  val nanomachineMagnetRange = config.getDouble("nanomachines.magnetRange") max 0
+  val nanomachineDisintegrationRange = config.getInt("nanomachines.disintegrationRange") max 0
+  val nanomachinePotionBlacklist = config.getAnyRefList("nanomachines.potionBlacklist")
 
   // ----------------------------------------------------------------------- //
   // printer
