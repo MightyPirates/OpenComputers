@@ -22,6 +22,9 @@ object PacketType extends Enumeration {
   HologramTranslation,
   HologramValues,
   LootDisk,
+  NanomachinesConfiguration,
+  NanomachinesInputs,
+  NanomachinesPower,
   NetSplitterState,
   ParticleEffect,
   PetVisibility, // Goes both ways.

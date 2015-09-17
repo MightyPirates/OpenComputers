@@ -73,6 +73,7 @@ class Proxy {
     api.API.fileSystem = fs.FileSystem
     api.API.items = Items
     api.API.machine = machine.Machine
+    api.API.nanomachines = nanomachines.Nanomachines
     api.API.network = network.Network
 
     api.API.config = Settings.get.config

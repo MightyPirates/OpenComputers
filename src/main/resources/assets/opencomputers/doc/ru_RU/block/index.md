@@ -26,6 +26,7 @@
 * [Геоанализатор](geolyzer.md)
 * [Датчик движения](motionSensor.md)
 * [Редстоун-I/O](redstone.md)
+* [Транспозер](transposer.md)
 * [Путевая точка](waypoint.md)
 
 ## Сборка / Печать

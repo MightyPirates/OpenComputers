@@ -35,6 +35,8 @@ object ExtendedWorld {
 
     def breakBlock(position: BlockPosition, drops: Boolean = true) = world.destroyBlock(position.toBlockPos, drops)
 
+    def destroyBlockInWorldPartially(entityId: Int, position: BlockPosition, progress: Int) = world.sendBlockBreakProgress(entityId, position.toBlockPos, progress)
+
     def extinguishFire(player: EntityPlayer, position: BlockPosition, side: EnumFacing) = world.extinguishFire(player, position.toBlockPos, side)
 
     def getBlockHardness(position: BlockPosition) = getBlock(position).getBlockHardness(world, position.toBlockPos)

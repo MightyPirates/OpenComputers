@@ -27,6 +27,10 @@ import li.cil.oc.common.item.Analyzer
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
+import li.cil.oc.common.nanomachines.provider.DisintegrationProvider
+import li.cil.oc.common.nanomachines.provider.MagnetProvider
+import li.cil.oc.common.nanomachines.provider.ParticleProvider
+import li.cil.oc.common.nanomachines.provider.PotionProvider
 import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
@@ -80,6 +84,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(GeolyzerHandler)
     MinecraftForge.EVENT_BUS.register(HoverBootsHandler)
     MinecraftForge.EVENT_BUS.register(Loot)
+    MinecraftForge.EVENT_BUS.register(NanomachinesEventHandler.Common)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)
@@ -246,6 +251,11 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addTab(new TextureTabIconRenderer(Textures.GUI.ManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
+
+    api.Nanomachines.addProvider(DisintegrationProvider)
+    api.Nanomachines.addProvider(ParticleProvider)
+    api.Nanomachines.addProvider(PotionProvider)
+    api.Nanomachines.addProvider(MagnetProvider)
   }
 
   def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
