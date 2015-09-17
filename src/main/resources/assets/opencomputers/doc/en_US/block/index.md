@@ -26,6 +26,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Geolyzer](geolyzer.md)
 * [Motion Sensor](motionSensor.md)
 * [Redstone I/O](redstone.md)
+* [Transposer](transposer.md)
 * [Waypoint](waypoint.md)
 
 ## Assembly / Printing
