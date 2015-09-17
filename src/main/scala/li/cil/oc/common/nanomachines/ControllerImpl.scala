@@ -282,7 +282,6 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   private def cleanActiveBehaviors(): Unit = {
     if (activeBehaviorsDirty) {
       configuration.synchronized(if (activeBehaviorsDirty) {
-        activeBehaviors.clear()
         val newBehaviors = configuration.behaviors.filter(_.isActive).map(_.behavior)
         val addedBehaviors = newBehaviors -- activeBehaviors
         val removedBehaviors = activeBehaviors -- newBehaviors

@@ -40,7 +40,7 @@ object PotionProvider extends SimpleProvider {
   }
 
   class PotionBehavior(val potion: Potion, player: EntityPlayer) extends SimpleBehavior(player) {
-    final val RefreshInterval = 40
+    final val Duration = 600
 
     def amplifier(player: EntityPlayer) = api.Nanomachines.getController(player).getInputCount(this) - 1
 
@@ -48,13 +48,12 @@ object PotionProvider extends SimpleProvider {
 
     override def onEnable(): Unit = {}
 
-    override def onDisable(): Unit = {}
+    override def onDisable(): Unit = {
+      player.removePotionEffect(potion.id)
+    }
 
     override def update(): Unit = {
-      player.getActivePotionEffect(potion) match {
-        case effect: PotionEffect if effect.getDuration > RefreshInterval / 2 => // Effect still active.
-        case _ => player.addPotionEffect(new PotionEffect(potion.id, RefreshInterval, amplifier(player)))
-      }
+      player.addPotionEffect(new PotionEffect(potion.id, Duration, amplifier(player)))
     }
   }
 
