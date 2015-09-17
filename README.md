@@ -25,7 +25,7 @@ This mod is [licensed under the **MIT license**](https://github.com/MightyPirate
    If you would like to contribute better textures for certain items or blocks, feel free to pull-request them. If you would like to contribute *alternative* textures, make it a resource pack, and post it on the forums, for example.
 3. **Documentation**  
    Help with keeping the [wiki][] up to date would be *really* appreciated. If you notice anything amiss and know better, fix it. If you don't ask someone who does, then fix it. If you had a question answered, consider adding that information somewhere in the wiki where you would have expected to find that information.  
-   There are also the [files containing the ingame help][manpages], which could probably be much better than they are right now. Improvements to them, and new ones (e.g. for the libraries, such as `text` or `sides`) would help a lot. Thanks!
+   There are also the files containing the ingame help [for programs][manpages] and [for blocks and items][manual], which could probably be much better than they are right now. Improvements to them, and new ones (e.g. for the libraries, such as `text` or `sides`) would help a lot. Thanks!
 4. **Robot Names**  
    Robots get a random name when placed (unless set with an Anvil). The list the names are chose from [can be found here][robot names]. Feel free to pull request additional names! *However*: since the list has grown to a considerable length already, here are the two basic criteria for new names: it must either be a real or fictional robot, or an AI that at least *appears* to be self-aware.
 
@@ -99,7 +99,8 @@ In the case you wish to use Eclipse rather than IntelliJ IDEA, the process is mo
 [jenkins]: http://ci.cil.li/
 [localizations]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/lang
 [loot]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/loot
-[manpages]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/lua/rom/usr/man
+[manpages]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/loot/OpenOS/usr/man
+[manual]: https://github.com/MightyPirates/OpenComputers/tree/master-MC1.7.10/src/main/resources/assets/opencomputers/doc
 [mcf]: http://www.minecraftforum.net/topic/2201440-opencomputers-v122/
 [pack.mcmeta]: https://github.com/MightyPirates/OpenComputers/blob/master-MC1.7.10/src/main/resources/pack.mcmeta
 [releases]: https://github.com/MightyPirates/OpenComputers/releases
