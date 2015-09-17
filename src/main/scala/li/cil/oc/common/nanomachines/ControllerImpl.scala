@@ -143,7 +143,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
   override def getTotalInputCount: Int = configuration.synchronized(configuration.triggers.length)
 
-  override def getSafeInputCount: Int = configuration.synchronized(configuration.triggers.length * Settings.get.nanomachinesSafeInputCount).toInt
+  override def getSafeInputCount: Int = Settings.get.nanomachinesSafeInputCount
 
   override def getInput(index: Int): Boolean = configuration.synchronized(configuration.triggers(index).isActive)
 
