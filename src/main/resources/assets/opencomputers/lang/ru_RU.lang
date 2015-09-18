@@ -447,6 +447,15 @@ achievement.oc.transistor.desc=Создайте транзистор. Потом
 achievement.oc.wirelessNetworkCard=Сигналы
 achievement.oc.wirelessNetworkCard.desc=Время идти туда, где никогда не появлялся сигнал.
 
+# Death messages. Note that the number of entries here must match the number
+# set in the actual damage source in code.
+death.attack.oc.nanomachinesOverload.1=%s был слишком жадным.
+death.attack.oc.nanomachinesOverload.2=%s получил нервный срыв.
+death.attack.oc.nanomachinesOverload.3=Нанороботы %s вышли из под контроля.
+death.attack.oc.nanomachinesHungry.1=%s был съеден нанороботами.
+death.attack.oc.nanomachinesHungry.2=%s не кормил нанороботов.
+death.attack.oc.nanomachinesHungry.3=%s был переварен нанороботами.
+
 # NEI Integration
 nei.options.inventory.oredict=Показывать OreDictionary имена
 nei.options.inventory.oredict.true=Да
