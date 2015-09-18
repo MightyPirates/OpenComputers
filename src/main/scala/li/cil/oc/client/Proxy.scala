@@ -13,7 +13,7 @@ import li.cil.oc.client.renderer.entity.DroneRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
-import li.cil.oc.common.event.NanomachinesEventHandler
+import li.cil.oc.common.event.NanomachinesHandler
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.tileentity
@@ -81,7 +81,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
 
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
-    MinecraftForge.EVENT_BUS.register(NanomachinesEventHandler.Client)
+    MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Client)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(ServerRack)
     MinecraftForge.EVENT_BUS.register(Sound)

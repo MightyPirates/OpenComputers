@@ -2,14 +2,13 @@ package li.cil.oc.common.nanomachines.provider
 
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Behavior
+import li.cil.oc.api.prefab.AbstractBehavior
 import li.cil.oc.util.PlayerUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumParticleTypes
 
-object ParticleProvider extends SimpleProvider {
-  final val Id = "b48c4bbd-51bb-4915-9367-16cff3220e4b"
-
+object ParticleProvider extends ScalaProvider("b48c4bbd-51bb-4915-9367-16cff3220e4b") {
   final val ParticleTypes = Array(
     EnumParticleTypes.FIREWORKS_SPARK,
     EnumParticleTypes.TOWN_AURA,
@@ -26,9 +25,9 @@ object ParticleProvider extends SimpleProvider {
     EnumParticleTypes.VILLAGER_HAPPY
   )
 
-  override def doCreateBehaviors(player: EntityPlayer): Iterable[Behavior] = ParticleTypes.map(new ParticleBehavior(_, player))
+  override def createScalaBehaviors(player: EntityPlayer): Iterable[Behavior] = ParticleTypes.map(new ParticleBehavior(_, player))
 
-  override def doWriteToNBT(behavior: Behavior, nbt: NBTTagCompound): Unit = {
+  override def writeBehaviorToNBT(behavior: Behavior, nbt: NBTTagCompound): Unit = {
     behavior match {
       case particles: ParticleBehavior =>
         nbt.setInteger("effectName", particles.effectType.getParticleID)
@@ -36,12 +35,12 @@ object ParticleProvider extends SimpleProvider {
     }
   }
 
-  override def doReadFromNBT(player: EntityPlayer, nbt: NBTTagCompound): Behavior = {
+  override def readBehaviorFromNBT(player: EntityPlayer, nbt: NBTTagCompound): Behavior = {
     val effectType = EnumParticleTypes.getParticleFromId(nbt.getInteger("effectName"))
     new ParticleBehavior(effectType, player)
   }
 
-  class ParticleBehavior(var effectType: EnumParticleTypes, player: EntityPlayer) extends SimpleBehavior(player) {
+  class ParticleBehavior(var effectType: EnumParticleTypes, player: EntityPlayer) extends AbstractBehavior(player) {
     override def getNameHint = "particles"
 
     override def update(): Unit = {

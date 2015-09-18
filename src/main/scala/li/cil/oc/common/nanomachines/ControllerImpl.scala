@@ -9,8 +9,10 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Behavior
 import li.cil.oc.api.nanomachines.Controller
+import li.cil.oc.api.nanomachines.DisableReason
 import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.WirelessEndpoint
+import li.cil.oc.integration.util.DamageSourceWithRandomCause
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
@@ -33,6 +35,10 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   final val MaxSenderDistance = 2f
   final val FullSyncInterval = 20 * 60
 
+  final val OverloadDamage = new DamageSourceWithRandomCause("oc.nanomachinesOverload", 3).
+    setDamageBypassesArmor().
+    setDamageIsAbsolute()
+
   var uuid = UUID.randomUUID.toString
   var responsePort = 0
   var storedEnergy = Settings.get.bufferNanomachines * 0.25
@@ -52,7 +58,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   override def z: Int = BlockPosition(player).z
 
   override def receivePacket(packet: Packet, sender: WirelessEndpoint): Unit = {
-    if (getLocalBuffer > 0) {
+    if (getLocalBuffer > 0 && !player.isDead) {
       val (dx, dy, dz) = ((sender.x + 0.5) - player.posX, (sender.y + 0.5) - player.posY, (sender.z + 0.5) - player.posZ)
       val dSquared = dx * dx + dy * dy + dz * dz
       if (dSquared < MaxSenderDistance * MaxSenderDistance) packet.data.headOption match {
@@ -155,7 +161,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   }
 
   override def getActiveBehaviors: lang.Iterable[Behavior] = configuration.synchronized {
-    cleanActiveBehaviors()
+    cleanActiveBehaviors(DisableReason.InputChanged)
     activeBehaviors
   }
 
@@ -180,6 +186,10 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   // ----------------------------------------------------------------------- //
 
   def update(): Unit = {
+    if (player.isDead) {
+      return
+    }
+
     if (isServer) {
       api.Network.updateWirelessNetwork(this)
     }
@@ -189,12 +199,15 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       return
     }
 
-    val hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
+    var hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
     lazy val active = getActiveBehaviors.toIterable // Wrap once.
     lazy val activeInputs = configuration.triggers.count(_.isActive)
 
     if (hasPower != hadPower) {
-      if (!hasPower) active.foreach(_.onDisable())
+      if (!hasPower) {
+        active.foreach(_.onDisable(DisableReason.OutOfEnergy)) // This may change our energy buffer.
+        hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
+      }
       else active.foreach(_.onEnable())
     }
 
@@ -209,8 +222,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
         val overload = activeInputs - getSafeInputCount
         if (!player.capabilities.isCreativeMode && overload > 0 && player.getEntityWorld.getTotalWorldTime % 20 == 0) {
-          player.setHealth(player.getHealth - overload)
-          player.performHurtAnimation()
+          player.attackEntityFrom(OverloadDamage, overload)
         }
       }
 
@@ -246,6 +258,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
         configuration.triggers(index).isActive = false
         activeBehaviorsDirty = true
       }
+      cleanActiveBehaviors(DisableReason.Default)
     }
   }
 
@@ -253,7 +266,6 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
     reset()
     if (isServer) {
       api.Network.leaveWirelessNetwork(this)
-      PacketSender.sendNanomachineConfiguration(player)
     }
   }
 
@@ -280,7 +292,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
   private def isServer = !isClient
 
-  private def cleanActiveBehaviors(): Unit = {
+  private def cleanActiveBehaviors(reason: DisableReason): Unit = {
     if (activeBehaviorsDirty) {
       configuration.synchronized(if (activeBehaviorsDirty) {
         val newBehaviors = configuration.behaviors.filter(_.isActive).map(_.behavior)
@@ -290,7 +302,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
         activeBehaviors ++= newBehaviors
         activeBehaviorsDirty = false
         addedBehaviors.foreach(_.onEnable())
-        removedBehaviors.foreach(_.onDisable())
+        removedBehaviors.foreach(_.onDisable(reason))
 
         if (isServer) {
           PacketSender.sendNanomachineInputs(player)

@@ -3,10 +3,13 @@ package li.cil.oc.common.item
 import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumAction
+import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 class Nanomachines(val parent: Delegator) extends traits.Delegate {
+  override def rarity(stack: ItemStack): EnumRarity = EnumRarity.UNCOMMON
+
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (!api.Nanomachines.hasController(player)) {
       player.setItemInUse(stack, getMaxItemUseDuration(stack))

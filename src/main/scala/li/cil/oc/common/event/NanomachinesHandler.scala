@@ -8,6 +8,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.client.Textures
+import li.cil.oc.common.EventHandler
 import li.cil.oc.common.nanomachines.ControllerImpl
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
@@ -19,8 +20,9 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.event.entity.living.LivingEvent
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent
 
-object NanomachinesEventHandler {
+object NanomachinesHandler {
 
   object Client {
     @SubscribeEvent
@@ -139,6 +141,16 @@ object NanomachinesEventHandler {
             }
           case _ => // Not a player with nanomachines.
         }
+      }
+    }
+
+    @SubscribeEvent
+    def onPlayerDisconnect(e: PlayerLoggedOutEvent): Unit = {
+      api.Nanomachines.getController(e.player) match {
+        case controller: ControllerImpl =>
+          // Wait a tick because saving is done after this event.
+          EventHandler.schedule(() => api.Nanomachines.uninstallController(e.player))
+        case _ => // Not a player with nanomachines.
       }
     }
   }

@@ -40,8 +40,10 @@ public interface Behavior {
      * Called when this behavior becomes inactive.
      * <p/>
      * Use this to remove permanent effects.
+     *
+     * @param reason the reason the behavior is being disabled.
      */
-    void onDisable();
+    void onDisable(DisableReason reason);
 
     /**
      * Called each tick while this behavior is active.

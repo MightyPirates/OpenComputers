@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.BehaviorProvider
 import li.cil.oc.api.nanomachines.Controller
+import li.cil.oc.server.PacketSender
 import li.cil.oc.util.PlayerUtils
 import net.minecraft.entity.player.EntityPlayer
 
@@ -41,9 +42,12 @@ object Nanomachines extends api.detail.NanomachinesAPI {
   override def uninstallController(player: EntityPlayer): Unit = {
     getController(player) match {
       case controller: ControllerImpl =>
-        PlayerUtils.persistedData(player).removeTag(Settings.namespace + "hasNanomachines")
-        controllers(player) -= player
         controller.dispose()
+        controllers(player) -= player
+        PlayerUtils.persistedData(player).removeTag(Settings.namespace + "hasNanomachines")
+        if (!player.getEntityWorld.isRemote) {
+          PacketSender.sendNanomachineConfiguration(player)
+        }
       case _ => // Doesn't have one anyway.
     }
   }

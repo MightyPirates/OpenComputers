@@ -55,8 +55,8 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
     val rng = new Random(controller.player.getEntityWorld.rand.nextInt())
 
     def connect[Sink <: ConnectorNeuron, Source <: Neuron](sinks: Iterable[Sink], sources: mutable.ArrayBuffer[Source]): Unit = {
-      val sinkPool = sinks.toBuffer
-      rng.shuffle(sinkPool)
+      // Shuffle sink list to give each entry the same chance.
+      val sinkPool = rng.shuffle(sinks.toBuffer)
       for (sink <- sinkPool if sources.nonEmpty) {
         for (n <- 0 to rng.nextInt(Settings.get.nanomachineMaxInputs) if sources.nonEmpty) {
           val sourceIndex = rng.nextInt(sources.length)
@@ -64,10 +64,6 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
         }
       }
     }
-
-    // Shuffle behavior and connector list to give each entry the same chance.
-    rng.shuffle(connectors)
-    rng.shuffle(behaviors)
 
     // Connect connectors to triggers, then behaviors to connectors and/or remaining triggers.
     val sourcePool = mutable.ArrayBuffer.fill(Settings.get.nanomachineMaxOutputs)(triggers.map(_.asInstanceOf[Neuron])).flatten
