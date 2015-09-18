@@ -9,7 +9,7 @@ import li.cil.oc.integration.util.DamageSourceWithRandomCause
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
-object HungryProvider extends ScalaProvider("") {
+object HungryProvider extends ScalaProvider("d697c24a-014c-4773-a288-23084a59e9e8") {
   final val FillCount = 10 // Create a bunch of these to have a higher chance of one being picked / available.
 
   final val HungryDamage = new DamageSourceWithRandomCause("oc.nanomachinesHungry", 3).
