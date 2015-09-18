@@ -1,8 +1,9 @@
 package li.cil.oc.common.nanomachines.provider
 
 import cpw.mods.fml.common.eventhandler.Event
-import li.cil.oc.api
 import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.prefab.AbstractBehavior
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.Block
@@ -16,14 +17,12 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 
 import scala.collection.mutable
 
-object DisintegrationProvider extends SimpleProvider {
-  final val Id = "c4e7e3c2-8069-4fbb-b08e-74b1bddcdfe7"
+object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b1bddcdfe7") {
+  override def createScalaBehaviors(player: EntityPlayer) = Iterable(new DisintegrationBehavior(player))
 
-  override def doCreateBehaviors(player: EntityPlayer) = Iterable(new DisintegrationBehavior(player))
+  override def readBehaviorFromNBT(player: EntityPlayer, nbt: NBTTagCompound) = new DisintegrationBehavior(player)
 
-  override def doReadFromNBT(player: EntityPlayer, nbt: NBTTagCompound) = new DisintegrationBehavior(player)
-
-  class DisintegrationBehavior(player: EntityPlayer) extends SimpleBehavior(player) {
+  class DisintegrationBehavior(player: EntityPlayer) extends AbstractBehavior(player) {
     var breakingMap = mutable.Map.empty[BlockPosition, SlowBreakInfo]
     var breakingMapNew = mutable.Map.empty[BlockPosition, SlowBreakInfo]
 

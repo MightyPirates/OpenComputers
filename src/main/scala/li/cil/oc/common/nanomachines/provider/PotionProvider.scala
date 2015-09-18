@@ -3,6 +3,7 @@ package li.cil.oc.common.nanomachines.provider
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Behavior
+import li.cil.oc.api.prefab.AbstractBehavior
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.potion.Potion
@@ -10,9 +11,7 @@ import net.minecraft.potion.PotionEffect
 
 import scala.collection.convert.WrapAsScala._
 
-object PotionProvider extends SimpleProvider {
-  final val Id = "c29e4eec-5a46-479a-9b3d-ad0f06da784a"
-
+object PotionProvider extends ScalaProvider("c29e4eec-5a46-479a-9b3d-ad0f06da784a") {
   // Lazy to give other mods a chance to register their potions.
   lazy val PotionBlacklist = Settings.get.nanomachinePotionBlacklist.map {
     case name: String => Potion.potionTypes.find(p => p != null && p.getName == name)
@@ -22,11 +21,11 @@ object PotionProvider extends SimpleProvider {
     case Some(potion) => potion
   }.toSet
 
-  override def doCreateBehaviors(player: EntityPlayer) = {
+  override def createScalaBehaviors(player: EntityPlayer) = {
     Potion.potionTypes.filter(_ != null).filterNot(PotionBlacklist.contains).map(new PotionBehavior(_, player))
   }
 
-  override def doWriteToNBT(behavior: Behavior, nbt: NBTTagCompound): Unit = {
+  override def writeBehaviorToNBT(behavior: Behavior, nbt: NBTTagCompound): Unit = {
     behavior match {
       case potionBehavior: PotionBehavior =>
         nbt.setInteger("potionId", potionBehavior.potion.id)
@@ -34,12 +33,12 @@ object PotionProvider extends SimpleProvider {
     }
   }
 
-  override def doReadFromNBT(player: EntityPlayer, nbt: NBTTagCompound) = {
+  override def readBehaviorFromNBT(player: EntityPlayer, nbt: NBTTagCompound) = {
     val potionId = nbt.getInteger("potionId")
     new PotionBehavior(Potion.potionTypes(potionId), player)
   }
 
-  class PotionBehavior(val potion: Potion, player: EntityPlayer) extends SimpleBehavior(player) {
+  class PotionBehavior(val potion: Potion, player: EntityPlayer) extends AbstractBehavior(player) {
     final val Duration = 600
 
     def amplifier(player: EntityPlayer) = api.Nanomachines.getController(player).getInputCount(this) - 1
