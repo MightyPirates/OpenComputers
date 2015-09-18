@@ -359,6 +359,7 @@ class Settings(val config: Config) {
   val nanomachineMagnetRange = config.getDouble("nanomachines.magnetRange") max 0
   val nanomachineDisintegrationRange = config.getInt("nanomachines.disintegrationRange") max 0
   val nanomachinePotionBlacklist = config.getAnyRefList("nanomachines.potionBlacklist")
+  val nanomachinePotionWhitelist = config.getAnyRefList("nanomachines.potionWhitelist")
 
   // ----------------------------------------------------------------------- //
   // printer

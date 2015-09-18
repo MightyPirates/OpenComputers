@@ -13,16 +13,23 @@ import scala.collection.convert.WrapAsScala._
 
 object PotionProvider extends ScalaProvider("c29e4eec-5a46-479a-9b3d-ad0f06da784a") {
   // Lazy to give other mods a chance to register their potions.
-  lazy val PotionBlacklist = Settings.get.nanomachinePotionBlacklist.map {
-    case name: String => Potion.potionTypes.find(p => p != null && p.getName == name)
-    case id: java.lang.Number if id.intValue() >= 0 && id.intValue() < Potion.potionTypes.length => Option(Potion.potionTypes(id.intValue()))
-    case _ => None
-  }.collect {
-    case Some(potion) => potion
-  }.toSet
+  lazy val PotionWhitelist = filterPotions(Settings.get.nanomachinePotionWhitelist)
+  lazy val PotionBlacklist = filterPotions(Settings.get.nanomachinePotionBlacklist)
+
+  def filterPotions[T](list: Iterable[T]) = {
+    list.map {
+      case name: String => Potion.potionTypes.find(p => p != null && p.getName == name)
+      case id: java.lang.Number if id.intValue() >= 0 && id.intValue() < Potion.potionTypes.length => Option(Potion.potionTypes(id.intValue()))
+      case _ => None
+    }.collect {
+      case Some(potion) => potion
+    }.toSet
+  }
+
+  def isPotionEligible(potion: Potion) = potion != null && (if (potion.isBadEffect) !PotionBlacklist.contains(potion) else PotionWhitelist.contains(potion))
 
   override def createScalaBehaviors(player: EntityPlayer) = {
-    Potion.potionTypes.filter(_ != null).filterNot(PotionBlacklist.contains).map(new PotionBehavior(_, player))
+    Potion.potionTypes.filter(isPotionEligible).map(new PotionBehavior(_, player))
   }
 
   override def writeBehaviorToNBT(behavior: Behavior, nbt: NBTTagCompound): Unit = {
