@@ -31,7 +31,7 @@ import scala.collection.mutable
 class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessEndpoint {
   if (isServer) api.Network.joinWirelessNetwork(this)
 
-  final val MaxSenderDistance = 2f
+  lazy val CommandRange = Settings.get.nanomachinesCommandRange * Settings.get.nanomachinesCommandRange
   final val FullSyncInterval = 20 * 60
 
   final val OverloadDamage = new DamageSourceWithRandomCause("oc.nanomachinesOverload", 3).
@@ -40,12 +40,13 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
   var uuid = UUID.randomUUID.toString
   var responsePort = 0
+  var commandDelay = 0
+  var queuedCommand: Option[() => Unit] = None
   var storedEnergy = Settings.get.bufferNanomachines * 0.25
   var hadPower = true
   val configuration = new NeuralNetwork(this)
   val activeBehaviors = mutable.Set.empty[Behavior]
   var activeBehaviorsDirty = true
-  var configCooldown = 0
   var hasSentConfiguration = false
 
   override def world: World = player.getEntityWorld
@@ -57,10 +58,10 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   override def z: Int = BlockPosition(player).z
 
   override def receivePacket(packet: Packet, sender: WirelessEndpoint): Unit = {
-    if (getLocalBuffer > 0 && !player.isDead) {
+    if (getLocalBuffer > 0 && commandDelay < 1 && !player.isDead) {
       val (dx, dy, dz) = ((sender.x + 0.5) - player.posX, (sender.y + 0.5) - player.posY, (sender.z + 0.5) - player.posZ)
       val dSquared = dx * dx + dy * dy + dz * dz
-      if (dSquared < MaxSenderDistance * MaxSenderDistance) packet.data.headOption match {
+      if (dSquared <= CommandRange) packet.data.headOption match {
         case Some(header: Array[Byte]) if new String(header, Charsets.UTF_8) == "nanomachines" =>
           val command = packet.data.drop(1).map {
             case value: Array[Byte] => new String(value, Charsets.UTF_8)
@@ -69,17 +70,27 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
           command match {
             case Array("setResponsePort", port: java.lang.Number) =>
               responsePort = port.intValue max 0 min 0xFFFF
-              respond(sender, "responsePort", responsePort)
-            case Array("dispose") =>
-              api.Nanomachines.uninstallController(player)
-              respond(sender, "disposed")
-            case Array("reconfigure") =>
-              reconfigure()
-              respond(sender, "reconfigured")
+              respond(sender, "port", responsePort)
+            case Array("getPowerState") =>
+              respond(sender, "power", getLocalBuffer, getLocalBufferSize)
+
+            case Array("getHealth") =>
+              respond(sender, "health", player.getHealth, player.getMaxHealth)
+            case Array("getHunger") =>
+              respond(sender, "hunger", player.getFoodStats.getFoodLevel, player.getFoodStats.getSaturationLevel)
+            case Array("getAge") =>
+              respond(sender, "age", (player.getAge / 20f).toInt)
+            case Array("getName") =>
+              respond(sender, "name", player.getDisplayName)
+            case Array("getExperience") =>
+              respond(sender, "experience", player.experienceLevel)
+
             case Array("getTotalInputCount") =>
               respond(sender, "totalInputCount", getTotalInputCount)
-            case Array("getSafeInputCount") =>
-              respond(sender, "safeInputCount", getSafeInputCount)
+            case Array("getSafeActiveInputs") =>
+              respond(sender, "safeActiveInputs", getSafeActiveInputs)
+            case Array("getMaxActiveInputs") =>
+              respond(sender, "maxActiveInputs", getMaxActiveInputs)
             case Array("getInput", index: java.lang.Number) =>
               try {
                 val trigger = getInput(index.intValue - 1)
@@ -91,8 +102,12 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
               }
             case Array("setInput", index: java.lang.Number, value: java.lang.Boolean) =>
               try {
-                setInput(index.intValue - 1, value.booleanValue)
-                respond(sender, "input", index.intValue, getInput(index.intValue - 1))
+                if (setInput(index.intValue - 1, value.booleanValue)) {
+                  respond(sender, "input", index.intValue, getInput(index.intValue - 1))
+                }
+                else {
+                  respond(sender, "input", "too many active inputs")
+                }
               }
               catch {
                 case _: Throwable =>
@@ -102,10 +117,8 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
               configuration.synchronized {
                 val names = getActiveBehaviors.map(_.getNameHint).filterNot(Strings.isNullOrEmpty)
                 val joined = "{" + names.map(_.replace(',', '_').replace('"', '_')).mkString(",") + "}"
-                respond(sender, "active", joined)
+                respond(sender, "effects", joined)
               }
-            case Array("getPowerState") =>
-              respond(sender, "power", getLocalBuffer, getLocalBufferSize)
             case _ => // Ignore.
           }
         case _ => // Not for us.
@@ -114,23 +127,25 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   }
 
   def respond(endpoint: WirelessEndpoint, data: Any*): Unit = {
-    if (responsePort > 0) {
-      val cost = Settings.get.wirelessCostPerRange * 10
-      val epsilon = 0.1
-      if (changeBuffer(-cost) > -epsilon) {
-        val packet = api.Network.newPacket(uuid, null, responsePort, (Iterable("nanomachines") ++ data.map(_.asInstanceOf[AnyRef])).toArray)
-        api.Network.sendWirelessPacket(this, 10, packet)
+    queuedCommand = Option(() => {
+      if (responsePort > 0) {
+        val cost = Settings.get.wirelessCostPerRange * CommandRange
+        val epsilon = 0.1
+        if (changeBuffer(-cost) > -epsilon) {
+          val packet = api.Network.newPacket(uuid, null, responsePort, (Iterable("nanomachines") ++ data.map(_.asInstanceOf[AnyRef])).toArray)
+          api.Network.sendWirelessPacket(this, CommandRange, packet)
+        }
       }
-    }
+    })
+    commandDelay = (Settings.get.nanomachinesCommandDelay * 20).toInt
   }
 
   // ----------------------------------------------------------------------- //
 
   override def reconfigure() = {
-    if (isServer && configCooldown < 1) configuration.synchronized {
+    if (isServer) configuration.synchronized {
       configuration.reconfigure()
       activeBehaviorsDirty = true
-      configCooldown = (Settings.get.nanomachineReconfigureTimeout * 20).toInt
 
       player match {
         case playerMP: EntityPlayerMP if playerMP.playerNetServerHandler != null =>
@@ -148,14 +163,19 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
 
   override def getTotalInputCount: Int = configuration.synchronized(configuration.triggers.length)
 
-  override def getSafeInputCount: Int = Settings.get.nanomachinesSafeInputCount
+  override def getSafeActiveInputs: Int = Settings.get.nanomachinesSafeInputsActive
+
+  override def getMaxActiveInputs: Int = Settings.get.nanomachinesMaxInputsActive
 
   override def getInput(index: Int): Boolean = configuration.synchronized(configuration.triggers(index).isActive)
 
-  override def setInput(index: Int, value: Boolean): Unit = {
-    if (isServer && configCooldown < 1) configuration.synchronized {
-      configuration.triggers(index).isActive = value
-      activeBehaviorsDirty = true
+  override def setInput(index: Int, value: Boolean): Boolean = {
+    isServer && configuration.synchronized {
+      (!value || configuration.triggers.count(_.isActive) < Settings.get.nanomachinesMaxInputsActive) && {
+        configuration.triggers(index).isActive = value
+        activeBehaviorsDirty = true
+        true
+      }
     }
   }
 
@@ -190,12 +210,14 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
     }
 
     if (isServer) {
+      if (commandDelay > 0) {
+        commandDelay -= 1
+        if (commandDelay == 0) {
+          queuedCommand.foreach(_())
+          queuedCommand = None
+        }
+      }
       api.Network.updateWirelessNetwork(this)
-    }
-
-    if (configCooldown > 0) {
-      configCooldown -= 1
-      return
     }
 
     var hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
@@ -219,7 +241,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
           PacketSender.sendNanomachinePower(player)
         }
 
-        val overload = activeInputs - getSafeInputCount
+        val overload = activeInputs - getSafeActiveInputs
         if (!player.capabilities.isCreativeMode && overload > 0 && player.getEntityWorld.getTotalWorldTime % 20 == 0) {
           player.attackEntityFrom(OverloadDamage, overload)
         }

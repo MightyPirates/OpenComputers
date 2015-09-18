@@ -44,15 +44,24 @@ public interface Controller {
     int getTotalInputCount();
 
     /**
-     * Get the total number of inputs that may be active at the same time
+     * Get the number of inputs that may be active at the same time
      * before negative effects are applied to the player.
      * <p/>
      * The number of active inputs may exceed this value, but this will
      * have negative effects on the player.
      *
+     * @return the number of inputs that may safely be active at a time.
+     */
+    int getSafeActiveInputs();
+
+    /**
+     * Get the total number of inputs that may be active at the same time.
+     * <p/>
+     * The number of active inputs cannot exceed this value.
+     *
      * @return the number of inputs that may be active at a time.
      */
-    int getSafeInputCount();
+    int getMaxActiveInputs();
 
     /**
      * Get whether the input with the specified index is active.
@@ -65,12 +74,16 @@ public interface Controller {
 
     /**
      * Set the state of the input with the specified index.
+     * <p/>
+     * This will fail if too many inputs are active already. It will also
+     * always fail when called on the client.
      *
      * @param index the input index.
      * @param value whether the input should be active.
+     * @return whether the input was changed successfully.
      * @throws IndexOutOfBoundsException if <code>index &lt; 0</code> or <code>index &gt;= getInputCount</code>.
      */
-    void setInput(int index, boolean value);
+    boolean setInput(int index, boolean value);
 
     /**
      * Get the list of currently active behaviors, based on the current input states.
