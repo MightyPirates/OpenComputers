@@ -3,6 +3,7 @@ package li.cil.oc.common.nanomachines.provider
 import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.nanomachines.DisableReason
 import li.cil.oc.api.prefab.AbstractBehavior
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
@@ -28,7 +29,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
 
     // Note: intentionally not overriding getNameHint. Gotta find this one manually!
 
-    override def onDisable(): Unit = {
+    override def onDisable(reason: DisableReason): Unit = {
       val world = player.getEntityWorld
       for (pos <- breakingMap.keys) {
         world.destroyBlockInWorldPartially(pos.hashCode(), pos, -1)

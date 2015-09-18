@@ -360,6 +360,8 @@ class Settings(val config: Config) {
   val nanomachineDisintegrationRange = config.getInt("nanomachines.disintegrationRange") max 0
   val nanomachinePotionBlacklist = config.getAnyRefList("nanomachines.potionBlacklist")
   val nanomachinePotionWhitelist = config.getAnyRefList("nanomachines.potionWhitelist")
+  val nanomachinesHungryDamage = config.getDouble("nanomachines.hungryDamage").toFloat max 0
+  val nanomachinesHungryEnergyRestored = config.getDouble("nanomachines.hungryEnergyRestored") max 0
 
   // ----------------------------------------------------------------------- //
   // printer

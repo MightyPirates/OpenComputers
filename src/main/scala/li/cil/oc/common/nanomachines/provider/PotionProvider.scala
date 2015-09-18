@@ -3,6 +3,7 @@ package li.cil.oc.common.nanomachines.provider
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Behavior
+import li.cil.oc.api.nanomachines.DisableReason
 import li.cil.oc.api.prefab.AbstractBehavior
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -51,9 +52,7 @@ object PotionProvider extends ScalaProvider("c29e4eec-5a46-479a-9b3d-ad0f06da784
 
     override def getNameHint: String = potion.getName.stripPrefix("potion.")
 
-    override def onEnable(): Unit = {}
-
-    override def onDisable(): Unit = {
+    override def onDisable(reason: DisableReason): Unit = {
       player.removePotionEffect(potion.id)
     }
 

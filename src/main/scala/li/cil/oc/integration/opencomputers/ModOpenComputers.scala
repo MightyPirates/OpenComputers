@@ -29,6 +29,7 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
 import li.cil.oc.common.nanomachines.provider.DisintegrationProvider
+import li.cil.oc.common.nanomachines.provider.HungryProvider
 import li.cil.oc.common.nanomachines.provider.MagnetProvider
 import li.cil.oc.common.nanomachines.provider.ParticleProvider
 import li.cil.oc.common.nanomachines.provider.PotionProvider
@@ -253,6 +254,7 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
 
     api.Nanomachines.addProvider(DisintegrationProvider)
+    api.Nanomachines.addProvider(HungryProvider)
     api.Nanomachines.addProvider(ParticleProvider)
     api.Nanomachines.addProvider(PotionProvider)
     api.Nanomachines.addProvider(MagnetProvider)

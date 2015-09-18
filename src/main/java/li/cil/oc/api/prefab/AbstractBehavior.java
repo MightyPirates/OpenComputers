@@ -1,6 +1,7 @@
 package li.cil.oc.api.prefab;
 
 import li.cil.oc.api.nanomachines.Behavior;
+import li.cil.oc.api.nanomachines.DisableReason;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
@@ -42,7 +43,7 @@ public abstract class AbstractBehavior implements Behavior {
     }
 
     @Override
-    public void onDisable() {
+    public void onDisable(DisableReason reason) {
     }
 
     @Override
