@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumAction
 import net.minecraft.item.ItemStack
@@ -23,11 +24,12 @@ class Acid(val parent: Delegator) extends traits.Delegate {
       player.addPotionEffect(new PotionEffect(Potion.poison.id, 100))
       player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 600))
       player.addPotionEffect(new PotionEffect(Potion.confusion.id, 1200))
-      player.addPotionEffect(new PotionEffect(Potion.fireResistance.id, 6000))
       player.addPotionEffect(new PotionEffect(Potion.saturation.id, 2000))
 
-      stack.stackSize -= 1
+      // Remove nanomachines if installed.
+      api.Nanomachines.uninstallController(player)
     }
+    stack.stackSize -= 1
     if (stack.stackSize > 0) stack
     else null
   }
