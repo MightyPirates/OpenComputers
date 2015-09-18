@@ -455,7 +455,7 @@ achievement.oc.wirelessNetworkCard.desc=Time to go where no packet has gone befo
 # set in the actual damage source in code.
 death.attack.oc.nanomachinesOverload.1=%s got too greedy.
 death.attack.oc.nanomachinesOverload.2=%s had a nervous breakdown.
-death.attack.oc.nanomachinesOverload.3=%s's nanomachines went out of control.
+death.attack.oc.nanomachinesOverload.3=The nanomachines of %s went out of control.
 death.attack.oc.nanomachinesHungry.1=%s was eaten by nanomachines.
 death.attack.oc.nanomachinesHungry.2=%s didn't keep their nanomachines fed.
 death.attack.oc.nanomachinesHungry.3=%s has been digested.
