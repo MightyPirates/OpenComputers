@@ -71,6 +71,7 @@ object ModOpenComputers extends ModProxy {
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
     FMLCommonHandler.instance.bus.register(EventHandler)
+    FMLCommonHandler.instance.bus.register(NanomachinesHandler.Common)
     FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
     FMLCommonHandler.instance.bus.register(Tablet)
 
@@ -83,7 +84,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(GeolyzerHandler)
     MinecraftForge.EVENT_BUS.register(HoverBootsHandler)
     MinecraftForge.EVENT_BUS.register(Loot)
-    MinecraftForge.EVENT_BUS.register(NanomachinesEventHandler.Common)
+    MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)

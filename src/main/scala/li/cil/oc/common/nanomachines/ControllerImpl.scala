@@ -51,7 +51,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   override def z: Int = BlockPosition(player).z
 
   override def receivePacket(packet: Packet, sender: WirelessEndpoint): Unit = {
-    if (getLocalBuffer > 0) {
+    if (getLocalBuffer > 0 && !player.isDead) {
       val (dx, dy, dz) = ((sender.x + 0.5) - player.posX, (sender.y + 0.5) - player.posY, (sender.z + 0.5) - player.posZ)
       val dSquared = dx * dx + dy * dy + dz * dz
       if (dSquared < MaxSenderDistance * MaxSenderDistance) packet.data.headOption match {
@@ -179,6 +179,10 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
   // ----------------------------------------------------------------------- //
 
   def update(): Unit = {
+    if (player.isDead) {
+      return
+    }
+
     if (isServer) {
       api.Network.updateWirelessNetwork(this)
     }
@@ -245,6 +249,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
         configuration.triggers(index).isActive = false
         activeBehaviorsDirty = true
       }
+      cleanActiveBehaviors()
     }
   }
 
@@ -252,7 +257,6 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
     reset()
     if (isServer) {
       api.Network.leaveWirelessNetwork(this)
-      PacketSender.sendNanomachineConfiguration(player)
     }
   }
 
