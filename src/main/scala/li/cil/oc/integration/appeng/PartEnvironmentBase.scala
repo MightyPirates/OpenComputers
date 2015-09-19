@@ -25,7 +25,7 @@ trait PartEnvironmentBase extends ManagedEnvironment {
         val slot = args.optSlot(config, 1, 0)
         val stack = config.getStackInSlot(slot)
         result(stack)
-      case _ => result(null, "no matching part")
+      case _ => result(Unit, "no matching part")
     }
   }
 

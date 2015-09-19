@@ -11,6 +11,7 @@ import li.cil.oc.api.event._
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
+import li.cil.oc.common.entity.Drone
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.PortalGun
 import li.cil.oc.integration.util.TinkersConstruct
@@ -177,6 +178,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     !cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
         case living: EntityLivingBase if getCurrentEquippedItem != null => getCurrentEquippedItem.interactWithEntity(this, living)
+        case drone: Drone => drone.start()
         case _ => false
       }))
       if (getCurrentEquippedItem != null && getCurrentEquippedItem.stackSize <= 0) {

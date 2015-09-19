@@ -31,7 +31,7 @@ object DriverDeepStorageUnit extends DriverTileEntity with EnvironmentAware {
     @Callback(doc = "function():int -- Get the maximum number of stored items.")
     def getStoredItemType(context: Context, args: Arguments): Array[AnyRef] = {
       if (Settings.get.allowItemStackInspection) result(tileEntity.getStoredItemType)
-      else result(null, "not enabled in config")
+      else result(Unit, "not enabled in config")
     }
   }
 
