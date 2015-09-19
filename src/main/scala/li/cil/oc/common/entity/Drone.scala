@@ -463,7 +463,13 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def interactFirst(player: EntityPlayer) = {
     if (player.isSneaking) {
-      kill()
+      if (api.Items.get(player.getCurrentEquippedItem) == api.Items.get(Constants.ItemName.Wrench)) {
+        kill()
+      }
+      else if (!world.isRemote && !machine.isRunning) {
+        preparePowerUp()
+        start()
+      }
     }
     else if (!world.isRemote) {
       player.openGui(OpenComputers, GuiType.Drone.id, world, getEntityId, 0, 0)
