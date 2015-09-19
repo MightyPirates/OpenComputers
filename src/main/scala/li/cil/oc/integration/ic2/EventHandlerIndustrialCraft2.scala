@@ -59,6 +59,8 @@ object EventHandlerIndustrialCraft2 {
     }
   }
 
+  def isWrench(stack: ItemStack): Boolean = stack.getItem.isInstanceOf[ItemToolWrench]
+
   def canCharge(stack: ItemStack): Boolean = stack.getItem match {
     case chargeable: IElectricItem => chargeable.getMaxCharge(stack) > 0
     case _ => false

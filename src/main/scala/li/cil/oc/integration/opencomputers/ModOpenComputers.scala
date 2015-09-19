@@ -62,6 +62,7 @@ object ModOpenComputers extends ModProxy {
     TemplateBlacklist.register()
 
     api.IMC.registerWrenchTool("li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
+    api.IMC.registerWrenchToolCheck("li.cil.oc.integration.opencomputers.ModOpenComputers.isWrench")
     api.IMC.registerItemCharge(
       "OpenComputers",
       "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge",
@@ -272,6 +273,8 @@ object ModOpenComputers extends ModProxy {
       case _ => false
     }
   }
+
+  def isWrench(stack: ItemStack): Boolean = stack.getItem.isInstanceOf[Wrench]
 
   def canCharge(stack: ItemStack): Boolean = stack.getItem match {
     case chargeable: Chargeable => chargeable.canCharge(stack)
