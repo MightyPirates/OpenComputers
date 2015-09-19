@@ -464,7 +464,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def interactFirst(player: EntityPlayer) = {
     if (player.isSneaking) {
-      if (Wrench.isWrench(player.getCurrentEquippedItem)) {
+      if (Wrench.isWrench(player.getHeldItem)) {
         kill()
       }
       else if (!world.isRemote && !machine.isRunning) {

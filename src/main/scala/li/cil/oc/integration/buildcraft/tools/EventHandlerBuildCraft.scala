@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack
 
 object EventHandlerBuildCraft {
   def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getCurrentEquippedItem.getItem match {
+    player.getHeldItem.getItem match {
       case wrench: IToolWrench =>
         if (changeDurability) {
           wrench.wrenchUsed(player, x, y, z)

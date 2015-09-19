@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack
 
 object EventHandlerRailcraft {
   def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getCurrentEquippedItem.getItem match {
+    player.getHeldItem.getItem match {
       case wrench: IToolCrowbar =>
         if (changeDurability) {
           wrench.onWhack(player, player.getHeldItem, x, y, z)

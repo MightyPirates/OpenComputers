@@ -268,7 +268,7 @@ object ModOpenComputers extends ModProxy {
   }
 
   def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getCurrentEquippedItem.getItem match {
+    player.getHeldItem.getItem match {
       case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, x, y, z, !changeDurability)
       case _ => false
     }

@@ -20,8 +20,8 @@ object Wrench {
   def isWrench(stack: ItemStack): Boolean = stack != null && checks.exists(IMC.tryInvokeStatic(_, stack)(false))
 
   def holdsApplicableWrench(player: EntityPlayer, position: BlockPosition): Boolean =
-    player.getCurrentEquippedItem != null && usages.exists(IMC.tryInvokeStatic(_, player, int2Integer(position.x), int2Integer(position.y), int2Integer(position.z), boolean2Boolean(false))(false))
+    player.getHeldItem != null && usages.exists(IMC.tryInvokeStatic(_, player, int2Integer(position.x), int2Integer(position.y), int2Integer(position.z), boolean2Boolean(false))(false))
 
   def wrenchUsed(player: EntityPlayer, position: BlockPosition): Unit =
-    if (player.getCurrentEquippedItem != null) usages.foreach(IMC.tryInvokeStaticVoid(_, player, int2Integer(position.x), int2Integer(position.y), int2Integer(position.z), boolean2Boolean(true)))
+    if (player.getHeldItem != null) usages.foreach(IMC.tryInvokeStaticVoid(_, player, int2Integer(position.x), int2Integer(position.y), int2Integer(position.z), boolean2Boolean(true)))
 }
