@@ -1,15 +1,27 @@
 package li.cil.oc.server.component
 
-import java.io.{BufferedWriter, FileNotFoundException, IOException, InputStream, OutputStreamWriter}
+import java.io.BufferedWriter
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStreamWriter
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
-import java.util.concurrent.{Callable, ConcurrentLinkedQueue, ExecutionException, Future}
+import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Future
 
-import li.cil.oc.{OpenComputers, Settings, api}
-import li.cil.oc.api.machine.{Arguments, Callback, Context}
+import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.Network
+import li.cil.oc.api.machine.Arguments
+import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
-import li.cil.oc.api.{Network, prefab}
+import li.cil.oc.api.prefab
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
@@ -190,7 +202,7 @@ object InternetCard {
       if (checkConnected()) {
         val buffer = ByteBuffer.allocate(n)
         val read = channel.read(buffer)
-        if (read == -1) result(null)
+        if (read == -1) result(Unit)
         else result(buffer.array.view(0, read).toArray)
       }
       else result(Array.empty[Byte])
@@ -297,7 +309,7 @@ object InternetCard {
     def response(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
       response match {
         case Some((code, message, headers)) => result(code, message, headers)
-        case _ => result(null)
+        case _ => result(Unit)
       }
     }
 
@@ -305,7 +317,7 @@ object InternetCard {
     def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
       val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
       if (checkResponse()) {
-        if (eof && queue.isEmpty) result(null)
+        if (eof && queue.isEmpty) result(Unit)
         else {
           val buffer = ByteBuffer.allocate(n)
           var read = 0

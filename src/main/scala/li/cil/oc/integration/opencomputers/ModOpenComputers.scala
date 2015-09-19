@@ -105,7 +105,6 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverDebugCard)
     api.Driver.add(DriverEEPROM)
     api.Driver.add(DriverFileSystem)
-    api.Driver.add(DriverGeolyzer)
     api.Driver.add(DriverGraphicsCard)
     api.Driver.add(DriverInternetCard)
     api.Driver.add(DriverLinkedCard)
@@ -114,13 +113,16 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverNetworkCard)
     api.Driver.add(DriverKeyboard)
     api.Driver.add(DriverRedstoneCard)
-    api.Driver.add(DriverScreen)
     api.Driver.add(DriverTablet)
     api.Driver.add(DriverWirelessNetworkCard)
 
     api.Driver.add(DriverContainerCard)
     api.Driver.add(DriverContainerFloppy)
     api.Driver.add(DriverContainerUpgrade)
+
+    api.Driver.add(DriverGeolyzer)
+    api.Driver.add(DriverScreen)
+    api.Driver.add(DriverTransposer)
 
     api.Driver.add(DriverUpgradeAngel)
     api.Driver.add(DriverUpgradeBattery)
@@ -145,6 +147,7 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.Geolyzer,
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
+      Constants.BlockName.Transposer,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.BatteryUpgradeTier1,
       Constants.ItemName.BatteryUpgradeTier2,
@@ -163,27 +166,28 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Drone],
+      Constants.BlockName.Keyboard,
+      Constants.BlockName.ScreenTier1,
+      Constants.BlockName.Transposer,
       Constants.ItemName.APUTier1,
       Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
-      Constants.BlockName.Keyboard,
       Constants.ItemName.NetworkCard,
       Constants.ItemName.RedstoneCardTier1,
-      Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2)
     blacklistHost(classOf[internal.Microcontroller],
+      Constants.BlockName.Keyboard,
+      Constants.BlockName.ScreenTier1,
       Constants.ItemName.APUTier1,
       Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
-      Constants.BlockName.Keyboard,
-      Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
@@ -202,11 +206,13 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Robot],
+      Constants.BlockName.Transposer,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Tablet],
+      Constants.BlockName.ScreenTier1,
+      Constants.BlockName.Transposer,
       Constants.ItemName.NetworkCard,
       Constants.ItemName.RedstoneCardTier1,
-      Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,

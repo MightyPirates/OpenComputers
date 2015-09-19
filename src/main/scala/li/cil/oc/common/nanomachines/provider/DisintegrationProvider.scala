@@ -1,7 +1,6 @@
 package li.cil.oc.common.nanomachines.provider
 
 import li.cil.oc.Settings
-import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.DisableReason
 import li.cil.oc.api.prefab.AbstractBehavior
@@ -14,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
+import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.fml.common.eventhandler.Event
@@ -42,6 +42,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
     override def update(): Unit = {
       val world = player.getEntityWorld
       if (!world.isRemote) player match {
+        case _: FakePlayer => // Nope
         case playerMP: EntityPlayerMP =>
           val now = world.getTotalWorldTime
 

@@ -62,7 +62,7 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     val facing = checkSideForAction(args, 0)
     withInventory(facing, inventory => result(inventory.getStackInSlot(args.checkSlot(inventory, 1))))
   }
-  else result(null, "not enabled in config")
+  else result(Unit, "not enabled in config")
 
   @Callback(doc = """function(side:number, slot:number, dbAddress:string, dbSlot:number):boolean -- Store an item stack description in the specified slot of the database with the specified address.""")
   def store(context: Context, args: Arguments): Array[AnyRef] = {
@@ -80,6 +80,6 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
   private def withInventory(side: EnumFacing, f: IInventory => Array[AnyRef]) =
     InventoryUtils.inventoryAt(position.offset(side)) match {
       case Some(inventory) if inventory.isUseableByPlayer(fakePlayer) && mayInteract(position.offset(side), side.getOpposite) => f(inventory)
-      case _ => result(null, "no inventory")
+      case _ => result(Unit, "no inventory")
     }
 }

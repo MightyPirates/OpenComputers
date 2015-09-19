@@ -205,7 +205,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     }
 
     val players = world.getEntitiesWithinAABB(classOf[EntityPlayer], bounds).collect {
-      case player: EntityPlayer => new PlayerChargeable(player)
+      case player: EntityPlayer if api.Nanomachines.hasController(player) => new PlayerChargeable(player)
     }
 
     // Only update list when we have to, keeps pointless block updates to a minimum.

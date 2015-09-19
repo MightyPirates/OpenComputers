@@ -249,9 +249,15 @@ object InventoryUtils {
   /**
    * Like <tt>transferBetweenInventories</tt> but moving between specific slots.
    */
-  def transferBetweenInventoriesSlots(source: IInventory, sourceSide: EnumFacing, sourceSlot: Int, sink: IInventory, sinkSide: Option[EnumFacing], sinkSlot: Int, limit: Int = 64) =
-    extractFromInventorySlot(
-      insertIntoInventorySlot(_, sink, sinkSide, sinkSlot, limit), source, sourceSide, sourceSlot, limit)
+  def transferBetweenInventoriesSlots(source: IInventory, sourceSide: EnumFacing, sourceSlot: Int, sink: IInventory, sinkSide: Option[EnumFacing], sinkSlot: Option[Int], limit: Int = 64) =
+    sinkSlot match {
+      case Some(explicitSinkSlot) =>
+        extractFromInventorySlot(
+          insertIntoInventorySlot(_, sink, sinkSide, explicitSinkSlot, limit), source, sourceSide, sourceSlot, limit)
+      case _ =>
+        extractFromInventorySlot(
+          insertIntoInventory(_, sink, sinkSide, limit), source, sourceSide, sourceSlot, limit)
+    }
 
   /**
    * Utility method for calling <tt>transferBetweenInventories</tt> on inventories
@@ -266,7 +272,7 @@ object InventoryUtils {
    * Utility method for calling <tt>transferBetweenInventoriesSlots</tt> on inventories
    * in the world.
    */
-  def transferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[EnumFacing], sinkSlot: Int, limit: Int = 64) =
+  def transferBetweenInventoriesSlotsAt(sourcePos: BlockPosition, sourceSide: EnumFacing, sourceSlot: Int, sinkPos: BlockPosition, sinkSide: Option[EnumFacing], sinkSlot: Option[Int], limit: Int = 64) =
     inventoryAt(sourcePos).exists(sourceInventory =>
       inventoryAt(sinkPos).exists(sinkInventory =>
         transferBetweenInventoriesSlots(sourceInventory, sourceSide, sourceSlot, sinkInventory, sinkSide, sinkSlot, limit)))
