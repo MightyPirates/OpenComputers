@@ -4,7 +4,7 @@ import li.cil.oc.server.component
 import net.minecraft.nbt.NBTTagCompound
 
 class Transposer extends traits.Environment {
-  val transposer = new component.Transposer(this)
+  val transposer = new component.Transposer.Block(this)
 
   def node = transposer.node
 
