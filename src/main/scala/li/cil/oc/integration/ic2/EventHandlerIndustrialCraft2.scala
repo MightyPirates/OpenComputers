@@ -43,7 +43,7 @@ object EventHandlerIndustrialCraft2 {
   }
 
   def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getCurrentEquippedItem.getItem match {
+    player.getHeldItem.getItem match {
       case wrench: ItemToolWrench =>
         if (changeDurability) {
           wrench.damage(player.getHeldItem, 1, player)
@@ -53,6 +53,8 @@ object EventHandlerIndustrialCraft2 {
       case _ => false
     }
   }
+
+  def isWrench(stack: ItemStack): Boolean = stack.getItem.isInstanceOf[ItemToolWrench]
 
   def canCharge(stack: ItemStack): Boolean = stack.getItem match {
     case chargeable: IElectricItem => chargeable.getMaxCharge(stack) > 0

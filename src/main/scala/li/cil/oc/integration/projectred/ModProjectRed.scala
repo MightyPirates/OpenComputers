@@ -1,5 +1,6 @@
 package li.cil.oc.integration.projectred
 
+import li.cil.oc.api
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.BundledRedstone
@@ -12,6 +13,9 @@ object ModProjectRed extends ModProxy with RedstoneProvider {
   override def getMod = Mods.ProjectRedTransmission
 
   override def initialize(): Unit = {
+    api.IMC.registerWrenchTool("li.cil.oc.integration.projectred.EventHandlerProjectRed.useWrench")
+    api.IMC.registerWrenchToolCheck("li.cil.oc.integration.projectred.EventHandlerProjectRed.isWrench")
+
     BundledRedstone.addProvider(this)
   }
 

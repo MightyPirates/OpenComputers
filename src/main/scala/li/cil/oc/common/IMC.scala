@@ -57,9 +57,15 @@ object IMC {
         }
       }
       else if (message.key == "registerWrenchTool" && message.isStringMessage) {
-        OpenComputers.log.info(s"Registering new wrench tool '${message.getStringValue}' from mod ${message.getSender}.")
-        try Wrench.add(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[BlockPos], classOf[Boolean])) catch {
-          case t: Throwable => OpenComputers.log.warn("Failed registering wrench tool.", t)
+        OpenComputers.log.info(s"Registering new wrench usage '${message.getStringValue}' from mod ${message.getSender}.")
+        try Wrench.addUsage(getStaticMethod(message.getStringValue, classOf[EntityPlayer], classOf[BlockPos], classOf[Boolean])) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering wrench usage.", t)
+        }
+      }
+      else if (message.key == "registerWrenchToolCheck" && message.isStringMessage) {
+        OpenComputers.log.info(s"Registering new wrench tool check '${message.getStringValue}' from mod ${message.getSender}.")
+        try Wrench.addCheck(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
+          case t: Throwable => OpenComputers.log.warn("Failed registering wrench check.", t)
         }
       }
       else if (message.key == "registerItemCharge" && message.isNBTMessage) {

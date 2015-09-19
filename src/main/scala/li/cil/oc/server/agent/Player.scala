@@ -179,10 +179,10 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
     !cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
-        case living: EntityLivingBase if getCurrentEquippedItem != null => getCurrentEquippedItem.interactWithEntity(this, living)
+        case living: EntityLivingBase if getHeldItem != null => getHeldItem.interactWithEntity(this, living)
         case _ => false
       }))
-      if (getCurrentEquippedItem != null && getCurrentEquippedItem.stackSize <= 0) {
+      if (getHeldItem != null && getHeldItem.stackSize <= 0) {
         destroyCurrentEquippedItem()
       }
       result

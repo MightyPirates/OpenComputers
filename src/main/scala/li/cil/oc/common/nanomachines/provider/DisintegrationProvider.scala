@@ -65,7 +65,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
                   if (hardness > 0) {
                     val timeToBreak = (1 / hardness).toInt
                     if (timeToBreak < 20 * 30) {
-                      val info = new SlowBreakInfo(now, now + timeToBreak, pos, Option(player.getCurrentEquippedItem).map(_.copy()), blockState)
+                      val info = new SlowBreakInfo(now, now + timeToBreak, pos, Option(player.getHeldItem).map(_.copy()), blockState)
                       world.destroyBlockInWorldPartially(pos.hashCode(), pos, 0)
                       breakingMapNew += pos -> info
                     }
@@ -101,7 +101,7 @@ object DisintegrationProvider extends ScalaProvider("c4e7e3c2-8069-4fbb-b08e-74b
     var lastDamageSent = 0
 
     def checkTool(player: EntityPlayer): Boolean = {
-      val currentTool = Option(player.getCurrentEquippedItem).map(_.copy())
+      val currentTool = Option(player.getHeldItem).map(_.copy())
       (currentTool, originalTool) match {
         case (Some(stackA), Some(stackB)) => stackA.getItem == stackB.getItem && (stackA.isItemStackDamageable || stackA.getItemDamage == stackB.getItemDamage)
         case (None, None) => true

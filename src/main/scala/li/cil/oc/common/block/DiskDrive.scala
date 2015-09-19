@@ -46,7 +46,7 @@ class DiskDrive extends SimpleBlock with traits.Rotatable with traits.GUI {
     if (player.isSneaking) world.getTileEntity(pos) match {
       case drive: tileentity.DiskDrive =>
         val isDiskInDrive = drive.getStackInSlot(0) != null
-        val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
+        val isHoldingDisk = drive.isItemValidForSlot(0, player.getHeldItem)
         if (isDiskInDrive) {
           if (!world.isRemote) {
             drive.dropSlot(0, 1, Option(drive.facing))

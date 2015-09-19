@@ -36,7 +36,7 @@ class Terminal(val rack: tileentity.ServerRack, val number: Int) {
     val keyboard = api.Driver.driverFor(keyboardItem, rack.getClass).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
     keyboard.setUsableOverride(new UsabilityChecker {
       override def isUsableByPlayer(keyboard: api.component.Keyboard, player: EntityPlayer) = {
-        val stack = player.getCurrentEquippedItem
+        val stack = player.getHeldItem
         Delegator.subItem(stack) match {
           case Some(t: item.Terminal) if stack.hasTagCompound => keys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))
           case _ => false
