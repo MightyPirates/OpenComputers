@@ -63,7 +63,7 @@ object IMC {
       }
       else if (message.key == "registerWrenchToolCheck" && message.isStringMessage) {
         OpenComputers.log.info(s"Registering new wrench tool check '${message.getStringValue}' from mod ${message.getSender}.")
-        try Wrench.addUsage(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
+        try Wrench.addCheck(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering wrench check.", t)
         }
       }
