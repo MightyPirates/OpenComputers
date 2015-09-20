@@ -239,6 +239,29 @@ public final class IMC {
     }
 
     /**
+     * Register a callback for checking if an item is a wrench.
+     * <p/>
+     * This is used to determine whether certain item stacks are wrench items,
+     * which is used, for example, when "itemizing" a drone.
+     * <p/>
+     * The returned value must <tt>true</tt> if the item stack is a wrench,
+     * <tt>false</tt> otherwise.
+     * <p/>
+     * Signature of callbacks must be:
+     * <pre>
+     * boolean callback(ItemStack stack)
+     * </pre>
+     * <p/>
+     * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.
+     * For example: <tt>com.example.Integration.callbackMethod</tt>.
+     *
+     * @param callback the callback to register as a wrench tool tester.
+     */
+    public static void registerWrenchToolCheck(String callback) {
+        FMLInterModComms.sendMessage(MOD_ID, "registerWrenchToolCheck", callback);
+    }
+
+    /**
      * Register a handler for items that can be charged.
      * <p/>
      * This is used by the charger to determine whether items can be charged

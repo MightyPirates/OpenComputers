@@ -6,6 +6,7 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.common.entity
 import li.cil.oc.server.agent.ActivationType
 import li.cil.oc.server.agent.Player
 import li.cil.oc.util.BlockPosition
@@ -303,7 +304,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       player.side.getFrontOffsetZ * range)
     val hit = world.rayTraceBlocks(origin, target)
     player.closestEntity[Entity]() match {
-      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || new Vec3(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || new Vec3(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
   }

@@ -63,6 +63,16 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   var hasPower = true
 
+  // Rotation base state. Current rotation is based on world time. See HologramRenderer.
+  var rotationAngle = 0f
+  var rotationX = 0f
+  var rotationY = 0f
+  var rotationZ = 0f
+  var rotationSpeed = 0f
+  var rotationSpeedX = 0f
+  var rotationSpeedY = 0f
+  var rotationSpeedZ = 0f
+
   final val colorsByTier = Array(Array(0x00FF00), Array(0x0000FF, 0x00FF00, 0xFF0000)) // 0xBBGGRR for rendering convenience
 
   // This is a def and not a val for loading (where the tier comes from the nbt and is always 0 here).
@@ -293,6 +303,44 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     result(oldValue)
   }
 
+  @Callback(doc = """function(angle:number, x:number, y:number, z:number):boolean -- Set the base rotation of the displayed hologram.""")
+  def setRotation(context: Context, args: Arguments): Array[AnyRef] = {
+    if (tier > 0) {
+      val r = args.checkDouble(0) % 360
+      val x = args.checkDouble(1)
+      val y = args.checkDouble(2)
+      val z = args.checkDouble(3)
+
+      rotationAngle = r.toFloat
+      rotationX = x.toFloat
+      rotationY = y.toFloat
+      rotationZ = z.toFloat
+      ServerPacketSender.sendHologramRotation(this)
+
+      result(true)
+    }
+    else result(Unit, "not supported")
+  }
+
+  @Callback(doc = """function(speed:number, x:number, y:number, z:number):boolean -- Set the rotation speed of the displayed hologram.""")
+  def setRotationSpeed(context: Context, args: Arguments): Array[AnyRef] = {
+    if (tier > 0) {
+      val v = args.checkDouble(0) max -360 * 4 min 360 * 4
+      val x = args.checkDouble(1)
+      val y = args.checkDouble(2)
+      val z = args.checkDouble(3)
+
+      rotationSpeed = v.toFloat
+      rotationSpeedX = x.toFloat
+      rotationSpeedY = y.toFloat
+      rotationSpeedZ = z.toFloat
+      ServerPacketSender.sendHologramRotationSpeed(this)
+
+      result(true)
+    }
+    else result(Unit, "not supported")
+  }
+
   private def checkCoordinates(args: Arguments, idxX: Int = 0, idxY: Int = 1, idxZ: Int = 2) = {
     val x = if (idxX >= 0) args.checkInteger(idxX) - 1 else 0
     if (x < 0 || x >= width) throw new ArrayIndexOutOfBoundsException("x")
@@ -370,12 +418,14 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   def getFadeStartDistanceSquared = scale / Settings.get.hologramMaxScaleByTier.max * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
 
+  private final val Sqrt2 = Math.sqrt(2)
+
   override def getRenderBoundingBox = {
     val cx = x + 0.5
     val cy = y + 0.5
     val cz = z + 0.5
-    val sh = width / 16 * scale
-    val sv = height / 16 * scale
+    val sh = width / 16 * scale * Sqrt2 // overscale to take into account 45 degree rotation
+    val sv = height / 16 * scale * Sqrt2
     AxisAlignedBB.fromBounds(
       cx + (-0.5 + translation.xCoord) * sh,
       cy + translation.yCoord * sv,
@@ -398,6 +448,14 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val ty = nbt.getDouble(Settings.namespace + "offsetY")
     val tz = nbt.getDouble(Settings.namespace + "offsetZ")
     translation = new Vec3(tx, ty, tz)
+    rotationAngle = nbt.getFloat(Settings.namespace + "rotationAngle")
+    rotationX = nbt.getFloat(Settings.namespace + "rotationX")
+    rotationY = nbt.getFloat(Settings.namespace + "rotationY")
+    rotationZ = nbt.getFloat(Settings.namespace + "rotationZ")
+    rotationSpeed = nbt.getFloat(Settings.namespace + "rotationSpeed")
+    rotationSpeedX = nbt.getFloat(Settings.namespace + "rotationSpeedX")
+    rotationSpeedY = nbt.getFloat(Settings.namespace + "rotationSpeedY")
+    rotationSpeedZ = nbt.getFloat(Settings.namespace + "rotationSpeedZ")
   }
 
   override def writeToNBTForServer(nbt: NBTTagCompound) = this.synchronized {
@@ -413,6 +471,14 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.setDouble(Settings.namespace + "offsetX", translation.xCoord)
     nbt.setDouble(Settings.namespace + "offsetY", translation.yCoord)
     nbt.setDouble(Settings.namespace + "offsetZ", translation.zCoord)
+    nbt.setFloat(Settings.namespace + "rotationAngle", rotationAngle)
+    nbt.setFloat(Settings.namespace + "rotationX", rotationX)
+    nbt.setFloat(Settings.namespace + "rotationY", rotationY)
+    nbt.setFloat(Settings.namespace + "rotationZ", rotationZ)
+    nbt.setFloat(Settings.namespace + "rotationSpeed", rotationSpeed)
+    nbt.setFloat(Settings.namespace + "rotationSpeedX", rotationSpeedX)
+    nbt.setFloat(Settings.namespace + "rotationSpeedY", rotationSpeedY)
+    nbt.setFloat(Settings.namespace + "rotationSpeedZ", rotationSpeedZ)
   }
 
   @SideOnly(Side.CLIENT)
@@ -426,6 +492,14 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     val ty = nbt.getDouble("offsetY")
     val tz = nbt.getDouble("offsetZ")
     translation = new Vec3(tx, ty, tz)
+    rotationAngle = nbt.getFloat("rotationAngle")
+    rotationX = nbt.getFloat("rotationX")
+    rotationY = nbt.getFloat("rotationY")
+    rotationZ = nbt.getFloat("rotationZ")
+    rotationSpeed = nbt.getFloat("rotationSpeed")
+    rotationSpeedX = nbt.getFloat("rotationSpeedX")
+    rotationSpeedY = nbt.getFloat("rotationSpeedY")
+    rotationSpeedZ = nbt.getFloat("rotationSpeedZ")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
@@ -437,5 +511,13 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.setDouble("offsetX", translation.xCoord)
     nbt.setDouble("offsetY", translation.yCoord)
     nbt.setDouble("offsetZ", translation.zCoord)
+    nbt.setFloat("rotationAngle", rotationAngle)
+    nbt.setFloat("rotationX", rotationX)
+    nbt.setFloat("rotationY", rotationY)
+    nbt.setFloat("rotationZ", rotationZ)
+    nbt.setFloat("rotationSpeed", rotationSpeed)
+    nbt.setFloat("rotationSpeedX", rotationSpeedX)
+    nbt.setFloat("rotationSpeedY", rotationSpeedY)
+    nbt.setFloat("rotationSpeedZ", rotationSpeedZ)
   }
 }

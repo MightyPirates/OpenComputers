@@ -47,6 +47,8 @@ object Textures {
     val ManualHome = L("manual_home")
     val ManualMissingItem = L("manual_missing_item")
     val ManualTab = L("manual_tab")
+    val Nanomachines = L("nanomachines_power")
+    val NanomachinesBar = L("nanomachines_power_bar")
     val Printer = L("printer")
     val PrinterInk = L("printer_ink")
     val PrinterMaterial = L("printer_material")

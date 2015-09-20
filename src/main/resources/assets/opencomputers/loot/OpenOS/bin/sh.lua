@@ -384,6 +384,10 @@ end
 local args, options = shell.parse(...)
 local history = {}
 
+local function escapeMagic(text)
+  return text:gsub('[%(%)%.%%%+%-%*%?%[%^%$]', '%%%1')
+end
+
 local function getMatchingPrograms(baseName)
   local result = {}
   -- TODO only matching files with .lua extension for now, might want to
@@ -391,7 +395,7 @@ local function getMatchingPrograms(baseName)
   if not baseName or #baseName == 0 then
     baseName = "^(.*)%.lua$"
   else
-    baseName = "^(" .. baseName .. ".*)%.lua$"
+    baseName = "^(" .. escapeMagic(baseName) .. ".*)%.lua$"
   end
   for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
     for file in fs.list(basePath) do
@@ -404,7 +408,8 @@ local function getMatchingPrograms(baseName)
   return result
 end
 
-local function getMatchingFiles(baseName)
+local function getMatchingFiles(partialPrefix, name)
+  local baseName = shell.resolve(partialPrefix .. name)
   local result, basePath = {}
   -- note: we strip the trailing / to make it easier to navigate through
   -- directories using tab completion (since entering the / will then serve
@@ -416,12 +421,12 @@ local function getMatchingFiles(baseName)
     baseName = "^(.-)/?$"
   else
     basePath = fs.path(baseName) or "/"
-    baseName = "^(" .. fs.name(baseName) .. ".-)/?$"
+    baseName = "^(" .. escapeMagic(fs.name(baseName)) .. ".-)/?$"
   end
   for file in fs.list(basePath) do
     local match = file:match(baseName)
     if match then
-      table.insert(result, fs.concat(basePath, match))
+      table.insert(result, partialPrefix ..  match)
     end
   end
   -- (cont.) but if there's only one match and it's a directory, *then* we
@@ -444,10 +449,20 @@ local function hintHandler(line, cursor)
     -- first part and no path, look for programs in the $PATH
     result = getMatchingPrograms(line)
   else -- just look normal files
-    result = getMatchingFiles(shell.resolve(partial or line))
+    local partialPrefix = (partial or line)
+    local name = fs.name(partialPrefix)
+    partialPrefix = partialPrefix:sub(1, -name:len() - 1)
+    result = getMatchingFiles(partialPrefix, name)
   end
+  local resultSuffix = ""
+  if searchInPath then
+    resultSuffix  = " "
+  elseif #result == 1 and result[1]:sub(-1) ~= '/' then
+    resultSuffix = " "
+  end
+  prefix = prefix or ""
   for i = 1, #result do
-    result[i] = (prefix or "") .. result[i] .. (searchInPath and " " or "")
+    result[i] = prefix .. result[i] .. resultSuffix
   end
   table.sort(result)
   return result

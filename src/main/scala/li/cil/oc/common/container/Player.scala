@@ -15,6 +15,7 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTBase
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.FakePlayer
 
 import scala.collection.convert.WrapAsScala._
 
@@ -155,6 +156,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       val nbt = new NBTTagCompound()
       detectCustomDataChanges(nbt)
       for (entry <- crafters) entry match {
+        case _: FakePlayer => // Nope
         case player: EntityPlayerMP => ServerPacketSender.sendContainerUpdate(this, nbt, player)
         case _ =>
       }

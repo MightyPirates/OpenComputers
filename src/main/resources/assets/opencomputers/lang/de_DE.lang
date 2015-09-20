@@ -247,7 +247,7 @@ key.materialCosts=Materialkosten anzeigen
 # Item / Block Tooltips
 oc:tooltip.AccessPoint=Verhält sich wie ein Switch, aber empfängt zusätzlich Drahtlosnachrichten und leitet Pakete aus dem Festnetz drahtlos weiter.
 oc:tooltip.AbstractBusCard=Erlaubt es, LIP-Pakete des Abstrakten Busses von §fStargateTech 2§7 zu senden und zu empfangen.
-oc:tooltip.Acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Dank ihrer korrosiven Eigenschaften ideal zum Bedrucken von Leiterplatten geeignet.
+oc:tooltip.Acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Mag sich aber auch zu anderen Zwecken eignen.
 oc:tooltip.Adapter=Erlaubt es, Blöcke anzusteuern, die keine Komponentenblöcke sind, wie etwa reguläre Minecraft-Blöcke oder Blöcke anderer Mods.
 oc:tooltip.ALU=Zählt Zahlen zum Zeitvertreib. Klingt komisch, is aber so.
 oc:tooltip.Analyzer=Erlaubt es, Informationen über Blöcke anzuzeigen, wie zum Bleistift ihre §fAdresse§7 und ihren §fKomponentennamen§7.[nl] Erlaubt zudem, den Fehler anzuzeigen, der zu einem Computerabsturz geführt hat, falls der Computer nicht regulär heruntergefahren wurde.

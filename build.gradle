@@ -106,7 +106,7 @@ repositories {
     }
     maven {
         name = "dmodoomsirius"
-        url = "http://ci.dmodoomsirius.me/maven/"
+        url = "http://api.dmodoomsirius.me/"
     }
     maven {
         name = "ue"
@@ -204,7 +204,7 @@ dependencies {
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
-    provided "notenoughkeys:NeK:${config.minecraft.version}-${config.nek.version}:deobf-dev"
+    provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
     provided "qmunity:QmunityLib:${config.qmunitylib.version}:deobf"
     provided "tmech:TMechworks:${config.minecraft.version}-${config.tmech.version}:deobf"
     provided ("mrtjp:ProjectRed:${config.projred.version}:dev") {

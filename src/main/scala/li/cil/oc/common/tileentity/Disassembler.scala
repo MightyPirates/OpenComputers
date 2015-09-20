@@ -155,8 +155,6 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def getSizeInventory = 1
 
-  override def getInventoryStackLimit = 64
-
   override def isItemValidForSlot(i: Int, stack: ItemStack) =
     allowDisassembling(stack) &&
       (((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && ItemUtils.getIngredients(stack).nonEmpty) ||

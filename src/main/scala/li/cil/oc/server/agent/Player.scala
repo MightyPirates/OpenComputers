@@ -179,10 +179,10 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
     !cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
-        case living: EntityLivingBase if getCurrentEquippedItem != null => getCurrentEquippedItem.interactWithEntity(this, living)
+        case living: EntityLivingBase if getHeldItem != null => getHeldItem.interactWithEntity(this, living)
         case _ => false
       }))
-      if (getCurrentEquippedItem != null && getCurrentEquippedItem.stackSize <= 0) {
+      if (getHeldItem != null && getHeldItem.stackSize <= 0) {
         destroyCurrentEquippedItem()
       }
       result
@@ -304,7 +304,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       block.onBlockClicked(world, pos, this)
       world.extinguishFire(this, pos, side)
 
-      val isBlockUnbreakable = block.getBlockHardness(world, pos) < 0
+      val hardness = block.getBlockHardness(world, pos)
+      val isBlockUnbreakable = hardness < 0
       val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, pos, this)
       if (!canDestroyBlock) {
         return 0
@@ -320,7 +321,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         return 0
       }
 
-      val hardness = block.getBlockHardness(world, pos)
       val strength = getBreakSpeed(state, pos)
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay
@@ -527,7 +527,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def onItemPickup(entity: Entity, count: Int) {}
 
-  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack) {}
+  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack): Unit = {
+    if (slot == 0 && agent.equipmentInventory.getSizeInventory > 0) {
+      agent.equipmentInventory.setInventorySlotContents(slot, stack)
+    }
+    // else: armor slots, which are unsupported in agents.
+  }
 
   override def setRevengeTarget(entity: EntityLivingBase) {}
 

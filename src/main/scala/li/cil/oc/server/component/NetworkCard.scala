@@ -124,12 +124,6 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     }
   }
 
-  def receivePacket(packet: Packet, source: WirelessEndpoint) {
-    val (dx, dy, dz) = ((source.x + 0.5) - host.xPosition, (source.y + 0.5) - host.yPosition, (source.z + 0.5) - host.zPosition)
-    val distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
-    receivePacket(packet, distance)
-  }
-
   protected def receivePacket(packet: Packet, distance: Double) {
     if (packet.source != node.address && Option(packet.destination).forall(_ == node.address)) {
       if (openPorts.contains(packet.port)) {

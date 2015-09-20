@@ -11,7 +11,6 @@ import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
-import powercrystals.minefactoryreloaded.api.IDeepStorageUnit
 
 object DriverDeepStorageUnit extends DriverTileEntity with EnvironmentAware {
   override def getTileEntityClass: Class[_] = classOf[IDeepStorageUnit]
@@ -31,7 +30,7 @@ object DriverDeepStorageUnit extends DriverTileEntity with EnvironmentAware {
     @Callback(doc = "function():int -- Get the maximum number of stored items.")
     def getStoredItemType(context: Context, args: Arguments): Array[AnyRef] = {
       if (Settings.get.allowItemStackInspection) result(tileEntity.getStoredItemType)
-      else result(null, "not enabled in config")
+      else result(Unit, "not enabled in config")
     }
   }
 

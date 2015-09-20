@@ -4,14 +4,14 @@ import java.io.IOException
 
 import li.cil.oc.OpenComputers
 
-object FontUtil {
+object FontUtils {
   // Note: we load the widths from a file (one byte per width) because the Scala
   // compiler craps its pants when we try to have it as an array in the source
   // file... seems having an array with 0x10000 entries leads to stack overflows,
   // who would have known!
   private val widths = {
     val ba = Array.fill[Byte](0x10000)(-1)
-    val is = FontUtil.getClass.getResourceAsStream("/assets/opencomputers/wcwidth.bin")
+    val is = FontUtils.getClass.getResourceAsStream("/assets/opencomputers/wcwidth.bin")
     if (is != null) {
       try {
         is.read(ba)

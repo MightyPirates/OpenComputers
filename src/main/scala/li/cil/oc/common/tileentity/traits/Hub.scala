@@ -51,9 +51,9 @@ trait Hub extends traits.Environment with SidedEnvironment {
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: EnumFacing) = true
+  override def canConnect(side: EnumFacing) = side != null
 
-  override def sidedNode(side: EnumFacing) = plugs(side.ordinal).node
+  override def sidedNode(side: EnumFacing) = if (side != null) plugs(side.ordinal).node else null
 
   // ----------------------------------------------------------------------- //
 
@@ -92,7 +92,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   protected def relayPacket(sourceSide: Option[EnumFacing], packet: Packet) {
-    for (side <- EnumFacing.values if Option(side) != sourceSide) {
+    for (side <- EnumFacing.values if Option(side) != sourceSide && sidedNode(side) != null) {
       sidedNode(side).sendToReachable("network.message", packet)
     }
   }

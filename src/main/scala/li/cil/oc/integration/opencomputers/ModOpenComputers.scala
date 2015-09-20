@@ -27,6 +27,11 @@ import li.cil.oc.common.item.Analyzer
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.RedstoneCard
 import li.cil.oc.common.item.Tablet
+import li.cil.oc.common.nanomachines.provider.DisintegrationProvider
+import li.cil.oc.common.nanomachines.provider.HungryProvider
+import li.cil.oc.common.nanomachines.provider.MagnetProvider
+import li.cil.oc.common.nanomachines.provider.ParticleProvider
+import li.cil.oc.common.nanomachines.provider.PotionProvider
 import li.cil.oc.common.template._
 import li.cil.oc.integration.ModProxy
 import li.cil.oc.integration.Mods
@@ -58,6 +63,7 @@ object ModOpenComputers extends ModProxy {
     TemplateBlacklist.register()
 
     api.IMC.registerWrenchTool("li.cil.oc.integration.opencomputers.ModOpenComputers.useWrench")
+    api.IMC.registerWrenchToolCheck("li.cil.oc.integration.opencomputers.ModOpenComputers.isWrench")
     api.IMC.registerItemCharge(
       "OpenComputers",
       "li.cil.oc.integration.opencomputers.ModOpenComputers.canCharge",
@@ -68,6 +74,7 @@ object ModOpenComputers extends ModProxy {
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
     FMLCommonHandler.instance.bus.register(EventHandler)
+    FMLCommonHandler.instance.bus.register(NanomachinesHandler.Common)
     FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
     FMLCommonHandler.instance.bus.register(Tablet)
 
@@ -80,6 +87,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(GeolyzerHandler)
     MinecraftForge.EVENT_BUS.register(HoverBootsHandler)
     MinecraftForge.EVENT_BUS.register(Loot)
+    MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)
@@ -98,7 +106,6 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverDebugCard)
     api.Driver.add(DriverEEPROM)
     api.Driver.add(DriverFileSystem)
-    api.Driver.add(DriverGeolyzer)
     api.Driver.add(DriverGraphicsCard)
     api.Driver.add(DriverInternetCard)
     api.Driver.add(DriverLinkedCard)
@@ -107,13 +114,16 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverNetworkCard)
     api.Driver.add(DriverKeyboard)
     api.Driver.add(DriverRedstoneCard)
-    api.Driver.add(DriverScreen)
     api.Driver.add(DriverTablet)
     api.Driver.add(DriverWirelessNetworkCard)
 
     api.Driver.add(DriverContainerCard)
     api.Driver.add(DriverContainerFloppy)
     api.Driver.add(DriverContainerUpgrade)
+
+    api.Driver.add(DriverGeolyzer)
+    api.Driver.add(DriverScreen)
+    api.Driver.add(DriverTransposer)
 
     api.Driver.add(DriverUpgradeAngel)
     api.Driver.add(DriverUpgradeBattery)
@@ -138,6 +148,7 @@ object ModOpenComputers extends ModProxy {
       Constants.BlockName.Geolyzer,
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
+      Constants.BlockName.Transposer,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.BatteryUpgradeTier1,
       Constants.ItemName.BatteryUpgradeTier2,
@@ -156,27 +167,28 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Drone],
+      Constants.BlockName.Keyboard,
+      Constants.BlockName.ScreenTier1,
+      Constants.BlockName.Transposer,
       Constants.ItemName.APUTier1,
       Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
-      Constants.BlockName.Keyboard,
       Constants.ItemName.NetworkCard,
       Constants.ItemName.RedstoneCardTier1,
-      Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.CraftingUpgrade,
       Constants.ItemName.HoverUpgradeTier1,
       Constants.ItemName.HoverUpgradeTier2)
     blacklistHost(classOf[internal.Microcontroller],
+      Constants.BlockName.Keyboard,
+      Constants.BlockName.ScreenTier1,
       Constants.ItemName.APUTier1,
       Constants.ItemName.APUTier2,
       Constants.ItemName.GraphicsCardTier1,
       Constants.ItemName.GraphicsCardTier2,
       Constants.ItemName.GraphicsCardTier3,
-      Constants.BlockName.Keyboard,
-      Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
@@ -195,11 +207,13 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TractorBeamUpgrade,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Robot],
+      Constants.BlockName.Transposer,
       Constants.ItemName.LeashUpgrade)
     blacklistHost(classOf[internal.Tablet],
+      Constants.BlockName.ScreenTier1,
+      Constants.BlockName.Transposer,
       Constants.ItemName.NetworkCard,
       Constants.ItemName.RedstoneCardTier1,
-      Constants.BlockName.ScreenTier1,
       Constants.ItemName.AngelUpgrade,
       Constants.ItemName.ChunkloaderUpgrade,
       Constants.ItemName.CraftingUpgrade,
@@ -246,14 +260,22 @@ object ModOpenComputers extends ModProxy {
     api.Manual.addTab(new TextureTabIconRenderer(Textures.GUI.ManualHome), "oc:gui.Manual.Home", "%LANGUAGE%/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("case1").createItemStack(1)), "oc:gui.Manual.Blocks", "%LANGUAGE%/block/index.md")
     api.Manual.addTab(new ItemStackTabIconRenderer(api.Items.get("cpu1").createItemStack(1)), "oc:gui.Manual.Items", "%LANGUAGE%/item/index.md")
+
+    api.Nanomachines.addProvider(DisintegrationProvider)
+    api.Nanomachines.addProvider(HungryProvider)
+    api.Nanomachines.addProvider(ParticleProvider)
+    api.Nanomachines.addProvider(PotionProvider)
+    api.Nanomachines.addProvider(MagnetProvider)
   }
 
   def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
-    player.getCurrentEquippedItem.getItem match {
+    player.getHeldItem.getItem match {
       case wrench: Wrench => wrench.useWrenchOnBlock(player, player.getEntityWorld, pos, !changeDurability)
       case _ => false
     }
   }
+
+  def isWrench(stack: ItemStack): Boolean = stack.getItem.isInstanceOf[Wrench]
 
   def canCharge(stack: ItemStack): Boolean = stack.getItem match {
     case chargeable: Chargeable => chargeable.canCharge(stack)

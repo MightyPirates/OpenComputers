@@ -52,6 +52,8 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = side != facing
 
+  override def sidedNode(side: EnumFacing): Node = if (side != facing) super.sidedNode(side) else null
+
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = side != facing
 
@@ -171,7 +173,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   override def onMessage(message: Message): Unit = {
     if (message.source.network == snooperNode.network) {
-      for (side <- EnumFacing.values if outputSides(side.ordinal)) {
+      for (side <- EnumFacing.values if outputSides(side.ordinal) && side != facing) {
         sidedNode(side).sendToReachable(message.name, message.data: _*)
       }
     }
@@ -234,6 +236,9 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   // Nope.
   override def decrStackSize(slot: Int, amount: Int) = null
+
+  // Nope.
+  override def getStackInSlotOnClosing(slot: Int) = null
 
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack) = {

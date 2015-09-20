@@ -14,6 +14,7 @@ import li.cil.oc.client.gui
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.InventoryProxy
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.TankSelection
 import li.cil.oc.common.item.data.RobotData
@@ -32,7 +33,6 @@ import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
@@ -68,87 +68,19 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
 
   def isCreative = tier == Tier.Four
 
-  val equipmentInventory = new IInventory {
+  val equipmentInventory = new InventoryProxy {
+    override def inventory = Robot.this
+
     override def getSizeInventory = 4
-
-    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
-
-    override def markDirty() = Robot.this.markDirty()
-
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-      slot >= 0 && slot < getSizeInventory && Robot.this.isItemValidForSlot(slot, stack)
-
-    override def getStackInSlot(slot: Int) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.getStackInSlot(slot)
-      else null
-
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.setInventorySlotContents(slot, stack)
-
-    override def decrStackSize(slot: Int, amount: Int) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.decrStackSize(slot, amount)
-      else null
-
-    override def getName = Robot.this.getName
-
-    override def hasCustomName = Robot.this.hasCustomName
-
-    override def openInventory(player: EntityPlayer): Unit = {}
-
-    override def closeInventory(player: EntityPlayer): Unit = {}
-
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
-
-    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
-
-    override def getField(id: Int) = Robot.this.getField(id)
-
-    override def setField(id: Int, value: Int) = Robot.this.setField(id, value)
-
-    override def getFieldCount = Robot.this.getFieldCount
-
-    override def clear() = Robot.this.clear()
-
-    override def getDisplayName = Robot.this.getDisplayName
   }
 
   // Wrapper for the part of the inventory that is mutable.
-  val mainInventory = new IInventory {
+  val mainInventory = new InventoryProxy {
+    override def inventory = Robot.this
+
     override def getSizeInventory = Robot.this.inventorySize
 
-    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
-
-    override def markDirty() = Robot.this.markDirty()
-
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(equipmentInventory.getSizeInventory + slot, stack)
-
-    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(equipmentInventory.getSizeInventory + slot)
-
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(equipmentInventory.getSizeInventory + slot, stack)
-
-    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(equipmentInventory.getSizeInventory + slot, amount)
-
-    override def getName = Robot.this.getName
-
-    override def hasCustomName = Robot.this.hasCustomName
-
-    override def openInventory(player: EntityPlayer): Unit = {}
-
-    override def closeInventory(player: EntityPlayer): Unit = {}
-
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
-
-    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
-
-    override def getField(id: Int) = Robot.this.getField(id)
-
-    override def setField(id: Int, value: Int) = Robot.this.setField(id, value)
-
-    override def getFieldCount = Robot.this.getFieldCount
-
-    override def clear() = Robot.this.clear()
-
-    override def getDisplayName = Robot.this.getDisplayName
+    override def offset = equipmentInventory.getSizeInventory
   }
 
   val actualInventorySize = 100
@@ -608,6 +540,7 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
     }
+    else super.onItemAdded(slot, stack)
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {

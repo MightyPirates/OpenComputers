@@ -1,5 +1,8 @@
 package li.cil.oc.util
 
+import java.util.Calendar
+import java.util.GregorianCalendar
+
 import scala.collection.mutable
 
 object GameTimeFormatter {
@@ -56,34 +59,19 @@ object GameTimeFormatter {
     '%' -> (t => "%")
   )
 
-  private val monthLengths = Array(
-    Array(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
-    Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31))
-
-  private def monthLengthsForYear(year: Int) = {
-    if (year % 4 == 0 && year % 100 != 0 || year % 400 == 0) monthLengths(0) else monthLengths(1)
-  }
-
   def parse(time: Double) = {
-    var day = (time / 24000).toLong
-    val weekDay = ((4 + day) % 7).toInt
-    val year = 1970 + (day / 364.2425).toInt
-    val yearDay = (day % 364.2425).toInt
-    day = yearDay
-    val monthLengths = monthLengthsForYear(year)
-    var month = 0
-    while (day >= monthLengths(month)) {
-      day = day - monthLengths(month)
-      month = month + 1
-    }
+    val calendar = new GregorianCalendar()
+    calendar.setTimeInMillis((time * 1000).toLong)
 
-    var seconds = ((time % 24000) * 60 * 60 / 1000).toInt
-    var minutes = seconds / 60
-    seconds = seconds % 60
-    val hours = (minutes / 60) % 24
-    minutes = minutes % 60
-
-    new DateTime(year, month + 1, day.toInt + 1, weekDay + 1, yearDay + 1, hours, minutes, seconds)
+    new DateTime(
+      calendar.get(Calendar.YEAR),
+      calendar.get(Calendar.MONTH) + 1,
+      calendar.get(Calendar.DAY_OF_MONTH),
+      calendar.get(Calendar.DAY_OF_WEEK),
+      calendar.get(Calendar.DAY_OF_YEAR),
+      calendar.get(Calendar.HOUR_OF_DAY),
+      calendar.get(Calendar.MINUTE),
+      calendar.get(Calendar.SECOND))
   }
 
   def format(format: String, time: DateTime) = {
@@ -103,10 +91,14 @@ object GameTimeFormatter {
   }
 
   def mktime(year: Int, mon: Int, mday: Int, hour: Int, min: Int, sec: Int): Option[Int] = {
-    if (year < 1970 || mon < 1 || mon > 12) return None
-    val monthLengths = monthLengthsForYear(year)
-    val days = ((year - 1970) * 365.2425).ceil.toInt + (0 until mon - 1).foldLeft(0)((d, m) => d + monthLengths(m)) + mday - 1
-    val secs = sec + (min + (hour - 1 + days * 24) * 60) * 60
-    Option(secs)
+    val calendar = new GregorianCalendar()
+    calendar.set(Calendar.YEAR, year)
+    calendar.set(Calendar.MONTH, mon - 1)
+    calendar.set(Calendar.DAY_OF_MONTH, mday)
+    calendar.set(Calendar.HOUR_OF_DAY, hour)
+    calendar.set(Calendar.MINUTE, min)
+    calendar.set(Calendar.SECOND, sec)
+
+    Option((calendar.getTimeInMillis / 1000).toInt)
   }
 }

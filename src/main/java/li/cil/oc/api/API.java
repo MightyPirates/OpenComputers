@@ -12,13 +12,14 @@ import li.cil.oc.api.detail.*;
  */
 public class API {
     public static final String ID_OWNER = "OpenComputers|Core";
-    public static final String VERSION = "5.5.4";
+    public static final String VERSION = "5.6.2";
 
     public static DriverAPI driver = null;
     public static FileSystemAPI fileSystem = null;
     public static ItemAPI items = null;
     public static MachineAPI machine = null;
     public static ManualAPI manual = null;
+    public static NanomachinesAPI nanomachines = null;
     public static NetworkAPI network = null;
 
     public static Config config = null;

@@ -36,6 +36,12 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   override def world = host.world
 
+  def receivePacket(packet: Packet, source: WirelessEndpoint) {
+    val (dx, dy, dz) = ((source.x + 0.5) - host.xPosition, (source.y + 0.5) - host.yPosition, (source.z + 0.5) - host.zPosition)
+    val distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+    receivePacket(packet, distance)
+  }
+
   // ----------------------------------------------------------------------- //
 
   @Callback(direct = true, doc = """function():number -- Get the signal strength (range) used when sending messages.""")

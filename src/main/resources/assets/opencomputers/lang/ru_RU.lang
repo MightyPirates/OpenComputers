@@ -96,6 +96,7 @@ item.oc.Microchip2.name=Микрочип (3-ий уровень)
 item.oc.MicrocontrollerCase0.name=Корпус микроконтроллера (1-ый уровень)
 item.oc.MicrocontrollerCase1.name=Корпус микроконтроллера (2-ой уровень)
 item.oc.MicrocontrollerCase3.name=Корпус микроконтроллера (Креатив)
+item.oc.Nanomachines.name=Нанороботы
 item.oc.NetworkCard.name=Сетевая карта
 item.oc.NumPad.name=Цифровой блок
 item.oc.Present.name=Маленькое что-то...
@@ -246,7 +247,7 @@ key.materialCosts=Показать стоимость в материалах
 # Item / Block Tooltips
 oc:tooltip.AccessPoint=Работает как коммутатор, но и с беспроводными сетями.
 oc:tooltip.AbstractBusCard=Обеспечивает взаимодействие с абстрактной шиной из §fStargateTech 2§7 (отправка и приём LIP-пакетов).
-oc:tooltip.Acid=Высокотоксичная псевдо-жидкость. Благодаря своей агрессивной природе она идеально подходит для травления печатных плат.
+oc:tooltip.Acid=Высокотоксичная псевдо-жидкость. Однако, может быть полезна в некоторых операциях.
 oc:tooltip.Adapter=Используется для контроля некомпонентных блоков, таких как обычные блоки или блоков из других модов.
 oc:tooltip.ALU=Выполняет арифметические вычисления, так что вам не придётся возиться с ними.
 oc:tooltip.Analyzer=Используется для отображения информации о блоках, такой как §fадрес§7 или §fимя компонента§7.[nl] Также отображает ошибку, вызвавшую сбой компонента.
@@ -302,6 +303,7 @@ oc:tooltip.Microchip=Чип, ранее известный как интегра
 oc:tooltip.Microcontroller=Микроконтроллеры это основа компьютеров. Они используются для выполнения специфических задач и могут работать только с одной программой, находящейся в EEPROM.[nl] §cНе могут взаимодействовать с внешними компонентами.§7
 oc:tooltip.MicrocontrollerCase=Базовый компонент для создания микроконтроллеров. Положите в сборщик, добавьте компонентов и получите микроконтроллер.
 oc:tooltip.MotionSensor=Может обнаружить движение ближайших живых существ. Требуется чистая линия видимости.
+oc:tooltip.Nanomachines=Блок управления и кучка нанороботов для приему внутрь, если сможете.
 oc:tooltip.NetworkCard=Позволяет соединить компьютеры, удалённые друг от друга, в сеть (к примеру, с помощью кабеля) для отправки сообщений между ними.
 oc:tooltip.PowerAcceptor=Скорость преобразования энергии: §f%s/t§7
 oc:tooltip.PowerConverter.BuildCraft=§fBuildCraft MJ§7: §a%s:%s§7
@@ -444,6 +446,15 @@ achievement.oc.transistor=Редстоун, скажи "Привет."
 achievement.oc.transistor.desc=Создайте транзистор. Потом послушайте музыку. Не благодарите меня.
 achievement.oc.wirelessNetworkCard=Сигналы
 achievement.oc.wirelessNetworkCard.desc=Время идти туда, где никогда не появлялся сигнал.
+
+# Death messages. Note that the number of entries here must match the number
+# set in the actual damage source in code.
+death.attack.oc.nanomachinesOverload.1=%s был слишком жадным.
+death.attack.oc.nanomachinesOverload.2=%s получил нервный срыв.
+death.attack.oc.nanomachinesOverload.3=Нанороботы %s вышли из под контроля.
+death.attack.oc.nanomachinesHungry.1=%s был съеден нанороботами.
+death.attack.oc.nanomachinesHungry.2=%s не кормил нанороботов.
+death.attack.oc.nanomachinesHungry.3=%s был переварен нанороботами.
 
 # NEI Integration
 nei.options.inventory.oredict=Показывать OreDictionary имена

@@ -190,10 +190,6 @@ nuggetIron {
 cuttingWire {
   input: [[stickWood, nuggetIron, stickWood]]
 }
-acid {
-  type: shapeless
-  input: [bucketWater, sugar, slimeball, fermentedSpiderEye, bone]
-}
 disk {
   input: [["", nuggetIron, ""]
           [nuggetIron, "", nuggetIron]

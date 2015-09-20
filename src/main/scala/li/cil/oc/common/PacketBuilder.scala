@@ -54,6 +54,8 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 
   def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
 
+  def sendToPlayersNearEntity(e: Entity, range: Option[Double] = None): Unit = sendToNearbyPlayers(e.getEntityWorld, e.posX, e.posY, e.posZ, range)
+
   def sendToPlayersNearTileEntity(t: TileEntity, range: Option[Double] = None): Unit = sendToNearbyPlayers(t.getWorld, t.getPos.getX + 0.5, t.getPos.getY + 0.5, t.getPos.getZ + 0.5, range)
 
   def sendToPlayersNearHost(host: EnvironmentHost, range: Option[Double] = None): Unit = sendToNearbyPlayers(host.world, host.xPosition, host.yPosition, host.zPosition, range)
