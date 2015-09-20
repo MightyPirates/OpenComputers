@@ -20,7 +20,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 
 ### Cards
 * [AbstractBus Card](abstractBusCard.md)
-* [Data Card](dataCard.md)
+* [Data Card](dataCard1.md)
 * [Debug Card](debugCard.md) (aka AMI)
 * [Graphics Card](graphicsCard1.md)
 * [Internet Card](internetCard.md)
