@@ -6,12 +6,14 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
+import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
@@ -52,10 +54,15 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
+      case PacketType.HologramRotation => onHologramRotation(p)
+      case PacketType.HologramRotationSpeed => onHologramRotationSpeed(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
       case PacketType.LootDisk => onLootDisk(p)
+      case PacketType.NanomachinesConfiguration => onNanomachinesConfiguration(p)
+      case PacketType.NanomachinesInputs => onNanomachinesInputs(p)
+      case PacketType.NanomachinesPower => onNanomachinesPower(p)
       case PacketType.NetSplitterState => onNetSplitterState(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
@@ -257,10 +264,75 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onHologramRotation(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.rotationAngle = p.readFloat()
+        t.rotationX = p.readFloat()
+        t.rotationY = p.readFloat()
+        t.rotationZ = p.readFloat()
+      case _ => // Invalid packet.
+    }
+
+  def onHologramRotationSpeed(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.rotationSpeed = p.readFloat()
+        t.rotationSpeedX = p.readFloat()
+        t.rotationSpeedY = p.readFloat()
+        t.rotationSpeedZ = p.readFloat()
+      case _ => // Invalid packet.
+    }
+
   def onLootDisk(p: PacketParser) = {
     val stack = p.readItemStack()
     if (stack != null) {
       Loot.disksForClient += stack
+    }
+  }
+
+  def onNanomachinesConfiguration(p: PacketParser) = {
+    p.readEntity[EntityPlayer]() match {
+      case Some(player) =>
+        val hasController = p.readBoolean()
+        if (hasController) {
+          api.Nanomachines.installController(player) match {
+            case controller: ControllerImpl => controller.load(p.readNBT())
+            case _ => // Wat.
+          }
+        }
+        else {
+          api.Nanomachines.uninstallController(player)
+        }
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onNanomachinesInputs(p: PacketParser) = {
+    p.readEntity[EntityPlayer]() match {
+      case Some(player) => api.Nanomachines.getController(player) match {
+        case controller: ControllerImpl =>
+          val inputs = new Array[Byte](p.readInt())
+          p.read(inputs)
+          controller.configuration.synchronized {
+            for ((value, index) <- inputs.zipWithIndex if index < controller.configuration.triggers.length) {
+              controller.configuration.triggers(index).isActive = value == 1
+            }
+            controller.activeBehaviorsDirty = true
+          }
+        case _ => // Wat.
+      }
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onNanomachinesPower(p: PacketParser) = {
+    p.readEntity[EntityPlayer]() match {
+      case Some(player) => api.Nanomachines.getController(player) match {
+        case controller: ControllerImpl => controller.storedEnergy = p.readDouble()
+        case _ => // Wat.
+      }
+      case _ => // Invalid packet.
     }
   }
 

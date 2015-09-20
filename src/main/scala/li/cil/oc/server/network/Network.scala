@@ -690,7 +690,10 @@ object Network extends api.detail.NetworkAPI {
         acc + (arg match {
           case null | Unit | None => 4
           case _: java.lang.Boolean => 4
+          case _: java.lang.Byte => 4
+          case _: java.lang.Short => 4
           case _: java.lang.Integer => 4
+          case _: java.lang.Float => 8
           case _: java.lang.Double => 8
           case value: java.lang.String => value.length max 1
           case value: Array[Byte] => value.length max 1

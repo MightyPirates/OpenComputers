@@ -2,12 +2,11 @@ package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 
-trait Inventory extends IInventory {
+trait Inventory extends SimpleInventory {
   def items: Array[Option[ItemStack]]
 
   def updateItems(slot: Int, stack: ItemStack) = items(slot) = Option(stack)
@@ -16,24 +15,6 @@ trait Inventory extends IInventory {
 
   override def getStackInSlot(slot: Int) =
     if (slot >= 0 && slot < getSizeInventory) items(slot).orNull
-    else null
-
-  override def decrStackSize(slot: Int, amount: Int) =
-    if (slot >= 0 && slot < getSizeInventory) {
-      (items(slot) match {
-        case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
-          setInventorySlotContents(slot, null)
-          stack
-        case Some(stack) =>
-          val result = stack.splitStack(amount)
-          markDirty()
-          result
-        case _ => null
-      }) match {
-        case stack: ItemStack if stack.stackSize > 0 => stack
-        case _ => null
-      }
-    }
     else null
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = {
@@ -64,16 +45,6 @@ trait Inventory extends IInventory {
       markDirty()
     }
   }
-
-  def getInventoryStackRequired = 1
-
-  override def getStackInSlotOnClosing(slot: Int) = null
-
-  override def openInventory() {}
-
-  override def closeInventory() {}
-
-  override def hasCustomInventoryName = false
 
   override def getInventoryName = Settings.namespace + "container." + inventoryName
 

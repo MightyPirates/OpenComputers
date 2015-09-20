@@ -15,6 +15,11 @@ manual {
   type: shapeless
   input: [book, "oc:circuitChip1"]
 }
+nanomachines {
+  input: [["oc:chamelium", "oc:wlanCard", "oc:chamelium"]
+          ["oc:cpu2", "oc:materialAcid", "oc:ram1"]
+          ["oc:chamelium", "oc:capacitor", "oc:chamelium"]]
+}
 texturePicker {
   input: [[dyeBlack, dyeRed, dyeGreen]
           [dyeBlue, "oc:analyzer", dyePurple]
@@ -360,7 +365,10 @@ nuggetIron {
   output: 9
 }
 cuttingWire = false
-acid = false
+acid {
+  type: shapeless
+  input: [bucketWater, sugar, slimeball, fermentedSpiderEye, bone]
+}
 ingotIron {
   input: [[nuggetIron, nuggetIron, nuggetIron],
           [nuggetIron, nuggetIron, nuggetIron],

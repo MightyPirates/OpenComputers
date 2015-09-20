@@ -99,6 +99,9 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       case _ => // No pitch.
     }
 
+    GL11.glRotatef(hologram.rotationAngle, hologram.rotationX, hologram.rotationY, hologram.rotationZ)
+    GL11.glRotatef(hologram.rotationSpeed * (hologram.getWorldObj.getTotalWorldTime % (360 * 20 - 1) + f) / 20f, hologram.rotationSpeedX, hologram.rotationSpeedY, hologram.rotationSpeedZ)
+
     GL11.glScaled(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
     GL11.glTranslated(
       (hologram.translation.xCoord * hologram.width / 16 - 1.5) * hologram.scale,

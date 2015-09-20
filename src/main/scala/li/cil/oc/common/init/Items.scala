@@ -547,6 +547,9 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.DataCard(multi, Tier.Two), Constants.ItemName.DataCardTier2, "oc:dataCard2")
     Recipes.addSubItem(new item.DataCard(multi, Tier.Three), Constants.ItemName.DataCardTier3, "oc:dataCard3")
 
+    // 1.5.18
+    Recipes.addSubItem(new item.Nanomachines(multi), Constants.ItemName.Nanomachines, "oc:nanomachines")
+
     // Register aliases.
     for ((k, v) <- aliases) {
       descriptors.getOrElseUpdate(k, descriptors(v))
