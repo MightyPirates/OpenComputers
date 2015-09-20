@@ -53,5 +53,5 @@ trait InventoryProxy extends IInventory {
 
   override def closeInventory() = inventory.closeInventory()
 
-  private def isValidSlot(slot: Int) = slot >= 0 && slot < getSizeInventory
+  private def isValidSlot(slot: Int) = slot >= offset && slot < getSizeInventory + offset
 }
