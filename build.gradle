@@ -248,6 +248,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/computercraft/**'
             exclude 'li/cil/oc/integration/dsu/**'
             exclude 'li/cil/oc/integration/ec/**'
+            exclude 'li/cil/oc/integration/enderio/**'
             exclude 'li/cil/oc/integration/enderstorage/**'
             exclude 'li/cil/oc/integration/fmp/**'
             exclude 'li/cil/oc/integration/forestry/**'
