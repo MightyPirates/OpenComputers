@@ -1,5 +1,6 @@
 package li.cil.oc.common.nanomachines
 
+import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
@@ -81,6 +82,29 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
 
     behaviorMap.clear()
     behaviorMap ++= behaviors.map(n => n.behavior -> n)
+  }
+
+  // Enter debug configuration, one input -> one behavior, and list mapping in console.
+  def debug(): Unit = {
+    OpenComputers.log.info(s"Creating debug configuration for nanomachines in player ${controller.player.getDisplayName}.")
+
+    behaviors.clear()
+    behaviors ++= api.Nanomachines.getProviders.
+      map(p => (p, Option(p.createBehaviors(controller.player)).map(_.filter(_ != null)).orNull)). // Remove null behaviors.
+      filter(_._2 != null). // Remove null lists..
+      flatMap(pb => pb._2.map(b => new BehaviorNeuron(pb._1, b)))
+
+    connectors.clear()
+
+    triggers.clear()
+    for (i <- behaviors.indices) {
+      val behavior = behaviors(i)
+      val trigger = new TriggerNeuron()
+      triggers += trigger
+      behavior.inputs += trigger
+
+      OpenComputers.log.info(s"$i -> ${behavior.behavior.getNameHint} (${behavior.behavior.getClass.toString})")
+    }
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
