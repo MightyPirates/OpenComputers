@@ -173,7 +173,7 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
   class ConnectorNeuron extends Neuron {
     val inputs = mutable.ArrayBuffer.empty[Neuron]
 
-    override def isActive = inputs.exists(_.isActive)
+    override def isActive = inputs.forall(_.isActive)
   }
 
   class BehaviorNeuron(val provider: BehaviorProvider, val behavior: Behavior) extends ConnectorNeuron
