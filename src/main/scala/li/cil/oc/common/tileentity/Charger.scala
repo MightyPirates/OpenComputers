@@ -226,14 +226,29 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   abstract class ConnectorChargeable(val connector: Connector) extends Chargeable {
     override def changeBuffer(delta: Double): Double = connector.changeBuffer(delta)
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: ConnectorChargeable => chargeable.connector == connector
+      case _ => false
+    }
   }
 
   class RobotChargeable(val robot: Robot) extends ConnectorChargeable(robot.node.asInstanceOf[Connector]) {
     override def pos: Vec3 = BlockPosition(robot).toVec3
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: RobotChargeable => chargeable.robot == robot
+      case _ => false
+    }
   }
 
   class DroneChargeable(val drone: Drone) extends ConnectorChargeable(drone.components.node.asInstanceOf[Connector]) {
     override def pos: Vec3 = new Vec3(drone.posX, drone.posY, drone.posZ)
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: DroneChargeable => chargeable.drone == drone
+      case _ => false
+    }
   }
 
   class PlayerChargeable(val player: EntityPlayer) extends Chargeable {
@@ -244,6 +259,11 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
         case controller: Controller => controller.changeBuffer(delta)
         case _ => delta // Cannot charge.
       }
+    }
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case chargeable: PlayerChargeable => chargeable.player == player
+      case _ => false
     }
   }
 
