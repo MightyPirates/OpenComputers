@@ -228,7 +228,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     override def changeBuffer(delta: Double): Double = connector.changeBuffer(delta)
 
     override def equals(obj: scala.Any): Boolean = obj match {
-      case chargeable: ConnectorChargeable => chargeable.connector == chargeable
+      case chargeable: ConnectorChargeable => chargeable.connector == connector
       case _ => false
     }
   }
