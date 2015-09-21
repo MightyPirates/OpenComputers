@@ -41,7 +41,7 @@ object ParticleProvider extends ScalaProvider("b48c4bbd-51bb-4915-9367-16cff3220
   }
 
   class ParticleBehavior(var effectType: EnumParticleTypes, player: EntityPlayer) extends AbstractBehavior(player) {
-    override def getNameHint = "particles"
+    override def getNameHint = "particles." + effectType.getParticleName
 
     override def update(): Unit = {
       val world = player.getEntityWorld
