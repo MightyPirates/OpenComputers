@@ -408,25 +408,25 @@ local function getMatchingPrograms(baseName)
   return result
 end
 
-local function getMatchingFiles(partialPrefix, name)
-  local baseName = shell.resolve(partialPrefix .. name)
-  local result, basePath = {}
+local function getMatchingFiles(basePath, name)
+  local resolvedPath = shell.resolve(basePath)
+  local result, baseName = {}
+
   -- note: we strip the trailing / to make it easier to navigate through
   -- directories using tab completion (since entering the / will then serve
   -- as the intention to go into the currently hinted one).
   -- if we have a directory but no trailing slash there may be alternatives
   -- on the same level, so don't look inside that directory... (cont.)
-  if fs.isDirectory(baseName) and baseName:sub(-1) == "/" then
-    basePath = baseName
+  if fs.isDirectory(resolvedPath) and name:len() == 0 then
     baseName = "^(.-)/?$"
   else
-    basePath = fs.path(baseName) or "/"
-    baseName = "^(" .. escapeMagic(fs.name(baseName)) .. ".-)/?$"
+    baseName = "^(" .. escapeMagic(name) .. ".-)/?$"
   end
-  for file in fs.list(basePath) do
+
+  for file in fs.list(resolvedPath) do
     local match = file:match(baseName)
     if match then
-      table.insert(result, partialPrefix ..  match)
+      table.insert(result, basePath ..  match)
     end
   end
   -- (cont.) but if there's only one match and it's a directory, *then* we
@@ -450,7 +450,8 @@ local function hintHandler(line, cursor)
     result = getMatchingPrograms(line)
   else -- just look normal files
     local partialPrefix = (partial or line)
-    local name = fs.name(partialPrefix)
+    local name = partialPrefix:gsub("/+", "/")
+    name = name:sub(-1) == '/' and '' or fs.name(name)
     partialPrefix = partialPrefix:sub(1, -name:len() - 1)
     result = getMatchingFiles(partialPrefix, name)
   end
