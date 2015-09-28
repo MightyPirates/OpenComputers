@@ -83,11 +83,12 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
         while (buffer >= Settings.get.disassemblerItemCost && queue.nonEmpty) {
           buffer -= Settings.get.disassemblerItemCost
           val stack = queue.remove(0)
-          if (world.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
+          if (disassembleNextInstantly || world.rand.nextDouble >= Settings.get.disassemblerBreakChance) {
             drop(stack)
           }
         }
       }
+      disassembleNextInstantly = queue.nonEmpty // If we have nothing left to do, stop being creative.
     }
   }
 
@@ -105,8 +106,10 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
       totalRequiredEnergy = queue.size * Settings.get.disassemblerItemCost
       if (instant) {
         buffer = totalRequiredEnergy
-        disassembleNextInstantly = false // Just to be sure...
       }
+    }
+    else {
+      drop(stack)
     }
   }
 

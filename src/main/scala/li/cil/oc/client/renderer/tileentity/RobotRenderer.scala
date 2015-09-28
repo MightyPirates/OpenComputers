@@ -395,13 +395,31 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               GL11.glRotatef(20, 0, 0, 1)
             }
 
-            if (MinecraftForgeClient.getRenderPass < stack.getItem.getRenderPasses(stack.getItemDamage)) {
-              val tint = stack.getItem.getColorFromItemStack(stack, MinecraftForgeClient.getRenderPass)
+            val pass = MinecraftForgeClient.getRenderPass
+            def renderPass(): Unit = {
+              val tint = stack.getItem.getColorFromItemStack(stack, pass)
               val r = ((tint >> 16) & 0xFF) / 255f
               val g = ((tint >> 8) & 0xFF) / 255f
               val b = ((tint >> 0) & 0xFF) / 255f
               GL11.glColor4f(r, g, b, 1)
-              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, MinecraftForgeClient.getRenderPass)
+              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
+            }
+
+            if (stack.getItem.requiresMultipleRenderPasses()) {
+              val passes = stack.getItem.getRenderPasses(stack.getItemDamage)
+              if (pass < passes) {
+                renderPass()
+              }
+              // Tile entities only get two render passes, so if items need
+              // more, we have to fake them.
+              if (pass == 1 && passes > 2) {
+                for (fakePass <- 2 until passes) {
+                  renderPass()
+                }
+              }
+            }
+            else if (pass == 0) {
+              renderPass()
             }
           }
           catch {

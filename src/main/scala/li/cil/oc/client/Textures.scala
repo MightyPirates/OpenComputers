@@ -63,6 +63,9 @@ object Textures {
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeGenerator.png")
   val upgradeInventory = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeInventory.png")
 
+  val overlayNanomachines = new ResourceLocation(Settings.resourceDomain, "textures/gui/nanomachines_power.png")
+  val overlayNanomachinesBar = new ResourceLocation(Settings.resourceDomain, "textures/gui/nanomachines_power_bar.png")
+
   object Cable {
     var iconCap: IIcon = _
   }

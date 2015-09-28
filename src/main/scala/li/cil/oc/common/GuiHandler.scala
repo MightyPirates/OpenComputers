@@ -45,12 +45,12 @@ abstract class GuiHandler extends IGuiHandler {
           case _ => null
         }
       case Some(GuiType.Category.Item) =>
-        Delegator.subItem(player.getCurrentEquippedItem) match {
+        Delegator.subItem(player.getHeldItem) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new container.Database(player.inventory, new DatabaseInventory {
               override def tier = database.tier
 
-              override def container = player.getCurrentEquippedItem
+              override def container = player.getHeldItem
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
@@ -58,12 +58,12 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Server(player.inventory, new ServerInventory {
               override def tier = server.tier
 
-              override def container = player.getCurrentEquippedItem
+              override def container = player.getHeldItem
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player
             })
           case Some(tablet: item.Tablet) if id == GuiType.TabletInner.id =>
-            val stack = player.getCurrentEquippedItem
+            val stack = player.getHeldItem
             if (stack.hasTagCompound)
               new container.Tablet(player.inventory, item.Tablet.get(stack, player))
             else

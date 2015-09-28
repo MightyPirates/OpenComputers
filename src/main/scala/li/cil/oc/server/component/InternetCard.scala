@@ -190,7 +190,7 @@ object InternetCard {
       if (checkConnected()) {
         val buffer = ByteBuffer.allocate(n)
         val read = channel.read(buffer)
-        if (read == -1) result(null)
+        if (read == -1) result(Unit)
         else result(buffer.array.view(0, read).toArray)
       }
       else result(Array.empty[Byte])
@@ -296,7 +296,7 @@ object InternetCard {
     def response(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
       response match {
         case Some((code, message, headers)) => result(code, message, headers)
-        case _ => result(null)
+        case _ => result(Unit)
       }
     }
 
@@ -304,7 +304,7 @@ object InternetCard {
     def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
       val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.optInteger(1, Int.MaxValue)))
       if (checkResponse()) {
-        if (eof && queue.isEmpty) result(null)
+        if (eof && queue.isEmpty) result(Unit)
         else {
           val buffer = ByteBuffer.allocate(n)
           var read = 0

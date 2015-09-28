@@ -158,6 +158,7 @@ object EventHandler {
   @SubscribeEvent
   def playerLoggedIn(e: PlayerLoggedInEvent) {
     if (SideTracker.isServer) e.player match {
+      case _: FakePlayer => // Nope
       case player: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
           player.addChatMessage(Localization.Chat.WarningLuaFallback)

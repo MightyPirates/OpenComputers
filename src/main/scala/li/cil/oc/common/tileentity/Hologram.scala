@@ -321,7 +321,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
       result(true)
     }
-    else result(null, "not supported")
+    else result(Unit, "not supported")
   }
 
   @Callback(doc = """function(speed:number, x:number, y:number, z:number):boolean -- Set the rotation speed of the displayed hologram.""")
@@ -340,7 +340,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
       result(true)
     }
-    else result(null, "not supported")
+    else result(Unit, "not supported")
   }
 
   private def checkCoordinates(args: Arguments, idxX: Int = 0, idxY: Int = 1, idxZ: Int = 2) = {

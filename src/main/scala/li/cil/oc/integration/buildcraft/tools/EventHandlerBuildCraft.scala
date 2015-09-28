@@ -2,10 +2,11 @@ package li.cil.oc.integration.buildcraft.tools
 
 import buildcraft.api.tools.IToolWrench
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 
 object EventHandlerBuildCraft {
   def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
-    player.getCurrentEquippedItem.getItem match {
+    player.getHeldItem.getItem match {
       case wrench: IToolWrench =>
         if (changeDurability) {
           wrench.wrenchUsed(player, x, y, z)
@@ -15,4 +16,6 @@ object EventHandlerBuildCraft {
       case _ => false
     }
   }
+
+  def isWrench(stack: ItemStack): Boolean = stack.getItem.isInstanceOf[buildcraft.api.tools.IToolWrench]
 }

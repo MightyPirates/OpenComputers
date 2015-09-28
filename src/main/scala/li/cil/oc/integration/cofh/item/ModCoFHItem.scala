@@ -9,5 +9,6 @@ object ModCoFHItem extends ModProxy {
 
   override def initialize(): Unit = {
     api.IMC.registerWrenchTool("li.cil.oc.integration.cofh.item.EventHandlerCoFH.useWrench")
+    api.IMC.registerWrenchToolCheck("li.cil.oc.integration.cofh.item.EventHandlerCoFH.isWrench")
   }
 }

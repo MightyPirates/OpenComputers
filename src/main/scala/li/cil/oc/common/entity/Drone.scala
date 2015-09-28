@@ -23,6 +23,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.Inventory
 import li.cil.oc.common.item.data.DroneData
+import li.cil.oc.integration.util.Wrench
 import li.cil.oc.server.agent
 import li.cil.oc.server.component
 import li.cil.oc.util.BlockPosition
@@ -463,7 +464,13 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def interactFirst(player: EntityPlayer) = {
     if (player.isSneaking) {
-      kill()
+      if (Wrench.isWrench(player.getHeldItem)) {
+        kill()
+      }
+      else if (!world.isRemote && !machine.isRunning) {
+        preparePowerUp()
+        start()
+      }
     }
     else if (!world.isRemote) {
       player.openGui(OpenComputers, GuiType.Drone.id, world, getEntityId, 0, 0)
