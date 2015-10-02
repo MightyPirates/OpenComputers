@@ -63,6 +63,7 @@ object Mods {
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
+  val RotaryCraft = new SimpleMod(IDs.RotaryCraft)
   val StargateTech2 = new ModBase {
     def id = IDs.StargateTech2
 
@@ -115,6 +116,7 @@ object Mods {
     integration.projectred.ModProjectRed,
     integration.railcraft.ModRailcraft,
     integration.redlogic.ModRedLogic,
+    integration.rotarycraft.ModRotaryCraft,
     integration.stargatetech2.ModStargateTech2,
     integration.thaumcraft.ModThaumcraft,
     integration.thermalexpansion.ModThermalExpansion,
@@ -204,6 +206,7 @@ object Mods {
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val Railcraft = "Railcraft"
     final val RedLogic = "RedLogic"
+    final val RotaryCraft = "RotaryCraft"
     final val StargateTech2 = "StargateTech2"
     final val Thaumcraft = "Thaumcraft"
     final val ThermalExpansion = "ThermalExpansion"
