@@ -108,9 +108,13 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
+    save(nbt, forItem = false)
+  }
+
+  def save(nbt: NBTTagCompound, forItem: Boolean): Unit = {
     nbt.setNewTagList("triggers", triggers.map(t => {
       val nbt = new NBTTagCompound()
-      nbt.setBoolean("isActive", t.isActive)
+      nbt.setBoolean("isActive", t.isActive && !forItem)
       nbt
     }))
 

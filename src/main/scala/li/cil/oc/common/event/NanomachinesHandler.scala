@@ -5,6 +5,7 @@ import java.io.FileOutputStream
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent
+import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
@@ -71,6 +72,14 @@ object NanomachinesHandler {
   }
 
   object Common {
+    @SubscribeEvent
+    def onPlayerRespawn(e: PlayerRespawnEvent): Unit = {
+      api.Nanomachines.getController(e.player) match {
+        case controller: Controller => controller.changeBuffer(-controller.getLocalBuffer)
+        case _ => // Not a player with nanomachines.
+      }
+    }
+
     @SubscribeEvent
     def onLivingUpdate(e: LivingEvent.LivingUpdateEvent): Unit = {
       e.entity match {

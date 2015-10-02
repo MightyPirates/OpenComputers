@@ -5,18 +5,21 @@ import java.util.UUID
 
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
-import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Behavior
 import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.nanomachines.DisableReason
 import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.WirelessEndpoint
+import li.cil.oc.common.item.data.NanomachineData
 import li.cil.oc.integration.util.DamageSourceWithRandomCause
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.PlayerUtils
+import li.cil.oc.Constants
+import li.cil.oc.Settings
+import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
@@ -73,7 +76,23 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
               respond(sender, "port", responsePort)
             case Array("getPowerState") =>
               respond(sender, "power", getLocalBuffer, getLocalBufferSize)
-
+            case Array("saveConfiguration") =>
+              val nanomachines = api.Items.get(Constants.ItemName.Nanomachines)
+              try {
+                val index = player.inventory.mainInventory.indexWhere(stack => api.Items.get(stack) == nanomachines && new NanomachineData(stack).configuration.isEmpty)
+                if (index >= 0) {
+                  val stack = player.inventory.decrStackSize(index, 1)
+                  new NanomachineData(this).save(stack)
+                  player.inventory.addItemStackToInventory(stack)
+                  InventoryUtils.spawnStackInWorld(BlockPosition(player), stack)
+                  respond(sender, "saved", true)
+                }
+                else respond(sender, "saved", false, "no nanomachines")
+              }
+              catch {
+                case _: Throwable =>
+                  respond(sender, "saved", false, "error")
+              }
             case Array("getHealth") =>
               respond(sender, "health", player.getHealth, player.getMaxHealth)
             case Array("getHunger") =>
