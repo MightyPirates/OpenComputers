@@ -41,7 +41,7 @@ object Mods {
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
   val EnderIO = new SimpleMod(IDs.EnderIO, version = "@[2.2,2.3)")
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
-  val ExtraCells = new SimpleMod(IDs.ExtraCells,  version = "@[2.2.73,)")
+  val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
   val Forestry = new SimpleMod(IDs.Forestry)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
