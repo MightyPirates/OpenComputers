@@ -21,7 +21,8 @@ class Nanomachines(val parent: Delegator) extends traits.Delegate {
 
   override def onEaten(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (!world.isRemote) {
-      // Reconfigure if already installed.
+      // Re-install to get new address, make sure we're configured.
+      api.Nanomachines.uninstallController(player)
       api.Nanomachines.installController(player).reconfigure()
     }
     stack.stackSize -= 1
