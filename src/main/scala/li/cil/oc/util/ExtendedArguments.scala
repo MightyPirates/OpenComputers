@@ -42,6 +42,18 @@ object ExtendedArguments {
       tank
     }
 
+    def checkSideAny(index: Int) = checkSide(index, ForgeDirection.VALID_DIRECTIONS: _*)
+
+    def optSideAny(index: Int, default: ForgeDirection) =
+      if (!isDefined(index)) default
+      else checkSideAny(index)
+
+    def checkSideExcept(index: Int, invalid: ForgeDirection*) = checkSide(index, ForgeDirection.VALID_DIRECTIONS.filterNot(invalid.contains): _*)
+
+    def optSideExcept(index: Int, default: ForgeDirection, invalid: ForgeDirection*) =
+      if (!isDefined(index)) default
+      else checkSideExcept(index, invalid: _*)
+
     def checkSideForAction(index: Int) = checkSide(index, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
 
     def optSideForAction(index: Int, default: ForgeDirection) =
@@ -54,13 +66,13 @@ object ExtendedArguments {
       if (!isDefined(index)) default
       else checkSideForMovement(index)
 
-    def checkSideForFace(index: Int, facing: ForgeDirection) = checkSide(index, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite): _*)
+    def checkSideForFace(index: Int, facing: ForgeDirection) = checkSideExcept(index, facing.getOpposite)
 
     def optSideForFace(index: Int, default: ForgeDirection) =
       if (!isDefined(index)) default
       else checkSideForAction(index)
 
-    def checkSide(index: Int, allowed: ForgeDirection*) = {
+    private def checkSide(index: Int, allowed: ForgeDirection*) = {
       val side = args.checkInteger(index)
       if (side < 0 || side > 5) {
         throw new IllegalArgumentException("invalid side")
@@ -68,11 +80,6 @@ object ExtendedArguments {
       val direction = ForgeDirection.getOrientation(side)
       if (allowed.isEmpty || (allowed contains direction)) direction
       else throw new IllegalArgumentException("unsupported side")
-    }
-
-    def optSide(index: Int, default: ForgeDirection, allowed: ForgeDirection*) = {
-      if (!isDefined(index)) default
-      else checkSide(index, allowed: _*)
     }
 
     private def isDefined(index: Int) = index >= 0 && index < args.count()
