@@ -1,13 +1,5 @@
 package li.cil.oc.integration.appeng
 
-import appeng.api.AEApi
-import appeng.api.config.Actionable
-import appeng.api.config.FuzzyMode
-import appeng.api.config.Settings
-import appeng.api.config.Upgrades
-import appeng.api.networking.security.MachineSource
-import appeng.api.parts.IPartHost
-import appeng.parts.automation.PartExportBus
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.EnvironmentAware
 import li.cil.oc.api.driver.NamedBlock
@@ -58,7 +50,7 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
 
     @Callback(doc = "function(side:number, slot:number):boolean -- Make the export bus facing the specified direction perform a single export operation into the specified slot.")
     def exportIntoSlot(context: Context, args: Arguments): Array[AnyRef] = {
-      val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+      val side = args.checkSideAny(0)
       host.getPart(side) match {
         case export: PartExportBus =>
           InventoryUtils.inventoryAt(BlockPosition(host.getLocation).offset(side)) match {

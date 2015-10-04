@@ -18,7 +18,6 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLiving
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
@@ -35,7 +34,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
   @Callback(doc = """function(side:number):boolean -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
     if (leashedEntities.size >= 8) return result(Unit, "too many leashed entities")
-    val side = args.checkSide(0, EnumFacing.values: _*)
+    val side = args.checkSideAny(0)
     val nearBounds = position.bounds
     val farBounds = nearBounds.offset(side.getFrontOffsetX * 2.0, side.getFrontOffsetY * 2.0, side.getFrontOffsetZ * 2.0)
     val bounds = nearBounds.union(farBounds)
@@ -86,7 +85,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
         }
       })
       val missing = leashedEntities.diff(foundEntities)
-      if (missing.size > 0) {
+      if (missing.nonEmpty) {
         OpenComputers.log.info(s"Could not find ${missing.size} leashed entities after loading!")
         leashedEntities --= missing
       }

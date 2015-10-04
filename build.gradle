@@ -263,6 +263,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/projectred/**'
             exclude 'li/cil/oc/integration/railcraft/**'
             exclude 'li/cil/oc/integration/redlogic/**'
+            exclude 'li/cil/oc/integration/rotarycraft/**'
             exclude 'li/cil/oc/integration/stargatetech2/**'
             exclude 'li/cil/oc/integration/tcon/**'
             exclude 'li/cil/oc/integration/thermalexpansion/**'

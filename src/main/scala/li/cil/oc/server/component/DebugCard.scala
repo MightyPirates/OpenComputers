@@ -503,7 +503,7 @@ object DebugCard {
       val tagJson = args.checkString(3)
       val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_180713_a(tagJson)
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
-      val side = args.checkSide(7, EnumFacing.values: _*)
+      val side = args.checkSideAny(7)
       InventoryUtils.inventoryAt(position) match {
         case Some(inventory) =>
           val stack = new ItemStack(item, count, damage)
@@ -537,7 +537,7 @@ object DebugCard {
       }
       val amount = args.checkInteger(1)
       val position = BlockPosition(args.checkDouble(2), args.checkDouble(3), args.checkDouble(4), world)
-      val side = args.checkSide(5, EnumFacing.values: _*)
+      val side = args.checkSideAny(5)
       world.getTileEntity(position) match {
         case handler: IFluidHandler => result(handler.fill(side, new FluidStack(fluid, amount), true))
         case _ => result(Unit, "no tank")
@@ -549,7 +549,7 @@ object DebugCard {
       checkEnabled()
       val amount = args.checkInteger(0)
       val position = BlockPosition(args.checkDouble(1), args.checkDouble(2), args.checkDouble(3), world)
-      val side = args.checkSide(4, EnumFacing.values: _*)
+      val side = args.checkSideAny(4)
       world.getTileEntity(position) match {
         case handler: IFluidHandler => result(handler.drain(side, amount, true))
         case _ => result(Unit, "no tank")

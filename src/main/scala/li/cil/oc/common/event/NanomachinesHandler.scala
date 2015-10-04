@@ -21,6 +21,7 @@ import net.minecraftforge.event.entity.living.LivingEvent
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent
 
 object NanomachinesHandler {
 
@@ -72,6 +73,14 @@ object NanomachinesHandler {
   }
 
   object Common {
+    @SubscribeEvent
+    def onPlayerRespawn(e: PlayerRespawnEvent): Unit = {
+      api.Nanomachines.getController(e.player) match {
+        case controller: Controller => controller.changeBuffer(-controller.getLocalBuffer)
+        case _ => // Not a player with nanomachines.
+      }
+    }
+
     @SubscribeEvent
     def onLivingUpdate(e: LivingEvent.LivingUpdateEvent): Unit = {
       e.entity match {
