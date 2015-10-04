@@ -1,0 +1,20 @@
+[{
+  "ignoreInventoryContents": true,
+  "rotation": {
+    "type": "nbtField",
+    "tag": "oc:yaw",
+    "matrix": [2, 5, 3, 4]
+  },
+  "nbt": {
+    "blacklist": [
+      "oc:items",
+      "oc:rs.input", "oc:rs.output", "oc:rs.bundledInput", "oc:rs.bundledOutput", "oc:rs.rednetInput",
+      "oc:robot", "oc:node", "oc:computer",
+      "oc:components", "oc:containers",
+      "oc:owner", "oc:ownerUuid",
+      "oc:robotEnergy", "oc:storedEnergy",
+      "oc:selectedSlot", "oc:selectedTank",
+      "oc:lightColor", "display"
+    ]
+  }
+}]

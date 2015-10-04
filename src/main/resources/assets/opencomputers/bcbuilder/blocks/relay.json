@@ -1,0 +1,10 @@
+[{
+  "ignoreInventoryContents": true,
+  "nbt": {
+    "blacklist": [
+      "oc:items",
+      "oc:ae2power", "oc:ic2power", "oc:ic2cpower",
+      "oc:plugs", "oc:queue", "oc:componentNodes"
+    ]
+  }
+}]
