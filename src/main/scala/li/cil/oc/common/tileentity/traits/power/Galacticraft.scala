@@ -1,9 +1,9 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.Settings
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.util.Power
 import micdoodle8.mods.galacticraft.api.power.EnergySource
 import micdoodle8.mods.galacticraft.api.transmission.NetworkType
 import net.minecraftforge.common.util.ForgeDirection
@@ -26,13 +26,13 @@ trait Galacticraft extends Common {
   @Optional.Method(modid = Mods.IDs.Galacticraft)
   def receiveEnergyGC(from: EnergySource, amount: Float, simulate: Boolean) =
     if (!Mods.Galacticraft.isAvailable) 0f
-    else (tryChangeBuffer(from, amount * Settings.get.ratioGalacticraft, !simulate) / Settings.get.ratioGalacticraft).toFloat
+    else Power.toGC(tryChangeBuffer(from, Power.fromGC(amount), !simulate))
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)
-  def getEnergyStoredGC(from: EnergySource) = (globalBuffer(from) / Settings.get.ratioGalacticraft).toFloat
+  def getEnergyStoredGC(from: EnergySource) = Power.toGC(globalBuffer(from))
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)
-  def getMaxEnergyStoredGC(from: EnergySource) = (globalBufferSize(from) / Settings.get.ratioGalacticraft).toFloat
+  def getMaxEnergyStoredGC(from: EnergySource) = Power.toGC(globalBufferSize(from))
 
   @Optional.Method(modid = Mods.IDs.Galacticraft)
   def extractEnergyGC(from: EnergySource, amount: Float, simulate: Boolean) = 0f
