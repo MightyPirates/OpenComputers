@@ -38,6 +38,7 @@ class Proxy {
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.piston)
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.sticky_piston)
     OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.redstone_torch)
+    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
     OreDictionary.registerOre("nuggetGold", net.minecraft.init.Items.gold_nugget)
     OreDictionary.registerOre("chest", net.minecraft.init.Blocks.chest)
     OreDictionary.registerOre("chest", net.minecraft.init.Blocks.ender_chest)
