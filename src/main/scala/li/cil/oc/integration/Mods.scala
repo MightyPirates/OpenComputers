@@ -27,6 +27,7 @@ object Mods {
   val BluePower = new SimpleMod(IDs.BluePower, version = "@[0.2.928,)")
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val BuildCraftLibrary = new SimpleMod(IDs.BuildCraftLibrary, version = "@[7.0.9,)")
+  val BuildCraftRecipes = new SimpleMod(IDs.BuildCraftRecipes)
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
   val BuildCraftTransport = new SimpleMod(IDs.BuildCraftTransport)
@@ -93,9 +94,10 @@ object Mods {
     //    integration.bloodmagic.ModBloodMagic,
     //    integration.bluepower.ModBluePower,
     //    integration.buildcraft.library.ModBuildCraftAPILibrary,
-    //    integration.buildcraft.tools.ModBuildCraftAPITools,
-    //    integration.buildcraft.tiles.ModBuildCraftAPITiles,
-    //    integration.buildcraft.transport.ModBuildCraftAPITransport,
+    //    integration.buildcraft.recipes.ModBuildCraftRecipes,
+    //    integration.buildcraft.tools.ModBuildCraftTools,
+    //    integration.buildcraft.tiles.ModBuildCraftTiles,
+    //    integration.buildcraft.transport.ModBuildCraftTransport,
     //    integration.cofh.energy.ModCoFHEnergy,
     //    integration.cofh.item.ModCoFHItem,
     //    integration.cofh.tileentity.ModCoFHTileEntity,
@@ -172,6 +174,7 @@ object Mods {
     final val BluePower = "bluepowerAPI"
     final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftLibrary = "BuildCraftAPI|library"
+    final val BuildCraftRecipes = "BuildCraftAPI|recipes"
     final val BuildCraftTiles = "BuildCraftAPI|tiles"
     final val BuildCraftTools = "BuildCraftAPI|tools"
     final val BuildCraftTransport = "BuildCraftAPI|transport"

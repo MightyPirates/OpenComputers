@@ -43,10 +43,7 @@ class Proxy {
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.piston)
     OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.sticky_piston)
     OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.redstone_torch)
-    OreDictionary.registerOre("nuggetGold", net.minecraft.init.Items.gold_nugget)
-    OreDictionary.registerOre("chest", net.minecraft.init.Blocks.chest)
-    OreDictionary.registerOre("chest", net.minecraft.init.Blocks.ender_chest)
-    OreDictionary.registerOre("chest", net.minecraft.init.Blocks.trapped_chest)
+    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
 
     val nuggetIron = Items.get(Constants.ItemName.IronNugget).createItemStack(1)
     registerExclusive("nuggetIron", nuggetIron)

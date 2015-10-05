@@ -17,14 +17,14 @@ trait Common extends TileEntity {
 
   def energyThroughput: Double
 
-  protected def tryAllSides(provider: (Double, EnumFacing) => Double, ratio: Double) {
+  protected def tryAllSides(provider: (Double, EnumFacing) => Double, fromOther: Double => Double, toOther: Double => Double) {
     // We make sure to only call this every `Settings.get.tickFrequency` ticks,
     // but our throughput is per tick, so multiply this up for actual budget.
     var budget = energyThroughput * Settings.get.tickFrequency
     for (side <- EnumFacing.values) {
-      val demand = math.min(budget, globalDemand(side)) / ratio
+      val demand = fromOther(math.min(budget, globalDemand(side)))
       if (demand > 1) {
-        val energy = provider(demand, side) * ratio
+        val energy = toOther(provider(demand, side))
         if (energy > 0) {
           budget -= tryChangeBuffer(side, energy)
         }
