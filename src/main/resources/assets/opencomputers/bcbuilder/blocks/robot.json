@@ -1,9 +1,11 @@
 [{
-  "includes": ["traits/computer.json"],
-  "includes": ["traits/environment.json"],
-  "includes": ["traits/inventory.json"],
-  "includes": ["traits/redstone.json"],
-  "includes": ["traits/rotatable.json"],
+  "includes": [
+    "traits/computer.json",
+    "traits/environment.json",
+    "traits/inventory.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ],
   "nbt": {
     "blacklist": [
       "display",

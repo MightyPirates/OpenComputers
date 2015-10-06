@@ -1,9 +1,11 @@
 [{
-  "includes": ["traits/environment.json"],
-  "includes": ["traits/inventory.json"],
-  "includes": ["traits/powerAcceptor.json"],
-  "includes": ["traits/redstone.json"],
-  "includes": ["traits/rotatable.json"],
+  "includes": [
+    "traits/environment.json",
+    "traits/inventory.json",
+    "traits/powerAcceptor.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ],
   "nbt": {
     "blacklist": [
       "chargeSpeed",

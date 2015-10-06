@@ -1,8 +1,10 @@
 [{
-  "includes": ["traits/environment.json"],
-  "includes": ["traits/externalData.json"],
-  "includes": ["traits/redstone.json"],
-  "includes": ["traits/rotatable.json"],
+  "includes": [
+    "traits/environment.json",
+    "traits/externalData.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ],
   "nbt": {
     "blacklist": [
       "oc:hasPower",

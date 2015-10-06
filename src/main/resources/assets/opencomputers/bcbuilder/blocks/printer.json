@@ -1,6 +1,8 @@
 [{
-  "includes": ["traits/environment.json"],
-  "includes": ["traits/inventory.json"],
+  "includes": [
+    "traits/environment.json",
+    "traits/inventory.json"
+  ],
   "nbt": {
     "blacklist": [
       "oc:active",

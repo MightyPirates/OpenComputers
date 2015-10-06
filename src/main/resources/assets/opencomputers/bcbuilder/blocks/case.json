@@ -1,7 +1,9 @@
 [{
-  "includes": ["traits/computer.json"],
-  "includes": ["traits/inventory.json"],
-  "includes": ["traits/powerAcceptor.json"],
-  "includes": ["traits/redstone.json"],
-  "includes": ["traits/rotatable.json"]
+  "includes": [
+    "traits/computer.json",
+    "traits/inventory.json",
+    "traits/powerAcceptor.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ]
 }]

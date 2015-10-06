@@ -1,7 +1,9 @@
 [{
-  "includes": ["traits/environment.json"],
-  "includes": ["traits/inventory.json"],
-  "includes": ["traits/powerAcceptor.json"],
+  "includes": [
+    "traits/environment.json",
+    "traits/inventory.json",
+    "traits/powerAcceptor.json"
+  ],
   "nbt": {
     "blacklist": [
       "oc:adapter.blocks"

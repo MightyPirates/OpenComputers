@@ -1,4 +1,6 @@
 [{
-  "includes": ["traits/environment.json"],
-  "includes": ["traits/powerAcceptor.json"]
+  "includes": [
+    "traits/environment.json",
+    "traits/powerAcceptor.json"
+  ]
 }]

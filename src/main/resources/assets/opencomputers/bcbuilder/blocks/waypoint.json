@@ -1,5 +1,7 @@
 [{
-  "includes": ["traits/environment.json"],
-  "includes": ["traits/redstone.json"],
-  "includes": ["traits/rotatable.json"]
+  "includes": [
+    "traits/environment.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ]
 }]
