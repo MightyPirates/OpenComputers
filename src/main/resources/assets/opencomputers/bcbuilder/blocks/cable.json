@@ -1,7 +1,3 @@
 [{
-  "nbt": {
-    "blacklist": [
-      "oc:node"
-    ]
-  }
+  "includes": ["traits/environment.json"]
 }]

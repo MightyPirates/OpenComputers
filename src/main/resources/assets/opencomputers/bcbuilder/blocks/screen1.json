@@ -1,15 +1,3 @@
 [{
-  "rotation": {
-    "type": "nbtField",
-    "tag": "oc:yaw",
-    "matrix": [2, 5, 3, 4]
-  },
-  "nbt": {
-    "blacklist": [
-      "oc:rs.input", "oc:rs.output",
-      "node",
-      "oc:hasPower", "oc:hadRedstoneInput",
-      "chunkX", "chunkZ", "dimension"
-    ]
-  }
+  "includes": ["screen.json"]
 }]

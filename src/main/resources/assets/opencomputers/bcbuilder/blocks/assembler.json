@@ -1,10 +1,9 @@
 [{
-  "ignoreInventoryContents": true,
+  "includes": ["traits/environment.json"],
+  "includes": ["traits/inventory.json"],
+  "includes": ["traits/powerAcceptor.json"],
   "nbt": {
     "blacklist": [
-      "oc:items",
-      "oc:ae2power", "oc:ic2power", "oc:ic2cpower",
-      "oc:node",
       "oc:remaining"
     ]
   }

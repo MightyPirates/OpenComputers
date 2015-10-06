@@ -1,14 +1,12 @@
 [{
   "includes": ["traits/environment.json"],
-  "includes": ["traits/inventory.json"],
-  "includes": ["traits/powerAcceptor.json"],
+  "includes": ["traits/externalData.json"],
   "includes": ["traits/redstone.json"],
   "includes": ["traits/rotatable.json"],
   "nbt": {
     "blacklist": [
-      "chargeSpeed",
-      "hasPower",
-      "invertSignal"
+      "oc:hasPower",
+      "oc:hadRedstoneInput"
     ]
   }
 }]

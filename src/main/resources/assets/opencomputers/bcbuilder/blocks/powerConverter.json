@@ -1,8 +1,4 @@
 [{
-  "nbt": {
-    "blacklist": [
-      "oc:ae2power", "oc:ic2power", "oc:ic2cpower",
-      "oc:node"
-    ]
-  }
+  "includes": ["traits/environment.json"],
+  "includes": ["traits/powerAcceptor.json"]
 }]

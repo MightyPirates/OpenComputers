@@ -1,17 +1,13 @@
 [{
-  "ignoreInventoryContents": true,
-  "rotation": {
-    "type": "nbtField",
-    "tag": "oc:yaw",
-    "matrix": [2, 5, 3, 4]
-  },
+  "includes": ["traits/hub.json"],
+  "includes": ["traits/inventory.json"],
+  "includes": ["traits/powerAcceptor.json"],
+  "includes": ["traits/redstone.json"],
+  "includes": ["traits/rotatable.json"],
   "nbt": {
     "blacklist": [
-      "oc:items",
-      "oc:rs.input", "oc:rs.output", "oc:rs.bundledInput", "oc:rs.bundledOutput", "oc:rs.rednetInput",
-      "oc:ae2power", "oc:ic2power", "oc:ic2cpower",
-      "oc:plugs", "oc:queue",
-      "oc:servers", "oc:terminals"
+      "oc:servers",
+      "oc:terminals"
     ]
   }
 }]

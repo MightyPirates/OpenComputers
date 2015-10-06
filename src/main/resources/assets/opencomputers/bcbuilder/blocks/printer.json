@@ -1,11 +1,14 @@
 [{
-  "ignoreInventoryContents": true,
+  "includes": ["traits/environment.json"],
+  "includes": ["traits/inventory.json"],
   "nbt": {
     "blacklist": [
-      "oc:items",
-      "oc:node",
-      "oc:amountInk", "oc:amountMaterial",
-      "oc:active", "oc:remaining", "oc:total", "oc:limit"
+      "oc:active",
+      "oc:amountInk",
+      "oc:amountMaterial",
+      "oc:limit",
+      "oc:remaining",
+      "oc:total"
     ]
   }
 }]

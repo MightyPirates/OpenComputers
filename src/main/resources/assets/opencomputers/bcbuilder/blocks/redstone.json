@@ -1,7 +1,7 @@
 [{
+  "includes": ["traits/redstone.json"],
   "nbt": {
     "blacklist": [
-      "oc:rs.input", "oc:rs.output", "oc:rs.bundledInput", "oc:rs.bundledOutput", "oc:rs.rednetInput",
       "oc:redstone/node"
     ]
   }

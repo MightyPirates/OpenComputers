@@ -1,9 +1,5 @@
 [{
-  "rotation": {
-    "type": "nbtField",
-    "tag": "oc:yaw",
-    "matrix": [2, 5, 3, 4]
-  },
+  "includes": ["traits/rotatable.json"],
   "nbt": {
     "blacklist": [
       "oc:keyboard"
