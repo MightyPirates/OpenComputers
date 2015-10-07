@@ -1,0 +1,8 @@
+[{
+  "nbt": {
+    "blacklist": [
+      "node",
+      "oc:node"
+    ]
+  }
+}]

@@ -1,0 +1,7 @@
+[{
+  "rotation": {
+    "type": "nbtField",
+    "tag": "oc:yaw",
+    "format": "ForgeDirection"
+  }
+}]
