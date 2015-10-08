@@ -79,13 +79,13 @@ function text.tokenize(value)
     if escaped then -- escaped character
       escaped = false
       token = token .. char
-    elseif char == "\\" and quoted ~= "'" then -- escape character?
+    elseif char == "\\" and quoted ~= "'" and quoted ~= "`" then -- escape character?
       escaped = true
       token = token .. char
     elseif char == quoted then -- end of quoted string
       quoted = false
       token = token .. char
-    elseif (char == "'" or char == '"') and not quoted then
+    elseif (char == "'" or char == '"' or char == "`") and not quoted then
       quoted = char
       start = i
       token = token .. char
