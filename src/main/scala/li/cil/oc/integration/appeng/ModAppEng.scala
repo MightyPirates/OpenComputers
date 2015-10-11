@@ -1,6 +1,7 @@
 package li.cil.oc.integration.appeng
 
 import appeng.api.AEApi
+import li.cil.oc.api
 import li.cil.oc.api.Driver
 import li.cil.oc.common.tileentity.Print
 import li.cil.oc.integration.ModProxy
@@ -10,6 +11,9 @@ object ModAppEng extends ModProxy {
   override def getMod = Mods.AppliedEnergistics2
 
   override def initialize() {
+    api.IMC.registerWrenchTool("li.cil.oc.integration.appeng.EventHandlerAE2.useWrench")
+    api.IMC.registerWrenchToolCheck("li.cil.oc.integration.appeng.EventHandlerAE2.isWrench")
+
     AEApi.instance.registries.movable.whiteListTileEntity(classOf[Print])
 
     Driver.add(DriverController)

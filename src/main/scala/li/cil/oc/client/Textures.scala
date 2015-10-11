@@ -43,6 +43,7 @@ object Textures {
   val guiRobotSelection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
   val guiServer = new ResourceLocation(Settings.resourceDomain, "textures/gui/server.png")
   val guiSlot = new ResourceLocation(Settings.resourceDomain, "textures/gui/slot.png")
+  val guiUpgradeTab = new ResourceLocation(Settings.resourceDomain, "textures/gui/upgrade_tab.png")
   val guiWaypoint = new ResourceLocation(Settings.resourceDomain, "textures/gui/waypoint.png")
 
   val blockCaseFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/CaseFrontOn.png")
@@ -61,6 +62,9 @@ object Textures {
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeCrafting.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeGenerator.png")
   val upgradeInventory = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeInventory.png")
+
+  val overlayNanomachines = new ResourceLocation(Settings.resourceDomain, "textures/gui/nanomachines_power.png")
+  val overlayNanomachinesBar = new ResourceLocation(Settings.resourceDomain, "textures/gui/nanomachines_power_bar.png")
 
   object Cable {
     var iconCap: IIcon = _
@@ -100,6 +104,10 @@ object Textures {
   }
 
   object NetSplitter {
+    var iconOn: IIcon = _
+  }
+
+  object Transposer {
     var iconOn: IIcon = _
   }
 

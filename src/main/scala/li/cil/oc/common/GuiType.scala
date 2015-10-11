@@ -26,6 +26,7 @@ object GuiType extends ScalaEnum {
   val Printer = new EnumVal { def name = "Printer"; def subType = GuiType.Category.Block }
   val Rack = new EnumVal { def name = "Rack"; def subType = GuiType.Category.Block }
   val Raid = new EnumVal { def name = "Raid"; def subType = GuiType.Category.Block }
+  val Relay = new EnumVal { def name = "Relay"; def subType = GuiType.Category.Block }
   val Robot = new EnumVal { def name = "Robot"; def subType = GuiType.Category.Block }
   val Screen = new EnumVal { def name = "Screen"; def subType = GuiType.Category.Block }
   val Server = new EnumVal { def name = "Server"; def subType = GuiType.Category.Item }

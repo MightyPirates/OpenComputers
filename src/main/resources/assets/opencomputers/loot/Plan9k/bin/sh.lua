@@ -203,6 +203,7 @@ while run do
     if term.getCursor() > 1 then
         io.write("\n")
     end
+    io.write("\x1b49m\x1b39m")
     io.write(expand(os.getenv("PS1")))
     local cmd = term.read(history)--io.read("*l")
     --print("--IN: ", cmd)

@@ -83,11 +83,11 @@ object PacketHandler extends CommonPacketHandler {
 
   def onDriveMode(p: PacketParser) = p.player match {
     case player: EntityPlayerMP =>
-      Delegator.subItem(player.getCurrentEquippedItem) match {
+      Delegator.subItem(player.getHeldItem) match {
         case Some(drive: FileSystemLike) =>
-          val data = new DriveData(player.getCurrentEquippedItem)
+          val data = new DriveData(player.getHeldItem)
           data.isUnmanaged = p.readBoolean()
-          data.save(player.getCurrentEquippedItem)
+          data.save(player.getHeldItem)
         case _ => // Invalid packet.
       }
     case _ => // Invalid packet.

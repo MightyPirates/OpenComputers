@@ -6,14 +6,16 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
+import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.container
+import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
-import li.cil.oc.common.Loot
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import li.cil.oc.util.ExtendedWorld._
@@ -52,10 +54,15 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.HologramClear => onHologramClear(p)
       case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
+      case PacketType.HologramRotation => onHologramRotation(p)
+      case PacketType.HologramRotationSpeed => onHologramRotationSpeed(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramTranslation => onHologramPositionOffsetY(p)
       case PacketType.HologramValues => onHologramValues(p)
       case PacketType.LootDisk => onLootDisk(p)
+      case PacketType.NanomachinesConfiguration => onNanomachinesConfiguration(p)
+      case PacketType.NanomachinesInputs => onNanomachinesInputs(p)
+      case PacketType.NanomachinesPower => onNanomachinesPower(p)
       case PacketType.NetSplitterState => onNetSplitterState(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
@@ -79,6 +86,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case PacketType.SoundPattern => onSoundPattern(p)
+      case PacketType.TransposerActivity => onTransposerActivity(p)
       case PacketType.WaypointLabel => onWaypointLabel(p)
       case _ => // Invalid packet.
     }
@@ -256,12 +264,86 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onHologramRotation(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.rotationAngle = p.readFloat()
+        t.rotationX = p.readFloat()
+        t.rotationY = p.readFloat()
+        t.rotationZ = p.readFloat()
+      case _ => // Invalid packet.
+    }
+
+  def onHologramRotationSpeed(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        t.rotationSpeed = p.readFloat()
+        t.rotationSpeedX = p.readFloat()
+        t.rotationSpeedY = p.readFloat()
+        t.rotationSpeedZ = p.readFloat()
+      case _ => // Invalid packet.
+    }
+
   def onLootDisk(p: PacketParser) = {
     val stack = p.readItemStack()
     if (stack != null) {
       Loot.disksForClient += stack
     }
   }
+
+  def onNanomachinesConfiguration(p: PacketParser) = {
+    p.readEntity[EntityPlayer]() match {
+      case Some(player) =>
+        val hasController = p.readBoolean()
+        if (hasController) {
+          api.Nanomachines.installController(player) match {
+            case controller: ControllerImpl => controller.load(p.readNBT())
+            case _ => // Wat.
+          }
+        }
+        else {
+          api.Nanomachines.uninstallController(player)
+        }
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onNanomachinesInputs(p: PacketParser) = {
+    p.readEntity[EntityPlayer]() match {
+      case Some(player) => api.Nanomachines.getController(player) match {
+        case controller: ControllerImpl =>
+          val inputs = new Array[Byte](p.readInt())
+          p.read(inputs)
+          controller.configuration.synchronized {
+            for ((value, index) <- inputs.zipWithIndex if index < controller.configuration.triggers.length) {
+              controller.configuration.triggers(index).isActive = value == 1
+            }
+            controller.activeBehaviorsDirty = true
+          }
+        case _ => // Wat.
+      }
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onNanomachinesPower(p: PacketParser) = {
+    p.readEntity[EntityPlayer]() match {
+      case Some(player) => api.Nanomachines.getController(player) match {
+        case controller: ControllerImpl => controller.storedEnergy = p.readDouble()
+        case _ => // Wat.
+      }
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onNetSplitterState(p: PacketParser) =
+    p.readTileEntity[NetSplitter]() match {
+      case Some(t) =>
+        t.isInverted = p.readBoolean()
+        t.openSides = t.uncompressSides(p.readByte())
+        t.world.markBlockForUpdate(t.x, t.y, t.z)
+      case _ => // Invalid packet.
+    }
 
   def onParticleEffect(p: PacketParser) = {
     val dimension = p.readInt()
@@ -423,7 +505,7 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onSwitchActivity(p: PacketParser) =
-    p.readTileEntity[Switch]() match {
+    p.readTileEntity[traits.SwitchLike]() match {
       case Some(t) => t.lastMessage = System.currentTimeMillis()
       case _ => // Invalid packet.
     }
@@ -592,15 +674,6 @@ object PacketHandler extends CommonPacketHandler {
     buffer.rawSetForeground(col, row, color)
   }
 
-  def onNetSplitterState(p: PacketParser) =
-    p.readTileEntity[NetSplitter]() match {
-      case Some(t) =>
-        t.isInverted = p.readBoolean()
-        t.openSides = t.uncompressSides(p.readByte())
-        t.world.markBlockForUpdate(t.x, t.y, t.z)
-      case _ => // Invalid packet.
-    }
-
   def onScreenTouchMode(p: PacketParser) =
     p.readTileEntity[Screen]() match {
       case Some(t) => t.invertTouchMode = p.readBoolean()
@@ -640,6 +713,12 @@ object PacketHandler extends CommonPacketHandler {
       Audio.play(x + 0.5f, y + 0.5f, z + 0.5f, pattern)
     }
   }
+
+  def onTransposerActivity(p: PacketParser) =
+    p.readTileEntity[Transposer]() match {
+      case Some(transposer) => transposer.lastOperation = System.currentTimeMillis()
+      case _ => // Invalid packet.
+    }
 
   def onWaypointLabel(p: PacketParser) =
     p.readTileEntity[Waypoint]() match {

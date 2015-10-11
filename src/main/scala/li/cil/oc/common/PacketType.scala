@@ -17,10 +17,16 @@ object PacketType extends Enumeration {
   HologramClear,
   HologramColor,
   HologramPowerChange,
+  HologramRotation,
+  HologramRotationSpeed,
   HologramScale,
   HologramTranslation,
   HologramValues,
   LootDisk,
+  NanomachinesConfiguration,
+  NanomachinesInputs,
+  NanomachinesPower,
+  NetSplitterState,
   ParticleEffect,
   PetVisibility, // Goes both ways.
   PowerState,
@@ -50,11 +56,11 @@ object PacketType extends Enumeration {
   TextBufferMultiRawSetBackground,
   TextBufferMultiRawSetForeground,
   TextBufferPowerChange,
-  NetSplitterState,
   ScreenTouchMode,
   ServerPresence,
   Sound,
   SoundPattern,
+  TransposerActivity,
   WaypointLabel, // Goes both ways.
 
   // Client -> Server

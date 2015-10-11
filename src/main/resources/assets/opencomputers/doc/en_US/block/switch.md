@@ -2,6 +2,8 @@
 
 ![Building bridges.](oredict:oc:switch)
 
+*This block is deprecated and will be removed in a future version.* Craft it into a [relay](relay.md) to avoid losing it.
+
 The switch can be used to allow different subnetworks to send network messages to each other, without exposing components to [computers](../general/computer.md) in other networks. Keeping components local is usually a good idea, to avoid [computers](../general/computer.md) using the wrong [screen](screen1.md) or to avoid component overflows to happen (causing [computers](../general/computer.md) to crash and refuse to boot up).
 
 There is also a wireless variation of this block, called the [access point](accessPoint.md), which will also relay messages wirelessly. Wireless messages can be received and relayed by other [access points](accessPoint.md), or by [computers](../general/computer.md) with a [wireless network card](../item/wlanCard.md).

@@ -16,6 +16,7 @@ import li.cil.oc.client.gui
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.InventoryProxy
 import li.cil.oc.common.inventory.InventorySelection
 import li.cil.oc.common.inventory.TankSelection
 import li.cil.oc.common.item.data.RobotData
@@ -33,7 +34,6 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockLiquid
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
@@ -65,67 +65,19 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
 
   def isCreative = tier == Tier.Four
 
-  val equipmentInventory = new IInventory {
+  val equipmentInventory = new InventoryProxy {
+    override def inventory = Robot.this
+
     override def getSizeInventory = 4
-
-    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
-
-    override def markDirty() = Robot.this.markDirty()
-
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-      slot >= 0 && slot < getSizeInventory && Robot.this.isItemValidForSlot(slot, stack)
-
-    override def getStackInSlot(slot: Int) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.getStackInSlot(slot)
-      else null
-
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.setInventorySlotContents(slot, stack)
-
-    override def decrStackSize(slot: Int, amount: Int) =
-      if (slot >= 0 && slot < getSizeInventory) Robot.this.decrStackSize(slot, amount)
-      else null
-
-    override def getInventoryName = Robot.this.getInventoryName
-
-    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
-
-    override def openInventory() {}
-
-    override def closeInventory() {}
-
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
-
-    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
   }
 
   // Wrapper for the part of the inventory that is mutable.
-  val mainInventory = new IInventory {
+  val mainInventory = new InventoryProxy {
+    override def inventory = Robot.this
+
     override def getSizeInventory = Robot.this.inventorySize
 
-    override def getInventoryStackLimit = Robot.this.getInventoryStackLimit
-
-    override def markDirty() = Robot.this.markDirty()
-
-    override def isItemValidForSlot(slot: Int, stack: ItemStack) = Robot.this.isItemValidForSlot(equipmentInventory.getSizeInventory + slot, stack)
-
-    override def getStackInSlot(slot: Int) = Robot.this.getStackInSlot(equipmentInventory.getSizeInventory + slot)
-
-    override def setInventorySlotContents(slot: Int, stack: ItemStack) = Robot.this.setInventorySlotContents(equipmentInventory.getSizeInventory + slot, stack)
-
-    override def decrStackSize(slot: Int, amount: Int) = Robot.this.decrStackSize(equipmentInventory.getSizeInventory + slot, amount)
-
-    override def getInventoryName = Robot.this.getInventoryName
-
-    override def hasCustomInventoryName = Robot.this.hasCustomInventoryName
-
-    override def openInventory() {}
-
-    override def closeInventory() {}
-
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = null
-
-    override def isUseableByPlayer(player: EntityPlayer) = Robot.this.isUseableByPlayer(player)
+    override def offset = equipmentInventory.getSizeInventory
   }
 
   val actualInventorySize = 100
@@ -572,6 +524,7 @@ class Robot extends traits.Computer with traits.PowerInformation with IFluidHand
         machine.signal("inventory_changed", Int.box(slot - equipmentInventory.getSizeInventory + 1))
       }
     }
+    else super.onItemAdded(slot, stack)
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {

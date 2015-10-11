@@ -1,0 +1,9 @@
+[{
+  "includes": [
+    "traits/computer.json",
+    "traits/inventory.json",
+    "traits/powerAcceptor.json",
+    "traits/redstone.json",
+    "traits/rotatable.json"
+  ]
+}]

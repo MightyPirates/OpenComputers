@@ -8,7 +8,7 @@ if #args == 0 then
   until not read
 else
   for i = 1, #args do
-    local file, reason = io.open(args[i])
+    local file, reason = io.open(args[i],"rb")--TODO: make b an option
     if not file then
       io.stderr:write(reason .. "\n")
       return

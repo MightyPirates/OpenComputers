@@ -438,9 +438,9 @@ object DebugCard {
               tileEntity.markDirty()
               world.markBlockForUpdate(x, y, z)
               result(true)
-            case nbt => result(null, s"nbt tag compound expected, got '${NBTBase.NBTTypes(nbt.getId)}'")
+            case nbt => result(Unit, s"nbt tag compound expected, got '${NBTBase.NBTTypes(nbt.getId)}'")
           }
-        case _ => result(null, "no tile entity")
+        case _ => result(Unit, "no tile entity")
       }
     }
 
@@ -501,7 +501,7 @@ object DebugCard {
       val tagJson = args.checkString(3)
       val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_150315_a(tagJson).asInstanceOf[NBTTagCompound]
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
-      val side = args.checkSide(7, ForgeDirection.VALID_DIRECTIONS: _*)
+      val side = args.checkSideAny(7)
       InventoryUtils.inventoryAt(position) match {
         case Some(inventory) =>
           val stack = new ItemStack(item, count, damage)
@@ -522,7 +522,7 @@ object DebugCard {
           val removed = inventory.decrStackSize(slot, count)
           if (removed == null) result(0)
           else result(removed.stackSize)
-        case _ => result(null, "no inventory")
+        case _ => result(Unit, "no inventory")
       }
     }
 
@@ -535,10 +535,10 @@ object DebugCard {
       }
       val amount = args.checkInteger(1)
       val position = BlockPosition(args.checkDouble(2), args.checkDouble(3), args.checkDouble(4), world)
-      val side = args.checkSide(5, ForgeDirection.VALID_DIRECTIONS: _*)
+      val side = args.checkSideAny(5)
       world.getTileEntity(position) match {
         case handler: IFluidHandler => result(handler.fill(side, new FluidStack(fluid, amount), true))
-        case _ => result(null, "no tank")
+        case _ => result(Unit, "no tank")
       }
     }
 
@@ -547,10 +547,10 @@ object DebugCard {
       checkEnabled()
       val amount = args.checkInteger(0)
       val position = BlockPosition(args.checkDouble(1), args.checkDouble(2), args.checkDouble(3), world)
-      val side = args.checkSide(4, ForgeDirection.VALID_DIRECTIONS: _*)
+      val side = args.checkSideAny(4)
       world.getTileEntity(position) match {
         case handler: IFluidHandler => result(handler.drain(side, amount, true))
-        case _ => result(null, "no tank")
+        case _ => result(Unit, "no tank")
       }
     }
 

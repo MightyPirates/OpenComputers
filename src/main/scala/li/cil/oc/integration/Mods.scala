@@ -19,12 +19,15 @@ object Mods {
 
   def All = knownMods.clone()
 
+  val AgriCraft = new SimpleMod(IDs.AgriCraft, version = "@[1.4.0,)")
   val AppliedEnergistics2 = new SimpleMod(IDs.AppliedEnergistics2, version = "@[rv1,)", providesPower = true)
   val BattleGear2 = new SimpleMod(IDs.BattleGear2)
+  val BetterRecords = new SimpleMod(IDs.BetterRecords)
   val BloodMagic = new SimpleMod(IDs.BloodMagic)
   val BluePower = new SimpleMod(IDs.BluePower, version = "@[0.2.928,)")
   val BuildCraft = new SimpleMod(IDs.BuildCraft)
   val BuildCraftLibrary = new SimpleMod(IDs.BuildCraftLibrary, version = "@[7.0.9,)")
+  val BuildCraftRecipes = new SimpleMod(IDs.BuildCraftRecipes)
   val BuildCraftTiles = new SimpleMod(IDs.BuildCraftTiles)
   val BuildCraftTools = new SimpleMod(IDs.BuildCraftTools)
   val BuildCraftTransport = new SimpleMod(IDs.BuildCraftTransport)
@@ -37,9 +40,9 @@ object Mods {
   val CraftingCosts = new SimpleMod(IDs.CraftingCosts)
   val DeepStorageUnit = new ClassBasedMod(IDs.DeepStorageUnit, "powercrystals.minefactoryreloaded.api.IDeepStorageUnit")()
   val ElectricalAge = new SimpleMod(IDs.ElectricalAge, providesPower = true)
-  val EnderIO = new SimpleMod(IDs.EnderIO)
+  val EnderIO = new SimpleMod(IDs.EnderIO, version = "@[2.2,2.3)")
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
-  val ExtraCells = new SimpleMod(IDs.ExtraCells,  version = "@[2.2.73,)")
+  val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
   val Forestry = new SimpleMod(IDs.Forestry)
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
@@ -61,6 +64,7 @@ object Mods {
   val ProjectRedTransmission = new SimpleMod(IDs.ProjectRedTransmission)
   val Railcraft = new SimpleMod(IDs.Railcraft)
   val RedLogic = new SimpleMod(IDs.RedLogic)
+  val RotaryCraft = new SimpleMod(IDs.RotaryCraft)
   val StargateTech2 = new ModBase {
     def id = IDs.StargateTech2
 
@@ -83,10 +87,13 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   val Proxies = Array(
+    integration.agricraft.ModAgriCraft,
     integration.appeng.ModAppEng,
+    integration.betterrecords.ModBetterRecords,
     integration.bloodmagic.ModBloodMagic,
     integration.bluepower.ModBluePower,
     integration.buildcraft.library.ModBuildCraftAPILibrary,
+    integration.buildcraft.recipes.ModBuildCraftRecipes,
     integration.buildcraft.tools.ModBuildCraftAPITools,
     integration.buildcraft.tiles.ModBuildCraftAPITiles,
     integration.buildcraft.transport.ModBuildCraftAPITransport,
@@ -95,6 +102,7 @@ object Mods {
     integration.cofh.tileentity.ModCoFHTileEntity,
     integration.cofh.transport.ModCoFHTransport,
     integration.ec.ModExtraCells,
+    integration.enderio.ModEnderIO,
     integration.enderstorage.ModEnderStorage,
     integration.dsu.ModDeepStorageUnit,
     integration.forestry.ModForestry,
@@ -102,6 +110,7 @@ object Mods {
     integration.gc.ModGalacticraft,
     integration.gregtech.ModGregtech,
     integration.ic2.ModIndustrialCraft2,
+    integration.mekanism.ModMekanism,
     integration.mekanism.gas.ModMekanismGas,
     integration.mfr.ModMineFactoryReloaded,
     integration.mystcraft.ModMystcraft,
@@ -109,6 +118,7 @@ object Mods {
     integration.projectred.ModProjectRed,
     integration.railcraft.ModRailcraft,
     integration.redlogic.ModRedLogic,
+    integration.rotarycraft.ModRotaryCraft,
     integration.stargatetech2.ModStargateTech2,
     integration.thaumcraft.ModThaumcraft,
     integration.thermalexpansion.ModThermalExpansion,
@@ -154,12 +164,15 @@ object Mods {
   // ----------------------------------------------------------------------- //
 
   object IDs {
+    final val AgriCraft = "AgriCraft"
     final val AppliedEnergistics2 = "appliedenergistics2"
     final val BattleGear2 = "battlegear2"
+    final val BetterRecords = "betterrecords"
     final val BloodMagic = "AWWayofTime"
     final val BluePower = "bluepowerAPI"
     final val BuildCraft = "BuildCraft|Core"
     final val BuildCraftLibrary = "BuildCraftAPI|library"
+    final val BuildCraftRecipes = "BuildCraftAPI|recipes"
     final val BuildCraftTiles = "BuildCraftAPI|tiles"
     final val BuildCraftTools = "BuildCraftAPI|tools"
     final val BuildCraftTransport = "BuildCraftAPI|transport"
@@ -196,6 +209,7 @@ object Mods {
     final val ProjectRedTransmission = "ProjRed|Transmission"
     final val Railcraft = "Railcraft"
     final val RedLogic = "RedLogic"
+    final val RotaryCraft = "RotaryCraft"
     final val StargateTech2 = "StargateTech2"
     final val Thaumcraft = "Thaumcraft"
     final val ThermalExpansion = "ThermalExpansion"

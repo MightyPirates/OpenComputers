@@ -1,8 +1,14 @@
 package li.cil.oc.server.machine.luac
 
 import li.cil.oc.Settings
+import li.cil.oc.api
+import li.cil.oc.api.driver.item.MutableProcessor
+import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.network.Connector
+import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
+
+import scala.collection.convert.WrapAsScala._
 
 class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def initialize() {
@@ -104,6 +110,51 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       1
     })
     lua.setField(-2, "maxEnergy")
+
+    lua.pushScalaFunction(lua => {
+      machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {
+        case (stack, processor: MutableProcessor) => processor.allArchitectures.toSeq
+        case (stack, processor: Processor) => Seq(processor.architecture(stack))
+      } match {
+        case Some(architectures) =>
+          lua.pushValue(architectures.map(Machine.getArchitectureName))
+        case _ =>
+          lua.newTable()
+      }
+      1
+    })
+    lua.setField(-2, "getArchitectures")
+
+    lua.pushScalaFunction(lua => {
+      machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {
+        case (stack, processor: Processor) =>
+          lua.pushString(Machine.getArchitectureName(processor.architecture(stack)))
+          1
+      }.getOrElse(0)
+    })
+    lua.setField(-2, "getArchitecture")
+
+    lua.pushScalaFunction(lua => {
+      val archName = lua.checkString(1)
+      machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {
+        case (stack, processor: MutableProcessor) => processor.allArchitectures.find(arch => Machine.getArchitectureName(arch) == archName) match {
+          case Some(archClass) =>
+            if (archClass != processor.architecture(stack)) {
+              processor.setArchitecture(stack, archClass)
+              lua.pushBoolean(true)
+            }
+            else {
+              lua.pushBoolean(false)
+            }
+            1
+          case _ =>
+            lua.pushNil()
+            lua.pushString("unknown architecture")
+            2
+        }
+      }.getOrElse(0)
+    })
+    lua.setField(-2, "setArchitecture")
 
     // Set the computer table.
     lua.setGlobal("computer")

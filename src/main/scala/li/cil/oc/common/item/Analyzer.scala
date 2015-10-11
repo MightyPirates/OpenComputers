@@ -16,6 +16,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import net.minecraftforge.common.util.FakePlayer
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.entity.player.EntityInteractEvent
 
@@ -59,6 +60,7 @@ object Analyzer {
 
   private def analyzeNodes(nodes: Array[Node], player: EntityPlayer) = if (nodes != null) for (node <- nodes if node != null) {
     player match {
+      case _: FakePlayer => // Nope
       case playerMP: EntityPlayerMP =>
         if (node != null) node.host match {
           case machine: Machine =>

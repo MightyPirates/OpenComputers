@@ -2,6 +2,7 @@ package li.cil.oc.common.command
 
 import net.minecraft.command.CommandBase
 import net.minecraft.command.ICommandSender
+import net.minecraft.server.MinecraftServer
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
@@ -13,7 +14,7 @@ abstract class SimpleCommand(val name: String) extends CommandBase {
 
   override def getCommandAliases = aliases
 
-  override def canCommandSenderUseCommand(source: ICommandSender) = true
+  override def canCommandSenderUseCommand(source: ICommandSender) = MinecraftServer.getServer.isSinglePlayer || super.canCommandSenderUseCommand(source)
 
   override def isUsernameIndex(command: Array[String], i: Int) = false
 

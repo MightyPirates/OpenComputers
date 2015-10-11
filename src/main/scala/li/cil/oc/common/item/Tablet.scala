@@ -25,6 +25,7 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.driver.item.Container
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.client.KeyBindings
@@ -239,13 +240,17 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
 
   private var lastRunning = false
 
+  def isCreative = data.tier == Tier.Four
+
   def items = data.items
 
   override def facing = RotationHelper.fromYaw(player.rotationYaw)
 
-  override def toLocal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
+  override def toLocal(value: ForgeDirection) =
+    RotationHelper.toLocal(ForgeDirection.NORTH, facing, value)
 
-  override def toGlobal(value: ForgeDirection) = value // -T-O-D-O- do we care? no we don't
+  override def toGlobal(value: ForgeDirection) =
+    RotationHelper.toGlobal(ForgeDirection.NORTH, facing, value)
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
@@ -401,6 +406,9 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       }
     }
     if (!world.isRemote) {
+      if (isCreative && world.getTotalWorldTime % Settings.get.tickFrequency == 0) {
+        machine.node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+      }
       machine.update()
       updateComponents()
       data.isRunning = machine.isRunning

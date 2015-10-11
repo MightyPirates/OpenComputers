@@ -9,7 +9,6 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraftforge.common.util.ForgeDirection
 
 object UpgradeTankController {
 
@@ -22,7 +21,7 @@ object UpgradeTankController {
 
     override def position = BlockPosition(host)
 
-    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
   class Drone(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics {
@@ -44,7 +43,7 @@ object UpgradeTankController {
 
     override def selectedTank_=(value: Int) = host.setSelectedTank(value)
 
-    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
   class Robot(val host: EnvironmentHost with tileentity.Robot) extends prefab.ManagedEnvironment with traits.TankInventoryControl with traits.WorldTankAnalytics {

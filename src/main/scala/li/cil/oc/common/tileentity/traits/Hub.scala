@@ -92,7 +92,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
   }
 
   protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet) {
-    for (side <- ForgeDirection.VALID_DIRECTIONS if Option(side) != sourceSide) {
+    for (side <- ForgeDirection.VALID_DIRECTIONS if Option(side) != sourceSide && sidedNode(side) != null) {
       sidedNode(side).sendToReachable("network.message", packet)
     }
   }

@@ -5,31 +5,53 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
 trait InventoryProxy extends IInventory {
-  def proxiedInventory: IInventory
+  def inventory: IInventory
 
-  override def getSizeInventory = proxiedInventory.getSizeInventory
+  def offset = 0
 
-  override def getInventoryStackLimit = proxiedInventory.getInventoryStackLimit
+  override def getSizeInventory = inventory.getSizeInventory
 
-  override def hasCustomInventoryName = proxiedInventory.hasCustomInventoryName
+  override def getInventoryStackLimit = inventory.getInventoryStackLimit
 
-  override def getInventoryName = proxiedInventory.getInventoryName
+  override def getInventoryName = inventory.getInventoryName
 
-  override def markDirty() = proxiedInventory.markDirty()
+  override def hasCustomInventoryName = inventory.hasCustomInventoryName
 
-  override def getStackInSlot(slot: Int) = proxiedInventory.getStackInSlot(slot)
+  override def isUseableByPlayer(player: EntityPlayer) = inventory.isUseableByPlayer(player)
 
-  override def setInventorySlotContents(slot: Int, stack: ItemStack) = proxiedInventory.setInventorySlotContents(slot, stack)
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = {
+    val offsetSlot = slot + offset
+    isValidSlot(offsetSlot) && inventory.isItemValidForSlot(offsetSlot, stack)
+  }
 
-  override def decrStackSize(slot: Int, amount: Int) = proxiedInventory.decrStackSize(slot, amount)
+  override def getStackInSlot(slot: Int) = {
+    val offsetSlot = slot + offset
+    if (isValidSlot(offsetSlot)) inventory.getStackInSlot(offsetSlot)
+    else null
+  }
 
-  override def openInventory() = proxiedInventory.openInventory()
+  override def decrStackSize(slot: Int, amount: Int) = {
+    val offsetSlot = slot + offset
+    if (isValidSlot(offsetSlot)) inventory.decrStackSize(offsetSlot, amount)
+    else null
+  }
 
-  override def closeInventory() = proxiedInventory.closeInventory()
+  override def getStackInSlotOnClosing(slot: Int) = {
+    val offsetSlot = slot + offset
+    if (isValidSlot(offsetSlot)) inventory.getStackInSlotOnClosing(offsetSlot)
+    else null
+  }
 
-  override def getStackInSlotOnClosing(slot: Int) = proxiedInventory.getStackInSlotOnClosing(slot)
+  override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
+    val offsetSlot = slot + offset
+    if (isValidSlot(offsetSlot)) inventory.setInventorySlotContents(offsetSlot, stack)
+  }
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = proxiedInventory.isItemValidForSlot(slot, stack)
+  override def markDirty() = inventory.markDirty()
 
-  override def isUseableByPlayer(player: EntityPlayer) = proxiedInventory.isUseableByPlayer(player)
+  override def openInventory() = inventory.openInventory()
+
+  override def closeInventory() = inventory.closeInventory()
+
+  private def isValidSlot(slot: Int) = slot >= offset && slot < getSizeInventory + offset
 }

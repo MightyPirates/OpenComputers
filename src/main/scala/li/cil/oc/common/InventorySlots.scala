@@ -120,6 +120,13 @@ object InventorySlots {
     )
   )
 
+  val relay = Array(
+    InventorySlot(Slot.CPU, Tier.Three),
+    InventorySlot(Slot.Memory, Tier.Three),
+    InventorySlot(Slot.HDD, Tier.Three),
+    InventorySlot(Slot.Card, Tier.Three)
+  )
+
   val switch = Array(
     InventorySlot(Slot.CPU, Tier.Three),
     InventorySlot(Slot.Memory, Tier.Three),

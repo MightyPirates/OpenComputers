@@ -24,6 +24,8 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
   protected var wakeMessage: Option[String] = None
 
+  protected var wakeMessageFuzzy = false
+
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function(port:number):boolean -- Opens the specified port. Returns true if the port was opened.""")
@@ -39,7 +41,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(doc = """function([port:number]):boolean -- Closes the specified port (default: all ports). Returns true if ports were closed.""")
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count == 0) {
-      val closed = openPorts.size > 0
+      val closed = openPorts.nonEmpty
       openPorts.clear()
       result(closed)
     }
@@ -78,17 +80,21 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   @Callback(direct = true, doc = """function():number -- Gets the maximum packet size (config setting).""")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
-  @Callback(direct = true, doc = """function():string -- Get the current wake-up message.""")
-  def getWakeMessage(context: Context, args: Arguments): Array[AnyRef] = result(wakeMessage.orNull)
+  @Callback(direct = true, doc = """function():string, boolean -- Get the current wake-up message.""")
+  def getWakeMessage(context: Context, args: Arguments): Array[AnyRef] = result(wakeMessage.orNull, wakeMessageFuzzy)
 
-  @Callback(doc = """function(message:string):string -- Set the wake-up message.""")
+  @Callback(doc = """function(message:string[, fuzzy:boolean]):string -- Set the wake-up message and whether to ignore additional data/parameters.""")
   def setWakeMessage(context: Context, args: Arguments): Array[AnyRef] = {
     val oldMessage = wakeMessage
+    val oldFuzzy = wakeMessageFuzzy
+
     if (args.optAny(0, null) == null)
       wakeMessage = None
     else
       wakeMessage = Option(args.checkString(0))
-    result(oldMessage.orNull)
+    wakeMessageFuzzy = args.optBoolean(1, wakeMessageFuzzy)
+
+    result(oldMessage.orNull, oldFuzzy)
   }
 
   protected def doSend(packet: Packet) {
@@ -118,12 +124,6 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     }
   }
 
-  def receivePacket(packet: Packet, source: WirelessEndpoint) {
-    val (dx, dy, dz) = ((source.x + 0.5) - host.xPosition, (source.y + 0.5) - host.yPosition, (source.z + 0.5) - host.zPosition)
-    val distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
-    receivePacket(packet, distance)
-  }
-
   protected def receivePacket(packet: Packet, distance: Double) {
     if (packet.source != node.address && Option(packet.destination).forall(_ == node.address)) {
       if (openPorts.contains(packet.port)) {
@@ -135,6 +135,10 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
         case Array(message: Array[Byte]) if wakeMessage.contains(new String(message, Charsets.UTF_8)) =>
           node.sendToNeighbors("computer.start")
         case Array(message: String) if wakeMessage.contains(message) =>
+          node.sendToNeighbors("computer.start")
+        case Array(message: Array[Byte], _*) if wakeMessageFuzzy && wakeMessage.contains(new String(message, Charsets.UTF_8)) =>
+          node.sendToNeighbors("computer.start")
+        case Array(message: String, _*) if wakeMessageFuzzy && wakeMessage.contains(message) =>
           node.sendToNeighbors("computer.start")
         case _ =>
       }
@@ -151,6 +155,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     if (nbt.hasKey("wakeMessage")) {
       wakeMessage = Option(nbt.getString("wakeMessage"))
     }
+    wakeMessageFuzzy = nbt.getBoolean("wakeMessageFuzzy")
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -158,6 +163,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
 
     nbt.setIntArray("openPorts", openPorts.toArray)
     wakeMessage.foreach(nbt.setString("wakeMessage", _))
+    nbt.setBoolean("wakeMessageFuzzy", wakeMessageFuzzy)
   }
 
   // ----------------------------------------------------------------------- //

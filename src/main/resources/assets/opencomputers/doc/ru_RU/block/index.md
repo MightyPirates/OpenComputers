@@ -26,6 +26,7 @@
 * [Геоанализатор](geolyzer.md)
 * [Датчик движения](motionSensor.md)
 * [Редстоун-I/O](redstone.md)
+* [Транспозер](transposer.md)
 * [Путевая точка](waypoint.md)
 
 ## Сборка / Печать
@@ -39,6 +40,7 @@
 * [Точка доступа](accessPoint.md)
 * [Кабель](cable.md)
 * [Сетевой переключатель](netSplitter.md)
+* [Ретранслятор](relay.md)
 * [Коммутатор](switch.md)
 
 ## Управление питанием

@@ -12,8 +12,9 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.magtools.ModMagnanimousTools
+import li.cil.oc.integration.tcon.ModTinkersConstruct
 import li.cil.oc.integration.util.PortalGun
-import li.cil.oc.integration.util.TinkersConstruct
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
@@ -176,10 +177,10 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
     }
     !cancel && callUsingItemInSlot(agent.equipmentInventory, 0, stack => {
       val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
-        case living: EntityLivingBase if getCurrentEquippedItem != null => getCurrentEquippedItem.interactWithEntity(this, living)
+        case living: EntityLivingBase if getHeldItem != null => getHeldItem.interactWithEntity(this, living)
         case _ => false
       }))
-      if (getCurrentEquippedItem != null && getCurrentEquippedItem.stackSize <= 0) {
+      if (getHeldItem != null && getHeldItem.stackSize <= 0) {
         destroyCurrentEquippedItem()
       }
       result
@@ -299,7 +300,8 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       block.onBlockClicked(world, x, y, z, this)
       world.extinguishFire(this, x, y, z, side)
 
-      val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
+      val hardness = block.getBlockHardness(world, x, y, z)
+      val isBlockUnbreakable = hardness < 0
       val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
       if (!canDestroyBlock) {
         return 0
@@ -315,7 +317,6 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
         return 0
       }
 
-      val hardness = block.getBlockHardness(world, x, y, z)
       val strength = getBreakSpeed(block, false, metadata, x, y, z)
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay
@@ -332,12 +333,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       // their break logic in onBlockStartBreak but return true to cancel
       // further processing. We also need to adjust our offset for their ray-
       // tracing implementation.
-      if (TinkersConstruct.isInfiTool(stack)) {
+      val needsSpecialPlacement = ModTinkersConstruct.isInfiTool(stack) || ModMagnanimousTools.isMagTool(stack)
+      if (needsSpecialPlacement) {
         posY -= 1.62
         prevPosY = posY
       }
       val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)
-      if (cancel && TinkersConstruct.isInfiTool(stack)) {
+      if (cancel && needsSpecialPlacement) {
         posY += 1.62
         prevPosY = posY
         return adjustedBreakTime
@@ -526,7 +528,12 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def onItemPickup(entity: Entity, count: Int) {}
 
-  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack) {}
+  override def setCurrentItemOrArmor(slot: Int, stack: ItemStack): Unit = {
+    if (slot == 0 && agent.equipmentInventory.getSizeInventory > 0) {
+      agent.equipmentInventory.setInventorySlotContents(slot, stack)
+    }
+    // else: armor slots, which are unsupported in agents.
+  }
 
   override def setRevengeTarget(entity: EntityLivingBase) {}
 

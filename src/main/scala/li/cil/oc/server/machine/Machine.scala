@@ -261,7 +261,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     false
   }
 
-  override def stop() = state.synchronized(state.top match {
+  override def stop() = state.synchronized(state.headOption match {
     case Machine.State.Stopped | Machine.State.Stopping =>
       false
     case _ =>
@@ -478,7 +478,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
     // Check if we should switch states. These are all the states in which we're
     // guaranteed that the executor thread isn't running anymore.
-    state.synchronized(state.top match {
+    state.synchronized(state.top) match {
       // Booting up.
       case Machine.State.Starting =>
         verifyComponents()
@@ -539,10 +539,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
         finally {
           inSynchronizedCall = false
         }
-
-        assert(!isExecuting)
       case _ => // Nothing special to do, just avoid match errors.
-    })
+    }
 
     // Finally check if we should stop the computer. We cannot lock the state
     // because we may have to wait for the executor thread to finish, which
@@ -946,6 +944,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
           case Machine.State.Stopping =>
             state.clear()
             state.push(Machine.State.Stopping)
+          case Machine.State.Restarting =>
+            // Nothing to do!
           case _ => throw new AssertionError("Invalid state in executor post-processing.")
         }
         assert(!isExecuting)
@@ -979,6 +979,13 @@ object Machine extends MachineAPI {
   }
 
   override def architectures = checked.toSeq
+
+  // TODO Expose in Machine API in 1.6
+  def getArchitectureName(architecture: Class[_ <: Architecture]) =
+    architecture.getAnnotation(classOf[Architecture.Name]) match {
+      case annotation: Architecture.Name => annotation.value
+      case _ => architecture.getSimpleName
+    }
 
   override def create(host: MachineHost) = new Machine(host)
 

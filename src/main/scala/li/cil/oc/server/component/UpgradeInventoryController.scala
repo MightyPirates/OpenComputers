@@ -11,7 +11,6 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraftforge.common.util.ForgeDirection
 
 object UpgradeInventoryController {
 
@@ -24,7 +23,7 @@ object UpgradeInventoryController {
 
     override def position = BlockPosition(host)
 
-    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
   class Drone(val host: EnvironmentHost with internal.Agent) extends prefab.ManagedEnvironment with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics {
@@ -42,7 +41,7 @@ object UpgradeInventoryController {
 
     override def selectedSlot_=(value: Int) = host.setSelectedSlot(value)
 
-    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+    override protected def checkSideForAction(args: Arguments, n: Int) = args.checkSideAny(n)
   }
 
   class Robot(val host: EnvironmentHost with tileentity.Robot) extends prefab.ManagedEnvironment with traits.InventoryAnalytics with traits.InventoryWorldControlMk2 with traits.WorldInventoryAnalytics {

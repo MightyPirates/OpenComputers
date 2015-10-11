@@ -10,6 +10,7 @@ object ModRailcraft extends ModProxy {
 
   override def initialize() {
     api.IMC.registerWrenchTool("li.cil.oc.integration.railcraft.EventHandlerRailcraft.useWrench")
+    api.IMC.registerWrenchToolCheck("li.cil.oc.integration.railcraft.EventHandlerRailcraft.isWrench")
 
     Driver.add(new DriverBoilerFirebox)
     Driver.add(new DriverSteamTurbine)

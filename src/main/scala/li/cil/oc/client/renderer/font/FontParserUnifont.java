@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.font;
 
 import li.cil.oc.OpenComputers;
 import li.cil.oc.Settings;
-import li.cil.oc.util.FontUtil;
+import li.cil.oc.util.FontUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.BufferUtils;
@@ -35,7 +35,7 @@ public class FontParserUnifont implements IGlyphProvider {
                 while ((line = input.readLine()) != null) {
                     final String[] info = line.split(":");
                     final int charCode = Integer.parseInt(info[0], 16);
-                    final int expectedWidth = FontUtil.wcwidth(charCode);
+                    final int expectedWidth = FontUtils.wcwidth(charCode);
                     if (expectedWidth < 1) continue; // Skip control characters.
                     final byte[] glyph = new byte[info[1].length() >> 1];
                     final int glyphWidth = glyph.length / getGlyphHeight();

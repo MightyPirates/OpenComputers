@@ -5,6 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.common.item.HoverBoots
 import li.cil.oc.common.item.data.HoverBootsData
+import li.cil.oc.integration.util.Power
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemStack
 
@@ -23,7 +24,7 @@ object ElectricItemManager extends IElectricItemManager {
     else stack.getItem match {
       case chargeable: Chargeable =>
         val limitedAmount = if (ignoreTransferLimit) math.min(Int.MaxValue, amount) else math.min(amount, Settings.get.chargeRateTablet)
-        limitedAmount - chargeable.charge(stack, limitedAmount * Settings.get.ratioIndustrialCraft2, simulate) / Settings.get.ratioIndustrialCraft2
+        limitedAmount - Power.toEU(chargeable.charge(stack, Power.fromEU(limitedAmount), simulate))
       case _ => 0
     }
   }

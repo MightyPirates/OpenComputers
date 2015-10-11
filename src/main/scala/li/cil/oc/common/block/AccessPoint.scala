@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import net.minecraft.world.World
 
+// TODO Remove in 1.7
 class AccessPoint extends Switch with traits.PowerAcceptor {
   override protected def customTextures = Array(
     None,

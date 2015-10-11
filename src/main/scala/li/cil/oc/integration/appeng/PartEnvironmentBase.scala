@@ -18,20 +18,20 @@ trait PartEnvironmentBase extends ManagedEnvironment {
 
   // function(side:number[, slot:number]):table
   def getPartConfig[PartType <: ISegmentedInventory : ClassTag](context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSideAny(0)
     host.getPart(side) match {
       case part: PartType =>
         val config = part.getInventoryByName("config")
         val slot = args.optSlot(config, 1, 0)
         val stack = config.getStackInSlot(slot)
         result(stack)
-      case _ => result(null, "no matching part")
+      case _ => result(Unit, "no matching part")
     }
   }
 
   // function(side:number[, slot:number][, database:address, entry:number[, size:number]]):boolean
   def setPartConfig[PartType <: ISegmentedInventory : ClassTag](context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSideAny(0)
     host.getPart(side) match {
       case part: PartType =>
         val config = part.getInventoryByName("config")

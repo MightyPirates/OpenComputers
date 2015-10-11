@@ -23,8 +23,8 @@ class NetSplitter extends RedstoneAware {
     Some("NetSplitterSide")
   )
 
-  @SideOnly(Side.CLIENT) override
-  def registerBlockIcons(iconRegister: IIconRegister): Unit = {
+  @SideOnly(Side.CLIENT)
+  override def registerBlockIcons(iconRegister: IIconRegister): Unit = {
     super.registerBlockIcons(iconRegister)
     Textures.NetSplitter.iconOn = iconRegister.registerIcon(Settings.resourceDomain + ":NetSplitterOn")
   }

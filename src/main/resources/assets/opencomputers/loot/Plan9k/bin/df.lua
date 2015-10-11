@@ -5,7 +5,8 @@ local text = require("text")
 local args, options = shell.parse(...)
 
 local function formatSize(size)
-  if not options.h then
+  size = tonumber(size) or size
+  if not options.h or type(size) ~= "number" then
     return tostring(size)
   end
   local sizes = {"", "K", "M", "G"}

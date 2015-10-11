@@ -1,5 +1,6 @@
 package li.cil.oc.server
 
+import li.cil.oc.api
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.item.RackMountable
@@ -7,10 +8,12 @@ import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.internal.StateAware
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
+import li.cil.oc.common.nanomachines.ControllerImpl
 import li.cil.oc.common.tileentity.Waypoint
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.PackedColor
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.inventory.Container
 import net.minecraft.item.ItemStack
@@ -224,6 +227,30 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
+  def sendHologramRotation(t: tileentity.Hologram) {
+    val pb = new SimplePacketBuilder(PacketType.HologramRotation)
+
+    pb.writeTileEntity(t)
+    pb.writeFloat(t.rotationAngle)
+    pb.writeFloat(t.rotationX)
+    pb.writeFloat(t.rotationY)
+    pb.writeFloat(t.rotationZ)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendHologramRotationSpeed(t: tileentity.Hologram) {
+    val pb = new SimplePacketBuilder(PacketType.HologramRotationSpeed)
+
+    pb.writeTileEntity(t)
+    pb.writeFloat(t.rotationSpeed)
+    pb.writeFloat(t.rotationSpeedX)
+    pb.writeFloat(t.rotationSpeedY)
+    pb.writeFloat(t.rotationSpeedZ)
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendLootDisks(p: EntityPlayerMP): Unit = {
     // Sending as separate packets, because CompressedStreamTools hiccups otherwise...
     val stacks = Loot.worldDisks.values.map(_._1)
@@ -234,6 +261,61 @@ object PacketSender {
 
       pb.sendToPlayer(p)
     }
+  }
+
+  def sendNanomachineConfiguration(player: EntityPlayer): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.NanomachinesConfiguration)
+
+    pb.writeEntity(player)
+    api.Nanomachines.getController(player) match {
+      case controller: ControllerImpl =>
+        pb.writeBoolean(true)
+        val nbt = new NBTTagCompound()
+        controller.save(nbt)
+        pb.writeNBT(nbt)
+      case _ =>
+        pb.writeBoolean(false)
+    }
+
+    pb.sendToPlayersNearEntity(player)
+  }
+
+  def sendNanomachineInputs(player: EntityPlayer): Unit = {
+    api.Nanomachines.getController(player) match {
+      case controller: ControllerImpl =>
+        val pb = new SimplePacketBuilder(PacketType.NanomachinesInputs)
+
+        pb.writeEntity(player)
+        val inputs = controller.configuration.triggers.map(i => if (i.isActive) 1.toByte else 0.toByte).toArray
+        pb.writeInt(inputs.length)
+        pb.write(inputs)
+
+        pb.sendToPlayersNearEntity(player)
+      case _ => // Wat.
+    }
+  }
+
+  def sendNanomachinePower(player: EntityPlayer): Unit = {
+    api.Nanomachines.getController(player) match {
+      case controller: ControllerImpl =>
+        val pb = new SimplePacketBuilder(PacketType.NanomachinesPower)
+
+        pb.writeEntity(player)
+        pb.writeDouble(controller.getLocalBuffer)
+
+        pb.sendToPlayersNearEntity(player)
+      case _ => // Wat.
+    }
+  }
+
+  def sendNetSplitterState(t: tileentity.NetSplitter): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.NetSplitterState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(t.isInverted)
+    pb.writeByte(t.compressSides)
+
+    pb.sendToPlayersNearTileEntity(t)
   }
 
   def sendParticleEffect(position: BlockPosition, name: String, count: Int, velocity: Double, direction: Option[ForgeDirection] = None): Unit = if (count > 0) {
@@ -394,7 +476,7 @@ object PacketSender {
     pb.sendToPlayersNearTileEntity(t)
   }
 
-  def sendSwitchActivity(t: tileentity.Switch) {
+  def sendSwitchActivity(t: tileentity.traits.SwitchLike) {
     val pb = new SimplePacketBuilder(PacketType.SwitchActivity)
 
     pb.writeTileEntity(t)
@@ -531,16 +613,6 @@ object PacketSender {
     pb.sendToPlayersNearHost(host)
   }
 
-  def sendNetSplitterState(t: tileentity.NetSplitter): Unit = {
-    val pb = new SimplePacketBuilder(PacketType.NetSplitterState)
-
-    pb.writeTileEntity(t)
-    pb.writeBoolean(t.isInverted)
-    pb.writeByte(t.compressSides)
-
-    pb.sendToPlayersNearTileEntity(t)
-  }
-
   def sendScreenTouchMode(t: tileentity.Screen, value: Boolean) {
     val pb = new SimplePacketBuilder(PacketType.ScreenTouchMode)
 
@@ -622,6 +694,14 @@ object PacketSender {
     pb.writeUTF(pattern)
 
     pb.sendToNearbyPlayers(world, x, y, z, Option(32))
+  }
+
+  def sendTransposerActivity(t: tileentity.Transposer) {
+    val pb = new SimplePacketBuilder(PacketType.TransposerActivity)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToPlayersNearTileEntity(t, Option(32))
   }
 
   def sendWaypointLabel(t: Waypoint): Unit = {
