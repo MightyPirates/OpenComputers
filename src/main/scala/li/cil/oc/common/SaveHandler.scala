@@ -9,7 +9,7 @@ import cpw.mods.fml.common.eventhandler.EventPriority
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.CompressedStreamTools

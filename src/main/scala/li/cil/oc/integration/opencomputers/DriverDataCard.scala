@@ -1,7 +1,7 @@
 package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.api.driver.EnvironmentAware
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier

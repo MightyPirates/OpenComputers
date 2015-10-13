@@ -10,7 +10,7 @@ import com.google.common.io.Files
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback

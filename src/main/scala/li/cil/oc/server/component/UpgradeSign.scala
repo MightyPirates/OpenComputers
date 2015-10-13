@@ -3,7 +3,7 @@ package li.cil.oc.server.component
 import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.prefab

@@ -5,6 +5,7 @@ import java.util
 
 import li.cil.oc.api
 import li.cil.oc.api.Machine
+import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.driver
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.StateAware.State
@@ -25,7 +26,7 @@ import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with driver.item.RackMountable with internal.Server {
+class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with RackMountable with internal.Server {
   val machine = Machine.create(this)
 
   // Used to grab messages when not connected to any side in the server rack.

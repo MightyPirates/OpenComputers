@@ -4,7 +4,7 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.api.machine.Architecture
 import li.cil.oc.api.network.ManagedEnvironment

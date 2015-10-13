@@ -5,7 +5,7 @@ import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import net.minecraft.item.ItemStack

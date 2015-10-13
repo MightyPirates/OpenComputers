@@ -1,9 +1,9 @@
 package li.cil.oc.server
 
 import li.cil.oc.api
+import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.driver.item.RackMountable
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.internal.StateAware
 import li.cil.oc.api.network.Node

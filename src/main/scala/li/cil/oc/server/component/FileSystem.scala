@@ -5,7 +5,7 @@ import java.io.IOException
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.fs.{FileSystem => IFileSystem}

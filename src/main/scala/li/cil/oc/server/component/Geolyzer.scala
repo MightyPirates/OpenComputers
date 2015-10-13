@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.event.GeolyzerEvent
 import li.cil.oc.api.event.GeolyzerEvent.Analyze
 import li.cil.oc.api.internal

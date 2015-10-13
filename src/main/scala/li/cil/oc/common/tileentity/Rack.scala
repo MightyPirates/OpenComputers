@@ -7,10 +7,10 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.driver.item.RackMountable
+import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
+import li.cil.oc.api.network.ComponentHost
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.network.Node
@@ -28,12 +28,20 @@ import net.minecraftforge.common.util.ForgeDirection
 class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.ServerRack with traits.StateAware {
   private val lastWorking = new Array[Boolean](getSizeInventory)
 
-  private val nodeMapping = Array.fill(6)(new Array[(Int, Int)](4))
+  // Map node connections for each installed mountable. Each mountable may
+  // have up to four outgoing connections, with the first one always being
+  // the "primary" connection, i.e. being a direct connection allowing
+  // component access (i.e. actually connecting to that side of the rack).
+  // The other nodes are "secondary" connections and merely transfer network
+  // messages.
+  private val nodeMapping = Array.fill(getSizeInventory)(new Array[(Int, ForgeDirection)](4))
 
   // ----------------------------------------------------------------------- //
   // Hub
 
   override def canConnect(side: ForgeDirection) = side != facing
+
+  override def sidedNode(side: ForgeDirection): Node = if (side != facing) super.sidedNode(side) else null
 
   // ----------------------------------------------------------------------- //
   // power.Common
@@ -51,7 +59,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     slotAt(ForgeDirection.getOrientation(side), hitX, hitY, hitZ) match {
       case Some(slot) => components(slot) match {
-        case Some(mountable: RackMountable) => mountable.onAnalyze(player, side, hitX, hitY, hitZ)
+        case Some(analyzable: Analyzable) => analyzable.onAnalyze(player, side, hitX, hitY, hitZ)
         case _ => null
       }
       case _ => Array(sidedNode(ForgeDirection.getOrientation(side)))
@@ -61,7 +69,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
   // AbstractBusAware
 
-  override def installedComponents: Iterable[ManagedEnvironment] = Iterable.empty // TODO
+  override def installedComponents: Iterable[ManagedEnvironment] = components.collect {
+    case Some(mountable: RackMountable with ComponentHost) => mountable.getComponents.collect {
+      case managed: ManagedEnvironment => managed
+    }
+  }.flatten
 
   @Method(modid = Mods.IDs.StargateTech2)
   override def getInterfaces(side: Int) = if (side != facing.ordinal) {
@@ -133,6 +145,17 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   }
 
   // ----------------------------------------------------------------------- //
+  // ComponentInventory
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack): Unit = {
+    super.onItemAdded(slot, stack)
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
+    super.onItemRemoved(slot, stack)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def canUpdate = isServer
 
@@ -180,20 +203,14 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   def isWorking(mountable: RackMountable) = mountable.getCurrentState.contains(internal.StateAware.State.IsWorking)
 
   def hasAbstractBusCard = components.exists {
-    case Some(mountable: EnvironmentHost with RackMountable) if isWorking(mountable) =>
-      mountable match {
-        case inventory: IInventory => inventory.exists(stack => DriverAbstractBusCard.worksWith(stack, mountable.getClass))
-        case _ => false
-      }
+    case Some(mountable: RackMountable with IInventory) if isWorking(mountable) =>
+      mountable.exists(stack => DriverAbstractBusCard.worksWith(stack, mountable.getClass))
     case _ => false
   }
 
   def hasRedstoneCard = components.exists {
-    case Some(mountable: EnvironmentHost with RackMountable) if isWorking(mountable) =>
-      mountable match {
-        case inventory: IInventory => inventory.exists(stack => DriverRedstoneCard.worksWith(stack, mountable.getClass))
-        case _ => false
-      }
+    case Some(mountable: RackMountable with IInventory) if isWorking(mountable) =>
+      mountable.exists(stack => DriverRedstoneCard.worksWith(stack, mountable.getClass))
     case _ => false
   }
 }

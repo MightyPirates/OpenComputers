@@ -2,7 +2,7 @@ package li.cil.oc.api.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
-import li.cil.oc.api.driver.EnvironmentHost;
+import li.cil.oc.api.network.EnvironmentHost;
 
 import java.util.HashMap;
 import java.util.Map;

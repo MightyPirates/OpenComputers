@@ -1,10 +1,12 @@
-package li.cil.oc.api.driver.item;
+package li.cil.oc.api.component;
 
 import li.cil.oc.api.internal.StateAware;
 import li.cil.oc.api.network.Analyzable;
+import li.cil.oc.api.network.ComponentHost;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Node;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 
 /**
  * Use this interface on environments provided by drivers for items that can
@@ -16,20 +18,23 @@ import net.minecraft.entity.player.EntityPlayer;
  * nodes for a switch), and connect the nodes to the corresponding buses as
  * defined by the rack's configuration.
  * <p/>
- * Note: mountables may implement the {@link li.cil.oc.api.driver.EnvironmentHost}
- * interface together with the {@link net.minecraft.inventory.IInventory} interface.
- * In this case, if they contain a redstone card and have a state of <tt>State.IsWorking</tt>
- * the rack will visually connect to redstone, for example. Same goes for
- * abstract bus cards, and potentially more things in the future.
+ * Note: mountables may implement the {@link ComponentHost} interface and
+ * {@link IInventory}. In this case, if they contain a redstone card and have
+ * a state of <tt>State.IsWorking</tt> the rack will visually connect to
+ * redstone, for example. Same goes for abstract bus cards, and potentially
+ * more things in the future.
+ * <p/>
+ * Furthermore, implementing {@link Analyzable} will allow specifying more
+ * information when the analyzer is used on the mountable while it's in a rack.
  */
-public interface RackMountable extends ManagedEnvironment, Analyzable, StateAware {
+public interface RackMountable extends ManagedEnvironment, StateAware {
     /**
      * The number of nodes exposed by the environment.
      */
     int getNodeCount();
 
     /**
-     * Returns the node at ths specified index.
+     * Returns the node at the specified index.
      */
     Node getNodeAt(int index);
 

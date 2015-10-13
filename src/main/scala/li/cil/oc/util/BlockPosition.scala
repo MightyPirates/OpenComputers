@@ -3,7 +3,7 @@ package li.cil.oc.util
 import appeng.api.util.DimensionalCoord
 import com.google.common.hash.Hashing
 import cpw.mods.fml.common.Optional
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.integration.Mods
 import net.minecraft.entity.Entity
 import net.minecraft.util.AxisAlignedBB

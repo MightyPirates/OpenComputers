@@ -1,6 +1,6 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.driver.EnvironmentHost;
+import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
 import net.minecraft.item.ItemStack;

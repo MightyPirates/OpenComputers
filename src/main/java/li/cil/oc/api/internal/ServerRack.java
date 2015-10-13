@@ -1,6 +1,6 @@
 package li.cil.oc.api.internal;
 
-import li.cil.oc.api.driver.item.RackMountable;
+import li.cil.oc.api.component.RackMountable;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.inventory.IInventory;

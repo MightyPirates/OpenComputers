@@ -9,7 +9,7 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc._
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.item.RackMountable
+import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network._

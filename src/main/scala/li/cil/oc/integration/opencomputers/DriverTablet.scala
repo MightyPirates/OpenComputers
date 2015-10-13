@@ -3,7 +3,7 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
