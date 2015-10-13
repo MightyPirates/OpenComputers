@@ -2,6 +2,7 @@ package li.cil.oc.integration.buildcraft.recipes
 
 import java.util
 
+import buildcraft.api.recipes.BuildcraftRecipeRegistry
 import buildcraft.api.recipes.IProgrammingRecipe
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
@@ -15,6 +16,8 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
 object LootDiskProgrammableRecipe extends IProgrammingRecipe {
+  def register() = BuildcraftRecipeRegistry.programmingTable.addRecipe(LootDiskProgrammableRecipe)
+
   override def getId: String = OpenComputers.ID + ":loot_disk"
 
   override def getOptions(width: Int, height: Int): util.List[ItemStack] = {
