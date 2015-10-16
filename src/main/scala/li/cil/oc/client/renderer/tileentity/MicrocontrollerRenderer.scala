@@ -4,9 +4,11 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Microcontroller
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.WorldRenderer
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
@@ -41,20 +43,13 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
     Textures.Block.bind()
     r.startDrawingQuads()
 
-    {
-      val icon = Textures.getSprite(Textures.Block.MicrocontrollerFrontLight)
-      r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
-    }
+    renderFrontOverlay(Textures.Block.MicrocontrollerFrontLight, r)
 
     if (mcu.isRunning) {
-      val icon = Textures.getSprite(Textures.Block.MicrocontrollerFrontOn)
-      r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+      renderFrontOverlay(Textures.Block.MicrocontrollerFrontOn, r)
+    }
+    else if (mcu.hasErrored && RenderUtil.shouldShowErrorLight(mcu.hashCode)) {
+      renderFrontOverlay(Textures.Block.MicrocontrollerFrontError, r)
     }
 
     t.draw()
@@ -65,5 +60,13 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
     RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+  }
+
+  private def renderFrontOverlay(texture: ResourceLocation, r: WorldRenderer): Unit = {
+    val icon = Textures.getSprite(texture)
+    r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
+    r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
+    r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+    r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
   }
 }

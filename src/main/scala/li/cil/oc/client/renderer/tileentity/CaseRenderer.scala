@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 object CaseRenderer extends TileEntitySpecialRenderer {
@@ -35,29 +36,13 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(1, -1, 1)
 
     if (computer.isRunning) {
-      val t = Tessellator.getInstance
-      val r = t.getWorldRenderer
-
-      Textures.Block.bind()
-      r.startDrawingQuads()
-
-      {
-        val icon = Textures.getSprite(Textures.Block.CaseFrontOn)
-        r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
-      }
-
+      renderFrontOverlay(Textures.Block.CaseFrontOn)
       if (System.currentTimeMillis() - computer.lastAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
-        val icon = Textures.getSprite(Textures.Block.CaseFrontActivity)
-        r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+        renderFrontOverlay(Textures.Block.CaseFrontActivity)
       }
-
-      t.draw()
+    }
+    else if (computer.hasErrored && RenderUtil.shouldShowErrorLight(computer.hashCode)) {
+      renderFrontOverlay(Textures.Block.CaseFrontError)
     }
 
     RenderState.enableEntityLighting()
@@ -66,5 +51,21 @@ object CaseRenderer extends TileEntitySpecialRenderer {
     RenderState.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+  }
+
+  private def renderFrontOverlay(texture: ResourceLocation): Unit = {
+    val t = Tessellator.getInstance
+    val r = t.getWorldRenderer
+
+    Textures.Block.bind()
+    r.startDrawingQuads()
+
+    val icon = Textures.getSprite(texture)
+    r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
+    r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
+    r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
+    r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+
+    t.draw()
   }
 }
