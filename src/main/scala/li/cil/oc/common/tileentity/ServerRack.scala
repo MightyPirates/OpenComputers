@@ -43,6 +43,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
+  private val _hasErrored = new Array[Boolean](getSizeInventory)
 
   private var markChunkDirty = false
 
@@ -89,15 +90,28 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     else _isRunning(number)
 
   @SideOnly(Side.CLIENT)
-  def setRunning(number: Int, value: Boolean) = {
+  def setRunning(number: Int, value: Boolean): Unit = {
     _isRunning(number) = value
+    if (!value) {
+      _hasErrored(number) = false
+    }
     world.markBlockForUpdate(x, y, z)
     if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f, 50 + world.rand.nextInt(50))
     else Sound.stopLoop(this)
-    this
   }
 
   def anyRunning = servers.indices.exists(isRunning)
+
+  def hasErrored(number: Int) =
+    if (isServer) servers(number).fold(false)(_.machine.lastError != null)
+    else _hasErrored(number)
+
+  @SideOnly(Side.CLIENT)
+  def setErrored(number: Int, value: Boolean): Unit = {
+    _hasErrored(number) = value
+  }
+
+  def anyErrored = servers.indices.exists(hasErrored)
 
   override def currentState = {
     if (anyRunning) util.EnumSet.of(traits.State.IsWorking)
@@ -277,8 +291,11 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
 
       for (i <- servers.indices) {
         val isRunning = servers(i).fold(false)(_.machine.isRunning)
-        if (_isRunning(i) != isRunning) {
+        val errored = servers(i).fold(false)(_.machine.lastError != null)
+        if (_isRunning(i) != isRunning || _hasErrored(i) != errored) {
           _isRunning(i) = isRunning
+          _hasErrored(i) = errored
+          markDirty()
           ServerPacketSender.sendServerState(this, i)
           world.notifyBlocksOfNeighborChange(x, y, z, block)
         }

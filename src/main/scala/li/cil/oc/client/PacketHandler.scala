@@ -125,7 +125,9 @@ object PacketHandler extends CommonPacketHandler {
 
   def onComputerState(p: PacketParser) =
     p.readTileEntity[TileEntity]() match {
-      case Some(t: Computer) => t.setRunning(p.readBoolean())
+      case Some(t: Computer) =>
+        t.setRunning(p.readBoolean())
+        t.hasErrored = p.readBoolean()
       case Some(t: ServerRack) =>
         val number = p.readInt()
         if (number == -1) {
@@ -133,6 +135,7 @@ object PacketHandler extends CommonPacketHandler {
         }
         else {
           t.setRunning(number, p.readBoolean())
+          t.setErrored(number, p.readBoolean())
           t.sides(number) = p.readDirection()
           val keyCount = p.readInt()
           val keys = t.terminals(number).keys

@@ -6,10 +6,14 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object ServerRackRenderer extends TileEntitySpecialRenderer {
+  private final val v1 = 2 / 16f
+  private final val fs = 3 / 16f
+
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
@@ -34,31 +38,16 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(1, -1, 1)
 
     if (rack.anyRunning) {
-      val v1 = 2 / 16f
-      val fs = 3 / 16f
-      for (i <- 0 until 4 if rack.isRunning(i)) {
-        val l = v1 + i * fs
-        val h = v1 + (i + 1) * fs
-        bindTexture(Textures.blockRackFrontOn)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, h, 0, 0, h)
-        t.addVertexWithUV(1, h, 0, 1, h)
-        t.addVertexWithUV(1, l, 0, 1, l)
-        t.addVertexWithUV(0, l, 0, 0, l)
-        t.draw()
+      for (i <- 0 until rack.getSizeInventory if rack.isRunning(i)) {
+        renderFrontOverlay(Textures.blockRackFrontOn, i)
       }
-      for (i <- 0 until 4 if System.currentTimeMillis() - rack.lastAccess(i) < 400 && rack.world.rand.nextDouble() > 0.1) {
-        val l = v1 + i * fs
-        val h = v1 + (i + 1) * fs
-        bindTexture(Textures.blockRackFrontActivity)
-        val t = Tessellator.instance
-        t.startDrawingQuads()
-        t.addVertexWithUV(0, h, 0, 0, h)
-        t.addVertexWithUV(1, h, 0, 1, h)
-        t.addVertexWithUV(1, l, 0, 1, l)
-        t.addVertexWithUV(0, l, 0, 0, l)
-        t.draw()
+      for (i <- 0 until rack.getSizeInventory if System.currentTimeMillis() - rack.lastAccess(i) < 400 && rack.world.rand.nextDouble() > 0.1) {
+        renderFrontOverlay(Textures.blockRackFrontActivity, i)
+      }
+    }
+    if (rack.anyErrored) {
+      for (i <- 0 until rack.getSizeInventory if rack.hasErrored(i) && RenderUtil.shouldShowErrorLight(rack.hashCode * (i + 1))) {
+        renderFrontOverlay(Textures.blockRackFrontError, i)
       }
     }
 
@@ -68,5 +57,20 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
     GL11.glPopAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
+  }
+
+  private def renderFrontOverlay(texture: ResourceLocation, i: Int): Unit = {
+    bindTexture(texture)
+
+    val l = v1 + i * fs
+    val h = v1 + (i + 1) * fs
+
+    val t = Tessellator.instance
+    t.startDrawingQuads()
+    t.addVertexWithUV(0, h, 0, 0, h)
+    t.addVertexWithUV(1, h, 0, 1, h)
+    t.addVertexWithUV(1, l, 0, 1, l)
+    t.addVertexWithUV(0, l, 0, 0, l)
+    t.draw()
   }
 }
