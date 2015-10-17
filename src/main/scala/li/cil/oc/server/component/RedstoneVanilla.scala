@@ -8,8 +8,8 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.ExtendedBlock._
+import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.util.EnumFacing
 
 trait RedstoneVanilla extends RedstoneSignaller {
@@ -59,7 +59,7 @@ trait RedstoneVanilla extends RedstoneSignaller {
     super.onMessage(message)
     if (message.name == "redstone.changed") message.data match {
       case Array(side: EnumFacing, oldMaxValue: Number, newMaxValue: Number) =>
-        onRedstoneChanged(int2Integer(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
+        onRedstoneChanged(Int.box(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
       case _ =>
     }
   }

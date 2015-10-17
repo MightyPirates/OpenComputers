@@ -489,7 +489,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     servers collect {
-      case Some(server) => server.machine.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
+      case Some(server) => server.machine.node.sendToNeighbors("redstone.changed", toLocal(side), Int.box(oldMaxValue), Int.box(newMaxValue))
     }
   }
 

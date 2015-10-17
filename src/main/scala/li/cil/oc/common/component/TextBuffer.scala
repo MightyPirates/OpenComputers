@@ -829,14 +829,14 @@ object TextBuffer {
       args += player
       args += name
       if (owner.precisionMode) {
-        args += double2Double(x)
-        args += double2Double(y)
+        args += Double.box(x)
+        args += Double.box(y)
       }
       else {
-        args += int2Integer(x.toInt + 1)
-        args += int2Integer(y.toInt + 1)
+        args += Int.box(x.toInt + 1)
+        args += Int.box(y.toInt + 1)
       }
-      args += int2Integer(data)
+      args += Int.box(data)
       if (Settings.get.inputUsername) {
         args += player.getName
       }

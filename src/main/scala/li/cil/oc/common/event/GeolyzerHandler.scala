@@ -51,14 +51,14 @@ object GeolyzerHandler {
     val metadata = block.getMetaFromState(state)
 
     e.data += "name" -> Block.blockRegistry.getNameForObject(block)
-    e.data += "metadata" -> int2Integer(metadata)
-    e.data += "hardness" -> float2Float(block.getBlockHardness(world, blockPos))
-    e.data += "harvestLevel" -> int2Integer(block.getHarvestLevel(state))
+    e.data += "metadata" -> Int.box(metadata)
+    e.data += "hardness" -> Float.box(block.getBlockHardness(world, blockPos))
+    e.data += "harvestLevel" -> Int.box(block.getHarvestLevel(state))
     e.data += "harvestTool" -> block.getHarvestTool(state)
-    e.data += "color" -> int2Integer(block.getMapColor(state).colorValue)
+    e.data += "color" -> Int.box(block.getMapColor(state).colorValue)
 
     if (Settings.get.insertIdsInConverters)
-      e.data += "id" -> int2Integer(Block.getIdFromBlock(block))
+      e.data += "id" -> Int.box(Block.getIdFromBlock(block))
   }
 
   private def isFluid(block: Block) = FluidRegistry.lookupFluidForBlock(block) != null

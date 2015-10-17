@@ -180,7 +180,7 @@ class Tablet(val parent: Delegator) extends traits.Delegate with CustomModel wit
             val computer = Tablet.get(stack, player).machine
             if (computer.isRunning) {
               val data = new NBTTagCompound()
-              computer.node.sendToReachable("tablet.use", data, stack, player, position, side, float2Float(hitX), float2Float(hitY), float2Float(hitZ))
+              computer.node.sendToReachable("tablet.use", data, stack, player, position, side, Float.box(hitX), Float.box(hitY), Float.box(hitZ))
               if (!data.hasNoTags) {
                 computer.signal("tablet_use", data)
               }

@@ -36,7 +36,7 @@ object MicrocontrollerTemplate extends Template {
     val stack = data.createItemStack()
     val energy = Settings.get.microcontrollerBaseCost + complexity(inventory) * Settings.get.microcontrollerComplexityCost
 
-    Array(stack, double2Double(energy))
+    Array(stack, Double.box(energy))
   }
 
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.Microcontroller)
