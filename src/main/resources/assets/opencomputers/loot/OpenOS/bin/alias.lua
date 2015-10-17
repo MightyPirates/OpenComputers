@@ -1,19 +1,57 @@
 local shell = require("shell")
-
+local fs = require("filesystem")
 local args = shell.parse(...)
 
-if #args == 0 then
-  for name, value in shell.aliases() do
-    io.write(name .. " " .. value .. "\n")
-  end
-elseif #args == 1 then
-  local value = shell.getAlias(args[1])
-  if value then
-    io.write(value)
+local shell_name = '-' .. fs.name(os.getenv("SHELL"))
+local cmd_name = "alias"
+local error_prefix = shell_name .. ": " .. cmd_name .. ": "
+
+local function validAliasName(k)
+  return k:match("[/%$`=|&;%(%)<> \t]") == nil
+end
+
+local function setAlias(k, v)
+  if not validAliasName(k) then
+    io.stderr:write(string.format("%s `%s': invalid alias name\n", error_prefix, k))
   else
-    io.stderr:write("no such alias")
+    shell.setAlias(k, v)
+  end
+end
+
+local function printAlias(k)
+  local v = shell.getAlias(k)
+  if not v then
+    io.stderr:write(string.format("%s %s: not found\n", error_prefix, k))
+  else
+    io.write(string.format("alias %s='%s'\n", k, v))
+  end
+end
+
+local function splitPair(arg)
+  local matchBegin, matchEnd = arg:find("=")
+  if matchBegin == nil or matchBegin == 1 then
+    return arg
+  else
+    return arg:sub(1, matchBegin - 1), arg:sub(matchEnd + 1)
+  end
+end
+
+local function handlePair(k, v)
+  if v then
+    return setAlias(k, v)
+  else
+    return printAlias(k)
+  end
+end
+
+if not next(args) then -- no args
+  -- print all aliases
+  for k,v in shell.aliases() do
+    print(string.format("alias %s='%s'", k, v))
   end
 else
-  shell.setAlias(args[1], args[2])
-  io.write("alias created: " .. args[1] .. " -> " .. args[2])
+  for k,v in pairs(args) do
+    checkArg(1,v,"string")
+    handlePair(splitPair(v))
+  end
 end
