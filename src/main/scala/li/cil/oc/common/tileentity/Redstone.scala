@@ -44,7 +44,7 @@ class Redstone extends traits.Environment with traits.BundledRedstoneAware {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     if (node != null && node.network != null) {
       node.connect(dummyNode)
-      dummyNode.sendToNeighbors("redstone.changed", side, int2Integer(oldMaxValue), int2Integer(newMaxValue))
+      dummyNode.sendToNeighbors("redstone.changed", side, Int.box(oldMaxValue), Int.box(newMaxValue))
     }
   }
 }

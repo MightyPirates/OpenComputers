@@ -44,7 +44,7 @@ object RobotCommonHandler {
 
         def isMovingDown = e.direction == ForgeDirection.DOWN
         def hasAdjacentBlock(pos: BlockPosition) = ForgeDirection.VALID_DIRECTIONS.exists(side => world.isSideSolid(pos.offset(side), side.getOpposite))
-        def isWithinFlyingHeight(pos: BlockPosition) = (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(ForgeDirection.DOWN, n)))
+        def isWithinFlyingHeight(pos: BlockPosition) = maxFlyingHeight >= world.getHeight || (1 to maxFlyingHeight).exists(n => !world.isAirBlock(pos.offset(ForgeDirection.DOWN, n)))
         val startPos = BlockPosition(robot)
         val targetPos = startPos.offset(e.direction)
         // New movement rules as of 1.5:

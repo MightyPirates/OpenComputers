@@ -323,7 +323,7 @@ object InventoryUtils {
    * Utility method for spawning an item stack in the world.
    */
   def spawnStackInWorld(position: BlockPosition, stack: ItemStack, direction: Option[ForgeDirection] = None): EntityItem = position.world match {
-    case Some(world) =>
+    case Some(world) if stack != null && stack.stackSize > 0 =>
       val rng = world.rand
       val (ox, oy, oz) = direction.fold((0, 0, 0))(d => (d.offsetX, d.offsetY, d.offsetZ))
       val (tx, ty, tz) = (

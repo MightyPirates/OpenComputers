@@ -20,7 +20,7 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
     create()
 
   override protected def checkSideForAction(args: Arguments, n: Int) =
-    args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+    args.checkSideAny(n)
 
   override protected def suckableItems(side: ForgeDirection) = entitiesInBlock(position) ++ super.suckableItems(side)
 

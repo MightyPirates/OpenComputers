@@ -43,7 +43,7 @@ abstract class UpgradePiston(val host: EnvironmentHost) extends prefab.ManagedEn
 object UpgradePiston {
 
   class Drone(drone: internal.Drone) extends UpgradePiston(drone) {
-    override def pushDirection(args: Arguments, index: Int) = args.optSide(index, ForgeDirection.SOUTH, ForgeDirection.VALID_DIRECTIONS: _*)
+    override def pushDirection(args: Arguments, index: Int) = args.optSideAny(index, ForgeDirection.SOUTH)
   }
 
   class Tablet(tablet: internal.Tablet) extends Rotatable(tablet) {

@@ -18,7 +18,7 @@ trait PartEnvironmentBase extends ManagedEnvironment {
 
   // function(side:number[, slot:number]):table
   def getPartConfig[PartType <: ISegmentedInventory : ClassTag](context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSideAny(0)
     host.getPart(side) match {
       case part: PartType =>
         val config = part.getInventoryByName("config")
@@ -31,7 +31,7 @@ trait PartEnvironmentBase extends ManagedEnvironment {
 
   // function(side:number[, slot:number][, database:address, entry:number[, size:number]]):boolean
   def setPartConfig[PartType <: ISegmentedInventory : ClassTag](context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSideAny(0)
     host.getPart(side) match {
       case part: PartType =>
         val config = part.getInventoryByName("config")

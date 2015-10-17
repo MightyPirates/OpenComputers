@@ -19,7 +19,6 @@ import net.minecraft.entity.EntityLiving
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
@@ -35,7 +34,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
   @Callback(doc = """function(side:number):boolean -- Tries to put an entity on the specified side of the device onto a leash.""")
   def leash(context: Context, args: Arguments): Array[AnyRef] = {
     if (leashedEntities.size >= 8) return result(Unit, "too many leashed entities")
-    val side = args.checkSide(0, ForgeDirection.VALID_DIRECTIONS: _*)
+    val side = args.checkSideAny(0)
     val nearBounds = position.bounds
     val farBounds = nearBounds.offset(side.offsetX * 2.0, side.offsetY * 2.0, side.offsetZ * 2.0)
     val bounds = nearBounds.func_111270_a(farBounds)

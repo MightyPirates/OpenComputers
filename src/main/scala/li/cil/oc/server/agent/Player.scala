@@ -12,8 +12,9 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.EventHandler
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.magtools.ModMagnanimousTools
+import li.cil.oc.integration.tcon.ModTinkersConstruct
 import li.cil.oc.integration.util.PortalGun
-import li.cil.oc.integration.util.TinkersConstruct
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
@@ -332,12 +333,13 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       // their break logic in onBlockStartBreak but return true to cancel
       // further processing. We also need to adjust our offset for their ray-
       // tracing implementation.
-      if (TinkersConstruct.isInfiTool(stack)) {
+      val needsSpecialPlacement = ModTinkersConstruct.isInfiTool(stack) || ModMagnanimousTools.isMagTool(stack)
+      if (needsSpecialPlacement) {
         posY -= 1.62
         prevPosY = posY
       }
       val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)
-      if (cancel && TinkersConstruct.isInfiTool(stack)) {
+      if (cancel && needsSpecialPlacement) {
         posY += 1.62
         prevPosY = posY
         return adjustedBreakTime

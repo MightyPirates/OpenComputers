@@ -10,7 +10,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraftforge.common.util.ForgeDirection
 
 import scala.language.existentials
 
@@ -23,7 +22,7 @@ object Transposer {
       create()
 
     override protected def checkSideForAction(args: Arguments, n: Int) =
-      args.checkSide(n, ForgeDirection.VALID_DIRECTIONS: _*)
+      args.checkSideAny(n)
 
     override def onTransferContents(): Option[String] = {
       if (node.tryChangeBuffer(-Settings.get.transposerCost)) None

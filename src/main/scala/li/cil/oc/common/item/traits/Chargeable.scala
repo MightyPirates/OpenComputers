@@ -8,6 +8,7 @@ import li.cil.oc.api
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.ic2.ElectricItemManager
+import li.cil.oc.integration.util.Power
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 
@@ -27,16 +28,16 @@ trait Chargeable extends api.driver.item.Chargeable {
   // Applied Energistics 2
 
   def getAECurrentPower(stack: ItemStack): Double =
-    getCharge(stack) / Settings.get.ratioAppliedEnergistics2
+    Power.toAE(getCharge(stack))
 
   def getAEMaxPower(stack: ItemStack): Double =
-    maxCharge(stack) / Settings.get.ratioAppliedEnergistics2
+    Power.toAE(maxCharge(stack))
 
   def injectAEPower(stack: ItemStack, value: Double): Double =
-    (charge(stack, value * Settings.get.ratioAppliedEnergistics2, false) / Settings.get.ratioAppliedEnergistics2).toInt
+    Power.toAE(charge(stack, Power.fromAE(value), false))
 
   def extractAEPower(stack: ItemStack, value: Double): Double =
-    value - (charge(stack, -value * Settings.get.ratioAppliedEnergistics2, false) / Settings.get.ratioAppliedEnergistics2).toInt
+    value - Power.toAE(charge(stack, Power.fromAE(-value), false))
 
   @Optional.Method(modid = Mods.IDs.AppliedEnergistics2)
   def getPowerFlow(stack: ItemStack): AccessRestriction = AccessRestriction.WRITE
@@ -47,10 +48,10 @@ trait Chargeable extends api.driver.item.Chargeable {
   def getManager(stack: ItemStack): IElectricItemManager = ElectricItemManager
 
   def getMaxCharge(stack: ItemStack): Double =
-    maxCharge(stack) / Settings.get.ratioIndustrialCraft2
+    Power.toEU(maxCharge(stack))
 
   def getTransferLimit(stack: ItemStack): Double =
-    Settings.get.chargeRateTablet / Settings.get.ratioIndustrialCraft2
+    Power.toEU(Settings.get.chargeRateTablet)
 
   def getTier(stack: ItemStack): Int = 1
 
@@ -63,13 +64,13 @@ trait Chargeable extends api.driver.item.Chargeable {
   // Mekanism
 
   def getEnergy(stack: ItemStack): Double =
-    getCharge(stack) / Settings.get.ratioMekanism
+    Power.toJoules(getCharge(stack))
 
   def setEnergy(stack: ItemStack, amount: Double): Unit =
-    setCharge(stack, amount * Settings.get.ratioMekanism)
+    setCharge(stack, Power.fromJoules(amount))
 
   def getMaxEnergy(stack: ItemStack): Double =
-    maxCharge(stack) / Settings.get.ratioMekanism
+    Power.toJoules(maxCharge(stack))
 
   def canSend(stack: ItemStack): Boolean = false
 
@@ -78,19 +79,19 @@ trait Chargeable extends api.driver.item.Chargeable {
   def isMetadataSpecific(stack: ItemStack): Boolean = false
 
   def getMaxTransfer(stack: ItemStack): Double =
-    Settings.get.chargeRateTablet / Settings.get.ratioMekanism
+    Power.toJoules(Settings.get.chargeRateTablet)
 
   // Redstone Flux
 
   def getEnergyStored(stack: ItemStack): Int =
-    (getCharge(stack) / Settings.get.ratioRedstoneFlux).toInt
+    Power.toRF(getCharge(stack))
 
   def getMaxEnergyStored(stack: ItemStack): Int =
-    (maxCharge(stack) / Settings.get.ratioRedstoneFlux).toInt
+    Power.toRF(maxCharge(stack))
 
   def receiveEnergy(stack: ItemStack, maxReceive: Int, simulate: Boolean): Int =
-    maxReceive - (charge(stack, maxReceive * Settings.get.ratioRedstoneFlux, simulate) / Settings.get.ratioRedstoneFlux).toInt
+    maxReceive - Power.toRF(charge(stack, Power.fromRF(maxReceive), simulate))
 
   def extractEnergy(stack: ItemStack, maxExtract: Int, simulate: Boolean): Int =
-    maxExtract - (charge(stack, -maxExtract * Settings.get.ratioRedstoneFlux, simulate) / Settings.get.ratioRedstoneFlux).toInt
+    maxExtract - Power.toRF(charge(stack, Power.fromRF(-maxExtract), simulate))
 }

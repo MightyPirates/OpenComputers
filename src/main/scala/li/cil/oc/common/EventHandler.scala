@@ -283,9 +283,9 @@ object EventHandler {
     }) || didRecraft
 
     // Presents?
-    if (!e.player.worldObj.isRemote) e.player match {
+    e.player match {
       case _: FakePlayer => // No presents for you, automaton. Such discrimination. Much bad conscience.
-      case player: EntityPlayerMP =>
+      case player: EntityPlayerMP if player.getEntityWorld != null && !player.getEntityWorld.isRemote =>
         // Presents!? If we didn't recraft, it's an OC item, and the time is right...
         if (Settings.get.presentChance > 0 && !didRecraft && api.Items.get(e.crafting) != null &&
           e.player.getRNG.nextFloat() < Settings.get.presentChance && timeForPresents) {

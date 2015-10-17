@@ -38,7 +38,7 @@ object RobotTemplate extends Template {
     val stack = data.createItemStack()
     val energy = Settings.get.robotBaseCost + complexity(inventory) * Settings.get.robotComplexityCost
 
-    Array(stack, double2Double(energy))
+    Array(stack, Double.box(energy))
   }
 
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.BlockName.Robot)

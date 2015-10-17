@@ -390,6 +390,9 @@ class Settings(val config: Config) {
   val enableCommandBlockDriver = config.getBoolean("integration.vanilla.enableCommandBlockDriver")
   val allowItemStackNBTTags = config.getBoolean("integration.vanilla.allowItemStackNBTTags")
 
+  // integration.buildcraft
+  val costProgrammingTable = config.getDouble("integration.buildcraft.programmingTableCost") max 0
+
   // ----------------------------------------------------------------------- //
   // debug
   val logLuaCallbackErrors = config.getBoolean("debug.logCallbackErrors")

@@ -49,7 +49,7 @@ object TabletTemplate extends Template {
     data.save(stack)
     val energy = Settings.get.tabletBaseCost + complexity(inventory) * Settings.get.tabletComplexityCost
 
-    Array(stack, double2Double(energy))
+    Array(stack, Double.box(energy))
   }
 
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.Tablet)
