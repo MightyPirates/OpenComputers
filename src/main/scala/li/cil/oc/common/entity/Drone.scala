@@ -233,24 +233,24 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   override def entityInit() {
     // Running or not.
-    dataWatcher.addObject(2, byte2Byte(0: Byte))
+    dataWatcher.addObject(2, Byte.box(0: Byte))
     // Target position.
-    dataWatcher.addObject(3, float2Float(0f))
-    dataWatcher.addObject(4, float2Float(0f))
-    dataWatcher.addObject(5, float2Float(0f))
+    dataWatcher.addObject(3, Float.box(0f))
+    dataWatcher.addObject(4, Float.box(0f))
+    dataWatcher.addObject(5, Float.box(0f))
     // Max acceleration.
-    dataWatcher.addObject(6, float2Float(0f))
+    dataWatcher.addObject(6, Float.box(0f))
     // Selected inventory slot.
-    dataWatcher.addObject(7, byte2Byte(0: Byte))
+    dataWatcher.addObject(7, Byte.box(0: Byte))
     // Current and maximum energy.
-    dataWatcher.addObject(8, int2Integer(0))
-    dataWatcher.addObject(9, int2Integer(100))
+    dataWatcher.addObject(8, Int.box(0))
+    dataWatcher.addObject(9, Int.box(100))
     // Status text.
     dataWatcher.addObject(10, "")
     // Inventory size for client.
-    dataWatcher.addObject(11, byte2Byte(0: Byte))
+    dataWatcher.addObject(11, Byte.box(0: Byte))
     // Light color.
-    dataWatcher.addObject(12, int2Integer(0x66DD55))
+    dataWatcher.addObject(12, Int.box(0x66DD55))
   }
 
   def initializeAfterPlacement(stack: ItemStack, player: EntityPlayer, position: Vec3) {
@@ -299,28 +299,28 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
 
   def lightColor = dataWatcher.getWatchableObjectInt(12)
 
-  def setRunning(value: Boolean) = dataWatcher.updateObject(2, byte2Byte(if (value) 1: Byte else 0: Byte))
+  def setRunning(value: Boolean) = dataWatcher.updateObject(2, Byte.box(if (value) 1: Byte else 0: Byte))
 
   // Round target values to low accuracy to avoid floating point errors accumulating.
-  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, float2Float(math.round(value * 4) / 4f))
+  def targetX_=(value: Float): Unit = dataWatcher.updateObject(3, Float.box(math.round(value * 4) / 4f))
 
-  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, float2Float(math.round(value * 4) / 4f))
+  def targetY_=(value: Float): Unit = dataWatcher.updateObject(4, Float.box(math.round(value * 4) / 4f))
 
-  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, float2Float(math.round(value * 4) / 4f))
+  def targetZ_=(value: Float): Unit = dataWatcher.updateObject(5, Float.box(math.round(value * 4) / 4f))
 
-  def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, float2Float(math.max(0, math.min(maxAcceleration, value))))
+  def targetAcceleration_=(value: Float): Unit = dataWatcher.updateObject(6, Float.box(math.max(0, math.min(maxAcceleration, value))))
 
-  def setSelectedSlot(value: Int) = dataWatcher.updateObject(7, byte2Byte(value.toByte))
+  def setSelectedSlot(value: Int) = dataWatcher.updateObject(7, Byte.box(value.toByte))
 
-  def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, int2Integer(value))
+  def globalBuffer_=(value: Int) = dataWatcher.updateObject(8, Int.box(value))
 
-  def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, int2Integer(value))
+  def globalBufferSize_=(value: Int) = dataWatcher.updateObject(9, Int.box(value))
 
   def statusText_=(value: String) = dataWatcher.updateObject(10, Option(value).fold("")(_.lines.map(_.take(10)).take(2).mkString("\n")))
 
-  def inventorySize_=(value: Int) = dataWatcher.updateObject(11, byte2Byte(value.toByte))
+  def inventorySize_=(value: Int) = dataWatcher.updateObject(11, Byte.box(value.toByte))
 
-  def lightColor_=(value: Int) = dataWatcher.updateObject(12, int2Integer(value))
+  def lightColor_=(value: Int) = dataWatcher.updateObject(12, Int.box(value))
 
   @SideOnly(Side.CLIENT)
   override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int) {
@@ -451,9 +451,9 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
       val direction = Vec3.createVectorHelper(entity.posX - posX, entity.posY + entity.getEyeHeight - posY, entity.posZ - posZ).normalize()
       if (!world.isRemote) {
         if (Settings.get.inputUsername)
-          machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord), entity.getCommandSenderName)
+          machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord), entity.getCommandSenderName)
         else
-          machine.signal("hit", double2Double(direction.xCoord), double2Double(direction.zCoord), double2Double(direction.yCoord))
+          machine.signal("hit", Double.box(direction.xCoord), Double.box(direction.zCoord), Double.box(direction.yCoord))
       }
       motionX = (motionX - direction.xCoord) * 0.5f
       motionY = (motionY - direction.yCoord) * 0.5f

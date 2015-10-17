@@ -218,7 +218,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    machine.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
+    machine.node.sendToNeighbors("redstone.changed", toLocal(side), Int.box(oldMaxValue), Int.box(newMaxValue))
   }
 
   // ----------------------------------------------------------------------- //

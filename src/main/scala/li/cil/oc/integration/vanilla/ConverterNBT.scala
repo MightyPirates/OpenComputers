@@ -15,12 +15,12 @@ object ConverterNBT extends api.driver.Converter {
     }
 
   private def convert(nbt: NBTBase): AnyRef = nbt match {
-    case tag: NBTTagByte => byte2Byte(tag.func_150290_f())
-    case tag: NBTTagShort => short2Short(tag.func_150289_e())
-    case tag: NBTTagInt => int2Integer(tag.func_150287_d())
-    case tag: NBTTagLong => long2Long(tag.func_150291_c())
-    case tag: NBTTagFloat => float2Float(tag.func_150288_h())
-    case tag: NBTTagDouble => double2Double(tag.func_150286_g())
+    case tag: NBTTagByte => Byte.box(tag.func_150290_f())
+    case tag: NBTTagShort => Short.box(tag.func_150289_e())
+    case tag: NBTTagInt => Int.box(tag.func_150287_d())
+    case tag: NBTTagLong => Long.box(tag.func_150291_c())
+    case tag: NBTTagFloat => Float.box(tag.func_150288_h())
+    case tag: NBTTagDouble => Double.box(tag.func_150286_g())
     case tag: NBTTagByteArray => tag.func_150292_c()
     case tag: NBTTagString => tag.func_150285_a_()
     case tag: NBTTagList =>

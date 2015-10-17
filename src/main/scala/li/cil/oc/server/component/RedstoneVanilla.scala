@@ -59,7 +59,7 @@ trait RedstoneVanilla extends RedstoneSignaller {
     super.onMessage(message)
     if (message.name == "redstone.changed") message.data match {
       case Array(side: ForgeDirection, oldMaxValue: Number, newMaxValue: Number) =>
-        onRedstoneChanged(int2Integer(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
+        onRedstoneChanged(Int.box(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
       case _ =>
     }
   }
