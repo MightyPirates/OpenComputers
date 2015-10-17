@@ -1,0 +1,9 @@
+[{
+  "nbt": {
+    "blacklist": [
+      "chunkX",
+      "chunkZ",
+      "dimension"
+    ]
+  }
+}]

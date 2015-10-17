@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import net.minecraft.block.Block
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.IFluidBlock
 
 import scala.language.implicitConversions
@@ -21,6 +22,8 @@ object ExtendedBlock {
     def getSelectedBoundingBoxFromPool(position: BlockPosition) = block.getSelectedBoundingBox(position.world.get, position.toBlockPos)
 
     def getCollisionBoundingBoxFromPool(position: BlockPosition) = block.getCollisionBoundingBox(position.world.get, position.toBlockPos, position.world.get.getBlockState(position.toBlockPos))
+
+    def getComparatorInputOverride(position: BlockPosition, side: EnumFacing) = block.getComparatorInputOverride(position.world.get, position.toBlockPos)
   }
 
   implicit def extendedFluidBlock(block: IFluidBlock): ExtendedFluidBlock = new ExtendedFluidBlock(block)

@@ -53,7 +53,7 @@ object Sound {
   // Set in init event.
   var manager: SoundManager = _
 
-  def soundSystem = manager.sndSystem
+  def soundSystem = if (manager != null) manager.sndSystem else null
 
   private def updateVolume() {
     val volume =

@@ -1,7 +1,7 @@
 package li.cil.oc.integration.ic2
 
-import li.cil.oc.Settings
 import li.cil.oc.api.event.RobotUsedToolEvent
+import li.cil.oc.integration.util.Power
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -67,7 +67,7 @@ object EventHandlerIndustrialCraft2 {
       case item: IElectricItem => Option(ElectricItem.manager)
       case _ => None
     }) match {
-      case Some(manager) => amount - manager.charge(stack, amount / Settings.get.ratioIndustrialCraft2, Int.MaxValue, true, false) * Settings.get.ratioIndustrialCraft2
+      case Some(manager) => amount - Power.fromEU(manager.charge(stack, Power.toEU(amount), Int.MaxValue, true, false))
       case _ => amount
     }
   }

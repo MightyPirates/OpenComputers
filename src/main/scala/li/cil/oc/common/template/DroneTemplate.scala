@@ -12,7 +12,6 @@ import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.util.ItemUtils
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.event.FMLInterModComms
 
 import scala.collection.convert.WrapAsJava._
 
@@ -41,7 +40,7 @@ object DroneTemplate extends Template {
     data.save(stack)
     val energy = Settings.get.droneBaseCost + complexity(inventory) * Settings.get.droneComplexityCost
 
-    Array(stack, double2Double(energy))
+    Array(stack, Double.box(energy))
   }
 
   def selectDisassembler(stack: ItemStack) = api.Items.get(stack) == api.Items.get(Constants.ItemName.Drone)
@@ -133,7 +132,7 @@ object DroneTemplate extends Template {
       "Drone",
       "li.cil.oc.common.template.DroneTemplate.selectDisassembler",
       "li.cil.oc.common.template.DroneTemplate.disassemble")
-    }
+  }
 
   override protected def maxComplexity(inventory: IInventory) =
     if (caseTier(inventory) == Tier.Two) 8

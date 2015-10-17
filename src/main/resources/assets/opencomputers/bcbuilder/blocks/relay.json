@@ -1,0 +1,12 @@
+[{
+  "includes": [
+    "traits/hub.json",
+    "traits/inventory.json",
+    "traits/powerAcceptor.json"
+  ],
+  "nbt": {
+    "blacklist": [
+      "oc:componentNodes"
+    ]
+  }
+}]

@@ -1,7 +1,7 @@
 package li.cil.oc.integration.cofh.energy
 
-import li.cil.oc.Settings
 import li.cil.oc.api.event.RobotUsedToolEvent
+import li.cil.oc.integration.util.Power
 import net.minecraft.item.ItemStack
 
 object EventHandlerRedstoneFlux {
@@ -37,7 +37,7 @@ object EventHandlerRedstoneFlux {
 
   def charge(stack: ItemStack, amount: Double, simulate: Boolean): Double = {
     stack.getItem match {
-      case item: IEnergyContainerItem => amount - item.receiveEnergy(stack, (amount / Settings.get.ratioRedstoneFlux).toInt, simulate) * Settings.get.ratioRedstoneFlux
+      case item: IEnergyContainerItem => amount - Power.fromRF(item.receiveEnergy(stack, Power.toRF(amount), simulate))
       case _ => amount
     }
   }

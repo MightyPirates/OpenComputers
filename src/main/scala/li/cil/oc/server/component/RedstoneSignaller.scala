@@ -32,7 +32,7 @@ trait RedstoneSignaller extends prefab.ManagedEnvironment {
   // ----------------------------------------------------------------------- //
 
   def onRedstoneChanged(side: AnyRef, oldMaxValue: Int, newMaxValue: Int): Unit = {
-    node.sendToReachable("computer.signal", "redstone_changed", side, int2Integer(oldMaxValue), int2Integer(newMaxValue))
+    node.sendToReachable("computer.signal", "redstone_changed", side, Int.box(oldMaxValue), Int.box(newMaxValue))
     if (oldMaxValue < wakeThreshold && newMaxValue >= wakeThreshold) {
       if (wakeNeighborsOnly)
         node.sendToNeighbors("computer.start")

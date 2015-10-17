@@ -228,7 +228,7 @@ object NetworkControl {
         nbt.setInteger("y", controller.yCoord)
         nbt.setInteger("z", controller.zCoord)
       }
-      nbt.setNewTagList("links", links)
+      nbt.setNewTagList("links", links.map(_.writeToNBT _))
     }
   }
 

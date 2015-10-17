@@ -16,6 +16,7 @@ import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.Optional
+import net.minecraftforge.fml.relauncher.ReflectionHelper
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
@@ -175,7 +176,8 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     val panel = LayoutManager.itemPanel
     if (panel == null) return
     zLevel += 350
-    for (index <- 0 until ItemPanel.items.size()) {
+    val itemsPerPage = ReflectionHelper.getPrivateValue(classOf[ItemPanel], LayoutManager.itemPanel, "itemsPerPage").asInstanceOf[Int]
+    for (index <- 0 until itemsPerPage) {
       val rect = panel.getSlotRect(index)
       val slot = panel.getSlotMouseOver(rect.x, rect.y)
       if (slot != null) hoveredSlot match {

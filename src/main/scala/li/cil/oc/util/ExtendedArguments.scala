@@ -42,6 +42,18 @@ object ExtendedArguments {
       tank
     }
 
+    def checkSideAny(index: Int) = checkSide(index, EnumFacing.values: _*)
+
+    def optSideAny(index: Int, default: EnumFacing) =
+      if (!isDefined(index)) default
+      else checkSideAny(index)
+
+    def checkSideExcept(index: Int, invalid: EnumFacing*) = checkSide(index, EnumFacing.values.filterNot(invalid.contains): _*)
+
+    def optSideExcept(index: Int, default: EnumFacing, invalid: EnumFacing*) =
+      if (!isDefined(index)) default
+      else checkSideExcept(index, invalid: _*)
+
     def checkSideForAction(index: Int) = checkSide(index, EnumFacing.SOUTH, EnumFacing.UP, EnumFacing.DOWN)
 
     def optSideForAction(index: Int, default: EnumFacing) =
@@ -54,13 +66,13 @@ object ExtendedArguments {
       if (!isDefined(index)) default
       else checkSideForMovement(index)
 
-    def checkSideForFace(index: Int, facing: EnumFacing) = checkSide(index, EnumFacing.values.filter(_ != facing.getOpposite): _*)
+    def checkSideForFace(index: Int, facing: EnumFacing) = checkSideExcept(index, facing.getOpposite)
 
     def optSideForFace(index: Int, default: EnumFacing) =
       if (!isDefined(index)) default
       else checkSideForAction(index)
 
-    def checkSide(index: Int, allowed: EnumFacing*) = {
+    private def checkSide(index: Int, allowed: EnumFacing*) = {
       val side = args.checkInteger(index)
       if (side < 0 || side > 5) {
         throw new IllegalArgumentException("invalid side")
@@ -68,11 +80,6 @@ object ExtendedArguments {
       val direction = EnumFacing.getFront(side)
       if (allowed.isEmpty || (allowed contains direction)) direction
       else throw new IllegalArgumentException("unsupported side")
-    }
-
-    def optSide(index: Int, default: EnumFacing, allowed: EnumFacing*) = {
-      if (!isDefined(index)) default
-      else checkSide(index, allowed: _*)
     }
 
     private def isDefined(index: Int) = index >= 0 && index < args.count()

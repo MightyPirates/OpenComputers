@@ -40,9 +40,10 @@ class Proxy {
 
     OpenComputers.log.info("Initializing additional OreDict entries.")
 
-    registerExclusive("craftingPiston", new ItemStack(net.minecraft.init.Blocks.piston), new ItemStack(net.minecraft.init.Blocks.sticky_piston))
-    registerExclusive("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch))
-    registerExclusive("nuggetGold", new ItemStack(net.minecraft.init.Items.gold_nugget))
+    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.piston)
+    OreDictionary.registerOre("craftingPiston", net.minecraft.init.Blocks.sticky_piston)
+    OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.redstone_torch)
+    OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
 
     val nuggetIron = Items.get(Constants.ItemName.IronNugget).createItemStack(1)
     registerExclusive("nuggetIron", nuggetIron)

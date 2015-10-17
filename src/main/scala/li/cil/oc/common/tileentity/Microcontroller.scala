@@ -97,13 +97,13 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
 
   @Callback(direct = true, doc = """function(side:number):boolean -- Get whether network messages are sent via the specified side.""")
   def isSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, EnumFacing.values.filter(_ != facing): _*)
+    val side = args.checkSideExcept(0, facing)
     result(outputSides(side.ordinal()))
   }
 
   @Callback(doc = """function(side:number, open:boolean):boolean -- Set whether network messages are sent via the specified side.""")
   def setSideOpen(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = args.checkSide(0, EnumFacing.values.filter(_ != facing): _*)
+    val side = args.checkSideExcept(0, facing)
     val oldValue = outputSides(side.ordinal())
     outputSides(side.ordinal()) = args.checkBoolean(1)
     result(oldValue)
