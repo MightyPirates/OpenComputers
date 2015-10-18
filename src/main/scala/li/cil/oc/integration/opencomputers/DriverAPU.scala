@@ -19,9 +19,9 @@ object DriverAPU extends DriverCPU with HostAware with EnvironmentAware {
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
     gpuTier(stack) match {
-      case Tier.One => new component.GraphicsCard.Tier1()
-      case Tier.Two => new component.GraphicsCard.Tier2()
-      case Tier.Three => new component.GraphicsCard.Tier3()
+      case Tier.One => new component.GraphicsCard(Tier.One)
+      case Tier.Two => new component.GraphicsCard(Tier.Two)
+      case Tier.Three => new component.GraphicsCard(Tier.Three)
       case _ => null
     }
 
