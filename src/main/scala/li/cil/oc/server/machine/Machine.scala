@@ -326,26 +326,30 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     name -> callback.annotation
   })
 
-  override def invoke(address: String, method: String, args: Array[AnyRef]) =
-    if (node != null && node.network != null) Option(node.network.node(address)) match {
-      case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(node) || component == node =>
-        lazy val arguments = new ArgumentsImpl(Seq(args: _*))
-        checkLimit(component.callCost(method, this, arguments))
-        component.invoke(method, this, args: _*)
-      case _ => throw new IllegalArgumentException("no such component")
+  override def invoke(address: String, method: String, args: Array[AnyRef]): Array[AnyRef] = {
+    if (node != null && node.network != null) {
+      Option(node.network.node(address)) match {
+        case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(node) || component == node =>
+          checkLimit(component.callCost(method, this, new ArgumentsImpl(Seq(args: _*))))
+          component.invoke(method, this, args: _*)
+        case _ => throw new IllegalArgumentException("no such component")
+      }
     }
     else {
       // Not really, but makes the VM stop, which is what we want in this case,
       // because it means we've been disconnected / disposed already.
       throw new LimitReachedException()
     }
+  }
 
-  override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
-    case Some(callback) =>
-      lazy val arguments = new ArgumentsImpl(Seq(args: _*))
-      checkLimit(callback.callCost(value, this, arguments))
-      Registry.convert(callback(value, this, arguments))
-    case _ => throw new NoSuchMethodException()
+  override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = {
+    Callbacks (value).get(method) match {
+      case Some(callback) =>
+        val arguments = new ArgumentsImpl(Seq(args: _*))
+        checkLimit(callback.callCost(value, this, arguments))
+        Registry.convert(callback(value, this, arguments))
+      case _ => throw new NoSuchMethodException()
+    }
   }
 
   private def checkLimit(callCost: => Double): Unit = {

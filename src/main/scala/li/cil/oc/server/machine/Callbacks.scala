@@ -1,6 +1,5 @@
 package li.cil.oc.server.machine
 
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
@@ -139,30 +138,24 @@ object Callbacks {
   abstract class Callback(val annotation: machine.Callback) {
     def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef]
 
-    def callCost(instance: AnyRef, context: Context, args: => Arguments): Double = {
+    def callCost(instance: AnyRef, context: Context, args: Arguments): Double = {
       if (annotation.direct) math.max(1.0 / annotation.limit, 0.001)
       else 0.0
     }
   }
 
   class ComponentCallback(val method: Method, annotation: machine.Callback) extends Callback(annotation) {
-    override def apply(instance: AnyRef, context: Context, args: Arguments) = try {
-      method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
-    }
-    catch {
-      case e: InvocationTargetException => throw e.getCause
-    }
+    final val callWrapper = CallbackWrapper.createCallbackWrapper(method)
+
+    override def apply(instance: AnyRef, context: Context, args: Arguments) = callWrapper.call(instance, context, args)
   }
 
   class ComponentCallbackWithCost(val method: Method, callback: Callback) extends Callback(callback.annotation) {
+    final val costWrapper = CallbackWrapper.createCallbackCostWrapper(method)
+
     override def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef] = callback(instance, context, args)
 
-    override def callCost(instance: AnyRef, context: Context, args: => Arguments): Double = try {
-      method.invoke(instance, context, args).asInstanceOf[Double]
-    }
-    catch {
-      case e: InvocationTargetException => throw e.getCause
-    }
+    override def callCost(instance: AnyRef, context: Context, args: Arguments): Double = costWrapper.call(instance, context, args)
   }
 
   class PeripheralCallback(name: String) extends Callback(new PeripheralAnnotation(name)) {
