@@ -107,6 +107,28 @@ object Callbacks {
         }
       )
 
+      ms.filter(_.isAnnotationPresent(classOf[machine.CallbackCost])).foreach(m =>
+        if (m.getParameterTypes.size != 2 ||
+          m.getParameterTypes()(0) != classOf[Context] ||
+          m.getParameterTypes()(1) != classOf[Arguments]) {
+          OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: invalid argument types or count.")
+        }
+        else if (m.getReturnType != classOf[Double]) {
+          OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: invalid return type.")
+        }
+        else if (!Modifier.isPublic(m.getModifiers)) {
+          OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: method must be public.")
+        }
+        else {
+          val a = m.getAnnotation[machine.CallbackCost](classOf[machine.CallbackCost])
+          val target = a.value
+          callbacks.get(target) match {
+            case Some(callback) => callbacks += target -> new ComponentCallbackWithCost(m, callback)
+            case _ => OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: missing or invalid target.")
+          }
+        }
+      )
+
       c = c.getSuperclass
     }
     callbacks
@@ -116,12 +138,29 @@ object Callbacks {
 
   abstract class Callback(val annotation: machine.Callback) {
     def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef]
+
+    def callCost(instance: AnyRef, context: Context, args: => Arguments): Double = {
+      if (annotation.direct) math.max(1.0 / annotation.limit, 0.001)
+      else 0.0
+    }
   }
 
   class ComponentCallback(val method: Method, annotation: machine.Callback) extends Callback(annotation) {
     override def apply(instance: AnyRef, context: Context, args: Arguments) = try {
       method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
-    } catch {
+    }
+    catch {
+      case e: InvocationTargetException => throw e.getCause
+    }
+  }
+
+  class ComponentCallbackWithCost(val method: Method, callback: Callback) extends Callback(callback.annotation) {
+    override def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef] = callback(instance, context, args)
+
+    override def callCost(instance: AnyRef, context: Context, args: => Arguments): Double = try {
+      method.invoke(instance, context, args).asInstanceOf[Double]
+    }
+    catch {
       case e: InvocationTargetException => throw e.getCause
     }
   }

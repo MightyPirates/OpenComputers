@@ -328,11 +328,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def invoke(address: String, method: String, args: Array[AnyRef]) =
     if (node != null && node.network != null) Option(node.network.node(address)) match {
-      case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
-        val direct = component.annotation(method).direct
-        if (direct && architecture.isInitialized) {
-          checkLimit(component.annotation(method).limit)
-        }
+      case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(node) || component == node =>
+        lazy val arguments = new ArgumentsImpl(Seq(args: _*))
+        checkLimit(component.callCost(method, this, arguments))
         component.invoke(method, this, args: _*)
       case _ => throw new IllegalArgumentException("no such component")
     }
@@ -344,20 +342,19 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
     case Some(callback) =>
-      val direct = callback.annotation.direct
-      if (direct && architecture.isInitialized) {
-        checkLimit(callback.annotation.limit)
-      }
-      Registry.convert(callback(value, this, new ArgumentsImpl(Seq(args: _*))))
+      lazy val arguments = new ArgumentsImpl(Seq(args: _*))
+      checkLimit(callback.callCost(value, this, arguments))
+      Registry.convert(callback(value, this, arguments))
     case _ => throw new NoSuchMethodException()
   }
 
-  private def checkLimit(limit: Int): Unit = if (!inSynchronizedCall) {
-    val callCost = math.max(1.0 / limit, 0.001)
-    if (callCost >= callBudget) {
-      throw new LimitReachedException()
+  private def checkLimit(callCost: => Double): Unit = {
+    if (architecture.isInitialized && !inSynchronizedCall) {
+      if (callCost > callBudget) {
+        throw new LimitReachedException()
+      }
+      callBudget -= callCost
     }
-    callBudget -= callCost
   }
 
   override def addUser(name: String) {
@@ -945,7 +942,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
             state.clear()
             state.push(Machine.State.Stopping)
           case Machine.State.Restarting =>
-            // Nothing to do!
+          // Nothing to do!
           case _ => throw new AssertionError("Invalid state in executor post-processing.")
         }
         assert(!isExecuting)

@@ -1,5 +1,6 @@
 package li.cil.oc.server.network
 
+import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network
 import li.cil.oc.api.network._
@@ -115,6 +116,16 @@ trait Component extends network.Component with Node {
       }
       case _ => throw new NoSuchMethodException()
     }
+
+  def callCost(method: String, context: Context, args: => Arguments): Double = {
+    callbacks.get(method) match {
+      case Some(callback) => hosts(method) match {
+        case Some(environment) => callback.callCost(environment, context, args)
+        case _ => throw new NoSuchMethodException()
+      }
+      case _ => throw new NoSuchMethodException()
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
