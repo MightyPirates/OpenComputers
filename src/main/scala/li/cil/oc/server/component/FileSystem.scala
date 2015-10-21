@@ -11,6 +11,7 @@ import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.fs.{FileSystem => IFileSystem}
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
+import li.cil.oc.api.machine.CallbackCost
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
@@ -23,7 +24,7 @@ import net.minecraftforge.common.util.Constants.NBT
 
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost], val sound: Option[String]) extends prefab.ManagedEnvironment {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
@@ -151,6 +152,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     result(handle)
   }
 
+  @Callback(direct = true, limit = 15, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
   def read(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
@@ -182,6 +184,12 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     }
   }
 
+  final val readCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
+
+  @CallbackCost("read")
+  def readCost(context: Context, args: Arguments): Double = readCosts(speed)
+
+  @Callback(direct = true, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
   def seek(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val whence = args.checkString(1)
@@ -200,6 +208,12 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     }
   }
 
+  final val seekCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
+
+  @CallbackCost("seek")
+  def seekCost(context: Context, args: Arguments): Double = seekCosts(speed)
+
+  @Callback(direct = true, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
   def write(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
@@ -215,6 +229,11 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
       case _ => throw new IOException("bad file descriptor")
     }
   }
+
+  final val writeCosts = Array(1.0 / 1, 1.0 / 2, 1.0 / 3, 1.0 / 4, 1.0 / 5, 1.0 / 6)
+
+  @CallbackCost("write")
+  def writeCost(context: Context, args: Arguments): Double = writeCosts(speed)
 
   // ----------------------------------------------------------------------- //
 
@@ -309,72 +328,6 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     (sound, host) match {
       case (Some(s), Some(h)) => ServerPacketSender.sendFileSystemActivity(node, h, s)
       case _ =>
-    }
-  }
-}
-
-object FileSystem {
-  // I really need to come up with a way to make the call limit dynamic...
-  def apply(fileSystem: IFileSystem, label: Label, host: Option[EnvironmentHost], sound: Option[String], speed: Int = 1): FileSystem = speed match {
-    case 6 => new FileSystem(fileSystem, label, host, sound) {
-      @Callback(direct = true, limit = 15, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
-      override def read(context: Context, args: Arguments): Array[AnyRef] = super.read(context, args)
-
-      @Callback(direct = true, limit = 15, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
-      override def seek(context: Context, args: Arguments): Array[AnyRef] = super.seek(context, args)
-
-      @Callback(direct = true, limit = 6, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
-      override def write(context: Context, args: Arguments): Array[AnyRef] = super.write(context, args)
-    }
-    case 5 => new FileSystem(fileSystem, label, host, sound) {
-      @Callback(direct = true, limit = 13, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
-      override def read(context: Context, args: Arguments): Array[AnyRef] = super.read(context, args)
-
-      @Callback(direct = true, limit = 13, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
-      override def seek(context: Context, args: Arguments): Array[AnyRef] = super.seek(context, args)
-
-      @Callback(direct = true, limit = 5, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
-      override def write(context: Context, args: Arguments): Array[AnyRef] = super.write(context, args)
-    }
-    case 4 => new FileSystem(fileSystem, label, host, sound) {
-      @Callback(direct = true, limit = 10, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
-      override def read(context: Context, args: Arguments): Array[AnyRef] = super.read(context, args)
-
-      @Callback(direct = true, limit = 10, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
-      override def seek(context: Context, args: Arguments): Array[AnyRef] = super.seek(context, args)
-
-      @Callback(direct = true, limit = 4, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
-      override def write(context: Context, args: Arguments): Array[AnyRef] = super.write(context, args)
-    }
-    case 3 => new FileSystem(fileSystem, label, host, sound) {
-      @Callback(direct = true, limit = 7, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
-      override def read(context: Context, args: Arguments): Array[AnyRef] = super.read(context, args)
-
-      @Callback(direct = true, limit = 7, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
-      override def seek(context: Context, args: Arguments): Array[AnyRef] = super.seek(context, args)
-
-      @Callback(direct = true, limit = 3, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
-      override def write(context: Context, args: Arguments): Array[AnyRef] = super.write(context, args)
-    }
-    case 2 => new FileSystem(fileSystem, label, host, sound) {
-      @Callback(direct = true, limit = 4, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
-      override def read(context: Context, args: Arguments): Array[AnyRef] = super.read(context, args)
-
-      @Callback(direct = true, limit = 4, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
-      override def seek(context: Context, args: Arguments): Array[AnyRef] = super.seek(context, args)
-
-      @Callback(direct = true, limit = 2, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
-      override def write(context: Context, args: Arguments): Array[AnyRef] = super.write(context, args)
-    }
-    case _ => new FileSystem(fileSystem, label, host, sound) {
-      @Callback(direct = true, limit = 1, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
-      override def read(context: Context, args: Arguments): Array[AnyRef] = super.read(context, args)
-
-      @Callback(direct = true, limit = 1, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
-      override def seek(context: Context, args: Arguments): Array[AnyRef] = super.seek(context, args)
-
-      @Callback(direct = true, limit = 1, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
-      override def write(context: Context, args: Arguments): Array[AnyRef] = super.write(context, args)
     }
   }
 }

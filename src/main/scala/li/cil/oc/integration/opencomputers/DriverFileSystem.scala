@@ -66,7 +66,7 @@ object DriverFileSystem extends Item {
       val sound = Settings.resourceDomain + ":" + (if (isFloppy) "floppy_access" else "hdd_access")
       val drive = new DriveData(stack)
       val environment = if (drive.isUnmanaged) {
-        Drive(capacity, platterCount, label, Option(host), Option(sound), speed)
+        new Drive(capacity, platterCount, label, Option(host), Option(sound), speed)
       }
       else {
         val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
