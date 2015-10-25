@@ -1,6 +1,7 @@
 package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.Constants
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.common.Slot
@@ -34,5 +35,5 @@ object DriverMemory extends Item with driver.item.Memory with driver.item.CallBu
       case _ => Tier.One
     }
 
-  override def getCallBudget(stack: ItemStack): Double = ???
+  override def getCallBudget(stack: ItemStack): Double = Settings.get.callBudgets(tier(stack) max Tier.One min Tier.Three)
 }
