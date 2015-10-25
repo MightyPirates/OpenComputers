@@ -145,9 +145,9 @@ public interface Context {
      * by the callback function. It will be handled in the calling code and
      * take care of switching states as necessary.
      * <p/>
-     * Call this from a method with with <code>@Callback(direct = true)</code>
-     * and no <tt>limit</tt> set to use dynamic costs. If a limit is set, it
-     * will always be deduced from the callback in addition to this.
+     * Call this from a method with <code>@Callback(direct = true)</code> and
+     * no <tt>limit</tt> set to use dynamic costs. If a limit is set, it will
+     * always be deduced from the budget in addition to this.
      * <p/>
      * When called from a non-direct / synchronous callback this does nothing.
      *

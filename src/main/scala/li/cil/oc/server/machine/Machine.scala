@@ -8,6 +8,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.FileSystem
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.driver.item.CallBudget
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine
 import li.cil.oc.api.machine.Architecture
@@ -26,7 +27,6 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.Slot
-import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
@@ -111,13 +111,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       }
       case _ => 0
     }))
-    maxCallBudget = components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
-      case Some(stack) => Option(Driver.driverFor(stack, host.getClass)) match {
-        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack) max Tier.One min Tier.Three)
-        case _ => 0
-      }
-      case _ => 0
-    }))
+    val callBudgets = components.map(stack => (stack, Option(Driver.driverFor(stack, host.getClass)))).collect({
+      case (stack, Some(driver: CallBudget)) => driver.getCallBudget(stack)
+    })
+    maxCallBudget = if (callBudgets.isEmpty) 1.0 else callBudgets.sum / callBudgets.size
     var newArchitecture: Architecture = null
     components.find {
       case stack: ItemStack => Option(Driver.driverFor(stack, host.getClass)) match {

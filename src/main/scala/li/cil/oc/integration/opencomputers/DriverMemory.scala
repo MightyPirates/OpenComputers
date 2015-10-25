@@ -9,7 +9,7 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import net.minecraft.item.ItemStack
 
-object DriverMemory extends Item with driver.item.Memory {
+object DriverMemory extends Item with driver.item.Memory with driver.item.CallBudget {
   override def amount(stack: ItemStack) =
     Delegator.subItem(stack) match {
       case Some(memory: item.Memory) => memory.tier + 1
@@ -33,4 +33,6 @@ object DriverMemory extends Item with driver.item.Memory {
       case Some(memory: item.Memory) => memory.tier / 2
       case _ => Tier.One
     }
+
+  override def getCallBudget(stack: ItemStack): Double = ???
 }
