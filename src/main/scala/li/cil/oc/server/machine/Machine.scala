@@ -304,6 +304,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       if (signals.size >= 256) false
       else if (args == null) {
         signals.enqueue(new Machine.Signal(name, Array.empty))
+        if (architecture != null) architecture.onSignal()
         true
       }
       else {
@@ -321,6 +322,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
             OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
             null
         }.toArray[AnyRef]))
+        if (architecture != null) architecture.onSignal()
         true
       }
     }
