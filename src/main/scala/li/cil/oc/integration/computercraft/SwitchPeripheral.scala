@@ -165,6 +165,8 @@ class SwitchPeripheral(val switch: SwitchLike) extends IPeripheral {
     override def isRunning = true
 
     override def start() = false
+
+    override def consumeCallBudget(callCost: Double): Unit = {}
   }
 
 }

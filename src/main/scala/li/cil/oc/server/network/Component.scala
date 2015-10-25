@@ -118,16 +118,6 @@ trait Component extends network.Component with Node {
     }
   }
 
-  def callCost(method: String, context: Context, args: Arguments): Double = {
-    callbacks.get(method) match {
-      case Some(callback) => hosts(method) match {
-        case Some(environment) => callback.callCost(environment, context, args)
-        case _ => throw new NoSuchMethodException()
-      }
-      case _ => throw new NoSuchMethodException()
-    }
-  }
-
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {

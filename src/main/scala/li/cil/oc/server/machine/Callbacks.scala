@@ -74,7 +74,7 @@ object Callbacks {
     (host match {
       case multi: CompoundBlockEnvironment => multi.environments.map(env => process(env._2))
       case single => Seq(process(single))
-    }).sortBy(-_._1).map(_._2).foreach(_())
+    }).sortBy(-_._1).map(_._2).foreach(_ ())
 
     callbacks.toMap
   }
@@ -100,30 +100,8 @@ object Callbacks {
         else {
           val a = m.getAnnotation[machine.Callback](classOf[machine.Callback])
           val name = if (a.value != null && a.value.trim != "") a.value else m.getName
-          if (shouldAdd.fold(true)(_(name))) {
+          if (shouldAdd.fold(true)(_ (name))) {
             callbacks += name -> new ComponentCallback(m, a)
-          }
-        }
-      )
-
-      ms.filter(_.isAnnotationPresent(classOf[machine.CallbackCost])).foreach(m =>
-        if (m.getParameterTypes.size != 2 ||
-          m.getParameterTypes()(0) != classOf[Context] ||
-          m.getParameterTypes()(1) != classOf[Arguments]) {
-          OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: invalid argument types or count.")
-        }
-        else if (m.getReturnType != classOf[Double]) {
-          OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: invalid return type.")
-        }
-        else if (!Modifier.isPublic(m.getModifiers)) {
-          OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: method must be public.")
-        }
-        else {
-          val a = m.getAnnotation[machine.CallbackCost](classOf[machine.CallbackCost])
-          val target = a.value
-          callbacks.get(target) match {
-            case Some(callback) => callbacks += target -> new ComponentCallbackWithCost(m, callback)
-            case _ => OpenComputers.log.error(s"Invalid use of CallbackCost annotation on ${m.getDeclaringClass.getName}.${m.getName}: missing or invalid target.")
           }
         }
       )
@@ -137,25 +115,12 @@ object Callbacks {
 
   abstract class Callback(val annotation: machine.Callback) {
     def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef]
-
-    def callCost(instance: AnyRef, context: Context, args: Arguments): Double = {
-      if (annotation.direct) math.max(1.0 / annotation.limit, 0.001)
-      else 0.0
-    }
   }
 
   class ComponentCallback(val method: Method, annotation: machine.Callback) extends Callback(annotation) {
     final val callWrapper = CallbackWrapper.createCallbackWrapper(method)
 
     override def apply(instance: AnyRef, context: Context, args: Arguments) = callWrapper.call(instance, context, args)
-  }
-
-  class ComponentCallbackWithCost(val method: Method, callback: Callback) extends Callback(callback.annotation) {
-    final val costWrapper = CallbackWrapper.createCallbackCostWrapper(method)
-
-    override def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef] = callback(instance, context, args)
-
-    override def callCost(instance: AnyRef, context: Context, args: Arguments): Double = costWrapper.call(instance, context, args)
   }
 
   class PeripheralCallback(name: String) extends Callback(new PeripheralAnnotation(name)) {

@@ -11,7 +11,6 @@ import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.fs.{FileSystem => IFileSystem}
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.CallbackCost
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
@@ -154,6 +153,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   @Callback(direct = true, limit = 15, doc = """function(handle:number, count:number):string or nil -- Reads up to the specified amount of data from an open file descriptor with the specified handle. Returns nil when EOF is reached.""")
   def read(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    context.consumeCallBudget(readCosts(speed))
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
     checkOwner(context.node.address, handle)
@@ -186,11 +186,9 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   final val readCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
 
-  @CallbackCost("read")
-  def readCost(context: Context, args: Arguments): Double = readCosts(speed)
-
   @Callback(direct = true, doc = """function(handle:number, whence:string, offset:number):number -- Seeks in an open file descriptor with the specified handle. Returns the new pointer position.""")
   def seek(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    context.consumeCallBudget(seekCosts(speed))
     val handle = args.checkInteger(0)
     val whence = args.checkString(1)
     val offset = args.checkInteger(2)
@@ -210,11 +208,9 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   final val seekCosts = Array(1.0 / 1, 1.0 / 4, 1.0 / 7, 1.0 / 10, 1.0 / 13, 1.0 / 15)
 
-  @CallbackCost("seek")
-  def seekCost(context: Context, args: Arguments): Double = seekCosts(speed)
-
   @Callback(direct = true, doc = """function(handle:number, value:string):boolean -- Writes the specified data to an open file descriptor with the specified handle.""")
   def write(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    context.consumeCallBudget(writeCosts(speed))
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
     if (!node.tryChangeBuffer(-Settings.get.hddWriteCost * value.length)) {
@@ -231,9 +227,6 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
   }
 
   final val writeCosts = Array(1.0 / 1, 1.0 / 2, 1.0 / 3, 1.0 / 4, 1.0 / 5, 1.0 / 6)
-
-  @CallbackCost("write")
-  def writeCost(context: Context, args: Arguments): Double = writeCosts(speed)
 
   // ----------------------------------------------------------------------- //
 

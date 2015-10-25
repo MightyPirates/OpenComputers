@@ -7,7 +7,6 @@ import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.CallbackCost
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
@@ -103,6 +102,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   @Callback(direct = true, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setBackgroundCosts(tier))
     val color = args.checkInteger(0)
     screen(s => {
       val oldValue = s.getBackgroundColor
@@ -120,15 +120,13 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   final val setBackgroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
 
-  @CallbackCost("setBackground")
-  def setBackgroundCost(context: Context, args: Arguments): Double = setBackgroundCosts(tier)
-
   @Callback(direct = true, doc = """function():number, boolean -- Get the current foreground color and whether it's from the palette or not.""")
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getForegroundColor, s.isForegroundFromPalette))
 
   @Callback(direct = true, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setForegroundCosts(tier))
     val color = args.checkInteger(0)
     screen(s => {
       val oldValue = s.getForegroundColor
@@ -146,9 +144,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   final val setForegroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
 
-  @CallbackCost("setForeground")
-  def setForegroundCost(context: Context, args: Arguments): Double = setForegroundCosts(tier)
-
   @Callback(direct = true, doc = """function(index:number):number -- Get the palette color at the specified palette index.""")
   def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
@@ -159,6 +154,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   @Callback(direct = true, limit = 2, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
   def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setPaletteColorCosts(tier))
     val index = args.checkInteger(0)
     val color = args.checkInteger(1)
     context.pause(0.1)
@@ -173,9 +169,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
   }
 
   final val setPaletteColorCosts = Array(1.0 / 2, 1.0 / 8, 1.0 / 16)
-
-  @CallbackCost("setPaletteColor")
-  def setPaletteColorCost(context: Context, args: Arguments): Double = setPaletteColorCosts(tier)
 
   @Callback(direct = true, doc = """function():number -- Returns the currently set color depth.""")
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
@@ -254,6 +247,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   @Callback(direct = true, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
   def set(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val value = args.checkString(2)
@@ -270,11 +264,9 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   final val setCosts = Array(1.0 / 64, 1.0 / 128, 1.0 / 256)
 
-  @CallbackCost("set")
-  def setCost(context: Context, args: Arguments): Double = setCosts(tier)
-
   @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
   def copy(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(copyCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val w = math.max(0, args.checkInteger(2))
@@ -292,11 +284,9 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   final val copyCosts = Array(1.0 / 16, 1.0 / 32, 1.0 / 64)
 
-  @CallbackCost("copy")
-  def copyCost(context: Context, args: Arguments): Double = copyCosts(tier)
-
   @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(fillCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val w = math.max(0, args.checkInteger(2))
@@ -317,9 +307,6 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
   }
 
   final val fillCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
-
-  @CallbackCost("fill")
-  def fillCost(context: Context, args: Arguments): Double = fillCosts(tier)
 
   private def consumePower(n: Double, cost: Double) = node.tryChangeBuffer(-n * cost)
 

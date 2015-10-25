@@ -14,7 +14,6 @@ import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
-import li.cil.oc.api.machine.CallbackCost
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
@@ -66,6 +65,7 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   @Callback(direct = true, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
   def readSector(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(readSectorCosts(speed))
     val sector = moveToSector(context, checkSector(args, 0))
     diskActivity()
     val sectorData = new Array[Byte](sectorSize)
@@ -75,11 +75,9 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   final val readSectorCosts = Array(1.0 / 10, 1.0 / 20, 1.0 / 30, 1.0 / 40, 1.0 / 50, 1.0 / 60)
 
-  @CallbackCost("readSector")
-  def readSectorCost(context: Context, args: Arguments): Double = readSectorCosts(speed)
-
   @Callback(direct = true, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
   def writeSector(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(writeSectorCosts(speed))
     val sectorData = args.checkByteArray(1)
     val sector = moveToSector(context, checkSector(args, 0))
     diskActivity()
@@ -89,11 +87,9 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   final val writeSectorCosts = Array(1.0 / 5, 1.0 / 10, 1.0 / 15, 1.0 / 20, 1.0 / 25, 1.0 / 30)
 
-  @CallbackCost("writeSector")
-  def writeSectorCost(context: Context, args: Arguments): Double = writeSectorCosts(speed)
-
   @Callback(direct = true, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
   def readByte(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(readByteCosts(speed))
     val offset = args.checkInteger(0) - 1
     moveToSector(context, checkSector(offset))
     diskActivity()
@@ -102,11 +98,9 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
 
   final val readByteCosts = Array(1.0 / 48, 1.0 / 64, 1.0 / 80, 1.0 / 96, 1.0 / 112, 1.0 / 128)
 
-  @CallbackCost("readByte")
-  def readByteCost(context: Context, args: Arguments): Double = readByteCosts(speed)
-
   @Callback(direct = true, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
   def writeByte(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(writeByteCosts(speed))
     val offset = args.checkInteger(0) - 1
     val value = args.checkInteger(1).toByte
     moveToSector(context, checkSector(offset))
@@ -116,9 +110,6 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
   }
 
   final val writeByteCosts = Array(1.0 / 24, 1.0 / 32, 1.0 / 40, 1.0 / 48, 1.0 / 56, 1.0 / 64)
-
-  @CallbackCost("writeByte")
-  def writeByteCost(context: Context, args: Arguments): Double = writeByteCosts(speed)
 
   // ----------------------------------------------------------------------- //
 

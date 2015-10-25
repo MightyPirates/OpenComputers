@@ -15,26 +15,15 @@ trait CallbackCall {
   def call(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef]
 }
 
-trait CallbackCostCall {
-  def call(instance: AnyRef, context: Context, args: Arguments): Double
-}
-
 object CallbackWrapper {
   private final val ObjectNameASM = classOf[AnyRef].getName.replace('.', '/')
   private final val CallbackCallDesc = Type.getMethodDescriptor(classOf[CallbackCall].getMethod("call", classOf[AnyRef], classOf[Context], classOf[Arguments]))
-  private final val CallbackCostCallDesc = Type.getMethodDescriptor(classOf[CallbackCostCall].getMethod("call", classOf[AnyRef], classOf[Context], classOf[Arguments]))
   private final val CallbackCallInterface = Array(classOf[CallbackCall].getName.replace('.', '/'))
-  private final val CallbackCostCallInterface = Array(classOf[CallbackCostCall].getName.replace('.', '/'))
   private final val MethodIdCache = mutable.Map.empty[Method, String]
   private final val CallbackWrapperCache = mutable.Map.empty[Method, CallbackCall]
-  private final val CallbackCostWrapperCache = mutable.Map.empty[Method, CallbackCostCall]
 
   def createCallbackWrapper(method: Method): CallbackCall = this.synchronized {
     CallbackWrapperCache.getOrElseUpdate(method, createWrapper(method, CallbackCallInterface, emitCallbackCall).asInstanceOf[CallbackCall])
-  }
-
-  def createCallbackCostWrapper(method: Method): CallbackCostCall = this.synchronized {
-    CallbackCostWrapperCache.getOrElseUpdate(method, createWrapper(method, CallbackCostCallInterface, emitCallbackCostCall).asInstanceOf[CallbackCostCall])
   }
 
   private def createWrapper(m: Method, interfaces: Array[String], emitCode: (Method, ClassWriter) => Unit): AnyRef = {
@@ -71,20 +60,6 @@ object CallbackWrapper {
     mv.visitVarInsn(Opcodes.ALOAD, 3)
     mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, m.getName, Type.getMethodDescriptor(m), false)
     mv.visitInsn(Opcodes.ARETURN)
-    mv.visitMaxs(3, 3)
-    mv.visitEnd()
-  }
-
-  private def emitCallbackCostCall(m: Method, cw: ClassWriter): Unit = {
-    val className = m.getDeclaringClass.getName.replace('.', '/')
-    val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "call", CallbackCostCallDesc, null, null)
-    mv.visitCode()
-    mv.visitVarInsn(Opcodes.ALOAD, 1)
-    mv.visitTypeInsn(Opcodes.CHECKCAST, className)
-    mv.visitVarInsn(Opcodes.ALOAD, 2)
-    mv.visitVarInsn(Opcodes.ALOAD, 3)
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, m.getName, Type.getMethodDescriptor(m), false)
-    mv.visitInsn(Opcodes.DRETURN)
     mv.visitMaxs(3, 3)
     mv.visitEnd()
   }

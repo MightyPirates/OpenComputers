@@ -270,6 +270,16 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       true
   })
 
+  override def consumeCallBudget(callCost: Double): Unit = {
+    if (architecture.isInitialized && !inSynchronizedCall) {
+      val clampedCost = math.max(0.001, callCost)
+      if (clampedCost > callBudget) {
+        throw new LimitReachedException()
+      }
+      callBudget -= clampedCost
+    }
+  }
+
   override def beep(frequency: Short, duration: Short): Unit = {
     PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, duration)
   }
@@ -330,7 +340,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     if (node != null && node.network != null) {
       Option(node.network.node(address)) match {
         case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(node) || component == node =>
-          checkLimit(component.callCost(method, this, new ArgumentsImpl(Seq(args: _*))))
+          val annotation = component.annotation(method)
+          if (annotation.direct) {
+            consumeCallBudget(1.0 / annotation.limit)
+          }
           component.invoke(method, this, args: _*)
         case _ => throw new IllegalArgumentException("no such component")
       }
@@ -343,21 +356,15 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   }
 
   override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = {
-    Callbacks (value).get(method) match {
+    Callbacks(value).get(method) match {
       case Some(callback) =>
+        val annotation = callback.annotation
+        if (annotation.direct) {
+          consumeCallBudget(1.0 / annotation.limit)
+        }
         val arguments = new ArgumentsImpl(Seq(args: _*))
-        checkLimit(callback.callCost(value, this, arguments))
         Registry.convert(callback(value, this, arguments))
       case _ => throw new NoSuchMethodException()
-    }
-  }
-
-  private def checkLimit(callCost: => Double): Unit = {
-    if (architecture.isInitialized && !inSynchronizedCall) {
-      if (callCost > callBudget) {
-        throw new LimitReachedException()
-      }
-      callBudget -= callCost
     }
   }
 
@@ -711,8 +718,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error loading a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
-          s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
+        OpenComputers.log.error(
+          s"""Unexpected error loading a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
+            s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
         close()
     }
     else {
@@ -784,8 +792,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
-          s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
+        OpenComputers.log.error(
+          s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
+            s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   })
 
