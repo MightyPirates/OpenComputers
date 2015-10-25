@@ -15,8 +15,6 @@ object GeolyzerHandler {
   def onGeolyzerScan(e: GeolyzerEvent.Scan) {
     val world = e.host.world
     val blockPos = BlockPosition(e.host)
-    val bx = blockPos.x + e.scanX
-    val bz = blockPos.z + e.scanZ
     val includeReplaceable = e.options.get("includeReplaceable") match {
       case value: java.lang.Boolean => value.booleanValue()
       case _ => true
@@ -27,16 +25,25 @@ object GeolyzerHandler {
     // Map to [-1, 1). The additional /33f is for normalization below.
     noise.map(_ / 128f / 33f).copyToArray(e.data)
 
-    for (ry <- 0 until e.data.length) {
-      val by = blockPos.y + ry - 32
-      if (!world.isAirBlock(bx, by, bz)) {
-        val block = world.getBlock(bx, by, bz)
+    val w = e.maxX - e.minX + 1
+    val d = e.maxZ - e.minZ + 1
+    for (ry <- e.minY to e.maxY; rz <- e.minZ to e.maxZ; rx <- e.minX to e.maxX) {
+      val x = blockPos.x + rx
+      val y = blockPos.y + ry
+      val z = blockPos.z + rz
+      val index = (rx - e.minX) + ((rz - e.minZ) + (ry - e.minY) * d) * w
+      if (world.blockExists(x, y, z) && !world.isAirBlock(x, y, z)) {
+        val block = world.getBlock(x, y, z)
         if (block != null && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, blockPos.x, blockPos.y, blockPos.z))) {
-          e.data(ry) = e.data(ry) * (math.abs(ry - 32) + 1) * Settings.get.geolyzerNoise + block.getBlockHardness(world, bx, by, bz)
+          val dx = blockPos.x - x
+          val dy = blockPos.y - y
+          val dz = blockPos.z - z
+          val distance = math.sqrt(dx * dx + dy * dy + dz * dz).toFloat
+          e.data(index) = e.data(index) * distance * Settings.get.geolyzerNoise + block.getBlockHardness(world, x, y, z)
         }
-        else e.data(ry) = 0
+        else e.data(index) = 0
       }
-      else e.data(ry) = 0
+      else e.data(index) = 0
     }
   }
 
