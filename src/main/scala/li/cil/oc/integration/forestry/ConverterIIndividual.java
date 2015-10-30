@@ -68,7 +68,7 @@ public class ConverterIIndividual implements Converter {
     };
 
     private interface IAlleleConverter<A extends IAllele> {
-        public Object convert(A allele);
+        Object convert(A allele);
     }
 
     private static final Map<Class<? extends IAllele>, IAlleleConverter<?>> converters =

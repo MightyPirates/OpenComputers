@@ -61,6 +61,8 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
 
   def getType = Settings.namespace + Constants.BlockName.Cable
 
+  override def getStrength(hit: MovingObjectPosition, player: EntityPlayer): Float = api.Items.get(Constants.BlockName.Cable).block().getBlockHardness(world, hit.blockX, hit.blockY, hit.blockZ)
+
   override def doesTick = false
 
   override def getBounds = new Cuboid6(Cable.bounds(world, x, y, z))
@@ -72,7 +74,6 @@ class CablePart(val original: Option[tileentity.Cable] = None) extends SimpleBlo
   override def getHollowSize(side: Int) = 4 // 4 pixels as this is width of cable.
 
   override def getSlotMask = 1 << 6 // 6 is center part.
-
 
   // ----------------------------------------------------------------------- //
 

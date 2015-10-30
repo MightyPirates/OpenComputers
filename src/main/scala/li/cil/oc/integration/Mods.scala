@@ -44,7 +44,7 @@ object Mods {
   val EnderStorage = new SimpleMod(IDs.EnderStorage)
   val ExtraCells = new SimpleMod(IDs.ExtraCells, version = "@[2.2.73,)")
   val Factorization = new SimpleMod(IDs.Factorization, providesPower = true)
-  val Forestry = new SimpleMod(IDs.Forestry)
+  val Forestry = new SimpleMod(IDs.Forestry, version = "@[4.0,)")
   val ForgeMultipart = new SimpleMod(IDs.ForgeMultipart)
   val Galacticraft = new SimpleMod(IDs.Galacticraft, providesPower = true)
   val GregTech = new ClassBasedMod(IDs.GregTech, "gregtech.api.GregTech_API")()
