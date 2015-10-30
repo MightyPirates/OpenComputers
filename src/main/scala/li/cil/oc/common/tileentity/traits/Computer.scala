@@ -38,6 +38,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   private var _isRunning = false
 
+  // For client side rendering of error LED indicator.
+  var hasErrored = false
+
   private val _users = mutable.Set.empty[String]
 
   protected def runSound = Option("computer_running")
@@ -52,6 +55,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   def setRunning(value: Boolean): Unit = if (value != _isRunning) {
     _isRunning = value
+    if (value) {
+      hasErrored = false
+    }
     if (world != null) {
       world.markBlockForUpdate(x, y, z)
       runSound.foreach(sound =>
@@ -107,8 +113,11 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     if (isServer && isConnected) {
       updateComputer()
 
-      if (_isRunning != machine.isRunning) {
-        _isRunning = machine.isRunning
+      val running = machine.isRunning
+      val errored = machine.lastError != null
+      if (_isRunning != running || hasErrored != errored) {
+        _isRunning = running
+        hasErrored = errored
         onRunningChanged()
       }
 
@@ -171,6 +180,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
+    hasErrored = nbt.getBoolean("hasErrored")
     setRunning(nbt.getBoolean("isRunning"))
     _users.clear()
     _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
@@ -179,6 +189,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
+    nbt.setBoolean("hasErrored", machine != null && machine.lastError != null)
     nbt.setBoolean("isRunning", isRunning)
     nbt.setNewTagList("users", machine.users.map(user => new NBTTagString(user)))
   }
@@ -207,7 +218,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    machine.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
+    machine.node.sendToNeighbors("redstone.changed", toLocal(side), Int.box(oldMaxValue), Int.box(newMaxValue))
   }
 
   // ----------------------------------------------------------------------- //

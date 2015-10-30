@@ -65,7 +65,7 @@ class Settings(val config: Config) {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Double, tier2: Double, tier3: Double)
     case _ =>
-      OpenComputers.log.warn("Bad number of CPU call budgets, ignoring.")
+      OpenComputers.log.warn("Bad number of call budgets, ignoring.")
       Array(0.5, 1.0, 1.5)
   }
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")

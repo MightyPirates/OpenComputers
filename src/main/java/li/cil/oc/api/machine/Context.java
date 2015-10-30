@@ -138,6 +138,24 @@ public interface Context {
     boolean stop();
 
     /**
+     * This method allows dynamic costs for direct calls.
+     * <p/>
+     * It will update the budget for direct calls in the current context, and
+     * throw a {@link LimitReachedException} that should <em>not</em> be caught
+     * by the callback function. It will be handled in the calling code and
+     * take care of switching states as necessary.
+     * <p/>
+     * Call this from a method with <code>@Callback(direct = true)</code> and
+     * no <tt>limit</tt> set to use dynamic costs. If a limit is set, it will
+     * always be deduced from the budget in addition to this.
+     * <p/>
+     * When called from a non-direct / synchronous callback this does nothing.
+     *
+     * @param callCost the cost of the direct call being performed.
+     */
+    void consumeCallBudget(double callCost);
+
+    /**
      * Push a signal into the computer.
      * <p/>
      * Signals are processed sequentially by the computer, and are queued in a

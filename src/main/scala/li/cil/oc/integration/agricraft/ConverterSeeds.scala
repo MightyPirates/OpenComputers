@@ -15,12 +15,12 @@ object ConverterSeeds extends Converter {
         if (api.isHandledByAgricraft(stack) && stack.hasTagCompound && stack.getTagCompound.getBoolean("analyzed")) api.getSeedStats(stack) match {
           case stats: ISeedStats =>
             output += "agricraft" -> Map(
-              "gain" -> float2Float(stats.getGain),
-              "maxGain" -> float2Float(stats.getMaxGain),
-              "growth" -> float2Float(stats.getGrowth),
-              "maxGrowth" -> float2Float(stats.getMaxGrowth),
-              "strength" -> float2Float(stats.getStrength),
-              "maxStrength" -> float2Float(stats.getMaxStrength)
+              "gain" -> Float.box(stats.getGain),
+              "maxGain" -> Float.box(stats.getMaxGain),
+              "growth" -> Float.box(stats.getGrowth),
+              "maxGrowth" -> Float.box(stats.getMaxGrowth),
+              "strength" -> Float.box(stats.getStrength),
+              "maxStrength" -> Float.box(stats.getMaxStrength)
             )
           case _ =>
         }

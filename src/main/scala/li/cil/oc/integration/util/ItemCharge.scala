@@ -16,7 +16,7 @@ object ItemCharge {
 
   def charge(stack: ItemStack, amount: Double): Double = {
     if (stack != null) chargers.find(charger => IMC.tryInvokeStatic(charger._1, stack)(false)) match {
-      case Some(charger) => IMC.tryInvokeStatic(charger._2, stack, double2Double(amount), java.lang.Boolean.FALSE)(0.0)
+      case Some(charger) => IMC.tryInvokeStatic(charger._2, stack, Double.box(amount), java.lang.Boolean.FALSE)(0.0)
       case _ => 0.0
     }
     else 0.0

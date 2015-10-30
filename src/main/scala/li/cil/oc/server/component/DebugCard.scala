@@ -421,7 +421,7 @@ object DebugCard {
       checkEnabled()
       val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
       world.getTileEntity(x, y, z) match {
-        case tileEntity: TileEntity => result(toNbt(tileEntity).toTypedMap)
+        case tileEntity: TileEntity => result(toNbt(tileEntity.writeToNBT _).toTypedMap)
         case _ => null
       }
     }

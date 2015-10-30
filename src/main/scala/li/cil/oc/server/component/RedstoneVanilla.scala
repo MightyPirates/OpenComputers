@@ -7,6 +7,9 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.traits.RedstoneAware
+import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedWorld._
+import li.cil.oc.util.ExtendedBlock._
 import net.minecraftforge.common.util.ForgeDirection
 
 trait RedstoneVanilla extends RedstoneSignaller {
@@ -36,13 +39,27 @@ trait RedstoneVanilla extends RedstoneSignaller {
     result(redstone.output(side))
   }
 
+  @Callback(direct = true, doc = """function(side:number):number -- Get the comparator input on the specified side.""")
+  def getComparatorInput(context: Context, args: Arguments): Array[AnyRef] = {
+    val side = checkSide(args, 0)
+    val blockPos = BlockPosition(redstone).offset(side)
+    if (redstone.world.blockExists(blockPos)) {
+      val block = redstone.world.getBlock(blockPos)
+      if (block.hasComparatorInputOverride) {
+        val comparatorOverride = block.getComparatorInputOverride(blockPos, side.getOpposite)
+        return result(comparatorOverride)
+      }
+    }
+    result(0)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
     if (message.name == "redstone.changed") message.data match {
       case Array(side: ForgeDirection, oldMaxValue: Number, newMaxValue: Number) =>
-        onRedstoneChanged(int2Integer(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
+        onRedstoneChanged(Int.box(side.ordinal()), oldMaxValue.intValue(), newMaxValue.intValue())
       case _ =>
     }
   }

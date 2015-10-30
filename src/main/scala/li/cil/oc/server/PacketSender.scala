@@ -67,6 +67,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isRunning)
+    pb.writeBoolean(t.hasErrored)
 
     pb.sendToPlayersNearTileEntity(t)
   }

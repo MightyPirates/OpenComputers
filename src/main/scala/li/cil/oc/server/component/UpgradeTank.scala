@@ -34,7 +34,29 @@ class UpgradeTank(val owner: EnvironmentHost, val capacity: Int) extends prefab.
 
   override def getInfo = tank.getInfo
 
-  override def fill(stack: FluidStack, doFill: Boolean) = tank.fill(stack, doFill)
+  override def fill(stack: FluidStack, doFill: Boolean) = {
+    val amount = tank.fill(stack, doFill)
+    if (doFill && amount > 0) {
+      node.sendToVisible("computer.signal", "tank_changed", Int.box(tankIndex), Int.box(amount))
+    }
+    amount
+  }
 
-  override def drain(maxDrain: Int, doDrain: Boolean) = tank.drain(maxDrain, doDrain)
+  override def drain(maxDrain: Int, doDrain: Boolean) = {
+    val amount = tank.drain(maxDrain, doDrain)
+    if (doDrain && amount != null && amount.amount > 0) {
+      node.sendToVisible("computer.signal", "tank_changed", Int.box(tankIndex), Int.box(-amount.amount))
+    }
+    amount
+  }
+
+  private def tankIndex = {
+    owner match {
+      case agent: li.cil.oc.api.internal.Agent if agent.tank != null =>
+        val tanks = (0 until agent.tank.tankCount).map(agent.tank.getFluidTank)
+        val index = tanks.indexOf(this)
+        (index max 0) + 1
+      case _ => 1
+    }
+  }
 }

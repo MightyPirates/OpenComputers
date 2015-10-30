@@ -4,6 +4,8 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver
+import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.api.machine.Architecture
@@ -22,7 +24,7 @@ import scala.collection.convert.WrapAsScala._
 
 object DriverCPU extends DriverCPU
 
-abstract class DriverCPU extends Item with MutableProcessor {
+abstract class DriverCPU extends Item with driver.item.MutableProcessor with driver.item.CallBudget {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.CPUTier1),
     api.Items.get(Constants.ItemName.CPUTier2),
@@ -69,4 +71,6 @@ abstract class DriverCPU extends Item with MutableProcessor {
     stack.getTagCompound.setString(Settings.namespace + "archClass", architecture.getName)
     stack.getTagCompound.setString(Settings.namespace + "archName", Machine.getArchitectureName(architecture))
   }
+
+  override def getCallBudget(stack: ItemStack): Double = Settings.get.callBudgets(tier(stack) max Tier.One min Tier.Three)
 }
