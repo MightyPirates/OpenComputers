@@ -4,7 +4,6 @@ import li.cil.oc.api.internal.StateAware;
 import li.cil.oc.api.network.Analyzable;
 import li.cil.oc.api.network.ComponentHost;
 import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.network.Node;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
@@ -43,14 +42,16 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
     NBTTagCompound getData();
 
     /**
-     * The number of nodes exposed by the environment.
+     * The number of connectables exposed by the environment.
+     * <p/>
+     * Node that only the first three will ever be used.
      */
-    int getNodeCount();
+    int getConnectableCount();
 
     /**
      * Returns the node at the specified index.
      */
-    Node getNodeAt(int index);
+    RackBusConnectable getConnectableAt(int index);
 
     /**
      * This gets called when the server rack is activated by a player, and

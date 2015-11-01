@@ -1,7 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.Settings
-import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.api
 import net.minecraft.nbt._
 import net.minecraftforge.common.util.Constants.NBT
 
@@ -226,7 +226,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       System.arraycopy(value.toCharArray, 0, buffer(i), 0, math.min(value.length, buffer(i).length))
     }
 
-    val depth = ColorDepth.values.apply(nbt.getInteger("depth") min (ColorDepth.values.length - 1) max 0)
+    val depth = api.internal.TextBuffer.ColorDepth.values.apply(nbt.getInteger("depth") min (api.internal.TextBuffer.ColorDepth.values.length - 1) max 0)
     _format = PackedColor.Depth.format(depth)
     _format.load(nbt)
     foreground = PackedColor.Color(nbt.getInteger("foreground"), nbt.getBoolean("foregroundIsPalette"))
@@ -261,7 +261,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     nbt.setInteger("background", _background.value)
     nbt.setBoolean("backgroundIsPalette", _background.isPalette)
 
-    nbt.setTag("color", new NBTTagIntArray(color.flatten.map(_.toInt).toArray))
+    nbt.setTag("color", new NBTTagIntArray(color.flatten.map(_.toInt)))
   }
 
   override def toString = {

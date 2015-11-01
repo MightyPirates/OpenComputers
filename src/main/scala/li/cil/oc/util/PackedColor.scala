@@ -1,23 +1,23 @@
 package li.cil.oc.util
 
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.component.TextBuffer.ColorDepth
 import net.minecraft.nbt.NBTTagCompound
 
 object PackedColor {
 
   object Depth {
-    def bits(depth: ColorDepth) = depth match {
-      case ColorDepth.OneBit => 1
-      case ColorDepth.FourBit => 4
-      case ColorDepth.EightBit => 8
+    def bits(depth: api.internal.TextBuffer.ColorDepth) = depth match {
+      case api.internal.TextBuffer.ColorDepth.OneBit => 1
+      case api.internal.TextBuffer.ColorDepth.FourBit => 4
+      case api.internal.TextBuffer.ColorDepth.EightBit => 8
     }
 
-    def format(depth: ColorDepth) = depth match {
-      case ColorDepth.OneBit => SingleBitFormat
-      case ColorDepth.FourBit => new MutablePaletteFormat
-      case ColorDepth.EightBit => new HybridFormat
+    def format(depth: api.internal.TextBuffer.ColorDepth) = depth match {
+      case api.internal.TextBuffer.ColorDepth.OneBit => SingleBitFormat
+      case api.internal.TextBuffer.ColorDepth.FourBit => new MutablePaletteFormat
+      case api.internal.TextBuffer.ColorDepth.EightBit => new HybridFormat
     }
   }
 
@@ -33,7 +33,7 @@ object PackedColor {
   }
 
   trait ColorFormat extends Persistable {
-    def depth: ColorDepth
+    def depth: api.internal.TextBuffer.ColorDepth
 
     def inflate(value: Int): Int
 
@@ -53,7 +53,7 @@ object PackedColor {
   }
 
   class SingleBitFormat(val color: Int) extends ColorFormat {
-    override def depth = ColorDepth.OneBit
+    override def depth = api.internal.TextBuffer.ColorDepth.OneBit
 
     override def inflate(value: Int) = if (value == 0) 0x000000 else color
 
@@ -92,7 +92,7 @@ object PackedColor {
   }
 
   class MutablePaletteFormat extends PaletteFormat {
-    override def depth = ColorDepth.FourBit
+    override def depth = api.internal.TextBuffer.ColorDepth.FourBit
 
     def apply(index: Int) = palette(index)
 
@@ -123,10 +123,10 @@ object PackedColor {
     // those are already contained in the normal color cube.
     for (i <- palette.indices) {
       val shade = 0xFF * (i + 1) / (palette.length + 1)
-      this(i) = (shade << rShift32) | (shade << gShift32) | (shade << bShift32)
+      this (i) = (shade << rShift32) | (shade << gShift32) | (shade << bShift32)
     }
 
-    override def depth = ColorDepth.EightBit
+    override def depth = api.internal.TextBuffer.ColorDepth.EightBit
 
     override def inflate(value: Int) =
       if (isFromPalette(value)) super.inflate(value)

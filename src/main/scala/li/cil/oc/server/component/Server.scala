@@ -5,6 +5,7 @@ import java.util
 
 import li.cil.oc.api
 import li.cil.oc.api.Machine
+import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.StateAware.State
 import li.cil.oc.api.machine.MachineHost
@@ -136,12 +137,14 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
     nbt
   }
 
-  override def getNodeCount: Int = 1 // TODO network cards and such
-
-  override def getNodeAt(index: Int): Node = {
-    if (index == 0) machine.node
-    else ???
+  override def getConnectableCount: Int = components.count {
+    case Some(_: RackBusConnectable) => true
+    case _ => false
   }
+
+  override def getConnectableAt(index: Int): RackBusConnectable = components.collect {
+    case Some(busConnectable: RackBusConnectable) => busConnectable
+  }.apply(index)
 
   override def onActivate(player: EntityPlayer): Unit = {} // TODO server inventory
 

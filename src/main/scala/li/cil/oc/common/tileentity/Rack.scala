@@ -55,7 +55,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
     // If it's the primary node cut the direct connection.
     if (nodeIndex == 0 && oldSide.isDefined) {
-      val node = getMountable(mountableIndex).getNodeAt(nodeIndex)
+      val node = getMountable(mountableIndex).node()
       val plug = sidedNode(oldSide.get)
       if (node != null && plug != null) {
         node.disconnect(plug)
@@ -66,7 +66,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
     // If it's the primary node establish a direct connection.
     if (nodeIndex == 0 && newSide.isDefined) {
-      val node = getMountable(mountableIndex).getNodeAt(nodeIndex)
+      val node = getMountable(mountableIndex).node()
       val plug = sidedNode(newSide.get)
       if (node != null && plug != null) {
         node.connect(plug)
@@ -85,14 +85,14 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     // sender, to avoid loops.
     for (mountableIndex <- 0 until getSizeInventory) {
       val mapping = nodeMapping(mountableIndex)
-      for (nodeIndex <- 1 to 3) {
-        mapping(nodeIndex) match {
+      for (nodeIndex <- 0 until 3) {
+        mapping(nodeIndex + 1) match {
           case Some(side) if sourceSide.contains(toGlobal(side)) =>
             val mountable = getMountable(mountableIndex)
             if (mountable != null) {
-              val node = mountable.getNodeAt(nodeIndex)
-              if (node != null && node.address != packet.source) {
-                node.sendToAddress(node.address, "network.message", packet)
+              val connectable = mountable.getConnectableAt(nodeIndex)
+              if (connectable != null) {
+                connectable.receivePacket(packet)
               }
             }
           case _ => // Not connected to a bus.

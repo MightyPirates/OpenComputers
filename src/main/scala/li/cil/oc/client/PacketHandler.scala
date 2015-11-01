@@ -7,7 +7,6 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.Loot
@@ -517,7 +516,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onTextBufferPowerChange(p: PacketParser) =
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: component.TextBuffer) =>
+      case Some(buffer: api.internal.TextBuffer) =>
         buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
@@ -540,7 +539,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onTextBufferMulti(p: PacketParser) =
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: component.TextBuffer) =>
+      case Some(buffer: api.internal.TextBuffer) =>
         try while (true) {
           p.readPacketType() match {
             case PacketType.TextBufferMultiColorChange => onTextBufferMultiColorChange(p, buffer)
@@ -563,9 +562,9 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onTextBufferMultiColorChange(p: PacketParser, env: component.TextBuffer) {
+  def onTextBufferMultiColorChange(p: PacketParser, env: api.internal.TextBuffer) {
     env match {
-      case buffer: component.TextBuffer =>
+      case buffer: api.internal.TextBuffer =>
         val foreground = p.readInt()
         val foregroundIsPalette = p.readBoolean()
         buffer.setForegroundColor(foreground, foregroundIsPalette)
@@ -576,7 +575,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onTextBufferMultiCopy(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiCopy(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
@@ -586,11 +585,11 @@ object PacketHandler extends CommonPacketHandler {
     buffer.copy(col, row, w, h, tx, ty)
   }
 
-  def onTextBufferMultiDepthChange(p: PacketParser, buffer: component.TextBuffer) {
-    buffer.setColorDepth(component.TextBuffer.ColorDepth.values.apply(p.readInt()))
+  def onTextBufferMultiDepthChange(p: PacketParser, buffer: api.internal.TextBuffer) {
+    buffer.setColorDepth(api.internal.TextBuffer.ColorDepth.values.apply(p.readInt()))
   }
 
-  def onTextBufferMultiFill(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiFill(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
@@ -599,25 +598,25 @@ object PacketHandler extends CommonPacketHandler {
     buffer.fill(col, row, w, h, c)
   }
 
-  def onTextBufferMultiPaletteChange(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiPaletteChange(p: PacketParser, buffer: api.internal.TextBuffer) {
     val index = p.readInt()
     val color = p.readInt()
     buffer.setPaletteColor(index, color)
   }
 
-  def onTextBufferMultiResolutionChange(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiResolutionChange(p: PacketParser, buffer: api.internal.TextBuffer) {
     val w = p.readInt()
     val h = p.readInt()
     buffer.setResolution(w, h)
   }
 
-  def onTextBufferMultiMaxResolutionChange(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiMaxResolutionChange(p: PacketParser, buffer: api.internal.TextBuffer) {
     val w = p.readInt()
     val h = p.readInt()
     buffer.setMaximumResolution(w, h)
   }
 
-  def onTextBufferMultiSet(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiSet(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
     val s = p.readUTF()
@@ -625,7 +624,7 @@ object PacketHandler extends CommonPacketHandler {
     buffer.set(col, row, s, vertical)
   }
 
-  def onTextBufferMultiRawSetText(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiRawSetText(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
 
@@ -643,7 +642,7 @@ object PacketHandler extends CommonPacketHandler {
     buffer.rawSetText(col, row, text)
   }
 
-  def onTextBufferMultiRawSetBackground(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiRawSetBackground(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
 
@@ -661,7 +660,7 @@ object PacketHandler extends CommonPacketHandler {
     buffer.rawSetBackground(col, row, color)
   }
 
-  def onTextBufferMultiRawSetForeground(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiRawSetForeground(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
 

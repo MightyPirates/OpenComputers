@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.component.Keyboard.UsabilityChecker
+import li.cil.oc.api.internal.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Visibility

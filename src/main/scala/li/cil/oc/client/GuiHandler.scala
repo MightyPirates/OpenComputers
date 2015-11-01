@@ -1,8 +1,6 @@
 package li.cil.oc.client
 
-import li.cil.oc.Localization
-import li.cil.oc.Settings
-import li.cil.oc.api.component.TextBuffer
+import li.cil.oc.api
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.entity
 import li.cil.oc.common.inventory.DatabaseInventory
@@ -11,7 +9,6 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
-import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 
@@ -80,9 +77,9 @@ object GuiHandler extends CommonGuiHandler {
             val stack = player.getHeldItem
             if (stack.hasTagCompound) {
               item.Tablet.get(stack, player).components.collect {
-                case Some(buffer: TextBuffer) => buffer
+                case Some(buffer: api.internal.TextBuffer) => buffer
               }.headOption match {
-                case Some(buffer: TextBuffer) => new gui.Screen(buffer, true, () => true, () => true)
+                case Some(buffer: api.internal.TextBuffer) => new gui.Screen(buffer, true, () => true, () => true)
                 case _ => null
               }
             }

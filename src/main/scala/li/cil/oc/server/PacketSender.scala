@@ -1,7 +1,6 @@
 package li.cil.oc.server
 
 import li.cil.oc.api
-import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.event.FileSystemAccessEvent
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
@@ -537,7 +536,7 @@ object PacketSender {
     pb.writeInt(ty)
   }
 
-  def appendTextBufferDepthChange(pb: PacketBuilder, value: ColorDepth) {
+  def appendTextBufferDepthChange(pb: PacketBuilder, value: api.internal.TextBuffer.ColorDepth) {
     pb.writePacketType(PacketType.TextBufferMultiDepthChange)
 
     pb.writeInt(value.ordinal)

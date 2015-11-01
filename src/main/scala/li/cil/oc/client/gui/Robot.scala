@@ -24,7 +24,7 @@ import scala.collection.convert.WrapAsJava._
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends DynamicGuiContainer(new container.Robot(playerInventory, robot)) with traits.InputBuffer {
   override protected val buffer = robot.components.collect {
-    case Some(buffer: api.component.TextBuffer) => buffer
+    case Some(buffer: api.internal.TextBuffer) => buffer
   }.headOption.orNull
 
   override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor(_, robot.getClass)).contains(opencomputers.DriverKeyboard)

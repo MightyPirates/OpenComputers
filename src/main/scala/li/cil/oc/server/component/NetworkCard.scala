@@ -4,10 +4,11 @@ import com.google.common.base.Charsets
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import net.minecraft.nbt._
@@ -15,7 +16,7 @@ import net.minecraft.nbt._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
+class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with RackBusConnectable {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     create()
@@ -143,6 +144,10 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
         case _ =>
       }
     }
+  }
+
+  override def receivePacket(packet: Packet): Unit = {
+    receivePacket(packet, 0)
   }
 
   // ----------------------------------------------------------------------- //

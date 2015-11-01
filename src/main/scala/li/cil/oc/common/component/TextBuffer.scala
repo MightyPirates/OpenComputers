@@ -8,11 +8,10 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.client.renderer.TextBufferRenderCache
@@ -36,7 +35,7 @@ import net.minecraftforge.event.world.WorldEvent
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.component.TextBuffer {
+class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.TextBuffer {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -251,11 +250,11 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   override def getHeight = data.height
 
-  override def setMaximumColorDepth(depth: ColorDepth) = maxDepth = depth
+  override def setMaximumColorDepth(depth: api.internal.TextBuffer.ColorDepth) = maxDepth = depth
 
   override def getMaximumColorDepth = maxDepth
 
-  override def setColorDepth(depth: ColorDepth) = {
+  override def setColorDepth(depth: api.internal.TextBuffer.ColorDepth) = {
     if (depth.ordinal > maxDepth.ordinal)
       throw new IllegalArgumentException("unsupported depth")
     // Always send to clients, their state might be dirty.
@@ -565,7 +564,7 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
-    def onBufferDepthChange(depth: ColorDepth): Unit
+    def onBufferDepthChange(depth: api.internal.TextBuffer.ColorDepth): Unit
 
     def onBufferFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       owner.relativeLitArea = -1
@@ -637,7 +636,7 @@ object TextBuffer {
       markDirty()
     }
 
-    override def onBufferDepthChange(depth: ColorDepth) {
+    override def onBufferDepthChange(depth: api.internal.TextBuffer.ColorDepth) {
       markDirty()
     }
 
@@ -720,7 +719,7 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferCopy(owner.pendingCommands, col, row, w, h, tx, ty))
     }
 
-    override def onBufferDepthChange(depth: ColorDepth) {
+    override def onBufferDepthChange(depth: api.internal.TextBuffer.ColorDepth) {
       owner.host.markChanged()
       owner.synchronized(ServerPacketSender.appendTextBufferDepthChange(owner.pendingCommands, depth))
     }

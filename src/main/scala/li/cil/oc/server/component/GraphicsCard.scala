@@ -2,9 +2,8 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Localization
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.component.TextBuffer
-import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -39,9 +38,9 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   private var screenAddress: Option[String] = None
 
-  private var screenInstance: Option[TextBuffer] = None
+  private var screenInstance: Option[api.internal.TextBuffer] = None
 
-  private def screen(f: (TextBuffer) => Array[AnyRef]) = screenInstance match {
+  private def screen(f: (api.internal.TextBuffer) => Array[AnyRef]) = screenInstance match {
     case Some(screen) => screen.synchronized(f(screen))
     case _ => Array(Unit, "no screen")
   }
@@ -54,8 +53,8 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     super.update()
     if (node.network != null && screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
-        case Some(node: Node) if node.host.isInstanceOf[TextBuffer] =>
-          screenInstance = Some(node.host.asInstanceOf[TextBuffer])
+        case Some(node: Node) if node.host.isInstanceOf[api.internal.TextBuffer] =>
+          screenInstance = Some(node.host.asInstanceOf[api.internal.TextBuffer])
         case _ =>
           // This could theoretically happen after loading an old address, but
           // if the screen either disappeared between saving and now or changed
@@ -73,16 +72,16 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     val reset = args.optBoolean(1, true)
     node.network.node(address) match {
       case null => result(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[TextBuffer] =>
+      case node: Node if node.host.isInstanceOf[api.internal.TextBuffer] =>
         screenAddress = Option(address)
-        screenInstance = Some(node.host.asInstanceOf[TextBuffer])
+        screenInstance = Some(node.host.asInstanceOf[api.internal.TextBuffer])
         screen(s => {
           if (reset) {
             val (gmw, gmh) = maxResolution
             val smw = s.getMaximumWidth
             val smh = s.getMaximumHeight
             s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
-            s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+            s.setColorDepth(api.internal.TextBuffer.ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
             s.setForegroundColor(0xFFFFFF)
             s.setBackgroundColor(0x000000)
           }
@@ -180,9 +179,9 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     screen(s => {
       val oldDepth = s.getColorDepth
       depth match {
-        case 1 => s.setColorDepth(ColorDepth.OneBit)
-        case 4 if maxDepth.ordinal >= ColorDepth.FourBit.ordinal => s.setColorDepth(ColorDepth.FourBit)
-        case 8 if maxDepth.ordinal >= ColorDepth.EightBit.ordinal => s.setColorDepth(ColorDepth.EightBit)
+        case 1 => s.setColorDepth(api.internal.TextBuffer.ColorDepth.OneBit)
+        case 4 if maxDepth.ordinal >= api.internal.TextBuffer.ColorDepth.FourBit.ordinal => s.setColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
+        case 8 if maxDepth.ordinal >= api.internal.TextBuffer.ColorDepth.EightBit.ordinal => s.setColorDepth(api.internal.TextBuffer.ColorDepth.EightBit)
         case _ => throw new IllegalArgumentException("unsupported depth")
       }
       result(oldDepth)
@@ -191,7 +190,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
 
   @Callback(direct = true, doc = """function():number -- Get the maximum supported color depth.""")
   def maxDepth(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(PackedColor.Depth.bits(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))))
+    screen(s => result(PackedColor.Depth.bits(api.internal.TextBuffer.ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))))
 
   @Callback(direct = true, doc = """function():number, number -- Get the current screen resolution.""")
   def getResolution(context: Context, args: Arguments): Array[AnyRef] =
@@ -320,13 +319,13 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
         val smw = s.getMaximumWidth
         val smh = s.getMaximumHeight
         s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
-        s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+        s.setColorDepth(api.internal.TextBuffer.ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
         s.setForegroundColor(0xFFFFFF)
         val w = s.getWidth
         val h = s.getHeight
         message.source.host match {
           case machine: li.cil.oc.server.machine.Machine if machine.lastError != null =>
-            if (s.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
+            if (s.getColorDepth.ordinal > api.internal.TextBuffer.ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
             else s.setBackgroundColor(0x000000)
             s.fill(0, 0, w, h, ' ')
             try {

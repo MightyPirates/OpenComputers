@@ -129,28 +129,28 @@ object PacketHandler extends CommonPacketHandler {
 
   def onKeyDown(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) => buffer.keyDown(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
+      case Some(buffer: api.internal.TextBuffer) => buffer.keyDown(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onKeyUp(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) => buffer.keyUp(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
+      case Some(buffer: api.internal.TextBuffer) => buffer.keyUp(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onClipboard(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) => buffer.clipboard(p.readUTF(), p.player.asInstanceOf[EntityPlayer])
+      case Some(buffer: api.internal.TextBuffer) => buffer.clipboard(p.readUTF(), p.player.asInstanceOf[EntityPlayer])
       case _ => // Invalid Packet
     }
   }
 
   def onMouseClick(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) =>
+      case Some(buffer: api.internal.TextBuffer) =>
         val x = p.readFloat()
         val y = p.readFloat()
         val dragging = p.readBoolean()
@@ -164,7 +164,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onMouseUp(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) =>
+      case Some(buffer: api.internal.TextBuffer) =>
         val x = p.readFloat()
         val y = p.readFloat()
         val button = p.readByte()
@@ -176,7 +176,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onMouseScroll(p: PacketParser) {
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: api.component.TextBuffer) =>
+      case Some(buffer: api.internal.TextBuffer) =>
         val x = p.readFloat()
         val y = p.readFloat()
         val button = p.readByte()
