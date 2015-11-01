@@ -11,7 +11,8 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
-import li.cil.oc.api.internal.ServerRack
+import li.cil.oc.api.internal.Rack
+import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.asm.ClassTransformer
@@ -360,14 +361,11 @@ object EventHandler {
           case machine: Machine => scheduleClose(machine)
           case _ => // Dafuq?
         }
-        case rack: ServerRack =>
+        case rack: Rack =>
           // TODO
-//          (0 until rack.getSizeInventory).
-//            map(rack.getMountable).
-//            filter(_ != null).
-//            map(_.machine()).
-//            filter(_ != null).
-//            foreach(_.stop())
+          (0 until rack.getSizeInventory).
+            map(rack.getMountable).
+            collect { case server: Server if server.machine != null => server.machine.stop() }
       })
     }
   }

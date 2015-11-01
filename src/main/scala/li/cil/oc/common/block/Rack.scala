@@ -11,7 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
+class Rack extends RedstoneAware with traits.SpecialBlock with traits.PowerAcceptor with traits.StateAware with traits.GUI {
   override protected def customTextures = Array(
     None,
     None,
@@ -23,13 +23,13 @@ class ServerRack extends RedstoneAware with traits.SpecialBlock with traits.Powe
 
   override def registerBlockIcons(iconRegister: IIconRegister) = {
     super.registerBlockIcons(iconRegister)
-    System.arraycopy(icons, 0, Textures.ServerRack.icons, 0, icons.length)
+    System.arraycopy(icons, 0, Textures.Rack.icons, 0, icons.length)
   }
 
   @SideOnly(Side.CLIENT)
   override def getMixedBrightnessForBlock(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     if (y >= 0 && y < world.getHeight) world.getTileEntity(x, y, z) match {
-      case rack: tileentity.ServerRack =>
+      case rack: tileentity.Rack =>
         def brightness(x: Int, y: Int, z: Int) = world.getLightBrightnessForSkyBlocks(x, y, z, world.getBlock(x, y, z).getLightValue(world, x, y, z))
         val value = brightness(x + rack.facing.offsetX, y + rack.facing.offsetY, z + rack.facing.offsetZ)
         val skyBrightness = (value >> 20) & 15

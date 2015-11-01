@@ -34,8 +34,8 @@ object GuiHandler extends CommonGuiHandler {
             new gui.DiskDrive(player.inventory, t)
           case t: tileentity.Printer if id == GuiType.Printer.id =>
             new gui.Printer(player.inventory, t)
-          case t: tileentity.ServerRack if id == GuiType.Rack.id =>
-            new gui.ServerRack(player.inventory, t)
+          case t: tileentity.Rack if id == GuiType.Rack.id =>
+            new gui.Rack(player.inventory, t)
           case t: tileentity.Raid if id == GuiType.Raid.id =>
             new gui.Raid(player.inventory, t)
           case t: tileentity.Relay if id == GuiType.Relay.id =>
@@ -94,38 +94,38 @@ object GuiHandler extends CommonGuiHandler {
             }
             else null
           case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
-            val stack = player.getHeldItem
-            if (stack.hasTagCompound) {
-              val address = stack.getTagCompound.getString(Settings.namespace + "server")
-              val key = stack.getTagCompound.getString(Settings.namespace + "key")
-              if (key != null && !key.isEmpty && address != null && !address.isEmpty) {
-                tileentity.ServerRack.list.keys.
-                  flatMap(_.terminals).
-                  find(term => term.rack.isPresent(term.number) match {
-                  case Some(value) => value == address
-                  case _ => false
-                }) match {
-                  case Some(term) =>
-                    def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
-                    if (inRange) {
-                      if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
-                        // Check if someone else bound a term to our server.
-                        if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
-                          Minecraft.getMinecraft.displayGuiScreen(null)
-                        }
-                        // Check whether we're still in range.
-                        if (!inRange) {
-                          Minecraft.getMinecraft.displayGuiScreen(null)
-                        }
-                        true
-                      })
-                      else player.addChatMessage(Localization.Terminal.InvalidKey)
-                    }
-                    else player.addChatMessage(Localization.Terminal.OutOfRange)
-                  case _ => player.addChatMessage(Localization.Terminal.OutOfRange)
-                }
-              }
-            }
+//            val stack = player.getHeldItem
+//            if (stack.hasTagCompound) {
+//              val address = stack.getTagCompound.getString(Settings.namespace + "server")
+//              val key = stack.getTagCompound.getString(Settings.namespace + "key")
+//              if (key != null && !key.isEmpty && address != null && !address.isEmpty) {
+//                tileentity.ServerRack.list.keys.
+//                  flatMap(_.terminals).
+//                  find(term => term.rack.isPresent(term.number) match {
+//                  case Some(value) => value == address
+//                  case _ => false
+//                }) match {
+//                  case Some(term) =>
+//                    def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
+//                    if (inRange) {
+//                      if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
+//                        // Check if someone else bound a term to our server.
+//                        if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
+//                          Minecraft.getMinecraft.displayGuiScreen(null)
+//                        }
+//                        // Check whether we're still in range.
+//                        if (!inRange) {
+//                          Minecraft.getMinecraft.displayGuiScreen(null)
+//                        }
+//                        true
+//                      })
+//                      else player.addChatMessage(Localization.Terminal.InvalidKey)
+//                    }
+//                    else player.addChatMessage(Localization.Terminal.OutOfRange)
+//                  case _ => player.addChatMessage(Localization.Terminal.OutOfRange)
+//                }
+//              }
+//            }
             null
           case _ => null
         }

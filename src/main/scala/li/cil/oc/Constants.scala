@@ -38,7 +38,7 @@ object Constants {
     final val ScreenTier1 = "screen1"
     final val ScreenTier2 = "screen2"
     final val ScreenTier3 = "screen3"
-    final val ServerRack = "serverRack"
+    final val Rack = "rack"
     final val Switch = "switch"
     final val Transposer = "transposer"
     final val Waypoint = "waypoint"

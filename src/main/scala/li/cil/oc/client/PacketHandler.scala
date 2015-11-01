@@ -68,6 +68,8 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.PrinterState => onPrinterState(p)
+      case PacketType.RackInventory => onRackInventory(p)
+      case PacketType.RackMountableData => onRackMountableData(p)
       case PacketType.RaidStateChange => onRaidStateChange(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
@@ -83,7 +85,6 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferMulti => onTextBufferMulti(p)
       case PacketType.ScreenTouchMode => onScreenTouchMode(p)
-      case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case PacketType.SoundPattern => onSoundPattern(p)
       case PacketType.TransposerActivity => onTransposerActivity(p)
@@ -124,26 +125,10 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerState(p: PacketParser) =
-    p.readTileEntity[TileEntity]() match {
-      case Some(t: Computer) =>
+    p.readTileEntity[Computer]() match {
+      case Some(t) =>
         t.setRunning(p.readBoolean())
         t.hasErrored = p.readBoolean()
-      case Some(t: ServerRack) =>
-        val number = p.readInt()
-        if (number == -1) {
-          t.range = p.readInt()
-        }
-        else {
-          t.setRunning(number, p.readBoolean())
-          t.setErrored(number, p.readBoolean())
-          t.sides(number) = p.readDirection()
-          val keyCount = p.readInt()
-          val keys = t.terminals(number).keys
-          keys.clear()
-          for (i <- 0 until keyCount) {
-            keys += p.readUTF()
-          }
-        }
       case _ => // Invalid packet.
     }
 
@@ -420,6 +405,23 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onRackInventory(p: PacketParser) =
+    p.readTileEntity[Rack]() match {
+      case Some(t) =>
+        for (slot <- 0 until t.getSizeInventory) {
+          t.setInventorySlotContents(slot, p.readItemStack())
+        }
+      case _ => // Invalid packet.
+    }
+
+  def onRackMountableData(p: PacketParser) =
+    p.readTileEntity[Rack]() match {
+      case Some(t) =>
+        val mountableIndex = p.readInt()
+        t.lastData(mountableIndex) = p.readNBT()
+      case _ => // Invalid packet.
+    }
+
   def onRaidStateChange(p: PacketParser) =
     p.readTileEntity[Raid]() match {
       case Some(t) =>
@@ -680,17 +682,6 @@ object PacketHandler extends CommonPacketHandler {
   def onScreenTouchMode(p: PacketParser) =
     p.readTileEntity[Screen]() match {
       case Some(t) => t.invertTouchMode = p.readBoolean()
-      case _ => // Invalid packet.
-    }
-
-  def onServerPresence(p: PacketParser) =
-    p.readTileEntity[ServerRack]() match {
-      case Some(t) => for (i <- t.isPresent.indices) {
-        if (p.readBoolean()) {
-          t.isPresent(i) = Some(p.readUTF())
-        }
-        else t.isPresent(i) = None
-      }
       case _ => // Invalid packet.
     }
 

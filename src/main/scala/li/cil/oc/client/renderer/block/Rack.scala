@@ -1,12 +1,14 @@
 package li.cil.oc.client.renderer.block
 
+import li.cil.oc.api.event.RackMountableRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.RenderBlocks
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 
-object ServerRack {
+object Rack {
   def render(rack: tileentity.Rack, x: Int, y: Int, z: Int, block: Block, renderer: RenderBlocks): Unit = {
     val previousRenderAllFaces = renderer.renderAllFaces
     val u1 = 1 / 16f
@@ -38,13 +40,16 @@ object ServerRack {
               renderer.setRenderBounds(lx + u1, v2 - (i + 1) * fs, u1, hx - u1, v2 - i * fs, hz)
             case _ =>
           }
+          val event = new RackMountableRenderEvent.Block(rack, i, rack.lastData(i), side, renderer)
+          MinecraftForge.EVENT_BUS.post(event)
           renderer.renderStandardBlock(block, x, y, z)
+          renderer.clearOverrideBlockTexture()
         }
       }
       else {
         val isBack = front == side.getOpposite
         if (isBack) {
-          renderer.setOverrideBlockTexture(Textures.ServerRack.icons(ForgeDirection.NORTH.ordinal))
+          renderer.setOverrideBlockTexture(Textures.Rack.icons(ForgeDirection.NORTH.ordinal))
         }
         renderer.setRenderBounds(lx, v1, lz, hx, v2, hz)
         renderer.renderStandardBlock(block, x, y, z)

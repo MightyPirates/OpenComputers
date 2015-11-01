@@ -31,6 +31,8 @@ object PacketType extends Enumeration {
   PetVisibility, // Goes both ways.
   PowerState,
   PrinterState,
+  RackInventory,
+  RackMountableData,
   RaidStateChange,
   RedstoneState,
   RobotAnimateSwing,
@@ -57,7 +59,6 @@ object PacketType extends Enumeration {
   TextBufferMultiRawSetForeground,
   TextBufferPowerChange,
   ScreenTouchMode,
-  ServerPresence,
   Sound,
   SoundPattern,
   TransposerActivity,
@@ -75,11 +76,11 @@ object PacketType extends Enumeration {
   MouseScroll,
   MouseUp,
   MultiPartPlace,
+  RackMountableMapping,
+  RackRelayState,
   RobotAssemblerStart,
   RobotStateRequest,
-  ServerRange,
-  ServerSide,
-  ServerSwitchMode,
+  ServerPower,
 
   EndOfList = Value
 }

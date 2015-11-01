@@ -12,8 +12,10 @@ import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.ComponentHost
 import li.cil.oc.api.network.Connector
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.Packet
 import li.cil.oc.common.Slot
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
@@ -23,10 +25,16 @@ import li.cil.oc.util.ExtendedInventory._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.ServerRack with traits.StateAware {
-  private val lastWorking = new Array[Boolean](getSizeInventory)
+import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
+
+class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.Rack with traits.StateAware {
+  var isRelayEnabled = true
+  val lastData = new Array[NBTTagCompound](getSizeInventory)
+  val hasChanged = new Array[Boolean](getSizeInventory)
 
   // Map node connections for each installed mountable. Each mountable may
   // have up to four outgoing connections, with the first one always being
@@ -34,10 +42,67 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // component access (i.e. actually connecting to that side of the rack).
   // The other nodes are "secondary" connections and merely transfer network
   // messages.
-  private val nodeMapping = Array.fill(getSizeInventory)(new Array[(Int, ForgeDirection)](4))
+  val nodeMapping = Array.fill(getSizeInventory)(Array.fill[Option[ForgeDirection]](4)(None))
+
+  def connect(mountableIndex: Int, nodeIndex: Int, side: Option[ForgeDirection]): Unit = {
+    val newSide = side match {
+      case Some(direction) if direction != ForgeDirection.UNKNOWN => Option(direction)
+      case _ => None
+    }
+
+    val oldSide = nodeMapping(mountableIndex)(nodeIndex)
+    if (oldSide == newSide) return
+
+    // If it's the primary node cut the direct connection.
+    if (nodeIndex == 0 && oldSide.isDefined) {
+      val node = getMountable(mountableIndex).getNodeAt(nodeIndex)
+      val plug = sidedNode(oldSide.get)
+      if (node != null && plug != null) {
+        node.disconnect(plug)
+      }
+    }
+
+    nodeMapping(mountableIndex)(nodeIndex) = newSide
+
+    // If it's the primary node establish a direct connection.
+    if (nodeIndex == 0 && newSide.isDefined) {
+      val node = getMountable(mountableIndex).getNodeAt(nodeIndex)
+      val plug = sidedNode(newSide.get)
+      if (node != null && plug != null) {
+        node.connect(plug)
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------- //
   // Hub
+
+  override protected def relayPacket(sourceSide: Option[ForgeDirection], packet: Packet): Unit = {
+    if (isRelayEnabled) super.relayPacket(sourceSide, packet)
+
+    // When a message arrives on a bus, also send it to all secondary nodes
+    // connected to it. Only deliver it to that very node, if it's not the
+    // sender, to avoid loops.
+    for (mountableIndex <- 0 until getSizeInventory) {
+      val mapping = nodeMapping(mountableIndex)
+      for (nodeIndex <- 1 to 3) {
+        mapping(nodeIndex) match {
+          case Some(side) if sourceSide.contains(toGlobal(side)) =>
+            val mountable = getMountable(mountableIndex)
+            if (mountable != null) {
+              val node = mountable.getNodeAt(nodeIndex)
+              if (node != null && node.address != packet.source) {
+                node.sendToAddress(node.address, "network.message", packet)
+              }
+            }
+          case _ => // Not connected to a bus.
+        }
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+  // SidedEnvironment
 
   override def canConnect(side: ForgeDirection) = side != facing
 
@@ -69,11 +134,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
   // AbstractBusAware
 
-  override def installedComponents: Iterable[ManagedEnvironment] = components.collect {
-    case Some(mountable: RackMountable with ComponentHost) => mountable.getComponents.collect {
+  override def installedComponents: Iterable[ManagedEnvironment] = asJavaIterable(components.collect {
+    case Some(mountable: RackMountable with ComponentHost) => iterableAsScalaIterable(mountable.getComponents).collect {
       case managed: ManagedEnvironment => managed
     }
-  }.flatten
+  }.flatten.toIterable)
 
   @Method(modid = Mods.IDs.StargateTech2)
   override def getInterfaces(side: Int) = if (side != facing.ordinal) {
@@ -89,6 +154,12 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def getMountable(slot: Int): RackMountable = components(slot) match {
     case Some(mountable: RackMountable) => mountable
     case _ => null
+  }
+
+  override def markChanged(slot: Int): Unit = {
+    hasChanged.synchronized(hasChanged(slot) = true)
+    isOutputEnabled = hasRedstoneCard
+    isAbstractBusAvailable = hasAbstractBusCard
   }
 
   // ----------------------------------------------------------------------- //
@@ -116,7 +187,8 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override protected def onRedstoneInputChanged(side: ForgeDirection, oldMaxValue: Int, newMaxValue: Int) {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
     components.collect {
-      case Some(mountable: RackMountable) => mountable.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
+      case Some(mountable: RackMountable) if mountable.node != null =>
+        mountable.node.sendToNeighbors("redstone.changed", toLocal(side), int2Integer(oldMaxValue), int2Integer(newMaxValue))
     }
   }
 
@@ -137,7 +209,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     if (isServer) {
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
-      ServerPacketSender.sendServerPresence(this)
+      ServerPacketSender.sendRackInventory(this)
     }
     else {
       world.markBlockForUpdate(x, y, z)
@@ -145,17 +217,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   }
 
   // ----------------------------------------------------------------------- //
-  // ComponentInventory
-
-  override protected def onItemAdded(slot: Int, stack: ItemStack): Unit = {
-    super.onItemAdded(slot, stack)
-  }
-
-  override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
-    super.onItemRemoved(slot, stack)
-  }
-
-  // ----------------------------------------------------------------------- //
+  // TileEntity
 
   override def canUpdate = isServer
 
@@ -163,9 +225,9 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     super.updateEntity()
     if (isServer && isConnected) {
       components.zipWithIndex.collect {
-        case (Some(mountable: RackMountable), slot) if isWorking(mountable) != lastWorking(slot) =>
-          lastWorking(slot) = isWorking(mountable)
-          ServerPacketSender.sendServerState(this, slot)
+        case (Some(mountable: RackMountable), slot) if hasChanged(slot) =>
+          lastData(slot) = mountable.getData
+          ServerPacketSender.sendRackMountableData(this, slot)
           world.notifyBlocksOfNeighborChange(x, y, z, block)
           // These are working state dependent, so recompute them.
           isOutputEnabled = hasRedstoneCard
@@ -178,17 +240,32 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   // ----------------------------------------------------------------------- //
 
-  def stacksForSide(side: ForgeDirection): IndexedSeq[ItemStack] =
-    if (side == facing) new Array[ItemStack](4)
-    else nodeMapping(toLocal(side).ordinal).map(info => getStackInSlot(info._1))
+  override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
+    super.readFromNBTForServer(nbt)
+    // TODO read lastState and nodeMapping
 
-  def nodesForSide(side: ForgeDirection): IndexedSeq[Node] =
-    if (side == facing) new Array[Node](4)
-    else nodeMapping(toLocal(side).ordinal).map {
-      case (slot, nodeNum) => (components(slot), nodeNum)
-    }.collect {
-      case (Some(mountable: RackMountable), nodeNum) => mountable.getNodeAt(nodeNum)
-    }
+    // Kickstart initialization.
+    _isOutputEnabled = hasRedstoneCard
+    _isAbstractBusAvailable = hasAbstractBusCard
+  }
+
+  override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
+    super.writeToNBTForServer(nbt)
+    // TODO store lastState and nodeMapping
+  }
+
+  @SideOnly(Side.CLIENT) override
+  def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
+    super.readFromNBTForClient(nbt)
+    // TODO read lastState
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
+    super.writeToNBTForClient(nbt)
+    // TODO store lastState
+  }
+
+  // ----------------------------------------------------------------------- //
 
   def slotAt(side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (side == facing) {
@@ -203,13 +280,13 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   def isWorking(mountable: RackMountable) = mountable.getCurrentState.contains(internal.StateAware.State.IsWorking)
 
   def hasAbstractBusCard = components.exists {
-    case Some(mountable: RackMountable with IInventory) if isWorking(mountable) =>
+    case Some(mountable: EnvironmentHost with RackMountable with IInventory) if isWorking(mountable) =>
       mountable.exists(stack => DriverAbstractBusCard.worksWith(stack, mountable.getClass))
     case _ => false
   }
 
   def hasRedstoneCard = components.exists {
-    case Some(mountable: RackMountable with IInventory) if isWorking(mountable) =>
+    case Some(mountable: EnvironmentHost with RackMountable with IInventory) if isWorking(mountable) =>
       mountable.exists(stack => DriverRedstoneCard.worksWith(stack, mountable.getClass))
     case _ => false
   }

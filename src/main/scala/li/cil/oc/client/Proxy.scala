@@ -24,7 +24,6 @@ import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event.NanomachinesHandler
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.util.Audio
 import net.minecraftforge.client.MinecraftForgeClient
@@ -66,7 +65,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Printer], PrinterRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Raid], RaidRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.ServerRack], ServerRackRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Switch], SwitchRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.AccessPoint], SwitchRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Relay], SwitchRenderer)
@@ -83,7 +82,6 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
     MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Client)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
-    MinecraftForge.EVENT_BUS.register(ServerRack)
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)

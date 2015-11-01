@@ -5,15 +5,13 @@ import java.util
 
 import li.cil.oc.api
 import li.cil.oc.api.Machine
-import li.cil.oc.api.component.RackMountable
-import li.cil.oc.api.driver
 import li.cil.oc.api.internal
 import li.cil.oc.api.internal.StateAware.State
 import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
@@ -26,13 +24,12 @@ import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with RackMountable with internal.Server {
+class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server {
   val machine = Machine.create(this)
 
-  // Used to grab messages when not connected to any side in the server rack.
-  val node = api.Network.newNode(this, Visibility.Network).create()
+  val node = machine.node
 
-  machine.onHostChanged() // TODO ???
+  var lastAccess = 0L
 
   // ----------------------------------------------------------------------- //
   // Environment
@@ -86,23 +83,18 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
 
   override def componentSlot(address: String) = components.indexWhere(_.exists(env => env.node != null && env.node.address == address))
 
-  override def onMachineConnect(node: Node) {
-    if (node == machine.node) {
-      node.connect(this.node)
-    }
-    onConnect(node)
-  }
+  override def onMachineConnect(node: Node) = onConnect(node)
 
   override def onMachineDisconnect(node: Node) = onDisconnect(node)
 
   // ----------------------------------------------------------------------- //
   // EnvironmentHost
 
-  override def xPosition = rack.x + 0.5
+  override def xPosition = rack.xPosition
 
-  override def yPosition = rack.y + 0.5
+  override def yPosition = rack.yPosition
 
-  override def zPosition = rack.z + 0.5
+  override def zPosition = rack.zPosition
 
   override def world = rack.world
 
@@ -127,7 +119,7 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   override def container = rack.getStackInSlot(slot)
 
   override protected def connectItemNode(node: Node) {
-    if (machine.node != null && node != null) {
+    if (node != null) {
       api.Network.joinNewNetwork(machine.node)
       machine.node.connect(node)
     }
@@ -136,18 +128,42 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   // ----------------------------------------------------------------------- //
   // RackMountable
 
-  override def getNodeCount: Int = ???
+  override def getData: NBTTagCompound = {
+    val nbt = new NBTTagCompound()
+    nbt.setBoolean("isRunning", machine.isRunning)
+    nbt.setLong("lastAccess", lastAccess)
+    nbt.setBoolean("hasErrored", machine.lastError() != null)
+    nbt
+  }
 
-  override def getNodeAt(index: Int): Node = ???
+  override def getNodeCount: Int = 1 // TODO network cards and such
 
-  override def onActivate(player: EntityPlayer): Unit = ???
+  override def getNodeAt(index: Int): Node = {
+    if (index == 0) machine.node
+    else ???
+  }
+
+  override def onActivate(player: EntityPlayer): Unit = {} // TODO server inventory
 
   // ----------------------------------------------------------------------- //
   // ManagedEnvironment
 
-  override def canUpdate: Boolean = ???
+  override def canUpdate: Boolean = true
 
-  override def update(): Unit = ???
+  override def update(): Unit = {
+    val wasRunning = machine.isRunning
+    val hadErrored = machine.lastError != null
+
+    machine.update()
+
+    val isRunning = machine.isRunning
+    val hasErrored = machine.lastError != null
+    if (isRunning != wasRunning || hasErrored != hadErrored) {
+      rack.markChanged(slot)
+    }
+
+    updateComponents()
+  }
 
   // ----------------------------------------------------------------------- //
   // StateAware

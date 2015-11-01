@@ -123,7 +123,7 @@ object Achievement {
   val Rack = newAchievement("rack").
     at(8, 6).
     withParent(Case).
-    whenCrafting(Constants.BlockName.ServerRack).
+    whenCrafting(Constants.BlockName.Rack).
     add()
   val Server = newAchievement("server").
     at(10, 6).

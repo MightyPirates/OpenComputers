@@ -7,6 +7,7 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.network.Node;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * Use this interface on environments provided by drivers for items that can
@@ -28,6 +29,19 @@ import net.minecraft.inventory.IInventory;
  * information when the analyzer is used on the mountable while it's in a rack.
  */
 public interface RackMountable extends ManagedEnvironment, StateAware {
+    /**
+     * Returns some data describing the state of the mountable.
+     * <p/>
+     * This is called on the server side to synchronize data to the client after
+     * the rack's {@link li.cil.oc.api.internal.Rack#markChanged(int)}
+     * method has been called for the slot this mountable is in. It will there
+     * be passed on with the render event to allow state specific rendering of
+     * the mountable in the rack.
+     *
+     * @return the data to synchronize to the clients.
+     */
+    NBTTagCompound getData();
+
     /**
      * The number of nodes exposed by the environment.
      */

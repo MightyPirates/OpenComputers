@@ -1,6 +1,5 @@
 package li.cil.oc.server.network
 
-import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network
 import li.cil.oc.api.network._

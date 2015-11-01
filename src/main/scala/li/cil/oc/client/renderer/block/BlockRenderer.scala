@@ -140,8 +140,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RenderState.checkError(getClass.getName + ".renderWorldBlock: printer")
 
         true
-      case rack: tileentity.ServerRack =>
-        ServerRack.render(rack, x, y, z, block, renderer)
+      case rack: tileentity.Rack =>
+        Rack.render(rack, x, y, z, block, renderer)
 
         RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
 

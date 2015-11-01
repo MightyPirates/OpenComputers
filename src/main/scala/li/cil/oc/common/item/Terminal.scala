@@ -47,57 +47,57 @@ class Terminal(val parent: Delegator) extends traits.Delegate {
     iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOff"))
   }
 
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    val world = position.world.get
-    world.getTileEntity(position) match {
-      case rack: tileentity.ServerRack if side == rack.facing.ordinal() =>
-        val l = 2 / 16.0
-        val h = 14 / 16.0
-        val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
-        if (slot >= 0 && slot <= 3 && rack.items(slot).isDefined) {
-          if (!world.isRemote) {
-            rack.servers(slot) match {
-              case Some(server) =>
-                val terminal = rack.terminals(slot)
-                val key = UUID.randomUUID().toString
-                val keys = terminal.keys
-                if (!stack.hasTagCompound) {
-                  stack.setTagCompound(new NBTTagCompound())
-                }
-                else {
-                  keys -= stack.getTagCompound.getString(Settings.namespace + "key")
-                }
-                val maxSize = Settings.get.terminalsPerTier(math.min(Tier.Three, server.tier))
-                while (keys.length >= maxSize) {
-                  keys.remove(0)
-                }
-                keys += key
-                terminal.connect(server.machine.node)
-//                ServerPacketSender.sendServerState(rack, slot)
-                stack.getTagCompound.setString(Settings.namespace + "key", key)
-                stack.getTagCompound.setString(Settings.namespace + "server", server.machine.node.address)
-                player.inventory.markDirty()
-              case _ => // Huh?
-            }
-          }
-          true
-        }
-        else false
-      case _ => super.onItemUse(stack, player, position, side, hitX, hitY, hitZ)
-    }
-  }
+//  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+//    val world = position.world.get
+//    world.getTileEntity(position) match {
+//      case rack: tileentity.ServerRack if side == rack.facing.ordinal() =>
+//        val l = 2 / 16.0
+//        val h = 14 / 16.0
+//        val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
+//        if (slot >= 0 && slot <= 3 && rack.items(slot).isDefined) {
+//          if (!world.isRemote) {
+//            rack.servers(slot) match {
+//              case Some(server) =>
+//                val terminal = rack.terminals(slot)
+//                val key = UUID.randomUUID().toString
+//                val keys = terminal.keys
+//                if (!stack.hasTagCompound) {
+//                  stack.setTagCompound(new NBTTagCompound())
+//                }
+//                else {
+//                  keys -= stack.getTagCompound.getString(Settings.namespace + "key")
+//                }
+//                val maxSize = Settings.get.terminalsPerTier(math.min(Tier.Three, server.tier))
+//                while (keys.length >= maxSize) {
+//                  keys.remove(0)
+//                }
+//                keys += key
+//                terminal.connect(server.machine.node)
+////                ServerPacketSender.sendServerState(rack, slot)
+//                stack.getTagCompound.setString(Settings.namespace + "key", key)
+//                stack.getTagCompound.setString(Settings.namespace + "server", server.machine.node.address)
+//                player.inventory.markDirty()
+//              case _ => // Huh?
+//            }
+//          }
+//          true
+//        }
+//        else false
+//      case _ => super.onItemUse(stack, player, position, side, hitX, hitY, hitZ)
+//    }
+//  }
 
-  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
-    if (!player.isSneaking && stack.hasTagCompound) {
-      val key = stack.getTagCompound.getString(Settings.namespace + "key")
-      val server = stack.getTagCompound.getString(Settings.namespace + "server")
-      if (key != null && !key.isEmpty && server != null && !server.isEmpty) {
-        if (world.isRemote) {
-          player.openGui(OpenComputers, GuiType.Terminal.id, world, 0, 0, 0)
-        }
-        player.swingItem()
-      }
-    }
-    super.onItemRightClick(stack, world, player)
-  }
+//  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
+//    if (!player.isSneaking && stack.hasTagCompound) {
+//      val key = stack.getTagCompound.getString(Settings.namespace + "key")
+//      val server = stack.getTagCompound.getString(Settings.namespace + "server")
+//      if (key != null && !key.isEmpty && server != null && !server.isEmpty) {
+//        if (world.isRemote) {
+//          player.openGui(OpenComputers, GuiType.Terminal.id, world, 0, 0, 0)
+//        }
+//        player.swingItem()
+//      }
+//    }
+//    super.onItemRightClick(stack, world, player)
+//  }
 }
