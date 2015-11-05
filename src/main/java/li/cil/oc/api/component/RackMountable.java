@@ -1,6 +1,6 @@
 package li.cil.oc.api.component;
 
-import li.cil.oc.api.internal.StateAware;
+import li.cil.oc.api.StateAware;
 import li.cil.oc.api.network.Analyzable;
 import li.cil.oc.api.network.ComponentHost;
 import li.cil.oc.api.network.ManagedEnvironment;
@@ -58,6 +58,7 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
      * hits the space occupied by this mountable.
      *
      * @param player the player activating the mountable.
+     * @return whether the activation was handled (e.g. GUI opened).
      */
-    void onActivate(EntityPlayer player);
+    boolean onActivate(EntityPlayer player);
 }

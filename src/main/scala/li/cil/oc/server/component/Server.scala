@@ -3,16 +3,20 @@ package li.cil.oc.server.component
 import java.lang.Iterable
 import java.util
 
+import li.cil.oc.OpenComputers
+import li.cil.oc.api
 import li.cil.oc.api
 import li.cil.oc.api.Machine
+import li.cil.oc.api.StateAware
 import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.internal
-import li.cil.oc.api.internal.StateAware.State
+import StateAware.State
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
+import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
@@ -146,7 +150,15 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
     case Some(busConnectable: RackBusConnectable) => busConnectable
   }.apply(index)
 
-  override def onActivate(player: EntityPlayer): Unit = {} // TODO server inventory
+  override def onActivate(player: EntityPlayer): Boolean = {
+    if (!player.isSneaking) {
+      if (!player.getEntityWorld.isRemote) {
+        player.openGui(OpenComputers, GuiType.ServerInRack(slot).id, world, rack.x, rack.y, rack.z)
+      }
+      true
+    }
+    else false
+  }
 
   // ----------------------------------------------------------------------- //
   // ManagedEnvironment
@@ -172,8 +184,8 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   // StateAware
 
   override def getCurrentState: util.EnumSet[State] = {
-    if (machine.isRunning) util.EnumSet.of(internal.StateAware.State.IsWorking)
-    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
+    if (machine.isRunning) util.EnumSet.of(api.StateAware.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

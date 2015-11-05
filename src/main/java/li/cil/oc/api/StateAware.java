@@ -1,12 +1,15 @@
-package li.cil.oc.api.internal;
+package li.cil.oc.api;
 
 import java.util.EnumSet;
 
 /**
  * Implemented on machines that have an "working" state.
  * <p/>
- * This is similar to BuildCraft's <tt>IHasWork</tt> interface , but is also
- * used for comparator output in the case of OpenComputers' blocks.
+ * This is similar to BuildCraft's <tt>IHasWork</tt> interface.
+ * <p/>
+ * This can also be implemented on {@link li.cil.oc.api.component.RackMountable}s
+ * to indicate a working state, which is used when checking for redstone cards
+ * in them, for example (only active mountables will be used).
  */
 public interface StateAware {
     /**
@@ -22,6 +25,8 @@ public interface StateAware {
      * Possible work states.
      */
     enum State {
+        None,
+
         /**
          * Indicates that some work can be performed / energy can be consumed,
          * but that the current state is being idle.

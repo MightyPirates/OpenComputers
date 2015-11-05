@@ -30,6 +30,12 @@ object GuiType extends ScalaEnum {
   val Robot = new EnumVal { def name = "Robot"; def subType = GuiType.Category.Block }
   val Screen = new EnumVal { def name = "Screen"; def subType = GuiType.Category.Block }
   val Server = new EnumVal { def name = "Server"; def subType = GuiType.Category.Item }
+  val ServerInRack = Array(
+    new EnumVal { val slot = 0; def name = "ServerInRack"; def subType = GuiType.Category.Block },
+    new EnumVal { val slot = 1; def name = "ServerInRack"; def subType = GuiType.Category.Block },
+    new EnumVal { val slot = 2; def name = "ServerInRack"; def subType = GuiType.Category.Block },
+    new EnumVal { val slot = 3; def name = "ServerInRack"; def subType = GuiType.Category.Block }
+  )
   val Switch = new EnumVal { def name = "Switch"; def subType = GuiType.Category.Block }
   val Tablet = new EnumVal { def name = "Tablet"; def subType = GuiType.Category.Item }
   val TabletInner = new EnumVal { def name = "TabletInner"; def subType = GuiType.Category.Item }

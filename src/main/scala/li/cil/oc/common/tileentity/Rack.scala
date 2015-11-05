@@ -6,7 +6,9 @@ import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.StateAware
 import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
@@ -166,7 +168,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // StateAware
 
   override def getCurrentState = {
-    val result = util.EnumSet.noneOf(classOf[internal.StateAware.State])
+    val result = util.EnumSet.noneOf(classOf[StateAware.State])
     components.collect {
       case Some(mountable: RackMountable) => result.addAll(mountable.getCurrentState)
     }
@@ -277,7 +279,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     else None
   }
 
-  def isWorking(mountable: RackMountable) = mountable.getCurrentState.contains(internal.StateAware.State.IsWorking)
+  def isWorking(mountable: RackMountable) = mountable.getCurrentState.contains(api.StateAware.State.IsWorking)
 
   def hasAbstractBusCard = components.exists {
     case Some(mountable: EnvironmentHost with RackMountable with IInventory) if isWorking(mountable) =>

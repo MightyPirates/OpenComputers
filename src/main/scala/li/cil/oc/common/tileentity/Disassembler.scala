@@ -6,6 +6,8 @@ import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api
+import li.cil.oc.api.StateAware
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.template.DisassemblerTemplates
@@ -55,9 +57,9 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   override def energyThroughput = Settings.get.disassemblerRate
 
   override def getCurrentState = {
-    if (isActive) util.EnumSet.of(internal.StateAware.State.IsWorking)
-    else if (queue.nonEmpty) util.EnumSet.of(internal.StateAware.State.CanWork)
-    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
+    if (isActive) util.EnumSet.of(StateAware.State.IsWorking)
+    else if (queue.nonEmpty) util.EnumSet.of(api.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

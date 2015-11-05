@@ -7,7 +7,9 @@ import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api
 import li.cil.oc.api.Driver
+import li.cil.oc.api.StateAware
 import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.internal
 import li.cil.oc.api.network._
@@ -51,10 +53,10 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   override def getCurrentState = {
     // TODO Refine to only report working if present robots/drones actually *need* power.
     if (connectors.nonEmpty) {
-      if (hasPower) util.EnumSet.of(internal.StateAware.State.IsWorking)
-      else util.EnumSet.of(internal.StateAware.State.CanWork)
+      if (hasPower) util.EnumSet.of(StateAware.State.IsWorking)
+      else util.EnumSet.of(api.StateAware.State.CanWork)
     }
-    else util.EnumSet.noneOf(classOf[internal.StateAware.State])
+    else util.EnumSet.noneOf(classOf[StateAware.State])
   }
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
