@@ -44,6 +44,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // component access (i.e. actually connecting to that side of the rack).
   // The other nodes are "secondary" connections and merely transfer network
   // messages.
+  // mountable -> connectable -> side
   val nodeMapping = Array.fill(getSizeInventory)(Array.fill[Option[ForgeDirection]](4)(None))
 
   def connect(mountableIndex: Int, nodeIndex: Int, side: Option[ForgeDirection]): Unit = {
