@@ -164,13 +164,6 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       Localization.localizeImmediately(rack.getInventoryName),
       8, 6, 0x404040)
 
-    //    for (i <- 0 to 3 if powerButtons(i).func_146115_a) {
-    //      val tooltip = new java.util.ArrayList[String]
-    //      tooltip.addAll(asJavaCollection(if (rack.isRunning(i)) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
-    //      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
-    //    }
-    //
-
     GL11.glColor3f(1, 1, 1)
     mc.renderEngine.bindTexture(Textures.guiRack)
 

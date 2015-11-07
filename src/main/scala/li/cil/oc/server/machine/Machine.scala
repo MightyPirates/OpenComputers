@@ -660,9 +660,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = Machine.this.synchronized(state.synchronized {
-    assert(state.top == Machine.State.Stopped)
-    assert(_users.isEmpty)
-    assert(signals.isEmpty)
+    assert(state.top == Machine.State.Stopped || state.top == Machine.State.Paused)
+    close()
     state.clear()
 
     super.load(nbt)

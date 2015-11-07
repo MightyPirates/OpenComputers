@@ -56,21 +56,6 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   }
 
   override def onMessage(message: Message) {
-    // If we're internal mode and this server is not connected to any side, we
-    // must manually propagate network messages to other servers in the rack.
-    // Ensure the message originated in our local network, to avoid infinite
-    // recursion if two unconnected servers are in one server rack.
-    //    if (rack.internalSwitch && message.name == "network.message" &&
-    //      rack.sides(this.slot).isEmpty && // Only if we're in internal mode.
-    //      message.source != machine.node && // In this case it was relayed from another internal machine.
-    //      node.network.node(message.source.address) != null) {
-    //      for (slot <- rack.servers.indices) {
-    //        rack.servers(slot) match {
-    //          case Some(server) if server != this => server.machine.node.sendToNeighbors(message.name, message.data: _*)
-    //          case _ =>
-    //        }
-    //      }
-    //    }
   }
 
   override def load(nbt: NBTTagCompound) {
@@ -151,9 +136,9 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
 
   override def getData: NBTTagCompound = {
     val nbt = new NBTTagCompound()
-    nbt.setBoolean("isRunning", machine.isRunning)
+    nbt.setBoolean("isRunning", wasRunning)
+    nbt.setBoolean("hasErrored", hadErrored)
     nbt.setLong("lastAccess", lastAccess)
-    nbt.setBoolean("hasErrored", machine.lastError() != null)
     nbt
   }
 

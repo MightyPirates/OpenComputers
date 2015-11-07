@@ -22,6 +22,7 @@ object FileSystemAccessHandler {
                 server.lastAccess = System.currentTimeMillis()
                 t.markChanged(slot)
               }
+            case _ =>
           }
         }
       case _ =>

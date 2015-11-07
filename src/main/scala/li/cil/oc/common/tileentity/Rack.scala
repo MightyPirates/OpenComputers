@@ -16,18 +16,23 @@ import li.cil.oc.api.network.ComponentHost
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Packet
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.stargatetech2.DriverAbstractBusCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedInventory._
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagIntArray
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
@@ -36,7 +41,7 @@ import scala.collection.convert.WrapAsScala._
 class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with internal.Rack with traits.StateAware {
   var isRelayEnabled = true
   val lastData = new Array[NBTTagCompound](getSizeInventory)
-  val hasChanged = new Array[Boolean](getSizeInventory)
+  val hasChanged = Array.fill(getSizeInventory)(true)
 
   // Map node connections for each installed mountable. Each mountable may
   // have up to four outgoing connections, with the first one always being
@@ -46,33 +51,81 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // messages.
   // mountable -> connectable -> side
   val nodeMapping = Array.fill(getSizeInventory)(Array.fill[Option[ForgeDirection]](4)(None))
+  val snifferNodes = Array.fill(getSizeInventory)(Array.fill(3)(api.Network.newNode(this, Visibility.Neighbors).create()))
 
-  def connect(mountableIndex: Int, nodeIndex: Int, side: Option[ForgeDirection]): Unit = {
+  def connect(slot: Int, connectableIndex: Int, side: Option[ForgeDirection]): Unit = {
     val newSide = side match {
-      case Some(direction) if direction != ForgeDirection.UNKNOWN => Option(direction)
+      case Some(direction) if direction != ForgeDirection.UNKNOWN && direction != ForgeDirection.SOUTH => Option(direction)
       case _ => None
     }
 
-    val oldSide = nodeMapping(mountableIndex)(nodeIndex)
+    val oldSide = nodeMapping(slot)(connectableIndex)
     if (oldSide == newSide) return
 
-    // If it's the primary node cut the direct connection.
-    if (nodeIndex == 0 && oldSide.isDefined) {
-      val node = getMountable(mountableIndex).node()
-      val plug = sidedNode(toGlobal(oldSide.get))
-      if (node != null && plug != null) {
-        node.disconnect(plug)
+    // Cut connection / remove sniffer node.
+    val mountable = getMountable(slot)
+    if (mountable != null && oldSide.isDefined) {
+      if (connectableIndex == 0) {
+        val node = mountable.node
+        val plug = sidedNode(toGlobal(oldSide.get))
+        if (node != null && plug != null) {
+          node.disconnect(plug)
+        }
+      }
+      else {
+        snifferNodes(slot)(connectableIndex).remove()
       }
     }
 
-    nodeMapping(mountableIndex)(nodeIndex) = newSide
+    nodeMapping(slot)(connectableIndex) = newSide
 
-    // If it's the primary node establish a direct connection.
-    if (nodeIndex == 0 && newSide.isDefined) {
-      val node = getMountable(mountableIndex).node()
-      val plug = sidedNode(toGlobal(newSide.get))
-      if (node != null && plug != null) {
-        node.connect(plug)
+    // Establish connection / add sniffer node.
+    if (mountable != null && newSide.isDefined) {
+      if (connectableIndex == 0) {
+        val node = mountable.node
+        val plug = sidedNode(toGlobal(newSide.get))
+        if (node != null && plug != null) {
+          node.connect(plug)
+        }
+      }
+      else if (connectableIndex < mountable.getConnectableCount) {
+        val connectable = mountable.getConnectableAt(connectableIndex)
+        if (connectable != null && connectable.node != null) {
+          if (connectable.node.network == null) {
+            api.Network.joinNewNetwork(connectable.node)
+          }
+          connectable.node.connect(snifferNodes(slot)(connectableIndex))
+        }
+      }
+    }
+  }
+
+  private def reconnect(plugSide: ForgeDirection): Unit = {
+    for (slot <- 0 until getSizeInventory) {
+      val mapping = nodeMapping(slot)
+      mapping(0) match {
+        case Some(side) if toGlobal(side) == plugSide =>
+          val mountable = getMountable(slot)
+          if (mountable != null && mountable.node != null && node != mountable.node) {
+            mountable.node.connect(sidedNode(plugSide))
+          }
+        case _ => // Not connected to this side.
+      }
+      for (connectableIndex <- 0 until 3) {
+        mapping(connectableIndex) match {
+          case Some(side) if toGlobal(side) == plugSide =>
+            val mountable = getMountable(slot)
+            if (mountable != null && connectableIndex < mountable.getConnectableCount) {
+              val connectable = mountable.getConnectableAt(connectableIndex)
+              if (connectable != null && connectable.node != null) {
+                if (connectable.node.network == null) {
+                  api.Network.joinNewNetwork(connectable.node)
+                }
+                connectable.node.connect(snifferNodes(slot)(connectableIndex))
+              }
+            }
+          case _ => // Not connected to this side.
+        }
       }
     }
   }
@@ -86,14 +139,14 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     // When a message arrives on a bus, also send it to all secondary nodes
     // connected to it. Only deliver it to that very node, if it's not the
     // sender, to avoid loops.
-    for (mountableIndex <- 0 until getSizeInventory) {
-      val mapping = nodeMapping(mountableIndex)
-      for (nodeIndex <- 0 until 3) {
-        mapping(nodeIndex + 1) match {
+    for (slot <- 0 until getSizeInventory) {
+      val mapping = nodeMapping(slot)
+      for (connectableIndex <- 0 until 3) {
+        mapping(connectableIndex + 1) match {
           case Some(side) if sourceSide.contains(toGlobal(side)) =>
-            val mountable = getMountable(mountableIndex)
-            if (mountable != null) {
-              val connectable = mountable.getConnectableAt(nodeIndex)
+            val mountable = getMountable(slot)
+            if (mountable != null && connectableIndex < mountable.getConnectableCount) {
+              val connectable = mountable.getConnectableAt(connectableIndex)
               if (connectable != null) {
                 connectable.receivePacket(packet)
               }
@@ -101,6 +154,40 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
           case _ => // Not connected to a bus.
         }
       }
+    }
+  }
+
+  override protected def onPlugConnect(plug: Plug, node: Node): Unit = {
+    super.onPlugConnect(plug, node)
+    connectComponents()
+    reconnect(plug.side)
+  }
+
+  // ----------------------------------------------------------------------- //
+  // Environment
+
+  override def onMessage(message: Message): Unit = {
+    super.onMessage(message)
+    if (message.name == "network.message") message.data match {
+      case Array(packet: Packet) =>
+        for (slot <- 0 until getSizeInventory) {
+          val mapping = nodeMapping(slot)
+          for (connectableIndex <- 0 until 3) {
+            mapping(connectableIndex + 1) match {
+              case Some(side) =>
+                val mountable = getMountable(slot)
+                if (mountable != null && connectableIndex < mountable.getConnectableCount) {
+                  val connectable = mountable.getConnectableAt(connectableIndex)
+                  if (connectable != null && connectable.node == message.source) {
+                    sidedNode(toGlobal(side)).sendToReachable("network.message", packet)
+                    return
+                  }
+                }
+              case _ => // Not connected to a bus.
+            }
+          }
+        }
+      case _ =>
     }
   }
 
@@ -223,19 +310,23 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ComponentInventory
 
   override protected def onItemAdded(slot: Int, stack: ItemStack): Unit = {
-    for (connectable <- 0 until 4) {
-      nodeMapping(slot)(connectable) = None
+    if (isServer) {
+      for (connectable <- 0 until 4) {
+        nodeMapping(slot)(connectable) = None
+      }
+      lastData(slot) = null
+      hasChanged(slot) = true
     }
-    lastData(slot) = null
-    hasChanged(slot) = true
     super.onItemAdded(slot, stack)
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
-    for (connectable <- 0 until 4) {
-      nodeMapping(slot)(connectable) = None
+    if (isServer) {
+      for (connectable <- 0 until 4) {
+        nodeMapping(slot)(connectable) = None
+      }
+      lastData(slot) = null
     }
-    lastData(slot) = null
     super.onItemRemoved(slot, stack)
   }
 
@@ -272,7 +363,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override def readFromNBTForServer(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForServer(nbt)
-    // TODO read lastState and nodeMapping
+
+    isRelayEnabled = nbt.getBoolean(Settings.namespace + "isRelayEnabled")
+    nbt.getTagList(Settings.namespace + "nodeMapping", NBT.TAG_INT_ARRAY).map((buses: NBTTagIntArray) =>
+      buses.func_150302_c().map(id => if (id < 0 || id == ForgeDirection.UNKNOWN.ordinal() || id == ForgeDirection.SOUTH.ordinal()) None else Option(ForgeDirection.getOrientation(id)))).
+      copyToArray(nodeMapping)
 
     // Kickstart initialization.
     _isOutputEnabled = hasRedstoneCard
@@ -281,18 +376,26 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override def writeToNBTForServer(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForServer(nbt)
-    // TODO store lastState and nodeMapping
+
+    nbt.setBoolean(Settings.namespace + "isRelayEnabled", isRelayEnabled)
+    nbt.setNewTagList(Settings.namespace + "nodeMapping", nodeMapping.map(buses =>
+      toNbt(buses.map(side => side.map(_.ordinal()).getOrElse(-1)))))
   }
 
   @SideOnly(Side.CLIENT) override
   def readFromNBTForClient(nbt: NBTTagCompound): Unit = {
     super.readFromNBTForClient(nbt)
-    // TODO read lastState
+
+    val data = nbt.getTagList(Settings.namespace + "lastData", NBT.TAG_COMPOUND).
+      toArray[NBTTagCompound]
+    data.copyToArray(lastData)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound): Unit = {
     super.writeToNBTForClient(nbt)
-    // TODO store lastState
+
+    val data = lastData.map(tag => if (tag == null) new NBTTagCompound() else tag)
+    nbt.setNewTagList(Settings.namespace + "lastData", data)
   }
 
   // ----------------------------------------------------------------------- //
