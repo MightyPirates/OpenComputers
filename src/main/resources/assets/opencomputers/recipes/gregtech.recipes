@@ -315,7 +315,7 @@ powerDistributor {
           [{item="ic2.blockElectric", subID=7}, {block="gt.blockcasings", subID=2}, circuitMaster]
           ["oc:materialCircuitBoardPrinted", plateAluminium, craftingToolWrench]]
 }
-serverRack {
+rack {
   input: [[craftingToolScrewdriver, "oc:wlanCard", craftingToolWrench]
           ["ic2.reactorVentDiamond", chest, "ic2.reactorVentDiamond"]
           ["oc:relay", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]

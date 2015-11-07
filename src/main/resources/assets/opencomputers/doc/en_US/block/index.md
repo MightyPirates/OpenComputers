@@ -7,8 +7,8 @@ Keep in mind that some of these may not be available, depending on the recipe se
 ## Computers
 * [Computer Case](case1.md)
 * [Microcontroller](microcontroller.md)
+* [Rack](rack.md)
 * [Robot](robot.md)
-* [Server Rack](serverRack.md)
 
 ## Components
 
