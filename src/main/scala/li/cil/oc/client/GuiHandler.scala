@@ -9,6 +9,7 @@ import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
+import li.cil.oc.server.component.Server
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 
@@ -41,6 +42,13 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Robot(player.inventory, t.robot)
           case t: tileentity.Screen if id == GuiType.Screen.id =>
             new gui.Screen(t.origin.buffer, t.tier > 0, () => t.origin.hasKeyboard, () => t.origin.buffer.isRenderingEnabled)
+          case t: tileentity.Rack if GuiType.ServerInRack.exists(e => e.id == id) =>
+            val slot = GuiType.ServerInRack.indexWhere(e => e.id == id)
+            new gui.Server(player.inventory, new ServerInventory {
+              override def container = t.getStackInSlot(slot)
+
+              override def isUseableByPlayer(player: EntityPlayer) = t.isUseableByPlayer(player)
+            })
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new gui.Switch(player.inventory, t)
           case t: tileentity.Waypoint if id == GuiType.Waypoint.id =>
@@ -67,8 +75,6 @@ object GuiHandler extends CommonGuiHandler {
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new gui.Server(player.inventory, new ServerInventory {
-              override def tier = server.tier
-
               override def container = player.getHeldItem
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player

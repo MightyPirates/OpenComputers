@@ -25,6 +25,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
@@ -33,6 +34,8 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
 
   val node = machine.node
 
+  var wasRunning = false
+  var hadErrored = false
   var lastAccess = 0L
 
   // ----------------------------------------------------------------------- //
@@ -112,6 +115,8 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
     case _ => 0
   }
 
+  override def isUseableByPlayer(player: EntityPlayer): Boolean = rack.isUseableByPlayer(player)
+
   // ----------------------------------------------------------------------- //
   // ItemStackInventory
 
@@ -149,14 +154,20 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
     case Some(busConnectable: RackBusConnectable) => busConnectable
   }.apply(index)
 
-  override def onActivate(player: EntityPlayer): Boolean = {
-    if (!player.isSneaking) {
-      if (!player.getEntityWorld.isRemote) {
+  override def onActivate(player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    if (!player.getEntityWorld.isRemote) {
+      if (player.isSneaking) {
+        if (!machine.isRunning && isUseableByPlayer(player)) {
+          wasRunning = false
+          hadErrored = false
+          machine.start()
+        }
+      }
+      else {
         player.openGui(OpenComputers, GuiType.ServerInRack(slot).id, world, rack.x, rack.y, rack.z)
       }
-      true
     }
-    else false
+    true
   }
 
   // ----------------------------------------------------------------------- //
@@ -165,9 +176,6 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   override def canUpdate: Boolean = true
 
   override def update(): Unit = {
-    val wasRunning = machine.isRunning
-    val hadErrored = machine.lastError != null
-
     machine.update()
 
     val isRunning = machine.isRunning
@@ -175,6 +183,8 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
     if (isRunning != wasRunning || hasErrored != hadErrored) {
       rack.markChanged(slot)
     }
+    wasRunning = isRunning
+    hadErrored = hasErrored
 
     updateComponents()
   }

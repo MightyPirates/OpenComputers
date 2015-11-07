@@ -18,7 +18,7 @@ object Textures {
   val guiButtonRun = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_run.png")
   val guiButtonScroll = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_scroll.png")
   val guiButtonSide = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
-  val guiButtonSwitch = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_switch.png")
+  val guiButtonRelay = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_switch.png")
   val guiComputer = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
   val guiDatabase = new ResourceLocation(Settings.resourceDomain, "textures/gui/database.png")
   val guiDatabase1 = new ResourceLocation(Settings.resourceDomain, "textures/gui/database1.png")

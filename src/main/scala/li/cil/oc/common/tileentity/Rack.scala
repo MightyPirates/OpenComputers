@@ -246,6 +246,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     if (isServer && isConnected) {
       components.zipWithIndex.collect {
         case (Some(mountable: RackMountable), slot) if hasChanged(slot) =>
+          hasChanged(slot) = false
           lastData(slot) = mountable.getData
           ServerPacketSender.sendRackMountableData(this, slot)
           world.notifyBlocksOfNeighborChange(x, y, z, block)

@@ -7,6 +7,7 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * Use this interface on environments provided by drivers for items that can
@@ -56,9 +57,17 @@ public interface RackMountable extends ManagedEnvironment, StateAware {
     /**
      * This gets called when the server rack is activated by a player, and
      * hits the space occupied by this mountable.
+     * <p/>
+     * As per usual, keep in mind that the hit coordinates are comparatively
+     * imprecise on the server side, since they'll have been sent in a
+     * pointlessly compressed fashion (because MC is a dummy like that).
      *
      * @param player the player activating the mountable.
+     * @param side   the side (in global coordinate space) of the rack that was activated.
+     * @param hitX   the relative x coordinate of the activation.
+     * @param hitY   the relative y coordinate of the activation.
+     * @param hitZ   the relative z coordinate of the activation.
      * @return whether the activation was handled (e.g. GUI opened).
      */
-    boolean onActivate(EntityPlayer player);
+    boolean onActivate(EntityPlayer player, ForgeDirection side, float hitX, float hitY, float hitZ);
 }

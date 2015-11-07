@@ -4,6 +4,7 @@ import cpw.mods.fml.common.network.IGuiHandler
 import li.cil.oc.common.inventory.DatabaseInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.server.component.Server
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 
@@ -34,6 +35,8 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Robot(player.inventory, t.robot)
           case t: tileentity.Rack if id == GuiType.Rack.id =>
             new container.Rack(player.inventory, t)
+          case t: tileentity.Rack if GuiType.ServerInRack.exists(e => e.id == id) =>
+            new container.Server(player.inventory, t.getMountable(GuiType.ServerInRack.indexWhere(e => e.id == id)).asInstanceOf[Server])
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new container.Switch(player.inventory, t)
           case _ => null
@@ -56,8 +59,6 @@ abstract class GuiHandler extends IGuiHandler {
             })
           case Some(server: item.Server) if id == GuiType.Server.id =>
             new container.Server(player.inventory, new ServerInventory {
-              override def tier = server.tier
-
               override def container = player.getHeldItem
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player

@@ -3,10 +3,12 @@ package li.cil.oc.common.block
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.api.component.RackMountable
 import li.cil.oc.client.Textures
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -53,4 +55,20 @@ class Rack extends RedstoneAware with traits.SpecialBlock with traits.PowerAccep
   override def hasTileEntity(metadata: Int) = true
 
   override def createTileEntity(world: World, metadata: Int) = new tileentity.Rack()
+
+  // ----------------------------------------------------------------------- //
+
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    world.getTileEntity(x, y, z) match {
+      case rack: tileentity.Rack => rack.slotAt(side, hitX, hitY, hitZ) match {
+        case Some(slot) => rack.getMountable(slot) match {
+          case mountable: RackMountable if mountable.onActivate(player, side, hitX, hitY, hitZ) => return true // Activation handled by mountable.
+          case _ =>
+        }
+        case _ =>
+      }
+      case _ =>
+    }
+    super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+  }
 }

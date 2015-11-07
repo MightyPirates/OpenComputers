@@ -71,18 +71,18 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   final val busToSide = ForgeDirection.VALID_DIRECTIONS.filter(_ != ForgeDirection.SOUTH)
   final val sideToBus = busToSide.zipWithIndex.toMap
 
-  var switchButton: ImageButton = _
+  var relayButton: ImageButton = _
 
   // bus -> mountable -> connectable
   var wireButtons = Array.fill(rack.getSizeInventory)(Array.fill(4)(Array.fill(5)(null: ImageButton)))
 
   def sideName(side: ForgeDirection) = side match {
-    case ForgeDirection.UP => Localization.ServerRack.Top
-    case ForgeDirection.DOWN => Localization.ServerRack.Bottom
-    case ForgeDirection.EAST => Localization.ServerRack.Left
-    case ForgeDirection.WEST => Localization.ServerRack.Right
-    case ForgeDirection.NORTH => Localization.ServerRack.Back
-    case _ => Localization.ServerRack.None
+    case ForgeDirection.UP => Localization.Rack.Top
+    case ForgeDirection.DOWN => Localization.Rack.Bottom
+    case ForgeDirection.EAST => Localization.Rack.Left
+    case ForgeDirection.WEST => Localization.Rack.Right
+    case ForgeDirection.NORTH => Localization.Rack.Back
+    case _ => Localization.Rack.None
   }
 
   def encodeButtonId(mountable: Int, connectable: Int, bus: Int) = {
@@ -122,15 +122,15 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
         }
       }
     }
-    switchButton.displayString = if (rack.isRelayEnabled) Localization.ServerRack.SwitchInternal else Localization.ServerRack.SwitchExternal
+    relayButton.displayString = if (rack.isRelayEnabled) Localization.Rack.RelayEnabled else Localization.Rack.RelayDisabled
     super.drawScreen(mouseX, mouseY, dt)
   }
 
   override def initGui() {
     super.initGui()
 
-    switchButton = new ImageButton(0, guiLeft + 101, guiTop + 96, 65, 18, Textures.guiButtonSwitch, Localization.ServerRack.SwitchExternal, textIndent = 18)
-    add(buttonList, switchButton)
+    relayButton = new ImageButton(0, guiLeft + 101, guiTop + 96, 65, 18, Textures.guiButtonRelay, Localization.Rack.RelayDisabled, textIndent = 18)
+    add(buttonList, relayButton)
 
     val (mw, mh) = hoverMasterSize
     val (sw, sh) = hoverSlaveSize

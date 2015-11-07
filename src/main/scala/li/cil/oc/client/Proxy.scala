@@ -22,6 +22,7 @@ import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.event.NanomachinesHandler
+import li.cil.oc.common.event.RackMountableRenderHandler
 import li.cil.oc.common.init.Items
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
@@ -82,6 +83,7 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForge.EVENT_BUS.register(HighlightRenderer)
     MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Client)
     MinecraftForge.EVENT_BUS.register(PetRenderer)
+    MinecraftForge.EVENT_BUS.register(RackMountableRenderHandler)
     MinecraftForge.EVENT_BUS.register(Sound)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)

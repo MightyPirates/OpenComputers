@@ -18,21 +18,21 @@ object RackMountableRenderHandler {
 
   @SubscribeEvent
   def onRackMountableRendering(e: RackMountableRenderEvent.TileEntity): Unit = {
-    if (!servers.contains(api.Items.get(e.rack.getStackInSlot(e.mountable)))) return
+    if (e.data != null && servers.contains(api.Items.get(e.rack.getStackInSlot(e.mountable)))) {
+      RenderState.disableLighting()
+      RenderState.makeItBlend()
 
-    RenderState.disableLighting()
-    RenderState.makeItBlend()
+      if (e.data.getBoolean("isRunning")) {
+        e.renderOverlay(Textures.blockRackFrontOn)
+      }
+      if (e.data.getBoolean("hasErrored") && RenderUtil.shouldShowErrorLight(e.rack.hashCode * (e.mountable + 1))) {
+        e.renderOverlay(Textures.blockRackFrontError)
+      }
+      if (System.currentTimeMillis() - e.data.getLong("lastAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
+        e.renderOverlay(Textures.blockRackFrontActivity)
+      }
 
-    if (e.data.getBoolean("isRunning")) {
-      e.renderOverlay(Textures.blockRackFrontOn)
+      RenderState.enableLighting()
     }
-    if (e.data.getBoolean("hasErrored") && RenderUtil.shouldShowErrorLight(e.rack.hashCode * (e.mountable + 1))) {
-      e.renderOverlay(Textures.blockRackFrontError)
-    }
-    if (System.currentTimeMillis() - e.data.getLong("lastAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
-      e.renderOverlay(Textures.blockRackFrontActivity)
-    }
-
-    RenderState.enableLighting()
   }
 }
