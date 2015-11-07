@@ -47,7 +47,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     }
   }
 
-  def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.writeCompressed(nbt, this)
+  def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.write(nbt, this)
 
   def writePacketType(pt: PacketType.Value) = writeByte(pt.id)
 

@@ -407,7 +407,9 @@ object PacketHandler extends CommonPacketHandler {
   def onRackInventory(p: PacketParser) =
     p.readTileEntity[Rack]() match {
       case Some(t) =>
-        for (slot <- 0 until t.getSizeInventory) {
+        val count = p.readInt()
+        for (_ <- 0 until count) {
+          val slot = p.readInt()
           t.setInventorySlotContents(slot, p.readItemStack())
         }
       case _ => // Invalid packet.

@@ -35,6 +35,7 @@ object Textures {
   val guiPrinterInk = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_ink.png")
   val guiPrinterMaterial = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_material.png")
   val guiPrinterProgress = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_progress.png")
+  val guiRack = new ResourceLocation(Settings.resourceDomain, "textures/gui/rack.png")
   val guiRaid = new ResourceLocation(Settings.resourceDomain, "textures/gui/raid.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
   val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")

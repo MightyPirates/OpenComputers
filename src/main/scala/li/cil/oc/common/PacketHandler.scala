@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.io.InputStream
 import java.util.zip.GZIPInputStream
@@ -13,6 +14,7 @@ import li.cil.oc.common.block.RobotAfterimage
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
+import net.minecraft.nbt.NBTSizeTracker
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -36,12 +38,12 @@ abstract class PacketHandler {
   }
 
   /**
-   * Gets the world for the specified dimension.
-   *
-   * For clients this returns the client's world if it is the specified
-   * dimension; None otherwise. For the server it returns the world for the
-   * specified dimension, if such a dimension exists; None otherwise.
-   */
+    * Gets the world for the specified dimension.
+    *
+    * For clients this returns the client's world if it is the specified
+    * dimension; None otherwise. For the server it returns the world for the
+    * specified dimension, if such a dimension exists; None otherwise.
+    */
   protected def world(player: EntityPlayer, dimension: Int): Option[World]
 
   protected def dispatch(p: PacketParser): Unit
@@ -111,7 +113,7 @@ abstract class PacketHandler {
       else null
     }
 
-    def readNBT() = CompressedStreamTools.readCompressed(this)
+    def readNBT() = CompressedStreamTools.read(this)
 
     def readPacketType() = PacketType(readByte())
   }

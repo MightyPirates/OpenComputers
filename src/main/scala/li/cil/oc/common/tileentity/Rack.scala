@@ -202,7 +202,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def getInventoryStackLimit = 1
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = (slot, Option(Driver.driverFor(stack, getClass))) match {
-    case (0, Some(driver)) => driver.slot(stack) == Slot.RackMountable
+    case (_, Some(driver)) => driver.slot(stack) == Slot.RackMountable
     case _ => false
   }
 
@@ -216,6 +216,23 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     else {
       world.markBlockForUpdate(x, y, z)
     }
+  }
+
+  // ----------------------------------------------------------------------- //
+  // ComponentInventory
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack): Unit = {
+    // Reset mappings when adding an item.
+    for (connectable <- 0 until 4) {
+      nodeMapping(slot)(connectable) = None
+    }
+    super.onItemAdded(slot, stack)
+  }
+
+  override protected def connectItemNode(node: Node): Unit = {
+    // By default create a new network for mountables. They have to
+    // be wired up manually (mapping is reset in onItemAdded).
+    api.Network.joinNewNetwork(node)
   }
 
   // ----------------------------------------------------------------------- //

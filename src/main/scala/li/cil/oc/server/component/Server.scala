@@ -5,12 +5,11 @@ import java.util
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.api
 import li.cil.oc.api.Machine
 import li.cil.oc.api.StateAware
+import li.cil.oc.api.StateAware.State
 import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.internal
-import StateAware.State
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
@@ -30,7 +29,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 
 class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server {
-  val machine = Machine.create(this)
+  lazy val machine = Machine.create(this)
 
   val node = machine.node
 

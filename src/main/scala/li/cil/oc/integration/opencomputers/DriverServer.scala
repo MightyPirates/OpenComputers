@@ -10,6 +10,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedInventory._
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 
 object DriverServer extends Item with HostAware {
   override def worksWith(stack: ItemStack): Boolean = isOneOf(stack,
@@ -24,4 +25,11 @@ object DriverServer extends Item with HostAware {
   }
 
   override def slot(stack: ItemStack): String = Slot.RackMountable
+
+  override def dataTag(stack: ItemStack): NBTTagCompound = {
+    if (!stack.hasTagCompound) {
+      stack.setTagCompound(new NBTTagCompound())
+    }
+    stack.getTagCompound
+  }
 }
