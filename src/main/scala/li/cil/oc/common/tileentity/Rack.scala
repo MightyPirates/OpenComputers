@@ -59,7 +59,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     // If it's the primary node cut the direct connection.
     if (nodeIndex == 0 && oldSide.isDefined) {
       val node = getMountable(mountableIndex).node()
-      val plug = sidedNode(oldSide.get)
+      val plug = sidedNode(toGlobal(oldSide.get))
       if (node != null && plug != null) {
         node.disconnect(plug)
       }
@@ -70,7 +70,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     // If it's the primary node establish a direct connection.
     if (nodeIndex == 0 && newSide.isDefined) {
       val node = getMountable(mountableIndex).node()
-      val plug = sidedNode(newSide.get)
+      val plug = sidedNode(toGlobal(newSide.get))
       if (node != null && plug != null) {
         node.connect(plug)
       }
@@ -223,11 +223,20 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ComponentInventory
 
   override protected def onItemAdded(slot: Int, stack: ItemStack): Unit = {
-    // Reset mappings when adding an item.
     for (connectable <- 0 until 4) {
       nodeMapping(slot)(connectable) = None
     }
+    lastData(slot) = null
+    hasChanged(slot) = true
     super.onItemAdded(slot, stack)
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
+    for (connectable <- 0 until 4) {
+      nodeMapping(slot)(connectable) = None
+    }
+    lastData(slot) = null
+    super.onItemRemoved(slot, stack)
   }
 
   override protected def connectItemNode(node: Node): Unit = {

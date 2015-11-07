@@ -36,7 +36,9 @@ abstract class GuiHandler extends IGuiHandler {
           case t: tileentity.Rack if id == GuiType.Rack.id =>
             new container.Rack(player.inventory, t)
           case t: tileentity.Rack if GuiType.ServerInRack.exists(e => e.id == id) =>
-            new container.Server(player.inventory, t.getMountable(GuiType.ServerInRack.indexWhere(e => e.id == id)).asInstanceOf[Server])
+            val slot = GuiType.ServerInRack.indexWhere(e => e.id == id)
+            val server = t.getMountable(slot).asInstanceOf[Server]
+            new container.Server(player.inventory, server, Option(server))
           case t: tileentity.Switch if id == GuiType.Switch.id =>
             new container.Switch(player.inventory, t)
           case _ => null

@@ -16,6 +16,8 @@ import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.Slot
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
@@ -131,6 +133,16 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
     if (node != null) {
       api.Network.joinNewNetwork(machine.node)
       machine.node.connect(node)
+    }
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
+    super.onItemRemoved(slot, stack)
+    if (rack.isServer) {
+      val slotType = InventorySlots.server(tier)(slot).slot
+      if (slotType == Slot.CPU) {
+        machine.stop()
+      }
     }
   }
 
