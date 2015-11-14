@@ -285,7 +285,7 @@ class Settings(val config: Config) {
   val switchDefaultMaxQueueSize = config.getInt("switch.defaultMaxQueueSize") max 1
   val switchQueueSizeUpgrade = config.getInt("switch.queueSizeUpgrade") max 0
   val switchDefaultRelayDelay = config.getInt("switch.defaultRelayDelay") max 1
-  val switchRelayDelayUpgrade = config.getInt("switch.relayDelayUpgrade") max 0
+  val switchRelayDelayUpgrade = config.getDouble("switch.relayDelayUpgrade") max 0
   val switchDefaultRelayAmount = config.getInt("switch.defaultRelayAmount") max 1
   val switchRelayAmountUpgrade = config.getInt("switch.relayAmountUpgrade") max 0
 
@@ -492,6 +492,10 @@ object Settings {
       "power.value.IndustrialCraft2",
       "power.value.Mekanism",
       "power.value.RedstoneFlux"
+    ),
+    // Upgrading to version 1.5.20, changed relay delay default.
+    VersionRange.createFromVersionSpec("[0.0, 1.5.20)") -> Array(
+      "switch.relayDelayUpgrade"
     )
   )
 
