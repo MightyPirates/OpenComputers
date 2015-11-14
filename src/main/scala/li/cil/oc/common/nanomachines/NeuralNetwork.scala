@@ -7,9 +7,13 @@ import li.cil.oc.api.Persistable
 import li.cil.oc.api.nanomachines.Behavior
 import li.cil.oc.api.nanomachines.BehaviorProvider
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ChatComponentText
+import net.minecraft.util.EnumChatFormatting
 import net.minecraftforge.common.util.Constants.NBT
 
+import scala.StringBuilder
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.util.Random
@@ -59,9 +63,16 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
       // Shuffle sink list to give each entry the same chance.
       val sinkPool = rng.shuffle(sinks.toBuffer)
       for (sink <- sinkPool if sources.nonEmpty) {
+        // Avoid connecting one sink to the same source twice.
+        val blacklist = mutable.Set.empty[Source]
         for (n <- 0 to rng.nextInt(Settings.get.nanomachineMaxInputs) if sources.nonEmpty) {
-          val sourceIndex = rng.nextInt(sources.length)
-          sink.inputs += sources.remove(sourceIndex)
+          val baseIndex = rng.nextInt(sources.length)
+          val sourceIndex = (sources.drop(baseIndex) ++ sources.take(baseIndex)).indexWhere(s => !blacklist.contains(s))
+          if (sourceIndex >= 0) {
+            val source = sources.remove((sourceIndex + baseIndex) % sources.length)
+            blacklist += source
+            sink.inputs += source
+          }
         }
       }
     }
@@ -104,6 +115,41 @@ class NeuralNetwork(controller: ControllerImpl) extends Persistable {
       behavior.inputs += trigger
 
       OpenComputers.log.info(s"$i -> ${behavior.behavior.getNameHint} (${behavior.behavior.getClass.toString})")
+    }
+  }
+
+  def print(player: EntityPlayer): Unit = {
+    val sb = StringBuilder.newBuilder
+    def colored(value: Any, enabled: Boolean) = {
+      if (enabled) sb.append(EnumChatFormatting.GREEN)
+      else sb.append(EnumChatFormatting.RED)
+      sb.append(value)
+      sb.append(EnumChatFormatting.RESET)
+    }
+    for (behavior <- behaviors) {
+      val name = Option(behavior.behavior.getNameHint).getOrElse(behavior.behavior.getClass.getSimpleName)
+      colored(name, behavior.isActive)
+      sb.append(" <- (")
+      var first = true
+      for (input <- behavior.inputs) {
+        if (first) first = false else sb.append(", ")
+        input match {
+          case neuron: TriggerNeuron =>
+            colored(triggers.indexOf(neuron) + 1, neuron.isActive)
+          case neuron: ConnectorNeuron =>
+            sb.append("(")
+            first = true
+            for (trigger <- neuron.inputs) {
+              if (first) first = false else sb.append(", ")
+              colored(triggers.indexOf(trigger) + 1, trigger.isActive)
+            }
+            first = false
+            sb.append(")")
+        }
+      }
+      sb.append(")")
+      player.addChatMessage(new ChatComponentText(sb.toString()))
+      sb.clear()
     }
   }
 
