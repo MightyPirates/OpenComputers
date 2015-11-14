@@ -18,7 +18,7 @@ Es gilt zu bedenken, dass manche Blöcke nicht verfügbar sein könnten, wenn es
 * [Bildschirm](screen1.md)
 
 ### Speicher
-* [Festplatte](diskDrive.md)
+* [Diskettenlaufwerk](diskDrive.md)
 * [RAID](raid.md)
 
 ### Extensions
@@ -36,10 +36,9 @@ Es gilt zu bedenken, dass manche Blöcke nicht verfügbar sein könnten, wenn es
 * [Disassembler](disassembler.md)
 
 ## Netzwerktechnik
-* [Zugriffspunkt](accessPoint.md)
 * [Kabel](cable.md)
 * [Net Splitter](netSplitter.md)
-* [Switch](switch.md)
+* [Relay](relay.md)
 
 ## Energiemanagement
 * [Kondensator](capacitor.md)
