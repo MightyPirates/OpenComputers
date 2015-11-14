@@ -61,11 +61,11 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
   var range = Settings.get.maxWirelessRange
   val keys = mutable.ListBuffer.empty[String]
 
-  def address = rack.getMountableData(slot).getString(Settings.namespace + "terminalAddress")
+  def address = rack.getMountableData(slot).getString("terminalAddress")
 
   def sidedKeys = {
     if (rack.isServer) keys
-    else rack.getMountableData(slot).getTagList(Settings.namespace + "keys", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
+    else rack.getMountableData(slot).getTagList("keys", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
   }
 
   // ----------------------------------------------------------------------- //
@@ -109,8 +109,8 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
     if (node.address == null) api.Network.joinNewNetwork(node)
 
     val nbt = new NBTTagCompound()
-    nbt.setNewTagList(Settings.namespace + "keys", keys)
-    nbt.setString(Settings.namespace + "terminalAddress", node.address)
+    nbt.setNewTagList("keys", keys)
+    nbt.setString("terminalAddress", node.address)
     nbt
   }
 

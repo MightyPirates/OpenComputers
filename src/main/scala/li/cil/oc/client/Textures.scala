@@ -55,13 +55,15 @@ object Textures {
   val blockMicrocontrollerFrontLight = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontLight.png")
   val blockMicrocontrollerFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontOn.png")
   val blockMicrocontrollerFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontError.png")
-  val blockRackFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontOn.png")
-  val blockRackFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontError.png")
-  val blockRackFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontActivity.png")
   val blockRaidFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontError.png")
   val blockRaidFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontActivity.png")
   val blockRobot = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")
   val blockScreenUpIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
+  val blockServerFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontOn.png")
+  val blockServerFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontError.png")
+  val blockServerFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontActivity.png")
+  val blockTerminalServerFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontOn.png")
+  val blockTerminalServerFrontPresence = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontPresence.png")
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeCrafting.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeGenerator.png")
@@ -95,6 +97,8 @@ object Textures {
 
   object Rack {
     val icons = Array.fill[IIcon](6)(null)
+    var server: IIcon = _
+    var terminal: IIcon = _
   }
 
   object Assembler {
@@ -142,7 +146,7 @@ object Textures {
     tm.bindTexture(blockHologram)
     tm.bindTexture(blockMicrocontrollerFrontLight)
     tm.bindTexture(blockMicrocontrollerFrontOn)
-    tm.bindTexture(blockRackFrontOn)
+    tm.bindTexture(blockServerFrontOn)
     tm.bindTexture(blockRobot)
     tm.bindTexture(blockScreenUpIndicator)
 

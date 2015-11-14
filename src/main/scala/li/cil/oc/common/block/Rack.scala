@@ -9,6 +9,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -17,15 +18,25 @@ class Rack extends RedstoneAware with traits.SpecialBlock with traits.PowerAccep
   override protected def customTextures = Array(
     None,
     None,
-    Some("ServerRackSide"),
-    Some("ServerRackFront"),
-    Some("ServerRackSide"),
-    Some("ServerRackSide")
+    Some("RackSide"),
+    Some("RackFront"),
+    Some("RackSide"),
+    Some("RackSide")
   )
+
+  var frontOverride: IIcon = _
 
   override def registerBlockIcons(iconRegister: IIconRegister) = {
     super.registerBlockIcons(iconRegister)
     System.arraycopy(icons, 0, Textures.Rack.icons, 0, icons.length)
+    Textures.Rack.server = iconRegister.registerIcon(Settings.resourceDomain + ":" + "ServerFront")
+    Textures.Rack.terminal = iconRegister.registerIcon(Settings.resourceDomain + ":" + "TerminalServerFront")
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, globalSide: ForgeDirection, localSide: ForgeDirection): IIcon = {
+    if (localSide == ForgeDirection.SOUTH && frontOverride != null) frontOverride
+    else super.getIcon(world, x, y, z, globalSide, localSide)
   }
 
   @SideOnly(Side.CLIENT)

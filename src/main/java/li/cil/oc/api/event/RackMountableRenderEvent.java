@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -65,10 +66,31 @@ public abstract class RackMountableRenderEvent extends Event {
          */
         public final RenderBlocks renderer;
 
-        public Block(Rack rack, int mountable, NBTTagCompound data, ForgeDirection side, RenderBlocks renderer) {
+        /**
+         * Texture to use for the front of the mountable.
+         */
+        private IIcon frontTextureOverride;
+
+        public Block(final Rack rack, final int mountable, final NBTTagCompound data, final ForgeDirection side, final RenderBlocks renderer) {
             super(rack, mountable, data);
             this.side = side;
             this.renderer = renderer;
+        }
+
+        /**
+         * The texture currently set to use for the front of the mountable, or <tt>null</tt>.
+         */
+        public IIcon getFrontTextureOverride() {
+            return frontTextureOverride;
+        }
+
+        /**
+         * Set the texture to use for the front of the mountable.
+         *
+         * @param texture the texture to use.
+         */
+        public void setFrontTextureOverride(final IIcon texture) {
+            frontTextureOverride = texture;
         }
     }
 
@@ -95,25 +117,37 @@ public abstract class RackMountableRenderEvent extends Event {
          */
         public final float v0, v1;
 
-        public TileEntity(Rack rack, int mountable, NBTTagCompound data, float v0, float v1) {
+        public TileEntity(final Rack rack, final int mountable, final NBTTagCompound data, final float v0, final float v1) {
             super(rack, mountable, data);
             this.v0 = v0;
             this.v1 = v1;
         }
 
         /**
-         * Utility method for rendering a texture as the front-side overlay
+         * Utility method for rendering a texture as the front-side overlay.
          *
          * @param texture the texture to use to render the overlay.
          */
-        public void renderOverlay(ResourceLocation texture) {
+        public void renderOverlay(final ResourceLocation texture) {
+            renderOverlay(texture, 0, 1);
+        }
+
+        /**
+         * Utility method for rendering a texture as the front-side overlay
+         * over a specified horizontal area.
+         *
+         * @param texture the texture to use to render the overlay.
+         * @param u0      the lower end of the vertical area to render at.
+         * @param u1      the upper end of the vertical area to render at.
+         */
+        public void renderOverlay(final ResourceLocation texture, final float u0, final float u1) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
             final Tessellator t = Tessellator.instance;
             t.startDrawingQuads();
-            t.addVertexWithUV(0, v1, 0, 0, v1);
-            t.addVertexWithUV(1, v1, 0, 1, v1);
-            t.addVertexWithUV(1, v0, 0, 1, v0);
-            t.addVertexWithUV(0, v0, 0, 0, v0);
+            t.addVertexWithUV(u0, v1, 0, u0, v1);
+            t.addVertexWithUV(u1, v1, 0, u1, v1);
+            t.addVertexWithUV(u1, v0, 0, u1, v0);
+            t.addVertexWithUV(u0, v0, 0, u0, v0);
             t.draw();
         }
     }
