@@ -94,9 +94,9 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
 
   override def world = rack.world
 
-  override def yPosition = rack.xPosition
+  override def xPosition = rack.xPosition
 
-  override def xPosition = rack.yPosition
+  override def yPosition = rack.yPosition
 
   override def zPosition = rack.zPosition
 
@@ -148,6 +148,9 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
   // Persistable
 
   override def load(nbt: NBTTagCompound): Unit = {
+    if (rack.isServer) {
+      node.load(nbt)
+    }
     buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
     keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
     keys.clear()
@@ -155,6 +158,7 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
   }
 
   override def save(nbt: NBTTagCompound): Unit = {
+    node.save(nbt)
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
     nbt.setNewTagList(Settings.namespace + "keys", keys)
@@ -187,8 +191,10 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
   // LifeCycle
 
   override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.isClient) state match {
-    case Lifecycle.LifecycleState.Initialized => TerminalServer.loaded += this
-    case Lifecycle.LifecycleState.Disposed => TerminalServer.loaded -= this
+    case Lifecycle.LifecycleState.Initialized =>
+      TerminalServer.loaded += this
+    case Lifecycle.LifecycleState.Disposed =>
+      TerminalServer.loaded -= this
     case _ => // Ignore.
   }
 }

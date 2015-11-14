@@ -165,6 +165,11 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
   // Environment
 
+  override def dispose(): Unit = {
+    super.dispose()
+    disconnectComponents()
+  }
+
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
     if (message.name == "network.message") message.data match {

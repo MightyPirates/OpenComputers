@@ -30,13 +30,13 @@ object Rack {
         for (i <- 0 until 4 if rack.getStackInSlot(i) != null) {
           side match {
             case ForgeDirection.WEST =>
-              renderer.setRenderBounds(lx, v2 - (i + 1) * fs, lz + u1, u2, v2 - i * fs, hz - u1)
+              renderer.setRenderBounds(lx + 1 / 16f, v2 - (i + 1) * fs, lz + u1, u2, v2 - i * fs, hz - u1)
             case ForgeDirection.EAST =>
-              renderer.setRenderBounds(u1, v2 - (i + 1) * fs, lz + u1, hx, v2 - i * fs, hz - u1)
+              renderer.setRenderBounds(u1, v2 - (i + 1) * fs, lz + u1, hx - 1 / 16f, v2 - i * fs, hz - u1)
             case ForgeDirection.NORTH =>
-              renderer.setRenderBounds(lx + u1, v2 - (i + 1) * fs, lz, hx - u1, v2 - i * fs, u2)
+              renderer.setRenderBounds(lx + u1, v2 - (i + 1) * fs, lz + 1 / 16f, hx - u1, v2 - i * fs, u2)
             case ForgeDirection.SOUTH =>
-              renderer.setRenderBounds(lx + u1, v2 - (i + 1) * fs, u1, hx - u1, v2 - i * fs, hz)
+              renderer.setRenderBounds(lx + u1, v2 - (i + 1) * fs, u1, hx - u1, v2 - i * fs, hz - 1 / 16f)
             case _ =>
           }
 

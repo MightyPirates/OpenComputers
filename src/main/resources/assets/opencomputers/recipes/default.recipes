@@ -98,6 +98,11 @@ server3 {
           ["oc:circuitChip3", "oc:circuitChip3", "oc:circuitChip3"]
           [obsidian, "oc:materialCircuitBoardPrinted", obsidian]]
 }
+terminalServer {
+  input: [[obsidian, "oc:wlanCard", obsidian]
+          ["oc:wlanCard", "oc:circuitChip2", "oc:wlanCard"]
+          [obsidian, "oc:materialCircuitBoardPrinted", obsidian]]
+}
 
 ram1 {
   input: [["oc:circuitChip1", nuggetIron, "oc:circuitChip1"]

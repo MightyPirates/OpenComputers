@@ -17,6 +17,7 @@ import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.MachineHost
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.asm.ClassTransformer
+import li.cil.oc.common.component.TerminalServer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
@@ -373,6 +374,9 @@ object EventHandler {
 
       Callbacks.clear()
     }
+    else {
+      TerminalServer.loaded.clear()
+    }
   }
 
   @SubscribeEvent
@@ -384,7 +388,6 @@ object EventHandler {
           case _ => // Dafuq?
         }
         case rack: Rack =>
-          // TODO
           (0 until rack.getSizeInventory).
             map(rack.getMountable).
             collect { case server: Server if server.machine != null => server.machine.stop() }

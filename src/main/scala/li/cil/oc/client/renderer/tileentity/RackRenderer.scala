@@ -30,7 +30,7 @@ object RackRenderer extends TileEntitySpecialRenderer {
       case _ => // No yaw.
     }
 
-    GL11.glTranslated(-0.5, 0.5, 0.505)
+    GL11.glTranslated(-0.5, 0.5, 0.505 - 1 / 16f)
     GL11.glScalef(1, -1, 1)
 
     // Note: we manually sync the rack inventory for this to work.
