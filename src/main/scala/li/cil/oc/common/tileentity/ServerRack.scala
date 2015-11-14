@@ -56,7 +56,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   var lastAccess = Array.fill(4)(0L)
 
   val builtInSwitchTier = Settings.get.serverRackSwitchTier
-  relayDelay = math.max(1, relayBaseDelay - (builtInSwitchTier + 1) * relayDelayPerUpgrade)
+  relayDelay = math.max(1, relayBaseDelay - ((builtInSwitchTier + 1) * relayDelayPerUpgrade).toInt)
   relayAmount = math.max(1, relayBaseAmount + (builtInSwitchTier + 1) * relayAmountPerUpgrade)
   maxQueueSize = math.max(1, queueBaseSize + (builtInSwitchTier + 1) * queueSizePerUpgrade)
 
