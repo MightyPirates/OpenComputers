@@ -1,9 +1,9 @@
 package li.cil.oc.api.component;
 
-import li.cil.oc.api.StateAware;
 import li.cil.oc.api.network.Analyzable;
 import li.cil.oc.api.network.ComponentHost;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.util.StateAware;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;

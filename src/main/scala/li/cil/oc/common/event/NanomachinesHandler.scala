@@ -157,7 +157,7 @@ object NanomachinesHandler {
       api.Nanomachines.getController(e.player) match {
         case controller: ControllerImpl =>
           // Wait a tick because saving is done after this event.
-          EventHandler.schedule(() => api.Nanomachines.uninstallController(e.player))
+          EventHandler.scheduleServer(() => api.Nanomachines.uninstallController(e.player))
         case _ => // Not a player with nanomachines.
       }
     }

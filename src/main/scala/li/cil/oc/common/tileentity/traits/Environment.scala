@@ -34,7 +34,7 @@ trait Environment extends TileEntity with network.Environment with network.Envir
   override protected def initialize() {
     super.initialize()
     if (isServer) {
-      EventHandler.schedule(this)
+      EventHandler.scheduleServer(this)
     }
   }
 

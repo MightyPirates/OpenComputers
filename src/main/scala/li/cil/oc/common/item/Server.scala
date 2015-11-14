@@ -3,10 +3,8 @@ package li.cil.oc.common.item
 import java.util
 
 import li.cil.oc.OpenComputers
-import li.cil.oc.Settings
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
@@ -21,15 +19,11 @@ class Server(val parent: Delegator, val tier: Int) extends traits.Delegate {
 
   override protected def tooltipName = Option(super.unlocalizedName)
 
-  override protected def tooltipData = Seq(Settings.get.terminalsPerTier(math.min(Tier.Three, tier)))
-
   override def rarity(stack: ItemStack) = Rarity.byTier(tier)
 
   override def maxStackSize = 1
 
   private object HelperInventory extends ServerInventory {
-    def tier = Server.this.tier
-
     var container: ItemStack = null
   }
 

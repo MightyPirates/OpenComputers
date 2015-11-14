@@ -76,7 +76,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
       map((s: NBTTagString) => UUID.fromString(s.func_150285_a_()))
     // Re-acquire leashed entities. Need to do this manually because leashed
     // entities only remember their leashee if it's an EntityLivingBase...
-    EventHandler.schedule(() => {
+    EventHandler.scheduleServer(() => {
       val foundEntities = mutable.Set.empty[UUID]
       entitiesInBounds[EntityLiving](position.bounds.expand(5, 5, 5)).foreach(entity => {
         if (leashedEntities.contains(entity.getUniqueID)) {

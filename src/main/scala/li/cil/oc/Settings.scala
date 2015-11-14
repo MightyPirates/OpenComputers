@@ -319,13 +319,7 @@ class Settings(val config: Config) {
   val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
   val rTreeMaxEntries = 10
-  val terminalsPerTier = Array(config.getIntList("misc.terminalsPerTier"): _*) match {
-    case Array(tier1, tier2, tier3) =>
-      Array(math.max(tier1, 1), math.max(tier2, 1), math.max(tier3, 1))
-    case _ =>
-      OpenComputers.log.warn("Bad number of Remote Terminal counts, ignoring.")
-      Array(2, 4, 8)
-  }
+  val terminalsPerServer = 4
   val updateCheck = config.getBoolean("misc.updateCheck")
   val lootProbability = config.getInt("misc.lootProbability")
   val geolyzerRange = config.getInt("misc.geolyzerRange")

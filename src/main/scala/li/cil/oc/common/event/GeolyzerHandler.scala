@@ -10,6 +10,7 @@ import net.minecraftforge.fluids.FluidRegistry
 
 import scala.collection.convert.WrapAsScala._
 
+// TODO move to EventHandlerVanilla
 object GeolyzerHandler {
   @SubscribeEvent
   def onGeolyzerScan(e: GeolyzerEvent.Scan) {

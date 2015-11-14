@@ -3,9 +3,9 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
@@ -22,22 +22,24 @@ object DriverRedstoneCard extends Item with HostAware with EnvironmentAware {
     api.Items.get(Constants.ItemName.RedstoneCardTier1),
     api.Items.get(Constants.ItemName.RedstoneCardTier2))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = {
-    val isAdvanced = tier(stack) == Tier.Two
-    val hasBundled = BundledRedstone.isAvailable && isAdvanced
-    val hasWireless = WirelessRedstone.isAvailable && isAdvanced
-    host match {
-      case redstone: BundledRedstoneAware if hasBundled =>
-        if (hasWireless) new component.Redstone.BundledWireless(redstone)
-        else new component.Redstone.Bundled(redstone)
-      case redstone: RedstoneAware =>
-        if (hasWireless) new component.Redstone.VanillaWireless(redstone)
-        else new component.Redstone.Vanilla(redstone)
-      case _ =>
-        if (hasWireless) new component.Redstone.Wireless(host)
-        else null
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+    if (host.world.isRemote) null
+    else {
+      val isAdvanced = tier(stack) == Tier.Two
+      val hasBundled = BundledRedstone.isAvailable && isAdvanced
+      val hasWireless = WirelessRedstone.isAvailable && isAdvanced
+      host match {
+        case redstone: BundledRedstoneAware if hasBundled =>
+          if (hasWireless) new component.Redstone.BundledWireless(redstone)
+          else new component.Redstone.Bundled(redstone)
+        case redstone: RedstoneAware =>
+          if (hasWireless) new component.Redstone.VanillaWireless(redstone)
+          else new component.Redstone.Vanilla(redstone)
+        case _ =>
+          if (hasWireless) new component.Redstone.Wireless(host)
+          else null
+      }
     }
-  }
 
   override def slot(stack: ItemStack) = Slot.Card
 

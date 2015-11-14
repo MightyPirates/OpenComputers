@@ -19,7 +19,7 @@ object DriverLootDisk extends Item {
     isOneOf(stack, api.Items.get(Constants.ItemName.LootDisk))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (stack.hasTagCompound) {
+    if (!host.world.isRemote && stack.hasTagCompound) {
       val lootPath = "loot/" + stack.getTagCompound.getString(Settings.namespace + "lootPath")
       val savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + lootPath)
       val fs =

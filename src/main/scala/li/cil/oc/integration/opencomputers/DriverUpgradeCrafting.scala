@@ -3,9 +3,9 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.internal.Robot
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.server.component
@@ -16,7 +16,8 @@ object DriverUpgradeCrafting extends Item with HostAware with EnvironmentAware {
     api.Items.get(Constants.ItemName.CraftingUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    host match {
+    if (host.world.isRemote) null
+    else host match {
       case robot: EnvironmentHost with Robot => new component.UpgradeCrafting(robot)
       case _ => null
     }

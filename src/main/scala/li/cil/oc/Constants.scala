@@ -150,6 +150,7 @@ object Constants {
     final val TankControllerUpgrade = "tankControllerUpgrade"
     final val TankUpgrade = "tankUpgrade"
     final val Terminal = "terminal"
+    final val TerminalServer = "terminalServer"
     final val TexturePicker = "texturePicker"
     final val TractorBeamUpgrade = "tractorBeamUpgrade"
     final val Transistor = "transistor"

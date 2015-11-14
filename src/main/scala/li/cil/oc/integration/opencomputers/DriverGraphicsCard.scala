@@ -3,8 +3,8 @@ package li.cil.oc.integration.opencomputers
 import li.cil.oc.Constants
 import li.cil.oc.api
 import li.cil.oc.api.driver.EnvironmentAware
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.driver.item.HostAware
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
@@ -19,7 +19,8 @@ object DriverGraphicsCard extends Item with HostAware with EnvironmentAware {
     api.Items.get(Constants.ItemName.GraphicsCardTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    tier(stack) match {
+    if (host.world.isRemote) null
+    else tier(stack) match {
       case Tier.One => new component.GraphicsCard(Tier.One)
       case Tier.Two => new component.GraphicsCard(Tier.Two)
       case Tier.Three => new component.GraphicsCard(Tier.Three)

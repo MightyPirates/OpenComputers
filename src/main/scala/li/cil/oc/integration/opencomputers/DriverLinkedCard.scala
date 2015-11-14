@@ -13,7 +13,9 @@ object DriverLinkedCard extends Item with EnvironmentAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.LinkedCard))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.LinkedCard()
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+    if (host.world.isRemote) null
+    else new component.LinkedCard()
 
   override def slot(stack: ItemStack) = Slot.Card
 

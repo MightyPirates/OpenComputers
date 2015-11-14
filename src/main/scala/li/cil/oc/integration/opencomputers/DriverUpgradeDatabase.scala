@@ -18,7 +18,8 @@ object DriverUpgradeDatabase extends Item with api.driver.item.HostAware with ap
     api.Items.get(Constants.ItemName.DatabaseUpgradeTier3))
 
   override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost) =
-    new component.UpgradeDatabase(new DatabaseInventory {
+    if (host.world.isRemote) null
+    else new component.UpgradeDatabase(new DatabaseInventory {
       override def tier = DriverUpgradeDatabase.tier(stack)
 
       override def container = stack

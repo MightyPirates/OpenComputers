@@ -1,4 +1,4 @@
-package li.cil.oc.api;
+package li.cil.oc.api.util;
 
 import java.util.EnumSet;
 

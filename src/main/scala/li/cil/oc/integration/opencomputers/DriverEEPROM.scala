@@ -13,7 +13,9 @@ object DriverEEPROM extends Item with EnvironmentAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.EEPROM))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) = new component.EEPROM()
+  override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
+    if (host.world.isRemote) null
+    else new component.EEPROM()
 
   override def slot(stack: ItemStack) = Slot.EEPROM
 

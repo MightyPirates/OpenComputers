@@ -6,8 +6,6 @@ import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.Machine
-import li.cil.oc.api.StateAware
-import li.cil.oc.api.StateAware.State
 import li.cil.oc.api.component.RackBusConnectable
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.MachineHost
@@ -15,6 +13,8 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
+import li.cil.oc.api.util.StateAware
+import li.cil.oc.api.util.StateAware.State
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
@@ -34,7 +34,7 @@ import scala.collection.convert.WrapAsJava._
 class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server {
   lazy val machine = Machine.create(this)
 
-  val node = machine.node
+  val node = if (rack.isServer) machine.node else null
 
   var wasRunning = false
   var hadErrored = false
@@ -60,12 +60,16 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    machine.load(nbt.getCompoundTag("machine"))
+    if (rack.isServer) {
+      machine.load(nbt.getCompoundTag("machine"))
+    }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setNewCompoundTag("machine", machine.save)
+    if (rack.isServer) {
+      nbt.setNewCompoundTag("machine", machine.save)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -173,15 +177,17 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   override def canUpdate: Boolean = true
 
   override def update(): Unit = {
-    machine.update()
+    if (rack.isServer) {
+      machine.update()
 
-    val isRunning = machine.isRunning
-    val hasErrored = machine.lastError != null
-    if (isRunning != wasRunning || hasErrored != hadErrored) {
-      rack.markChanged(slot)
+      val isRunning = machine.isRunning
+      val hasErrored = machine.lastError != null
+      if (isRunning != wasRunning || hasErrored != hadErrored) {
+        rack.markChanged(slot)
+      }
+      wasRunning = isRunning
+      hadErrored = hasErrored
     }
-    wasRunning = isRunning
-    hadErrored = hasErrored
 
     updateComponents()
   }
@@ -190,7 +196,7 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   // StateAware
 
   override def getCurrentState: util.EnumSet[State] = {
-    if (machine.isRunning) util.EnumSet.of(api.StateAware.State.IsWorking)
+    if (machine.isRunning) util.EnumSet.of(api.util.StateAware.State.IsWorking)
     else util.EnumSet.noneOf(classOf[StateAware.State])
   }
 

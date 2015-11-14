@@ -70,8 +70,8 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   }
 
   override def getCurrentState = {
-    if (isRunning) util.EnumSet.of(api.StateAware.State.IsWorking)
-    else util.EnumSet.noneOf(classOf[api.StateAware.State])
+    if (isRunning) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

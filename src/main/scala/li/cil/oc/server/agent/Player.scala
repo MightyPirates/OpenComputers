@@ -349,7 +349,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
       }
 
       if (!immediate) {
-        EventHandler.schedule(() => new DamageOverTime(this, x, y, z, side, (adjustedBreakTime * 20).toInt).tick())
+        EventHandler.scheduleServer(() => new DamageOverTime(this, x, y, z, side, (adjustedBreakTime * 20).toInt).tick())
         return adjustedBreakTime
       }
 
@@ -591,7 +591,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
           lastDamageSent = damage
           world.destroyBlockInWorldPartially(-1, x, y, z, damage)
         }
-        EventHandler.schedule(() => tick())
+        EventHandler.scheduleServer(() => tick())
       }
     }
   }

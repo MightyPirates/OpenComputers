@@ -186,7 +186,7 @@ object NetworkControl {
       Future {
         try {
           val job = future.get() // Make 100% sure we wait for this outside the scheduled closure.
-          EventHandler.schedule(() => {
+          EventHandler.scheduleServer(() => {
             val link = craftingGrid.submitJob(job, Craftable.this, null, true, source)
             if (link != null) {
               status.setLink(link)
@@ -217,7 +217,7 @@ object NetworkControl {
         val x = nbt.getInteger("x")
         val y = nbt.getInteger("y")
         val z = nbt.getInteger("z")
-        EventHandler.schedule(() => {
+        EventHandler.scheduleServer(() => {
           val world = DimensionManager.getWorld(dimension)
           val tileEntity = world.getTileEntity(x, y, z)
           if (tileEntity != null && tileEntity.isInstanceOf[TileEntity with IGridProxyable with IActionHost]) {

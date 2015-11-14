@@ -6,7 +6,7 @@ import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 
 @Injectable.Interface(value = "buildcraft.api.tiles.IHasWork", modid = Mods.IDs.BuildCraft)
-trait StateAware extends api.StateAware {
+trait StateAware extends api.util.StateAware {
   @Optional.Method(modid = Mods.IDs.BuildCraft)
-  def hasWork: Boolean = getCurrentState.contains(api.StateAware.State.CanWork) || getCurrentState.contains(api.StateAware.State.IsWorking)
+  def hasWork: Boolean = getCurrentState.contains(api.util.StateAware.State.CanWork) || getCurrentState.contains(api.util.StateAware.State.IsWorking)
 }
