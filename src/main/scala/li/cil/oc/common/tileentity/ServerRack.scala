@@ -53,7 +53,7 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   var lastAccess = Array.fill(4)(0L)
 
   val builtInSwitchTier = Settings.get.serverRackSwitchTier
-  relayDelay = math.max(1, relayBaseDelay - (builtInSwitchTier + 1) * relayDelayPerUpgrade)
+  relayDelay = math.max(1, relayBaseDelay - ((builtInSwitchTier + 1) * relayDelayPerUpgrade).toInt)
   relayAmount = math.max(1, relayBaseAmount + (builtInSwitchTier + 1) * relayAmountPerUpgrade)
   maxQueueSize = math.max(1, queueBaseSize + (builtInSwitchTier + 1) * queueSizePerUpgrade)
 
@@ -120,14 +120,17 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
   }
 
   def reconnectServer(number: Int, server: component.Server) {
-    sides(number) match {
-      case Some(serverSide) =>
         val serverNode = server.machine.node
         for (side <- EnumFacing.values if side != facing) {
-          if (toLocal(side) == serverSide) sidedNode(side).connect(serverNode)
-          else sidedNode(side).disconnect(serverNode)
+      val node = sidedNode(side)
+      if (node != null) {
+        if (sides(number).contains(toLocal(side))) {
+          node.connect(serverNode)
         }
-      case _ =>
+        else {
+          node.disconnect(serverNode)
+    }
+  }
     }
   }
 
@@ -409,7 +412,10 @@ class ServerRack extends traits.PowerAcceptor with traits.Hub with traits.PowerB
     super.writeToNBTForClient(nbt)
     nbt.setBooleanArray("isServerRunning", _isRunning)
     nbt.setBooleanArray("hasServerErrored", _hasErrored)
-    nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value.fold("")(_.machine.node.address))))
+    nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value match {
+      case Some(server) if server.machine != null && server.machine.node != null && server.machine.node.address != null => server.machine.node.address
+      case _ => ""
+    })))
     nbt.setByteArray("sides", sides.map {
       case Some(side) => side.ordinal.toByte
       case _ => -1: Byte

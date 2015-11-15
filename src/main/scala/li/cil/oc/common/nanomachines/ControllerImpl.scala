@@ -317,6 +317,12 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
     }
   }
 
+  def print(): Unit = {
+    if (isServer) {
+      configuration.print(player)
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   def save(nbt: NBTTagCompound): Unit = configuration.synchronized {

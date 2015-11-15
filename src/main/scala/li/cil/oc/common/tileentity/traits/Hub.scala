@@ -71,7 +71,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
           relayPacket(sourceSide, packet)
         }
         if (queue.nonEmpty) {
-          relayCooldown = relayDelay
+          relayCooldown = relayDelay - 1
         }
       }
       else if (world.getTotalWorldTime % relayDelay == 0) {
@@ -84,7 +84,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
     if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
       if (relayCooldown < 0) {
-        relayCooldown = relayDelay
+        relayCooldown = relayDelay - 1
       }
       true
     }

@@ -59,7 +59,9 @@ trait BasicTextSegment extends Segment {
       pos += 1
       val width = stringWidth(s.take(pos), renderer)
       if (width >= maxWidth) {
-        if (lastBreak > 0 || fullWidth <= maxLineWidth || s.exists(breaks.contains)) return lastBreak + 1
+        if (lastBreak > 0 || fullWidth <= maxLineWidth || s.exists(breaks.contains))
+          if (maxWidth == maxLineWidth && fullWidth == maxLineWidth && !s.exists(breaks.contains)) return s.length
+          else return lastBreak + 1
         else return pos - 1
       }
       if (pos < s.length && breaks.contains(s.charAt(pos))) lastBreak = pos
