@@ -8,7 +8,6 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -63,7 +62,7 @@ abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with
     if (!worksWith(stack)) throw new IllegalArgumentException("Unsupported processor type.")
     if (!stack.hasTagCompound) stack.setTagCompound(new NBTTagCompound())
     stack.getTagCompound.setString(Settings.namespace + "archClass", architecture.getName)
-    stack.getTagCompound.setString(Settings.namespace + "archName", Machine.getArchitectureName(architecture))
+    stack.getTagCompound.setString(Settings.namespace + "archName", api.Machine.getArchitectureName(architecture))
   }
 
   override def getCallBudget(stack: ItemStack): Double = Settings.get.callBudgets(tier(stack) max Tier.One min Tier.Three)

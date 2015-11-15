@@ -3,8 +3,6 @@ package li.cil.oc.common
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-import com.typesafe.config.Config
-import cpw.mods.fml.common.FMLLog
 import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
@@ -45,14 +43,6 @@ object IMC {
         OpenComputers.log.info(s"Registering new tool durability provider '${message.getStringValue}' from mod ${message.getSender}.")
         try ToolDurabilityProviders.add(getStaticMethod(message.getStringValue, classOf[ItemStack])) catch {
           case t: Throwable => OpenComputers.log.warn("Failed registering tool durability provider.", t)
-        }
-      }
-      else if (message.key == "requestSettings" && message.isStringMessage) {
-        // TODO Remove in OC 1.6
-        OpenComputers.log.info(s"Got a request for our configuration from mod ${message.getSender}.")
-        FMLLog.bigWarning("The IMC message `requestSettings` is deprecated. Use `li.cil.oc.api.API.config` instead.")
-        try tryInvokeStaticVoid(getStaticMethod(message.getStringValue, classOf[Config]), Settings.get.config) catch {
-          case t: Throwable => OpenComputers.log.warn("Failed sending config.", t)
         }
       }
       else if (message.key == "registerWrenchTool" && message.isStringMessage) {

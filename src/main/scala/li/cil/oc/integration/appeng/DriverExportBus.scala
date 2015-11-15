@@ -43,16 +43,6 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
 
     override def priority = 2
 
-    // TODO remove in OC 1.6
-    @Deprecated
-    @Callback(doc = "function(side:number, [ slot:number]):boolean -- DEPRECATED, use getExportConfiguration.")
-    def getConfiguration(context: Context, args: Arguments): Array[AnyRef] = getExportConfiguration(context, args)
-
-    // TODO remove in OC 1.6
-    @Deprecated
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean -- DEPRECATED, use setExportConfiguration.")
-    def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = setExportConfiguration(context, args)
-
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = getPartConfig[PartExportBus](context, args)
 

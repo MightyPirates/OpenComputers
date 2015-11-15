@@ -5,7 +5,6 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.network.Connector
-import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ScalaClosure._
 import li.cil.repack.org.luaj.vm2.LuaValue
 import li.cil.repack.org.luaj.vm2.Varargs
@@ -65,21 +64,21 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
         case (stack, processor: MutableProcessor) => processor.allArchitectures.toSeq
         case (stack, processor: Processor) => Seq(processor.architecture(stack))
       } match {
-        case Some(architectures) => LuaValue.listOf(architectures.map(Machine.getArchitectureName).map(LuaValue.valueOf).toArray)
+        case Some(architectures) => LuaValue.listOf(architectures.map(api.Machine.getArchitectureName).map(LuaValue.valueOf).toArray)
         case _ => LuaValue.tableOf()
       }
     })
 
     computer.set("getArchitecture", (args: Varargs) => {
       machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {
-        case (stack, processor: Processor) => LuaValue.valueOf(Machine.getArchitectureName(processor.architecture(stack)))
+        case (stack, processor: Processor) => LuaValue.valueOf(api.Machine.getArchitectureName(processor.architecture(stack)))
       }.getOrElse(LuaValue.NONE)
     })
 
     computer.set("setArchitecture", (args: Varargs) => {
       val archName = args.checkjstring(1)
       machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {
-        case (stack, processor: MutableProcessor) => processor.allArchitectures.find(arch => Machine.getArchitectureName(arch) == archName) match {
+        case (stack, processor: MutableProcessor) => processor.allArchitectures.find(arch => api.Machine.getArchitectureName(arch) == archName) match {
           case Some(archClass) =>
             if (archClass != processor.architecture(stack)) {
               processor.setArchitecture(stack, archClass)
