@@ -53,11 +53,23 @@ trait Inventory extends SimpleInventory {
   // ----------------------------------------------------------------------- //
 
   def load(nbt: NBTTagCompound) {
-    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((slotNbt: NBTTagCompound) => {
-      val slot = slotNbt.getByte("slot")
-      if (slot >= 0 && slot < items.length) {
-        updateItems(slot, ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
+    // Implicit slot numbers are compatibility code for loading old server save format.
+    // TODO 1.7 remove compat code.
+    var count = 0
+    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((tag: NBTTagCompound) => {
+      if (tag.hasKey("slot")) {
+        val slot = tag.getByte("slot")
+        if (slot >= 0 && slot < items.length) {
+          updateItems(slot, ItemStack.loadItemStackFromNBT(tag.getCompoundTag("item")))
+        }
       }
+      else {
+        val slot = count
+        if (slot >= 0 && slot < items.length) {
+          updateItems(slot, ItemStack.loadItemStackFromNBT(tag))
+        }
+      }
+      count += 1
     })
   }
 

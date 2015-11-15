@@ -121,6 +121,7 @@ class Proxy {
 
   // Example usage: OpenComputers.ID + ":rack" -> "serverRack"
   private val blockRenames = Map[String, String](
+    OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack // Yay, full circle >_>
   )
 
   // Example usage: OpenComputers.ID + ":tabletCase" -> "tabletCase1"
@@ -128,7 +129,8 @@ class Proxy {
     OpenComputers.ID + ":microcontrollerCase" -> Constants.ItemName.MicrocontrollerCaseTier1,
     OpenComputers.ID + ":droneCase" -> Constants.ItemName.DroneCaseTier1,
     OpenComputers.ID + ":tabletCase" -> Constants.ItemName.TabletCaseTier1,
-    OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1
+    OpenComputers.ID + ":dataCard" -> Constants.ItemName.DataCardTier1,
+    OpenComputers.ID + ":serverRack" -> Constants.BlockName.Rack
   )
 
   def missingMappings(e: FMLMissingMappingsEvent) {
