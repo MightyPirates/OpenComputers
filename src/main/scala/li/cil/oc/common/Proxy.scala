@@ -101,6 +101,8 @@ class Proxy {
 
     OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
+
+    api.API.isPowerEnabled = !Settings.get.ignorePower
   }
 
   def postInit(e: FMLPostInitializationEvent) {

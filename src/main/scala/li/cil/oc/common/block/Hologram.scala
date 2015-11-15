@@ -2,8 +2,8 @@ package li.cil.oc.common.block
 
 import java.util
 
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.state.IBlockState
@@ -17,7 +17,9 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class Hologram(val tier: Int) extends SimpleBlock {
-  ModColoredLights.setLightLevel(this, 15, 15, 15)
+  if (Settings.get.hologramLight) {
+    ModColoredLights.setLightLevel(this, 15, 15, 15)
+  }
   setBlockBounds(0, 0, 0, 1, 0.5f, 1)
 
   // ----------------------------------------------------------------------- //
