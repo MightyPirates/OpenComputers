@@ -1,6 +1,6 @@
 # Datenkarte
 
-![Im Gegensatz zum allgemeinen Glauben speichert das keine Daten.](oredict:oc:dataCard)
+![Im Gegensatz zum allgemeinen Glauben speichert das keine Daten.](oredict:oc:dataCard1)
 
 Die Datenkarte ist eine Werkzeugkarte die einige Algorithmen zur Verfügung stellen die nur sehr schlecht oder sehr langsam implementierbar wären. Möglich ist Hashing und grundlegendes Inflating und Deflating.. Zudem enthält es ein angefügtes Dateisystem und stellt eine Vielzahl von Programmen zur Verfügung die die Funktionen der Karte verwenden, ähnlich der Internetkarte.
 
