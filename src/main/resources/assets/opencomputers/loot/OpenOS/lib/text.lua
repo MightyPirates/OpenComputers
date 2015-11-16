@@ -81,7 +81,7 @@ local quotes = {
 --["$(("] = "))"
 }
 
-local function tokenize(value)
+function text.tokenize(value)
   checkArg(1, value, "string")
 
   local i = 0
