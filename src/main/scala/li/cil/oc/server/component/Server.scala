@@ -13,8 +13,6 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
-import li.cil.oc.api.util.StateAware
-import li.cil.oc.api.util.StateAware.State
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
@@ -195,9 +193,9 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   // ----------------------------------------------------------------------- //
   // StateAware
 
-  override def getCurrentState: util.EnumSet[State] = {
+  override def getCurrentState: util.EnumSet[api.util.StateAware.State] = {
     if (machine.isRunning) util.EnumSet.of(api.util.StateAware.State.IsWorking)
-    else util.EnumSet.noneOf(classOf[StateAware.State])
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //
