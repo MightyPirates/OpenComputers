@@ -6,105 +6,257 @@ local text = require("text")
 local unicode = require("unicode")
 
 local term = {}
-local cursorX, cursorY = 1, 1
-local cursorBlink = nil
+local blinking = setmetatable({}, {__mode = "v"}) --allows collection of windows with enabled cursor blink
+local methods = {}
+local metatable = {
+  __index = methods,
+  __gc = function(self)
+    self:setCursorBlink(false)
+  end,
+  __pairs = function(self)
+    return function(_, k)
+      return next(methods, k)
+    end, self, nil
+  end,
+}
 
-local function toggleBlink()
-  if term.isAvailable() then
+local function gpu(self)
+  local state = self.__state
+  return state.gpu or (component.isAvailable("gpu") and component.gpu) or nil
+end
+
+local function toggleBlink(self)
+  local state = self.__state
+  local cursorBlink = state.cursorBlink
+  if self:isAvailable() then
     cursorBlink.state = not cursorBlink.state
+    local x, y, w, h = self:getGlobalArea()
+    local cursorX, cursorY = state.cursorX, state.cursorY
+    if cursorX < 1 or cursorY < 1 or cursorX > w or cursorY > h then
+      return
+    end
+    local xAbs, yAbs = x + cursorX - 1, y + cursorY - 1
     if cursorBlink.state then
-      cursorBlink.alt = component.gpu.get(cursorX, cursorY) or cursorBlink.alt
-      component.gpu.set(cursorX, cursorY, string.rep(unicode.char(0x2588), unicode.charWidth(cursorBlink.alt))) -- solid block
+      cursorBlink.alt = gpu(self).get(xAbs, yAbs) or cursorBlink.alt
+      gpu(self).set(xAbs, yAbs, string.rep(unicode.char(0x2588), unicode.charWidth(cursorBlink.alt))) -- solid block
     else
-      component.gpu.set(cursorX, cursorY, cursorBlink.alt)
+      gpu(self).set(xAbs, yAbs, cursorBlink.alt)
     end
   end
 end
+
+
+local knownKeyboardsMetatable = {
+  __index = function(t, k)
+    if component.type(k) == "screen" then
+      --1st keyboard only == 1 event only, t == none
+      local address = component.invoke(k, "getKeyboards")[1] or t
+      t[k] = address
+      return address
+    end
+  end
+}
+local knownKeyboards
+local function resetKeyboardCache(event, _, typ)
+  if event == nil or typ == "screen" or typ == "keyboard" then
+    knownKeyboards = setmetatable({}, knownKeyboardsMetatable)
+  end
+end
+resetKeyboardCache()
+event.listen("component_added", resetKeyboardCache)
+event.listen("component_removed", resetKeyboardCache)
 
 -------------------------------------------------------------------------------
 
-function term.clear()
-  if term.isAvailable() then
-    local w, h = component.gpu.getResolution()
-    component.gpu.fill(1, 1, w, h, " ")
+function term.setWindow(newWindow)
+  checkArg(1, newWindow, "table")
+  local data = require("process").info().data
+  local oldWindow = data.term_window
+  data.term_window = newWindow
+  return oldWindow
+end
+
+function term.getWindow()
+  local data = require("process").info().data
+  if not data.term_window then
+    data.term_window = term.newWindow()
   end
-  cursorX, cursorY = 1, 1
+  return data.term_window
 end
 
-function term.reset()
-  if term.isAvailable() then
-    local maxw, maxh = component.gpu.maxResolution()
-    component.gpu.setResolution(maxw, maxh)
-    component.gpu.setBackground(0x000000)
-    component.gpu.setForeground(0xFFFFFF)
-    term.clear()
+function term.newWindow(x, y, width, height, gpu)
+  checkArg(1, x, "number", "nil")
+  checkArg(2, y, "number", "nil")
+  checkArg(3, width, "number", "nil")
+  checkArg(4, height, "number", "nil")
+  checkArg(5, gpu, "table", "nil")
+  local window = setmetatable({}, metatable)
+  window.__state = {
+    x = x or 1,
+    y = y or 1,
+    width = wwidth or -1,
+    height = height or -1,
+    gpu = gpu,
+    cursorX = 1, cursorY = 1,
+    cursorBlink = nil,
+  }
+  return window
+end
+
+
+function methods:setArea(x, y, width, height)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  checkArg(3, width, "number")
+  checkArg(4, height, "number")
+  assert(x ~= 0 and y ~= 0 and width ~= 0 and height ~= 0, "Nonzero arguments only!")
+  
+  local state = self.__state
+  local oldX, oldY, oldWidth, oldHeight = state.x, state.y, state.width, state.height
+  state.x, state.y, state.width, state.height = x, y, width, height
+  return oldX, oldY, oldWidth, oldHeight
+end
+
+function methods:getArea()
+  local state = self.__state
+  return state.x, state.y, state.width, state.height
+end
+
+function methods:setGPU(newGPU)
+  local state = self.__state
+  local oldGPU = state.gpu
+  state.gpu = newGPU
+  return oldGPU
+end
+
+function methods:getGPU()
+  local state = self.__state
+  return state.gpu, gpu(self)
+end
+
+local function getAbsolute(pos, size)
+  if pos < 0 then
+    pos = size + pos + 1
+  end
+  return math.min(math.max(pos, 1), size)
+end
+
+function methods:getGlobalArea()
+  local state = self.__state
+  local w, h = gpu(self).getResolution()
+  if not w then
+    return
+  end
+  local x, y = getAbsolute(state.x, w), getAbsolute(state.y, h)
+  local wMax, hMax = w - x + 1, h - y + 1
+  return x, y, getAbsolute(state.width, wMax), getAbsolute(state.height, hMax)
+end
+
+
+function methods:toGlobal(x, y)
+  local dx, dy = self:getGlobalArea()
+  return x + dx - 1, y + dy - 1
+end
+function methods:toLocal(x, y)
+  local dx, dy = self:getGlobalArea()
+  return x - dx + 1, y - dy + 1
+end
+
+function methods:clear()
+  local state = self.__state
+  if self:isAvailable() then
+    local x, y, w, h = self:getGlobalArea()
+    gpu(self).fill(x, y, w, h, " ")
+  end
+  state.cursorX, state.cursorY = 1, 1
+end
+
+function methods:reset()
+  if self:isAvailable() then
+    local maxw, maxh = gpu(self).maxResolution()
+    gpu(self).setResolution(maxw, maxh)
+    gpu(self).setBackground(0x000000)
+    gpu(self).setForeground(0xFFFFFF)
+    self:clear()
   end
 end
 
-function term.clearLine()
-  if term.isAvailable() then
-    local w = component.gpu.getResolution()
-    component.gpu.fill(1, cursorY, w, 1, " ")
+function methods:clearLine()
+  local state = self.__state
+  if self:isAvailable() then
+    local x, y, w, h = self:getGlobalArea()
+    gpu(self).fill(x, state.cursorY + y - 1, w, 1, " ")
   end
-  cursorX = 1
+  state.cursorX = 1
 end
 
-function term.getCursor()
-  return cursorX, cursorY
+function methods:getCursor()
+  local state = self.__state
+  return state.cursorX, state.cursorY
 end
 
-function term.setCursor(col, row)
+function methods:setCursor(col, row)
   checkArg(1, col, "number")
   checkArg(2, row, "number")
+  local state = self.__state
+  local cursorBlink = state.cursorBlink
   if cursorBlink and cursorBlink.state then
-    toggleBlink()
+    toggleBlink(self)
   end
-  local wide, right = term.isWide(cursorX, cursorY)
+  state.cursorX = math.floor(col)
+  state.cursorY = math.floor(row)
+  local wide, right = self:isWide(state.cursorX, state.cursorY)
   if wide and right then
-    cursorX = cursorX - 1
+    state.cursorX = state.cursorX - 1
   end
-  cursorX = math.floor(col)
-  cursorY = math.floor(row)
 end
 
-function term.getCursorBlink()
-  return cursorBlink ~= nil
+function methods:getCursorBlink()
+  local state = self.__state
+  return state.cursorBlink ~= nil
 end
 
-function term.setCursorBlink(enabled)
+function methods:setCursorBlink(enabled)
   checkArg(1, enabled, "boolean")
+  local state = self.__state
+  local cursorBlink = state.cursorBlink
   if enabled then
     if not cursorBlink then
       cursorBlink = {}
-      cursorBlink.id = event.timer(0.5, toggleBlink, math.huge)
+      cursorBlink.id = event.timer(0.5, function() toggleBlink(blinking[cursorBlink.id]) end, math.huge)
+      blinking[cursorBlink.id] = self
       cursorBlink.state = false
     elseif not cursorBlink.state then
-      toggleBlink()
+      toggleBlink(self)
     end
   elseif cursorBlink then
+    blinking[cursorBlink.id] = nil
     event.cancel(cursorBlink.id)
     if cursorBlink.state then
-      toggleBlink()
+      toggleBlink(self)
     end
     cursorBlink = nil
   end
+  state.cursorBlink = cursorBlink
 end
 
-function term.isWide(x, y)
-  if not term.isAvailable() then
+function methods:isWide(x, y)
+  if not self:isAvailable() then
     return false
   end
-  local w, h = component.gpu.getResolution()
-  if x < 1 or x > w or y < 1 or y > h then
+  local xWin, yWin, wWin, hWin = self:getGlobalArea()
+  if x < 1 or x > wWin or y < 1 or y > hWin then
     return false
   end
-  local char = component.gpu.get(x, y)
+  x = x + xWin - 1
+  y = y + yWin - 1
+  local char = gpu(self).get(x, y)
   if unicode.isWide(char) then
     -- The char at the specified position is a wide char.
     return true
   end
-  if char == " " and x > 1 then
-    local charLeft = component.gpu.get(x - 1, y)
+  if char == " " and x > xWin then
+    local charLeft = gpu(self).get(x - 1, y)
     if charLeft and unicode.isWide(charLeft) then
       -- The char left to the specified position is a wide char.
       return true, true
@@ -114,28 +266,30 @@ function term.isWide(x, y)
   return false
 end
 
-function term.isAvailable()
-  if component.isAvailable("gpu") and component.isAvailable("screen") then
-    -- Ensure our primary GPU is bound to our primary screen.
-    if component.gpu.getScreen() ~= component.screen.address then
-      component.gpu.bind(component.screen.address)
+function methods:isAvailable()
+  if gpu(self) then
+    local ok, address = pcall(gpu(self).getScreen)
+    if ok and address then
+      return true
     end
-    return true
   end
   return false
 end
 
-function term.read(history, dobreak, hint, pwchar, filter)
+function methods:read(history, dobreak, hint, pwchar, filter)
   checkArg(1, history, "table", "nil")
   checkArg(3, hint, "function", "table", "nil")
   checkArg(4, pwchar, "string", "nil")
   checkArg(5, filter, "string", "function", "nil")
   history = history or {}
   table.insert(history, "")
-  local offset = term.getCursor() - 1
-  local scrollX, scrollY = 0, #history - 1
-  local cursorX = 1
-
+  
+  local state = self.__state
+  local offset = self:getCursor() - 1
+  local scrollX = 0
+  local textCursorX = 1
+  local historyIndex = #history
+  
   if type(hint) == "table" then
     local hintTable = hint
     hint = function()
@@ -143,6 +297,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
     end
   end
   local hintCache, hintIndex
+  local redraw
 
   if pwchar and unicode.len(pwchar) > 0 then
     pwchar = unicode.sub(pwchar, 1, 1)
@@ -159,108 +314,102 @@ function term.read(history, dobreak, hint, pwchar, filter)
     return pwchar and pwchar:rep(unicode.len(str)) or str
   end
 
-  local function getCursor()
-    return cursorX, 1 + scrollY
+  local function getTextCursor()
+    return textCursorX
+  end
+  
+  local function getHistoryIndex()
+    return historyIndex
+  end
+  
+  local function setHistoryIndex(newIndex)
+    historyIndex = newIndex
   end
 
   local function line()
-    local _, cby = getCursor()
-    return history[cby]
+    return history[getHistoryIndex()]
   end
 
   local function clearHint()
     hintCache = nil
   end
 
-  local function setCursor(nbx, nby)
-    local w, h = component.gpu.getResolution()
-    local cx, cy = term.getCursor()
-
-    scrollY = nby - 1
-
-    nbx = math.max(1, math.min(unicode.len(history[nby]) + 1, nbx))
-    local ncx = nbx + offset - scrollX
-    if ncx > w then
-      local sx = nbx - (w - offset)
-      local dx = math.abs(scrollX - sx)
-      scrollX = sx
-      component.gpu.copy(1 + offset + dx, cy, w - offset - dx, 1, -dx, 0)
-      local str = masktext(unicode.sub(history[nby], nbx - (dx - 1), nbx))
-      str = text.padRight(str, dx)
-      component.gpu.set(1 + math.max(offset, w - dx), cy, unicode.sub(str, 1 + math.max(0, dx - (w - offset))))
-    elseif ncx < 1 + offset then
-      local sx = nbx - 1
-      local dx = math.abs(scrollX - sx)
-      scrollX = sx
-      component.gpu.copy(1 + offset, cy, w - offset - dx, 1, dx, 0)
-      local str = masktext(unicode.sub(history[nby], nbx, nbx + dx))
-      --str = text.padRight(str, dx)
-      component.gpu.set(1 + offset, cy, str)
+  local function setTextCursor(newCursor)
+    local x, y, w, h = self:getGlobalArea()
+    local termCursorX, termCursorY = self:getCursor()
+    local str = line() .. " "
+    
+    textCursorX = math.max(1, math.min(unicode.len(str), newCursor))
+    
+    while offset + unicode.wlen(unicode.sub(str, 1 + scrollX, textCursorX)) > w do
+      scrollX = scrollX + 1
     end
-
-    cursorX = nbx
-    term.setCursor(nbx - scrollX + offset, cy)
+    if textCursorX <= scrollX then
+      scrollX = textCursorX - 1
+    end
+    termCursorX = offset + unicode.wlen(unicode.sub(str, 1 + scrollX, textCursorX - 1)) + 1
+    
+    self:setCursor(termCursorX, termCursorY)
+    redraw()
     clearHint()
   end
 
   local function copyIfNecessary()
-    local cbx, cby = getCursor()
-    if cby ~= #history then
+    local index = getHistoryIndex()
+    if index ~= #history then
       history[#history] = line()
-      setCursor(cbx, #history)
+      setHistoryIndex(#history)
     end
   end
 
-  local function redraw()
-    local cx, cy = term.getCursor()
-    local bx, by = 1 + scrollX, 1 + scrollY
-    local w, h = component.gpu.getResolution()
+  redraw = function()
+    local _, termCursorY = self:getCursor()
+    local x, y, w, h = self:getGlobalArea()
     local l = w - offset
-    local str = masktext(unicode.sub(history[by], bx, bx + l))
-    str = text.padRight(str, l)
-    component.gpu.set(1 + offset, cy, str)
+    local str = history[getHistoryIndex()]
+    str = masktext(unicode.sub(str, scrollX + 1, scrollX + l))
+    str = (unicode.wlen(str) > l) and unicode.wtrunc(str, l + 1) or text.padRight(str, l)
+    gpu(self).set(x + offset, termCursorY + y - 1, str)
   end
 
   local function home()
-    local cbx, cby = getCursor()
-    setCursor(1, cby)
+    setTextCursor(1)
   end
 
   local function ende()
-    local cbx, cby = getCursor()
-    setCursor(unicode.len(line()) + 1, cby)
+    setTextCursor(unicode.len(line()) + 1)
   end
 
   local function left()
-    local cbx, cby = getCursor()
-    if cbx > 1 then
-      setCursor(cbx - 1, cby)
+    local cursorX = getTextCursor()
+    if cursorX > 1 then
+      setTextCursor(cursorX - 1)
       return true -- for backspace
     end
   end
 
   local function right(n)
     n = n or 1
-    local cbx, cby = getCursor()
-    local be = unicode.len(line()) + 1
-    if cbx < be then
-      setCursor(math.min(be, cbx + n), cby)
+    local cursorX = getTextCursor()
+    local maxX = unicode.len(line()) + 1
+    if cursorX < maxX then
+      setTextCursor(math.min(maxX, cursorX + n))
     end
   end
 
   local function up()
-    local cbx, cby = getCursor()
-    if cby > 1 then
-      setCursor(1, cby - 1)
+    local index = getHistoryIndex()
+    if index > 1 then
+      setHistoryIndex(index - 1)
       redraw()
       ende()
     end
   end
 
   local function down()
-    local cbx, cby = getCursor()
-    if cby < #history then
-      setCursor(1, cby + 1)
+    local index = getHistoryIndex()
+    if index < #history then
+      setHistoryIndex(index + 1)
       redraw()
       ende()
     end
@@ -269,45 +418,31 @@ function term.read(history, dobreak, hint, pwchar, filter)
   local function delete()
     copyIfNecessary()
     clearHint()
-    local cbx, cby = getCursor()
-    if cbx <= unicode.len(line()) then
-      local cw = unicode.charWidth(unicode.sub(line(), cbx))
-      history[cby] = unicode.sub(line(), 1, cbx - 1) ..
-                     unicode.sub(line(), cbx + 1)
-      local cx, cy = term.getCursor()
-      local w, h = component.gpu.getResolution()
-      component.gpu.copy(cx + cw, cy, w - cx, 1, -cw, 0)
-      local br = cbx + (w - cx)
-      local char = masktext(unicode.sub(line(), br, br))
-      if not char or unicode.wlen(char) == 0 then
-        char = " "
-      end
-      component.gpu.set(w, cy, char)
+    local cursorX = getTextCursor()
+    local index = getHistoryIndex()
+    if cursorX <= unicode.len(line()) then
+      history[index] = unicode.sub(line(), 1, cursorX - 1) ..
+                       unicode.sub(line(), cursorX + 1)
+      redraw()
     end
   end
 
   local function insert(value)
     copyIfNecessary()
     clearHint()
-    local cx, cy = term.getCursor()
-    local cbx, cby = getCursor()
-    local w, h = component.gpu.getResolution()
-    history[cby] = unicode.sub(line(), 1, cbx - 1) ..
-                   value ..
-                   unicode.sub(line(), cbx)
-    local len = unicode.wlen(value)
-    local n = w - (cx - 1) - len
-    if n > 0 then
-      component.gpu.copy(cx, cy, n, 1, len, 0)
-    end
-    component.gpu.set(cx, cy, masktext(value))
+    local cursorX = getTextCursor()
+    local index = getHistoryIndex()
+    history[index] = unicode.sub(line(), 1, cursorX - 1) ..
+                     value ..
+                     unicode.sub(line(), cursorX)
     right(unicode.len(value))
   end
 
   local function tab(direction)
-    local cbx, cby = getCursor()
+    local cursorX = getTextCursor()
+    local historyIndex = getHistoryIndex()
     if not hintCache then -- hint is never nil, see onKeyDown
-      hintCache = hint(line(), cbx)
+      hintCache = hint(line(), cursorX)
       hintIndex = 0
       if type(hintCache) == "string" then
         hintCache = {hintCache}
@@ -318,7 +453,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
     end
     if hintCache then
       hintIndex = (hintIndex + direction + #hintCache - 1) % #hintCache + 1
-      history[cby] = tostring(hintCache[hintIndex])
+      history[historyIndex] = tostring(hintCache[hintIndex])
       -- because all other cases of the cursor being moved will result
       -- in the hint cache getting invalidated we do that in setCursor,
       -- so we have to back it up here to restore it after moving.
@@ -332,7 +467,7 @@ function term.read(history, dobreak, hint, pwchar, filter)
   end
 
   local function onKeyDown(char, code)
-    term.setCursorBlink(false)
+    self:setCursorBlink(false)
     if code == keyboard.keys.back then
       if left() then delete() end
     elseif code == keyboard.keys.delete then
@@ -353,10 +488,10 @@ function term.read(history, dobreak, hint, pwchar, filter)
       tab(keyboard.isShiftDown() and -1 or 1)
     elseif code == keyboard.keys.enter then
       if not filter or filter(line() or "") then
-        local cbx, cby = getCursor()
-        if cby ~= #history then -- bring entry to front
+        local index = getHistoryIndex()
+        if index ~= #history then -- bring entry to front
           history[#history] = line()
-          table.remove(history, cby)
+          table.remove(history, index)
         end
         return true, history[#history] .. "\n"
       else
@@ -370,24 +505,25 @@ function term.read(history, dobreak, hint, pwchar, filter)
     elseif not keyboard.isControl(char) then
       insert(unicode.char(char))
     end
-    term.setCursorBlink(true)
-    term.setCursorBlink(true) -- force toggle to caret
+    self:setCursorBlink(true)
+    self:setCursorBlink(true) -- force toggle to caret
   end
 
   local function onClipboard(value)
     copyIfNecessary()
-    term.setCursorBlink(false)
-    local cbx, cby = getCursor()
+    self:setCursorBlink(false)
+    local cursorX = getTextCursor()
+    local index = getHistoryIndex()
     local l = value:find("\n", 1, true)
     if l then
-      history[cby] = unicode.sub(line(), 1, cbx - 1)
+      history[index] = unicode.sub(line(), 1, cursorX - 1)
       redraw()
       insert(unicode.sub(value, 1, l - 1))
       return true, line() .. "\n"
     else
       insert(value)
-      term.setCursorBlink(true)
-      term.setCursorBlink(true) -- force toggle to caret
+      self:setCursorBlink(true)
+      self:setCursorBlink(true) -- force toggle to caret
     end
   end
 
@@ -395,15 +531,22 @@ function term.read(history, dobreak, hint, pwchar, filter)
     if history[#history] == "" then
       table.remove(history)
     end
-    term.setCursorBlink(false)
-    if term.getCursor() > 1 and dobreak ~= false then
-      term.write("\n")
+    self:setCursorBlink(false)
+    if self:getCursor() > 1 and dobreak ~= false then
+      self:write("\n")
     end
   end
 
-  term.setCursorBlink(true)
-  while term.isAvailable() do
-    local ocx, ocy = getCursor()
+  local screenAddress
+  if gpu(self) then
+    local ok
+    ok, screenAddress = pcall(gpu(self).getScreen)
+  end
+
+  self:setCursorBlink(true)
+  while self:isAvailable() do
+    local oldCursorX = getTextCursor()
+    local oldHistoryIndex = getHistoryIndex()
     local ok, name, address, charOrValue, code = pcall(event.pull)
     if not ok then
       cleanup()
@@ -413,14 +556,15 @@ function term.read(history, dobreak, hint, pwchar, filter)
       cleanup()
       return nil
     end
-    local ncx, ncy = getCursor()
-    if ocx ~= ncx or ocy ~= ncy then
+    local newCursorX = getTextCursor()
+    local newHistoryIndex = getHistoryIndex()
+    if oldCursorX ~= newCursorX or oldHistoryIndex ~= newHistoryIndex then
       cleanup()
       return "" -- soft fail the read if someone messes with the term
     end
-    if term.isAvailable() and -- may have changed since pull
+    if self:isAvailable() and -- may have changed since pull
        type(address) == "string" and
-       component.isPrimary(address)
+       knownKeyboards[screenAddress] == address
     then
       local done, result
       if name == "key_down" then
@@ -438,8 +582,8 @@ function term.read(history, dobreak, hint, pwchar, filter)
   return nil -- fail the read if term becomes unavailable
 end
 
-function term.write(value, wrap)
-  if not term.isAvailable() then
+function methods:write(value, wrap)
+  if not self:isAvailable() then
     return
   end
   value = text.detab(tostring(value))
@@ -453,34 +597,46 @@ function term.write(value, wrap)
       computer.beep()
     end
   end
-  local w, h = component.gpu.getResolution()
+  local x, y, w, h = self:getGlobalArea()
   if not w then
     return -- gpu lost its screen but the signal wasn't processed yet.
   end
-  local blink = term.getCursorBlink()
-  term.setCursorBlink(false)
+  local blink = self:getCursorBlink()
+  local state = self.__state
+  self:setCursorBlink(false)
   local line, nl
   repeat
     local wrapAfter, margin = math.huge, math.huge
     if wrap then
-      wrapAfter, margin = w - (cursorX - 1), w
+      wrapAfter, margin = w - (state.cursorX - 1), w
     end
     line, value, nl = text.wrap(value, wrapAfter, margin)
-    component.gpu.set(cursorX, cursorY, line)
-    cursorX = cursorX + unicode.wlen(line)
-    if nl or (cursorX > w and wrap) then
-      cursorX = 1
-      cursorY = cursorY + 1
+    line = unicode.sub(line, 1, w - (state.cursorX - 1))
+    gpu(self).set(state.cursorX + x - 1, state.cursorY + y - 1, line)
+    state.cursorX = state.cursorX + unicode.wlen(line)
+    if nl or (state.cursorX > w and wrap) then
+      state.cursorX = 1
+      state.cursorY = state.cursorY + 1
     end
-    if cursorY > h then
-      component.gpu.copy(1, 1, w, h, 0, -1)
-      component.gpu.fill(1, h, w, 1, " ")
-      cursorY = h
+    if state.cursorY > h then
+      gpu(self).copy(x, y + 1, w, h - 1, 0, -1)
+      gpu(self).fill(x, h + y - 1, w, 1, " ")
+      state.cursorY = h
     end
   until not value
-  term.setCursorBlink(blink)
+  self:setCursorBlink(blink)
 end
 
 -------------------------------------------------------------------------------
+
+--Automaticly generate term library functions from window methods
+for k, v in pairs(methods) do
+  if type(v) == "function" then
+    term[k] = function(...)
+      local self = term.getWindow()
+      return self[k](self, ...)
+    end
+  end
+end
 
 return term
