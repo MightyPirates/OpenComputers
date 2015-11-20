@@ -1,7 +1,7 @@
-# Amélioration du contrôleur d'inventaire
+# AmÃ©lioration du contrÃ´leur d'inventaire
 
-![J'ai le contrôle.](oredict:oc:inventoryControllerUpgrade)
+![J'ai le contrÃ´le.](oredict:oc:inventoryControllerUpgrade)
 
-L'amélioration du contrôleur d'inventaire permet aux [robots](../block/robot.md) et aux [drones](drone.md) des capacités d'interaction étendues avec les inventaires. Elle permet à un appareil de viser spécifiquement un emplacement dans un inventaire externe quand il lâche ou ramasse un objet. Elle permet également à un appareil de lire des informations détaillées à propos d'un objet. Enfin, elle fournit aux [robots](../block/robot.md) un moyen de changer leur outil équipé sans aide extérieure.
+L'amÃ©lioration du contrÃ´leur d'inventaire permet aux [robots](../block/robot.md) et aux [drones](drone.md) des capacitÃ©s d'interaction Ã©tendues avec les inventaires. Elle permet Ã  un appareil de viser spÃ©cifiquement un emplacement dans un inventaire externe quand il lÃ¢che ou ramasse un objet. Elle permet Ã©galement Ã  un appareil de lire des informations dÃ©taillÃ©es Ã  propos d'un objet. Enfin, elle fournit aux [robots](../block/robot.md) un moyen de changer leur outil Ã©quipÃ© sans aide extÃ©rieure.
 
-Cette amélioration peut également être placée dans un [adaptateur](../block/adapter.md), ce qui lui permet d'utiliser des méthodes d'inspection d'inventaires adjacents similaires à celles des [robots](../block/robot.md). Cependant, elle ne permet pas à l'[adaptateur](../block/adapter.md) de déplacer des objets hors et vers ces inventaires. Cette fonctionnalité est seulement disponible pour les [robots](../block/robot.md) et les [drones](drone.md).
+Cette amÃ©lioration peut Ã©galement Ãªtre placÃ©e dans un [adaptateur](../block/adapter.md), ce qui lui permet d'utiliser des mÃ©thodes d'inspection d'inventaires adjacents similaires Ã  celles des [robots](../block/robot.md). Cependant, elle ne permet pas Ã  l'[adaptateur](../block/adapter.md) de dÃ©placer des objets hors et vers ces inventaires. Cette fonctionnalitÃ© est seulement disponible pour les [robots](../block/robot.md) et les [drones](drone.md).

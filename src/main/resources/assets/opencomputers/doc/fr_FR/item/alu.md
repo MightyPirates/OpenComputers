@@ -1,5 +1,5 @@
-# Unité de Logique Arithmétique
+# UnitÃ© de Logique ArithmÃ©tique
 
-![Je être logique !](oredict:oc:materialALU)
+![Je Ãªtre logique !](oredict:oc:materialALU)
 
-Elle est utilisée pour fabriquer des composants effectuant des calculs, comme les [processeurs](cpu1.md) et les [cartes graphiques](graphicsCard1.md).
+Elle est utilisÃ©e pour fabriquer des composants effectuant des calculs, comme les [processeurs](cpu1.md) et les [cartes graphiques](graphicsCard1.md).

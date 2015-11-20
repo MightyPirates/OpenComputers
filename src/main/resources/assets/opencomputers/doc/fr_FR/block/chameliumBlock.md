@@ -1,7 +1,7 @@
-# Bloc de Chamélium
+# Bloc de ChamÃ©lium
 
 ![Tellement... blanc.](oredict:oc:chameliumBlock)
 
-Quelques morceaux de [chamélium](../item/chamelium.md) peuvent être combinés pour fournir un bloc monochrome à des fins décoratives. Les blocs de chamélium peuvent aussi être teintés avec n'importe laquelle des 16 couleurs de Minecraft.
+Quelques morceaux de [chamÃ©lium](../item/chamelium.md) peuvent Ãªtre combinÃ©s pour fournir un bloc monochrome Ã  des fins dÃ©coratives. Les blocs de chamÃ©lium peuvent aussi Ãªtre teintÃ©s avec n'importe laquelle des 16 couleurs de Minecraft.
 
-Utiliser un bloc de chamélium comme texture pour les [impressions 3D](print.md) fournit une surface propre et blanche pour appliquer les teintes.
+Utiliser un bloc de chamÃ©lium comme texture pour les [impressions 3D](print.md) fournit une surface propre et blanche pour appliquer les teintes.

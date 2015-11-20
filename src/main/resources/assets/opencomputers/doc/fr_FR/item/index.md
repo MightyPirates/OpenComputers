@@ -1,13 +1,13 @@
 # Objets
 
-Cet index liste tous les objets documentés d'OpenComputers. Si vous cherchez un bloc, allez plutôt voir l'[index des blocs](../block/index.md).
+Cet index liste tous les objets documentÃ©s d'OpenComputers. Si vous cherchez un bloc, allez plutÃ´t voir l'[index des blocs](../block/index.md).
 
-Gardez en tête que certains d'entre eux ne sont pas disponibles, en fonction de l'ensemble de recettes sélectionné.
+Gardez en tÃªte que certains d'entre eux ne sont pas disponibles, en fonction de l'ensemble de recettes sÃ©lectionnÃ©.
 
 ## Outils
 * [Analyseur](analyzer.md)
 * [Manuel](manual.md)
-* [Terminal à distance](terminal.md)
+* [Terminal Ã  distance](terminal.md)
 * [Ramasseur de texture](texturePicker.md)
 * [Crisseur](wrench.md)
 
@@ -20,71 +20,71 @@ Gardez en tête que certains d'entre eux ne sont pas disponibles, en fonction de 
 
 ### Cartes
 * [Carte de bus abstraite](abstractBusCard.md)
-* [Carte de données](dataCard1.md)
-* [Carte de débogueur](debugCard.md) (ou Interface de Carte Aventure)
+* [Carte de donnÃ©es](dataCard1.md)
+* [Carte de dÃ©bogueur](debugCard.md) (ou Interface de Carte Aventure)
 * [Carte graphique](graphicsCard1.md)
 * [Carte internet](internetCard.md)
-* [Carte liée](linkedCard.md)
-* [Carte réseau](lanCard.md)
+* [Carte liÃ©e](linkedCard.md)
+* [Carte rÃ©seau](lanCard.md)
 * [Carte de Redstone](redstoneCard1.md)
-* [Carte de réseau sans-fil](wlanCard.md)
+* [Carte de rÃ©seau sans-fil](wlanCard.md)
 * [Carte de capteur du monde](worldSensorCard.md)
 
-### Améliorations
-* [Amélioration ange](angelUpgrade.md)
-* [Amélioration batterie](batteryUpgrade1.md)
+### AmÃ©liorations
+* [AmÃ©lioration ange](angelUpgrade.md)
+* [AmÃ©lioration batterie](batteryUpgrade1.md)
 * [Conteneur de carte](cardContainer1.md)
-* [Amélioration chargement de chunk](chunkloaderUpgrade.md)
-* [Amélioration d'artisanat](craftingUpgrade.md)
-* [Amélioration de base de données](databaseUpgrade1.md)
-* [Amélioration d'expérience](experienceUpgrade.md)
-* [Amélioration de générateur](generatorUpgrade.md)
-* [Amélioration de vol plané](hoverUpgrade1.md)
-* [Amélioration du contrôleur d'inventaire](inventoryControllerUpgrade.md)
-* [Amélioration d'inventaire](inventoryUpgrade.md)
-* [Amélioration de laisse](leashUpgrade.md)
-* [Amélioration de navigation](navigationUpgrade.md)
-* [Amélioration de piston](pistonUpgrade.md)
-* [Amélioration de panneau d'E/S](signUpgrade.md)
-* [Amélioration du générateur solaire](solarGeneratorUpgrade.md)
-* [Amélioration du contrôleur de réservoir](tankControllerUpgrade.md)
-* [Amélioration de réservoir](tankUpgrade.md)
-* [Amélioration du rayon tracteur](tractorBeamUpgrade.md)
-* [Amélioration de conteneur](upgradeContainer1.md)
+* [AmÃ©lioration chargement de chunk](chunkloaderUpgrade.md)
+* [AmÃ©lioration d'artisanat](craftingUpgrade.md)
+* [AmÃ©lioration de base de donnÃ©es](databaseUpgrade1.md)
+* [AmÃ©lioration d'expÃ©rience](experienceUpgrade.md)
+* [AmÃ©lioration de gÃ©nÃ©rateur](generatorUpgrade.md)
+* [AmÃ©lioration de vol planÃ©](hoverUpgrade1.md)
+* [AmÃ©lioration du contrÃ´leur d'inventaire](inventoryControllerUpgrade.md)
+* [AmÃ©lioration d'inventaire](inventoryUpgrade.md)
+* [AmÃ©lioration de laisse](leashUpgrade.md)
+* [AmÃ©lioration de navigation](navigationUpgrade.md)
+* [AmÃ©lioration de piston](pistonUpgrade.md)
+* [AmÃ©lioration de panneau d'E/S](signUpgrade.md)
+* [AmÃ©lioration du gÃ©nÃ©rateur solaire](solarGeneratorUpgrade.md)
+* [AmÃ©lioration du contrÃ´leur de rÃ©servoir](tankControllerUpgrade.md)
+* [AmÃ©lioration de rÃ©servoir](tankUpgrade.md)
+* [AmÃ©lioration du rayon tracteur](tractorBeamUpgrade.md)
+* [AmÃ©lioration de conteneur](upgradeContainer1.md)
 
 ### Autre
-* [Unité de Traitement Accélérée (UTA)](apu1.md)
+* [UnitÃ© de Traitement AccÃ©lÃ©rÃ©e (UTA)](apu1.md)
 * [Bus des composants](componentBus1.md)
 * [Processeur](cpu1.md)
 * [EEPROM](eeprom.md)
 * [Disquette](floppy.md)
 * [Disque dur](hdd1.md)
-* [Mémoire (RAM)](ram1.md)
+* [MÃ©moire (RAM)](ram1.md)
 
 ## Fabrication
 * [Grog](acid.md)
-* [Unité de Logique Arithmétique (ULA)](alu.md)
+* [UnitÃ© de Logique ArithmÃ©tique (ULA)](alu.md)
 * [Touches directionnelles](arrowKeys.md)
 * [Groupe de boutons](buttonGroup.md)
 * [Base de carte](card.md)
-* [Plaque de circuit imprimé](circuitBoard.md)
-* [Unité de contrôle (UC)](controlUnit.md)
+* [Plaque de circuit imprimÃ©](circuitBoard.md)
+* [UnitÃ© de contrÃ´le (UC)](controlUnit.md)
 * [Fil de coupe](cuttingWire.md)
 * [Disque](disk.md)
 * [Interweb](interweb.md)
-* [Puce électronique](chip1.md)
-* [Pavé numérique](numPad.md)
-* [Circuit imprimé](printedCircuitBoard.md)
-* [Plaque de circuit imprimé brute](rawCircuitBoard.md)
+* [Puce Ã©lectronique](chip1.md)
+* [PavÃ© numÃ©rique](numPad.md)
+* [Circuit imprimÃ©](printedCircuitBoard.md)
+* [Plaque de circuit imprimÃ© brute](rawCircuitBoard.md)
 * [Transistor](transistor.md)
 
 ## Assemblage / Impression
-* [Chamélium](chamelium.md)
+* [ChamÃ©lium](chamelium.md)
 * [Cartouche d'encre](inkCartridge.md)
 * [Boitier de drone](droneCase1.md)
-* [Boitier de microcontrôleur](microcontrollerCase1.md)
+* [Boitier de microcontrÃ´leur](microcontrollerCase1.md)
 * [Boitier de tablette](tabletCase1.md)
 
 ## Autre
-* [Bottes de vol plané](hoverBoots.md)
+* [Bottes de vol planÃ©](hoverBoots.md)
 * [Nanomachines](nanomachines.md)

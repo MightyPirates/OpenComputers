@@ -1,5 +1,5 @@
-# Amélioration de laisse
+# AmÃ©lioration de laisse
 
-![-censuré- ~ Vexatos 2015](oredict:oc:leashUpgrade)
+![-censurÃ©- ~ Vexatos 2015](oredict:oc:leashUpgrade)
 
-L'amélioration de laisse permet de mettre les animaux en laisse, attachés à l'entité contenue dans l'appareil qui héberge le composant, par exemple un [drone](drone.md). En utilisant cette amélioration, plusieurs animaux peuvent être attachés en même temps, ce qui la rend assez utile pour déplacer des troupeaux.
+L'amÃ©lioration de laisse permet de mettre les animaux en laisse, attachÃ©s Ã  l'entitÃ© contenue dans l'appareil qui hÃ©berge le composant, par exemple un [drone](drone.md). En utilisant cette amÃ©lioration, plusieurs animaux peuvent Ãªtre attachÃ©s en mÃªme temps, ce qui la rend assez utile pour dÃ©placer des troupeaux.

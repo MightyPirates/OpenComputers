@@ -2,10 +2,10 @@
 
 ![Any way you want me.](block:OpenComputers:print)
 
-Une impression 3D est créée en utilisant une [imprimante 3D](printer.md). Ces impressions sont prévues initialement dans un but décoratif, mais elles peuvent également être créées de manière à ce qu'elles émettent ou réagissent à des signaux de redstone, permettant d'agrandir un peu leur champ de fonctionnalité.
+Une impression 3D est crÃ©Ã©e en utilisant une [imprimante 3D](printer.md). Ces impressions sont prÃ©vues initialement dans un but dÃ©coratif, mais elles peuvent Ã©galement Ãªtre crÃ©Ã©es de maniÃ¨re Ã  ce qu'elles Ã©mettent ou rÃ©agissent Ã  des signaux de redstone, permettant d'agrandir un peu leur champ de fonctionnalitÃ©.
 
-Les impressions 3D peuvent être recyclées en les remettant dans une [imprimante 3D](printer.md). Cela permettra de réutiliser une partie du [chamélium](../item/chamelium.md) qui avait été consommé pour les imprimer. La couleur utilisée pour imprimer le modèle ne sera pas recyclée.
+Les impressions 3D peuvent Ãªtre recyclÃ©es en les remettant dans une [imprimante 3D](printer.md). Cela permettra de rÃ©utiliser une partie du [chamÃ©lium](../item/chamelium.md) qui avait Ã©tÃ© consommÃ© pour les imprimer. La couleur utilisÃ©e pour imprimer le modÃ¨le ne sera pas recyclÃ©e.
 
-En maintenant la touche pour l'affichage étendu des infobulles d'OpenComputers (`Maj` par défaut), l'état actuel d'une impression sera affiché, s'il existe.
+En maintenant la touche pour l'affichage Ã©tendu des infobulles d'OpenComputers (`Maj` par dÃ©faut), l'Ã©tat actuel d'une impression sera affichÃ©, s'il existe.
 
-Les blocs imprimés sont également compatible avec Forge MultiPart. S'il est présent, plusieurs impressions peuvent être placées dans l'espace d'un seul bloc, sauf si elles se chevauchent, et le nombre total de forme dans l'espace du bloc ne dépasse pas la limite pour un modèle. De part la nature de Forge MultiPart, les impressions peuvent aussi être placées dans le même bloc qu'un autre bloc compatible avec Forge MultiPart, comme les torches, les leviers, les câbles ou les fils d'alliage rouge de Project:Red, par exemple.
+Les blocs imprimÃ©s sont Ã©galement compatible avec Forge MultiPart. S'il est prÃ©sent, plusieurs impressions peuvent Ãªtre placÃ©es dans l'espace d'un seul bloc, sauf si elles se chevauchent, et le nombre total de forme dans l'espace du bloc ne dÃ©passe pas la limite pour un modÃ¨le. De part la nature de Forge MultiPart, les impressions peuvent aussi Ãªtre placÃ©es dans le mÃªme bloc qu'un autre bloc compatible avec Forge MultiPart, comme les torches, les leviers, les cÃ¢bles ou les fils d'alliage rouge de Project:Red, par exemple.

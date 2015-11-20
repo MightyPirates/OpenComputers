@@ -2,4 +2,4 @@
 
 ![Avec Biactol...](oredict:oc:materialButtonGroup)
 
-Parce que vous avez *toujours* plein de boutons qui trainent quelque part. Ne mentez pas. Nous avons tous à faire un Maj-clic sur ce bouton de recette, encore et encore. Les groupes de boutons sont utilisés pour fabriquer des [claviers](../block/keyboard.md).
+Parce que vous avez *toujours* plein de boutons qui trainent quelque part. Ne mentez pas. Nous avons tous Ã  faire un Maj-clic sur ce bouton de recette, encore et encore. Les groupes de boutons sont utilisÃ©s pour fabriquer des [claviers](../block/keyboard.md).

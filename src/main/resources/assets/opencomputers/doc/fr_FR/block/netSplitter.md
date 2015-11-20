@@ -1,7 +1,7 @@
-# Répartiteur réseau
+# RÃ©partiteur rÃ©seau
 
 ![*.net *.split](oredict:oc:netSplitter)
 
-Le répartiteur réseau est un appareil qui permet de contrôler la connectivité entre des sous-réseaux. A la différence du [relai](relay.md) ou du [convertisseur énergétique](powerConverter.md), il connecte directement entre eux des sous-réseaux voisins, c'est à dire qu'il est possible d'accéder aux composants des sous-réseaux. La connectivité de chaque face peut être activée en utilisant une clé (ex: le [crisseur](../item/wrench.md)). Quand un signal de redstone est appliqué au répartiteur réseau, la connectivité de toutes les faces est inversée.
+Le rÃ©partiteur rÃ©seau est un appareil qui permet de contrÃ´ler la connectivitÃ© entre des sous-rÃ©seaux. A la diffÃ©rence du [relai](relay.md) ou du [convertisseur Ã©nergÃ©tique](powerConverter.md), il connecte directement entre eux des sous-rÃ©seaux voisins, c'est Ã  dire qu'il est possible d'accÃ©der aux composants des sous-rÃ©seaux. La connectivitÃ© de chaque face peut Ãªtre activÃ©e en utilisant une clÃ© (ex: le [crisseur](../item/wrench.md)). Quand un signal de redstone est appliquÃ© au rÃ©partiteur rÃ©seau, la connectivitÃ© de toutes les faces est inversÃ©e.
 
-Ce bloc peut donc être utilisé pour activer la connectivité de certaines parties d'un réseau. Utilisez un [bloc d'E/S redstone](redstone.md) ou des [cartes de redstone](../item/redstoneCard1.md) pour automatiser le répartiteur réseau.
+Ce bloc peut donc Ãªtre utilisÃ© pour activer la connectivitÃ© de certaines parties d'un rÃ©seau. Utilisez un [bloc d'E/S redstone](redstone.md) ou des [cartes de redstone](../item/redstoneCard1.md) pour automatiser le rÃ©partiteur rÃ©seau.

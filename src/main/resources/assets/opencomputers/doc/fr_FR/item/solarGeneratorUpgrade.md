@@ -1,7 +1,7 @@
-# Amélioration du générateur solaire
+# AmÃ©lioration du gÃ©nÃ©rateur solaire
 
 ![Walking on the sun.](oredict:oc:solarGeneratorUpgrade)
 
-L'amélioration du générateur solaire peut être installée sur des appareils comme les [robots](../block/robot.md), les [drones](drone.md) et les [tablettes](tablet.md) pour générer passivement de l'énergie. Elle fonctionnera seulement si l'appareil est directement exposé à la lumière du soleil ; un appareil dans un endroit fermé ou une zone affectée par la météo ne génèrera pas d'énergie.
+L'amÃ©lioration du gÃ©nÃ©rateur solaire peut Ãªtre installÃ©e sur des appareils comme les [robots](../block/robot.md), les [drones](drone.md) et les [tablettes](tablet.md) pour gÃ©nÃ©rer passivement de l'Ã©nergie. Elle fonctionnera seulement si l'appareil est directement exposÃ© Ã  la lumiÃ¨re du soleil ; un appareil dans un endroit fermÃ© ou une zone affectÃ©e par la mÃ©tÃ©o ne gÃ©nÃ¨rera pas d'Ã©nergie.
 
-La quantité d'énergie générée est relativement faible, mais elle devrait être suffisante pour prolonger la durée nécessaire entre chaque [recharge](../block/charger.md), si ce n'est pour la supprimer complètement.
+La quantitÃ© d'Ã©nergie gÃ©nÃ©rÃ©e est relativement faible, mais elle devrait Ãªtre suffisante pour prolonger la durÃ©e nÃ©cessaire entre chaque [recharge](../block/charger.md), si ce n'est pour la supprimer complÃ¨tement.

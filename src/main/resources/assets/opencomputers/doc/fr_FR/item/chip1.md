@@ -1,5 +1,5 @@
-# Puce électronique
+# Puce Ã©lectronique
 
 ![Pas celles qui se mangent.](oredict:oc:circuitChip1)
 
-Les puces électroniques sont le pain quotidien de la fabrication de composants électroniques. Elles existent en différents niveaux, pour fabriquer différents niveaux de composants.
+Les puces Ã©lectroniques sont le pain quotidien de la fabrication de composants Ã©lectroniques. Elles existent en diffÃ©rents niveaux, pour fabriquer diffÃ©rents niveaux de composants.

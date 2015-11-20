@@ -2,8 +2,8 @@
 
 ![Silence, on tourne !](oredict:oc:diskDrive)
 
-Le lecteur de disquettes peut être utilisé pour lire des [disquettes](../item/floppy.md) en se servant d'un [ordinateur](../general/computer.md) connecté au lecteur de disquette. C'est très utile pour démarrer, car les niveaux les plus inférieurs de [boîtier d'ordinateur](case1.md) n'ont pas d'emplacement pour disquettes pré-construit, et vous aurez besoin d'un système d'exploitation pour démarrer l'[ordinateur](../general/computer.md). Un disque d'[OpenOS](../general/openOS.md) peut être fabriqué en utilisant une [disquette](../item/floppy.md) vierge et un [manuel](../item/manual.md).
+Le lecteur de disquettes peut Ãªtre utilisÃ© pour lire des [disquettes](../item/floppy.md) en se servant d'un [ordinateur](../general/computer.md) connectÃ© au lecteur de disquette. C'est trÃ¨s utile pour dÃ©marrer, car les niveaux les plus infÃ©rieurs de [boÃ®tier d'ordinateur](case1.md) n'ont pas d'emplacement pour disquettes prÃ©-construit, et vous aurez besoin d'un systÃ¨me d'exploitation pour dÃ©marrer l'[ordinateur](../general/computer.md). Un disque d'[OpenOS](../general/openOS.md) peut Ãªtre fabriquÃ© en utilisant une [disquette](../item/floppy.md) vierge et un [manuel](../item/manual.md).
 
-Il peut également être installé sur les [robots](robot.md) pour pouvoir y insérer des [disquettes](../item/floppy.md). Cela peut être très utile car le seul autre moyen de transférer des données vers et depuis un robot est d'utiliser le réseau - par exemple en utilisant une [carte réseau](../item/lanCard.md).
+Il peut Ã©galement Ãªtre installÃ© sur les [robots](robot.md) pour pouvoir y insÃ©rer des [disquettes](../item/floppy.md). Cela peut Ãªtre trÃ¨s utile car le seul autre moyen de transfÃ©rer des donnÃ©es vers et depuis un robot est d'utiliser le rÃ©seau - par exemple en utilisant une [carte rÃ©seau](../item/lanCard.md).
 
-Les [disquettes](../item/floppy.md) peuvent être insérées et retirées dans ouvrir l'interface du lecteur de disquette en faisant un clic-droit en étant accroupi avec la [disquette](../item/floppy.md) en main.
+Les [disquettes](../item/floppy.md) peuvent Ãªtre insÃ©rÃ©es et retirÃ©es dans ouvrir l'interface du lecteur de disquette en faisant un clic-droit en Ã©tant accroupi avec la [disquette](../item/floppy.md) en main.

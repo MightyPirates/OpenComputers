@@ -1,7 +1,7 @@
-# Carte de débogueur
+# Carte de dÃ©bogueur
 
 ![Attends, si je... oooooh.](item:OpenComputers:item@73)
 
-La carte de débogueur est un objet à usage créatif seulement, qui a été créé à l'origine pour rendre le débogage plus facile, en automatisant certains processus. Depuis, elle a obtenu beaucoup d'autres fonctionnalités, ce qui la rend très utile pour la création de cartes personnalisées.
+La carte de dÃ©bogueur est un objet Ã  usage crÃ©atif seulement, qui a Ã©tÃ© crÃ©Ã© Ã  l'origine pour rendre le dÃ©bogage plus facile, en automatisant certains processus. Depuis, elle a obtenu beaucoup d'autres fonctionnalitÃ©s, ce qui la rend trÃ¨s utile pour la crÃ©ation de cartes personnalisÃ©es.
 
-Remarquez que vous pouvez l'activer en étant accroupi pour la lier à vous, ou pour la détacher, ce qui fera s'exécuter la commande `runCommand` avec votre niveau de permission, au lieu du niveau par défaut d'OpenComputers.
+Remarquez que vous pouvez l'activer en Ã©tant accroupi pour la lier Ã  vous, ou pour la dÃ©tacher, ce qui fera s'exÃ©cuter la commande `runCommand` avec votre niveau de permission, au lieu du niveau par dÃ©faut d'OpenComputers.

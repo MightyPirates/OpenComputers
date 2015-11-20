@@ -1,11 +1,11 @@
 # Raid
 
-![Une instance à 40.](oredict:oc:raid)
+![Une instance Ã  40.](oredict:oc:raid)
 
-Le bloc de RAID peut accueillir 3 [disques dur](../item/hdd1.md) qui seront combinés en un seul système de fichiers. Ce système de fichiers combinés a la taille de la somme des capacités des [disques dur](../item/hdd1.md) individuels, et est disponible pour tous les [ordinateurs](../general/computer.md) connectés au RAID.
+Le bloc de RAID peut accueillir 3 [disques dur](../item/hdd1.md) qui seront combinÃ©s en un seul systÃ¨me de fichiers. Ce systÃ¨me de fichiers combinÃ©s a la taille de la somme des capacitÃ©s des [disques dur](../item/hdd1.md) individuels, et est disponible pour tous les [ordinateurs](../general/computer.md) connectÃ©s au RAID.
 
-Le RAID fonctionne uniquement (et se présente en tant que système de fichiers) quand 3 [disques dur](../item/hdd1.md) sont présents. Les [disques dur](../item/hdd1.md) peuvent avec chacun une taille différente.
+Le RAID fonctionne uniquement (et se prÃ©sente en tant que systÃ¨me de fichiers) quand 3 [disques dur](../item/hdd1.md) sont prÃ©sents. Les [disques dur](../item/hdd1.md) peuvent avec chacun une taille diffÃ©rente.
 
-Faites attention, car l'ajout d'un [disque dur](../item/hdd1.md) au bloc de RAID effacera son contenu. Retirer un [disque dur](../item/hdd1.md) du RAID effacera le contenu complet du RAID. Remettre le disque en place *ne restaurera pas* les anciens fichiers; le RAID sera ré-initialisé en tant que système de fichiers vierge.
+Faites attention, car l'ajout d'un [disque dur](../item/hdd1.md) au bloc de RAID effacera son contenu. Retirer un [disque dur](../item/hdd1.md) du RAID effacera le contenu complet du RAID. Remettre le disque en place *ne restaurera pas* les anciens fichiers; le RAID sera rÃ©-initialisÃ© en tant que systÃ¨me de fichiers vierge.
 
-Casser un bloc de RAID gardera son contenu, dons il peut être déplacé en tout sécurité sans risque de perte de données.
+Casser un bloc de RAID gardera son contenu, dons il peut Ãªtre dÃ©placÃ© en tout sÃ©curitÃ© sans risque de perte de donnÃ©es.

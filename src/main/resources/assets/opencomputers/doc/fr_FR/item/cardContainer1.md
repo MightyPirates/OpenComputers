@@ -1,5 +1,5 @@
 # Conteneur de carte
 
-![il peu avwar dé cart !](oredict:oc:cardContainer1)
+![il peu avwar dÃ© cart !](oredict:oc:cardContainer1)
 
-Le conteneur de carte est une amélioration de conteneur pour que des cartes puissent être insérées ou retirées d'un [robot](../block/robot.md) à la volée. Le niveau maximum de la carte que l'emplacement peut contenir est égal au niveau du conteneur. Contrairement aux amélioration classiques, la complexité des conteneurs est de deux fois leur niveau. Regardez [par là](../block/robot.md) pour avoir des détails sur la complexité des robots.
+Le conteneur de carte est une amÃ©lioration de conteneur pour que des cartes puissent Ãªtre insÃ©rÃ©es ou retirÃ©es d'un [robot](../block/robot.md) Ã  la volÃ©e. Le niveau maximum de la carte que l'emplacement peut contenir est Ã©gal au niveau du conteneur. Contrairement aux amÃ©lioration classiques, la complexitÃ© des conteneurs est de deux fois leur niveau. Regardez [par lÃ ](../block/robot.md) pour avoir des dÃ©tails sur la complexitÃ© des robots.

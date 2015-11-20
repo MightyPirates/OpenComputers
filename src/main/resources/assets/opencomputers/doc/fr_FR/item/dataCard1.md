@@ -1,7 +1,7 @@
-# Carte de données
+# Carte de donnÃ©es
 
-![Contrairement à la croyance populaire, elle ne stocke pas de données.](oredict:oc:dataCard1)
+![Contrairement Ã  la croyance populaire, elle ne stocke pas de donnÃ©es.](oredict:oc:dataCard1)
 
-La carte de données est une carte utilitaire qui fournit quelques algorithmes qui seraient soit compliqués à implémenter sur une architecture, soit lent à l'exécution. Elle fournit des fonctionnalités de hachage, ainsi que des fonctionnalités d'inflation/déflation. De plus, elle contient un système de fichiers qui fournit un certain nombre de programmes en utilisant les fonctionnalités de la carte, comme la carte internet.
+La carte de donnÃ©es est une carte utilitaire qui fournit quelques algorithmes qui seraient soit compliquÃ©s Ã  implÃ©menter sur une architecture, soit lent Ã  l'exÃ©cution. Elle fournit des fonctionnalitÃ©s de hachage, ainsi que des fonctionnalitÃ©s d'inflation/dÃ©flation. De plus, elle contient un systÃ¨me de fichiers qui fournit un certain nombre de programmes en utilisant les fonctionnalitÃ©s de la carte, comme la carte internet.
 
-Gardez en tête qu'il y a une limite à la taille des données qui peuvent être traitées en même temps, et que chaque opération consomme un peu d'énergie.
+Gardez en tÃªte qu'il y a une limite Ã  la taille des donnÃ©es qui peuvent Ãªtre traitÃ©es en mÃªme temps, et que chaque opÃ©ration consomme un peu d'Ã©nergie.

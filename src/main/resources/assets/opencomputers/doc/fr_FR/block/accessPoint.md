@@ -1,13 +1,13 @@
-# Point d'accès
+# Point d'accÃ¨s
 
 ![AAA](oredict:oc:accessPoint)
 
-*Ce bloc est déprécié et sera retiré dans une version future.* Transformez les en [relai](relay.md) pour éviter de les perdre.
+*Ce bloc est dÃ©prÃ©ciÃ© et sera retirÃ© dans une version future.* Transformez les en [relai](relay.md) pour Ã©viter de les perdre.
 
-Le point d'accès est la version sans-fil du [routeur](switch.md). Il peut être utilisé pour séparer des sous-réseaux pour que les machines qui les composent ne voient pas les [composants](../general/computer.md) des autres réseaux, tout en leur permettant d'envoyer des messages réseau aux machines d'autres réseaux.
+Le point d'accÃ¨s est la version sans-fil du [routeur](switch.md). Il peut Ãªtre utilisÃ© pour sÃ©parer des sous-rÃ©seaux pour que les machines qui les composent ne voient pas les [composants](../general/computer.md) des autres rÃ©seaux, tout en leur permettant d'envoyer des messages rÃ©seau aux machines d'autres rÃ©seaux.
 
-En plus de ça, ce bloc peut faire office de répéteur : il peut renvoyer des messages filaires en tant que messages filaires à d'autres appareils, ou des messages sans-fil en tant que messages filaires ou sans-fil.
+En plus de Ã§a, ce bloc peut faire office de rÃ©pÃ©teur : il peut renvoyer des messages filaires en tant que messages filaires Ã  d'autres appareils, ou des messages sans-fil en tant que messages filaires ou sans-fil.
 
-Les [routeurs](switch.md) et points d'accès ne gardent *pas* de trace des paquets qu'ils ont récemment relayé, donc évitez les boucles dans votre réseau ou vous pourriez recevoir le même paquet plusieurs fois. A cause de la taille limitée de la mémoire tampon des routeurs, une perte des paquets peut survenir si vous essayez d'envoyer des messages réseau trop fréquemment. Vous pouvez améliorer vos routeurs et points d'accès pour augmenter la vitesse à laquelle ils relaient les messages, ainsi que la taille interne de la file des messages.
+Les [routeurs](switch.md) et points d'accÃ¨s ne gardent *pas* de trace des paquets qu'ils ont rÃ©cemment relayÃ©, donc Ã©vitez les boucles dans votre rÃ©seau ou vous pourriez recevoir le mÃªme paquet plusieurs fois. A cause de la taille limitÃ©e de la mÃ©moire tampon des routeurs, une perte des paquets peut survenir si vous essayez d'envoyer des messages rÃ©seau trop frÃ©quemment. Vous pouvez amÃ©liorer vos routeurs et points d'accÃ¨s pour augmenter la vitesse Ã  laquelle ils relaient les messages, ainsi que la taille interne de la file des messages.
 
-Les paquets sont seulement renvoyés un certain nombre de fois, donc enchaîner un certain nombre de [routeurs](switch.md) ou de points d'accès n'est pas possible. Par défaut, un paquet sera renvoyé jusqu'à 5 fois.
+Les paquets sont seulement renvoyÃ©s un certain nombre de fois, donc enchaÃ®ner un certain nombre de [routeurs](switch.md) ou de points d'accÃ¨s n'est pas possible. Par dÃ©faut, un paquet sera renvoyÃ© jusqu'Ã  5 fois.

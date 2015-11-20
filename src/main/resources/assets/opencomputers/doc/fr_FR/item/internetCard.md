@@ -1,7 +1,7 @@
 # Carte internet
 
-![Vidéos de chat dans 3, 2, ...](oredict:oc:internetCard)
+![VidÃ©os de chat dans 3, 2, ...](oredict:oc:internetCard)
 
-La carte internet donne accès à Internet aux [ordinateurs](../general/computer.md). Elle permet d'exécuter de simples requêtes HTTP, et aussi d'ouvrir des sockets client TCP dans lesquels vous pouvez lire et écrire.
+La carte internet donne accÃ¨s Ã  Internet aux [ordinateurs](../general/computer.md). Elle permet d'exÃ©cuter de simples requÃªtes HTTP, et aussi d'ouvrir des sockets client TCP dans lesquels vous pouvez lire et Ã©crire.
 
-Installer une carte internet sur un [ordinateur](../general/computer.md) ajoutera également un système de fichier personnalisé qui contient quelques applications relatives à Internet, comme une application pour télécharger et téléverser des bouts de code depuis pastebin, ainsi qu'un clone du programme `wget` qui permet de télécharger des données à partir d'une URL HTTP arbitraire.
+Installer une carte internet sur un [ordinateur](../general/computer.md) ajoutera Ã©galement un systÃ¨me de fichier personnalisÃ© qui contient quelques applications relatives Ã  Internet, comme une application pour tÃ©lÃ©charger et tÃ©lÃ©verser des bouts de code depuis pastebin, ainsi qu'un clone du programme `wget` qui permet de tÃ©lÃ©charger des donnÃ©es Ã  partir d'une URL HTTP arbitraire.

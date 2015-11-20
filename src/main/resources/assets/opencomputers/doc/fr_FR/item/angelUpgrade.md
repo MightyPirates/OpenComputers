@@ -1,5 +1,5 @@
-# Amélioration Ange
+# AmÃ©lioration Ange
 
-![Alléluia.](oredict:oc:angelUpgrade)
+![AllÃ©luia.](oredict:oc:angelUpgrade)
 
-Cette amélioration permet aux [robots](../block/robot.md) de placer des blocs en l'air, sans bloc de soutien.
+Cette amÃ©lioration permet aux [robots](../block/robot.md) de placer des blocs en l'air, sans bloc de soutien.

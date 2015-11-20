@@ -2,14 +2,14 @@
 
 ![Une bonne lecture.](oredict:oc:manual)
 
-Ce que vous êtes en train de lire en ce moment même ! Le manuel contient une mine d'informations à propos d'OpenComputers (et sûrement plus). Si vous avez besoin d'information sur un objet ou un bloc, ne cherchez pas plus loin ! Descendez pour apprendre comment l'utiliser (avec la souris ou la barre d'ascenseur sur la droite).
+Ce que vous Ãªtes en train de lire en ce moment mÃªme ! Le manuel contient une mine d'informations Ã  propos d'OpenComputers (et sÃ»rement plus). Si vous avez besoin d'information sur un objet ou un bloc, ne cherchez pas plus loin ! Descendez pour apprendre comment l'utiliser (avec la souris ou la barre d'ascenseur sur la droite).
 
 ![Votre nouveau meilleur ami.](opencomputers:doc/img/manual.png)
 
-Naviguer dans le manuel est semblable à la navigation dans un wiki : cliquez sur les liens (1) pour accéder à la page qu'ils désignent. Faites un clic droit ou appuyez sur la touche de saut pour revenir en arrière d'une page. Appuyez sur Echap pour fermer le manuel. A gauche vous trouverez quelques onglets (2) qui permettent d'accéder rapidement à certaines pages, comme l'index des blocs et des objets. A droite vous trouverez la barre d'ascenseur (3). Vous pouvez soit la déplacer manuellement, soit utiliser la molette de la souris pour vous déplacer dans la page.
+Naviguer dans le manuel est semblable Ã  la navigation dans un wiki : cliquez sur les liens (1) pour accÃ©der Ã  la page qu'ils dÃ©signent. Faites un clic droit ou appuyez sur la touche de saut pour revenir en arriÃ¨re d'une page. Appuyez sur Echap pour fermer le manuel. A gauche vous trouverez quelques onglets (2) qui permettent d'accÃ©der rapidement Ã  certaines pages, comme l'index des blocs et des objets. A droite vous trouverez la barre d'ascenseur (3). Vous pouvez soit la dÃ©placer manuellement, soit utiliser la molette de la souris pour vous dÃ©placer dans la page.
 
-Le manuel se souviendra de la page sur laquelle vous étiez en le fermant, quand vous le ré-ouvrirez. Vous pouvez revenir sur la page principale en vous accroupissant pour l'utiliser. Il est également possible d'accéder directement à la page concernant un bloc en faisant un clic droit sur le bloc avec la touche Maj. enfoncée, et le manuel en main.
+Le manuel se souviendra de la page sur laquelle vous Ã©tiez en le fermant, quand vous le rÃ©-ouvrirez. Vous pouvez revenir sur la page principale en vous accroupissant pour l'utiliser. Il est Ã©galement possible d'accÃ©der directement Ã  la page concernant un bloc en faisant un clic droit sur le bloc avec la touche Maj. enfoncÃ©e, et le manuel en main.
 
-Si le manuel ne répond pas à vos questions, les autres endroits où vous pourrez trouver des informations sont [le wiki](http://ocdoc.cil.li), le [canal IRC](http://webchat.esper.net/?channels=#oc) d'OpenComputers et [le forum](http://oc.cil.li/).
+Si le manuel ne rÃ©pond pas Ã  vos questions, les autres endroits oÃ¹ vous pourrez trouver des informations sont [le wiki](http://ocdoc.cil.li), le [canal IRC](http://webchat.esper.net/?channels=#oc) d'OpenComputers et [le forum](http://oc.cil.li/).
 
-Si vous repérez des erreurs dans le manuel, à propos d'une information, ou de la grammaire ou quoi que ce soit d'autre; ou même des bugs dans le mod d'ailleurs, faites nous le savoir sur [le gestionnaire de tickets](https://github.com/MightyPirates/OpenComputers/issues). Si vous voulez contribuer au manuel en ajoutant du contenu, contactez nous sur IRC ou en créant un ticket sur le gestionnaire de tickets.
+Si vous repÃ©rez des erreurs dans le manuel, Ã  propos d'une information, ou de la grammaire ou quoi que ce soit d'autre; ou mÃªme des bugs dans le mod d'ailleurs, faites nous le savoir sur [le gestionnaire de tickets](https://github.com/MightyPirates/OpenComputers/issues). Si vous voulez contribuer au manuel en ajoutant du contenu, contactez nous sur IRC ou en crÃ©ant un ticket sur le gestionnaire de tickets.

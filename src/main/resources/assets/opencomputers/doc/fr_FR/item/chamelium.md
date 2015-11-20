@@ -1,9 +1,9 @@
-# Chamélium
+# ChamÃ©lium
 
-![Ca vient de caméléon, si vous vous demandiez.](oredict:oc:chamelium)
+![Ca vient de camÃ©lÃ©on, si vous vous demandiez.](oredict:oc:chamelium)
 
-Le chamélium est un matériau métamorphe qui est utilisé pour créer des [impressions 3D](../block/print.md) dans une [imprimante 3D](../block/printer.md). De lui même, il n'a aucune utilité, mais est très pratique pour créer des zones simples et entièrement monochromes.
+Le chamÃ©lium est un matÃ©riau mÃ©tamorphe qui est utilisÃ© pour crÃ©er des [impressions 3D](../block/print.md) dans une [imprimante 3D](../block/printer.md). De lui mÃªme, il n'a aucune utilitÃ©, mais est trÃ¨s pratique pour crÃ©er des zones simples et entiÃ¨rement monochromes.
 
-Vous pouvez également le combiner pour créer un [bloc de chamélium](../block/chameliumBlock.md).
+Vous pouvez Ã©galement le combiner pour crÃ©er un [bloc de chamÃ©lium](../block/chameliumBlock.md).
 
-Comme l'indique l'info-bulle, le manger peut provoquer des effets secondaires indésirables, donc consommez le avec parcimonie. Ou mieux, n'en mangez pas du tout.
+Comme l'indique l'info-bulle, le manger peut provoquer des effets secondaires indÃ©sirables, donc consommez le avec parcimonie. Ou mieux, n'en mangez pas du tout.

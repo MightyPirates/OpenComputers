@@ -1,7 +1,7 @@
-# Carte de réseau sans-fil
+# Carte de rÃ©seau sans-fil
 
 ![Peut provoquer le cancer. Ou pas.](oredict:oc:wlanCard)
 
-La carte de réseau sans fil est une [carte réseau](lanCard.md) améliorée qui, en plus de gérer les messages réseaux filaires, peut également envoyer et recevoir des messages réseaux sans fil. La force du signal contrôle directement la distance jusqu'à laquelle un message peut être reçu, avec cette force étant égale à la distance en blocs.
+La carte de rÃ©seau sans fil est une [carte rÃ©seau](lanCard.md) amÃ©liorÃ©e qui, en plus de gÃ©rer les messages rÃ©seaux filaires, peut Ã©galement envoyer et recevoir des messages rÃ©seaux sans fil. La force du signal contrÃ´le directement la distance jusqu'Ã  laquelle un message peut Ãªtre reÃ§u, avec cette force Ã©tant Ã©gale Ã  la distance en blocs.
 
-Plus la puissance du signal est importante, plus il faudra d'énergie pour envoyer un message. Le terrain entre l'émetteur et le destinataire détermine aussi si le message sera correctement transmis ou pas. Pour traverser un bloc, la dureté du bloc est soustraite de la puissance du signal - avec un minimum de 1 pour les blocs d'air. S'il n'y a plus de puissance pour atteindre le destinataire, le message ne sera pas reçu. Cependant, ce n'est pas une science exacte - quelques fois, les messages peuvent quand même atteindre leur cible. En général, assurez vous que la ligne de vue entre l'émetteur et le destinataire soit dégagée.
+Plus la puissance du signal est importante, plus il faudra d'Ã©nergie pour envoyer un message. Le terrain entre l'Ã©metteur et le destinataire dÃ©termine aussi si le message sera correctement transmis ou pas. Pour traverser un bloc, la duretÃ© du bloc est soustraite de la puissance du signal - avec un minimum de 1 pour les blocs d'air. S'il n'y a plus de puissance pour atteindre le destinataire, le message ne sera pas reÃ§u. Cependant, ce n'est pas une science exacte - quelques fois, les messages peuvent quand mÃªme atteindre leur cible. En gÃ©nÃ©ral, assurez vous que la ligne de vue entre l'Ã©metteur et le destinataire soit dÃ©gagÃ©e.

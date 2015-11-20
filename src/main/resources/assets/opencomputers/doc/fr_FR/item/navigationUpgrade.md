@@ -1,9 +1,9 @@
-# Amélioration de navigation
+# AmÃ©lioration de navigation
 
 ![Je suis perdu. Encore.](oredict:oc:navigationUpgrade)
 
-L'amélioration de navigation fournit des informations de localisation et d'orientation aux appareils sur lesquels elle est installée. Les coordonnées que l'amélioration fournit sont relatives au centre de la carte qui a été utilisée pour fabriquer l'amélioration, et la portée fonctionnelle est basée sur la taille de la carte.
+L'amÃ©lioration de navigation fournit des informations de localisation et d'orientation aux appareils sur lesquels elle est installÃ©e. Les coordonnÃ©es que l'amÃ©lioration fournit sont relatives au centre de la carte qui a Ã©tÃ© utilisÃ©e pour fabriquer l'amÃ©lioration, et la portÃ©e fonctionnelle est basÃ©e sur la taille de la carte.
 
-La carte contenue dans l'amélioration de navigation peut être changée en re-fabriquant l'amélioration avec une nouvelle carte. L'ancienne carte sera rendue au joueur.
+La carte contenue dans l'amÃ©lioration de navigation peut Ãªtre changÃ©e en re-fabriquant l'amÃ©lioration avec une nouvelle carte. L'ancienne carte sera rendue au joueur.
 
-Remarquez que cette amélioration est beaucoup plus utile si elle est utilisée en combinaison avec un ou plusieurs [points de passage](../block/waypoint.md).
+Remarquez que cette amÃ©lioration est beaucoup plus utile si elle est utilisÃ©e en combinaison avec un ou plusieurs [points de passage](../block/waypoint.md).

@@ -1,7 +1,7 @@
-# Amélioration de piston
+# AmÃ©lioration de piston
 
 ![Push it.](oredict:oc:pistonUpgrade)
 
-L'amélioration de piston permet à certains appareils de se comporter comme un piston de base. Une fois installée, un composant avec une seule méthode, `push()`, devient disponible. Si elle est appelée, l'appareil essayera de pousser le bloc qui lui fait face. Pour les [robots](../block/robot.md) et les [microcontrôleurs](../block/microcontroller.md), c'est la face avant; pour les [tablettes](tablet.md), elle utilisera la face avant du joueur.
+L'amÃ©lioration de piston permet Ã  certains appareils de se comporter comme un piston de base. Une fois installÃ©e, un composant avec une seule mÃ©thode, `push()`, devient disponible. Si elle est appelÃ©e, l'appareil essayera de pousser le bloc qui lui fait face. Pour les [robots](../block/robot.md) et les [microcontrÃ´leurs](../block/microcontroller.md), c'est la face avant; pour les [tablettes](tablet.md), elle utilisera la face avant du joueur.
 
-La logique de poussée est la même que celle des pistons en Vanilla.
+La logique de poussÃ©e est la mÃªme que celle des pistons en Vanilla.

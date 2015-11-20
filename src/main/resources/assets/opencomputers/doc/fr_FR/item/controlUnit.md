@@ -1,5 +1,5 @@
-# Unité de contrôle
+# UnitÃ© de contrÃ´le
 
-![Avec régulateur de vitesse intégré.](oredict:oc:materialCU)
+![Avec rÃ©gulateur de vitesse intÃ©grÃ©.](oredict:oc:materialCU)
 
-Un objet de fabrication de haut niveau utilisé dans des circuits avancés, comme les [processeurs](cpu1.md).
+Un objet de fabrication de haut niveau utilisÃ© dans des circuits avancÃ©s, comme les [processeurs](cpu1.md).

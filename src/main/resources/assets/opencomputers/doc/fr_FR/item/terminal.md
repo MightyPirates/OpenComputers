@@ -1,9 +1,9 @@
-# Terminal à distance
+# Terminal Ã  distance
 
-![Accès à distance.](oredict:oc:terminal)
+![AccÃ¨s Ã  distance.](oredict:oc:terminal)
 
-Le terminal à distance peut être utilisé pour contrôler à distance des [serveurs](server1.md). Pour l'utiliser, faites un clic droit en étant accroupi sur un serveur installé dans un [support de serveur](../block/serverRack.md) (cliquez sur le bloc du [support de serveur](../block/serverRack.md), en visant le [serveur](server1.md) pour y lier le terminal).
+Le terminal Ã  distance peut Ãªtre utilisÃ© pour contrÃ´ler Ã  distance des [serveurs](server1.md). Pour l'utiliser, faites un clic droit en Ã©tant accroupi sur un serveur installÃ© dans un [support de serveur](../block/serverRack.md) (cliquez sur le bloc du [support de serveur](../block/serverRack.md), en visant le [serveur](server1.md) pour y lier le terminal).
 
-Quand un terminal est lié au [serveur](server1.md), un [écran](../block/screen1.md) virtuel et un [clavier](../block/keyboard.md) sont connectés au serveur. Cela peut conduire à des comportements inattendus si un écran physique et/ou un clavier est connecté au serveur, donc il faut l'éviter. En utilisant le terminal après l'avoir lié, une interface s'ouvrira de la manière qu'avec un [clavier](../block/keyboard.md) attaché à un [écran](../block/screen1.md).
+Quand un terminal est liÃ© au [serveur](server1.md), un [Ã©cran](../block/screen1.md) virtuel et un [clavier](../block/keyboard.md) sont connectÃ©s au serveur. Cela peut conduire Ã  des comportements inattendus si un Ã©cran physique et/ou un clavier est connectÃ© au serveur, donc il faut l'Ã©viter. En utilisant le terminal aprÃ¨s l'avoir liÃ©, une interface s'ouvrira de la maniÃ¨re qu'avec un [clavier](../block/keyboard.md) attachÃ© Ã  un [Ã©cran](../block/screen1.md).
 
-Plusieurs terminaux peuvent être liés à un seul [serveur](server1.md), mais ils afficheront tous la même information, puisqu'ils partageront le même [écran](../block/screen1.md) virtuel et le même [écran](../block/keyboard.md). Le nombre de terminaux qui peuvent être liés à un [serveur](server1.md) dépend du niveau du [serveur](server1.md). La portée jusqu'à laquelle les terminaux peuvent fonctionner peut être configurée dans l'interface du [support de serveur](../block/serverRack.md).
+Plusieurs terminaux peuvent Ãªtre liÃ©s Ã  un seul [serveur](server1.md), mais ils afficheront tous la mÃªme information, puisqu'ils partageront le mÃªme [Ã©cran](../block/screen1.md) virtuel et le mÃªme [Ã©cran](../block/keyboard.md). Le nombre de terminaux qui peuvent Ãªtre liÃ©s Ã  un [serveur](server1.md) dÃ©pend du niveau du [serveur](server1.md). La portÃ©e jusqu'Ã  laquelle les terminaux peuvent fonctionner peut Ãªtre configurÃ©e dans l'interface du [support de serveur](../block/serverRack.md).

@@ -1,7 +1,7 @@
-# Détecteur de mouvement
+# DÃ©tecteur de mouvement
 
 ![Ne. Clignez. Pas. Des. Yeux.](oredict:oc:motionSensor)
 
-Le détecteur de mouvement permet aux [ordinateurs](../general/computer.md) de détecter le mouvement des entités vivantes. Si une entité se déplace plus vite qu'un seuil défini, un signal sera injecté dans les [ordinateurs](../general/computer.md) connectés au détecteur de mouvement. Le seuil peut être configuré en utilisant l'API des composants que le détecteur de mouvement expose aux ordinateurs connectés.
+Le dÃ©tecteur de mouvement permet aux [ordinateurs](../general/computer.md) de dÃ©tecter le mouvement des entitÃ©s vivantes. Si une entitÃ© se dÃ©place plus vite qu'un seuil dÃ©fini, un signal sera injectÃ© dans les [ordinateurs](../general/computer.md) connectÃ©s au dÃ©tecteur de mouvement. Le seuil peut Ãªtre configurÃ© en utilisant l'API des composants que le dÃ©tecteur de mouvement expose aux ordinateurs connectÃ©s.
 
-Le mouvement est seulement détecté s'il survient dans un rayon de huit blocs autour du détecteur de mouvement, et s'il y a une ligne de mire directe entre le bloc et l'entité qui a bougé.
+Le mouvement est seulement dÃ©tectÃ© s'il survient dans un rayon de huit blocs autour du dÃ©tecteur de mouvement, et s'il y a une ligne de mire directe entre le bloc et l'entitÃ© qui a bougÃ©.

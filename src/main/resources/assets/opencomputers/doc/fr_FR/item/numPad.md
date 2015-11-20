@@ -1,5 +1,5 @@
-# Pavé numérique
+# PavÃ© numÃ©rique
 
-![Vérifiez les empreintes, Jackson.](oredict:oc:materialNumPad)
+![VÃ©rifiez les empreintes, Jackson.](oredict:oc:materialNumPad)
 
-Le pavé numérique est une partie de chaque [clavier](../block/keyboard.md). Il vous permet de saisir des nombres.
+Le pavÃ© numÃ©rique est une partie de chaque [clavier](../block/keyboard.md). Il vous permet de saisir des nombres.

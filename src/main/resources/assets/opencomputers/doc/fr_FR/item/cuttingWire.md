@@ -2,4 +2,4 @@
 
 ![Ce n'est pas un garrot. Je le jure.](oredict:oc:materialCuttingWire)
 
-Un objet qui n'existe que si vous utilisez les recettes difficiles, il est utilisé pour fabriquer des [plaques de circuit imprimé brutes](rawCircuitBoard.md). Très inefficacement.
+Un objet qui n'existe que si vous utilisez les recettes difficiles, il est utilisÃ© pour fabriquer des [plaques de circuit imprimÃ© brutes](rawCircuitBoard.md). TrÃ¨s inefficacement.

@@ -1,5 +1,5 @@
-# Carte liée
+# Carte liÃ©e
 
 ![Je sens une connexion entre nous.](oredict:oc:linkedCard)
 
-La carte liée est une version spécialisée et avancée de la [carte réseau](lanCard.md). Elle peut seulement fonctionner par paires, en fournissant une communication en point à point entre les cartes appairées. Les cartes liées peuvent communiquer sur de longues (illimité) distances, et même à travers les dimensions.
+La carte liÃ©e est une version spÃ©cialisÃ©e et avancÃ©e de la [carte rÃ©seau](lanCard.md). Elle peut seulement fonctionner par paires, en fournissant une communication en point Ã  point entre les cartes appairÃ©es. Les cartes liÃ©es peuvent communiquer sur de longues (illimitÃ©) distances, et mÃªme Ã  travers les dimensions.

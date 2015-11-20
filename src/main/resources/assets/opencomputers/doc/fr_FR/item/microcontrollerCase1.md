@@ -1,31 +1,31 @@
-# Boitier de microcontrôleur
+# Boitier de microcontrÃ´leur
 
 ![Qu'il est mignon !](oredict:oc:microcontrollerCase1)
 
-Le boitier de microcontrôleur est la base de construction des [microcontrôleurs](../block/microcontroller.md) grâce à l'[assembleur](../block/assembler.md). Les [microcontrôleurs](../block/microcontroller.md) sont des [ordinateurs](../general/computer.md) très primitifs. Ils peuvent seulement contenir une quantité très limitée de composants, et sont faits pour être avoir une utilisation très spécifique, comme la transformation de signaux de redstone, ou le traitement de messages réseaux.
+Le boitier de microcontrÃ´leur est la base de construction des [microcontrÃ´leurs](../block/microcontroller.md) grÃ¢ce Ã  l'[assembleur](../block/assembler.md). Les [microcontrÃ´leurs](../block/microcontroller.md) sont des [ordinateurs](../general/computer.md) trÃ¨s primitifs. Ils peuvent seulement contenir une quantitÃ© trÃ¨s limitÃ©e de composants, et sont faits pour Ãªtre avoir une utilisation trÃ¨s spÃ©cifique, comme la transformation de signaux de redstone, ou le traitement de messages rÃ©seaux.
 
-Un [microcontrôleur](../block/microcontroller.md) n'a pas vraiment de système de fichier. Toute la programmation doit être faite dans la puce [EEPROM](eeprom.md). La puce peut être échangée avec une autre en re-fabriquant le [microcontrôleur](../block/microcontroller.md) avec cette puce. L'ancienne [EEPROM](eeprom.md) sera rendue dans l'inventaire du joueur.
+Un [microcontrÃ´leur](../block/microcontroller.md) n'a pas vraiment de systÃ¨me de fichier. Toute la programmation doit Ãªtre faite dans la puce [EEPROM](eeprom.md). La puce peut Ãªtre Ã©changÃ©e avec une autre en re-fabriquant le [microcontrÃ´leur](../block/microcontroller.md) avec cette puce. L'ancienne [EEPROM](eeprom.md) sera rendue dans l'inventaire du joueur.
 
-Bien qu'ils nécessitent de l'énergie pour fonctionner, ils consomment très peu d'énergie.
+Bien qu'ils nÃ©cessitent de l'Ã©nergie pour fonctionner, ils consomment trÃ¨s peu d'Ã©nergie.
 
-Le boitier de microcontrôleur de niveau 1 peut accepter les composants suivants :
+Le boitier de microcontrÃ´leur de niveau 1 peut accepter les composants suivants :
 - 1x [processeur](cpu1.md) de niveau 1
 - 1x [barette de RAM](ram1.md) de niveau 1
 - 1x [EEPROM](eeprom.md)
 - 2x cartes d'extension (niveau 1)
-- 1x amélioration (niveau 2)
+- 1x amÃ©lioration (niveau 2)
 
-Le boitier de microcontrôleur de niveau 2 peut accepter les composants suivants :
+Le boitier de microcontrÃ´leur de niveau 2 peut accepter les composants suivants :
 - 1x [processeur](cpu1.md) de niveau 1
 - 2x [barettes de RAM](ram1.md) de niveau 1
 - 1x [EEPROM](eeprom.md)
 - 1x carte d'extension (niveau 2)
 - 1x carte d'extension (niveau 1)
-- 1x amélioration (niveau 3)
+- 1x amÃ©lioration (niveau 3)
 
-Le boitier de microcontrôleur de niveau 4 (Créatif) peut accepter les composants suivants :
+Le boitier de microcontrÃ´leur de niveau 4 (CrÃ©atif) peut accepter les composants suivants :
 - 1x [processeur](cpu3.md) de niveau 3
 - 2x [barettes de RAM](ram5.md) de niveau 3
 - 1x [EEPROM](eeprom.md)
 - 3x cartes d'extension (niveau 3)
-- 9x améliorations (niveau 3)
+- 9x amÃ©liorations (niveau 3)

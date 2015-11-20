@@ -1,5 +1,5 @@
-# Plaque de circuit imprimé
+# Plaque de circuit imprimÃ©
 
 ![Il faut plus d'or.](oredict:oc:materialCircuitBoard)
 
-C'est un objet intermédiaire fait à partir de [plaques de circuit imprimé brutes](rawCircuitBoard.md) et utilisé pour fabriquer des [circuits imprimés](printedCircuitBoard.md).
+C'est un objet intermÃ©diaire fait Ã  partir de [plaques de circuit imprimÃ© brutes](rawCircuitBoard.md) et utilisÃ© pour fabriquer des [circuits imprimÃ©s](printedCircuitBoard.md).

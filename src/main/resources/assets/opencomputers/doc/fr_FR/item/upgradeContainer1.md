@@ -1,5 +1,5 @@
-# Amélioration de conteneur
+# AmÃ©lioration de conteneur
 
-![il peu avwar dé améliorassion !](oredict:oc:upgradeContainer1)
+![il peu avwar dÃ© amÃ©liorassion !](oredict:oc:upgradeContainer1)
 
-L'amélioration de conteneur est une amélioration d'espace pour les [robots](../block/robot.md), qui fournit un emplacement dans les [robots](../block/robot.md) terminés dans lequel des améliorations classiques peuvent être insérées. Le niveau maximal des améliorations que cet emplacement peut contenir est égal au niveau du conteneur. Contrairement aux améliorations classiques, la complexité du conteneur est de deux fois son niveau. Allez voir la page des [robots](../block/robot.md) et de l'[assembleur](../block/assembler.md) pour plus d'informations sur la complexité.
+L'amÃ©lioration de conteneur est une amÃ©lioration d'espace pour les [robots](../block/robot.md), qui fournit un emplacement dans les [robots](../block/robot.md) terminÃ©s dans lequel des amÃ©liorations classiques peuvent Ãªtre insÃ©rÃ©es. Le niveau maximal des amÃ©liorations que cet emplacement peut contenir est Ã©gal au niveau du conteneur. Contrairement aux amÃ©liorations classiques, la complexitÃ© du conteneur est de deux fois son niveau. Allez voir la page des [robots](../block/robot.md) et de l'[assembleur](../block/assembler.md) pour plus d'informations sur la complexitÃ©.

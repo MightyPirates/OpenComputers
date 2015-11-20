@@ -1,5 +1,5 @@
 # Touches directionnelles
 
-![Heureusement que ce n'est pas fait avec de vraies flèches...](oredict:oc:materialArrowKey)
+![Heureusement que ce n'est pas fait avec de vraies flÃ¨ches...](oredict:oc:materialArrowKey)
 
-Au risque de me répéter : c'est la crise des touches. Parce que l'économie des touches a connu une sérieuse inflation ces dernières années. Elles sont utilisées pour fabriquer des [claviers](../block/keyboard.md).
+Au risque de me rÃ©pÃ©ter : c'est la crise des touches. Parce que l'Ã©conomie des touches a connu une sÃ©rieuse inflation ces derniÃ¨res annÃ©es. Elles sont utilisÃ©es pour fabriquer des [claviers](../block/keyboard.md).

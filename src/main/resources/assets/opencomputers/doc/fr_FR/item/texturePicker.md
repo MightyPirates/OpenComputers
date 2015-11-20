@@ -1,7 +1,7 @@
 # Ramasseur de texture
 
-![Comment ça, c'est juste une re-texturation ?](oredict:oc:texturePicker)
+![Comment Ã§a, c'est juste une re-texturation ?](oredict:oc:texturePicker)
 
-Le ramasseur de texture est très utile pour réaliser des modèles pour votre [imprimante 3D](../block/printer.md). Il vous permet de récupérer le nom de la texture utilisé par un bloc, simplement en l'utilisant (et en étant éventuellement accroupi) sur le bloc. Avertissement : pour les blocs qui utilisent un rendu spécial, comme les coffres, cela peut ne pas marcher.
+Le ramasseur de texture est trÃ¨s utile pour rÃ©aliser des modÃ¨les pour votre [imprimante 3D](../block/printer.md). Il vous permet de rÃ©cupÃ©rer le nom de la texture utilisÃ© par un bloc, simplement en l'utilisant (et en Ã©tant Ã©ventuellement accroupi) sur le bloc. Avertissement : pour les blocs qui utilisent un rendu spÃ©cial, comme les coffres, cela peut ne pas marcher.
 
-Même s'il est pratique pour récupérer rapidement le nom d'une texture, il est bon de savoir que vous n'êtes pas limité aux textures qui peuvent être récupérées par le ramasseur de texture. Tant que vous connaissez le nom d'une texture (et uniquement d'une texture de *bloc*), vous pouvez l'utiliser pour vos [impressions 3D](../block/print.md).
+MÃªme s'il est pratique pour rÃ©cupÃ©rer rapidement le nom d'une texture, il est bon de savoir que vous n'Ãªtes pas limitÃ© aux textures qui peuvent Ãªtre rÃ©cupÃ©rÃ©es par le ramasseur de texture. Tant que vous connaissez le nom d'une texture (et uniquement d'une texture de *bloc*), vous pouvez l'utiliser pour vos [impressions 3D](../block/print.md).

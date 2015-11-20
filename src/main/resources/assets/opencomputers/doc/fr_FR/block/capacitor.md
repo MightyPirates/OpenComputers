@@ -1,9 +1,9 @@
 # Capaciteur
 
-![Au delà des 8000.](oredict:oc:capacitor)
+![Au delÃ  des 8000.](oredict:oc:capacitor)
 
-Le capaciteur emmagasine de l'énergie qui sera utilisée par le réseau, en se comportant comme un tampon d'énergie au besoin. Contrairement à la conversion de l'énergie d'autres mods vers l'énergie interne à OpenComputers (en utilisant un [convertisseur énergétique](powerConverter.md) par exemple), le transfert d'énergie dans un sous-réseau est instantané. Posséder un tampon d'énergie interne sera utile pour des tâches qui nécessitent beaucoup d'énergie, comme l'[assemblage](assembler.md) et/ou la [charge](charger.md) d'appareils comme les [robots](robot.md) ou les [drones](../item/drone.md).
+Le capaciteur emmagasine de l'Ã©nergie qui sera utilisÃ©e par le rÃ©seau, en se comportant comme un tampon d'Ã©nergie au besoin. Contrairement Ã  la conversion de l'Ã©nergie d'autres mods vers l'Ã©nergie interne Ã  OpenComputers (en utilisant un [convertisseur Ã©nergÃ©tique](powerConverter.md) par exemple), le transfert d'Ã©nergie dans un sous-rÃ©seau est instantanÃ©. PossÃ©der un tampon d'Ã©nergie interne sera utile pour des tÃ¢ches qui nÃ©cessitent beaucoup d'Ã©nergie, comme l'[assemblage](assembler.md) et/ou la [charge](charger.md) d'appareils comme les [robots](robot.md) ou les [drones](../item/drone.md).
 
-L'efficacité de stockage des capaciteurs augmente avec le nombre de capaciteurs en contact direct ou à promixité. Par exemple, 2 capaciteurs directement en contact auront une plus grande capacité de stockage que la somme de 2 capaciteurs séparés. Ce bonus de proximité s'applique aux capaciteurs jusqu'à 2 blocs de distance, et diminue au fur et à mesure que la distance entre les capaciteurs augmente.
+L'efficacitÃ© de stockage des capaciteurs augmente avec le nombre de capaciteurs en contact direct ou Ã  promixitÃ©. Par exemple, 2 capaciteurs directement en contact auront une plus grande capacitÃ© de stockage que la somme de 2 capaciteurs sÃ©parÃ©s. Ce bonus de proximitÃ© s'applique aux capaciteurs jusqu'Ã  2 blocs de distance, et diminue au fur et Ã  mesure que la distance entre les capaciteurs augmente.
 
-Le capaciteur peut être connecté à un [distributeur énergétique](powerDistributor.md) pour fournir de l'énergie aux autres [ordinateurs](../general/computer.md) ou machines du réseau.
+Le capaciteur peut Ãªtre connectÃ© Ã  un [distributeur Ã©nergÃ©tique](powerDistributor.md) pour fournir de l'Ã©nergie aux autres [ordinateurs](../general/computer.md) ou machines du rÃ©seau.

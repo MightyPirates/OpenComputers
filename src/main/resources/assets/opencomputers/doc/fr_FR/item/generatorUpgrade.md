@@ -1,7 +1,7 @@
-# Amélioration de générateur
+# AmÃ©lioration de gÃ©nÃ©rateur
 
 ![Generator X.](oredict:oc:generatorUpgrade)
 
-L'amélioration de générateur permet aux appareils de se recharcher à la volée. Pour le moment elle supporte seulement les carburants solides, comme le charbon. Elle a un inventaire interne qui peut stocker un groupe plein de carburant. Le carburant en surplus peut être retiré du générateur en utilisant la méthode appropriée de l'API du composant. En retirant une amélioration du générateur d'un [robot](../block/robot.md), son contenu sera lâché par terre.
+L'amÃ©lioration de gÃ©nÃ©rateur permet aux appareils de se recharcher Ã  la volÃ©e. Pour le moment elle supporte seulement les carburants solides, comme le charbon. Elle a un inventaire interne qui peut stocker un groupe plein de carburant. Le carburant en surplus peut Ãªtre retirÃ© du gÃ©nÃ©rateur en utilisant la mÃ©thode appropriÃ©e de l'API du composant. En retirant une amÃ©lioration du gÃ©nÃ©rateur d'un [robot](../block/robot.md), son contenu sera lÃ¢chÃ© par terre.
 
-L'efficacité des générateurs est plus faible que celle de la plupart des générateurs d'autres mods, ce qui signifie qu'il est généralement plus efficicace d'alimenter vos appareils avec un [chargeur](../block/charger.md).
+L'efficacitÃ© des gÃ©nÃ©rateurs est plus faible que celle de la plupart des gÃ©nÃ©rateurs d'autres mods, ce qui signifie qu'il est gÃ©nÃ©ralement plus efficicace d'alimenter vos appareils avec un [chargeur](../block/charger.md).

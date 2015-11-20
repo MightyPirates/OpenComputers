@@ -2,6 +2,6 @@
 
 ![AZERTY](oredict:oc:keyboard)
 
-Un clavier est requis pour saisir du texte sur l'[écran](screen1.md), qu'ils existent physiquement dans le monde ou intégrés à un appareil comme un [robot](robot.md) ou une [tablette](../item/tablet.md).
+Un clavier est requis pour saisir du texte sur l'[Ã©cran](screen1.md), qu'ils existent physiquement dans le monde ou intÃ©grÃ©s Ã  un appareil comme un [robot](robot.md) ou une [tablette](../item/tablet.md).
 
-Pour qu'un clavier fonctionne avec un [écran](screen1.md) dans le monde, il doit être placé à côté de l'[écran](screen1.md), orienté vers cet [écran](screen1.md), ou placé directement sur l'[écran](screen1.md) (au dessus ou sur l'une de ses faces). Vous pouvez savoir si un clavier est "connecté" à un [écran](screen1.md) si l'interface de l'[écran](screen1.md) s'ouvre en utilisant le clavier.
+Pour qu'un clavier fonctionne avec un [Ã©cran](screen1.md) dans le monde, il doit Ãªtre placÃ© Ã  cÃ´tÃ© de l'[Ã©cran](screen1.md), orientÃ© vers cet [Ã©cran](screen1.md), ou placÃ© directement sur l'[Ã©cran](screen1.md) (au dessus ou sur l'une de ses faces). Vous pouvez savoir si un clavier est "connectÃ©" Ã  un [Ã©cran](screen1.md) si l'interface de l'[Ã©cran](screen1.md) s'ouvre en utilisant le clavier.

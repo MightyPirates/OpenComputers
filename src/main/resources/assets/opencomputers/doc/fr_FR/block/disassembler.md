@@ -1,7 +1,7 @@
-# Désassembleur
+# DÃ©sassembleur
 
-![Construire, détruire](oredict:oc:disassembler)
+![Construire, dÃ©truire](oredict:oc:disassembler)
 
-Le désassembleur peut être utilisé pour déconstruire la plupart des objets d'OpenComputers en leurs éléments d'origine. C'est particulièrement utile pour récupérer des matériaux à partir d'anciens éléments qui ne sont plus utiles, ou pour déconstruire des appareils qui ne sont plus nécessaire ou qui ont été mal montés (ex : un [robot](robot.md) sans [système d'exploitation](../general/openOS.md)).
+Le dÃ©sassembleur peut Ãªtre utilisÃ© pour dÃ©construire la plupart des objets d'OpenComputers en leurs Ã©lÃ©ments d'origine. C'est particuliÃ¨rement utile pour rÃ©cupÃ©rer des matÃ©riaux Ã  partir d'anciens Ã©lÃ©ments qui ne sont plus utiles, ou pour dÃ©construire des appareils qui ne sont plus nÃ©cessaire ou qui ont Ã©tÃ© mal montÃ©s (ex : un [robot](robot.md) sans [systÃ¨me d'exploitation](../general/openOS.md)).
 
-Désassembler des objets prend un long moment, et de l'énergie. Il y a également une faible chance de perdre un composant (qui est appliqué au composant complet à désassembler).
+DÃ©sassembler des objets prend un long moment, et de l'Ã©nergie. Il y a Ã©galement une faible chance de perdre un composant (qui est appliquÃ© au composant complet Ã  dÃ©sassembler).

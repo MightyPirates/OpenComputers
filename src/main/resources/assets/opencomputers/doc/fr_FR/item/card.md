@@ -1,5 +1,5 @@
 # Base de carte
 
-![Ne peut pas être lue.](oredict:oc:materialCard)
+![Ne peut pas Ãªtre lue.](oredict:oc:materialCard)
 
-C'est un matériau communément utilisé pour fabriquer des cartes dans OpenComputers (comme les  [cartes graphiques](graphicsCard1.md), les [cartes réseau](lanCard.md), etc.).
+C'est un matÃ©riau communÃ©ment utilisÃ© pour fabriquer des cartes dans OpenComputers (comme les  [cartes graphiques](graphicsCard1.md), les [cartes rÃ©seau](lanCard.md), etc.).

@@ -1,5 +1,5 @@
-# Distributeur énergétique
+# Distributeur Ã©nergÃ©tique
 
 ![Le pouvoir au peuple.](oredict:oc:powerDistributor)
 
-Le distributeur énergétique distribue l'énergie d'un espace de stockage partagé (comme un [capaciteur](capacitor.md)), permettant à de nombreux sous-réseaux de partager leur énergie sans que leurs composants soient exposés aux ordinateurs des autres sous-réseaux. Il fonctionne en répartissant équitablement l'énergie dans tous les sous-réseaux auquel il est connecté, de façon à ce que la quantité *relative* d'énergie est la même dans chacun.
+Le distributeur Ã©nergÃ©tique distribue l'Ã©nergie d'un espace de stockage partagÃ© (comme un [capaciteur](capacitor.md)), permettant Ã  de nombreux sous-rÃ©seaux de partager leur Ã©nergie sans que leurs composants soient exposÃ©s aux ordinateurs des autres sous-rÃ©seaux. Il fonctionne en rÃ©partissant Ã©quitablement l'Ã©nergie dans tous les sous-rÃ©seaux auquel il est connectÃ©, de faÃ§on Ã  ce que la quantitÃ© *relative* d'Ã©nergie est la mÃªme dans chacun.

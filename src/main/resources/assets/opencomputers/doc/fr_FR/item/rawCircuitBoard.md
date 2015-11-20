@@ -1,5 +1,5 @@
-# Plaque de circuit imprimé brute
+# Plaque de circuit imprimÃ© brute
 
-![Mais elle est très gentille, en fait.](oredict:oc:materialCircuitBoardRaw)
+![Mais elle est trÃ¨s gentille, en fait.](oredict:oc:materialCircuitBoardRaw)
 
-C'est un matériau de fabrication intermédiaire, utilisé pour fabriquer des [plaques de circuit imprimé](circuitBoard.md) (ou des [circuits imprimés](printedCircuitBoard.md), en fonction de l'ensemble de recettes utilisé).
+C'est un matÃ©riau de fabrication intermÃ©diaire, utilisÃ© pour fabriquer des [plaques de circuit imprimÃ©](circuitBoard.md) (ou des [circuits imprimÃ©s](printedCircuitBoard.md), en fonction de l'ensemble de recettes utilisÃ©).

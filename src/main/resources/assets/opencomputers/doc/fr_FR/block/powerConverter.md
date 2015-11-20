@@ -1,5 +1,5 @@
-# Convertisseur énergétique
+# Convertisseur Ã©nergÃ©tique
 
-![L'un des nôtres ? L'un des nôtres !](oredict:oc:powerConverter)
+![L'un des nÃ´tres ? L'un des nÃ´tres !](oredict:oc:powerConverter)
 
-Le convertisseur énergétique est la manière la plus rapide de convertir de l'énergie provenant d'autres mods en énergie interne à OpenComputers. Si vous utilisez un seul ordinateur, vous n'aurez probablement pas besoin de convertisseur. Si vous avez un grand groupe de capaciteurs dont vous utilisez l'énergie de temps en temps, vous n'en aurez sûrement pas besoin non plus. Cependant, si vous souhaitez alimenter directement un [assembleur électronique](assembler.md) ou un [chargeur](charger.md), c'est généralement une bonne idée d'utiliser un convertiseeur au lieu de les connecter directement à une source externe d'énergie.
+Le convertisseur Ã©nergÃ©tique est la maniÃ¨re la plus rapide de convertir de l'Ã©nergie provenant d'autres mods en Ã©nergie interne Ã  OpenComputers. Si vous utilisez un seul ordinateur, vous n'aurez probablement pas besoin de convertisseur. Si vous avez un grand groupe de capaciteurs dont vous utilisez l'Ã©nergie de temps en temps, vous n'en aurez sÃ»rement pas besoin non plus. Cependant, si vous souhaitez alimenter directement un [assembleur Ã©lectronique](assembler.md) ou un [chargeur](charger.md), c'est gÃ©nÃ©ralement une bonne idÃ©e d'utiliser un convertiseeur au lieu de les connecter directement Ã  une source externe d'Ã©nergie.

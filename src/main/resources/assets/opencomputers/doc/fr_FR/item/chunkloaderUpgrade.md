@@ -1,7 +1,7 @@
-# Amélioration chargement de chunk
+# AmÃ©lioration chargement de chunk
 
 ![Je ne vais nulle part.](oredict:oc:chunkloaderUpgrade)
 
-L'amélioration de chargement de chunk peut être installée sur des appareils (comme les [robots](../block/robot.md) et les [microcontrôleurs](../block/microcontroller.md)) pour leur permettre de garder le chunk dans lequel ils sont - ainsi que les chunks environnants - chargés. Cela consomme de l'énergie, cependant. Le chargeur de chunks peut être activé et désactivé par l'API du composant exposé à l'appareil.
+L'amÃ©lioration de chargement de chunk peut Ãªtre installÃ©e sur des appareils (comme les [robots](../block/robot.md) et les [microcontrÃ´leurs](../block/microcontroller.md)) pour leur permettre de garder le chunk dans lequel ils sont - ainsi que les chunks environnants - chargÃ©s. Cela consomme de l'Ã©nergie, cependant. Le chargeur de chunks peut Ãªtre activÃ© et dÃ©sactivÃ© par l'API du composant exposÃ© Ã  l'appareil.
 
-Cette amélioration est automatiquement activée quand l'appareil est mis sous tension, et automatiquement désactivée quand l'appareil est éteint.
+Cette amÃ©lioration est automatiquement activÃ©e quand l'appareil est mis sous tension, et automatiquement dÃ©sactivÃ©e quand l'appareil est Ã©teint.

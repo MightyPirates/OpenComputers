@@ -2,32 +2,32 @@
 
 ![Nanomachines, son.](oredict:oc:nanomachines)
 
-Ces petits bonhommes créent une interface avec votre système nerveux pour vous faire aller toujours plus loin, toujours plus haut, toujours plus fort ! Ou vous tuer. Parfois les deux en même temps ! En clair, les nanomachines fournissent un système basé sur de l'énergie pour appliquer des effets (bons ou mauvais) sur le joueur dans lequel elles résident. Pour "installer" des nanomachines, mangez les !
+Ces petits bonhommes crÃ©ent une interface avec votre systÃ¨me nerveux pour vous faire aller toujours plus loin, toujours plus haut, toujours plus fort ! Ou vous tuer. Parfois les deux en mÃªme temps ! En clair, les nanomachines fournissent un systÃ¨me basÃ© sur de l'Ã©nergie pour appliquer des effets (bons ou mauvais) sur le joueur dans lequel elles rÃ©sident. Pour "installer" des nanomachines, mangez les !
 
-Une fois injectées, un nouvel indicateur d'énergie dans votre affichage tête haute vous indiquera combien il reste d'énergie à vos nanomachines. Vous pouvez les recharger en vous tenant près d'un [chargeur](../block/charger.md). Plus vous utiliserez vos nanomachines, plus elles consommeront d'énergie.
+Une fois injectÃ©es, un nouvel indicateur d'Ã©nergie dans votre affichage tÃªte haute vous indiquera combien il reste d'Ã©nergie Ã  vos nanomachines. Vous pouvez les recharger en vous tenant prÃ¨s d'un [chargeur](../block/charger.md). Plus vous utiliserez vos nanomachines, plus elles consommeront d'Ã©nergie.
 
-Les nanomachines fournissent un certain nombre "d'entrées" qui peuvent être activées, ce qui provoque différents effets sur le joueur, en allant des effets visuels comme des particules apparaissant près du joueur, à des effets de potion et d'autres comportement rares et particuliers !
+Les nanomachines fournissent un certain nombre "d'entrÃ©es" qui peuvent Ãªtre activÃ©es, ce qui provoque diffÃ©rents effets sur le joueur, en allant des effets visuels comme des particules apparaissant prÃ¨s du joueur, Ã  des effets de potion et d'autres comportement rares et particuliers !
 
-En fonction de la configuration des nanomachines, les entrées déclenchent différents effets, les "connexions" étant aléatoires par configuration. Cela signifie que vous devrez essayer d'activer différentes entrées pour découvrir ce qu'elles activent. Si vous n'êtes pas satisfaits d'une configuration, vous pouvez reconfigurer vos nanomachines en en injectant d'autres (mangez en d'autres). Pour vous débarrasser complètement des nanomachines en vous, buvez du [grog](acid.md). Faites attention, activer trop d'entrées à la fois peut avoir de sérieuses conséquences sur votre organisme !
+En fonction de la configuration des nanomachines, les entrÃ©es dÃ©clenchent diffÃ©rents effets, les "connexions" Ã©tant alÃ©atoires par configuration. Cela signifie que vous devrez essayer d'activer diffÃ©rentes entrÃ©es pour dÃ©couvrir ce qu'elles activent. Si vous n'Ãªtes pas satisfaits d'une configuration, vous pouvez reconfigurer vos nanomachines en en injectant d'autres (mangez en d'autres). Pour vous dÃ©barrasser complÃ¨tement des nanomachines en vous, buvez du [grog](acid.md). Faites attention, activer trop d'entrÃ©es Ã  la fois peut avoir de sÃ©rieuses consÃ©quences sur votre organisme !
 
-Par défaut, les nanomachines seront passives. Vous devrez les contrôler en utilisant des messages sans fil, donc transporter une [tablette](tablet.md) avec une [carte de réseau sans-fil](wlanCard.md) est vivement recommandé. Les nanomachines réagiront seulement aux signaux sans fil émis par des appareils situés à moins de 2 mètres, mais elles réagiront aux messages provenant de n'importe quel port, et de n'importe quel appareil !
+Par dÃ©faut, les nanomachines seront passives. Vous devrez les contrÃ´ler en utilisant des messages sans fil, donc transporter une [tablette](tablet.md) avec une [carte de rÃ©seau sans-fil](wlanCard.md) est vivement recommandÃ©. Les nanomachines rÃ©agiront seulement aux signaux sans fil Ã©mis par des appareils situÃ©s Ã  moins de 2 mÃ¨tres, mais elles rÃ©agiront aux messages provenant de n'importe quel port, et de n'importe quel appareil !
 
-Les nanomachines réagissent à un protocole propriétaire très simple : chaque paquet doit être constitué de plusieurs parties, la première étant le "header" (en-tête) et qui doit valoir `nanomachines`. La deuxième partie doit être le nom de la commande. Les parties supplémentaires sont les paramètres de la commande. Les commandes suivantes sont disponibles, avec le format `nomDeLaCommande(argument1, ...)` :
+Les nanomachines rÃ©agissent Ã  un protocole propriÃ©taire trÃ¨s simple : chaque paquet doit Ãªtre constituÃ© de plusieurs parties, la premiÃ¨re Ã©tant le "header" (en-tÃªte) et qui doit valoir `nanomachines`. La deuxiÃ¨me partie doit Ãªtre le nom de la commande. Les parties supplÃ©mentaires sont les paramÃ¨tres de la commande. Les commandes suivantes sont disponibles, avec le format `nomDeLaCommande(argument1, ...)` :
 
-- `setResponsePort(port:number)` - Affecte le port sur lequel les nanomachines doivent renvoyer une réponse, pour les commandes qui renvoient une réponse.
-- `getPowerState()` - Demande l'état actuel et la capacité maximale de l'énergie stockée dans les nanomachines.
-- `getHealth()` - Demande le niveau de santé du joueur.
+- `setResponsePort(port:number)` - Affecte le port sur lequel les nanomachines doivent renvoyer une rÃ©ponse, pour les commandes qui renvoient une rÃ©ponse.
+- `getPowerState()` - Demande l'Ã©tat actuel et la capacitÃ© maximale de l'Ã©nergie stockÃ©e dans les nanomachines.
+- `getHealth()` - Demande le niveau de santÃ© du joueur.
 - `getHunger()` - Demande le niveau de faim du joueur.
-- `getAge()` - Demande l'âge du joueur en secondes.
-- `getName()` - Demande le nom du joueur affiché en jeu.
-- `getExperience()` - Demande le niveau d'expérience du joueur.
-- `getTotalInputCount()` - Demande le nombre total d'entrées disponibles.
-- `getSafeActiveInputs()` - Demande le nombre d'entrées actives *sans risque*.
-- `getMaxActiveInputs()` - Demande le nombre *maximal* d'entrées actives.
-- `getInput(index:number)` - Demande l'état actuel de l'entrée avec l'index en paramètre.
-- `setInput(index:number, value:boolean)` - Affecte l'état de l'entrée avec en paramètres l'index et l'état.
+- `getAge()` - Demande l'Ã¢ge du joueur en secondes.
+- `getName()` - Demande le nom du joueur affichÃ© en jeu.
+- `getExperience()` - Demande le niveau d'expÃ©rience du joueur.
+- `getTotalInputCount()` - Demande le nombre total d'entrÃ©es disponibles.
+- `getSafeActiveInputs()` - Demande le nombre d'entrÃ©es actives *sans risque*.
+- `getMaxActiveInputs()` - Demande le nombre *maximal* d'entrÃ©es actives.
+- `getInput(index:number)` - Demande l'Ã©tat actuel de l'entrÃ©e avec l'index en paramÃ¨tre.
+- `setInput(index:number, value:boolean)` - Affecte l'Ã©tat de l'entrÃ©e avec en paramÃ¨tres l'index et l'Ã©tat.
 - `getActiveEffects()` - Demande une liste des effets actifs. Remarquez que certains effets pourraient ne pas s'afficher dans la liste.
 
 Par exemple, dans OpenOS :
-- `component.modem.broadcast(1, "nanomachines", "setInput", 1, true)` activera la première entrée.
-- `component.modem.broadcast(1, "nanomachines", "getHealth")` renverra l'information sur la santé du joueur.
+- `component.modem.broadcast(1, "nanomachines", "setInput", 1, true)` activera la premiÃ¨re entrÃ©e.
+- `component.modem.broadcast(1, "nanomachines", "getHealth")` renverra l'information sur la santÃ© du joueur.

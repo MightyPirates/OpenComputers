@@ -2,8 +2,8 @@
 
 ![Quel poseur!](oredict:oc:transposer)
 
-Le transposeur fait le lien entre les entonnoirs controlés par la redstone et les [robots](robot.md), ce qui permet le transfert d'objets et de fluides entre des blocs voisins contrôlé par [ordinateur](../general/computer.md).
+Le transposeur fait le lien entre les entonnoirs controlÃ©s par la redstone et les [robots](robot.md), ce qui permet le transfert d'objets et de fluides entre des blocs voisins contrÃ´lÃ© par [ordinateur](../general/computer.md).
 
 *Notez que ce bloc n'a pas d'inventaire interne.*
 
-A part déplacer des choses, il peut également être utilisé pour inspecter le contenu d'inventaires voisins, comme le ferait un [adaptateur](adapter.md) avec une [amélioration de contrôle d'inventaire](../item/inventoryControllerUpgrade.md), ou le contenu de réservoirs voisins, comme un adaptateur avec une [amélioration de contrôle de réservoir](../item/inventoryControllerUpgrade.md).
+A part dÃ©placer des choses, il peut Ã©galement Ãªtre utilisÃ© pour inspecter le contenu d'inventaires voisins, comme le ferait un [adaptateur](adapter.md) avec une [amÃ©lioration de contrÃ´le d'inventaire](../item/inventoryControllerUpgrade.md), ou le contenu de rÃ©servoirs voisins, comme un adaptateur avec une [amÃ©lioration de contrÃ´le de rÃ©servoir](../item/inventoryControllerUpgrade.md).

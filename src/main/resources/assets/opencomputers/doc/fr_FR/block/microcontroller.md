@@ -1,7 +1,7 @@
-# Micro-contrôleur
+# Micro-contrÃ´leur
 
 ![Ne le sous-estimez pas.](block:OpenComputers:microcontroller)
 
-Les micro-contrôleurs sont construits en utilisant un [boîtier pour micro-contrôleur](../item/microcontrollerCase1.md) dans l'[assembleur](assembler.md). Ils ont moins de fonctionnalités qu'un [ordinateur](../general/computer.md), mais coûtent moins cher à construire. En particulier, ils *ne peuvent pas* interagir avec des composants externes.
+Les micro-contrÃ´leurs sont construits en utilisant un [boÃ®tier pour micro-contrÃ´leur](../item/microcontrollerCase1.md) dans l'[assembleur](assembler.md). Ils ont moins de fonctionnalitÃ©s qu'un [ordinateur](../general/computer.md), mais coÃ»tent moins cher Ã  construire. En particulier, ils *ne peuvent pas* interagir avec des composants externes.
 
-Les micro-contrôleurs peuvent intégrer de nombreux composants, comme des [processeurs](../item/cpu1.md), de la [mémoire (RAM)](../item/ram1.md), et des cartes d'extension. Les micro-contrôleurs sont incapables de contenir un [disque dur](../item/hdd1.md), mais ont un emplacement pour une [EEPROM](../item/eeprom.md), qui peut être programmmée pour des tâches très spécifiques. Ils ont un avantage sur les boîtiers d'ordinateur, car ils peuvent également utiliser certaines améliorations, comme l'[amélioration de piston](../item/pistonUpgrade.md).
+Les micro-contrÃ´leurs peuvent intÃ©grer de nombreux composants, comme des [processeurs](../item/cpu1.md), de la [mÃ©moire (RAM)](../item/ram1.md), et des cartes d'extension. Les micro-contrÃ´leurs sont incapables de contenir un [disque dur](../item/hdd1.md), mais ont un emplacement pour une [EEPROM](../item/eeprom.md), qui peut Ãªtre programmmÃ©e pour des tÃ¢ches trÃ¨s spÃ©cifiques. Ils ont un avantage sur les boÃ®tiers d'ordinateur, car ils peuvent Ã©galement utiliser certaines amÃ©liorations, comme l'[amÃ©lioration de piston](../item/pistonUpgrade.md).

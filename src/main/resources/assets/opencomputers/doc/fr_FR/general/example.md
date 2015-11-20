@@ -1,11 +1,11 @@
-# Entête avec plusieurs lignes  [avec un lien](redirect1.md) et *quelques* autres
+# EntÃªte avec plusieurs lignes  [avec un lien](redirect1.md) et *quelques* autres
 
-Voici un peu de texte de test pour la version de Markdown supportée par le système de documenation en jeu prévu pour OpenComputers.
+Voici un peu de texte de test pour la version de Markdown supportÃ©e par le systÃ¨me de documenation en jeu prÃ©vu pour OpenComputers.
 ![Ceci est une info-bulle...](opencomputers:textures/gui/printer_ink.png)
 ![Ceci est une info-bulle...](opencomputers:/textures/gui/printer_material.png)
-*Ceci* est du texte en *italique*, ~~barré~~ peut-être **un peu** de texte **en gras**. Est-ce que _c'est souligné _? Oh, non, _c'est aussi en italique!_ Bon, c'est [un lien](../index.md).
+*Ceci* est du texte en *italique*, ~~barrÃ©~~ peut-Ãªtre **un peu** de texte **en gras**. Est-ce que _c'est soulignÃ© _? Oh, non, _c'est aussi en italique!_ Bon, c'est [un lien](../index.md).
 ![C'est rendu en direct.](oredict:oc:assembler)
-## Entête plus petite [avec un *lien* aussi mais cette __fois__ plus long](../block/adapter.md)
+## EntÃªte plus petite [avec un *lien* aussi mais cette __fois__ plus long](../block/adapter.md)
 
 ![Ceci est une autre info-bulle.](item:OpenComputers:item@23)
 
@@ -28,25 +28,25 @@ sur deux* lignes. Mais *ceci ... non, *ceci est du* *texte* **_en italique gras_
 `    lalala()`
 `  end`
 `end`
-ouais, l'espacement des lignes est un peu petit, mais sinon il n'y a pas assez de texte qui tient sur un écran.
-voici un peu de `code` contenu dans une ligne. puis `un peu plus de CODE qui` fait un retour à la ligne et qui continue.
+ouais, l'espacement des lignes est un peu petit, mais sinon il n'y a pas assez de texte qui tient sur un Ã©cran.
+voici un peu de `code` contenu dans une ligne. puis `un peu plus de CODE qui` fait un retour Ã  la ligne et qui continue.
 
 n'est pas*.
 
-   # pas une entête
+   # pas une entÃªte
 
-* c'est un élément de liste et le texte qui reviendra à la ligne sera indenté correctement
-- ça devrait aussi `fonctionner pour du texte affiché comme du code, si ce n'est pas le cas je` serai une mauvaise personne
+* c'est un Ã©lÃ©ment de liste et le texte qui reviendra Ã  la ligne sera indentÃ© correctement
+- Ã§a devrait aussi `fonctionner pour du texte affichÃ© comme du code, si ce n'est pas le cas je` serai une mauvaise personne
 
-asdasd ![oh mon dieu, la récursion !](img/example.png) qweqwe
+asdasd ![oh mon dieu, la rÃ©cursion !](img/example.png) qweqwe
 
 Et finalement, [c'est un lien !](https://avatars1.githubusercontent.com/u/514903).
 
-![image de l'objet inexistante](item:ça n'existe pas)
-![image de l'objet inexistante](block:ça n'existe pas)
-![image de l'objet inexistante](oredict:ça n'existe pas)
+![image de l'objet inexistante](item:Ã§a n'existe pas)
+![image de l'objet inexistante](block:Ã§a n'existe pas)
+![image de l'objet inexistante](oredict:Ã§a n'existe pas)
 
-tests de retour à la ligne
+tests de retour Ã  la ligne
 12345678901234567890.1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 `123456789012345678901234567890.12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890`
 
@@ -56,7 +56,7 @@ tests de retour à la ligne
 c'est un test pour une![](oredict:oc:cpu1)une image dans une lignekakakakalalsd 123 as
 
 c'est un test pour une![](oredict:oc:cpu1)
-une image avec un retour à la ligne après
+une image avec un retour Ã  la ligne aprÃ¨s
 
 c'est un test pour une
 ![](oredict:oc:cpu1)
