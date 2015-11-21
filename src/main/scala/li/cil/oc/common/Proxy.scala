@@ -41,7 +41,6 @@ class Proxy {
     OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
     OreDictionary.registerOre("nuggetGold", net.minecraft.init.Items.gold_nugget)
     OreDictionary.registerOre("chest", net.minecraft.init.Blocks.chest)
-    OreDictionary.registerOre("chest", net.minecraft.init.Blocks.ender_chest)
     OreDictionary.registerOre("chest", net.minecraft.init.Blocks.trapped_chest)
 
     val nuggetIron = Items.get(Constants.ItemName.IronNugget).createItemStack(1)
@@ -100,6 +99,8 @@ class Proxy {
 
     OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
+
+    api.API.isPowerEnabled = !Settings.get.ignorePower
   }
 
   def postInit(e: FMLPostInitializationEvent) {

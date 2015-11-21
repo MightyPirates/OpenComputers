@@ -306,6 +306,7 @@ class Settings(val config: Config) {
       Array(0.25, 0.5)
   }
   val hologramSetRawDelay = config.getDouble("hologram.setRawDelay") max 0
+  val hologramLight = config.getBoolean("hologram.emitLight")
 
   // ----------------------------------------------------------------------- //
   // misc

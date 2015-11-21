@@ -32,16 +32,28 @@ trait WorldInventoryAnalytics extends WorldAware with SideRestricted with Networ
     withInventory(facing, inventory => result(Option(inventory.getStackInSlot(args.checkSlot(inventory, 1))).fold(0)(_.getMaxStackSize)))
   }
 
-  @Callback(doc = """function(side:number, slotA:number, slotB:number):boolean -- Get whether the items in the two specified slots of the inventory on the specified side of the device are of the same type.""")
+  @Callback(doc = """function(side:number, slotA:number, slotB:number[, checkNBT:boolean=false]):boolean -- Get whether the items in the two specified slots of the inventory on the specified side of the device are of the same type.""")
   def compareStacks(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     withInventory(facing, inventory => {
       val stackA = inventory.getStackInSlot(args.checkSlot(inventory, 1))
       val stackB = inventory.getStackInSlot(args.checkSlot(inventory, 2))
-      result(stackA == stackB ||
-        (stackA != null && stackB != null &&
-          stackA.getItem == stackB.getItem &&
-          (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)))
+      result(stackA == stackB || InventoryUtils.haveSameItemType(stackA, stackB, args.optBoolean(3, false)))
+    })
+  }
+
+  @Callback(doc = """function(side:number, slot:number, dbAddress:string, dbSlot:number[, checkNBT:boolean=false]):boolean -- Compare an item in the specified slot in the inventory on the specified side with one in the database with the specified address.""")
+  def compareStackToDatabase(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    withInventory(facing, inventory => {
+      val slot = args.checkSlot(inventory, 1)
+      val dbAddress = args.checkString(2)
+      val stack = inventory.getStackInSlot(slot)
+      DatabaseAccess.withDatabase(node, dbAddress, database => {
+        val dbSlot = args.checkSlot(database.data, 3)
+        val dbStack = database.getStackInSlot(dbSlot)
+        result(InventoryUtils.haveSameItemType(stack, dbStack, args.optBoolean(4, false)))
+      })
     })
   }
 

@@ -23,12 +23,14 @@ tile.oc.hologram2.name=Projecteur d'hologramme (Niveau 2)
 tile.oc.keyboard.name=Clavier
 tile.oc.microcontroller.name=Micro-contrôleur
 tile.oc.motionSensor.name=Détecteur de mouvement
+tile.oc.netSplitter.name=Répartiteur réseau
 tile.oc.powerConverter.name=Convertisseur énergétique
 tile.oc.powerDistributor.name=Distributeur énergétique
 tile.oc.print.name=Impression 3D
 tile.oc.printer.name=Imprimante 3D
 tile.oc.raid.name=Raid
 tile.oc.redstone.name=Redstone E/S
+tile.oc.relay.name=Relai
 tile.oc.robot.name=Robot
 tile.oc.robotAfterimage.name=Robot
 tile.oc.screen1.name=Ecran (Niveau 1)
@@ -36,6 +38,7 @@ tile.oc.screen2.name=Ecran (Niveau 2)
 tile.oc.screen3.name=Ecran (Niveau 3)
 tile.oc.rack.name=Support de serveur
 tile.oc.switch.name=Routeur
+tile.oc.transposer.name=Transposeur
 tile.oc.waypoint.name=Point de passage
 
 # Items
