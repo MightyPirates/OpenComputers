@@ -93,7 +93,10 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
 
-  def markInitialized(): Unit = syncCooldown = -1 // Stop polling for init state.
+  def markInitialized(): Unit = {
+    syncCooldown = -1 // Stop polling for init state.
+    relativeLitArea = -1
+  }
 
   // ----------------------------------------------------------------------- //
 

@@ -115,6 +115,22 @@ public final class Network {
     }
 
     /**
+     * Removes a wireless endpoint from the wireless network of a specific dimension.
+     * <p/>
+     * This may be useful if the dimension of an endpoint changed and you can only
+     * react to that change (e.g. a player changing dimensions).
+     * <p/>
+     * Calling this for an endpoint that was not added before does nothing.
+     *
+     * @param endpoint  the endpoint to remove from the wireless network.
+     * @param dimension the dimension with the wireless network to remove the endpoint from.
+     */
+    public static void leaveWirelessNetwork(final WirelessEndpoint endpoint, final int dimension) {
+        if (API.network != null)
+            API.network.leaveWirelessNetwork(endpoint, dimension);
+    }
+
+    /**
      * Sends a packet via the wireless network.
      * <p/>
      * This will look for all other registered wireless endpoints in range of

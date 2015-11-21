@@ -199,7 +199,7 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   private def updateLimits(slot: Int, stack: ItemStack) {
     Option(Driver.driverFor(stack, getClass)) match {
       case Some(driver) if driver.slot(stack) == Slot.CPU =>
-        relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade))
+        relayDelay = math.max(1, relayBaseDelay - ((driver.tier(stack) + 1) * relayDelayPerUpgrade).toInt)
       case Some(driver) if driver.slot(stack) == Slot.Memory =>
         relayAmount = math.max(1, relayBaseAmount + (Delegator.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * relayAmountPerUpgrade

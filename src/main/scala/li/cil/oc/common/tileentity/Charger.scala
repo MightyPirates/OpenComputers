@@ -240,6 +240,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       case chargeable: RobotChargeable => chargeable.robot == robot
       case _ => false
     }
+
+    override def hashCode(): Int = robot.hashCode()
   }
 
   class DroneChargeable(val drone: Drone) extends ConnectorChargeable(drone.components.node.asInstanceOf[Connector]) {
@@ -249,6 +251,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       case chargeable: DroneChargeable => chargeable.drone == drone
       case _ => false
     }
+
+    override def hashCode(): Int = drone.hashCode()
   }
 
   class PlayerChargeable(val player: EntityPlayer) extends Chargeable {
@@ -265,6 +269,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
       case chargeable: PlayerChargeable => chargeable.player == player
       case _ => false
     }
+
+    override def hashCode(): Int = player.hashCode()
   }
 
 }

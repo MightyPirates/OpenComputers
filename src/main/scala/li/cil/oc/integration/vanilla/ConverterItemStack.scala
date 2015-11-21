@@ -5,6 +5,8 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.enchantment.Enchantment
+import net.minecraft.enchantment.EnchantmentHelper
 import li.cil.oc.util.ItemUtils
 import net.minecraft.item
 import net.minecraft.item.Item
@@ -13,6 +15,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 object ConverterItemStack extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =
@@ -36,6 +39,24 @@ object ConverterItemStack extends api.driver.Converter {
             getCompoundTag("display").
             getTagList("Lore", NBT.TAG_STRING).map((tag: NBTTagString) => tag.getString).
             mkString("\n")
+        }
+
+        val enchantments = mutable.ArrayBuffer.empty[mutable.Map[String, Any]]
+        EnchantmentHelper.getEnchantments(stack).collect {
+          case (id: Int, level: Int) if id >= 0 && id < Enchantment.enchantmentsList.length && Enchantment.enchantmentsList(id) != null =>
+            val enchantment = Enchantment.enchantmentsList(id)
+            val map = mutable.Map(
+              "name" -> enchantment.getName,
+              "label" -> enchantment.getTranslatedName(level),
+              "level" -> level
+            )
+            if (Settings.get.insertIdsInConverters) {
+              map += "id" -> id
+            }
+            enchantments += map
+        }
+        if (enchantments.nonEmpty) {
+          output += "enchantments" -> enchantments
         }
 
         if (stack.hasTagCompound && Settings.get.allowItemStackNBTTags) {

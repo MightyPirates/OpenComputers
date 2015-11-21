@@ -288,7 +288,7 @@ class Settings(val config: Config) {
   val switchDefaultMaxQueueSize = config.getInt("switch.defaultMaxQueueSize") max 1
   val switchQueueSizeUpgrade = config.getInt("switch.queueSizeUpgrade") max 0
   val switchDefaultRelayDelay = config.getInt("switch.defaultRelayDelay") max 1
-  val switchRelayDelayUpgrade = config.getInt("switch.relayDelayUpgrade") max 0
+  val switchRelayDelayUpgrade = config.getDouble("switch.relayDelayUpgrade") max 0
   val switchDefaultRelayAmount = config.getInt("switch.defaultRelayAmount") max 1
   val switchRelayAmountUpgrade = config.getInt("switch.relayAmountUpgrade") max 0
 
@@ -309,6 +309,7 @@ class Settings(val config: Config) {
       Array(0.25, 0.5)
   }
   val hologramSetRawDelay = config.getDouble("hologram.setRawDelay") max 0
+  val hologramLight = config.getBoolean("hologram.emitLight")
 
   // ----------------------------------------------------------------------- //
   // misc
@@ -485,6 +486,10 @@ object Settings {
   // Usage: VersionRange.createFromVersionSpec("[0.0,1.5)") -> Array("computer.ramSizes") will
   // re-set the value of `computer.ramSizes` if a config saved with a version < 1.5 is loaded.
   private val configPatches = Array[(VersionRange, Array[String])](
+    // Upgrading to version 1.5.20, changed relay delay default.
+    VersionRange.createFromVersionSpec("[0.0, 1.5.20)") -> Array(
+      "switch.relayDelayUpgrade"
+    )
   )
 
   // Checks the config version (i.e. the version of the mod the config was

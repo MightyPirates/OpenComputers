@@ -7,6 +7,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.server.component.result
 import li.cil.oc.util.DatabaseAccess
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.InventoryUtils
 import net.minecraftforge.oredict.OreDictionary
 
 trait InventoryAnalytics extends InventoryAware with NetworkAware {
@@ -40,7 +41,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
     })
   }
 
-  @Callback(doc = """function(slot:number, dbAddress:string, dbSlot:number):boolean -- Compare an item in the specified slot with one in the database with the specified address.""")
+  @Callback(doc = """function(slot:number, dbAddress:string, dbSlot:number[, checkNBT:boolean=false]):boolean -- Compare an item in the specified slot with one in the database with the specified address.""")
   def compareToDatabase(context: Context, args: Arguments): Array[AnyRef] = {
     val localSlot = args.checkSlot(inventory, 0)
     val dbAddress = args.checkString(1)
@@ -48,7 +49,7 @@ trait InventoryAnalytics extends InventoryAware with NetworkAware {
     DatabaseAccess.withDatabase(node, dbAddress, database => {
       val dbSlot = args.checkSlot(database.data, 2)
       val dbStack = database.getStackInSlot(dbSlot)
-      result(haveSameItemType(localStack, dbStack))
+      result(InventoryUtils.haveSameItemType(localStack, dbStack, args.optBoolean(3, false)))
     })
   }
 }

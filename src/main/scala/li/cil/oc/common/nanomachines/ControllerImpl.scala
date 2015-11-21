@@ -34,6 +34,7 @@ import scala.collection.mutable
 
 class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessEndpoint {
   if (isServer) api.Network.joinWirelessNetwork(this)
+  var previousDimension = player.worldObj.provider.getDimensionId
 
   lazy val CommandRange = Settings.get.nanomachinesCommandRange * Settings.get.nanomachinesCommandRange
   final val FullSyncInterval = 20 * 60
@@ -237,7 +238,19 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
           queuedCommand = None
         }
       }
-      api.Network.updateWirelessNetwork(this)
+
+      // Handle dimension changes, the robust way (because when logging in,
+      // load is called while the world is still set to the overworld, but
+      // no dimension change event is fired if the player actually logged
+      // out in another dimension... yay)
+      if (player.worldObj.provider.getDimensionId != previousDimension) {
+        api.Network.leaveWirelessNetwork(this, previousDimension)
+        api.Network.joinWirelessNetwork(this)
+        previousDimension = player.worldObj.provider.getDimensionId
+      }
+      else {
+        api.Network.updateWirelessNetwork(this)
+      }
     }
 
     var hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
@@ -314,6 +327,12 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
     if (isServer) {
       configuration.debug()
       activeBehaviorsDirty = true
+    }
+  }
+
+  def print(): Unit = {
+    if (isServer) {
+      configuration.print(player)
     }
   }
 
