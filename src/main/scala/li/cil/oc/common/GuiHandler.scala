@@ -12,7 +12,7 @@ abstract class GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
-        world.getTileEntity(x, y, z) match {
+        world.getTileEntity(x, GuiType.extractY(y), z) match {
           case t: tileentity.Adapter if id == GuiType.Adapter.id =>
             new container.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
@@ -35,8 +35,8 @@ abstract class GuiHandler extends IGuiHandler {
             new container.Robot(player.inventory, t.robot)
           case t: tileentity.Rack if id == GuiType.Rack.id =>
             new container.Rack(player.inventory, t)
-          case t: tileentity.Rack if GuiType.ServerInRack.exists(e => e.id == id) =>
-            val slot = GuiType.ServerInRack.indexWhere(e => e.id == id)
+          case t: tileentity.Rack if id == GuiType.ServerInRack.id =>
+            val slot = GuiType.extractSlot(y)
             val server = t.getMountable(slot).asInstanceOf[Server]
             new container.Server(player.inventory, server, Option(server))
           case t: tileentity.Switch if id == GuiType.Switch.id =>

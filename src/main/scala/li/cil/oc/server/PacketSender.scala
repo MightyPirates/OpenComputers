@@ -100,10 +100,10 @@ object PacketSender {
   }
 
   // Avoid spamming the network with disk activity notices.
-  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[EnvironmentHost, mutable.Map[String, Long]]
+  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
 
   def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
-    fileSystemAccessTimeouts.get(host) match {
+    fileSystemAccessTimeouts.get(node) match {
       case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
       case _ =>
         val event = host match {
@@ -112,7 +112,7 @@ object PacketSender {
         }
         MinecraftForge.EVENT_BUS.post(event)
         if (!event.isCanceled) {
-          fileSystemAccessTimeouts.getOrElseUpdate(host, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
+          fileSystemAccessTimeouts.getOrElseUpdate(node, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
 
           val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
 

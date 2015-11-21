@@ -163,7 +163,7 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
         }
       }
       else {
-        player.openGui(OpenComputers, GuiType.ServerInRack(slot).id, world, rack.x, rack.y, rack.z)
+        player.openGui(OpenComputers, GuiType.ServerInRack.id, world, rack.x, GuiType.embedSlot(rack.y, slot), rack.z)
       }
     }
     true

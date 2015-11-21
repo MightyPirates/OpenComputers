@@ -88,6 +88,7 @@ object Constants {
     final val DebugCard = "debugCard"
     final val Debugger = "debugger"
     final val Disk = "disk"
+    final val DiskDriveMountable = "diskDriveMountable"
     final val Drone = "drone"
     final val DroneCaseCreative = "droneCaseCreative"
     final val DroneCaseTier1 = "droneCase1"

@@ -83,6 +83,11 @@ tabletCase2 {
           ["oc:circuitChip2", "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 
+diskDriveMountable {
+  input: [[obsidian, "oc:circuitChip1", obsidian]
+          [fenceIron, "oc:diskDrive", fenceIron]
+          [obsidian, "oc:materialCircuitBoardPrinted", obsidian]]
+}
 server1 {
   input: [[obsidian, "oc:ram4", obsidian]
           ["oc:circuitChip1", "oc:circuitChip2", "oc:circuitChip1"]

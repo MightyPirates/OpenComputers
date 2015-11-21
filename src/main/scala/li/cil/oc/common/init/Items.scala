@@ -531,6 +531,7 @@ object Items extends ItemAPI {
 
     // 1.6.0
     Recipes.addSubItem(new item.TerminalServer(multi), Constants.ItemName.TerminalServer, "oc:terminalServer")
+    Recipes.addSubItem(new item.DiskDriveMountable(multi), Constants.ItemName.DiskDriveMountable, "oc:diskDriveMountable")
 
     // Register aliases.
     for ((k, v) <- aliases) {

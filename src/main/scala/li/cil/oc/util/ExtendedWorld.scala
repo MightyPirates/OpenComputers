@@ -28,6 +28,8 @@ object ExtendedWorld {
     def getTileEntity(host: EnvironmentHost): TileEntity = getTileEntity(BlockPosition(host))
 
     def isAirBlock(position: BlockPosition) = world.isAirBlock(position.x, position.y, position.z)
+
+    def getLightBrightnessForSkyBlocks(position: BlockPosition, minBrightness: Int) = world.getLightBrightnessForSkyBlocks(position.x, position.y, position.z, minBrightness)
   }
 
   class ExtendedWorld(override val world: World) extends ExtendedBlockAccess(world) {

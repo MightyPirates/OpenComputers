@@ -21,8 +21,8 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
   // Cache changes to inventory slots on the client side to avoid recreating
   // components when we don't have to and the slots are just cleared by MC
   // temporarily.
-  private val pendingRemovalsActual = mutable.ArrayBuffer.fill(getSizeInventory)(None: Option[ItemStack])
-  private val pendingAddsActual = mutable.ArrayBuffer.fill(getSizeInventory)(None: Option[ItemStack])
+  private lazy val pendingRemovalsActual = mutable.ArrayBuffer.fill(getSizeInventory)(None: Option[ItemStack])
+  private lazy val pendingAddsActual = mutable.ArrayBuffer.fill(getSizeInventory)(None: Option[ItemStack])
   private var updateScheduled = false
   def pendingRemovals = {
     adjustSize(pendingRemovalsActual)

@@ -29,6 +29,7 @@ class Rack extends RedstoneAware with traits.SpecialBlock with traits.PowerAccep
   override def registerBlockIcons(iconRegister: IIconRegister) = {
     super.registerBlockIcons(iconRegister)
     System.arraycopy(icons, 0, Textures.Rack.icons, 0, icons.length)
+    Textures.Rack.diskDrive = iconRegister.registerIcon(Settings.resourceDomain + ":" + "DiskDriveMountable")
     Textures.Rack.server = iconRegister.registerIcon(Settings.resourceDomain + ":" + "ServerFront")
     Textures.Rack.terminal = iconRegister.registerIcon(Settings.resourceDomain + ":" + "TerminalServerFront")
   }

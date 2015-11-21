@@ -36,10 +36,16 @@ object RackRenderer extends TileEntitySpecialRenderer {
     // Note: we manually sync the rack inventory for this to work.
     for (i <- 0 until rack.getSizeInventory) {
       if (rack.getStackInSlot(i) != null) {
+        GL11.glPushMatrix()
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
         val v0 = vOffset + i * vSize
         val v1 = vOffset + (i + 1) * vSize
         val event = new RackMountableRenderEvent.TileEntity(rack, i, rack.lastData(i), v0, v1)
         MinecraftForge.EVENT_BUS.post(event)
+
+        GL11.glPopAttrib()
+        GL11.glPopMatrix()
       }
     }
 

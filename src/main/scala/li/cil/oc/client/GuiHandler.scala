@@ -21,7 +21,7 @@ object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     GuiType.Categories.get(id) match {
       case Some(GuiType.Category.Block) =>
-        world.getTileEntity(x, y, z) match {
+        world.getTileEntity(x, GuiType.extractY(y), z) match {
           case t: tileentity.Adapter if id == GuiType.Adapter.id =>
             new gui.Adapter(player.inventory, t)
           case t: tileentity.Assembler if id == GuiType.Assembler.id =>
@@ -46,8 +46,8 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Robot(player.inventory, t.robot)
           case t: tileentity.Screen if id == GuiType.Screen.id =>
             new gui.Screen(t.origin.buffer, t.tier > 0, () => t.origin.hasKeyboard, () => t.origin.buffer.isRenderingEnabled)
-          case t: tileentity.Rack if GuiType.ServerInRack.exists(e => e.id == id) =>
-            val slot = GuiType.ServerInRack.indexWhere(e => e.id == id)
+          case t: tileentity.Rack if id == GuiType.ServerInRack.id =>
+            val slot = GuiType.extractSlot(y)
             new gui.Server(player.inventory, new ServerInventory {
               override def container = t.getStackInSlot(slot)
 

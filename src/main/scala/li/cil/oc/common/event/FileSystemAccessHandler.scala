@@ -7,6 +7,7 @@ import li.cil.oc.api.internal.Rack
 import li.cil.oc.common.tileentity.Case
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.common.tileentity.Raid
+import li.cil.oc.server.component.DiskDriveMountable
 import li.cil.oc.server.component.Server
 
 object FileSystemAccessHandler {
@@ -20,6 +21,12 @@ object FileSystemAccessHandler {
               val containsNode = server.componentSlot(e.getNode.address) >= 0
               if (containsNode) {
                 server.lastAccess = System.currentTimeMillis()
+                t.markChanged(slot)
+              }
+            case diskDrive: DiskDriveMountable =>
+              val containsNode = diskDrive.filesystemNode.contains(e.getNode)
+              if (containsNode) {
+                diskDrive.lastAccess = System.currentTimeMillis()
                 t.markChanged(slot)
               }
             case _ =>
