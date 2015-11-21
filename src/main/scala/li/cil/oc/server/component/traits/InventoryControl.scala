@@ -4,6 +4,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.util.ExtendedArguments._
+import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ResultWrapper.result
 
 trait InventoryControl extends InventoryAware {
@@ -37,11 +38,11 @@ trait InventoryControl extends InventoryAware {
     })
   }
 
-  @Callback(doc = "function(otherSlot:number):boolean -- Compare the contents of the selected slot to the contents of the specified slot.")
+  @Callback(doc = "function(otherSlot:number[, checkNBT:boolean=false]):boolean -- Compare the contents of the selected slot to the contents of the specified slot.")
   def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = args.checkSlot(inventory, 0)
     result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(stackA), Some(stackB)) => haveSameItemType(stackA, stackB)
+      case (Some(stackA), Some(stackB)) => InventoryUtils.haveSameItemType(stackA, stackB, args.optBoolean(1, false))
       case (None, None) => true
       case _ => false
     })
@@ -56,7 +57,7 @@ trait InventoryControl extends InventoryAware {
     }
     else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
       case (Some(from), Some(to)) =>
-        if (haveSameItemType(from, to)) {
+        if (InventoryUtils.haveSameItemType(from, to, checkNBT = true)) {
           val space = math.min(inventory.getInventoryStackLimit, to.getMaxStackSize) - to.stackSize
           val amount = math.min(count, math.min(space, from.stackSize))
           if (amount > 0) {

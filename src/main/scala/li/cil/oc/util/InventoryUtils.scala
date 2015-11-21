@@ -15,6 +15,17 @@ import scala.collection.convert.WrapAsScala._
 
 object InventoryUtils {
   /**
+   * Check if two item stacks are of equal type, ignoring the stack size.
+   * <p/>
+   * Optionally check for equality in NBT data.
+   */
+  def haveSameItemType(stackA: ItemStack, stackB: ItemStack, checkNBT: Boolean = false) =
+    stackA != null && stackB != null &&
+      stackA.getItem == stackB.getItem &&
+      (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage) &&
+      (!checkNBT || ItemStack.areItemStackTagsEqual(stackA, stackB))
+
+  /**
    * Retrieves an actual inventory implementation for a specified world coordinate.
    * <p/>
    * This performs special handling for (double-)chests and also checks for
@@ -340,5 +351,4 @@ object InventoryUtils {
       entity
     case _ => null
   }
-
 }

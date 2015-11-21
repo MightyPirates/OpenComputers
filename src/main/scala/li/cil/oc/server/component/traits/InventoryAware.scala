@@ -3,7 +3,6 @@ package li.cil.oc.server.component.traits
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.util.ExtendedArguments._
 import net.minecraft.inventory.IInventory
-import net.minecraft.item.ItemStack
 
 trait InventoryAware {
   def inventory: IInventory
@@ -21,9 +20,4 @@ trait InventoryAware {
     else selectedSlot
 
   protected def stackInSlot(slot: Int) = Option(inventory.getStackInSlot(slot))
-
-  protected def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-    stackA != null && stackB != null &&
-      stackA.getItem == stackB.getItem &&
-      (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 }
