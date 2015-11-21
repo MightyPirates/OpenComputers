@@ -14,7 +14,7 @@ abstract class SimpleCommand(val name: String) extends CommandBase {
 
   override def getCommandAliases = aliases
 
-  override def canCommandSenderUseCommand(source: ICommandSender) = MinecraftServer.getServer.isSinglePlayer || super.canCommandSenderUseCommand(source)
+  override def canCommandSenderUseCommand(source: ICommandSender) = super.canCommandSenderUseCommand(source) || (MinecraftServer.getServer != null && MinecraftServer.getServer.isSinglePlayer)
 
   override def isUsernameIndex(command: Array[String], i: Int) = false
 

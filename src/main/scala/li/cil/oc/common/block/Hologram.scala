@@ -4,6 +4,7 @@ import java.util
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.util.Rarity
@@ -15,7 +16,9 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 class Hologram(val tier: Int) extends SimpleBlock with traits.SpecialBlock {
-  ModColoredLights.setLightLevel(this, 15, 15, 15)
+  if (Settings.get.hologramLight) {
+    ModColoredLights.setLightLevel(this, 15, 15, 15)
+  }
   setBlockBounds(0, 0, 0, 1, 0.5f, 1)
 
   // ----------------------------------------------------------------------- //

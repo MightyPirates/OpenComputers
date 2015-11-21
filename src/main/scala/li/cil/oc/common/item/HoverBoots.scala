@@ -67,7 +67,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
 
   override def onArmorTick(world: World, player: EntityPlayer, stack: ItemStack): Unit = {
     super.onArmorTick(world, player, stack)
-    if (player.getActivePotionEffect(Potion.moveSlowdown) == null && getCharge(stack) == 0) {
+    if (!Settings.get.ignorePower && player.getActivePotionEffect(Potion.moveSlowdown) == null && getCharge(stack) == 0) {
       player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.getId, 20, 1))
     }
   }

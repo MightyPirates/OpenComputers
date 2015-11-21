@@ -527,6 +527,10 @@ object Network extends api.detail.NetworkAPI {
     WirelessNetwork.remove(endpoint)
   }
 
+  override def leaveWirelessNetwork(endpoint: WirelessEndpoint, dimension: Int) {
+    WirelessNetwork.remove(endpoint, dimension)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def sendWirelessPacket(source: WirelessEndpoint, strength: Double, packet: network.Packet) {
