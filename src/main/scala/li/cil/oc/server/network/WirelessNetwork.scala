@@ -59,6 +59,13 @@ object WirelessNetwork {
     }
   }
 
+  def remove(endpoint: WirelessEndpoint, dimension: Int) = {
+    dimensions.get(dimension) match {
+      case Some(set) => set.remove(endpoint)
+      case _ => false
+    }
+  }
+
   def remove(endpoint: WirelessEndpoint) = {
     dimensions.get(dimension(endpoint)) match {
       case Some(set) => set.remove(endpoint)

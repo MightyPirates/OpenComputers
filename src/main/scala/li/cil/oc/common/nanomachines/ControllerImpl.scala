@@ -5,6 +5,9 @@ import java.util.UUID
 
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
+import li.cil.oc.Constants
+import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Behavior
 import li.cil.oc.api.nanomachines.Controller
 import li.cil.oc.api.nanomachines.DisableReason
@@ -13,13 +16,10 @@ import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.common.item.data.NanomachineData
 import li.cil.oc.integration.util.DamageSourceWithRandomCause
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.PlayerUtils
-import li.cil.oc.Constants
-import li.cil.oc.Settings
-import li.cil.oc.api
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
@@ -33,6 +33,7 @@ import scala.collection.mutable
 
 class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessEndpoint {
   if (isServer) api.Network.joinWirelessNetwork(this)
+  var previousDimension = player.worldObj.provider.dimensionId
 
   lazy val CommandRange = Settings.get.nanomachinesCommandRange * Settings.get.nanomachinesCommandRange
   final val FullSyncInterval = 20 * 60
@@ -232,11 +233,23 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
       if (commandDelay > 0) {
         commandDelay -= 1
         if (commandDelay == 0) {
-          queuedCommand.foreach(_())
+          queuedCommand.foreach(_ ())
           queuedCommand = None
         }
       }
-      api.Network.updateWirelessNetwork(this)
+
+      // Handle dimension changes, the robust way (because when logging in,
+      // load is called while the world is still set to the overworld, but
+      // no dimension change event is fired if the player actually logged
+      // out in another dimension... yay)
+      if (player.worldObj.provider.dimensionId != previousDimension) {
+        api.Network.leaveWirelessNetwork(this, previousDimension)
+        api.Network.joinWirelessNetwork(this)
+        previousDimension = player.worldObj.provider.dimensionId
+      }
+      else {
+        api.Network.updateWirelessNetwork(this)
+      }
     }
 
     var hasPower = getLocalBuffer > 0 || Settings.get.ignorePower
