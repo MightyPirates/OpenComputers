@@ -9,7 +9,7 @@ import appeng.api.networking.security.MachineSource
 import appeng.api.parts.IPartHost
 import appeng.parts.automation.PartExportBus
 import li.cil.oc.api.driver
-import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -25,7 +25,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsScala._
 
-object DriverExportBus extends driver.Block with EnvironmentAware {
+object DriverExportBus extends driver.Block {
   override def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
@@ -34,11 +34,7 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  override def providedEnvironment(stack: ItemStack) =
-    if (AEUtil.isExportBus(stack)) classOf[Environment]
-    else null
-
-  class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
+  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
     override def preferredName = "me_exportbus"
 
     override def priority = 2
@@ -108,6 +104,13 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
         case _ => result(Unit, "no export bus")
       }
     }
+  }
+
+  object Provider extends EnvironmentProvider {
+    override def getEnvironment(stack: ItemStack): Class[_] =
+      if (AEUtil.isExportBus(stack))
+        classOf[Environment]
+      else null
   }
 
 }

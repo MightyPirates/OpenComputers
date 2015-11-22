@@ -11,5 +11,7 @@ object ModStargateTech2 extends ModProxy {
     api.Driver.add(DriverAbstractBusCard)
 
     api.Driver.add(ConverterBusPacketNetScanDevice)
+
+    api.Driver.add(DriverAbstractBusCard.Provider)
   }
 }

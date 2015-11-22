@@ -2,8 +2,9 @@ package li.cil.oc.api;
 
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
-import li.cil.oc.api.network.EnvironmentHost;
+import li.cil.oc.api.driver.EnvironmentProvider;
 import li.cil.oc.api.driver.Item;
+import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
@@ -77,6 +78,21 @@ public final class Driver {
     }
 
     /**
+     * Register a new environment provider.
+     * <p/>
+     * Environment providers are used for mapping item stacks to the type of
+     * environment that will be created by the stack, either by it being
+     * placed in the world and acting as a block component, or by being
+     * placed in an component inventory and created by the item's driver.
+     *
+     * @param provider the provider to register.
+     */
+    public static void add(final EnvironmentProvider provider) {
+        if (API.driver != null)
+            API.driver.add(provider);
+    }
+
+    /**
      * Looks up a driver for the block at the specified position in the
      * specified world.
      * <p/>
@@ -134,11 +150,26 @@ public final class Driver {
     }
 
     /**
+     * Looks up the environment associated with the specified item stack.
+     * <p/>
+     * This will use the registered {@link EnvironmentProvider}s to find
+     * an environment type for the specified item stack. If none can be
+     * found, returns <tt>null</tt>.
+     *
+     * @param stack the item stack to get the environment type for.
+     * @return the type of environment associated with the stack, or <tt>null</tt>.
+     */
+    public static Class<?> environmentFor(ItemStack stack) {
+        if (API.driver != null)
+            return API.driver.environmentFor(stack);
+        return null;
+    }
+
+    /**
      * Get a list of all registered block drivers.
      * <p/>
      * This is intended to allow checking for particular drivers using more
-     * customized logic, and in particular to check for drivers with the
-     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     * customized logic.
      * <p/>
      * The returned collection is read-only.
      *
@@ -154,8 +185,7 @@ public final class Driver {
      * Get a list of all registered item drivers.
      * <p/>
      * This is intended to allow checking for particular drivers using more
-     * customized logic, and in particular to check for drivers with the
-     * {@link li.cil.oc.api.driver.EnvironmentAware} interface.
+     * customized logic.
      * <p/>
      * The returned collection is read-only.
      *

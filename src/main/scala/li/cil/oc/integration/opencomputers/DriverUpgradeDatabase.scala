@@ -2,6 +2,7 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.Constants
 import li.cil.oc.api
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.inventory.DatabaseInventory
@@ -11,7 +12,7 @@ import li.cil.oc.server.component
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-object DriverUpgradeDatabase extends Item with api.driver.item.HostAware with api.driver.EnvironmentAware {
+object DriverUpgradeDatabase extends Item with api.driver.item.HostAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.DatabaseUpgradeTier1),
     api.Items.get(Constants.ItemName.DatabaseUpgradeTier2),
@@ -35,5 +36,11 @@ object DriverUpgradeDatabase extends Item with api.driver.item.HostAware with ap
       case _ => Tier.One
     }
 
-  override def providedEnvironment(stack: ItemStack) = classOf[component.UpgradeDatabase]
+  object Provider extends EnvironmentProvider {
+    override def getEnvironment(stack: ItemStack): Class[_] =
+      if (worksWith(stack))
+        classOf[component.UpgradeDatabase]
+      else null
+  }
+
 }

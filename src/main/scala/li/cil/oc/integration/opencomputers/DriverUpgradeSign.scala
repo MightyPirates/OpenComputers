@@ -2,7 +2,7 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.Constants
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.internal.Adapter
 import li.cil.oc.api.internal.Rotatable
@@ -13,7 +13,7 @@ import li.cil.oc.server.component.UpgradeSignInAdapter
 import li.cil.oc.server.component.UpgradeSignInRotatable
 import net.minecraft.item.ItemStack
 
-object DriverUpgradeSign extends Item with HostAware with EnvironmentAware {
+object DriverUpgradeSign extends Item with HostAware {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.SignUpgrade))
 
@@ -27,5 +27,11 @@ object DriverUpgradeSign extends Item with HostAware with EnvironmentAware {
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 
-  override def providedEnvironment(stack: ItemStack) = classOf[component.UpgradeSign]
+  object Provider extends EnvironmentProvider {
+    override def getEnvironment(stack: ItemStack): Class[_] =
+      if (worksWith(stack))
+        classOf[component.UpgradeSign]
+      else null
+  }
+
 }

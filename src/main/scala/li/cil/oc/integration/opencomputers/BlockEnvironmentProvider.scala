@@ -2,8 +2,7 @@ package li.cil.oc.integration.opencomputers
 
 import li.cil.oc.Constants
 import li.cil.oc.api
-import li.cil.oc.api.driver
-import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common
 import li.cil.oc.common.tileentity
@@ -13,7 +12,6 @@ import li.cil.oc.server.machine.Machine
 import net.minecraft.block.Block
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
-import net.minecraft.world.World
 
 /**
  * Provide static environment lookup for blocks that are components.
@@ -21,12 +19,8 @@ import net.minecraft.world.World
  * all blocks are present here, because some also serve as upgrades
  * and therefore have item drivers.
  */
-object DriverBlockEnvironments extends driver.Block with EnvironmentAware {
-  override def worksWith(world: World, x: Int, y: Int, z: Int) = false
-
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = null
-
-  override def providedEnvironment(stack: ItemStack): Class[_ <: Environment] = stack.getItem match {
+object BlockEnvironmentProvider extends EnvironmentProvider {
+  override def getEnvironment(stack: ItemStack): Class[_] = stack.getItem match {
     case block: ItemBlock if block.field_150939_a != null =>
       if (isOneOf(block.field_150939_a, Constants.BlockName.AccessPoint)) classOf[tileentity.AccessPoint]
       else if (isOneOf(block.field_150939_a, Constants.BlockName.Assembler)) classOf[tileentity.Assembler]

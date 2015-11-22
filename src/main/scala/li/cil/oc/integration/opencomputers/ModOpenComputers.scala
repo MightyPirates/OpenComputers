@@ -97,8 +97,6 @@ object ModOpenComputers extends ModProxy {
 
     api.Driver.add(ConverterNanomachines)
 
-    api.Driver.add(DriverBlockEnvironments)
-
     api.Driver.add(DriverAPU)
     api.Driver.add(DriverComponentBus)
     api.Driver.add(DriverCPU)
@@ -147,6 +145,35 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTank)
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
+
+    api.Driver.add(DriverAPU.Provider)
+    api.Driver.add(DriverDataCard.Provider)
+    api.Driver.add(DriverDebugCard.Provider)
+    api.Driver.add(DriverEEPROM.Provider)
+    api.Driver.add(DriverGraphicsCard.Provider)
+    api.Driver.add(DriverInternetCard.Provider)
+    api.Driver.add(DriverLinkedCard.Provider)
+    api.Driver.add(DriverNetworkCard.Provider)
+    api.Driver.add(DriverRedstoneCard.Provider)
+    api.Driver.add(DriverWirelessNetworkCard.Provider)
+
+    api.Driver.add(DriverGeolyzer.Provider)
+    api.Driver.add(DriverScreen.Provider)
+    api.Driver.add(DriverTransposer.Provider)
+
+    api.Driver.add(DriverUpgradeChunkloader.Provider)
+    api.Driver.add(DriverUpgradeCrafting.Provider)
+    api.Driver.add(DriverUpgradeExperience.Provider)
+    api.Driver.add(DriverUpgradeGenerator.Provider)
+    api.Driver.add(DriverUpgradeInventoryController.Provider)
+    api.Driver.add(DriverUpgradeLeash.Provider)
+    api.Driver.add(DriverUpgradeNavigation.Provider)
+    api.Driver.add(DriverUpgradePiston.Provider)
+    api.Driver.add(DriverUpgradeSign.Provider)
+    api.Driver.add(DriverUpgradeTankController.Provider)
+    api.Driver.add(DriverUpgradeTractorBeam.Provider)
+
+    api.Driver.add(BlockEnvironmentProvider)
 
     blacklistHost(classOf[internal.Adapter],
       Constants.BlockName.Geolyzer,
