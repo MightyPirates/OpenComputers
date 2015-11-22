@@ -6,9 +6,12 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
 import li.cil.oc.api.driver.EnvironmentProvider
+import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
@@ -38,7 +41,9 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
 
-  val providers = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
+  val environmentProviders = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
+
+  val inventoryProviders = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
 
   val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
 
@@ -71,9 +76,17 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   override def add(provider: EnvironmentProvider): Unit = {
     if (locked) throw new IllegalStateException("Please register all environment providers in the init phase.")
-    if (!providers.contains(provider)) {
+    if (!environmentProviders.contains(provider)) {
       OpenComputers.log.debug(s"Registering environment provider ${provider.getClass.getName}.")
-      providers += provider
+      environmentProviders += provider
+    }
+  }
+
+  override def add(provider: InventoryProvider): Unit = {
+    if (locked) throw new IllegalStateException("Please register all inventory providers in the init phase.")
+    if (!inventoryProviders.contains(provider)) {
+      OpenComputers.log.debug(s"Registering inventory provider ${provider.getClass.getName}.")
+      inventoryProviders += provider
     }
   }
 
@@ -100,8 +113,14 @@ private[oc] object Registry extends api.detail.DriverAPI {
     else null
 
   override def environmentFor(stack: ItemStack): Class[_] = {
-    providers.map(provider => provider.getEnvironment(stack)).collectFirst {
+    environmentProviders.map(provider => provider.getEnvironment(stack)).collectFirst {
       case clazz: Class[_] => clazz
+    }.orNull
+  }
+
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
+    inventoryProviders.map(provider => provider.getInventory(stack)).collectFirst {
+      case inventory: IInventory => inventory
     }.orNull
   }
 

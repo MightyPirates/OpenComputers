@@ -3,8 +3,11 @@ package li.cil.oc.api;
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentProvider;
+import li.cil.oc.api.driver.InventoryProvider;
 import li.cil.oc.api.driver.Item;
 import li.cil.oc.api.network.EnvironmentHost;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
@@ -93,6 +96,19 @@ public final class Driver {
     }
 
     /**
+     * Register a new inventory provider.
+     * <p/>
+     * Inventory providers are used for accessing item inventories using
+     * the inventory controller upgrade, for example.
+     *
+     * @param provider the provider to register.
+     */
+    public static void add(final InventoryProvider provider) {
+        if (API.driver != null)
+            API.driver.add(provider);
+    }
+
+    /**
      * Looks up a driver for the block at the specified position in the
      * specified world.
      * <p/>
@@ -162,6 +178,26 @@ public final class Driver {
     public static Class<?> environmentFor(ItemStack stack) {
         if (API.driver != null)
             return API.driver.environmentFor(stack);
+        return null;
+    }
+
+    /**
+     * Get an inventory implementation providing access to an item inventory.
+     * <p/>
+     * This will use the registered {@link InventoryProvider}s to find an
+     * inventory implementation providing access to the specified stack.
+     * If none can be found, returns <tt>null</tt>.
+     * <p/>
+     * Note that the specified <tt>player</tt> may be null, but will usually
+     * be the <em>fake player</em> of the agent making use of this API.
+     *
+     * @param stack  the item stack to get the inventory access for.
+     * @param player the player holding the item. May be <tt>null</tt>.
+     * @return the inventory implementation interfacing the stack, or <tt>null</tt>.
+     */
+    public static IInventory inventoryFor(ItemStack stack, EntityPlayer player) {
+        if (API.driver != null)
+            return API.driver.inventoryFor(stack, player);
         return null;
     }
 
