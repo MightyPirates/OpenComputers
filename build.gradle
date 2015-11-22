@@ -289,10 +289,14 @@ processResources {
         expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
     }
     from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+        include 'application.conf'
         filter { line ->
             line.replaceAll("@VERSION@", project.simpleVersion)
         }
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+        exclude 'application.conf'
     }
 
     // Move access transformer to META-INF
