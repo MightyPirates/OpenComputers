@@ -47,17 +47,18 @@ class Item(value: Block) extends ItemBlock(value) {
 
   private lazy val ChameliumBlock = api.Items.get(Constants.BlockName.ChameliumBlock)
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
+
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
-    (block, tooltip) match {
-      case (simple: SimpleBlock, lines: util.List[String]@unchecked) =>
-        simple.addInformation(getMetadata(stack.getItemDamage), stack, player, lines, advanced)
+    block match {
+      case (simple: SimpleBlock) =>
+        simple.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip, advanced)
 
         if (KeyBindings.showMaterialCosts) {
-          ItemCosts.addTooltip(stack, lines)
+          ItemCosts.addTooltip(stack, tooltip)
         }
         else {
-          lines.add(StatCollector.translateToLocalFormatted(
+          tooltip.add(StatCollector.translateToLocalFormatted(
             Settings.namespace + "tooltip.MaterialCosts",
             KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
         }

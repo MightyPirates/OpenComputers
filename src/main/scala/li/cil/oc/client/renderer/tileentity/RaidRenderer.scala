@@ -7,15 +7,14 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.WorldRenderer
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
-object RaidRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object RaidRenderer extends TileEntitySpecialRenderer[Raid] {
+  override def renderTileEntityAt(raid: Raid, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val raid = tileEntity.asInstanceOf[Raid]
     RenderState.pushAttrib()
 
     RenderState.disableEntityLighting()
@@ -40,7 +39,7 @@ object RaidRenderer extends TileEntitySpecialRenderer {
     val r = t.getWorldRenderer
 
     Textures.Block.bind()
-    r.startDrawingQuads()
+    r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
     {
       val icon = Textures.getSprite(Textures.Block.RaidFrontError)
@@ -76,9 +75,9 @@ object RaidRenderer extends TileEntitySpecialRenderer {
   private def renderSlot(r: WorldRenderer, slot: Int, icon: TextureAtlasSprite) {
     val l = u1 + slot * fs
     val h = u1 + (slot + 1) * fs
-    r.addVertexWithUV(l, 1, 0, icon.getInterpolatedU(l * 16), icon.getMaxV)
-    r.addVertexWithUV(h, 1, 0, icon.getInterpolatedU(h * 16), icon.getMaxV)
-    r.addVertexWithUV(h, 0, 0, icon.getInterpolatedU(h * 16), icon.getMinV)
-    r.addVertexWithUV(l, 0, 0, icon.getInterpolatedU(l * 16), icon.getMinV)
+    r.pos(l, 1, 0).tex(icon.getInterpolatedU(l * 16), icon.getMaxV).endVertex()
+    r.pos(h, 1, 0).tex(icon.getInterpolatedU(h * 16), icon.getMaxV).endVertex()
+    r.pos(h, 0, 0).tex(icon.getInterpolatedU(h * 16), icon.getMinV).endVertex()
+    r.pos(l, 0, 0).tex(icon.getInterpolatedU(l * 16), icon.getMinV).endVertex()
   }
 }

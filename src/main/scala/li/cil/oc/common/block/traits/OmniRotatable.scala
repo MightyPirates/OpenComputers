@@ -16,13 +16,13 @@ import scala.collection.mutable
 trait OmniRotatable extends Block with Extended {
   def getPitch(state: IBlockState) =
     if (state.getBlock == this)
-      state.getValue(OmniRotatable.Pitch).asInstanceOf[EnumFacing]
+      state.getValue(OmniRotatable.Pitch)
     else
       EnumFacing.NORTH
 
   def getYaw(state: IBlockState) =
     if (state.getBlock == this)
-      state.getValue(OmniRotatable.Yaw).asInstanceOf[EnumFacing]
+      state.getValue(OmniRotatable.Yaw)
     else
       EnumFacing.SOUTH
 
@@ -32,10 +32,10 @@ trait OmniRotatable extends Block with Extended {
       withProperty(OmniRotatable.Yaw, yaw)
 
 
-  override protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
+  override protected def createProperties(listed: mutable.ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]): Unit = {
     super.createProperties(listed, unlisted)
-    listed += OmniRotatable.Pitch
-    listed += OmniRotatable.Yaw
+    listed += OmniRotatable.Pitch.asInstanceOf[IProperty[_ <: Comparable[AnyRef]]]
+    listed += OmniRotatable.Yaw.asInstanceOf[IProperty[_ <: Comparable[AnyRef]]]
   }
 }
 

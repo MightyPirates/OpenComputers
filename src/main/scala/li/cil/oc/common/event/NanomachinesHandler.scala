@@ -13,6 +13,7 @@ import li.cil.oc.common.nanomachines.ControllerImpl
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
@@ -32,7 +33,7 @@ object NanomachinesHandler {
         val mc = Minecraft.getMinecraft
         api.Nanomachines.getController(mc.thePlayer) match {
           case controller: Controller =>
-            val res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
+            val res = new ScaledResolution(mc)
             val sizeX = 8
             val sizeY = 12
             val width = res.getScaledWidth
@@ -63,11 +64,11 @@ object NanomachinesHandler {
       val sy = 1f / th
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.startDrawingQuads()
-      r.addVertexWithUV(x, y + h, 0, 0, h * sy)
-      r.addVertexWithUV(x + w, y + h, 0, w * sx, h * sy)
-      r.addVertexWithUV(x + w, y + h * (1 - fill), 0, w * sx, 1 - fill)
-      r.addVertexWithUV(x, y + h * (1 - fill), 0, 0, 1 - fill)
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.pos(x, y + h, 0).tex(0, h * sy).endVertex()
+      r.pos(x + w, y + h, 0).tex(w * sx, h * sy).endVertex()
+      r.pos(x + w, y + h * (1 - fill), 0).tex(w * sx, 1 - fill).endVertex()
+      r.pos(x, y + h * (1 - fill), 0).tex(0, 1 - fill).endVertex()
       t.draw()
     }
   }

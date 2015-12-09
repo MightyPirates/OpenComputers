@@ -6,16 +6,15 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.WorldRenderer
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
-object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object MicrocontrollerRenderer extends TileEntitySpecialRenderer[Microcontroller] {
+  override def renderTileEntityAt(mcu: Microcontroller, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val mcu = tileEntity.asInstanceOf[Microcontroller]
     RenderState.pushAttrib()
 
     RenderState.disableEntityLighting()
@@ -41,7 +40,7 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
     val r = t.getWorldRenderer
 
     Textures.Block.bind()
-    r.startDrawingQuads()
+    r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
     renderFrontOverlay(Textures.Block.MicrocontrollerFrontLight, r)
 
@@ -64,9 +63,9 @@ object MicrocontrollerRenderer extends TileEntitySpecialRenderer {
 
   private def renderFrontOverlay(texture: ResourceLocation, r: WorldRenderer): Unit = {
     val icon = Textures.getSprite(texture)
-    r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-    r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-    r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-    r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+    r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+    r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+    r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+    r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
   }
 }

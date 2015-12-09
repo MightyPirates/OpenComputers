@@ -13,6 +13,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraft.util.Vec3
@@ -64,38 +65,38 @@ object HighlightRenderer {
 
         val t = Tessellator.getInstance()
         val r = t.getWorldRenderer
-        r.startDrawingQuads()
+        r.begin(7, DefaultVertexFormats.POSITION_TEX)
         sideHit match {
           case EnumFacing.UP =>
-            r.addVertexWithUV(bounds.maxX, bounds.maxY + 0.002, bounds.maxZ, bounds.maxZ * 16, bounds.maxX * 16)
-            r.addVertexWithUV(bounds.maxX, bounds.maxY + 0.002, bounds.minZ, bounds.minZ * 16, bounds.maxX * 16)
-            r.addVertexWithUV(bounds.minX, bounds.maxY + 0.002, bounds.minZ, bounds.minZ * 16, bounds.minX * 16)
-            r.addVertexWithUV(bounds.minX, bounds.maxY + 0.002, bounds.maxZ, bounds.maxZ * 16, bounds.minX * 16)
+            r.pos(bounds.maxX, bounds.maxY + 0.002, bounds.maxZ).tex(bounds.maxZ * 16, bounds.maxX * 16).endVertex()
+            r.pos(bounds.maxX, bounds.maxY + 0.002, bounds.minZ).tex(bounds.minZ * 16, bounds.maxX * 16).endVertex()
+            r.pos(bounds.minX, bounds.maxY + 0.002, bounds.minZ).tex(bounds.minZ * 16, bounds.minX * 16).endVertex()
+            r.pos(bounds.minX, bounds.maxY + 0.002, bounds.maxZ).tex(bounds.maxZ * 16, bounds.minX * 16).endVertex()
           case EnumFacing.DOWN =>
-            r.addVertexWithUV(bounds.maxX, bounds.minY - 0.002, bounds.minZ, bounds.minZ * 16, bounds.maxX * 16)
-            r.addVertexWithUV(bounds.maxX, bounds.minY - 0.002, bounds.maxZ, bounds.maxZ * 16, bounds.maxX * 16)
-            r.addVertexWithUV(bounds.minX, bounds.minY - 0.002, bounds.maxZ, bounds.maxZ * 16, bounds.minX * 16)
-            r.addVertexWithUV(bounds.minX, bounds.minY - 0.002, bounds.minZ, bounds.minZ * 16, bounds.minX * 16)
+            r.pos(bounds.maxX, bounds.minY - 0.002, bounds.minZ).tex(bounds.minZ * 16, bounds.maxX * 16).endVertex()
+            r.pos(bounds.maxX, bounds.minY - 0.002, bounds.maxZ).tex(bounds.maxZ * 16, bounds.maxX * 16).endVertex()
+            r.pos(bounds.minX, bounds.minY - 0.002, bounds.maxZ).tex(bounds.maxZ * 16, bounds.minX * 16).endVertex()
+            r.pos(bounds.minX, bounds.minY - 0.002, bounds.minZ).tex(bounds.minZ * 16, bounds.minX * 16).endVertex()
           case EnumFacing.EAST =>
-            r.addVertexWithUV(bounds.maxX + 0.002, bounds.maxY, bounds.minZ, bounds.minZ * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.maxX + 0.002, bounds.maxY, bounds.maxZ, bounds.maxZ * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.maxX + 0.002, bounds.minY, bounds.maxZ, bounds.maxZ * 16, bounds.minY * 16)
-            r.addVertexWithUV(bounds.maxX + 0.002, bounds.minY, bounds.minZ, bounds.minZ * 16, bounds.minY * 16)
+            r.pos(bounds.maxX + 0.002, bounds.maxY, bounds.minZ).tex(bounds.minZ * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.maxX + 0.002, bounds.maxY, bounds.maxZ).tex(bounds.maxZ * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.maxX + 0.002, bounds.minY, bounds.maxZ).tex(bounds.maxZ * 16, bounds.minY * 16).endVertex()
+            r.pos(bounds.maxX + 0.002, bounds.minY, bounds.minZ).tex(bounds.minZ * 16, bounds.minY * 16).endVertex()
           case EnumFacing.WEST =>
-            r.addVertexWithUV(bounds.minX - 0.002, bounds.maxY, bounds.maxZ, bounds.maxZ * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.minX - 0.002, bounds.maxY, bounds.minZ, bounds.minZ * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.minX - 0.002, bounds.minY, bounds.minZ, bounds.minZ * 16, bounds.minY * 16)
-            r.addVertexWithUV(bounds.minX - 0.002, bounds.minY, bounds.maxZ, bounds.maxZ * 16, bounds.minY * 16)
+            r.pos(bounds.minX - 0.002, bounds.maxY, bounds.maxZ).tex(bounds.maxZ * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.minX - 0.002, bounds.maxY, bounds.minZ).tex(bounds.minZ * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.minX - 0.002, bounds.minY, bounds.minZ).tex(bounds.minZ * 16, bounds.minY * 16).endVertex()
+            r.pos(bounds.minX - 0.002, bounds.minY, bounds.maxZ).tex(bounds.maxZ * 16, bounds.minY * 16).endVertex()
           case EnumFacing.SOUTH =>
-            r.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.maxZ + 0.002, bounds.maxX * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.minX, bounds.maxY, bounds.maxZ + 0.002, bounds.minX * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.minX, bounds.minY, bounds.maxZ + 0.002, bounds.minX * 16, bounds.minY * 16)
-            r.addVertexWithUV(bounds.maxX, bounds.minY, bounds.maxZ + 0.002, bounds.maxX * 16, bounds.minY * 16)
+            r.pos(bounds.maxX, bounds.maxY, bounds.maxZ + 0.002).tex(bounds.maxX * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.minX, bounds.maxY, bounds.maxZ + 0.002).tex(bounds.minX * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.minX, bounds.minY, bounds.maxZ + 0.002).tex(bounds.minX * 16, bounds.minY * 16).endVertex()
+            r.pos(bounds.maxX, bounds.minY, bounds.maxZ + 0.002).tex(bounds.maxX * 16, bounds.minY * 16).endVertex()
           case _ =>
-            r.addVertexWithUV(bounds.minX, bounds.maxY, bounds.minZ - 0.002, bounds.minX * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.minZ - 0.002, bounds.maxX * 16, bounds.maxY * 16)
-            r.addVertexWithUV(bounds.maxX, bounds.minY, bounds.minZ - 0.002, bounds.maxX * 16, bounds.minY * 16)
-            r.addVertexWithUV(bounds.minX, bounds.minY, bounds.minZ - 0.002, bounds.minX * 16, bounds.minY * 16)
+            r.pos(bounds.minX, bounds.maxY, bounds.minZ - 0.002).tex(bounds.minX * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.maxX, bounds.maxY, bounds.minZ - 0.002).tex(bounds.maxX * 16, bounds.maxY * 16).endVertex()
+            r.pos(bounds.maxX, bounds.minY, bounds.minZ - 0.002).tex(bounds.maxX * 16, bounds.minY * 16).endVertex()
+            r.pos(bounds.minX, bounds.minY, bounds.minZ - 0.002).tex(bounds.minX * 16, bounds.minY * 16).endVertex()
         }
         t.draw()
 
@@ -122,9 +123,9 @@ object HighlightRenderer {
 
         for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
           val bounds = shape.bounds.rotateTowards(print.facing)
-          RenderGlobal.drawOutlinedBoundingBox(bounds.expand(expansion, expansion, expansion)
+          RenderGlobal.func_181563_a(bounds.expand(expansion, expansion, expansion)
             .offset(blockPos.x, blockPos.y, blockPos.z)
-            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), -1)
+            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0xFF, 0xFF, 0xFF, 0xFF)
         }
 
         GL11.glDepthMask(true)

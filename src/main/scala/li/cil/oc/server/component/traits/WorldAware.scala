@@ -19,10 +19,6 @@ import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fml.common.eventhandler.Event.Result
 
-import scala.collection.convert.WrapAsScala._
-import scala.reflect.ClassTag
-import scala.reflect.classTag
-
 trait WorldAware {
   def position: BlockPosition
 
@@ -41,25 +37,25 @@ trait WorldAware {
     !event.isCanceled && event.useBlock != Result.DENY
   }
 
-  def entitiesInBounds[Type <: Entity : ClassTag](bounds: AxisAlignedBB) = {
-    world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
+  def entitiesInBounds[Type <: Entity](clazz: Class[Type], bounds: AxisAlignedBB) = {
+    world.getEntitiesWithinAABB(clazz, bounds)
   }
 
-  def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
-    entitiesInBounds[Type](blockPos.bounds)
+  def entitiesInBlock[Type <: Entity](clazz: Class[Type], blockPos: BlockPosition) = {
+    entitiesInBounds(clazz, blockPos.bounds)
   }
 
-  def entitiesOnSide[Type <: Entity : ClassTag](side: EnumFacing) = {
-    entitiesInBlock[Type](position.offset(side))
+  def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
+    entitiesInBlock(clazz, position.offset(side))
   }
 
-  def closestEntity[Type <: Entity : ClassTag](side: EnumFacing) = {
+  def closestEntity[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
     val blockPos = position.offset(side)
-    Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, blockPos.bounds, fakePlayer)).map(_.asInstanceOf[Type])
+    Option(world.findNearestEntityWithinAABB(clazz, blockPos.bounds, fakePlayer))
   }
 
   def blockContent(side: EnumFacing) = {
-    closestEntity[Entity](side) match {
+    closestEntity[Entity](classOf[Entity], side) match {
       case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
         (true, "entity")
       case _ =>

@@ -57,7 +57,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     }
     try world.getTileEntity(pos) match {
       case tileEntity: TileEntity =>
-        return TileEntity.classToNameMap.get(tileEntity.getClass).asInstanceOf[String]
+        return TileEntity.classToNameMap.get(tileEntity.getClass)
     } catch {
       case _: Throwable =>
     }

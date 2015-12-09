@@ -9,7 +9,6 @@ import li.cil.oc.client.renderer.block.DroneModel
 import li.cil.oc.common.entity
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.integration.util.NEI
-import li.cil.oc.integration.util.NEI
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity

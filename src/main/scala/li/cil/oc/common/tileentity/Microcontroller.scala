@@ -238,7 +238,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
   override def decrStackSize(slot: Int, amount: Int) = null
 
   // Nope.
-  override def getStackInSlotOnClosing(slot: Int) = null
+  override def removeStackFromSlot(slot: Int) = null
 
   // For hotswapping EEPROMs.
   def changeEEPROM(newEeprom: ItemStack) = {

@@ -50,7 +50,6 @@ import net.minecraftforge.fml.common.eventhandler.Event
 
 import scala.collection.convert.WrapAsScala._
 import scala.reflect.ClassTag
-import scala.reflect.classTag
 
 object Player {
   def profileFor(agent: internal.Agent) = {
@@ -127,21 +126,21 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   // ----------------------------------------------------------------------- //
 
-  def closestEntity[Type <: Entity : ClassTag](side: EnumFacing = facing) = {
+  def closestEntity[Type <: Entity](clazz: Class[Type], side: EnumFacing = facing) = {
     val bounds = BlockPosition(agent).offset(side).bounds
-    Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, bounds, this)).map(_.asInstanceOf[Type])
+    Option(world.findNearestEntityWithinAABB(clazz, bounds, this))
   }
 
-  def entitiesOnSide[Type <: Entity : ClassTag](side: EnumFacing) = {
-    entitiesInBlock[Type](BlockPosition(agent).offset(side))
+  def entitiesOnSide[Type <: Entity](clazz: Class[Type], side: EnumFacing) = {
+    entitiesInBlock(clazz, BlockPosition(agent).offset(side))
   }
 
-  def entitiesInBlock[Type <: Entity : ClassTag](blockPos: BlockPosition) = {
-    world.getEntitiesWithinAABB(classTag[Type].runtimeClass, blockPos.bounds).map(_.asInstanceOf[Type])
+  def entitiesInBlock[Type <: Entity](clazz: Class[Type], blockPos: BlockPosition) = {
+    world.getEntitiesWithinAABB(clazz, blockPos.bounds)
   }
 
   private def adjacentItems = {
-    world.getEntitiesWithinAABB(classOf[EntityItem], BlockPosition(agent).bounds.expand(2, 2, 2)).map(_.asInstanceOf[EntityItem])
+    world.getEntitiesWithinAABB(classOf[EntityItem], BlockPosition(agent).bounds.expand(2, 2, 2))
   }
 
   private def collectDroppedItems(itemsBefore: Iterable[EntityItem]) {

@@ -1,6 +1,8 @@
 package li.cil.oc.integration.util
 
+/* TODO NEI
 import codechicken.nei.LayoutManager
+*/
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
@@ -18,7 +20,7 @@ object NEI {
       case _: Throwable => false
     })
 
-  private def isInputFocused0 = LayoutManager.getInputFocused != null
+  private def isInputFocused0 = false // TODO NEI LayoutManager.getInputFocused != null
 
   def hoveredStack(container: GuiContainer, mouseX: Int, mouseY: Int): Option[ItemStack] =
     if (Mods.NotEnoughItems.isAvailable) try Option(hoveredStack0(container, mouseX, mouseY)) catch {
@@ -26,7 +28,7 @@ object NEI {
     }
     else None
 
-  private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
+  private def hoveredStack0(container: GuiContainer, mouseX: Int, mouseY: Int) = null: ItemStack // TODO NEI LayoutManager.instance.getStackUnderMouse(container, mouseX, mouseY)
 
   def hide(block: Block): Unit = if (Mods.NotEnoughItems.isAvailable) hiddenItems += (() => new ItemStack(block))
 

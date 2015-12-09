@@ -1,7 +1,6 @@
 package li.cil.oc.client.renderer.block
 
 import java.util.Collections
-import javax.vecmath.Vector3f
 
 import li.cil.oc.client.Textures
 import net.minecraft.block.state.IBlockState
@@ -16,6 +15,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.model.ISmartBlockModel
 import net.minecraftforge.client.model.ISmartItemModel
+import org.lwjgl.util.vector.Vector3f
 
 trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   override def handleBlockState(state: IBlockState) = missingModel
@@ -47,6 +47,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     translation.scale(0.0625f)
     new ItemCameraTransforms(
       new ItemTransformVec3f(rotation, translation, scale),
+      ItemTransformVec3f.DEFAULT,
+      ItemTransformVec3f.DEFAULT,
       ItemTransformVec3f.DEFAULT,
       ItemTransformVec3f.DEFAULT,
       ItemTransformVec3f.DEFAULT)

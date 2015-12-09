@@ -5,17 +5,16 @@ import li.cil.oc.common.tileentity.Printer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
-object PrinterRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
+  override def renderTileEntityAt(printer: Printer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val printer = tileEntity.asInstanceOf[Printer]
-    if (printer.data.stateOff.size > 0) {
+    if (printer.data.stateOff.nonEmpty) {
       val stack = printer.data.createItemStack()
 
       RenderState.pushAttrib(GL11.GL_ALL_ATTRIB_BITS)
@@ -32,7 +31,7 @@ object PrinterRenderer extends TileEntitySpecialRenderer {
       val entity = new EntityItem(printer.world, 0, 0, 0, stack)
       entity.hoverStart = 0
       Textures.Block.bind()
-      Minecraft.getMinecraft.getRenderItem.renderItemModel(entity.getEntityItem)
+      Minecraft.getMinecraft.getRenderItem.func_181564_a(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
 
       RenderState.popMatrix()
       RenderState.popAttrib()

@@ -2,6 +2,7 @@ package li.cil.oc.client.gui.traits
 
 import java.util
 
+import li.cil.oc.util.OldScaledResolution
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.ScaledResolution
@@ -25,8 +26,8 @@ trait Window extends GuiScreen {
   override def initGui(): Unit = {
     super.initGui()
 
-    val screenSize = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
-    val guiSize = new ScaledResolution(mc, windowWidth, windowHeight)
+    val screenSize = new ScaledResolution(mc)
+    val guiSize = new OldScaledResolution(mc, windowWidth, windowHeight)
     val (midX, midY) = (screenSize.getScaledWidth / 2, screenSize.getScaledHeight / 2)
     guiLeft = midX - guiSize.getScaledWidth / 2
     guiTop = midY - guiSize.getScaledHeight / 2

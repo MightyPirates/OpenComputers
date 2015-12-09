@@ -11,6 +11,8 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemBlock
 import net.minecraft.util.EnumFacing
 
+import scala.collection.convert.WrapAsScala._
+
 trait InventoryWorldControl extends InventoryAware with WorldAware with SideRestricted {
   @Callback(doc = "function(side:number):boolean -- Compare the block on the specified side with the one in the selected slot. Returns true if equal.")
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
@@ -92,7 +94,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
     }
   }
 
-  protected def suckableItems(side: EnumFacing) = entitiesOnSide[EntityItem](side)
+  protected def suckableItems(side: EnumFacing) = entitiesOnSide(classOf[EntityItem], side)
 
   protected def onSuckCollect(entity: EntityItem): Unit = entity.onCollideWithPlayer(fakePlayer)
 }

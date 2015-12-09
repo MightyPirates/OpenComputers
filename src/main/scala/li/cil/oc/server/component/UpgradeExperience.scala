@@ -68,7 +68,7 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
       xp += 3 + host.world.rand.nextInt(5) + host.world.rand.nextInt(5)
     }
     else {
-      for ((id: Int, level: Int) <- EnchantmentHelper.getEnchantments(stack)) {
+      for ((id, level) <- EnchantmentHelper.getEnchantments(stack)) {
         val enchantment = Enchantment.getEnchantmentById(id)
         if (enchantment != null) {
           xp += enchantment.getMinEnchantability(level)

@@ -13,6 +13,9 @@ import li.cil.oc.util.InventoryUtils
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.util.EnumFacing
 
+import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
+
 class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agent {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drone").
@@ -22,7 +25,7 @@ class Drone(val agent: entity.Drone) extends prefab.ManagedEnvironment with Agen
   override protected def checkSideForAction(args: Arguments, n: Int) =
     args.checkSideAny(n)
 
-  override protected def suckableItems(side: EnumFacing) = entitiesInBlock(position) ++ super.suckableItems(side)
+  override protected def suckableItems(side: EnumFacing) = entitiesInBlock(classOf[EntityItem], position) ++ super.suckableItems(side)
 
   override protected def onSuckCollect(entity: EntityItem) = {
     if (InventoryUtils.insertIntoInventory(entity.getEntityItem, inventory, slots = Option(insertionSlots))) {

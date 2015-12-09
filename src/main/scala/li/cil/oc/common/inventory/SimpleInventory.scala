@@ -38,7 +38,7 @@ trait SimpleInventory extends IInventory {
     else null
   }
 
-  override def getStackInSlotOnClosing(slot: Int) = {
+  override def removeStackFromSlot(slot: Int) = {
     if (slot >= 0 && slot < getSizeInventory) {
       val stack = getStackInSlot(slot)
       setInventorySlotContents(slot, null)

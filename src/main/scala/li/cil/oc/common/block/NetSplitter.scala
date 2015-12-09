@@ -24,9 +24,9 @@ class NetSplitter extends RedstoneAware with traits.Extended {
       case _ => None
     }
 
-  override protected def createProperties(listed: ArrayBuffer[IProperty], unlisted: ArrayBuffer[IUnlistedProperty[_]]) {
+  override protected def createProperties(listed: ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]) {
     super.createProperties(listed, unlisted)
-    unlisted += property.PropertyTile.Tile
+    unlisted += property.PropertyTile.Tile.asInstanceOf[IUnlistedProperty[_ <: Comparable[AnyRef]]]
   }
 
   // ----------------------------------------------------------------------- //

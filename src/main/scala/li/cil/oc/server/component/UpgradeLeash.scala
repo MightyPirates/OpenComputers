@@ -20,6 +20,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagString
 import net.minecraftforge.common.util.Constants.NBT
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with traits.WorldAware {
@@ -38,7 +39,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
     val nearBounds = position.bounds
     val farBounds = nearBounds.offset(side.getFrontOffsetX * 2.0, side.getFrontOffsetY * 2.0, side.getFrontOffsetZ * 2.0)
     val bounds = nearBounds.union(farBounds)
-    entitiesInBounds[EntityLiving](bounds).find(_.allowLeashing()) match {
+    entitiesInBounds[EntityLiving](classOf[EntityLiving], bounds).find(_.allowLeashing()) match {
       case Some(entity) =>
         entity.setLeashedToEntity(host, true)
         leashedEntities += entity.getUniqueID
@@ -62,7 +63,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
   }
 
   private def unleashAll() {
-    entitiesInBounds[EntityLiving](position.bounds.expand(5, 5, 5)).foreach(entity => {
+    entitiesInBounds(classOf[EntityLiving], position.bounds.expand(5, 5, 5)).foreach(entity => {
       if (leashedEntities.contains(entity.getUniqueID) && entity.getLeashedToEntity == host) {
         entity.clearLeashed(true, false)
       }
@@ -78,7 +79,7 @@ class UpgradeLeash(val host: Entity) extends prefab.ManagedEnvironment with trai
     // entities only remember their leashee if it's an EntityLivingBase...
     EventHandler.schedule(() => {
       val foundEntities = mutable.Set.empty[UUID]
-      entitiesInBounds[EntityLiving](position.bounds.expand(5, 5, 5)).foreach(entity => {
+      entitiesInBounds(classOf[EntityLiving], position.bounds.expand(5, 5, 5)).foreach(entity => {
         if (leashedEntities.contains(entity.getUniqueID)) {
           entity.setLeashedToEntity(host, true)
           foundEntities += entity.getUniqueID

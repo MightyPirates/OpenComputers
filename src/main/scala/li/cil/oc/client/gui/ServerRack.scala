@@ -10,6 +10,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.EnumFacing
 
@@ -118,11 +119,11 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       Textures.bind(Textures.GUI.Range)
       RenderState.color(1, 1, 1)
       RenderState.disableDepthMask()
-      r.startDrawingQuads()
-      r.addVertexWithUV(tx, ty + h, zLevel, 0, 1)
-      r.addVertexWithUV(tx + w, ty + h, zLevel, 1, 1)
-      r.addVertexWithUV(tx + w, ty, zLevel, 1, 0)
-      r.addVertexWithUV(tx, ty, zLevel, 0, 0)
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.pos(tx, ty + h, zLevel).tex(0, 1).endVertex()
+      r.pos(tx + w, ty + h, zLevel).tex(1, 1).endVertex()
+      r.pos(tx + w, ty, zLevel).tex(1, 0).endVertex()
+      r.pos(tx, ty, zLevel).tex(0, 0).endVertex()
       t.draw()
       RenderState.enableDepthMask()
     }

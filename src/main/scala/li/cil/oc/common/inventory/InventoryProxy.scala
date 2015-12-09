@@ -38,9 +38,9 @@ trait InventoryProxy extends IInventory {
     else null
   }
 
-  override def getStackInSlotOnClosing(slot: Int) = {
+  override def removeStackFromSlot(slot: Int) = {
     val offsetSlot = slot + offset
-    if (isValidSlot(offsetSlot)) inventory.getStackInSlotOnClosing(offsetSlot)
+    if (isValidSlot(offsetSlot)) inventory.removeStackFromSlot(offsetSlot)
     else null
   }
 

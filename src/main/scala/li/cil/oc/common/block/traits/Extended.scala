@@ -18,14 +18,14 @@ import scala.collection.mutable
 trait Extended extends Block {
   // Keep track of our properties, used for automatic metadata conversion.
   private lazy val (listedProperties, unlistedProperties) = {
-    val listed = mutable.ArrayBuffer.empty[IProperty]
-    val unlisted = mutable.ArrayBuffer.empty[IUnlistedProperty[_]]
+    val listed = mutable.ArrayBuffer.empty[IProperty[_ <: Comparable[AnyRef]]]
+    val unlisted = mutable.ArrayBuffer.empty[IUnlistedProperty[_ <: Comparable[AnyRef]]]
     createProperties(listed, unlisted)
     (listed.toArray, unlisted.toArray)
   }
 
   // Some metadata one the properties we cache for performance.
-  private lazy val propertyData =
+  private lazy val propertyData: Map[IProperty[_ <: Comparable[AnyRef]], (Int, Array[_ <: Comparable[AnyRef]])] =
     listedProperties.map(property => (property, (propertySize(property), property.getAllowedValues.toArray.map(_.asInstanceOf[Comparable[AnyRef]]).sortWith((a, b) => a.compareTo(b.asInstanceOf[AnyRef]) < 0)))).toMap
 
   // Check if property<->meta conversions work as expected.
@@ -39,7 +39,7 @@ trait Extended extends Block {
   setDefaultExtendedState(getBlockState.getBaseState)
 
   override def createBlockState() = {
-    new ExtendedBlockState(this, listedProperties, unlistedProperties)
+    new ExtendedBlockState(this, listedProperties.map(_.asInstanceOf[IProperty[_]]), unlistedProperties.map(_.asInstanceOf[IUnlistedProperty[_]]))
   }
 
   // We basically store state information as a packed struct in the metadata
@@ -50,7 +50,7 @@ trait Extended extends Block {
     for (property <- listedProperties) {
       val (bits, values) = propertyData(property)
       if (bits > 0) {
-        val value = state.getValue(property)
+        val value = state.getValue(property.asInstanceOf[IProperty[_]])
         meta = (meta << bits) | values.indexOf(value)
       }
     }
@@ -65,7 +65,7 @@ trait Extended extends Block {
       val (bits, values) = propertyData(property)
       if (bits > 0) {
         val value = currentMeta & (0xFFFF >>> (16 - bits))
-        state = state.withProperty(property, values(value))
+        state = state.withProperty(property.asInstanceOf[IProperty[_]], values(value).asInstanceOf[Comparable[AnyRef]])
         currentMeta = currentMeta >>> bits
       }
     }
@@ -86,7 +86,7 @@ trait Extended extends Block {
   // Overridden in subclasses to accumulate properties used by this block type,
   // result is stored (this is only called once) and used for state generation
   // and metadata computation.
-  protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {}
+  protected def createProperties(listed: mutable.ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]): Unit = {}
 
   // Called during construction to ensure all our states map properly to
   // metadata and back, to avoid unpleasant surprises during runtime.
@@ -112,7 +112,7 @@ trait Extended extends Block {
   // Computes number of bits required to store a property. Uses the naive and
   // slow but readable and understandable approach because it is only called
   // once per property during construction anyway.
-  private def propertySize(property: IProperty) = {
+  private def propertySize(property: IProperty[_]) = {
     var maxIndex = property.getAllowedValues.size - 1
     var bits = 0
     while (maxIndex > 0) {

@@ -5,14 +5,13 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-object SwitchRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecialRenderer[T] {
+  override def renderTileEntityAt(switch: T, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val switch = tileEntity.asInstanceOf[tileentity.traits.SwitchLike]
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
       RenderState.pushAttrib()
@@ -31,28 +30,28 @@ object SwitchRenderer extends TileEntitySpecialRenderer {
       val r = t.getWorldRenderer
 
       Textures.Block.bind()
-      r.startDrawingQuads()
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
       val icon = Textures.getSprite(Textures.Block.SwitchSideOn)
-      r.addVertexWithUV(1, 1, 0, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(0, 1, 0, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(0, 0, 0, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(1, 0, 0, icon.getMinU, icon.getMinV)
+      r.pos(1, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+      r.pos(0, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+      r.pos(0, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+      r.pos(1, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
 
-      r.addVertexWithUV(0, 1, 1, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(1, 1, 1, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(1, 0, 1, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(0, 0, 1, icon.getMinU, icon.getMinV)
+      r.pos(0, 1, 1).tex(icon.getMinU, icon.getMaxV).endVertex()
+      r.pos(1, 1, 1).tex(icon.getMaxU, icon.getMaxV).endVertex()
+      r.pos(1, 0, 1).tex(icon.getMaxU, icon.getMinV).endVertex()
+      r.pos(0, 0, 1).tex(icon.getMinU, icon.getMinV).endVertex()
 
-      r.addVertexWithUV(1, 1, 1, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(1, 0, 1, icon.getMinU, icon.getMinV)
+      r.pos(1, 1, 1).tex(icon.getMinU, icon.getMaxV).endVertex()
+      r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+      r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+      r.pos(1, 0, 1).tex(icon.getMinU, icon.getMinV).endVertex()
 
-      r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(0, 1, 1, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(0, 0, 1, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+      r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+      r.pos(0, 1, 1).tex(icon.getMaxU, icon.getMaxV).endVertex()
+      r.pos(0, 0, 1).tex(icon.getMaxU, icon.getMinV).endVertex()
+      r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
 
       t.draw()
 

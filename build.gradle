@@ -8,7 +8,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.0-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
     }
 }
 
@@ -183,11 +183,11 @@ configurations {
 }
 
 dependencies {
+/*
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
     provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}"
-/*
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
@@ -222,8 +222,8 @@ dependencies {
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
     provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
-*/
     provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
+*/
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
@@ -256,7 +256,9 @@ sourceSets {
             exclude 'li/cil/oc/integration/mekanism/**'
             exclude 'li/cil/oc/integration/mfr/**'
             exclude 'li/cil/oc/integration/mystcraft/**'
+            exclude 'li/cil/oc/integration/nei/**'
             exclude 'li/cil/oc/integration/nek/**'
+            exclude 'li/cil/oc/integration/poweradvantage/**'
             exclude 'li/cil/oc/integration/projectred/**'
             exclude 'li/cil/oc/integration/railcraft/**'
             exclude 'li/cil/oc/integration/redlogic/**'
@@ -266,6 +268,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/thermalexpansion/**'
             exclude 'li/cil/oc/integration/thaumcraft/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
+            exclude 'li/cil/oc/integration/waila/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
             exclude 'li/cil/oc/integration/wrsve/**'
         }
@@ -278,7 +281,7 @@ minecraft {
 
     // snapshot_YYYYMMDD   snapshot are built nightly.
     // stable_#            stables are built at the discretion of the MCP team.
-    mappings = "snapshot_20141130"
+    mappings = "snapshot_20151128"
 
     replace "@VERSION@", project.simpleVersion
 }

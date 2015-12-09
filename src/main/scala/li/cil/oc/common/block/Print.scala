@@ -53,9 +53,9 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
       case _ => None
     }
 
-  override protected def createProperties(listed: ArrayBuffer[IProperty], unlisted: ArrayBuffer[IUnlistedProperty[_]]) {
+  override protected def createProperties(listed: ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]) {
     super.createProperties(listed, unlisted)
-    unlisted += property.PropertyTile.Tile
+    unlisted += property.PropertyTile.Tile.asInstanceOf[IUnlistedProperty[_ <: Comparable[AnyRef]]]
   }
 
   // ----------------------------------------------------------------------- //
@@ -144,7 +144,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     }
   }
 
-  override def addCollisionBoxesToList(world: World, pos: BlockPos, state: IBlockState, mask: AxisAlignedBB, list: util.List[_], entity: Entity): Unit = {
+  override def addCollisionBoxesToList(world: World, pos: BlockPos, state: IBlockState, mask: AxisAlignedBB, list: util.List[AxisAlignedBB], entity: Entity): Unit = {
     world.getTileEntity(pos) match {
       case print: tileentity.Print =>
         if (if (print.state) print.data.noclipOn else print.data.noclipOff) return

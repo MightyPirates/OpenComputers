@@ -1,7 +1,9 @@
 package li.cil.oc.client.gui
 
+/* TODO NEI
 import codechicken.nei.ItemPanel
 import codechicken.nei.LayoutManager
+*/
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
@@ -12,6 +14,7 @@ import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
@@ -38,7 +41,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     drawSecondaryForegroundLayer(mouseX, mouseY)
 
     for (slot <- 0 until inventorySlots.inventorySlots.size()) {
-      drawSlotHighlight(inventorySlots.inventorySlots.get(slot).asInstanceOf[Slot])
+      drawSlotHighlight(inventorySlots.inventorySlots.get(slot))
     }
 
     RenderState.popAttrib()
@@ -63,7 +66,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     GL11.glTranslatef(guiLeft, guiTop, 0)
     GL11.glDisable(GL11.GL_DEPTH_TEST)
     for (slot <- 0 until inventorySlots.inventorySlots.size()) {
-      drawSlotInventory(inventorySlots.inventorySlots.get(slot).asInstanceOf[Slot])
+      drawSlotInventory(inventorySlots.inventorySlots.get(slot))
     }
     GL11.glEnable(GL11.GL_DEPTH_TEST)
     RenderState.popMatrix()
@@ -81,7 +84,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     if (Mods.NotEnoughItems.isAvailable) {
       RenderState.pushAttrib()
       RenderState.makeItBlend()
-      drawNEIHighlights()
+      // TODO NEI drawNEIHighlights()
       RenderState.popAttrib()
     }
   }
@@ -158,11 +161,11 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     Textures.bind(Textures.GUI.Slot)
     val t = Tessellator.getInstance
     val r = t.getWorldRenderer
-    r.startDrawingQuads()
-    r.addVertexWithUV(x, y + 18, zLevel + 1, 0, 1)
-    r.addVertexWithUV(x + 18, y + 18, zLevel + 1, 1, 1)
-    r.addVertexWithUV(x + 18, y, zLevel + 1, 1, 0)
-    r.addVertexWithUV(x, y, zLevel + 1, 0, 0)
+    r.begin(7, DefaultVertexFormats.POSITION_TEX)
+    r.pos(x, y + 18, zLevel + 1).tex(0, 1).endVertex()
+    r.pos(x + 18, y + 18, zLevel + 1).tex(1, 1).endVertex()
+    r.pos(x + 18, y, zLevel + 1).tex(1, 0).endVertex()
+    r.pos(x, y, zLevel + 1).tex(0, 0).endVertex()
     t.draw()
   }
 
@@ -170,7 +173,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     case player: Player => slot.inventory == player.playerInventory
     case _ => false
   }
-
+/* TODO NEI
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
   private def drawNEIHighlights(): Unit = {
     val panel = LayoutManager.itemPanel
@@ -193,4 +196,5 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     }
     zLevel -= 350
   }
+*/
 }

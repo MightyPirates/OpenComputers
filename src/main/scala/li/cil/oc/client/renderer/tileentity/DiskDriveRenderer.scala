@@ -6,17 +6,17 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
-object DiskDriveRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
+  override def renderTileEntityAt(drive: DiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val drive = tileEntity.asInstanceOf[DiskDrive]
     RenderState.pushAttrib()
     RenderState.color(1, 1, 1, 1)
 
@@ -45,7 +45,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
         val entity = new EntityItem(drive.world, 0, 0, 0, stack)
         entity.hoverStart = 0
         Textures.Block.bind()
-        Minecraft.getMinecraft.getRenderItem.renderItemModel(entity.getEntityItem)
+        Minecraft.getMinecraft.getRenderItem.func_181564_a(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
         RenderState.popMatrix()
       case _ =>
     }
@@ -62,13 +62,13 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer {
       val r = t.getWorldRenderer
 
       Textures.Block.bind()
-      r.startDrawingQuads()
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
       val icon = Textures.getSprite(Textures.Block.DiskDriveFrontActivity)
-      r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+      r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+      r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+      r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+      r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
 
       t.draw()
 

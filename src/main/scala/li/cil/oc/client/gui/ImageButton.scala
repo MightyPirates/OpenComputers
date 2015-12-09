@@ -5,6 +5,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -40,11 +41,11 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.startDrawingQuads()
-      r.addVertexWithUV(x0, y1, zLevel, u0, v1)
-      r.addVertexWithUV(x1, y1, zLevel, u1, v1)
-      r.addVertexWithUV(x1, y0, zLevel, u1, v0)
-      r.addVertexWithUV(x0, y0, zLevel, u0, v0)
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.pos(x0, y1, zLevel).tex(u0, v1).endVertex()
+      r.pos(x1, y1, zLevel).tex(u1, v1).endVertex()
+      r.pos(x1, y0, zLevel).tex(u1, v0).endVertex()
+      r.pos(x0, y0, zLevel).tex(u0, v0).endVertex()
       t.draw()
 
       if (displayString != null) {

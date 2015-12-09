@@ -32,6 +32,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.IChatComponent
+import net.minecraft.util.ResourceLocation
 import net.minecraft.world.World
 import net.minecraft.world.WorldServer
 import net.minecraft.world.WorldSettings.GameType
@@ -494,14 +495,14 @@ object DebugCard {
     @Callback(doc = """function(id:string, count:number, damage:number, nbt:string, x:number, y:number, z:number, side:number):boolean - Insert an item stack into the inventory at the specified location. NBT tag is expected in JSON format.""")
     def insertItem(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
-      val item = Item.itemRegistry.getObject(args.checkString(0)).asInstanceOf[Item]
+      val item = Item.itemRegistry.getObject(new ResourceLocation(args.checkString(0)))
       if (item == null) {
         throw new IllegalArgumentException("invalid item id")
       }
       val count = args.checkInteger(1)
       val damage = args.checkInteger(2)
       val tagJson = args.checkString(3)
-      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.func_180713_a(tagJson)
+      val tag = if (Strings.isNullOrEmpty(tagJson)) null else JsonToNBT.getTagFromJson(tagJson)
       val position = BlockPosition(args.checkDouble(4), args.checkDouble(5), args.checkDouble(6), world)
       val side = args.checkSideAny(7)
       InventoryUtils.inventoryAt(position) match {

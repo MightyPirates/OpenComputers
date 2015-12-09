@@ -20,6 +20,7 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.RegistryNamespaced
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fml.common.Loader
@@ -421,9 +422,11 @@ object Recipes {
     case _ => false
   })
 
-  private def getObjectWithoutFallback(registry: RegistryNamespaced, key: String) =
-    if (registry.containsKey(key)) Option(registry.getObject(key))
+  private def getObjectWithoutFallback[V](registry: RegistryNamespaced[ResourceLocation, V], key: String) = {
+    val loc = new ResourceLocation(key)
+    if (registry.containsKey(loc)) Option(registry.getObject(loc))
     else None
+  }
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
 

@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL15
 
 import scala.util.Random
 
-object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] {
+object HologramRenderer extends TileEntitySpecialRenderer[Hologram] with Callable[Int] with RemovalListener[TileEntity, Int] {
   private val random = new Random()
 
   /** We cache the VBOs for the projectors we render for performance. */
@@ -63,15 +63,14 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
    */
   private var failed = false
 
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     if (failed) {
-      HologramRendererFallback.renderTileEntityAt(tileEntity, x, y, z, f, damage)
+      HologramRendererFallback.renderTileEntityAt(hologram, x, y, z, f, damage)
       return
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    hologram = tileEntity.asInstanceOf[Hologram]
     if (!hologram.hasPower) return
 
     GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)

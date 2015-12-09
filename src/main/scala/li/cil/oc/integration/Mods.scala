@@ -117,7 +117,7 @@ object Mods {
     //    integration.mystcraft.ModMystcraft,
     //    integration.nek.ModNotEnoughKeys,
     //    integration.projectred.ModProjectRed,
-    integration.poweradvantage.ModPowerAdvantage,
+    //    integration.poweradvantage.ModPowerAdvantage,
     //    integration.railcraft.ModRailcraft,
     //    integration.redlogic.ModRedLogic,
     //    integration.rotarycraft.ModRotaryCraft,
@@ -128,7 +128,7 @@ object Mods {
     //    integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
     integration.versionchecker.ModVersionChecker,
-    integration.waila.ModWaila,
+    //    integration.waila.ModWaila,
     //    integration.wrcbe.ModWRCBE,
     //    integration.wrsve.ModWRSVE,
 

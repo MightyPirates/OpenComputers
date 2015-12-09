@@ -14,6 +14,7 @@ import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
@@ -264,11 +265,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.startDrawingQuads()
-      r.addVertexWithUV(x, y, zLevel, 0, offsetV)
-      r.addVertexWithUV(x, y + selectionSize, zLevel, 0, offsetV + selectionStepV)
-      r.addVertexWithUV(x + selectionSize, y + selectionSize, zLevel, 1, offsetV + selectionStepV)
-      r.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.pos(x, y, zLevel).tex(0, offsetV).endVertex()
+      r.pos(x, y + selectionSize, zLevel).tex(0, offsetV + selectionStepV).endVertex()
+      r.pos(x + selectionSize, y + selectionSize, zLevel).tex(1, offsetV + selectionStepV).endVertex()
+      r.pos(x + selectionSize, y, zLevel).tex(1, offsetV).endVertex()
       t.draw()
     }
   }

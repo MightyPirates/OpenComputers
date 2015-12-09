@@ -14,7 +14,7 @@ import scala.collection.mutable
 trait Rotatable extends Block with Extended {
   def getFacing(state: IBlockState) =
     if (state.getBlock == this)
-      state.getValue(Rotatable.Facing).asInstanceOf[EnumFacing]
+      state.getValue(Rotatable.Facing)
     else
       EnumFacing.SOUTH
 
@@ -22,9 +22,9 @@ trait Rotatable extends Block with Extended {
     (if (state.getBlock == this) state else getDefaultState).
       withProperty(Rotatable.Facing, facing)
 
-  override protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
+  override protected def createProperties(listed: mutable.ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]): Unit = {
     super.createProperties(listed, unlisted)
-    listed += Rotatable.Facing
+    listed += Rotatable.Facing.asInstanceOf[IProperty[_ <: Comparable[AnyRef]]]
   }
 }
 

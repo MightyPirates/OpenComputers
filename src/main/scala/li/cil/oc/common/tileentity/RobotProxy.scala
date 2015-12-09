@@ -234,7 +234,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) = robot.setInventorySlotContents(slot, stack)
 
-  override def getStackInSlotOnClosing(slot: Int) = robot.getStackInSlotOnClosing(slot)
+  override def removeStackFromSlot(slot: Int) = robot.removeStackFromSlot(slot)
 
   override def openInventory(player: EntityPlayer) = robot.openInventory(player)
 

@@ -5,19 +5,18 @@ import li.cil.oc.common.tileentity.ServerRack
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
-object ServerRackRenderer extends TileEntitySpecialRenderer {
+object ServerRackRenderer extends TileEntitySpecialRenderer[ServerRack] {
   private final val v1 = 2 / 16f
   private final val fs = 3 / 16f
 
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(rack: ServerRack, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val rack = tileEntity.asInstanceOf[ServerRack]
     RenderState.pushAttrib()
 
     RenderState.disableEntityLighting()
@@ -65,16 +64,16 @@ object ServerRackRenderer extends TileEntitySpecialRenderer {
     val r = t.getWorldRenderer
 
     Textures.Block.bind()
-    r.startDrawingQuads()
+    r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
     val l = v1 + i * fs
     val h = v1 + (i + 1) * fs
 
     val icon = Textures.getSprite(texture)
-    r.addVertexWithUV(0, h, 0, icon.getMinU, icon.getInterpolatedV(h * 16))
-    r.addVertexWithUV(1, h, 0, icon.getMaxU, icon.getInterpolatedV(h * 16))
-    r.addVertexWithUV(1, l, 0, icon.getMaxU, icon.getInterpolatedV(l * 16))
-    r.addVertexWithUV(0, l, 0, icon.getMinU, icon.getInterpolatedV(l * 16))
+    r.pos(0, h, 0).tex(icon.getMinU, icon.getInterpolatedV(h * 16)).endVertex()
+    r.pos(1, h, 0).tex(icon.getMaxU, icon.getInterpolatedV(h * 16)).endVertex()
+    r.pos(1, l, 0).tex(icon.getMaxU, icon.getInterpolatedV(l * 16)).endVertex()
+    r.pos(0, l, 0).tex(icon.getMinU, icon.getInterpolatedV(l * 16)).endVertex()
 
     t.draw()
   }

@@ -180,10 +180,10 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
     }
 
   @SideOnly(Side.CLIENT)
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
     Delegator.subItem(stack) match {
-      case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced) catch {
+      case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip, advanced) catch {
         case t: Throwable => OpenComputers.log.warn("Error in item tooltip.", t)
       }
       case _ => // Nothing to add.

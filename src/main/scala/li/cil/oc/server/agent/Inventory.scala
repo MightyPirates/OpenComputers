@@ -94,9 +94,9 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     if (slot < 0) agent.equipmentInventory.decrStackSize(~slot, amount)
     else agent.mainInventory.decrStackSize(slot, amount)
 
-  override def getStackInSlotOnClosing(slot: Int) =
-    if (slot < 0) agent.equipmentInventory.getStackInSlotOnClosing(~slot)
-    else agent.mainInventory.getStackInSlotOnClosing(slot)
+  override def removeStackFromSlot(slot: Int) =
+    if (slot < 0) agent.equipmentInventory.removeStackFromSlot(~slot)
+    else agent.mainInventory.removeStackFromSlot(slot)
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) =
     if (slot < 0) agent.equipmentInventory.setInventorySlotContents(~slot, stack)

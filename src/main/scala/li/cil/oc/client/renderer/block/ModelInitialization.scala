@@ -11,6 +11,7 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemMeshDefinition
 import net.minecraft.client.renderer.block.statemap.StateMapperBase
+import net.minecraft.client.resources.model.IBakedModel
 import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.Item
@@ -136,7 +137,7 @@ object ModelInitialization {
 
   @SubscribeEvent
   def onModelBake(e: ModelBakeEvent): Unit = {
-    val registry = e.modelRegistry.asInstanceOf[RegistrySimple]
+    val registry = e.modelRegistry.asInstanceOf[RegistrySimple[ModelResourceLocation, IBakedModel]]
 
     registry.putObject(CableBlockLocation, CableModel)
     registry.putObject(CableItemLocation, CableModel)

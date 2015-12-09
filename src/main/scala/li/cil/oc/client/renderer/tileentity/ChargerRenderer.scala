@@ -5,15 +5,14 @@ import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
-object ChargerRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object ChargerRenderer extends TileEntitySpecialRenderer[Charger] {
+  override def renderTileEntityAt(charger: Charger, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val charger = tileEntity.asInstanceOf[Charger]
     if (charger.chargeSpeed > 0) {
       RenderState.pushAttrib()
 
@@ -40,34 +39,34 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
       val r = t.getWorldRenderer
 
       Textures.Block.bind()
-      r.startDrawingQuads()
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
       {
         val inverse = 1 - charger.chargeSpeed
         val icon = Textures.getSprite(Textures.Block.ChargerFrontOn)
-        r.addVertexWithUV(0, 1, 0.005, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(1, 1, 0.005, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(1, inverse, 0.005, icon.getMaxU, icon.getInterpolatedV(inverse * 16))
-        r.addVertexWithUV(0, inverse, 0.005, icon.getMinU, icon.getInterpolatedV(inverse * 16))
+        r.pos(0, 1, 0.005).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(1, 1, 0.005).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(1, inverse, 0.005).tex(icon.getMaxU, icon.getInterpolatedV(inverse * 16)).endVertex()
+        r.pos(0, inverse, 0.005).tex(icon.getMinU, icon.getInterpolatedV(inverse * 16)).endVertex()
       }
 
       if (charger.hasPower) {
         val icon = Textures.getSprite(Textures.Block.ChargerSideOn)
 
-        r.addVertexWithUV(-0.005, 1, -1, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(-0.005, 1, 0, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(-0.005, 0, 0, icon.getMaxU, icon.getMinV)
-        r.addVertexWithUV(-0.005, 0, -1, icon.getMinU, icon.getMinV)
+        r.pos(-0.005, 1, -1).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(-0.005, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(-0.005, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(-0.005, 0, -1).tex(icon.getMinU, icon.getMinV).endVertex()
 
-        r.addVertexWithUV(1, 1, -1.005, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(0, 1, -1.005, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(0, 0, -1.005, icon.getMaxU, icon.getMinV)
-        r.addVertexWithUV(1, 0, -1.005, icon.getMinU, icon.getMinV)
+        r.pos(1, 1, -1.005).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(0, 1, -1.005).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(0, 0, -1.005).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(1, 0, -1.005).tex(icon.getMinU, icon.getMinV).endVertex()
 
-        r.addVertexWithUV(1.005, 1, 0, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(1.005, 1, -1, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(1.005, 0, -1, icon.getMaxU, icon.getMinV)
-        r.addVertexWithUV(1.005, 0, 0, icon.getMinU, icon.getMinV)
+        r.pos(1.005, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(1.005, 1, -1).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(1.005, 0, -1).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(1.005, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
       }
 
       t.draw()

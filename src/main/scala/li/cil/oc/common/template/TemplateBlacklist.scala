@@ -5,6 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 
 import scala.collection.convert.WrapAsScala._
 
@@ -13,7 +14,7 @@ object TemplateBlacklist {
     // scnr
     val pattern = """^([^@]+)(?:@(\d+))?$""".r
     def parseDescriptor(id: String, meta: Int) = {
-      val item = Item.itemRegistry.getObject(id).asInstanceOf[Item]
+      val item = Item.itemRegistry.getObject(new ResourceLocation(id))
       if (item == null) {
         OpenComputers.log.warn(s"Bad assembler blacklist entry '$id', unknown item id.")
         None

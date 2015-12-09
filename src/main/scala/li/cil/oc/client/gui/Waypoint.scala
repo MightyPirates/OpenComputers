@@ -3,6 +3,7 @@ package li.cil.oc.client.gui
 import li.cil.oc.client.PacketSender
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.OldScaledResolution
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.GuiTextField
 import net.minecraft.client.gui.ScaledResolution
@@ -29,8 +30,8 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
   override def initGui(): Unit = {
     super.initGui()
 
-    val screenSize = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
-    val guiSize = new ScaledResolution(mc, 176, 24)
+    val screenSize = new ScaledResolution(mc)
+    val guiSize = new OldScaledResolution(mc, 176, 24)
     val (midX, midY) = (screenSize.getScaledWidth / 2, screenSize.getScaledHeight / 2)
     guiLeft = midX - guiSize.getScaledWidth / 2
     guiTop = midY - guiSize.getScaledHeight / 2

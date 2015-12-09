@@ -8,6 +8,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
@@ -45,11 +46,11 @@ trait InputBuffer extends DisplayBuffer {
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.startDrawingQuads()
-      r.addVertexWithUV(x, y + 16, 0, 0, 1)
-      r.addVertexWithUV(x + 16, y + 16, 0, 1, 1)
-      r.addVertexWithUV(x + 16, y, 0, 1, 0)
-      r.addVertexWithUV(x, y, 0, 0, 0)
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.pos(x, y + 16, 0).tex(0, 1).endVertex()
+      r.pos(x + 16, y + 16, 0).tex(1, 1).endVertex()
+      r.pos(x + 16, y, 0).tex(1, 0).endVertex()
+      r.pos(x, y, 0).tex(0, 0).endVertex()
       t.draw()
 
       GL11.glEnable(GL11.GL_DEPTH_TEST)

@@ -30,7 +30,7 @@ class Loot extends WeightedRandomChestContent(api.Items.get(Constants.ItemName.F
     Loot.randomDisk(random) match {
       case Some(disk) =>
         ChestGenHooks.generateStacks(random, disk,
-          theMinimumChanceToGenerateItem, theMaximumChanceToGenerateItem)
+          minStackSize, maxStackSize)
       case _ => Array.empty[ItemStack]
     }
 }

@@ -6,15 +6,14 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
-object NetSplitterRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+object NetSplitterRenderer extends TileEntitySpecialRenderer[tileentity.NetSplitter] {
+  override def renderTileEntityAt(splitter: tileentity.NetSplitter, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val splitter = tileEntity.asInstanceOf[tileentity.NetSplitter]
     if (splitter.openSides.contains(!splitter.isInverted)) {
       RenderState.pushAttrib()
       RenderState.disableEntityLighting()
@@ -32,50 +31,50 @@ object NetSplitterRenderer extends TileEntitySpecialRenderer {
       val r = t.getWorldRenderer
 
       Textures.Block.bind()
-      r.startDrawingQuads()
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
       val sideActivity = Textures.getSprite(Textures.Block.NetSplitterOn)
 
       if (splitter.isSideOpen(EnumFacing.DOWN)) {
-        r.addVertexWithUV(0, 1, 0, sideActivity.getMaxU, sideActivity.getMinV)
-        r.addVertexWithUV(1, 1, 0, sideActivity.getMinU, sideActivity.getMinV)
-        r.addVertexWithUV(1, 1, 1, sideActivity.getMinU, sideActivity.getMaxV)
-        r.addVertexWithUV(0, 1, 1, sideActivity.getMaxU, sideActivity.getMaxV)
+        r.pos(0, 1, 0).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
+        r.pos(1, 1, 0).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
+        r.pos(1, 1, 1).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
+        r.pos(0, 1, 1).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
       }
 
       if (splitter.isSideOpen(EnumFacing.UP)) {
-        r.addVertexWithUV(0, 0, 0, sideActivity.getMaxU, sideActivity.getMaxV)
-        r.addVertexWithUV(0, 0, 1, sideActivity.getMaxU, sideActivity.getMinV)
-        r.addVertexWithUV(1, 0, 1, sideActivity.getMinU, sideActivity.getMinV)
-        r.addVertexWithUV(1, 0, 0, sideActivity.getMinU, sideActivity.getMaxV)
+        r.pos(0, 0, 0).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
+        r.pos(0, 0, 1).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
+        r.pos(1, 0, 1).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
+        r.pos(1, 0, 0).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
       }
 
       if (splitter.isSideOpen(EnumFacing.NORTH)) {
-        r.addVertexWithUV(1, 1, 0, sideActivity.getMinU, sideActivity.getMaxV)
-        r.addVertexWithUV(0, 1, 0, sideActivity.getMaxU, sideActivity.getMaxV)
-        r.addVertexWithUV(0, 0, 0, sideActivity.getMaxU, sideActivity.getMinV)
-        r.addVertexWithUV(1, 0, 0, sideActivity.getMinU, sideActivity.getMinV)
+        r.pos(1, 1, 0).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
+        r.pos(0, 1, 0).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
+        r.pos(0, 0, 0).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
+        r.pos(1, 0, 0).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
       }
 
       if (splitter.isSideOpen(EnumFacing.SOUTH)) {
-        r.addVertexWithUV(0, 1, 1, sideActivity.getMinU, sideActivity.getMaxV)
-        r.addVertexWithUV(1, 1, 1, sideActivity.getMaxU, sideActivity.getMaxV)
-        r.addVertexWithUV(1, 0, 1, sideActivity.getMaxU, sideActivity.getMinV)
-        r.addVertexWithUV(0, 0, 1, sideActivity.getMinU, sideActivity.getMinV)
+        r.pos(0, 1, 1).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
+        r.pos(1, 1, 1).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
+        r.pos(1, 0, 1).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
+        r.pos(0, 0, 1).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
       }
 
       if (splitter.isSideOpen(EnumFacing.WEST)) {
-        r.addVertexWithUV(0, 1, 0, sideActivity.getMinU, sideActivity.getMaxV)
-        r.addVertexWithUV(0, 1, 1, sideActivity.getMaxU, sideActivity.getMaxV)
-        r.addVertexWithUV(0, 0, 1, sideActivity.getMaxU, sideActivity.getMinV)
-        r.addVertexWithUV(0, 0, 0, sideActivity.getMinU, sideActivity.getMinV)
+        r.pos(0, 1, 0).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
+        r.pos(0, 1, 1).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
+        r.pos(0, 0, 1).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
+        r.pos(0, 0, 0).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
       }
 
       if (splitter.isSideOpen(EnumFacing.EAST)) {
-        r.addVertexWithUV(1, 1, 1, sideActivity.getMinU, sideActivity.getMaxV)
-        r.addVertexWithUV(1, 1, 0, sideActivity.getMaxU, sideActivity.getMaxV)
-        r.addVertexWithUV(1, 0, 0, sideActivity.getMaxU, sideActivity.getMinV)
-        r.addVertexWithUV(1, 0, 1, sideActivity.getMinU, sideActivity.getMinV)
+        r.pos(1, 1, 1).tex(sideActivity.getMinU, sideActivity.getMaxV).endVertex()
+        r.pos(1, 1, 0).tex(sideActivity.getMaxU, sideActivity.getMaxV).endVertex()
+        r.pos(1, 0, 0).tex(sideActivity.getMaxU, sideActivity.getMinV).endVertex()
+        r.pos(1, 0, 1).tex(sideActivity.getMinU, sideActivity.getMinV).endVertex()
       }
 
       t.draw()

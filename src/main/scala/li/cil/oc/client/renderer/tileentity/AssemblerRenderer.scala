@@ -5,15 +5,13 @@ import li.cil.oc.common.tileentity.Assembler
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.opengl.GL11
 
-object AssemblerRenderer extends TileEntitySpecialRenderer {
+object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
 
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(assembler: Assembler, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
-
-    val assembler = tileEntity.asInstanceOf[Assembler]
 
     RenderState.pushAttrib()
 
@@ -28,14 +26,14 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
     val r = t.getWorldRenderer
 
     Textures.Block.bind()
-    r.startDrawingQuads()
+    r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
     {
       val icon = Textures.getSprite(Textures.Block.AssemblerTopOn)
-      r.addVertexWithUV(-0.5, 0.55, 0.5, icon.getMinU, icon.getMaxV)
-      r.addVertexWithUV(0.5, 0.55, 0.5, icon.getMaxU, icon.getMaxV)
-      r.addVertexWithUV(0.5, 0.55, -0.5, icon.getMaxU, icon.getMinV)
-      r.addVertexWithUV(-0.5, 0.55, -0.5, icon.getMinU, icon.getMinV)
+      r.pos(-0.5, 0.55, 0.5).tex(icon.getMinU, icon.getMaxV).endVertex()
+      r.pos(0.5, 0.55, 0.5).tex(icon.getMaxU, icon.getMaxV).endVertex()
+      r.pos(0.5, 0.55, -0.5).tex(icon.getMaxU, icon.getMinV).endVertex()
+      r.pos(-0.5, 0.55, -0.5).tex(icon.getMinU, icon.getMinV).endVertex()
     }
 
     t.draw()
@@ -43,22 +41,22 @@ object AssemblerRenderer extends TileEntitySpecialRenderer {
     // TODO Unroll loop to draw all at once?
     val indent = 6 / 16f + 0.005
     for (i <- 0 until 4) {
-      r.startDrawingQuads()
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
       if (assembler.isAssembling) {
         val icon = Textures.getSprite(Textures.Block.AssemblerSideAssembling)
-        r.addVertexWithUV(indent, 0.5, -indent, icon.getInterpolatedU((0.5 - indent) * 16), icon.getMaxV)
-        r.addVertexWithUV(indent, 0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMaxV)
-        r.addVertexWithUV(indent, -0.5, indent, icon.getInterpolatedU((0.5 + indent) * 16), icon.getMinV)
-        r.addVertexWithUV(indent, -0.5, -indent, icon.getInterpolatedU((0.5 - indent) * 16), icon.getMinV)
+        r.pos(indent, 0.5, -indent).tex(icon.getInterpolatedU((0.5 - indent) * 16), icon.getMaxV).endVertex()
+        r.pos(indent, 0.5, indent).tex(icon.getInterpolatedU((0.5 + indent) * 16), icon.getMaxV).endVertex()
+        r.pos(indent, -0.5, indent).tex(icon.getInterpolatedU((0.5 + indent) * 16), icon.getMinV).endVertex()
+        r.pos(indent, -0.5, -indent).tex(icon.getInterpolatedU((0.5 - indent) * 16), icon.getMinV).endVertex()
       }
 
       {
         val icon = Textures.getSprite(Textures.Block.AssemblerSideOn)
-        r.addVertexWithUV(0.5005, 0.5, -0.5, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(0.5005, 0.5, 0.5, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(0.5005, -0.5, 0.5, icon.getMaxU, icon.getMinV)
-        r.addVertexWithUV(0.5005, -0.5, -0.5, icon.getMinU, icon.getMinV)
+        r.pos(0.5005, 0.5, -0.5).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(0.5005, 0.5, 0.5).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(0.5005, -0.5, 0.5).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(0.5005, -0.5, -0.5).tex(icon.getMinU, icon.getMinV).endVertex()
       }
 
       t.draw()

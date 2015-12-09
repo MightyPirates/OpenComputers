@@ -1,15 +1,15 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
-object HologramRendererFallback extends TileEntitySpecialRenderer {
+object HologramRendererFallback extends TileEntitySpecialRenderer[Hologram] {
   var text = "Requires OpenGL 1.5"
 
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(hologram: Hologram, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
     val fontRenderer = Minecraft.getMinecraft.fontRendererObj

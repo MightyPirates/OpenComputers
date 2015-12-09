@@ -18,10 +18,10 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
 import net.minecraft.client.renderer.entity.RendererLivingEntity
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
@@ -32,7 +32,7 @@ import org.lwjgl.opengl.GL11
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-object RobotRenderer extends TileEntitySpecialRenderer {
+object RobotRenderer extends TileEntitySpecialRenderer[tileentity.RobotProxy] {
   private val displayList = GLAllocation.generateDisplayLists(2)
 
   private val mountPoints = new Array[RobotRenderEvent.MountPoint](7)
@@ -89,13 +89,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glVertex3f(l, gt, h)
     GL11.glEnd()
 
-    r.startDrawingQuads()
+    r.begin(7, DefaultVertexFormats.POSITION_TEX_NORMAL)
 
-    r.setNormal(0, -1, 0)
-    r.addVertexWithUV(l, gt, h, 0, 1)
-    r.addVertexWithUV(l, gt, l, 0, 0.5)
-    r.addVertexWithUV(h, gt, l, 0.5, 0.5)
-    r.addVertexWithUV(h, gt, h, 0.5, 1)
+    r.pos(l, gt, h).tex(0, 1).normal(0, -1, 0).endVertex()
+    r.pos(l, gt, l).tex(0, 0.5).normal(0, -1, 0).endVertex()
+    r.pos(h, gt, l).tex(0.5, 0.5).normal(0, -1, 0).endVertex()
+    r.pos(h, gt, h).tex(0.5, 1).normal(0, -1, 0).endVertex()
 
     t.draw()
 
@@ -122,13 +121,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glVertex3f(l, gb, l)
     GL11.glEnd()
 
-    r.startDrawingQuads()
+    r.begin(7, DefaultVertexFormats.POSITION_TEX_NORMAL)
 
-    r.setNormal(0, 1, 0)
-    r.addVertexWithUV(l, gb, l, 0, 0.5)
-    r.addVertexWithUV(l, gb, h, 0, 1)
-    r.addVertexWithUV(h, gb, h, 0.5, 1)
-    r.addVertexWithUV(h, gb, l, 0.5, 0.5)
+    r.pos(l, gb, l).tex(0, 0.5).normal(0, 1, 0).endVertex()
+    r.pos(l, gb, h).tex(0, 1).normal(0, 1, 0).endVertex()
+    r.pos(h, gb, h).tex(0.5, 1).normal(0, 1, 0).endVertex()
+    r.pos(h, gb, l).tex(0.5, 0.5).normal(0, 1, 0).endVertex()
 
     t.draw()
 
@@ -254,26 +252,26 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
         val t = Tessellator.getInstance
         val r = t.getWorldRenderer
-        r.startDrawingQuads()
-        r.addVertexWithUV(l, gt, l, u0, v0)
-        r.addVertexWithUV(l, gb, l, u0, v1)
-        r.addVertexWithUV(l, gb, h, u1, v1)
-        r.addVertexWithUV(l, gt, h, u1, v0)
+        r.begin(7, DefaultVertexFormats.POSITION_TEX)
+        r.pos(l, gt, l).tex(u0, v0).endVertex()
+        r.pos(l, gb, l).tex(u0, v1).endVertex()
+        r.pos(l, gb, h).tex(u1, v1).endVertex()
+        r.pos(l, gt, h).tex(u1, v0).endVertex()
 
-        r.addVertexWithUV(l, gt, h, u0, v0)
-        r.addVertexWithUV(l, gb, h, u0, v1)
-        r.addVertexWithUV(h, gb, h, u1, v1)
-        r.addVertexWithUV(h, gt, h, u1, v0)
+        r.pos(l, gt, h).tex(u0, v0).endVertex()
+        r.pos(l, gb, h).tex(u0, v1).endVertex()
+        r.pos(h, gb, h).tex(u1, v1).endVertex()
+        r.pos(h, gt, h).tex(u1, v0).endVertex()
 
-        r.addVertexWithUV(h, gt, h, u0, v0)
-        r.addVertexWithUV(h, gb, h, u0, v1)
-        r.addVertexWithUV(h, gb, l, u1, v1)
-        r.addVertexWithUV(h, gt, l, u1, v0)
+        r.pos(h, gt, h).tex(u0, v0).endVertex()
+        r.pos(h, gb, h).tex(u0, v1).endVertex()
+        r.pos(h, gb, l).tex(u1, v1).endVertex()
+        r.pos(h, gt, l).tex(u1, v0).endVertex()
 
-        r.addVertexWithUV(h, gt, l, u0, v0)
-        r.addVertexWithUV(h, gb, l, u0, v1)
-        r.addVertexWithUV(l, gb, l, u1, v1)
-        r.addVertexWithUV(l, gt, l, u1, v0)
+        r.pos(h, gt, l).tex(u0, v0).endVertex()
+        r.pos(h, gb, l).tex(u0, v1).endVertex()
+        r.pos(l, gb, l).tex(u1, v1).endVertex()
+        r.pos(l, gt, l).tex(u1, v0).endVertex()
         t.draw()
 
         RenderState.enableEntityLighting()
@@ -282,12 +280,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
   }
 
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(proxy: tileentity.RobotProxy, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    val proxy = tileEntity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
-    val worldTime = tileEntity.getWorld.getTotalWorldTime + f
+    val worldTime = robot.getWorld.getTotalWorldTime + f
 
     RenderState.pushMatrix()
     RenderState.pushAttrib()
@@ -468,13 +465,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       RenderState.disableLighting()
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
-      r.startDrawingQuads()
-      r.setColorRGBA_F(0, 0, 0, 0.5f)
-      r.addVertex(-halfWidth - 1, -1, 0)
-      r.addVertex(-halfWidth - 1, 8, 0)
-      r.addVertex(halfWidth + 1, 8, 0)
-      r.addVertex(halfWidth + 1, -1, 0)
-      t.draw
+      r.begin(7, DefaultVertexFormats.POSITION_COLOR)
+      r.pos(-halfWidth - 1, -1, 0).color(0, 0, 0, 0.5f).endVertex()
+      r.pos(-halfWidth - 1, 8, 0).color(0, 0, 0, 0.5f).endVertex()
+      r.pos(halfWidth + 1, 8, 0).color(0, 0, 0, 0.5f).endVertex()
+      r.pos(halfWidth + 1, -1, 0).color(0, 0, 0, 0.5f).endVertex()
+      t.draw()
 
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
       f.drawString((if (EventHandler.isItTime) EnumChatFormatting.OBFUSCATED.toString else "") + name, -halfWidth, 0, 0xFFFFFFFF)

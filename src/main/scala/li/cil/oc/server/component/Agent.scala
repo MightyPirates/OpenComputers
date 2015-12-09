@@ -129,7 +129,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
             click(player, hit.getBlockPos, hit.sideHit)
           case _ =>
             // Retry with full block bounds, disregarding swing range.
-            player.closestEntity[EntityLivingBase]() match {
+            player.closestEntity(classOf[EntityLivingBase]) match {
               case Some(entity) =>
                 attack(player, entity)
               case _ =>
@@ -255,7 +255,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
           val (blockPos, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(agent.selectedSlot, blockPos, hit.sideHit, hx, hy, hz)
-        case None if canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
+        case None if canPlaceInAir && player.closestEntity(classOf[Entity]).isEmpty =>
           val (blockPos, hx, hy, hz) = clickParamsForPlace(facing)
           player.placeBlock(agent.selectedSlot, blockPos, facing, hx, hy, hz)
         case _ => false
@@ -303,7 +303,7 @@ trait Agent extends traits.WorldControl with traits.InventoryControl with traits
       player.side.getFrontOffsetY * range,
       player.side.getFrontOffsetZ * range)
     val hit = world.rayTraceBlocks(origin, target)
-    player.closestEntity[Entity]() match {
+    player.closestEntity(classOf[Entity]) match {
       case Some(entity@(_: EntityLivingBase | _: EntityMinecart | _: entity.Drone)) if hit == null || new Vec3(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }

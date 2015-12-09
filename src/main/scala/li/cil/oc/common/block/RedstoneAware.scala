@@ -29,13 +29,13 @@ abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MF
       case _ => false
     }
 
-  override def isProvidingStrongPower(world: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) =
-    isProvidingWeakPower(world, pos, state, side)
+  override def getStrongPower(world: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) =
+    getWeakPower(world, pos, state, side)
 
-  override def isProvidingWeakPower(world: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) =
+  override def getWeakPower(world: IBlockAccess, pos: BlockPos, state: IBlockState, side: EnumFacing) =
     world.getTileEntity(pos) match {
       case redstone: tileentity.traits.RedstoneAware if side != null => math.min(math.max(redstone.output(side.getOpposite), 0), 15)
-      case _ => super.isProvidingWeakPower(world, pos, state, side)
+      case _ => super.getWeakPower(world, pos, state, side)
     }
 
   // ----------------------------------------------------------------------- //

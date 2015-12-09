@@ -4,9 +4,13 @@ import java.lang.Iterable
 import java.text.DecimalFormat
 import java.util
 
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+
+/* TODO NEI
 import codechicken.nei.VisiblityData
 import codechicken.nei.api.INEIGuiHandler
 import codechicken.nei.api.TaggedInventoryArea
+*/
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
@@ -22,7 +26,7 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.util.Rectangle
 
 @Optional.Interface(iface = "codechicken.nei.api.INEIGuiHandler", modid = Mods.IDs.NotEnoughItems)
-class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) extends DynamicGuiContainer(new container.Relay(playerInventory, relay)) with INEIGuiHandler {
+class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) extends DynamicGuiContainer(new container.Relay(playerInventory, relay)) /* TODO NEI with INEIGuiHandler */ {
   private val format = new DecimalFormat("#.##hz")
 
   private val tabPosition = new Rectangle(xSize, 10, 23, 26)
@@ -39,11 +43,11 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
     val h = tabPosition.getHeight
     val t = Tessellator.getInstance
     val r = t.getWorldRenderer
-    r.startDrawingQuads()
-    r.addVertexWithUV(x, y + h, zLevel, 0, 1)
-    r.addVertexWithUV(x + w, y + h, zLevel, 1, 1)
-    r.addVertexWithUV(x + w, y, zLevel, 1, 0)
-    r.addVertexWithUV(x, y, zLevel, 0, 0)
+    r.begin(7, DefaultVertexFormats.POSITION_TEX)
+    r.pos(x, y + h, zLevel).tex(0, 1).endVertex()
+    r.pos(x + w, y + h, zLevel).tex(1, 1).endVertex()
+    r.pos(x + w, y, zLevel).tex(1, 0).endVertex()
+    r.pos(x, y, zLevel).tex(0, 0).endVertex()
     t.draw()
   }
 
@@ -103,7 +107,7 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
     else if (value < red) 0x999900
     else 0x990000
   }
-
+/* TODO NEI
   @Optional.Method(modid = Mods.IDs.NotEnoughItems)
   override def modifyVisiblity(gui: GuiContainer, currentVisibility: VisiblityData): VisiblityData = null
 
@@ -120,4 +124,5 @@ class Relay(playerInventory: InventoryPlayer, val relay: tileentity.Relay) exten
   override def hideItemPanelSlot(gui: GuiContainer, x: Int, y: Int, w: Int, h: Int): Boolean = {
     new Rectangle(x - windowX, y - windowY, w, h).intersects(tabPosition)
   }
+*/
 }

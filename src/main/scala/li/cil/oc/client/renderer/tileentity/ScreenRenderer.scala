@@ -10,13 +10,13 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.tileentity.TileEntity
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GLContext
 
-object ScreenRenderer extends TileEntitySpecialRenderer {
+object ScreenRenderer extends TileEntitySpecialRenderer[Screen] {
   private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
 
   private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
@@ -36,10 +36,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   // Rendering
   // ----------------------------------------------------------------------- //
 
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float, damage: Int) {
+  override def renderTileEntityAt(screen: Screen, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    screen = tileEntity.asInstanceOf[Screen]
     if (!screen.isOrigin) {
       return
     }
@@ -131,13 +130,13 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
         val r = t.getWorldRenderer
 
         Textures.Block.bind()
-        r.startDrawingQuads()
+        r.begin(7, DefaultVertexFormats.POSITION_TEX)
 
         val icon = Textures.getSprite(Textures.Block.ScreenUpIndicator)
-        r.addVertexWithUV(0, 1, 0, icon.getMinU, icon.getMaxV)
-        r.addVertexWithUV(1, 1, 0, icon.getMaxU, icon.getMaxV)
-        r.addVertexWithUV(1, 0, 0, icon.getMaxU, icon.getMinV)
-        r.addVertexWithUV(0, 0, 0, icon.getMinU, icon.getMinV)
+        r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
+        r.pos(1, 1, 0).tex(icon.getMaxU, icon.getMaxV).endVertex()
+        r.pos(1, 0, 0).tex(icon.getMaxU, icon.getMinV).endVertex()
+        r.pos(0, 0, 0).tex(icon.getMinU, icon.getMinV).endVertex()
 
         t.draw()
 

@@ -38,9 +38,9 @@ class Case(val tier: Int) extends RedstoneAware with traits.PowerAcceptor with t
 
   override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
-  override protected def createProperties(listed: mutable.ArrayBuffer[IProperty], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_]]): Unit = {
+  override protected def createProperties(listed: mutable.ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: mutable.ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]): Unit = {
     super.createProperties(listed, unlisted)
-    listed += Case.Running
+    listed += Case.Running.asInstanceOf[IProperty[_ <: Comparable[AnyRef]]]
   }
 
   // ----------------------------------------------------------------------- //

@@ -2,6 +2,7 @@ package li.cil.oc.client.gui.widget
 
 import li.cil.oc.client.Textures
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 
 class ProgressBar(val x: Int, val y: Int) extends Widget {
   override def width = 140
@@ -25,11 +26,11 @@ class ProgressBar(val x: Int, val y: Int) extends Widget {
       Textures.bind(barTexture)
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.startDrawingQuads()
-      r.addVertexWithUV(tx, ty, owner.windowZ, u0, v0)
-      r.addVertexWithUV(tx, ty + height, owner.windowZ, u0, v1)
-      r.addVertexWithUV(tx + w, ty + height, owner.windowZ, u1, v1)
-      r.addVertexWithUV(tx + w, ty, owner.windowZ, u1, v0)
+      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.pos(tx, ty, owner.windowZ).tex(u0, v0).endVertex()
+      r.pos(tx, ty + height, owner.windowZ).tex(u0, v1).endVertex()
+      r.pos(tx + w, ty + height, owner.windowZ).tex(u1, v1).endVertex()
+      r.pos(tx + w, ty, owner.windowZ).tex(u1, v0).endVertex()
       t.draw()
     }
   }
