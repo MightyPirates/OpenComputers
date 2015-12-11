@@ -32,7 +32,7 @@ import net.minecraftforge.common.DimensionManager
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
   def onPacket(e: ServerCustomPacketEvent) =
-    onPacketData(e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
+    onPacketData(e.manager.getNetHandler, e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
 
   override protected def world(player: EntityPlayer, dimension: Int) =
     Option(DimensionManager.getWorld(dimension))

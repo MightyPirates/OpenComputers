@@ -325,7 +325,7 @@ class Drone(val world: World) extends Entity(world) with MachineHost with intern
   def lightColor_=(value: Int) = dataWatcher.updateObject(15, Int.box(value))
 
   @SideOnly(Side.CLIENT)
-  override def func_180426_a(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, data: Int, unused: Boolean) {
+  override def setPositionAndRotation2(x: Double, y: Double, z: Double, yaw: Float, pitch: Float, posRotationIncrements: Int, p_180426_10_ : Boolean): Unit = {
     // Only set exact position if we're too far away from the server's
     // position, otherwise keep interpolating. This removes jitter and
     // is good enough for drones.

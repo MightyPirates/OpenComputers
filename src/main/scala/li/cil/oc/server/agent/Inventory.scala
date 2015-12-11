@@ -26,7 +26,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
 
   override def changeCurrentItem(direction: Int) {}
 
-  override def func_174925_a(item: Item, damage: Int, count: Int, tag: NBTTagCompound) = 0
+  override def clearMatchingItems(item: Item, damage: Int, count: Int, tag: NBTTagCompound): Int = 0
 
   override def decrementAnimations() {
     for (slot <- 0 until getSizeInventory) {
@@ -56,11 +56,7 @@ class Inventory(val agent: internal.Agent) extends InventoryPlayer(null) {
     InventoryUtils.insertIntoInventory(stack, this, slots = Option(slots))
   }
 
-  override def func_146025_b(block: Block) = canHarvestBlock(block)
-
-  def canHarvestBlock(block: Block): Boolean = {
-    block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(block))
-  }
+  override def canHeldItemHarvest(block: Block): Boolean = block.getMaterial.isToolNotRequired || (getCurrentItem != null && getCurrentItem.canHarvestBlock(block))
 
   override def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.getStrVsBlock(block))
 

@@ -38,16 +38,15 @@ trait SimpleItem extends Item {
   }
 
   @SideOnly(Side.CLIENT)
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean): Unit = {
-    val tt = tooltip.asInstanceOf[util.List[String]]
-    tt.addAll(Tooltip.get(getClass.getSimpleName))
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean): Unit = {
+    tooltip.addAll(Tooltip.get(getClass.getSimpleName))
 
     if (ItemCosts.hasCosts(stack)) {
       if (KeyBindings.showMaterialCosts) {
-        ItemCosts.addTooltip(stack, tt)
+        ItemCosts.addTooltip(stack, tooltip)
       }
       else {
-        tt.add(Localization.localizeImmediately(
+        tooltip.add(Localization.localizeImmediately(
           Settings.namespace + "tooltip.MaterialCosts",
           KeyBindings.getKeyBindingName(KeyBindings.materialCosts)))
       }
@@ -55,7 +54,7 @@ trait SimpleItem extends Item {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
       val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
       if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {
-        tt.add("§8" + data.getCompoundTag("node").getString("address").substring(0, 13) + "...§7")
+        tooltip.add("§8" + data.getCompoundTag("node").getString("address").substring(0, 13) + "...§7")
       }
     }
   }

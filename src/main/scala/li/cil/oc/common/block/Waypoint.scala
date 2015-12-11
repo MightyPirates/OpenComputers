@@ -2,15 +2,23 @@ package li.cil.oc.common.block
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
+import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
-class Waypoint extends RedstoneAware with traits.Rotatable {
-  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+class Waypoint extends RedstoneAware {
+  override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Facing)
+
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
+
+  override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
+
+  // ----------------------------------------------------------------------- //
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Waypoint()
 

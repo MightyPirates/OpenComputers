@@ -8,6 +8,7 @@ import li.cil.oc.common
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.block.property.PropertyRunning
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -55,7 +56,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   override protected def onRunningChanged(): Unit = {
     super.onRunningChanged()
     getBlockType match {
-      case block: common.block.Case => world.setBlockState(getPos, block.withRunning(world.getBlockState(getPos), isRunning))
+      case block: common.block.Case => world.setBlockState(getPos, world.getBlockState(getPos).withProperty(PropertyRunning.Running, Boolean.box(isRunning)))
       case _ =>
     }
   }

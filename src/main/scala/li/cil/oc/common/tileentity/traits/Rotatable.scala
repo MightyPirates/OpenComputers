@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.api.internal
-import li.cil.oc.common.block
+import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedEnumFacing._
 import li.cil.oc.util.ExtendedWorld._
@@ -25,7 +25,7 @@ trait Rotatable extends RotationAware with internal.Rotatable {
   // ----------------------------------------------------------------------- //
 
   def pitch = if (world != null) getBlockType match {
-    case rotatable: block.traits.OmniRotatable => rotatable.getPitch(world.getBlockState(getPos))
+    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Pitch) => world.getBlockState(getPos).getValue(PropertyRotatable.Pitch)
     case _ => EnumFacing.NORTH
   } else EnumFacing.NORTH
 
@@ -36,8 +36,8 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     }, yaw)
 
   def yaw = if (world != null) getBlockType match {
-    case rotatable: block.traits.OmniRotatable => rotatable.getYaw(world.getBlockState(getPos))
-    case rotatable: block.traits.Rotatable => rotatable.getFacing(world.getBlockState(getPos))
+    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Yaw) => world.getBlockState(getPos).getValue(PropertyRotatable.Yaw)
+    case rotatable if world.getBlockState(getPos).getProperties.containsKey(PropertyRotatable.Facing) => world.getBlockState(getPos).getValue(PropertyRotatable.Facing)
     case _ => EnumFacing.SOUTH
   } else EnumFacing.SOUTH
 
@@ -127,10 +127,10 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       else false
     }
     getBlockType match {
-      case rotatable: block.traits.OmniRotatable =>
-        setState(rotatable.withPitchAndYaw(oldState, pitch, yaw))
-      case rotatable: block.traits.Rotatable =>
-        setState(rotatable.withFacing(oldState, yaw))
+      case rotatable if oldState.getProperties.containsKey(PropertyRotatable.Pitch) && oldState.getProperties.containsKey(PropertyRotatable.Yaw) =>
+        setState(oldState.withProperty(PropertyRotatable.Pitch, pitch).withProperty(PropertyRotatable.Yaw, yaw))
+      case rotatable if oldState.getProperties.containsKey(PropertyRotatable.Facing) =>
+        setState(oldState.withProperty(PropertyRotatable.Facing, yaw))
       case _ => false
     }
   }

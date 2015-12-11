@@ -13,7 +13,7 @@ object LogNanomachinesCommand extends SimpleCommand("oc_nanomachines") {
 
   override def getCommandUsage(source: ICommandSender): String = name + " [player]"
 
-  override def execute(source: ICommandSender, command: Array[String]): Unit = {
+  override def processCommand(source: ICommandSender, command: Array[String]): Unit = {
     (if (command.length > 0) {
       val player = command(0)
       val config = MinecraftServer.getServer.getConfigurationManager

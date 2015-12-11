@@ -13,7 +13,7 @@ object CommandHandler {
   object SetClipboardCommand extends SimpleCommand("oc_setclipboard") {
     override def getCommandUsage(source: ICommandSender): String = name + " <value>"
 
-    override def execute(source: ICommandSender, command: Array[String]): Unit = {
+    override def processCommand(source: ICommandSender, command: Array[String]): Unit = {
       if (source.getEntityWorld.isRemote && command != null && command.length > 0) {
         GuiScreen.setClipboardString(command(0))
       }

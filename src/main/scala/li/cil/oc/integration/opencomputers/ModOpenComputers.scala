@@ -48,7 +48,6 @@ import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.FMLCommonHandler
 
 object ModOpenComputers extends ModProxy {
   override def getMod = Mods.OpenComputers
@@ -73,10 +72,10 @@ object ModOpenComputers extends ModProxy {
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
-    FMLCommonHandler.instance.bus.register(EventHandler)
-    FMLCommonHandler.instance.bus.register(NanomachinesHandler.Common)
-    FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
-    FMLCommonHandler.instance.bus.register(Tablet)
+    MinecraftForge.EVENT_BUS.register(EventHandler)
+    MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
+    MinecraftForge.EVENT_BUS.register(SimpleComponentTickHandler.Instance)
+    MinecraftForge.EVENT_BUS.register(Tablet)
 
     MinecraftForge.EVENT_BUS.register(Analyzer)
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)

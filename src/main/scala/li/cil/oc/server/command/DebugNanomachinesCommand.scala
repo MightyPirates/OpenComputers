@@ -13,7 +13,7 @@ object DebugNanomachinesCommand extends SimpleCommand("oc_debugNanomachines") {
 
   override def getCommandUsage(source: ICommandSender): String = name
 
-  override def execute(source: ICommandSender, args: Array[String]): Unit = {
+  override def processCommand(source: ICommandSender, args: Array[String]): Unit = {
     source match {
       case player: EntityPlayer =>
         api.Nanomachines.installController(player) match {

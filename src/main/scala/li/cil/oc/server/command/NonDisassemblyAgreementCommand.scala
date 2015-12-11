@@ -14,7 +14,7 @@ object NonDisassemblyAgreementCommand extends SimpleCommand("oc_preventDisassemb
 
   override def getCommandUsage(source: ICommandSender) = name + " <boolean>"
 
-  override def execute(source: ICommandSender, command: Array[String]) {
+  override def processCommand(source: ICommandSender, command: Array[String]) {
     source match {
       case player: EntityPlayer =>
         val stack = player.getHeldItem

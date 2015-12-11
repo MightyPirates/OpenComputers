@@ -15,7 +15,7 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
-import net.minecraft.block.properties.IProperty
+import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.tileentity.TileEntity
@@ -24,14 +24,12 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
-import net.minecraftforge.common.property.IUnlistedProperty
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-import scala.collection.mutable.ArrayBuffer
-
-class Cable extends SimpleBlock with traits.Extended {
+class Cable extends SimpleBlock {
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
 
@@ -40,19 +38,14 @@ class Cable extends SimpleBlock with traits.Extended {
 
   // ----------------------------------------------------------------------- //
 
-  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+  override def createBlockState(): BlockState = new ExtendedBlockState(this, Array.empty, Array(property.PropertyTile.Tile))
 
-  override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
+  override def getActualState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
       case (extendedState: IExtendedBlockState, cable: tileentity.Cable) =>
-        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, cable), world, pos)
-      case _ => None
+        extendedState.withProperty(property.PropertyTile.Tile, cable)
+      case _ => state
     }
-
-  override protected def createProperties(listed: ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]) {
-    super.createProperties(listed, unlisted)
-    unlisted += property.PropertyTile.Tile.asInstanceOf[IUnlistedProperty[_ <: Comparable[AnyRef]]]
-  }
 
   // ----------------------------------------------------------------------- //
 

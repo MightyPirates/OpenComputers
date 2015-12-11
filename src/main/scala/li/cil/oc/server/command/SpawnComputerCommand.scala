@@ -22,7 +22,7 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
 
   override def getCommandUsage(source: ICommandSender): String = name
 
-  override def execute(source: ICommandSender, command: Array[String]) {
+  override def processCommand(source: ICommandSender, command: Array[String]) {
     source match {
       case player: EntityPlayer =>
         val world = player.getEntityWorld

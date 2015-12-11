@@ -28,18 +28,18 @@ abstract class CustomGuiContainer[C <: Container](val inventoryContainer: C) ext
   protected def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   // Pretty much Scalaified copy-pasta from base-class.
-  override def drawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer): Unit = {
+  override def drawHoveringText(text: util.List[String], x: Int, y: Int, font: FontRenderer): Unit = {
     copiedDrawHoveringText(text, x, y, font)
   }
 
-  protected def copiedDrawHoveringText(text: util.List[_], x: Int, y: Int, font: FontRenderer): Unit = {
+  protected def copiedDrawHoveringText(text: util.List[String], x: Int, y: Int, font: FontRenderer): Unit = {
     if (!text.isEmpty) {
       GlStateManager.disableRescaleNormal()
       RenderHelper.disableStandardItemLighting()
       GlStateManager.disableLighting()
       GlStateManager.disableDepth()
 
-      val textWidth = text.map(line => font.getStringWidth(line.asInstanceOf[String])).max
+      val textWidth = text.map(line => font.getStringWidth(line)).max
 
       var posX = x + 12
       var posY = y - 12

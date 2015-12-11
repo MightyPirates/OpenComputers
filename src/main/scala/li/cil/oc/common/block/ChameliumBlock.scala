@@ -25,7 +25,7 @@ class ChameliumBlock extends SimpleBlock(Material.rock) {
     getDefaultState.withProperty(ChameliumBlock.Color, EnumDyeColor.byDyeDamage(meta))
 
   override def getMetaFromState(state: IBlockState): Int =
-    state.getValue(ChameliumBlock.Color).asInstanceOf[EnumDyeColor].getDyeDamage
+    state.getValue(ChameliumBlock.Color).getDyeDamage
 
   override def createBlockState(): BlockState = new BlockState(this, ChameliumBlock.Color)
 }

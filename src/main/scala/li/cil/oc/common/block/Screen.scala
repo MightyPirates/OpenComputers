@@ -7,6 +7,8 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.block.property.PropertyRotatable
+import li.cil.oc.common.block.property.PropertyTile
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.coloredlights.ModColoredLights
 import li.cil.oc.integration.util.Wrench
@@ -14,7 +16,7 @@ import li.cil.oc.util.Color
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.Rarity
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.properties.IProperty
+import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
@@ -26,31 +28,31 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.common.property.ExtendedBlockState
 import net.minecraftforge.common.property.IExtendedBlockState
-import net.minecraftforge.common.property.IUnlistedProperty
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-import scala.collection.mutable.ArrayBuffer
-
-class Screen(val tier: Int) extends RedstoneAware with traits.OmniRotatable {
+class Screen(val tier: Int) extends RedstoneAware {
   ModColoredLights.setLightLevel(this, 5, 5, 5)
 
-  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
+  override def createBlockState(): BlockState = new ExtendedBlockState(this, Array(PropertyRotatable.Pitch, PropertyRotatable.Yaw), Array(PropertyTile.Tile))
 
-  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+  override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 8) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
 
-  override protected def addExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) =
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 8)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0xF))
+
+  override def getActualState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
-      case (extendedState: IExtendedBlockState, tile: tileentity.traits.TileEntity) =>
-        super.addExtendedState(extendedState.withProperty(property.PropertyTile.Tile, tile), world, pos)
-      case _ => None
+      case (extendedState: IExtendedBlockState, tile: tileentity.Screen) =>
+        extendedState.
+          withProperty(property.PropertyTile.Tile, tile).
+          withProperty(PropertyRotatable.Pitch, tile.pitch).
+          withProperty(PropertyRotatable.Yaw, tile.yaw)
+      case _ => state
     }
 
-  override protected def createProperties(listed: ArrayBuffer[IProperty[_ <: Comparable[AnyRef]]], unlisted: ArrayBuffer[IUnlistedProperty[_ <: Comparable[AnyRef]]]) {
-    super.createProperties(listed, unlisted)
-    unlisted += property.PropertyTile.Tile.asInstanceOf[IUnlistedProperty[_ <: Comparable[AnyRef]]]
-  }
+  override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = toLocal(world, pos, side) != EnumFacing.SOUTH
 
   // ----------------------------------------------------------------------- //
 

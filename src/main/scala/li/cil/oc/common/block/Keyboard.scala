@@ -4,12 +4,14 @@ import java.util.Random
 
 import li.cil.oc.Constants
 import li.cil.oc.api
+import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedEnumFacing._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
+import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
@@ -19,11 +21,17 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import org.lwjgl.opengl.GL11
 
-class Keyboard extends SimpleBlock(Material.rock) with traits.OmniRotatable {
+class Keyboard extends SimpleBlock(Material.rock) {
   setLightOpacity(0)
 
   // For Immibis Microblock support.
   val ImmibisMicroblocks_TransformableBlockMarker = null
+
+  override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Pitch, PropertyRotatable.Yaw)
+
+  override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 8) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
+
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 8)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0xF))
 
   // ----------------------------------------------------------------------- //
 
@@ -34,8 +42,6 @@ class Keyboard extends SimpleBlock(Material.rock) with traits.OmniRotatable {
   override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = false
 
   // ----------------------------------------------------------------------- //
-
-  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
 
   override def shouldSideBeRendered(world: IBlockAccess, pos: BlockPos, side: EnumFacing) = true
 

@@ -51,7 +51,7 @@ public final class DriverCommandBlock extends DriverTileEntity implements Enviro
 
         @Callback(direct = true, doc = "function():string -- Get the command currently set in this command block.")
         public Object[] getCommand(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getCommandBlockLogic().getCustomName()};
+            return new Object[]{tileEntity.getCommandBlockLogic().getCommand()};
         }
 
         @Callback(doc = "function(value:string) -- Set the specified command for the command block.")

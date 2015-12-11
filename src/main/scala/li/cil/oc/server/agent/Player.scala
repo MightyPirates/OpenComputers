@@ -49,7 +49,6 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import net.minecraftforge.fml.common.eventhandler.Event
 
 import scala.collection.convert.WrapAsScala._
-import scala.reflect.ClassTag
 
 object Player {
   def profileFor(agent: internal.Agent) = {
@@ -491,7 +490,7 @@ class Player(val agent: internal.Agent) extends FakePlayer(agent.world.asInstanc
 
   override def swingItem() {}
 
-  override def canUseCommand(level: Int, command: String): Boolean = {
+  override def canCommandSenderUseCommand(level: Int, command: String): Boolean = {
     ("seed" == command && !mcServer.isDedicatedServer) ||
       "tell" == command ||
       "help" == command ||

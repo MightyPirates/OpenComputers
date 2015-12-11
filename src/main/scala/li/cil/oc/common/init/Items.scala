@@ -526,9 +526,9 @@ object Items extends ItemAPI {
         Items.createChargedHoverBoots()
       ) ++ Loot.disksForClient ++ registeredItems
 
-      override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[_]): Unit = {
+      override def getSubItems(item: Item, tab: CreativeTabs, list: util.List[ItemStack]): Unit = {
         super.getSubItems(item, tab, list)
-        configuredItems.foreach(Items.add(list, _))
+        configuredItems.foreach(list.add)
       }
     }, "misc")
 
@@ -551,7 +551,4 @@ object Items extends ItemAPI {
     GameRegistry.registerItem(item, name)
     item
   }
-
-  // Workaround for MC's untyped lists...
-  private final def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 }

@@ -4,22 +4,27 @@ import java.util
 
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
+import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.RaidData
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
+import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
 import scala.reflect.ClassTag
 
-class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with traits.Rotatable with traits.GUI with traits.CustomDrops[tileentity.Raid] {
-  override protected def setDefaultExtendedState(state: IBlockState) = setDefaultState(state)
+class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends SimpleBlock with traits.GUI with traits.CustomDrops[tileentity.Raid] {
+  override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Facing)
 
-  override def hasTileEntity(state: IBlockState) = true
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Facing, EnumFacing.getHorizontal(meta))
+
+  override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
 
   override protected def tooltipTail(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.tooltipTail(metadata, stack, player, tooltip, advanced)
@@ -34,6 +39,8 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
   // ----------------------------------------------------------------------- //
 
   override def guiType = GuiType.Raid
+
+  override def hasTileEntity(state: IBlockState) = true
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Raid()
 

@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.audio.SoundCategory
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import org.lwjgl.BufferUtils
@@ -19,12 +19,12 @@ import org.lwjgl.openal.OpenALException
 import scala.collection.mutable
 
 /**
- * This class contains the logic used by computers' internal "speakers".
- * It can generate square waves with a specific frequency and duration
- * and will play them through OpenAL, acquiring sources as necessary.
- * Tones that have finished playing are disposed automatically in the
- * tick handler.
- */
+  * This class contains the logic used by computers' internal "speakers".
+  * It can generate square waves with a specific frequency and duration
+  * and will play them through OpenAL, acquiring sources as necessary.
+  * Tones that have finished playing are disposed automatically in the
+  * tick handler.
+  */
 object Audio {
   private def sampleRate = Settings.get.beepSampleRate
 
@@ -185,7 +185,7 @@ object Audio {
     }
   }
 
-  FMLCommonHandler.instance.bus.register(this)
+  MinecraftForge.EVENT_BUS.register(this)
 
   @SubscribeEvent
   def onTick(e: ClientTickEvent) {

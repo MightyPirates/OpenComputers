@@ -22,9 +22,9 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   override def handleItemState(stack: ItemStack) = missingModel
 
-  override def getFaceQuads(side: EnumFacing): java.util.List[_] = Collections.emptyList()
+  override def getFaceQuads(side: EnumFacing): java.util.List[BakedQuad] = Collections.emptyList()
 
-  override def getGeneralQuads: java.util.List[_] = Collections.emptyList()
+  override def getGeneralQuads: java.util.List[BakedQuad] = Collections.emptyList()
 
   override def isAmbientOcclusion = true
 
@@ -34,7 +34,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   // Note: we don't care about the actual texture here, we just need the block
   // texture atlas. So any of our textures we know is loaded into it will do.
-  override def getTexture = Textures.getSprite(Textures.Block.GenericTop)
+  override def getParticleTexture = Textures.getSprite(Textures.Block.GenericTop)
 
   override def getItemCameraTransforms = DefaultBlockCameraTransforms
 

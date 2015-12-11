@@ -164,6 +164,8 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
 
   override def canHarvestBlock(world: IBlockAccess, pos: BlockPos, player: EntityPlayer) = true
 
+  override def getHarvestTool(state: IBlockState): String = null
+
   override def canBeReplacedByLeaves(world: IBlockAccess, pos: BlockPos) = false
 
   override def canCreatureSpawn(world: IBlockAccess, pos: BlockPos, `type`: SpawnPlacementType) = false

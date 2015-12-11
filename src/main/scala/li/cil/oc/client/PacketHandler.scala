@@ -32,8 +32,9 @@ import org.lwjgl.input.Keyboard
 
 object PacketHandler extends CommonPacketHandler {
   @SubscribeEvent
-  def onPacket(e: ClientCustomPacketEvent) =
-    onPacketData(e.packet.payload, Minecraft.getMinecraft.thePlayer)
+  def onPacket(e: ClientCustomPacketEvent) = {
+    onPacketData(e.manager.getNetHandler, e.packet.payload, Minecraft.getMinecraft.thePlayer)
+  }
 
   protected override def world(player: EntityPlayer, dimension: Int) = {
     val world = player.worldObj
