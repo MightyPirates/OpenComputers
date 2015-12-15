@@ -15,14 +15,11 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.util.StateAware
 import li.cil.oc.api.util.StateAware.State
-import li.cil.oc.common.GuiType
-import li.cil.oc.common.InventorySlots
-import li.cil.oc.common.Slot
+import li.cil.oc.common.{tileentity, item, GuiType, InventorySlots, Slot, Tier}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.tileentity
+import li.cil.oc.server.network.Connector
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -187,6 +184,7 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
       }
       wasRunning = isRunning
       hadErrored = hasErrored
+      if(tier == Tier.Four) node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
 
     updateComponents()

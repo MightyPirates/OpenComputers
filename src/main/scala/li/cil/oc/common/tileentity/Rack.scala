@@ -162,6 +162,10 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
     reconnect(plug.side)
   }
 
+  protected override def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.Network)
+    .withConnector(Settings.get.bufferDistributor)
+    .create()
+
   // ----------------------------------------------------------------------- //
   // Environment
 
