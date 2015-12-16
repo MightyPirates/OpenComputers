@@ -2,9 +2,12 @@ package li.cil.oc.server.component.traits
 
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.util.ExtendedArguments._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 
 trait InventoryAware {
+  def fakePlayer: EntityPlayer
+
   def inventory: IInventory
 
   def selectedSlot: Int

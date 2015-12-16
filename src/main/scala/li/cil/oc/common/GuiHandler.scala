@@ -53,8 +53,6 @@ abstract class GuiHandler extends IGuiHandler {
         Delegator.subItem(player.getHeldItem) match {
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new container.Database(player.inventory, new DatabaseInventory {
-              override def tier = database.tier
-
               override def container = player.getHeldItem
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player

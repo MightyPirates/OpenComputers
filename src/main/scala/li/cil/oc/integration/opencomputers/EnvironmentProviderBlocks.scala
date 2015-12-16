@@ -19,7 +19,7 @@ import net.minecraft.item.ItemStack
  * all blocks are present here, because some also serve as upgrades
  * and therefore have item drivers.
  */
-object BlockEnvironmentProvider extends EnvironmentProvider {
+object EnvironmentProviderBlocks extends EnvironmentProvider {
   override def getEnvironment(stack: ItemStack): Class[_] = stack.getItem match {
     case block: ItemBlock if block.field_150939_a != null =>
       if (isOneOf(block.field_150939_a, Constants.BlockName.AccessPoint)) classOf[tileentity.AccessPoint]

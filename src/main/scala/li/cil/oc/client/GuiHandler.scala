@@ -71,8 +71,6 @@ object GuiHandler extends CommonGuiHandler {
             new gui.Drive(player.inventory, () => player.getHeldItem)
           case Some(database: item.UpgradeDatabase) if id == GuiType.Database.id =>
             new gui.Database(player.inventory, new DatabaseInventory {
-              override def tier = database.tier
-
               override def container = player.getHeldItem
 
               override def isUseableByPlayer(player: EntityPlayer) = player == player

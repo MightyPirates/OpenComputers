@@ -119,9 +119,9 @@ private[oc] object Registry extends api.detail.DriverAPI {
   }
 
   override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
-    inventoryProviders.map(provider => provider.getInventory(stack)).collectFirst {
-      case inventory: IInventory => inventory
-    }.orNull
+    inventoryProviders.find(provider => provider.worksWith(stack, player)).
+      map(provider => provider.getInventory(stack, player)).
+      orNull
   }
 
   override def blockDrivers = blocks.toSeq

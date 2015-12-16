@@ -173,7 +173,10 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTankController.Provider)
     api.Driver.add(DriverUpgradeTractorBeam.Provider)
 
-    api.Driver.add(BlockEnvironmentProvider)
+    api.Driver.add(EnvironmentProviderBlocks)
+
+    api.Driver.add(InventoryProviderDatabase)
+    api.Driver.add(InventoryProviderServer)
 
     blacklistHost(classOf[internal.Adapter],
       Constants.BlockName.Geolyzer,
