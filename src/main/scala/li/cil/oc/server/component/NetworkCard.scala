@@ -5,6 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.RackBusConnectable
+import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -98,13 +99,15 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     result(oldMessage.orNull, oldFuzzy)
   }
 
-  protected def doSend(packet: Packet) {
-    node.sendToReachable("network.message", packet)
-  }
+  protected def doSend(packet: Packet) = host match {
+      case _: Rack => node.sendToNeighbors("network.message", packet)
+      case _ => node.sendToReachable("network.message", packet)
+    }
 
-  protected def doBroadcast(packet: Packet) {
-    node.sendToReachable("network.message", packet)
-  }
+  protected def doBroadcast(packet: Packet) = host match {
+      case _: Rack => node.sendToNeighbors("network.message", packet)
+      case _ => node.sendToReachable("network.message", packet)
+    }
 
   // ----------------------------------------------------------------------- //
 
