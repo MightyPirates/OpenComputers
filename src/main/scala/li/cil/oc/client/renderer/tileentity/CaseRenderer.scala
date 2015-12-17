@@ -37,7 +37,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
 
     if (computer.isRunning) {
       renderFrontOverlay(Textures.blockCaseFrontOn)
-      if (System.currentTimeMillis() - computer.lastAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
+      if (System.currentTimeMillis() - computer.lastFileSystemAccess < 400 && computer.world.rand.nextDouble() > 0.1) {
         renderFrontOverlay(Textures.blockCaseFrontActivity)
       }
     }

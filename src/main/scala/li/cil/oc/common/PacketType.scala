@@ -27,6 +27,7 @@ object PacketType extends Enumeration {
   NanomachinesInputs,
   NanomachinesPower,
   NetSplitterState,
+  NetworkActivity,
   ParticleEffect,
   PetVisibility, // Goes both ways.
   PowerState,

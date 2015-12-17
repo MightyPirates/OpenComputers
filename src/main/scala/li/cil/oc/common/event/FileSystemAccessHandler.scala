@@ -20,7 +20,7 @@ object FileSystemAccessHandler {
             case server: Server =>
               val containsNode = server.componentSlot(e.getNode.address) >= 0
               if (containsNode) {
-                server.lastAccess = System.currentTimeMillis()
+                server.lastFileSystemAccess = System.currentTimeMillis()
                 t.markChanged(slot)
               }
             case diskDrive: DiskDriveMountable =>
@@ -42,7 +42,7 @@ object FileSystemAccessHandler {
     e.getWorld.playSound(e.getX, e.getY, e.getZ, e.getSound, volume, 1, false)
     e.getTileEntity match {
       case t: DiskDrive => t.lastAccess = System.currentTimeMillis()
-      case t: Case => t.lastAccess = System.currentTimeMillis()
+      case t: Case => t.lastFileSystemAccess = System.currentTimeMillis()
       case t: Raid => t.lastAccess = System.currentTimeMillis()
       case _ =>
     }

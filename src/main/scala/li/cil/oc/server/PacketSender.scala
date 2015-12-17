@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
 import li.cil.oc.api
-import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
@@ -132,6 +132,34 @@ object PacketSender {
 
           pb.sendToPlayersNearHost(host, Option(64))
         }
+    }
+  }
+
+  def sendNetworkActivity(node: Node, host: EnvironmentHost) = {
+
+    val event = host match {
+      case t: net.minecraft.tileentity.TileEntity => new NetworkActivityEvent.Server(t, node)
+      case _ => new NetworkActivityEvent.Server(host.world, host.xPosition, host.yPosition, host.zPosition, node)
+    }
+    MinecraftForge.EVENT_BUS.post(event)
+    if (!event.isCanceled) {
+
+      val pb = new SimplePacketBuilder(PacketType.NetworkActivity)
+
+      CompressedStreamTools.write(event.getData, pb)
+      event.getTileEntity match {
+        case t: net.minecraft.tileentity.TileEntity =>
+          pb.writeBoolean(true)
+          pb.writeTileEntity(t)
+        case _ =>
+          pb.writeBoolean(false)
+          pb.writeInt(event.getWorld.provider.dimensionId)
+          pb.writeDouble(event.getX)
+          pb.writeDouble(event.getY)
+          pb.writeDouble(event.getZ)
+      }
+
+      pb.sendToPlayersNearHost(host, Option(64))
     }
   }
 
