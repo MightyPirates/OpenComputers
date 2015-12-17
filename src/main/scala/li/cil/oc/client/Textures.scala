@@ -63,6 +63,7 @@ object Textures {
   val blockRackServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontOn.png")
   val blockRackServerError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontError.png")
   val blockRackServerActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontActivity.png")
+  val blockRackServerNetworkActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontNetworkActivity.png")
   val blockRackTerminalServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontOn.png")
   val blockRackTerminalServerPresence = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontPresence.png")
 

@@ -12,6 +12,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
 import scala.collection.convert.WrapAsScala._
@@ -73,6 +74,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     val port = checkPort(args.checkInteger(1))
     val packet = api.Network.newPacket(node.address, address, port, args.drop(2).toArray)
     doSend(packet)
+    networkActivity()
     result(true)
   }
 
@@ -81,6 +83,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     val port = checkPort(args.checkInteger(0))
     val packet = api.Network.newPacket(node.address, null, port, args.drop(1).toArray)
     doBroadcast(packet)
+    networkActivity()
     result(true)
   }
 
@@ -137,6 +140,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
     if (packet.source != node.address && Option(packet.destination).forall(_ == node.address)) {
       if (openPorts.contains(packet.port)) {
         node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
+        networkActivity()
       }
       // Accept wake-up messages regardless of port because we close all ports
       // when our computer shuts down.
@@ -184,4 +188,11 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   protected def checkPort(port: Int) =
     if (port < 1 || port > 0xFFFF) throw new IllegalArgumentException("invalid port number")
     else port
+
+  private def networkActivity() {
+    host match {
+      case (h) => ServerPacketSender.sendNetworkActivity(node, h)
+      case _ =>
+    }
+  }
 }

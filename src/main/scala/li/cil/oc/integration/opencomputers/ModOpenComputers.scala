@@ -86,6 +86,7 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(HoverBootsHandler)
     MinecraftForge.EVENT_BUS.register(Loot)
     MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
+    MinecraftForge.EVENT_BUS.register(NetworkActivityHandler)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)

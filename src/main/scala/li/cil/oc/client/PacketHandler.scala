@@ -7,7 +7,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
@@ -63,6 +63,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.NanomachinesInputs => onNanomachinesInputs(p)
       case PacketType.NanomachinesPower => onNanomachinesPower(p)
       case PacketType.NetSplitterState => onNetSplitterState(p)
+      case PacketType.NetworkActivity => onNetworkActivity(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
@@ -169,6 +170,23 @@ object PacketHandler extends CommonPacketHandler {
         val y = p.readDouble()
         val z = p.readDouble()
         MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent.Client(sound, world, x, y, z, data))
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onNetworkActivity(p: PacketParser) = {
+    val data = CompressedStreamTools.read(p)
+    if (p.readBoolean()) p.readTileEntity[net.minecraft.tileentity.TileEntity]() match {
+      case Some(t) =>
+        MinecraftForge.EVENT_BUS.post(new NetworkActivityEvent.Client(t, data))
+      case _ => // Invalid packet.
+    }
+    else world(p.player, p.readInt()) match {
+      case Some(world) =>
+        val x = p.readDouble()
+        val y = p.readDouble()
+        val z = p.readDouble()
+        MinecraftForge.EVENT_BUS.post(new NetworkActivityEvent.Client(world, x, y, z, data))
       case _ => // Invalid packet.
     }
   }

@@ -38,7 +38,8 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
 
   var wasRunning = false
   var hadErrored = false
-  var lastAccess = 0L
+  var lastFileSystemAccess = 0L
+  var lastNetworkActivity = 0L
 
   // ----------------------------------------------------------------------- //
   // Environment
@@ -142,7 +143,8 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
     val nbt = new NBTTagCompound()
     nbt.setBoolean("isRunning", wasRunning)
     nbt.setBoolean("hasErrored", hadErrored)
-    nbt.setLong("lastAccess", lastAccess)
+    nbt.setLong("lastFileSystemAccess", lastFileSystemAccess)
+    nbt.setLong("lastNetworkActivity", lastNetworkActivity)
     nbt
   }
 
