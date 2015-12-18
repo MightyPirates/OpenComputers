@@ -36,9 +36,9 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
       case Some(channel) =>
         handles += handle -> new Handle(this, handle, path, channel)
         handle
-      case _ => throw new FileNotFoundException()
+      case _ => throw new FileNotFoundException(path)
     }
-  } else throw new FileNotFoundException())
+  } else throw new FileNotFoundException(path))
 
   override def getHandle(handle: Int): api.fs.Handle = this.synchronized(handles.get(handle).orNull)
 
