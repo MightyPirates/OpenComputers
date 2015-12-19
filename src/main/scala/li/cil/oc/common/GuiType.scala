@@ -46,9 +46,9 @@ object GuiType extends ScalaEnum {
     val Item = new EnumVal { def name = "Item" }
   }
 
-  def embedSlot(y: Int, slot: Int) = (y & 0x00FFFFFF) | (slot << 6)
+  def embedSlot(y: Int, slot: Int) = (y & 0x00FFFFFF) | (slot << 24)
 
   def extractY(value: Int) = value & 0x00FFFFFF
 
-  def extractSlot(value: Int) = (value >>> 6) & 0xFF
+  def extractSlot(value: Int) = (value >>> 24) & 0xFF
 }
