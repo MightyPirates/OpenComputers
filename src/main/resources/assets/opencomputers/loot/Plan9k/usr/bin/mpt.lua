@@ -32,6 +32,12 @@ end
 
 local function slice(a,i,j) local b = {} for x = i,j do b[x-i+1] = a[x] end return b end
 
+local function keys(t)
+    local r = {}
+    for k, _ in pairs(t) do r[#r + 1] = k end
+    return r
+end
+
 local base, config, backend
 local core
 local frontends
@@ -77,6 +83,8 @@ ocBackend = {
             --print("        Upgrade or add package(s) to the system and install the required")
             --print("        dependencies from sync repositories. Either a URL or file path can be")
             --print("        specified. This is a ?remove-then-add? process.")
+            print("    -y, --update")
+            print("        Update package lists for backends that require such action")
             print("    -u, --upgrades")
             print("        Upgrade all packages that are out-of-date on the")
             print("        local system. Only package versions are used to find outdated packages;")
@@ -87,7 +95,7 @@ ocBackend = {
             print("        Set alternative root directory")
             print("    -v")
             print("        More output")
-            print("    -y")
+            print("    -Y")
             print("        Don't ask any questions, answer automatically")
             print("    -r, --reboot")
             print("        reboot after operation")
@@ -119,7 +127,11 @@ ocBackend = {
             core.upgrade()
         end
         
-        if options.y then
+        if options.y or options.update then
+            core.update()
+        end
+        
+        if options.Y then
             ocBackend.prompt = function()return true end
         end
         
@@ -129,6 +141,7 @@ ocBackend = {
     
     ----FILESYSTEM
     concat = function(...)return ocData.fs.concat(...)end,
+    isDirectory = function(...)return ocData.fs.isDirectory(...)end,
     
     readConfig = function()
         if ocData.fs.exists(core.rootDir..ocData.configDir) then
@@ -191,6 +204,7 @@ ocBackend = {
     getFile = function(url, location)
         core.log(0, "OC", "Get "..url)
         ocBackend.ensureParrentDirectory(location)
+        os.sleep(0)
         return ocData.wget("-q", url, core.rootDir..location)
     end,
     
@@ -206,7 +220,16 @@ ocBackend = {
                 sContent = sContent..chunk
             end
         end)
+        os.sleep(0)
         return sContent
+    end,
+    
+    getData = function(url, post)
+        local data = backend.getText(url, post)
+        if data then
+            local t = load("return "..data, nil, nil, {})()
+            return t
+        end
     end,
     
     ----USER INTERACTION
@@ -230,6 +253,7 @@ mptFrontend = {
         local data = backend.getText(config.frontend.mpt.api.."package/"..name)
         if data then
             local pack = load("return "..data)()
+            if not pack then return end
             return true, pack.dependencies, pack
         end
     end,
@@ -277,19 +301,6 @@ mptFrontend = {
     isOffline = false
 }
 
-local oppmFrontend = {
-    name = "OPPM",
-    findPackage = function(name)end,
-    checkUpdate = function()
-        --https://github.com/OpenPrograms/Magik6k-Programs.git/info/refs?service=git-upload-pack
-        --https://github.com/schacon/igithub/blob/master/http-protocol.txt
-    end,
-    action = function()end,
-    isOffline = false
-}
-
-
-
 local mirrorFrontend
 mirrorFrontend = {
     name = "Mirror",
@@ -323,9 +334,122 @@ mirrorFrontend = {
             backend.removeFile(file)
         end
     end,
-    checkUpdate = function()end,
+    checkUpdate = function()
+        local todo = {}
+        for pack, data in pairs(base.installed) do
+            if data.frontend == mirrorFrontend.name then
+                if mirrorFrontend.base.installed[pack] and 
+                    mirrorFrontend.base.installed[pack].data.checksum ~= base.installed[pack].data.checksum .. (core.data.force and "WAT" or "") then
+                    todo[pack] = {}
+                end
+            end
+        end
+        return todo
+    end,
     action = function()end,
     isOffline = true
+}
+
+
+local oppmInstallRoot = "/usr"
+local function expandOppmFiles(files)
+    for url, file in pairs(files) do
+        local uprt = split(url, "/")
+        local fprt = split(file, "/")
+        local fileisfile = fprt[#fprt] and fprt[#fprt]:match("%.") --rc.d wtf.d?
+        
+        if file:sub(1,2) == "//" then
+            local append = not (fileisfile and not backend.isDirectory(file:sub(2)))
+            files[url] = backend.concat(file:sub(2), append and uprt[#uprt])
+        else
+            local append = not (fileisfile and not backend.isDirectory(backend.concat(oppmInstallRoot, file)))
+            files[url] = backend.concat(oppmInstallRoot, file, append and uprt[#uprt])
+        end
+    end
+    return files
+end
+
+local oppmFrontend
+oppmFrontend = {
+    name = "OPPM",
+    
+    start = function()
+        oppmFrontend.repos = options.oppmRepos or "https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg"
+        base.oppm = base.oppm or {repos = {}, packages = {}}
+    end,
+    
+    updateLists = function()
+        base.oppm.packages = {}
+        base.oppm.repos = {}
+        local repos = backend.getData(oppmFrontend.repos)
+        for _, repo in pairs(repos) do
+            if repo.repo then
+                local repoid = #base.oppm.repos + 1
+                base.oppm.repos[repoid] = repo.repo
+                local packages = backend.getData("https://raw.githubusercontent.com/"..repo.repo.."/master/programs.cfg")
+                if packages then
+                    for name, package in pairs(packages) do
+                        local metadata = {
+                            files = expandOppmFiles(package.files),
+                            dependencies = keys(package.dependencies or {}),
+                            repo = repoid,
+                            version = package.version
+                        }
+                        base.oppm.packages[name] = metadata
+                    end
+                else
+                    core.log(2, "OPPM-upd", "No programs.cfg for " .. repo.repo)
+                end
+                
+            end
+        end
+    end,
+    
+    findPackage = function(name)
+        if base.oppm.packages[name] then
+            return true, base.oppm.packages[name].dependencies, {
+                    files = base.oppm.packages[name].files,
+                    repo = base.oppm.repos[base.oppm.packages[name].repo],
+                    name = name,
+                    version = base.oppm.packages[name].version
+                }
+        end
+    end,
+    getFilesIntoCache = function(data)
+        for url, file in pairs(data.files) do
+            if not backend.fileExists(config.cacheDir.."oppm/"..data.name.."/"..file) then
+                backend.getFile("https://raw.githubusercontent.com/" .. data.repo .. "/" .. url,
+                    config.cacheDir .. "oppm/" .. data.name .. "/" .. file)
+            end
+        end
+        return data.files
+    end,
+    installFiles = function(data)
+        for _, file in pairs(data.files) do
+            backend.copyFile(config.cacheDir.."oppm/"..data.name ..file, file)
+        end
+        backend.removeFile(config.cacheDir.."oppm/"..data.name)
+    end,
+    removePackage = function(package)
+        for _, file in pairs(base.installed[package].data.files) do
+            backend.removeFile(file)
+        end
+    end,
+    checkUpdate = function()
+        --https://github.com/OpenPrograms/Magik6k-Programs.git/info/refs?service=git-upload-pack
+        --https://github.com/schacon/igithub/blob/master/http-protocol.txt
+        local todo = {}
+        for pack, data in pairs(base.installed) do
+            if data.frontend == oppmFrontend.name and base.oppm.packages[pack] then
+                if base.installed[pack].data.version ~= base.oppm.packages[pack].version then
+                    todo[pack] = {}
+                end
+            end
+        end
+        return todo
+    end,
+    action = function()end,
+    isOffline = false
 }
 
 backend = ocBackend
@@ -378,6 +502,7 @@ core = {
         install = false,
         upgrade = false,
         remove = false,
+        update = false,
         
         force = false,
         
@@ -404,6 +529,10 @@ core = {
         core.data.upgrade = true
         core.data.install = true
     end,
+    
+    update = function()
+        core.data.update = true
+    end,
 
     --[[
         Adds package installation task queue
@@ -421,6 +550,14 @@ core = {
             error("Package "..name.." is not installed!")
         end
         core.data.removeList[#core.data.removeList+1] = name
+    end,
+    
+    updateLists = function()
+        for _, f in ipairs(frontends) do
+            if f.updateLists then
+                f.updateLists()
+            end
+        end
     end,
 
     checkPackage = function(name)
@@ -441,7 +578,7 @@ core = {
                     core.data.installList[pack] = package
                 end
             else
-                error("Package "..pack.." not found!")
+                error("Package "..pack.." not found! Try mpt -Sy")
             end
         end
     end,
@@ -495,6 +632,11 @@ core = {
     end,
 
     doWork = function()
+        if core.data.update then
+            core.log(1, "Update", "Downloading package lists")
+            core.updateLists()
+        end
+        
         if core.data.install then
             core.log(1, "Install", "Checking requested packages")
             core.getPackages()

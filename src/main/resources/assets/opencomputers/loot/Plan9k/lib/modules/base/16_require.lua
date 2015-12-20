@@ -86,6 +86,7 @@ kernel.userspace.require = function(module)
 end
 
 function start()
+    kernel.userspace.package.preload.package = kernel.userspace.package --TODO TODO TODO: METATABLE THIZ!!!!!!!!
     kernel.userspace.package.preload.filesystem = setmetatable({}, {__index = kernel.modules.vfs})
     kernel.userspace.package.preload.buffer = setmetatable({}, {__index = kernel.modules.buffer})
     kernel.userspace.package.preload.bit32 = setmetatable({}, {__index = kernel.userspace.bit32})
@@ -93,4 +94,42 @@ function start()
     kernel.userspace.package.preload.computer = setmetatable({}, {__index = kernel.userspace.computer})
     kernel.userspace.package.preload.io = setmetatable({}, {__index = kernel.modules.io.io})
     kernel.userspace.package.preload.unicode = setmetatable({}, {__index = kernel.userspace.unicode})
+    
+    --TODO: fix override.. maybe
+    
+    setmetatable(kernel.userspace.package.preload, {
+        __index = function(t, k) 
+            return kernel.modules.threading.currentThread.cgroups.module.preload[k]
+        end,
+        __newindex = function(t, k, v)
+            kernel.modules.threading.currentThread.cgroups.module.preload[k] = v
+        end
+    })
+
+    setmetatable(kernel.userspace.package.loaded, {
+        __index = function(t, k) 
+            return kernel.modules.threading.currentThread.cgroups.module.loaded[k]
+        end,
+        __newindex = function(t, k, v)
+            kernel.modules.threading.currentThread.cgroups.module.loaded[k] = v
+        end
+    })
+
+    setmetatable(kernel.userspace.package.loading, {
+        __index = function(t, k) 
+            return kernel.modules.threading.currentThread.cgroups.module.loading[k]
+        end,
+        __newindex = function(t, k, v)
+            kernel.modules.threading.currentThread.cgroups.module.loading[k] = v
+        end
+    })
+
+    setmetatable(kernel.userspace.package.searchers, {
+        __index = function(t, k) 
+            return kernel.modules.threading.currentThread.cgroups.module.searchers[k]
+        end,
+        __newindex = function(t, k, v)
+            kernel.modules.threading.currentThread.cgroups.module.searchers[k] = v
+        end
+    })
 end

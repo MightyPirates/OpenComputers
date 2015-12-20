@@ -10,6 +10,8 @@ local args = {...}
 --end
 
 local gpu = args[1] --component.list("gpu", true)()
+local screen = args[2]
+local blink = true
 local w, h
 if gpu then
     --component.invoke(gpu, "bind", screen)
@@ -201,78 +203,103 @@ local commandList = {}
 
 --Add fake gpu component for compat(?)
 
-function charHandlers.control(char)
-    if char == "\x1b" then
-        commandList = {}
-        commandBuf = ""
-        commandMode = ""
-        unblink()
-        return
-    elseif char == "[" then
-        if commandMode ~= "" or commandBuf ~= "" then
-            charHandlers.active = charHandlers.base
-            reblink()
-            return
-        end
-        commandMode = "["
-        return
-    elseif char == "(" then
-        if commandMode ~= "" or commandBuf ~= "" then
-            charHandlers.active = charHandlers.base
-            reblink()
-            return
-        end
-        commandMode = "("
-        return
-    elseif char == "9" and commandMode == "" and commandBuf == "" then
+local control = {}
+
+control["\x1b"] = function(char) --Begin
+    commandList = {}
+    commandBuf = ""
+    commandMode = ""
+    unblink()
+    return true
+end
+
+control["["] = function(char)
+    if commandMode ~= "" or commandBuf ~= "" then
+        charHandlers.active = charHandlers.base
+        reblink()
+        return true
+    end
+    commandMode = "["
+    return true
+end
+
+control["("] = function(char)
+    if commandMode ~= "" or commandBuf ~= "" then
+        charHandlers.active = charHandlers.base
+        reblink()
+        return true
+    end
+    commandMode = "("
+    return true
+end
+
+control["9"] = function(char)
+    if commandMode == "" and commandBuf == "" then
         commandMode = "9"
-        return
-    elseif char == ";" then
-        commandList[#commandList + 1] = commandBuf
-        commandBuf = ""
-        return
-    elseif char == "m" then
-        commandList[#commandList + 1] = commandBuf
-        if not commandList[1] or commandList[1] == "" then
-            commandList[1] = "0"
+    else
+        commandBuf = commandBuf .. char
+        return true
+    end
+    return true
+end
+
+control[";"] = function(char)
+    commandList[#commandList + 1] = commandBuf
+    commandBuf = ""
+    return true
+end
+
+control["m"] = function(char)
+    commandList[#commandList + 1] = commandBuf
+    if not commandList[1] or commandList[1] == "" then
+        commandList[1] = "0"
+    end
+    for _, command in ipairs(commandList) do
+        if not mcommands[command] then
+            pipes.log("Unknown escape code: " .. tostring(command))
+            break
         end
-        for _, command in ipairs(commandList) do
-            if not mcommands[command] then
-                pipes.log("Unknown escape code: " .. tostring(command))
-                break
-            end
-            mcommands[command]()
+        mcommands[command]()
+    end
+end
+
+control["l"] = function(char)
+    commandList[#commandList + 1] = commandBuf
+    if not commandList[1] or commandList[1] == "" then
+        commandList[1] = "0"
+    end
+    for _, command in ipairs(commandList) do
+        if not lcommands[command] then
+            pipes.log("Unknown escape code: " .. tostring(command))
+            break
         end
-    elseif char == "l" then
-        commandList[#commandList + 1] = commandBuf
-        if not commandList[1] or commandList[1] == "" then
-            commandList[1] = "0"
+        lcommands[command]()
+    end
+end
+
+control["n"] = function(char)
+    commandList[#commandList + 1] = commandBuf
+    if not commandList[1] or commandList[1] == "" then
+        commandList[1] = "0"
+    end
+    for _, command in ipairs(commandList) do
+        if not ncommands[command] then
+            pipes.log("Unknown escape code: " .. tostring(command))
+            break
         end
-        for _, command in ipairs(commandList) do
-            if not lcommands[command] then
-                pipes.log("Unknown escape code: " .. tostring(command))
-                break
-            end
-            lcommands[command]()
-        end
-    elseif char == "n" then
-        commandList[#commandList + 1] = commandBuf
-        if not commandList[1] or commandList[1] == "" then
-            commandList[1] = "0"
-        end
-        for _, command in ipairs(commandList) do
-            if not ncommands[command] then
-                pipes.log("Unknown escape code: " .. tostring(command))
-                break
-            end
-            ncommands[command]()
-        end
-    elseif char == "d" then 
-        commandList[#commandList + 1] = commandBuf
-        local n = tonumber(commandList[1]) or 1
-        y = math.max(n, 1)
-        checkCoord()
-    elseif char == "R" and commandMode == "9" then --set resolution
+        ncommands[command]()
+    end
+end
+
+control["d"] = function(char)
+    commandList[#commandList + 1] = commandBuf
+    local n = tonumber(commandList[1]) or 1
+    y = math.max(n, 1)
+    checkCoord()
+end
+
+control["R"] = function(char) --Set resolution
+    if commandMode == "9" then
         commandList[#commandList + 1] = commandBuf
         local nh, nw = tonumber(commandList[1]) or h, tonumber(commandList[2]) or w
         if x > nw then x = math.max(nw, 1) end
@@ -281,67 +308,114 @@ function charHandlers.control(char)
             w = nw
             h = nh
         end
-    elseif char == "r" then --set scroll region
-        commandList[#commandList + 1] = commandBuf
-        local nt, nb = tonumber(commandList[1]) or 1, tonumber(commandList[2]) or h
-        scrTop = nt
-        scrBot = nb
-    elseif char == "H" or char == "f" then --set pos
-        commandList[#commandList + 1] = commandBuf
-        local ny, nx = tonumber(commandList[1]), tonumber(commandList[2])
-        x = math.min(nx or 1, w)
-        y = math.min(ny or 1, h)
-        checkCoord()
-    elseif char == "A" then --move up
-        commandList[#commandList + 1] = commandBuf
-        local n = tonumber(commandList[1]) or 1
-        y = y - n
-        checkCoord()
-    elseif char == "B" then --move down
-        if commandMode == "(" then
-            charHandlers.active = charHandlers.base
-            reblink()
-            return
-        end
-        commandList[#commandList + 1] = commandBuf
-        local n = tonumber(commandList[1]) or 1
-        y = math.max(y - n, 1)
-        checkCoord()
-    elseif char == "C" then --move fwd
-        commandList[#commandList + 1] = commandBuf
-        local n = tonumber(commandList[1]) or 1
-        x = x + n
-        checkCoord()
-    elseif char == "D" then --move back
-        commandList[#commandList + 1] = commandBuf
-        local n = tonumber(commandList[1]) or 1
-        x = math.max(x - n, 1)
-        checkCoord()
-    elseif char == "G" then --Cursor Horizontal position Absolute
-        commandList[#commandList + 1] = commandBuf
-        x = tonumber(commandList[1]) or 1
-        checkCoord()
-    elseif char == "J" then --clear
-        commandList[#commandList + 1] = commandBuf
-        if commandList[1] == "2" then
-            component.invoke(gpu, "fill", 1, 1, w, h, " ")
-            x, y = 1, 1
-        end
-    elseif char == "K" then --Erase to end of line
-        commandList[#commandList + 1] = commandBuf
-        component.invoke(gpu, "fill", x, y, w - x, 1, " ")
-    elseif char == "X" then --Erase next chars
-        commandList[#commandList + 1] = commandBuf
-        component.invoke(gpu, "fill", x, y, tonumber(commandList[1]) or 1, 1, " ")
-    else
-        commandBuf = commandBuf .. char
-        return
     end
-    charHandlers.active = charHandlers.base
-    reblink()
-    commandList = {}
-    commandBuf = ""
-    commandMode = ""
+end
+
+control["I"] = function(char) --Term info
+    if commandMode == "9" then
+        io.write("\x1b9" .. gpu .. ";" .. screen .. "I")
+    end
+end
+
+control["!"] = function(char) --Disable
+    if commandMode == "9" then
+        charHandlers.active = function(c)
+            if c == "\255" then
+                commandList = {}
+                commandBuf = ""
+                commandMode = ""
+                charHandlers.active = charHandlers.base
+            end
+        end
+        blink = false
+        return true
+    end
+end
+
+control["r"] = function(char) --Set scroll region
+    commandList[#commandList + 1] = commandBuf
+    local nt, nb = tonumber(commandList[1]) or 1, tonumber(commandList[2]) or h
+    scrTop = nt
+    scrBot = nb
+end
+
+control["H"] = function(char) --set pos
+    commandList[#commandList + 1] = commandBuf
+    local ny, nx = tonumber(commandList[1]), tonumber(commandList[2])
+    x = math.min(nx or 1, w)
+    y = math.min(ny or 1, h)
+    checkCoord()
+end
+control["f"] = control["H"]
+
+
+control["A"] = function(char) --Move up
+    commandList[#commandList + 1] = commandBuf
+    local n = tonumber(commandList[1]) or 1
+    y = y - n
+    checkCoord()
+end
+
+control["B"] = function(char) --Move down
+    if commandMode == "(" then
+        charHandlers.active = charHandlers.base
+        reblink()
+        return true
+    end
+    commandList[#commandList + 1] = commandBuf
+    local n = tonumber(commandList[1]) or 1
+    y = math.max(y - n, 1)
+    checkCoord()
+end
+
+control["C"] = function(char) --Move forward
+    commandList[#commandList + 1] = commandBuf
+    local n = tonumber(commandList[1]) or 1
+    x = x + n
+    checkCoord()
+end
+
+control["D"] = function(char)
+    commandList[#commandList + 1] = commandBuf
+    local n = tonumber(commandList[1]) or 1
+    x = math.max(x - n, 1)
+    checkCoord()
+end
+
+control["G"] = function(char) --Cursor Horizontal position Absolute
+    commandList[#commandList + 1] = commandBuf
+    x = tonumber(commandList[1]) or 1
+    checkCoord()
+end
+
+control["J"] = function(char) --Clear
+    commandList[#commandList + 1] = commandBuf
+    if commandList[1] == "2" then
+        component.invoke(gpu, "fill", 1, 1, w, h, " ")
+        x, y = 1, 1
+    end
+end
+
+control["K"] = function(char) --Erase to end of line
+    commandList[#commandList + 1] = commandBuf
+    component.invoke(gpu, "fill", x, y, w - x, 1, " ")
+end
+
+control["X"] = function(char) --Erase next chars
+    commandList[#commandList + 1] = commandBuf
+    component.invoke(gpu, "fill", x, y, tonumber(commandList[1]) or 1, 1, " ")
+end
+
+function charHandlers.control(char)
+    if control[char] and not control[char](char) then
+        charHandlers.active = charHandlers.base
+        reblink()
+        commandList = {}
+        commandBuf = ""
+        commandMode = ""
+    elseif not control[char] then
+        commandBuf = commandBuf .. char
+    end
 end
 
 ---Char handler end
@@ -360,15 +434,17 @@ local function _print(msg)
 end
 
 pipes.setTimer(function()
-    blinkState = not blinkState
-    local char, fg, bg = component.invoke(gpu, "get", x, y)
-    preblinkbg = blinkState and bg or preblinkbg
-    preblinkfg = blinkState and fg or preblinkfg
-    local oribg, obpal = component.invoke(gpu, "setBackground", blinkState and 0xFFFFFF or preblinkbg)
-    local orifg, ofpal = component.invoke(gpu, "setForeground", blinkState and 0x000000 or preblinkfg)
-    component.invoke(gpu, "set", x, y, char  or " ")
-    component.invoke(gpu, "setBackground", oribg)
-    component.invoke(gpu, "setForeground", orifg)
+    if blink then
+        blinkState = not blinkState
+        local char, fg, bg = component.invoke(gpu, "get", x, y)
+        preblinkbg = blinkState and bg or preblinkbg
+        preblinkfg = blinkState and fg or preblinkfg
+        local oribg, obpal = component.invoke(gpu, "setBackground", blinkState and 0xFFFFFF or preblinkbg)
+        local orifg, ofpal = component.invoke(gpu, "setForeground", blinkState and 0x000000 or preblinkfg)
+        component.invoke(gpu, "set", x, y, char  or " ")
+        component.invoke(gpu, "setBackground", oribg)
+        component.invoke(gpu, "setForeground", orifg)
+    end
 end, 0.5)
 
 while true do

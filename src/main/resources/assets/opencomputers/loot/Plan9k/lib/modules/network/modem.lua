@@ -1,20 +1,26 @@
 --[[
 Communication on port 1!
 Node protocol:
-Hello/broadcast(sent by new host in node):  H (modem addersses are in event)
-Hi/direct(sent by hosts to new host):       I (^)
-Host quitting/broadcast                     Q (^)
-Data/direct                                 D[data] (origin from event)
+Hello/broadcast(sent by new host in node):  \0 (modem addersses are in event)
+Hi/direct(sent by hosts to new host):       \1 (^)
+OHAI/direct(Ack of Hi(\1))                  \2
+Host quitting/broadcast                     \3 (^)
+Data/direct                                 \4[data] (origin from event)
 ]]
 local driver = {}
 
 local nodes = {}
 local eventHnd
 
+local PKT_BEACON        = "\0"
+local PKT_REGISTER      = "\1"
+local PKT_REGISTER_ACK  = "\2"
+local PKT_QUIT          = "\3"
+local PKT_DATA          = "\4"
+
 function driver.start(eventHandler)
     eventHnd = eventHandler
-    local c = 0
-    
+
     eventHandler.setListener("modem_message", function(_, interface, origin, port, _, data)
             if not nodes[interface] then return end --other kind of modem(possibly tunnel)
             
@@ -23,34 +29,42 @@ function driver.start(eventHandler)
             nodes[interface].pktIn = nodes[interface].pktIn + 1
             nodes[interface].bytesIn = nodes[interface].bytesIn + data:len()
             
-            if data:sub(1,1) == "H" then
+            if data:sub(1,1) == PKT_BEACON then
+                component.invoke(interface, "send", origin, 1, PKT_REGISTER )
+            elseif data:sub(1,1) == PKT_REGISTER then
                 eventHandler.newHost(nodes[interface].name, origin)
-                component.invoke(interface, "send", origin, 1, "I")
-                eventHandler.debug("REPL:",interface,origin)
-            elseif data:sub(1,1) == "I"then
+                component.invoke(interface, "send", origin, 1, PKT_REGISTER_ACK)
+            elseif data:sub(1,1) == PKT_REGISTER_ACK then
                 eventHandler.newHost(nodes[interface].name, origin)
-            elseif data:sub(1,1) == "Q"then
+            elseif data:sub(1,1) == PKT_QUIT then
                 eventHandler.delHost(nodes[interface].name, origin)
-            elseif data:sub(1,1) == "D"then
+            elseif data:sub(1,1) == PKT_DATA then
                 eventHandler.recvData(data:sub(2), nodes[interface].name, origin)
             end
             
         end)
     
-    for int in component.list("modem", true)do
-        eventHandler.newInterface("eth"..tostring(c), int, "Ethernet")
+    eventHandler.setListener("component_added", function(_, int, ctype)
+        if ctype ~= "modem" then return end
+        local name = "eth" .. int:sub(1, 4):upper()
+        eventHandler.newInterface(name, int, "Ethernet")
         
-        nodes["eth"..tostring(c)] = {modem = int, name = "eth"..tostring(c), pktIn = 0, pktOut = 1, bytesIn = 0, bytesOut = 1}
-        nodes[int] = nodes["eth"..tostring(c)]
+        nodes[name] = {modem = int, name = name, pktIn = 0, pktOut = 1, bytesIn = 0, bytesOut = 1}
+        nodes[int] = nodes[name]
         
         component.invoke(int, "open", 1)
-        component.invoke(int, "broadcast", 1, "H")
+        component.invoke(int, "broadcast", 1, PKT_BEACON)
         
-        eventHandler.newHost("eth"..tostring(c), int)--register loopback
-        c = c + 1
-    end
+        eventHandler.newHost(name, int)--register loopback
+    end)
     
-    --eventHandler.newHost("lo", "localhost")
+    eventHandler.setListener("component_removed", function(_, int, ctype)
+        if ctype ~= "modem" then return end
+        local name = "eth" .. int:sub(1, 4):upper()
+        nodes[name] = nil
+        nodes[int] = nil
+        eventHnd.delInterface(int)
+    end)
     return {}
 end
 
@@ -65,7 +79,7 @@ function driver.send(handle, interface, destination, data)
         else
             nodes[interface].pktOut = nodes[interface].pktOut + 1
             nodes[interface].bytesOut = nodes[interface].bytesOut + 1 + data:len()
-            component.invoke(nodes[interface].modem, "send", destination, 1, "D"..data)
+            component.invoke(nodes[interface].modem, "send", destination, 1, PKT_DATA..data)
         end
     end
 end

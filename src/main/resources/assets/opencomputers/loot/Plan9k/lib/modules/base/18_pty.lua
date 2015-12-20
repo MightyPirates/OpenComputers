@@ -23,7 +23,15 @@ function nextPty(at)
     elseif list[pty].next then
         return nextPty(pty)
     else
-        return pty, list[pty]
+        return pty, {
+            __type = "f",
+            read = function(h, ...)
+                return list[pty]:read(...)
+            end,
+            write = function(h, ...)
+                return list[pty]:write(...)
+            end
+        }
     end
 end
 
@@ -32,7 +40,15 @@ function start()
         __newindex = function()error("Access denied")end,
         __index = function(_,k)
             if list[tonumber(k)] and list[tonumber(k)].id then
-                return list[tonumber(k)]
+                return {
+                    __type = "f",
+                    read = function(h, ...)
+                        return list[tonumber(k)]:read(...)
+                    end,
+                    write = function(h, ...)
+                        return list[tonumber(k)]:write(...)
+                    end
+                    }
             end
         end,
         __pairs = function()
@@ -40,7 +56,8 @@ function start()
             return function()
                 local k, v = nextPty(lastIndex)
                 lastIndex = k
-                return k and tostring(k), k and tostring(v)
+                if not k then return end
+                return k and tostring(k), k and v
             end
         end
     })
