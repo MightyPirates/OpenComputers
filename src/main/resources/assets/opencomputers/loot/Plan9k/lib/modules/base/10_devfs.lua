@@ -52,6 +52,9 @@ proxy.read = function(h, ...)
     return handles[h].file.read(handles[h], ...)
 end
 proxy.close = function(h)
+    if handles[h].file.close then
+        handles[h].file.close(handles[h])
+    end
     allocator:unset(handles[h])
 end
 proxy.write = function(h, ...)
@@ -97,6 +100,19 @@ data.kmsg = {
     write = function(h, data)
         kernel.io.println(data)
     end
+}
+data.kcmd = {
+    __type = "f",
+    open = function(h) h.buf = "" end,
+    write = function(h, data)
+        h.buf = h.buf .. kernel.modules.cmd.execute(data) or ""
+    end,
+    read = function(h)
+        local res = h.buf
+        h.buf = ""
+        return res
+    end,
+    close = function(h) h.buf = nil end
 }
 data.zero = {
     __type = "f",

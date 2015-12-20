@@ -15,6 +15,9 @@ function start()
     kernel.userspace.package.preload.pipes.joinThread = kernel.modules.threadUtil.joinThread
     kernel.userspace.package.preload.pipes.getThreadInfo = kernel.modules.threadUtil.getThreadInfo
     kernel.userspace.package.preload.pipes.setKillHandler = kernel.modules.threadUtil.setKillHandler
+    kernel.userspace.package.preload.pipes.getPid = function()
+        return kernel.modules.threading.currentThread.pid, kernel.modules.threading.currentThread.uid
+    end
     
     kernel.userspace.package.preload.pipes.shouldYield = kernel.modules.threading.checkTimeout
     kernel.userspace.package.preload.pipes.setTimer = kernel.modules.timer.add
@@ -28,4 +31,8 @@ function start()
     
     kernel.userspace.package.preload.pipes.openPty = kernel.modules.pty.new
     kernel.userspace.package.preload.pipes.cowProxy = kernel.modules.cowfs.new
+    
+    kernel.userspace.package.preload.pipes.wrapIPC = kernel.modules.ipc.wrap
+    
+    kernel.userspace.package.preload.pipes.setns = kernel.modules.cgroups.new
 end

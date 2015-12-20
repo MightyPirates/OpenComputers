@@ -2,6 +2,22 @@ local io = {}
 
 -------------------------------------------------------------------------------
 
+local function buffWrap(b)
+    return setmetatable({
+        _closed = false, 
+        close = function() _closed = true end
+        }, { __index = function(t, k)
+            return type(b[k]) == "function" and function(...)
+                if not t._closed then
+                    return b[k](...)
+                end
+                return nil, "File is closed"
+            end or b[k]
+        end})
+end
+
+-------------------------------------------------------------------------------
+
 function io.close(file)
   return (file or io.output()):close()
 end
@@ -52,6 +68,13 @@ end
 
 function io.open(path, mode)
   -- These requires are not on top because this is a bootstrapped file.
+  if path == "-" then
+    if mode:sub(1, 1) == "r" then
+        return buffWrap(io.input())
+    else
+        return buffWrap(io.output())
+    end
+  end
   local stream, result = kernel.modules.vfs.open(path, mode)
   if stream then
     return kernel.modules.buffer.new(mode, stream)

@@ -1,34 +1,15 @@
 local kernel = require("pipes")
 local term = require("term")
+local text = require("text")
+local shell = require("shell")
 local fs = require("filesystem")
 
+local alias = {}
 local builtin = {}
 
-local function tokenize(cmd)
-    local res = {}
-    
-    local currentWord = ""
-    
-    for char in string.gmatch(cmd, ".") do
-        if char:match("[%w%._%-/~=:]") then
-            currentWord = currentWord .. char
-        elseif char:match("[|><&]+") then
-            if #currentWord > 0 then
-                res[#res + 1] = currentWord
-                currentWord = ""
-            end
-            res[#res + 1] = char
-        elseif char:match("%s") and #currentWord > 0 then
-            res[#res + 1] = currentWord
-            currentWord = ""
-        end
-    end
-    if #currentWord > 0 then
-        res[#res + 1] = currentWord
-    end
-    --print("Tokenized: ", table.unpack(res))
-    return res
-end
+-------------------
+-- Interpreter
+-- TODO: Move to lib
 
 local function parse(tokens)
     -- {{arg = {"cat", "file.txt"}, stdin = "-", stdout = 1}, {arg = {"wc", "-c"}, stdin = 1, stdout = "out.txt"}}, 1
@@ -45,7 +26,17 @@ local function parse(tokens)
     for k, token in ipairs(tokens) do
         if not skip then
             if token:match("[%w%._%-/~]+") and not notarg then
-                arg[#arg + 1] = token
+                local tlen = #token
+                if (token:sub(1,1)=="\"" or token:sub(1,1)=="'") and (token:sub(tlen,tlen)=="\"" or token:sub(tlen,tlen)=="'") then
+                    token = token:sub(2, tlen - 1)
+                end
+                if #arg == 0 and alias[token] then
+                    for _, v in pairs(alias[token]) do
+                        arg[#arg + 1] = v
+                    end
+                else
+                    arg[#arg + 1] = token
+                end
             elseif token == "|" then
                 pipes = pipes + 1
                 res[#res + 1] = {arg = arg, stdin = nextin, stdout = pipes}
@@ -64,7 +55,7 @@ local function parse(tokens)
                 if not tokens[k + 1]:match("[%w%._%-/~]+") then error("Syntax error") end
                 nextout = tokens[k + 1]
                 skip = true
-                print("APPEND MODE IS NOT FULLY IMPLEMENTED")
+                print("APPEND MODE IS NOT IMPLEMENTED")
             elseif token == "&" then
                 res[#res + 1] = {arg = arg, stdin = nextin, stdout = nextout, nowait = true}
                 nextout = "-"
@@ -103,7 +94,7 @@ local function resolveProgram(name)
 end
 
 local function execute(cmd)
-    local tokens = tokenize(cmd)
+    local tokens = text.tokenize(cmd)
     local programs, npipes = parse(tokens)
     
     local pipes = {}
@@ -158,6 +149,9 @@ local function expand(value)
     return result
 end
 
+-------------------
+-- Builtins
+
 local run = true
 
 builtin.cd = function(dir)
@@ -179,7 +173,17 @@ builtin.exit = function()
     run = false
 end
 
-local term = require("term")
+builtin.alias = function(what, ...)
+    alias[what] = {...}
+end
+
+builtin.unalias = function(what)
+    alias[what] = nil
+end
+
+-------------------
+-- Logging
+
 local history = {}
 
 if fs.exists("~/.history") then
@@ -199,13 +203,120 @@ local function log(cmd)
     hisfile:close()
 end
 
-while run do
-    if term.getCursor() > 1 then
-        io.write("\n")
+-------------------
+-- Tab completion
+
+local function escapeMagic(text)
+    return text:gsub('[%(%)%.%%%+%-%*%?%[%^%$]', '%%%1')
+end
+
+local function getMatchingPrograms(baseName)
+    local result = {}
+    -- TODO only matching files with .lua extension for now, might want to
+    --      extend this to other extensions at some point? env var? file attrs?
+    if not baseName or #baseName == 0 then
+        baseName = "^(.*)%.lua$"
+    else
+        baseName = "^(" .. escapeMagic(baseName) .. ".*)%.lua$"
     end
-    io.write("\x1b49m\x1b39m")
+    for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
+        for file in fs.list(basePath) do
+            local match = file:match(baseName)
+            if match then
+                table.insert(result, match)
+            end
+        end
+    end
+    return result
+end
+
+local function getMatchingFiles(basePath, name)
+    local resolvedPath = shell.resolve(basePath)
+    local result, baseName = {}
+    
+    -- note: we strip the trailing / to make it easier to navigate through
+    -- directories using tab completion (since entering the / will then serve
+    -- as the intention to go into the currently hinted one).
+    -- if we have a directory but no trailing slash there may be alternatives
+    -- on the same level, so don't look inside that directory... (cont.)
+    if fs.isDirectory(resolvedPath) and name:len() == 0 then
+        baseName = "^(.-)/?$"
+    else
+        baseName = "^(" .. escapeMagic(name) .. ".-)/?$"
+    end
+    
+    for file in fs.list(resolvedPath) do
+        local match = file:match(baseName)
+        if match then
+            table.insert(result, basePath ..  match)
+        end
+    end
+    -- (cont.) but if there's only one match and it's a directory, *then* we
+    -- do want to add the trailing slash here.
+    if #result == 1 and fs.isDirectory(result[1]) then
+        result[1] = result[1] .. "/"
+    end
+    return result
+end
+
+local function hintHandler(line, cursor)
+    local line = unicode.sub(line, 1, cursor - 1)
+    if not line or #line < 1 then
+        return nil
+    end
+    local result
+    local prefix, partial = string.match(line, "^(.+%s)(.+)$")
+    local searchInPath = not prefix and not line:find("/")
+    if searchInPath then
+        -- first part and no path, look for programs in the $PATH
+        result = getMatchingPrograms(line)
+    else -- just look normal files
+        local partialPrefix = (partial or line)
+        local name = partialPrefix:gsub("/+", "/")
+        name = name:sub(-1) == '/' and '' or fs.name(name)
+        partialPrefix = partialPrefix:sub(1, -name:len() - 1)
+        result = getMatchingFiles(partialPrefix, name)
+    end
+    local resultSuffix = ""
+    if searchInPath then
+        resultSuffix  = " "
+    elseif #result == 1 and result[1]:sub(-1) ~= '/' then
+        resultSuffix = " "
+    end
+    prefix = prefix or ""
+    for i = 1, #result do
+        result[i] = prefix .. result[i] .. resultSuffix
+    end
+    table.sort(result)
+    return result
+end
+
+-------------------
+-- Built-in aliases
+
+builtin.alias("la", "ls", "-a")
+builtin.alias("la", "ll", "-la")
+builtin.alias("lh", "ls", "-h")
+builtin.alias("help", "man")
+builtin.alias("service", "rc")
+builtin.alias("upgrade", "mpt", "-Syu")
+builtin.alias("pacman", "mpt")
+
+builtin.alias("..", "cd", "..")
+builtin.alias("...", "cd", "../..")
+builtin.alias("....", "cd", "../../..")
+
+
+-------------------
+-- Main loop
+
+while run do
+    --if term.getCursor() > 1 then
+    --    io.write("\n")
+    --end
+    io.write("\x1b[49m\x1b[39m")
     io.write(expand(os.getenv("PS1")))
-    local cmd = term.read(history)--io.read("*l")
+    local cmd = term.read(history, nil, hintHandler)--io.read("*l")
     --print("--IN: ", cmd)
     execute(cmd)
     --print("--OUT: ", cmd)

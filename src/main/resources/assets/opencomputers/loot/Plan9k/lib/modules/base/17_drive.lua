@@ -46,7 +46,7 @@ local function buildDevfs()
         end
     end
     for k, drive in ipairs(drives) do
-        kernel.modules.devfs.data["sd" .. string.char(k + 96)] = {
+        kernel.modules.devfs.data["sd" .. drive:sub(1, 4):upper()] = {
             __type = "f",
             open = function(hnd)
                 --component.invoke(drive, "seek", -math.huge)

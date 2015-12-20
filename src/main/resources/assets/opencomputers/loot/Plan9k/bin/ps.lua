@@ -1,6 +1,6 @@
 local pipes = require("pipes")
 
-print("PID    NAME")
+print("PID    PARENT    NAME")
 for _, thread in pairs(pipes.getThreadInfo()) do
-    print(thread.pid, "  ", thread.name)
+    print(thread.pid, "  ", tostring(thread.parent), "    ", thread.name)
 end

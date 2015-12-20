@@ -7,7 +7,6 @@ local eventHnd
 
 function driver.start(eventHandler)
     eventHnd = eventHandler
-    local c = 0
     
     eventHandler.setListener("modem_message", function(_, interface, origin, port, _, data)
             if not nodes[interface] then return end --other kind of modem(possibly modem)
@@ -32,15 +31,14 @@ function driver.start(eventHandler)
         end)
     
     for int in component.list("tunnel", true)do
-        eventHandler.newInterface("tun"..tostring(c), int, "Tunnel")
+        eventHandler.newInterface("tun" .. int:sub(1, 4):upper(), int, "Tunnel")
         
-        nodes["tun"..tostring(c)] = {modem = int, name = "tun"..tostring(c), pktIn = 0, pktOut = 1, bytesIn = 0, bytesOut = 1}
-        nodes[int] = nodes["tun"..tostring(c)]
+        nodes["tun" .. int:sub(1, 4):upper()] = {modem = int, name = "tun" .. int:sub(1, 4):upper(), pktIn = 0, pktOut = 1, bytesIn = 0, bytesOut = 1}
+        nodes[int] = nodes["tun" .. int:sub(1, 4):upper()]
         
         component.invoke(int, "send", "H")
         
-        eventHandler.newHost("tun"..tostring(c), int)--register loopback
-        c = c + 1
+        eventHandler.newHost("tun" .. int:sub(1, 4):upper(), int)--register loopback
     end
     
     --eventHandler.newInterface("lo", "localhost", "Local Loopback")

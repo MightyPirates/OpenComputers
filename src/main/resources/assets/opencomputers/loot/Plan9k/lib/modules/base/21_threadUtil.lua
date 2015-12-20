@@ -14,7 +14,8 @@ function getThreadInfo()
         info[thread.pid] = {
             pid = thread.pid,
             uid = thread.uid,
-            name = thread.name
+            name = thread.name,
+            parent = thread.parent and thread.parent.pid or nil
         }
     end)
     return info
