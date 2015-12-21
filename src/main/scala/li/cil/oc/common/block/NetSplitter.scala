@@ -16,7 +16,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 class NetSplitter extends RedstoneAware {
   override def createBlockState(): BlockState = new ExtendedBlockState(this, Array.empty, Array(PropertyTile.Tile))
 
-  override def getActualState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
+  override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
       case (extendedState: IExtendedBlockState, t: tileentity.NetSplitter) =>
         extendedState.withProperty(property.PropertyTile.Tile, t)

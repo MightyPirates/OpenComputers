@@ -22,7 +22,7 @@ class ServerRack extends RedstoneAware with traits.PowerAcceptor with traits.Sta
 
   override def getMetaFromState(state: IBlockState): Int = state.getValue(PropertyRotatable.Facing).getHorizontalIndex
 
-  override def getActualState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState = {
+  override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState = {
     ((state, world.getTileEntity(pos)) match {
       case (extendedState: IExtendedBlockState, tile: tileentity.traits.TileEntity) =>
         extendedState.withProperty(property.PropertyTile.Tile, tile)

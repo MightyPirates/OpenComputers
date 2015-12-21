@@ -40,7 +40,7 @@ class Cable extends SimpleBlock {
 
   override def createBlockState(): BlockState = new ExtendedBlockState(this, Array.empty, Array(property.PropertyTile.Tile))
 
-  override def getActualState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
+  override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
       case (extendedState: IExtendedBlockState, cable: tileentity.Cable) =>
         extendedState.withProperty(property.PropertyTile.Tile, cable)

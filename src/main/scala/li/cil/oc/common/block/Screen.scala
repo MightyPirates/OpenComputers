@@ -42,7 +42,7 @@ class Screen(val tier: Int) extends RedstoneAware {
 
   override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 8)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0xF))
 
-  override def getActualState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
+  override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState =
     (state, world.getTileEntity(pos)) match {
       case (extendedState: IExtendedBlockState, tile: tileentity.Screen) =>
         extendedState.
