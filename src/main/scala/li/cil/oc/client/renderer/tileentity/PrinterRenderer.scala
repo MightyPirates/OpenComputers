@@ -31,7 +31,7 @@ object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
       val entity = new EntityItem(printer.world, 0, 0, 0, stack)
       entity.hoverStart = 0
       Textures.Block.bind()
-      Minecraft.getMinecraft.getRenderItem.func_181564_a(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
+      Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
 
       RenderState.popMatrix()
       RenderState.popAttrib()

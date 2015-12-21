@@ -123,7 +123,7 @@ object HighlightRenderer {
 
         for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
           val bounds = shape.bounds.rotateTowards(print.facing)
-          RenderGlobal.func_181563_a(bounds.expand(expansion, expansion, expansion)
+          RenderGlobal.drawOutlinedBoundingBox(bounds.expand(expansion, expansion, expansion)
             .offset(blockPos.x, blockPos.y, blockPos.z)
             .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0xFF, 0xFF, 0xFF, 0xFF)
         }

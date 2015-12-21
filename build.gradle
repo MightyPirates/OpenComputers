@@ -281,7 +281,7 @@ minecraft {
 
     // snapshot_YYYYMMDD   snapshot are built nightly.
     // stable_#            stables are built at the discretion of the MCP team.
-    mappings = "snapshot_20151128"
+    mappings = "snapshot_20151219"
 
     replace "@VERSION@", project.simpleVersion
 }
