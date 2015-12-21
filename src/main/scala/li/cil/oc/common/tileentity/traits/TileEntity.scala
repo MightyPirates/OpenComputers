@@ -9,14 +9,14 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity
-import net.minecraft.server.gui.IUpdatePlayerListBox
 import net.minecraft.util.BlockPos
+import net.minecraft.util.ITickable
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 // TODO only implement ticking interface where needed.
-trait TileEntity extends net.minecraft.tileentity.TileEntity with IUpdatePlayerListBox {
+trait TileEntity extends net.minecraft.tileentity.TileEntity with ITickable {
   def world = getWorld
 
   def x = getPos.getX
