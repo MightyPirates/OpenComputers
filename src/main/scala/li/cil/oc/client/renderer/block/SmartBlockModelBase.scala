@@ -6,8 +6,6 @@ import li.cil.oc.client.Textures
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.BakedQuad
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms
-import net.minecraft.client.renderer.block.model.ItemTransformVec3f
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
@@ -15,7 +13,6 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.model.ISmartBlockModel
 import net.minecraftforge.client.model.ISmartItemModel
-import org.lwjgl.util.vector.Vector3f
 
 trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   override def handleBlockState(state: IBlockState) = missingModel
@@ -36,23 +33,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   // texture atlas. So any of our textures we know is loaded into it will do.
   override def getParticleTexture = Textures.getSprite(Textures.Block.GenericTop)
 
-  override def getItemCameraTransforms = DefaultBlockCameraTransforms
-
-  protected final val DefaultBlockCameraTransforms = {
-    // Value from common block item model.
-    val rotation = new Vector3f(10, -45, 170)
-    val translation = new Vector3f(0, 1.5f, -2.75f)
-    val scale = new Vector3f(0.375f, 0.375f, 0.375f)
-    // See ItemTransformVec3f.Deserializer.deserialize0
-    translation.scale(0.0625f)
-    new ItemCameraTransforms(
-      new ItemTransformVec3f(rotation, translation, scale),
-      ItemTransformVec3f.DEFAULT,
-      ItemTransformVec3f.DEFAULT,
-      ItemTransformVec3f.DEFAULT,
-      ItemTransformVec3f.DEFAULT,
-      ItemTransformVec3f.DEFAULT)
-  }
+  override def getItemCameraTransforms = net.minecraft.client.renderer.block.model.ItemCameraTransforms.DEFAULT
 
   protected def missingModel = Minecraft.getMinecraft.getRenderItem.getItemModelMesher.getModelManager.getMissingModel
 
@@ -173,6 +154,10 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   // See FaceBakery#storeVertexData.
   protected def rawData(x: Double, y: Double, z: Double, face: EnumFacing, texture: TextureAtlasSprite, u: Float, v: Float) = {
+    val vx = (face.getFrontOffsetX * 127) & 0xFF
+    val vy = (face.getFrontOffsetY * 127) & 0xFF
+    val vz = (face.getFrontOffsetZ * 127) & 0xFF
+
     Array(
       java.lang.Float.floatToRawIntBits(x.toFloat),
       java.lang.Float.floatToRawIntBits(y.toFloat),
@@ -180,7 +165,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
       getFaceShadeColor(face),
       java.lang.Float.floatToRawIntBits(u * textureScale),
       java.lang.Float.floatToRawIntBits(v * textureScale),
-      0
+      vx | (vy << 0x08) | (vz << 0x10)
     )
   }
 
