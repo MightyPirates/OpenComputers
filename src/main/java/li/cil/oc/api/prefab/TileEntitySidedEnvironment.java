@@ -4,9 +4,9 @@ import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.server.gui.IUpdatePlayerListBox;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ITickable;
 
 /**
  * TileEntities can implement the {@link li.cil.oc.api.network.SidedEnvironment}
@@ -19,7 +19,7 @@ import net.minecraft.util.EnumFacing;
  * network as an index structure to find other nodes connected to them.
  */
 @SuppressWarnings("UnusedDeclaration")
-public abstract class TileEntitySidedEnvironment extends TileEntity implements SidedEnvironment, IUpdatePlayerListBox {
+public abstract class TileEntitySidedEnvironment extends TileEntity implements SidedEnvironment, ITickable {
     // See constructor.
     protected Node[] nodes = new Node[6];
 
