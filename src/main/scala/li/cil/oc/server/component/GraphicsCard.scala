@@ -151,7 +151,7 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
     })
   }
 
-  @Callback(direct = true, limit = 2, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
+  @Callback(direct = true, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
   def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     context.consumeCallBudget(setPaletteColorCosts(tier))
     val index = args.checkInteger(0)
