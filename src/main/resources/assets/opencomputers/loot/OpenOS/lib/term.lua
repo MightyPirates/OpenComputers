@@ -743,8 +743,8 @@ function methods:write(value, wrap)
   if not self:isAvailable() then
     return
   end
-  value = text:gsub("\0", "")
-  value = text.detab(tostring(value))
+  value = tostring(value):gsub("\0", "")
+  value = text.detab(value)
   if unicode.wlen(value) == 0 then
     return
   end
