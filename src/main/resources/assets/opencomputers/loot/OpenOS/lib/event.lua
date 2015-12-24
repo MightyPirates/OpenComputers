@@ -185,11 +185,9 @@ function event.pullFiltered(...)
     filter = args[2]
   end
 
-  local deadline = seconds and
-                   (computer.uptime() + seconds) or
-                   (filter and math.huge or 0)
+  local deadline = seconds and (computer.uptime() + seconds) or math.huge
   repeat
-    local closest = seconds and deadline or math.huge
+    local closest = deadline
     for _, timer in pairs(timers) do
       closest = math.min(closest, timer.after)
     end
@@ -207,8 +205,10 @@ function event.pullFiltered(...)
       lastInterrupt = computer.uptime()
       return "interrupted", awaited
     end
-    if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
-      return table.unpack(signal, 1, signal.n)
+    if signal.n > 0 then
+      if not (seconds or filter) or filter == nil or filter(table.unpack(signal, 1, signal.n)) then
+        return table.unpack(signal, 1, signal.n)
+      end
     end
   until computer.uptime() >= deadline
 end
