@@ -1,3 +1,5 @@
+local component = require("component")
+
 local keyboard = {pressedChars = {}, pressedCodes = {}}
 
 keyboard.keys = {
@@ -144,29 +146,59 @@ end
 
 -------------------------------------------------------------------------------
 
-function keyboard.isAltDown()
-  return (keyboard.pressedCodes[keyboard.keys.lmenu] or keyboard.pressedCodes[keyboard.keys.rmenu]) ~= nil
+local function getKeyboardAddress(address)
+  if address then
+    return address
+  else
+    local primary = component.isAvailable("keyboard") and component.getPrimary("keyboard")
+    if primary then
+      return primary.address
+    end
+  end
+end
+
+local function getPressedCodes(address)
+  address = getKeyboardAddress(address)
+  return address and keyboard.pressedCodes[address] or false
+end
+
+local function getPressedChars(address)
+  address = getKeyboardAddress(address)
+  return address and keyboard.pressedChars[address] or false
+end
+
+function keyboard.isAltDown(address)
+  checkArg(1, address, "string", "nil")
+  local pressedCodes = getPressedCodes(address)
+  return pressedCodes and (pressedCodes[keyboard.keys.lmenu] or pressedCodes[keyboard.keys.rmenu]) ~= nil
 end
 
 function keyboard.isControl(char)
   return type(char) == "number" and (char < 0x20 or (char >= 0x7F and char <= 0x9F))
 end
 
-function keyboard.isControlDown()
-  return (keyboard.pressedCodes[keyboard.keys.lcontrol] or keyboard.pressedCodes[keyboard.keys.rcontrol]) ~= nil
+function keyboard.isControlDown(address)
+  checkArg(1, address, "string", "nil")
+  local pressedCodes = getPressedCodes(address)
+  return pressedCodes and (pressedCodes[keyboard.keys.lcontrol] or pressedCodes[keyboard.keys.rcontrol]) ~= nil
 end
 
-function keyboard.isKeyDown(charOrCode)
+function keyboard.isKeyDown(charOrCode, address)
   checkArg(1, charOrCode, "string", "number")
+  checkArg(2, address, "string", "nil")
   if type(charOrCode) == "string" then
-    return keyboard.pressedChars[utf8 and utf8.codepoint(charOrCode) or charOrCode:byte()]
+    local pressedChars = getPressedChars(address)
+    return pressedChars and pressedChars[utf8 and utf8.codepoint(charOrCode) or charOrCode:byte()]
   elseif type(charOrCode) == "number" then
-    return keyboard.pressedCodes[charOrCode]
+    local pressedCodes = getPressedCodes(address)
+    return pressedCodes and pressedCodes[charOrCode]
   end
 end
 
-function keyboard.isShiftDown()
-  return (keyboard.pressedCodes[keyboard.keys.lshift] or keyboard.pressedCodes[keyboard.keys.rshift]) ~= nil
+function keyboard.isShiftDown(address)
+  checkArg(1, address, "string", "nil")
+  local pressedCodes = getPressedCodes(address)
+  return pressedCodes and (pressedCodes[keyboard.keys.lshift] or pressedCodes[keyboard.keys.rshift]) ~= nil
 end
 
 -------------------------------------------------------------------------------
