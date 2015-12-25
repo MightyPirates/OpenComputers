@@ -177,25 +177,52 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override def onMessage(message: Message): Unit = {
     super.onMessage(message)
     if (message.name == "network.message") message.data match {
-      case Array(packet: Packet) =>
-        for (slot <- 0 until getSizeInventory) {
-          val mapping = nodeMapping(slot)
-          for (connectableIndex <- 0 until 3) {
-            mapping(connectableIndex + 1) match {
-              case Some(side) =>
-                val mountable = getMountable(slot)
-                if (mountable != null && connectableIndex < mountable.getConnectableCount) {
-                  val connectable = mountable.getConnectableAt(connectableIndex)
-                  if (connectable != null && connectable.node == message.source) {
-                    sidedNode(toGlobal(side)).sendToReachable("network.message", packet)
-                    return
-                  }
+      case Array(packet: Packet) => relayIfMessageFromConnectable(message, packet)
+      case _ =>
+    }
+  }
+
+  private def relayIfMessageFromConnectable(message: Message, packet: Packet): Unit = {
+    for (slot <- 0 until getSizeInventory) {
+      val mountable = getMountable(slot)
+      if (mountable != null) {
+        val mapping = nodeMapping(slot)
+        for (connectableIndex <- 0 until 3) {
+          mapping(connectableIndex + 1) match {
+            case Some(side) =>
+              if (connectableIndex < mountable.getConnectableCount) {
+                val connectable = mountable.getConnectableAt(connectableIndex)
+                if (connectable != null && connectable.node == message.source) {
+                  sidedNode(toGlobal(side)).sendToReachable("network.message", packet)
+                  relayToConnectablesOnSide(message, packet, side)
+                  return
                 }
-              case _ => // Not connected to a bus.
-            }
+              }
+            case _ => // Not connected to a bus.
           }
         }
-      case _ =>
+      }
+    }
+  }
+
+  private def relayToConnectablesOnSide(message: Message, packet: Packet, sourceSide: ForgeDirection): Unit = {
+    for (slot <- 0 until getSizeInventory) {
+      val mountable = getMountable(slot)
+      if (mountable != null) {
+        val mapping = nodeMapping(slot)
+        for (connectableIndex <- 0 until 3) {
+          mapping(connectableIndex + 1) match {
+            case Some(side) if side == sourceSide =>
+              if (connectableIndex < mountable.getConnectableCount) {
+                val connectable = mountable.getConnectableAt(connectableIndex)
+                if (connectable != null && connectable.node != message.source) {
+                  snifferNodes(slot)(connectableIndex).sendToNeighbors("network.message", packet)
+                }
+              }
+            case _ => // Not connected to a bus.
+          }
+        }
+      }
     }
   }
 
