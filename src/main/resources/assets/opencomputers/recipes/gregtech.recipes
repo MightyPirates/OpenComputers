@@ -163,10 +163,6 @@ cuttingWire {
   input: [[stickWood, ingotTin, stickWood]
           ["", craftingToolWireCutter, ""]]
 }
-acid {
-  type: shapeless
-  output: 0
-}
 disk {
   input: [["", plateAluminium, ""]
           [plateAluminium, "", plateAluminium]
