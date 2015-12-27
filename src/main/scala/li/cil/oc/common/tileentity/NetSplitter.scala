@@ -38,6 +38,7 @@ class NetSplitter extends traits.Environment with traits.RedstoneAware with api.
       api.Network.joinOrCreateNetwork(this)
       ServerPacketSender.sendNetSplitterState(this)
       world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "tile.piston.out", 0.5f, world.rand.nextFloat() * 0.25f + 0.7f)
+      world.notifyBlocksOfNeighborChange(x, y, z, block)
     }
     else {
       world.markBlockForUpdate(x, y, z)
