@@ -12,6 +12,7 @@ import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
+import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntityCommandBlock
 import net.minecraft.world.World
 
@@ -41,9 +42,13 @@ object DriverCommandBlock extends DriverTileEntity {
     @Callback(doc = "function():number -- Execute the currently set command. This has a slight delay to allow the command block to properly update.")
     def executeCommand(context: Context, args: Arguments): Array[AnyRef] = {
       context.pause(0.1)
-      val commandSender = tileEntity.func_145993_a
-      commandSender.func_145755_a(tileEntity.getWorldObj)
-      result(commandSender.func_145760_g, commandSender.func_145749_h.getUnformattedText)
+      if (!MinecraftServer.getServer.isCommandBlockEnabled) {
+        result(null, "command blocks are disabled")
+      } else {
+        val commandSender = tileEntity.func_145993_a
+        commandSender.func_145755_a(tileEntity.getWorldObj)
+        result(commandSender.func_145760_g, commandSender.func_145749_h.getUnformattedText)
+      }
     }
   }
 
