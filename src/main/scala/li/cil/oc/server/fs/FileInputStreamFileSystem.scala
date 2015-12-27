@@ -38,7 +38,7 @@ trait FileInputStreamFileSystem extends InputStreamFileSystem {
     case file if file.exists() && file.isFile => Array(file.getName)
     case directory if directory.exists() && directory.isDirectory && directory.list() != null =>
       directory.listFiles().map(file => if (file.isDirectory) file.getName + "/" else file.getName)
-    case _ => throw new io.FileNotFoundException("No such file or directory: " + path)
+    case _ => throw new io.FileNotFoundException("no such file or directory: " + path)
   }
 
   // ----------------------------------------------------------------------- //
