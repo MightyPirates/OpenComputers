@@ -324,6 +324,17 @@ object EventHandler {
     Achievement.onCraft(e.crafting, e.player)
   }
 
+  @SubscribeEvent
+  def onPickup(e: ItemPickupEvent): Unit = {
+    val entity = e.pickedUp
+    Option(entity).flatMap(e => Option(e.getEntityItem)) match {
+      case Some(stack) =>
+        Achievement.onAssemble(stack, e.player)
+        Achievement.onCraft(stack, e.player)
+      case _ => // Huh.
+    }
+  }
+
   private def timeForPresents = {
     val now = Calendar.getInstance()
     val month = now.get(Calendar.MONTH)
