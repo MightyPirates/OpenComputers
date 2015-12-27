@@ -273,6 +273,7 @@ class Settings(val config: Config) {
   // ----------------------------------------------------------------------- //
   // internet
   val httpEnabled = config.getBoolean("internet.enableHttp")
+  val httpHeadersEnabled = config.getBoolean("internet.enableHttpHeaders")
   val tcpEnabled = config.getBoolean("internet.enableTcp")
   val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
   val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
