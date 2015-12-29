@@ -107,6 +107,8 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
     }
 
     override def readFromNBT(nbt: NBTTagCompound): Unit = {
+      node.load(nbt)
+
       writeBuffer.clear()
       writeBuffer ++= nbt.getIntArray("writeBuffer").map(_.toShort)
       readBuffer.clear()
@@ -115,6 +117,8 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
     }
 
     override def writeToNBT(nbt: NBTTagCompound): Unit = {
+      node.save(nbt)
+
       nbt.setIntArray("writeBuffer", writeBuffer.toArray.map(_.toInt))
       nbt.setIntArray("readBuffer", readBuffer.toArray.map(_.toInt))
       nbt.setBoolean("isReading", isReading)
