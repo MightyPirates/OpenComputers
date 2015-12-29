@@ -17,6 +17,7 @@ import li.cil.tis3d.api.prefab.manual.ResourceContentProvider
 import li.cil.tis3d.api.serial.SerialInterface
 import li.cil.tis3d.api.serial.SerialInterfaceProvider
 import li.cil.tis3d.api.serial.SerialProtocolDocumentationReference
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
@@ -104,6 +105,20 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
         writeBuffer.clear()
         node.remove()
       })
+    }
+
+    override def readFromNBT(nbt: NBTTagCompound): Unit = {
+      writeBuffer.clear()
+      writeBuffer ++= nbt.getIntArray("writeBuffer").map(_.toShort)
+      readBuffer.clear()
+      readBuffer ++= nbt.getIntArray("readBuffer").map(_.toShort)
+      isReading = nbt.getBoolean("isReading")
+    }
+
+    override def writeToNBT(nbt: NBTTagCompound): Unit = {
+      nbt.setIntArray("writeBuffer", writeBuffer.toArray.map(_.toInt))
+      nbt.setIntArray("readBuffer", readBuffer.toArray.map(_.toInt))
+      nbt.setBoolean("isReading", isReading)
     }
 
     private def ensureConnected(): Unit = {
