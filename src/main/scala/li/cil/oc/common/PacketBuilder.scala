@@ -18,6 +18,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+import org.apache.logging.log4j.LogManager
 
 import scala.collection.convert.WrapAsScala._
 
@@ -80,26 +81,52 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 }
 
 // Necessary to keep track of the GZIP stream.
-abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(stream)
+abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(stream) {
+  var tileEntity: Option[TileEntity] = None
 
-class SimplePacketBuilder(packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
-  writeByte(packetType.id)
-
-  override protected def packet = {
-    new FMLProxyPacket(Unpooled.wrappedBuffer(stream.toByteArray), "OpenComputers")
+  override def writeTileEntity(t: TileEntity): Unit = {
+    super.writeTileEntity(t)
+    if (PacketBuilder.isProfilingEnabled) {
+      tileEntity = Option(t)
+    }
   }
 }
 
-class CompressedPacketBuilder(packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new GZIPOutputStream(data)) {
+class SimplePacketBuilder(val packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
+  writeByte(packetType.id)
+
+  override protected def packet = {
+    val payload = stream.toByteArray
+    PacketBuilder.logPacket(packetType, payload.length, tileEntity)
+    new FMLProxyPacket(Unpooled.wrappedBuffer(payload), "OpenComputers")
+  }
+}
+
+class CompressedPacketBuilder(val packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new GZIPOutputStream(data)) {
   writeByte(packetType.id)
 
   override protected def packet = {
     stream.finish()
-    new FMLProxyPacket(Unpooled.wrappedBuffer(data.toByteArray), "OpenComputers")
+    val payload = data.toByteArray
+    PacketBuilder.logPacket(packetType, payload.length, tileEntity)
+    new FMLProxyPacket(Unpooled.wrappedBuffer(payload), "OpenComputers")
   }
 }
 
 object PacketBuilder {
+  val log = LogManager.getLogger(OpenComputers.Name + "-PacketBuilder")
+  var isProfilingEnabled = false
+
+  def logPacket(packetType: PacketType.Value, payloadSize: Int, tileEntity: Option[TileEntity]): Unit = {
+    if (PacketBuilder.isProfilingEnabled) {
+      tileEntity match {
+        case Some(t) => PacketBuilder.log.info(s"Sending: $packetType @ $payloadSize bytes from (${t.xCoord}, ${t.yCoord}, ${t.zCoord}).")
+        case _ => PacketBuilder.log.info(s"Sending: $packetType @ $payloadSize bytes.")
+
+      }
+    }
+  }
+
   def newData(compressed: Boolean) = {
     val data = new ByteArrayOutputStream
     data.write(if (compressed) 1 else 0)

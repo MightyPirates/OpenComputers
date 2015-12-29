@@ -110,11 +110,13 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
   protected def doSend(packet: Packet) = visibility match {
     case Visibility.Neighbors => node.sendToNeighbors("network.message", packet)
     case Visibility.Network => node.sendToReachable("network.message", packet)
+    case _ => // Ignore.
   }
 
   protected def doBroadcast(packet: Packet) = visibility match {
     case Visibility.Neighbors => node.sendToNeighbors("network.message", packet)
     case Visibility.Network => node.sendToReachable("network.message", packet)
+    case _ => // Ignore.
   }
 
   // ----------------------------------------------------------------------- //
@@ -191,7 +193,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment w
 
   private def networkActivity() {
     host match {
-      case (h) => ServerPacketSender.sendNetworkActivity(node, h)
+      case h: EnvironmentHost => ServerPacketSender.sendNetworkActivity(node, h)
       case _ =>
     }
   }
