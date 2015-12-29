@@ -124,6 +124,7 @@ object Mods {
     //    integration.stargatetech2.ModStargateTech2,
     //    integration.thaumcraft.ModThaumcraft,
     //    integration.thermalexpansion.ModThermalExpansion,
+    integration.tis3d.ModTIS3D,
     //    integration.tcon.ModTinkersConstruct,
     //    integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,

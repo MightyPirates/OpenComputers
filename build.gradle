@@ -183,6 +183,7 @@ configurations {
 
 dependencies {
     deobfCompile "mezz.jei:jei_1.8.8:${config.jei.version}"
+    deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
 /*
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
