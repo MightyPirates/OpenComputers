@@ -17,6 +17,7 @@ import li.cil.tis3d.api.prefab.manual.ResourceContentProvider
 import li.cil.tis3d.api.serial.SerialInterface
 import li.cil.tis3d.api.serial.SerialInterfaceProvider
 import li.cil.tis3d.api.serial.SerialProtocolDocumentationReference
+import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
@@ -30,12 +31,12 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
 
   override def getDocumentationReference = new SerialProtocolDocumentationReference("OpenComputers Adapter", "protocols/opencomputersAdapter.md")
 
-  override def worksWith(world: World, x: Int, y: Int, z: Int, side: EnumFacing): Boolean = world.getTileEntity(x, y, z).isInstanceOf[Adapter]
+  override def worksWith(world: World, position: BlockPos, side: EnumFacing): Boolean = world.getTileEntity(position).isInstanceOf[Adapter]
 
-  override def interfaceFor(world: World, x: Int, y: Int, z: Int, side: EnumFacing): SerialInterface = new SerialInterfaceAdapter(world.getTileEntity(x, y, z).asInstanceOf[Adapter])
+  override def interfaceFor(world: World, position: BlockPos, side: EnumFacing): SerialInterface = new SerialInterfaceAdapter(world.getTileEntity(position).asInstanceOf[Adapter])
 
-  override def isValid(world: World, x: Int, y: Int, z: Int, side: EnumFacing, serialInterface: SerialInterface): Boolean = serialInterface match {
-    case adapter: SerialInterfaceAdapter => adapter.tileEntity == world.getTileEntity(x, y, z)
+  override def isValid(world: World, position: BlockPos, side: EnumFacing, serialInterface: SerialInterface): Boolean = serialInterface match {
+    case adapter: SerialInterfaceAdapter => adapter.tileEntity == world.getTileEntity(position)
     case _ => false
   }
 
