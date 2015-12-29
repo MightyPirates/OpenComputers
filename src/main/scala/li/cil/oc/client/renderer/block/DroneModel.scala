@@ -15,7 +15,7 @@ object DroneModel extends SmartBlockModelBase with ISmartItemModel {
 
   override def handleItemState(stack: ItemStack) = new ItemModel(stack)
 
-  protected def droneTexture = Textures.getSprite(Textures.Model.DroneItem)
+  protected def droneTexture = Textures.getSprite(Textures.Item.DroneItem)
 
   protected def Boxes = Array(
     makeBox(new Vec3(1f / 16f, 7f / 16f, 1f / 16f), new Vec3(7f / 16f, 8f / 16f, 7f / 16f)),
@@ -26,14 +26,10 @@ object DroneModel extends SmartBlockModelBase with ISmartItemModel {
   )
 
   class ItemModel(val stack: ItemStack) extends SmartBlockModelBase {
-    override protected def textureScale = 32f
-
     override def getGeneralQuads = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
       faces ++= Boxes.flatMap(box => bakeQuads(box, Array.fill(6)(droneTexture), None))
-
-      Textures.bind(Textures.Model.DroneItem)
 
       bufferAsJavaList(faces)
     }

@@ -80,8 +80,6 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
 
   protected final val NoTint = -1
 
-  protected def textureScale = 1f
-
   /**
     * Generates a list of arrays, each containing the four vertices making up a
     * face of the box with the specified size.
@@ -182,8 +180,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
       java.lang.Float.floatToRawIntBits(y.toFloat),
       java.lang.Float.floatToRawIntBits(z.toFloat),
       getFaceShadeColor(face),
-      java.lang.Float.floatToRawIntBits(u * textureScale),
-      java.lang.Float.floatToRawIntBits(v * textureScale),
+      java.lang.Float.floatToRawIntBits(u),
+      java.lang.Float.floatToRawIntBits(v),
       vx | (vy << 0x08) | (vz << 0x10)
     )
   }

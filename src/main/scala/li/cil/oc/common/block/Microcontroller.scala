@@ -10,7 +10,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.integration.util.Wrench
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.Rarity
@@ -29,7 +29,7 @@ import scala.reflect.ClassTag
 
 class Microcontroller(protected implicit val tileTag: ClassTag[tileentity.Microcontroller]) extends RedstoneAware with traits.PowerAcceptor with traits.StateAware with traits.CustomDrops[tileentity.Microcontroller] {
   setCreativeTab(null)
-  NEI.hide(this)
+  ItemBlacklist.hide(this)
 
   override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Facing)
 

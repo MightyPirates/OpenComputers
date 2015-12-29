@@ -8,7 +8,7 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.block.DroneModel
 import li.cil.oc.common.entity
 import li.cil.oc.common.item.data.DroneData
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Rarity
@@ -21,7 +21,7 @@ import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
 class Drone(val parent: Delegator) extends traits.Delegate with CustomModel {
-  NEI.hide(this)
+  ItemBlacklist.hide(this)
 
   showInItemList = false
 

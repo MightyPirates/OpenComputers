@@ -88,7 +88,6 @@ object Textures {
     val UpgradeInventory = L("inventory_upgrade")
     val HologramEffect = L("hologram_effect")
     val Drone = L("drone")
-    val DroneItem = L("drone_item")
     val Robot = L("robot")
 
     override protected def basePath = "textures/model/%s.png"
@@ -97,26 +96,10 @@ object Textures {
   }
 
   object Item extends TextureBundle {
-    val Floppy = Array(
-      L("floppy_dyeBlack"),
-      L("floppy_dyeRed"),
-      L("floppy_dyeGreen"),
-      L("floppy_dyeBrown"),
-      L("floppy_dyeBlue"),
-      L("floppy_dyePurple"),
-      L("floppy_dyeCyan"),
-      L("floppy_dyeLightGray"),
-      L("floppy_dyeGray"),
-      L("floppy_dyePink"),
-      L("floppy_dyeLime"),
-      L("floppy_dyeYellow"),
-      L("floppy_dyeLightBlue"),
-      L("floppy_dyeMagenta"),
-      L("floppy_dyeOrange"),
-      L("floppy_dyeWhite")
-    )
+    val DroneItem = L("drone")
+    val Robot = L("robot")
 
-    override protected def basePath = "items/%s.png"
+    override protected def basePath = "items/%s"
 
     override protected def loader(map: TextureMap, loc: ResourceLocation) = map.registerSprite(loc)
   }
@@ -564,6 +547,7 @@ object Textures {
     GUI.init(e.map)
     Icons.init(e.map)
     Model.init(e.map)
+    Item.init(e.map)
     Block.init(e.map)
   }
 

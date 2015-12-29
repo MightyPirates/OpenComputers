@@ -35,7 +35,7 @@ object RobotModel extends SmartBlockModelBase with ISmartItemModel {
     // I don't know why this is super-bright when using 0xFF888888 :/
     private val tint = 0xFF555555
 
-    protected def robotTexture = Textures.getSprite(Textures.Model.Robot)
+    protected def robotTexture = Textures.getSprite(Textures.Item.Robot)
 
     private def interpolate(v0: (Float, Float, Float, Float, Float), v1: (Float, Float, Float, Float, Float)) =
       (v0._1 * 0.5f + v1._1 * 0.5f,
@@ -46,13 +46,13 @@ object RobotModel extends SmartBlockModelBase with ISmartItemModel {
 
     private def quad(verts: (Float, Float, Float, Float, Float)*) = {
       val added = interpolate(verts.last, verts.head)
-      (verts :+ added).map {
+      (verts :+ added).flatMap {
         case ((x, y, z, u, v)) => rawData(
           (x - 0.5f) * 1.4f + 0.5f,
           (y - 0.5f) * 1.4f + 0.5f,
           (z - 0.5f) * 1.4f + 0.5f,
-          EnumFacing.UP, robotTexture, u, v)
-      }.flatten.toArray
+          EnumFacing.UP, robotTexture, robotTexture.getInterpolatedU(u * 16), robotTexture.getInterpolatedV(v * 16))
+      }.toArray
     }
 
     override def getGeneralQuads = {
@@ -67,8 +67,6 @@ object RobotModel extends SmartBlockModelBase with ISmartItemModel {
       faces += new BakedQuad(quad(bottom, bottom2, bottom3), tint, EnumFacing.EAST)
       faces += new BakedQuad(quad(bottom, bottom3, bottom4), tint, EnumFacing.SOUTH)
       faces += new BakedQuad(quad(bottom, bottom4, bottom1), tint, EnumFacing.WEST)
-
-      Textures.bind(Textures.Model.Robot)
 
       bufferAsJavaList(faces)
     }
