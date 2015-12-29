@@ -69,6 +69,10 @@ if (JavaVersion.current().isJava8Compatible()) {
 
 repositories {
     maven {
+        name = "TIS-3D"
+        url = "http://maven.cil.li/"
+    }
+    maven {
         name = "chickenbones"
         url = "http://chickenbones.net/maven/"
     }
@@ -198,6 +202,7 @@ dependencies {
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
+    provided "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
     provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
@@ -267,6 +272,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/tcon/**'
             exclude 'li/cil/oc/integration/thermalexpansion/**'
             exclude 'li/cil/oc/integration/thaumcraft/**'
+            exclude 'li/cil/oc/integration/tis3d/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
             exclude 'li/cil/oc/integration/waila/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
