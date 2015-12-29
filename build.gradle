@@ -72,6 +72,9 @@ repositories {
         name = "TIS-3D"
         url = "http://maven.cil.li/"
     }
+    maven {
+        url "http://dvs1.progwml6.com/files/maven"
+    }
     /*
     maven {
         name = "BluePower"
