@@ -6,13 +6,14 @@ import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.EnumFacing
+import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
 
@@ -99,7 +100,7 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    RenderState.pushAttrib()
+    GlStateManager.pushAttrib()
 
     fontRendererObj.drawString(
       Localization.localizeImmediately(rack.getName),
@@ -117,15 +118,15 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
       Textures.bind(Textures.GUI.Range)
-      RenderState.color(1, 1, 1)
-      RenderState.disableDepthMask()
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      GlStateManager.color(1, 1, 1)
+      GlStateManager.depthMask(false)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(tx, ty + h, zLevel).tex(0, 1).endVertex()
       r.pos(tx + w, ty + h, zLevel).tex(1, 1).endVertex()
       r.pos(tx + w, ty, zLevel).tex(1, 0).endVertex()
       r.pos(tx, ty, zLevel).tex(0, 0).endVertex()
       t.draw()
-      RenderState.enableDepthMask()
+      GlStateManager.depthMask(true)
     }
 
     drawCenteredString(fontRendererObj,
@@ -138,6 +139,6 @@ class ServerRack(playerInventory: InventoryPlayer, val rack: tileentity.ServerRa
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 
-    RenderState.popAttrib()
+    GlStateManager.popAttrib()
   }
 }

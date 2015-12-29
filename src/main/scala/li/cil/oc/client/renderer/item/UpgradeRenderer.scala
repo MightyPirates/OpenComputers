@@ -7,6 +7,9 @@ import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.client.Textures
 import li.cil.oc.integration.opencomputers.Item
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import org.lwjgl.opengl.GL11
@@ -61,66 +64,43 @@ object UpgradeRenderer {
   private val bounds = AxisAlignedBB.fromBounds(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
 
   private def drawSimpleBlock(mountPoint: MountPoint, frontOffset: Float = 0) {
-    GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
-    GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
+    GlStateManager.rotate(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
+    GlStateManager.translate(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
 
-    GL11.glBegin(GL11.GL_QUADS)
+    val t = Tessellator.getInstance()
+    val r = t.getWorldRenderer
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL)
 
     // Front.
-    GL11.glNormal3f(0, 0, 1)
-    GL11.glTexCoord2f(frontOffset, 0.5f)
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(frontOffset + 0.5f, 0.5f)
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(frontOffset + 0.5f, 0)
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(frontOffset, 0)
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
+    r.pos(bounds.minX, bounds.minY, bounds.maxZ).tex(frontOffset, 0.5f).normal(0, 0, 1).endVertex()
+    r.pos(bounds.maxX, bounds.minY, bounds.maxZ).tex(frontOffset + 0.5f, 0.5f).normal(0, 0, 1).endVertex()
+    r.pos(bounds.maxX, bounds.maxY, bounds.maxZ).tex(frontOffset + 0.5f, 0).normal(0, 0, 1).endVertex()
+    r.pos(bounds.minX, bounds.maxY, bounds.maxZ).tex(frontOffset, 0).normal(0, 0, 1).endVertex()
 
     // Top.
-    GL11.glNormal3f(0, 1, 0)
-    GL11.glTexCoord2f(1, 0.5f)
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(1, 1)
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.minZ)
-    GL11.glTexCoord2f(0.5f, 1)
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.minZ)
-    GL11.glTexCoord2f(0.5f, 0.5f)
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
+    r.pos(bounds.maxX, bounds.maxY, bounds.maxZ).tex(1, 0.5f).normal(0, 1, 0).endVertex()
+    r.pos(bounds.maxX, bounds.maxY, bounds.minZ).tex(1, 1).normal(0, 1, 0).endVertex()
+    r.pos(bounds.minX, bounds.maxY, bounds.minZ).tex(0.5f, 1).normal(0, 1, 0).endVertex()
+    r.pos(bounds.minX, bounds.maxY, bounds.maxZ).tex(0.5f, 0.5f).normal(0, 1, 0).endVertex()
 
     // Bottom.
-    GL11.glNormal3f(0, -1, 0)
-    GL11.glTexCoord2f(0.5f, 0.5f)
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(0.5f, 1)
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(1, 1)
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(1, 0.5f)
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
+    r.pos(bounds.minX, bounds.minY, bounds.maxZ).tex(0.5f, 0.5f).normal(0, -1, 0).endVertex()
+    r.pos(bounds.minX, bounds.minY, bounds.minZ).tex(0.5f, 1).normal(0, -1, 0).endVertex()
+    r.pos(bounds.maxX, bounds.minY, bounds.minZ).tex(1, 1).normal(0, -1, 0).endVertex()
+    r.pos(bounds.maxX, bounds.minY, bounds.maxZ).tex(1, 0.5f).normal(0, -1, 0).endVertex()
 
     // Left.
-    GL11.glNormal3f(1, 0, 0)
-    GL11.glTexCoord2f(0, 0.5f)
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(0, 1)
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(0.5f, 1)
-    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.minZ)
-    GL11.glTexCoord2f(0.5f, 0.5f)
-    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.minZ)
+    r.pos(bounds.maxX, bounds.maxY, bounds.maxZ).tex(0, 0.5f).normal(1, 0, 0).endVertex()
+    r.pos(bounds.maxX, bounds.minY, bounds.maxZ).tex(0, 1).normal(1, 0, 0).endVertex()
+    r.pos(bounds.maxX, bounds.minY, bounds.minZ).tex(0.5f, 1).normal(1, 0, 0).endVertex()
+    r.pos(bounds.maxX, bounds.maxY, bounds.minZ).tex(0.5f, 0.5f).normal(1, 0, 0).endVertex()
 
     // Right.
-    GL11.glNormal3f(-1, 0, 0)
-    GL11.glTexCoord2f(0, 1)
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
-    GL11.glTexCoord2f(0, 0.5f)
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
-    GL11.glTexCoord2f(0.5f, 0.5f)
-    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.minZ)
-    GL11.glTexCoord2f(0.5f, 1)
-    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
+    r.pos(bounds.minX, bounds.minY, bounds.maxZ).tex(0, 1).normal(-1, 0, 0).endVertex()
+    r.pos(bounds.minX, bounds.maxY, bounds.maxZ).tex(0, 0.5f).normal(-1, 0, 0).endVertex()
+    r.pos(bounds.minX, bounds.maxY, bounds.minZ).tex(0.5f, 0.5f).normal(-1, 0, 0).endVertex()
+    r.pos(bounds.minX, bounds.minY, bounds.minZ).tex(0.5f, 1).normal(-1, 0, 0).endVertex()
 
-    GL11.glEnd()
+    t.draw()
   }
 }

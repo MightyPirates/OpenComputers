@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Assembler
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -13,20 +14,20 @@ object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
   override def renderTileEntityAt(assembler: Assembler, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    RenderState.pushAttrib()
+    GlStateManager.pushAttrib()
 
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     RenderState.setBlendAlpha(1)
 
-    RenderState.pushMatrix()
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.pushMatrix()
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
     val t = Tessellator.getInstance
     val r = t.getWorldRenderer
 
     Textures.Block.bind()
-    r.begin(7, DefaultVertexFormats.POSITION_TEX)
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
     {
       val icon = Textures.getSprite(Textures.Block.AssemblerTopOn)
@@ -41,7 +42,7 @@ object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
     // TODO Unroll loop to draw all at once?
     val indent = 6 / 16f + 0.005
     for (i <- 0 until 4) {
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
       if (assembler.isAssembling) {
         val icon = Textures.getSprite(Textures.Block.AssemblerSideAssembling)
@@ -61,13 +62,13 @@ object AssemblerRenderer extends TileEntitySpecialRenderer[Assembler] {
 
       t.draw()
 
-      GL11.glRotatef(90, 0, 1, 0)
+      GlStateManager.rotate(90, 0, 1, 0)
     }
 
     RenderState.enableEntityLighting()
 
-    RenderState.popMatrix()
-    RenderState.popAttrib()
+    GlStateManager.popMatrix()
+    GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

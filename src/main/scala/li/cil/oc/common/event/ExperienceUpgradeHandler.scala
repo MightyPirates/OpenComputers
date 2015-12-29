@@ -7,8 +7,8 @@ import li.cil.oc.api.internal.Agent
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.api.network.Node
 import li.cil.oc.server.component
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
 
@@ -80,13 +80,13 @@ object ExperienceUpgradeHandler {
       case _ => 0
     }
     if (level > 19) {
-      GL11.glColor3f(0.4f, 1, 1)
+      GlStateManager.color(0.4f, 1, 1)
     }
     else if (level > 9) {
-      GL11.glColor3f(1, 1, 0.4f)
+      GlStateManager.color(1, 1, 0.4f)
     }
     else {
-      GL11.glColor3f(0.5f, 0.5f, 0.5f)
+      GlStateManager.color(0.5f, 0.5f, 0.5f)
     }
   }
 

@@ -4,7 +4,7 @@ import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends DynamicGuiContainer(new container.Server(playerInventory, serverInventory)) with traits.LockedHotbar {
@@ -18,7 +18,7 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
   }
 
   override def drawSecondaryBackgroundLayer() {
-    RenderState.color(1, 1, 1)
+    GlStateManager.color(1, 1, 1)
     Textures.bind(Textures.GUI.Server)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }

@@ -7,6 +7,7 @@ import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import org.lwjgl.input.Keyboard
@@ -39,21 +40,21 @@ trait InputBuffer extends DisplayBuffer {
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
       Textures.bind(Textures.GUI.KeyboardMissing)
-      GL11.glDisable(GL11.GL_DEPTH_TEST)
+      GlStateManager.disableDepth()
 
       val x = bufferX + buffer.renderWidth - 16
       val y = bufferY + buffer.renderHeight - 16
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x, y + 16, 0).tex(0, 1).endVertex()
       r.pos(x + 16, y + 16, 0).tex(1, 1).endVertex()
       r.pos(x + 16, y, 0).tex(1, 0).endVertex()
       r.pos(x, y, 0).tex(0, 0).endVertex()
       t.draw()
 
-      GL11.glEnable(GL11.GL_DEPTH_TEST)
+      GlStateManager.enableDepth()
 
       RenderState.checkError(getClass.getName + ".drawBufferLayer: keyboard icon")
     }

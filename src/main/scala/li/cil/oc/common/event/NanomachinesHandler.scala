@@ -23,6 +23,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent
+import org.lwjgl.opengl.GL11
 
 object NanomachinesHandler {
 
@@ -64,7 +65,7 @@ object NanomachinesHandler {
       val sy = 1f / th
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x, y + h, 0).tex(0, h * sy).endVertex()
       r.pos(x + w, y + h, 0).tex(w * sx, h * sy).endVertex()
       r.pos(x + w, y + h * (1 - fill), 0).tex(w * sx, 1 - fill).endVertex()

@@ -6,6 +6,8 @@ import li.cil.oc.client.Textures
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.BakedQuad
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
@@ -13,6 +15,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.model.ISmartBlockModel
 import net.minecraftforge.client.model.ISmartItemModel
+import org.lwjgl.util.vector.Vector3f
 
 trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   override def handleBlockState(state: IBlockState) = missingModel
@@ -33,7 +36,23 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   // texture atlas. So any of our textures we know is loaded into it will do.
   override def getParticleTexture = Textures.getSprite(Textures.Block.GenericTop)
 
-  override def getItemCameraTransforms = net.minecraft.client.renderer.block.model.ItemCameraTransforms.DEFAULT
+  override def getItemCameraTransforms = DefaultBlockCameraTransforms
+
+  protected final val DefaultBlockCameraTransforms = {
+    // Value from common block item model.
+    val rotation = new Vector3f(10, -45, 170)
+    val translation = new Vector3f(0, 1.5f, -2.75f)
+    val scale = new Vector3f(0.375f, 0.375f, 0.375f)
+    // See ItemTransformVec3f.Deserializer.deserialize0
+    translation.scale(0.0625f)
+    new ItemCameraTransforms(
+      new ItemTransformVec3f(rotation, translation, scale),
+      ItemTransformVec3f.DEFAULT,
+      ItemTransformVec3f.DEFAULT,
+      ItemTransformVec3f.DEFAULT,
+      ItemTransformVec3f.DEFAULT,
+      ItemTransformVec3f.DEFAULT)
+  }
 
   protected def missingModel = Minecraft.getMinecraft.getRenderItem.getItemModelMesher.getModelManager.getMissingModel
 
@@ -64,9 +83,9 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   protected def textureScale = 1f
 
   /**
-   * Generates a list of arrays, each containing the four vertices making up a
-   * face of the box with the specified size.
-   */
+    * Generates a list of arrays, each containing the four vertices making up a
+    * face of the box with the specified size.
+    */
   protected def makeBox(from: Vec3, to: Vec3) = {
     val minX = math.min(from.xCoord, to.xCoord)
     val minY = math.min(from.yCoord, to.yCoord)
@@ -99,20 +118,20 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   }
 
   /**
-   * Create the BakedQuads for a set of quads defined by the specified vertices.
-   * <p/>
-   * Usually used to generate the quads for a cube previously generated using makeBox().
-   */
+    * Create the BakedQuads for a set of quads defined by the specified vertices.
+    * <p/>
+    * Usually used to generate the quads for a cube previously generated using makeBox().
+    */
   protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], color: Option[EnumDyeColor]): Array[BakedQuad] = {
     val tintIndex = color.fold(NoTint)(_.getDyeDamage)
     bakeQuads(box, texture, tintIndex)
   }
 
   /**
-   * Create the BakedQuads for a set of quads defined by the specified vertices.
-   * <p/>
-   * Usually used to generate the quads for a cube previously generated using makeBox().
-   */
+    * Create the BakedQuads for a set of quads defined by the specified vertices.
+    * <p/>
+    * Usually used to generate the quads for a cube previously generated using makeBox().
+    */
   protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], tintIndex: Int): Array[BakedQuad] = {
     EnumFacing.values.map(side => {
       val vertices = box(side.getIndex)
@@ -122,8 +141,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   }
 
   /**
-   * Create a single BakedQuad of a unit cube's specified side.
-   */
+    * Create a single BakedQuad of a unit cube's specified side.
+    */
   protected def bakeQuad(side: EnumFacing, texture: TextureAtlasSprite, color: Option[EnumDyeColor], rotation: Int) = {
     val tintIndex = color.fold(NoTint)(_.getDyeDamage)
     val vertices = UnitCube(side.getIndex)

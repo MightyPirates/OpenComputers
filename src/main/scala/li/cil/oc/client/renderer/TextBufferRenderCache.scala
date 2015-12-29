@@ -10,6 +10,7 @@ import li.cil.oc.Settings
 import li.cil.oc.client.renderer.font.TextBufferRenderData
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
@@ -71,8 +72,8 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
     else {
       GL11.glCallList(list)
       RenderState.bindTexture(0)
-      RenderState.enableDepthMask()
-      RenderState.color(1, 1, 1)
+      GlStateManager.depthMask(true)
+      GlStateManager.color(1, 1, 1)
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: glCallList")
     }

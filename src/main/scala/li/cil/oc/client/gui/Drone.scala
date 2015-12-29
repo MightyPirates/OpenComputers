@@ -12,6 +12,7 @@ import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
@@ -75,18 +76,18 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
     GL11.glScaled(scale, scale, 1)
-    RenderState.pushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
-    RenderState.disableDepthMask()
-    RenderState.color(0.5f, 0.5f, 1f)
+    GlStateManager.pushAttrib()
+    GlStateManager.depthMask(false)
+    GlStateManager.color(0.5f, 0.5f, 1f)
     TextBufferRenderCache.render(bufferRenderer)
-    RenderState.popAttrib()
+    GlStateManager.popAttrib()
   }
 
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = 2.0
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    RenderState.pushAttrib()
+    GlStateManager.pushAttrib()
     if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
@@ -101,11 +102,11 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
       tooltip.addAll(asJavaCollection(if (drone.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    RenderState.popAttrib()
+    GlStateManager.popAttrib()
   }
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    RenderState.color(1, 1, 1)
+    GlStateManager.color(1, 1, 1)
     Textures.bind(Textures.GUI.Drone)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     power.level = drone.globalBuffer.toDouble / math.max(drone.globalBufferSize.toDouble, 1.0)
@@ -132,7 +133,7 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x, y, zLevel).tex(0, offsetV).endVertex()
       r.pos(x, y + selectionSize, zLevel).tex(0, offsetV + selectionStepV).endVertex()
       r.pos(x + selectionSize, y + selectionSize, zLevel).tex(1, offsetV + selectionStepV).endVertex()

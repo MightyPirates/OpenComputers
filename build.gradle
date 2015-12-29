@@ -80,6 +80,9 @@ repositories {
         name = "fallback"
         url = "http://maven.cil.li/"
     }
+    maven {
+        url "http://dvs1.progwml6.com/files/maven"
+    }
     /*
     maven {
         name = "BluePower"
@@ -112,10 +115,6 @@ repositories {
     maven {
         name "FireBall API Depot"
         url "http://dl.tsr.me/artifactory/libs-release-local"
-    }
-    maven {
-        name 'DVS1 Maven FS'
-        url 'http://dvs1.progwml6.com/files/maven'
     }
     maven {
         name 'ProjectRed'
@@ -183,6 +182,7 @@ configurations {
 }
 
 dependencies {
+    deobfCompile "mezz.jei:jei_1.8.8:${config.jei.version}"
 /*
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"

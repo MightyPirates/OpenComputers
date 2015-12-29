@@ -13,6 +13,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.opencomputers
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
@@ -102,32 +103,32 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawBuffer() {
     if (buffer != null) {
-      GL11.glTranslatef(bufferX, bufferY, 0)
+      GlStateManager.translate(bufferX, bufferY, 0)
       RenderState.disableEntityLighting()
-      RenderState.pushMatrix()
-      GL11.glTranslatef(-3, -3, 0)
-      RenderState.color(1, 1, 1, 1)
+      GlStateManager.pushMatrix()
+      GlStateManager.translate(-3, -3, 0)
+      GlStateManager.color(1, 1, 1, 1)
       BufferRenderer.drawBackground()
-      RenderState.popMatrix()
+      GlStateManager.popMatrix()
       RenderState.makeItBlend()
       val scaleX = bufferRenderWidth / buffer.renderWidth
       val scaleY = bufferRenderHeight / buffer.renderHeight
       val scale = math.min(scaleX, scaleY)
       if (scaleX > scale) {
-        GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
+        GlStateManager.translate(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
       }
       else if (scaleY > scale) {
-        GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
+        GlStateManager.translate(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
       }
-      GL11.glScaled(scale, scale, scale)
-      GL11.glScaled(this.scale, this.scale, 1)
+      GlStateManager.scale(scale, scale, scale)
+      GlStateManager.scale(this.scale, this.scale, 1)
       BufferRenderer.drawText(buffer)
     }
   }
 
   override protected def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    RenderState.pushAttrib()
+    GlStateManager.pushAttrib()
     if (isPointInRegion(power.x, power.y, power.width, power.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = Localization.Computer.Power + ": %d%% (%d/%d)"
@@ -142,11 +143,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       tooltip.addAll(asJavaCollection(if (robot.isRunning) Localization.Computer.TurnOff.lines.toIterable else Localization.Computer.TurnOn.lines.toIterable))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    RenderState.popAttrib()
+    GlStateManager.popAttrib()
   }
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    RenderState.color(1, 1, 1)
+    GlStateManager.color(1, 1, 1)
     if (buffer != null) Textures.bind(Textures.GUI.Robot)
     else Textures.bind(Textures.GUI.RobotNoScreen)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
@@ -265,7 +266,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x, y, zLevel).tex(0, offsetV).endVertex()
       r.pos(x, y + selectionSize, zLevel).tex(0, offsetV + selectionStepV).endVertex()
       r.pos(x + selectionSize, y + selectionSize, zLevel).tex(1, offsetV + selectionStepV).endVertex()

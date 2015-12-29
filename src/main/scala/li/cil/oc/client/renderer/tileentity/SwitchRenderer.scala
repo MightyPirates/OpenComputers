@@ -3,6 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -14,23 +15,23 @@ class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecia
 
     val activity = math.max(0, 1 - (System.currentTimeMillis() - switch.lastMessage) / 1000.0)
     if (activity > 0) {
-      RenderState.pushAttrib()
+      GlStateManager.pushAttrib()
 
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
       RenderState.setBlendAlpha(activity.toFloat)
 
-      RenderState.pushMatrix()
+      GlStateManager.pushMatrix()
 
-      GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
-      GL11.glScaled(1.0025, -1.0025, 1.0025)
-      GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+      GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
+      GlStateManager.scale(1.0025, -1.0025, 1.0025)
+      GlStateManager.translate(-0.5f, -0.5f, -0.5f)
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
 
       Textures.Block.bind()
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
       val icon = Textures.getSprite(Textures.Block.SwitchSideOn)
       r.pos(1, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
@@ -57,8 +58,8 @@ class SwitchRenderer[T <: tileentity.traits.SwitchLike] extends TileEntitySpecia
 
       RenderState.enableEntityLighting()
 
-      RenderState.popMatrix()
-      RenderState.popAttrib()
+      GlStateManager.popMatrix()
+      GlStateManager.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

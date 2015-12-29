@@ -4,14 +4,15 @@ import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.TextBuffer
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.opengl.GL11
 
 /**
- * Base class for texture based font rendering.
- *
- * Provides common logic for the static one (using an existing texture) and the
- * dynamic one (generating textures on the fly from a font).
- */
+  * Base class for texture based font rendering.
+  *
+  * Provides common logic for the static one (using an existing texture) and the
+  * dynamic one (generating textures on the fly from a font).
+  */
 abstract class TextureFontRenderer {
   protected final val basicChars = """☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■"""
 
@@ -20,10 +21,10 @@ abstract class TextureFontRenderer {
   def charRenderHeight = charHeight / 2
 
   /**
-   * If drawString() is called inside display lists this should be called
-   * beforehand, outside the display list, to ensure no characters have to
-   * be generated inside the draw call.
-   */
+    * If drawString() is called inside display lists this should be called
+    * beforehand, outside the display list, to ensure no characters have to
+    * be generated inside the draw call.
+    */
   def generateChars(chars: Array[Char]) {
     GL11.glEnable(GL11.GL_TEXTURE_2D)
     for (char <- chars) {
@@ -34,14 +35,14 @@ abstract class TextureFontRenderer {
   def drawBuffer(buffer: TextBuffer) {
     val format = buffer.format
 
-    RenderState.pushMatrix()
-    RenderState.pushAttrib()
+    GlStateManager.pushMatrix()
+    GlStateManager.pushAttrib()
 
-    GL11.glScalef(0.5f, 0.5f, 1)
+    GlStateManager.scale(0.5f, 0.5f, 1)
 
-    RenderState.disableDepthMask()
+    GlStateManager.depthMask(false)
     RenderState.makeItBlend()
-    GL11.glDisable(GL11.GL_TEXTURE_2D)
+    GlStateManager.disableTexture2D()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: configure state")
 
@@ -68,7 +69,7 @@ abstract class TextureFontRenderer {
 
     RenderState.checkError(getClass.getName + ".drawBuffer: background")
 
-    GL11.glEnable(GL11.GL_TEXTURE_2D)
+    GlStateManager.enableTexture2D()
 
     if (Settings.get.textLinearFiltering) {
       GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
@@ -108,22 +109,22 @@ abstract class TextureFontRenderer {
 
     RenderState.checkError(getClass.getName + ".drawBuffer: foreground")
 
-    RenderState.bindTexture(0)
-    RenderState.enableDepthMask()
-    RenderState.color(1, 1, 1)
-    RenderState.popAttrib()
-    RenderState.popMatrix()
+    GlStateManager.bindTexture(0)
+    GlStateManager.depthMask(true)
+    GlStateManager.color(1, 1, 1)
+    GlStateManager.popAttrib()
+    GlStateManager.popMatrix()
 
     RenderState.checkError(getClass.getName + ".drawBuffer: leaving")
   }
 
   def drawString(s: String, x: Int, y: Int): Unit = {
-    RenderState.pushMatrix()
-    RenderState.pushAttrib()
+    GlStateManager.pushMatrix()
+    GlStateManager.pushAttrib()
 
-    GL11.glTranslatef(x, y, 0)
-    GL11.glScalef(0.5f, 0.5f, 1)
-    GL11.glDepthMask(false)
+    GlStateManager.translate(x, y, 0)
+    GlStateManager.scale(0.5f, 0.5f, 1)
+    GlStateManager.depthMask(false)
 
     for (i <- 0 until textureCount) {
       bindTexture(i)
@@ -140,9 +141,9 @@ abstract class TextureFontRenderer {
       GL11.glEnd()
     }
 
-    RenderState.popAttrib()
-    RenderState.popMatrix()
-    RenderState.color(1, 1, 1)
+    GlStateManager.popAttrib()
+    GlStateManager.popMatrix()
+    GlStateManager.color(1, 1, 1)
   }
 
   protected def charWidth: Int

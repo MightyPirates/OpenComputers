@@ -5,8 +5,8 @@ import li.cil.oc.client.Textures
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 
 import scala.collection.convert.WrapAsJava._
@@ -44,7 +44,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
   }
 
   override def drawSecondaryBackgroundLayer() {
-    RenderState.color(1, 1, 1)
+    GlStateManager.color(1, 1, 1)
     Textures.bind(Textures.GUI.Computer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }

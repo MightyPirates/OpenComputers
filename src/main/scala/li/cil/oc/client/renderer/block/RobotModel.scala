@@ -32,12 +32,21 @@ object RobotModel extends SmartBlockModelBase with ISmartItemModel {
     private val bottom3 = (h, 0.5f, h, 1f, 0f)
     private val bottom4 = (l, 0.5f, h, 1f, 0.5f)
 
-    private val tint = 0xFF888888
+    // I don't know why this is super-bright when using 0xFF888888 :/
+    private val tint = 0xFF555555
 
     protected def robotTexture = Textures.getSprite(Textures.Model.Robot)
 
+    private def interpolate(v0: (Float, Float, Float, Float, Float), v1: (Float, Float, Float, Float, Float)) =
+      (v0._1 * 0.5f + v1._1 * 0.5f,
+        v0._2 * 0.5f + v1._2 * 0.5f,
+        v0._3 * 0.5f + v1._3 * 0.5f,
+        v0._4 * 0.5f + v1._4 * 0.5f,
+        v0._5 * 0.5f + v1._5 * 0.5f)
+
     private def quad(verts: (Float, Float, Float, Float, Float)*) = {
-      (verts :+ verts.last).map {
+      val added = interpolate(verts.last, verts.head)
+      (verts :+ added).map {
         case ((x, y, z, u, v)) => rawData(
           (x - 0.5f) * 1.4f + 0.5f,
           (y - 0.5f) * 1.4f + 0.5f,

@@ -4,6 +4,7 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
@@ -17,26 +18,26 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
   override def renderTileEntityAt(drive: DiskDrive, x: Double, y: Double, z: Double, f: Float, damage: Int) {
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
 
-    RenderState.pushAttrib()
-    RenderState.color(1, 1, 1, 1)
+    GlStateManager.pushAttrib()
+    GlStateManager.color(1, 1, 1, 1)
 
-    RenderState.pushMatrix()
+    GlStateManager.pushMatrix()
 
-    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5)
 
     drive.yaw match {
-      case EnumFacing.WEST => GL11.glRotatef(-90, 0, 1, 0)
-      case EnumFacing.NORTH => GL11.glRotatef(180, 0, 1, 0)
-      case EnumFacing.EAST => GL11.glRotatef(90, 0, 1, 0)
+      case EnumFacing.WEST => GlStateManager.rotate(-90, 0, 1, 0)
+      case EnumFacing.NORTH => GlStateManager.rotate(180, 0, 1, 0)
+      case EnumFacing.EAST => GlStateManager.rotate(90, 0, 1, 0)
       case _ => // No yaw.
     }
 
     drive.items(0) match {
       case Some(stack) =>
-        RenderState.pushMatrix()
-        GL11.glTranslatef(0, 3.5f / 16, 6 / 16f)
-        GL11.glRotatef(90, -1, 0, 0)
-        GL11.glScalef(0.5f, 0.5f, 0.5f)
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(0, 3.5f / 16, 6 / 16f)
+        GlStateManager.rotate(90, -1, 0, 0)
+        GlStateManager.scale(0.5f, 0.5f, 0.5f)
 
         val brightness = drive.world.getCombinedLight(drive.getPos.offset(drive.facing), 0)
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
@@ -46,13 +47,13 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
         entity.hoverStart = 0
         Textures.Block.bind()
         Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
-        RenderState.popMatrix()
+        GlStateManager.popMatrix()
       case _ =>
     }
 
     if (System.currentTimeMillis() - drive.lastAccess < 400 && drive.world.rand.nextDouble() > 0.1) {
-      GL11.glTranslated(-0.5, 0.5, 0.505)
-      GL11.glScalef(1, -1, 1)
+      GlStateManager.translate(-0.5, 0.5, 0.505)
+      GlStateManager.scale(1, -1, 1)
 
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
@@ -62,7 +63,7 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
       val r = t.getWorldRenderer
 
       Textures.Block.bind()
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
       val icon = Textures.getSprite(Textures.Block.DiskDriveFrontActivity)
       r.pos(0, 1, 0).tex(icon.getMinU, icon.getMaxV).endVertex()
@@ -75,8 +76,8 @@ object DiskDriveRenderer extends TileEntitySpecialRenderer[DiskDrive] {
       RenderState.enableEntityLighting()
     }
 
-    RenderState.popMatrix()
-    RenderState.popAttrib()
+    GlStateManager.popMatrix()
+    GlStateManager.popAttrib()
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }

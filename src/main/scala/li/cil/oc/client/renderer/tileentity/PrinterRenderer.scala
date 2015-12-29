@@ -4,11 +4,11 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Printer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.entity.item.EntityItem
-import org.lwjgl.opengl.GL11
 
 object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
   override def renderTileEntityAt(printer: Printer, x: Double, y: Double, z: Double, f: Float, damage: Int) {
@@ -17,12 +17,12 @@ object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
     if (printer.data.stateOff.nonEmpty) {
       val stack = printer.data.createItemStack()
 
-      RenderState.pushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-      RenderState.pushMatrix()
+      GlStateManager.pushAttrib()
+      GlStateManager.pushMatrix()
 
-      GL11.glTranslated(x + 0.5, y + 0.5 + 0.3, z + 0.5)
+      GlStateManager.translate(x + 0.5, y + 0.5 + 0.3, z + 0.5)
 
-      GL11.glRotated((System.currentTimeMillis() % 20000) / 20000.0 * 360, 0, 1, 0)
+      GlStateManager.rotate((System.currentTimeMillis() % 20000) / 20000f * 360, 0, 1, 0)
 
       val brightness = printer.world.getCombinedLight(printer.getPos, 0)
       OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
@@ -33,8 +33,8 @@ object PrinterRenderer extends TileEntitySpecialRenderer[Printer] {
       Textures.Block.bind()
       Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
 
-      RenderState.popMatrix()
-      RenderState.popAttrib()
+      GlStateManager.popMatrix()
+      GlStateManager.popAttrib()
     }
 
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")

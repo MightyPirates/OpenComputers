@@ -9,12 +9,12 @@ import li.cil.oc.client.renderer.tileentity.RobotRenderer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -60,33 +60,33 @@ object PetRenderer {
       override def call() = new PetLocation(e.entityPlayer)
     })
 
-    RenderState.pushMatrix()
-    RenderState.pushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+    GlStateManager.pushMatrix()
+    GlStateManager.pushAttrib()
     val localPos = Minecraft.getMinecraft.thePlayer.getPositionEyes(e.partialRenderTick)
     val playerPos = e.entityPlayer.getPositionEyes(e.partialRenderTick)
     val correction = 1.62 - (if (e.entityPlayer.isSneaking) 0.125 else 0)
-    GL11.glTranslated(
+    GlStateManager.translate(
       playerPos.xCoord - localPos.xCoord,
       playerPos.yCoord - localPos.yCoord + correction,
       playerPos.zCoord - localPos.zCoord)
 
     RenderState.enableEntityLighting()
-    RenderState.disableBlend()
-    RenderState.enableRescaleNormal()
-    RenderState.color(1, 1, 1, 1)
+    GlStateManager.disableBlend()
+    GlStateManager.enableRescaleNormal()
+    GlStateManager.color(1, 1, 1, 1)
 
     location.applyInterpolatedTransformations(e.partialRenderTick)
 
-    GL11.glScalef(0.3f, 0.3f, 0.3f)
-    GL11.glTranslatef(0, hover, 0)
+    GlStateManager.scale(0.3f, 0.3f, 0.3f)
+    GlStateManager.translate(0, hover, 0)
 
     RobotRenderer.renderChassis(null, offset, isRunningOverride = true)
 
     RenderState.disableEntityLighting()
-    RenderState.disableRescaleNormal()
+    GlStateManager.disableRescaleNormal()
 
-    RenderState.popAttrib()
-    RenderState.popMatrix()
+    GlStateManager.popAttrib()
+    GlStateManager.popMatrix()
 
     rendering = None
   }
@@ -94,7 +94,7 @@ object PetRenderer {
   @SubscribeEvent(priority = EventPriority.LOWEST)
   def onRobotRender(e: RobotRenderEvent) {
     rendering match {
-      case Some((r, g, b)) => RenderState.color(r.toFloat, g.toFloat, b.toFloat)
+      case Some((r, g, b)) => GlStateManager.color(r.toFloat, g.toFloat, b.toFloat)
       case _ =>
     }
   }
@@ -134,14 +134,14 @@ object PetRenderer {
       val iz = lastZ + (z - lastZ) * dt
       val iYaw = lastYaw + (yaw - lastYaw) * dt
 
-      GL11.glTranslated(ix, iy, iz)
+      GlStateManager.translate(ix, iy, iz)
       if (!isForInventory) {
-        GL11.glRotatef(-iYaw, 0, 1, 0)
+        GlStateManager.rotate(-iYaw, 0, 1, 0)
       }
       else {
-        GL11.glRotatef(-owner.rotationYaw, 0, 1, 0)
+        GlStateManager.rotate(-owner.rotationYaw, 0, 1, 0)
       }
-      GL11.glTranslated(0.3, -0.1, -0.2)
+      GlStateManager.translate(0.3, -0.1, -0.2)
     }
 
     // Someone please tell me a cleaner solution than this...

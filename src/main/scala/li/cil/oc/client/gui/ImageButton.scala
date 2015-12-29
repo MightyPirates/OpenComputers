@@ -1,14 +1,15 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
+import org.lwjgl.opengl.GL11
 
 @SideOnly(Side.CLIENT)
 class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
@@ -26,7 +27,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
   override def drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
     if (visible) {
       Textures.bind(image)
-      RenderState.color(1, 1, 1, 1)
+      GlStateManager.color(1, 1, 1, 1)
       hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
 
       val x0 = xPosition
@@ -41,7 +42,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
 
       val t = Tessellator.getInstance
       val r = t.getWorldRenderer
-      r.begin(7, DefaultVertexFormats.POSITION_TEX)
+      r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
       r.pos(x0, y1, zLevel).tex(u0, v1).endVertex()
       r.pos(x1, y1, zLevel).tex(u1, v1).endVertex()
       r.pos(x1, y0, zLevel).tex(u1, v0).endVertex()

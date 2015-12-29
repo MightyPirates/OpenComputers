@@ -1,10 +1,11 @@
 package li.cil.oc.client.renderer.item
 
 import li.cil.oc.Settings
-import li.cil.oc.util.RenderState
 import net.minecraft.client.model.ModelBase
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.client.model.ModelRenderer
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.entity.Entity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
@@ -100,19 +101,19 @@ object HoverBootRenderer extends ModelBiped {
 
   class LightModelRenderer(modelBase: ModelBase, name: String) extends ModelRenderer(modelBase, name) {
     override def render(dt: Float): Unit = {
-      RenderState.pushAttrib()
-      RenderState.disableLighting()
-      RenderState.disableEntityLighting()
-      RenderState.depthFunc(GL11.GL_LEQUAL)
-      RenderState.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-      RenderState.color(0x66 / 255f, 0xDD / 255f, 0x55 / 255f)
+      GlStateManager.pushAttrib()
+      GlStateManager.disableLighting()
+      RenderHelper.disableStandardItemLighting()
+      GlStateManager.depthFunc(GL11.GL_LEQUAL)
+      GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+      GlStateManager.color(0x66 / 255f, 0xDD / 255f, 0x55 / 255f)
 
       super.render(dt)
 
-      RenderState.color(1, 1, 1)
-      RenderState.enableLighting()
-      RenderState.enableEntityLighting()
-      RenderState.popAttrib()
+      GlStateManager.color(1, 1, 1)
+      GlStateManager.enableLighting()
+      RenderHelper.enableStandardItemLighting()
+      GlStateManager.popAttrib()
     }
   }
 

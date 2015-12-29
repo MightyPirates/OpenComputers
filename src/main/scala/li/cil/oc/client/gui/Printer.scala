@@ -6,7 +6,7 @@ import li.cil.oc.client.gui.widget.ProgressBar
 import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.InventoryPlayer
 
 class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer) extends DynamicGuiContainer(new container.Printer(playerInventory, printer)) {
@@ -44,7 +44,7 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
     fontRendererObj.drawString(
       Localization.localizeImmediately(printer.getName),
       8, 6, 0x404040)
-    RenderState.pushAttrib()
+    GlStateManager.pushAttrib()
     if (isPointInRegion(materialBar.x, materialBar.y, materialBar.width, materialBar.height, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       tooltip.add(inventoryContainer.amountMaterial + "/" + printer.maxAmountMaterial)
@@ -55,11 +55,11 @@ class Printer(playerInventory: InventoryPlayer, val printer: tileentity.Printer)
       tooltip.add(inventoryContainer.amountInk + "/" + printer.maxAmountInk)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    RenderState.popAttrib()
+    GlStateManager.popAttrib()
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    RenderState.color(1, 1, 1)
+    GlStateManager.color(1, 1, 1)
     Textures.bind(Textures.GUI.Printer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     materialBar.level = inventoryContainer.amountMaterial / printer.maxAmountMaterial.toDouble

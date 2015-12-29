@@ -13,13 +13,13 @@ import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import org.lwjgl.opengl.GL11
 
 class Keyboard extends SimpleBlock(Material.rock) {
   setLightOpacity(0)
@@ -48,8 +48,8 @@ class Keyboard extends SimpleBlock(Material.rock) {
   override def setBlockBoundsForItemRender(metadata: Int) = setBlockBounds(EnumFacing.NORTH, EnumFacing.WEST)
 
   override def preItemRender(metadata: Int) {
-    GL11.glTranslatef(-0.75f, 0, 0)
-    GL11.glScalef(1.5f, 1.5f, 1.5f)
+    GlStateManager.translate(-0.75f, 0, 0)
+    GlStateManager.scale(1.5f, 1.5f, 1.5f)
   }
 
   // ----------------------------------------------------------------------- //

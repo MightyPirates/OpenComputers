@@ -10,6 +10,7 @@ import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.ExtendedBlock._
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.client.renderer.Tessellator
@@ -46,26 +47,26 @@ object HighlightRenderer {
           e.player.prevPosZ + (e.player.posZ - e.player.prevPosZ) * e.partialTicks)
         val renderPos = blockPos.offset(-playerPos.xCoord, -playerPos.yCoord, -playerPos.zCoord)
 
-        RenderState.pushMatrix()
-        RenderState.pushAttrib()
+        GlStateManager.pushMatrix()
+        GlStateManager.pushAttrib()
         RenderState.makeItBlend()
         Textures.bind(Textures.Model.HologramEffect)
 
-        RenderState.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-        RenderState.color(0.0F, 1.0F, 0.0F, 0.4F)
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
+        GlStateManager.color(0.0F, 1.0F, 0.0F, 0.4F)
 
-        GL11.glTranslated(renderPos.xCoord, renderPos.yCoord, renderPos.zCoord)
-        GL11.glScaled(1.002, 1.002, 1.002)
+        GlStateManager.translate(renderPos.xCoord, renderPos.yCoord, renderPos.zCoord)
+        GlStateManager.scale(1.002, 1.002, 1.002)
 
         if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
           val (sx, sy, sz) = (1 - math.abs(sideHit.getFrontOffsetX), 1 - math.abs(sideHit.getFrontOffsetY), 1 - math.abs(sideHit.getFrontOffsetZ))
-          GL11.glScaled(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
-          GL11.glTranslated(random.nextGaussian() * 0.01 * sx, random.nextGaussian() * 0.01 * sy, random.nextGaussian() * 0.01 * sz)
+          GlStateManager.scale(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
+          GlStateManager.translate(random.nextGaussian() * 0.01 * sx, random.nextGaussian() * 0.01 * sy, random.nextGaussian() * 0.01 * sz)
         }
 
         val t = Tessellator.getInstance()
         val r = t.getWorldRenderer
-        r.begin(7, DefaultVertexFormats.POSITION_TEX)
+        r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
         sideHit match {
           case EnumFacing.UP =>
             r.pos(bounds.maxX, bounds.maxY + 0.002, bounds.maxZ).tex(bounds.maxZ * 16, bounds.maxX * 16).endVertex()
@@ -100,8 +101,8 @@ object HighlightRenderer {
         }
         t.draw()
 
-        RenderState.popAttrib()
-        RenderState.popMatrix()
+        GlStateManager.popAttrib()
+        GlStateManager.popMatrix()
       }
     }
 
@@ -114,12 +115,12 @@ object HighlightRenderer {
         val expansion = 0.002f
 
         // See RenderGlobal.drawSelectionBox.
-        GL11.glEnable(GL11.GL_BLEND)
+        GlStateManager.enableBlend()
         OpenGlHelper.glBlendFunc(770, 771, 1, 0)
-        GL11.glColor4f(0, 0, 0, 0.4f)
+        GlStateManager.color(0, 0, 0, 0.4f)
         GL11.glLineWidth(2)
-        GL11.glDisable(GL11.GL_TEXTURE_2D)
-        GL11.glDepthMask(false)
+        GlStateManager.disableTexture2D()
+        GlStateManager.depthMask(false)
 
         for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
           val bounds = shape.bounds.rotateTowards(print.facing)
@@ -128,9 +129,9 @@ object HighlightRenderer {
             .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0xFF, 0xFF, 0xFF, 0xFF)
         }
 
-        GL11.glDepthMask(true)
-        GL11.glEnable(GL11.GL_TEXTURE_2D)
-        GL11.glDisable(GL11.GL_BLEND)
+        GlStateManager.depthMask(true)
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
 
         e.setCanceled(true)
       case _ =>

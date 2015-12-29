@@ -13,6 +13,7 @@ import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.NEI
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.Gui
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.inventory.Container
@@ -36,7 +37,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   override protected def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
-    RenderState.pushAttrib()
+    GlStateManager.pushAttrib()
 
     drawSecondaryForegroundLayer(mouseX, mouseY)
 
@@ -44,13 +45,13 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
       drawSlotHighlight(inventorySlots.inventorySlots.get(slot))
     }
 
-    RenderState.popAttrib()
+    GlStateManager.popAttrib()
   }
 
   protected def drawSecondaryBackgroundLayer() {}
 
   override protected def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    RenderState.color(1, 1, 1, 1)
+    GlStateManager.color(1, 1, 1, 1)
     Textures.bind(Textures.GUI.Background)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawSecondaryBackgroundLayer()
@@ -62,14 +63,14 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   protected def drawInventorySlots(): Unit = {
-    RenderState.pushMatrix()
+    GlStateManager.pushMatrix()
     GL11.glTranslatef(guiLeft, guiTop, 0)
     GL11.glDisable(GL11.GL_DEPTH_TEST)
     for (slot <- 0 until inventorySlots.inventorySlots.size()) {
       drawSlotInventory(inventorySlots.inventorySlots.get(slot))
     }
     GL11.glEnable(GL11.GL_DEPTH_TEST)
-    RenderState.popMatrix()
+    GlStateManager.popMatrix()
     RenderState.makeItBlend()
   }
 
@@ -82,10 +83,10 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
     super.drawScreen(mouseX, mouseY, dt)
 
     if (Mods.NotEnoughItems.isAvailable) {
-      RenderState.pushAttrib()
+      GlStateManager.pushAttrib()
       RenderState.makeItBlend()
       // TODO NEI drawNEIHighlights()
-      RenderState.popAttrib()
+      GlStateManager.popAttrib()
     }
   }
 
@@ -151,17 +152,17 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
   }
 
   protected def drawDisabledSlot(slot: ComponentSlot) {
-    RenderState.color(1, 1, 1, 1)
+    GlStateManager.color(1, 1, 1, 1)
     Textures.bind(slot.tierIcon)
     Gui.drawModalRectWithCustomSizedTexture(slot.xDisplayPosition, slot.yDisplayPosition, 0, 0, 16, 16, 16, 16)
   }
 
   protected def drawSlotBackground(x: Int, y: Int) {
-    RenderState.color(1, 1, 1, 1)
+    GlStateManager.color(1, 1, 1, 1)
     Textures.bind(Textures.GUI.Slot)
     val t = Tessellator.getInstance
     val r = t.getWorldRenderer
-    r.begin(7, DefaultVertexFormats.POSITION_TEX)
+    r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
     r.pos(x, y + 18, zLevel + 1).tex(0, 1).endVertex()
     r.pos(x + 18, y + 18, zLevel + 1).tex(1, 1).endVertex()
     r.pos(x + 18, y, zLevel + 1).tex(1, 0).endVertex()
