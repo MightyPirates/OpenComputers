@@ -6,7 +6,7 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -16,7 +16,7 @@ import net.minecraft.world.World
 class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   if (Settings.get.ignorePower) {
     setCreativeTab(null)
-    NEI.hide(this)
+    ItemBlacklist.hide(this)
   }
 
   private val formatter = new DecimalFormat("#.#")

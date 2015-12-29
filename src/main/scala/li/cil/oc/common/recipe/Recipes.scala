@@ -12,7 +12,7 @@ import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.traits.Delegate
 import li.cil.oc.common.item.traits.SimpleItem
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Color
 import net.minecraft.block.Block
 import net.minecraft.item.Item
@@ -77,7 +77,7 @@ object Recipes {
       register(delegate.createItemStack(), oreDict: _*)
     }
     else {
-      NEI.hide(delegate)
+      ItemBlacklist.hide(delegate)
     }
     delegate
   }
@@ -124,22 +124,22 @@ object Recipes {
       lazy val config: ConfigParseOptions = ConfigParseOptions.defaults.
         setSyntax(ConfigSyntax.CONF).
         setIncluder(new ConfigIncluder with ConfigIncluderFile {
-        var fallback: ConfigIncluder = _
+          var fallback: ConfigIncluder = _
 
-        override def withFallback(fallback: ConfigIncluder) = {
-          this.fallback = fallback
-          this
-        }
+          override def withFallback(fallback: ConfigIncluder) = {
+            this.fallback = fallback
+            this
+          }
 
-        override def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
+          override def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
 
-        override def includeFile(context: ConfigIncludeContext, what: File) = {
-          val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
-          val result = ConfigFactory.parseReader(in, config)
-          in.close()
-          result.root()
-        }
-      })
+          override def includeFile(context: ConfigIncludeContext, what: File) = {
+            val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
+            val result = ConfigFactory.parseReader(in, config)
+            in.close()
+            result.root()
+          }
+        })
       val recipes = ConfigFactory.parseFile(userRecipes, config)
 
       // Register all known recipes.
@@ -467,7 +467,7 @@ object Recipes {
       case itemBlock: ItemBlock => itemBlock.getBlock match {
         case simple: SimpleBlock =>
           simple.setCreativeTab(null)
-          NEI.hide(simple)
+          ItemBlacklist.hide(simple)
         case _ =>
       }
       case _ =>

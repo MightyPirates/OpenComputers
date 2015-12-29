@@ -10,7 +10,7 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.agent
 import li.cil.oc.util.BlockPosition
@@ -29,7 +29,7 @@ import net.minecraft.world.World
 class RobotProxy extends RedstoneAware with traits.StateAware {
   setLightOpacity(0)
   setCreativeTab(null)
-  NEI.hide(this)
+  ItemBlacklist.hide(this)
 
   override val getUnlocalizedName = "Robot"
 

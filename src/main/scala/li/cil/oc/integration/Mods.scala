@@ -51,6 +51,7 @@ object Mods {
   val IndustrialCraft2 = new SimpleMod(IDs.IndustrialCraft2, providesPower = true)
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
+  val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
@@ -200,6 +201,7 @@ object Mods {
     final val IndustrialCraft2 = "IC2"
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val IngameWiki = "IGWMod"
+    final val JustEnoughItems = "JEI"
     final val Mekanism = "Mekanism"
     final val MekanismGas = "MekanismAPI|gas"
     final val Minecraft = "Minecraft"

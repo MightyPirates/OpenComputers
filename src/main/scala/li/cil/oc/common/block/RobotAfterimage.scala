@@ -7,7 +7,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Rarity
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
@@ -19,7 +19,7 @@ import net.minecraft.world.World
 class RobotAfterimage extends SimpleBlock {
   setLightOpacity(0)
   setCreativeTab(null)
-  NEI.hide(this)
+  ItemBlacklist.hide(this)
 
   // ----------------------------------------------------------------------- //
 

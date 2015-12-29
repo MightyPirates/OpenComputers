@@ -9,7 +9,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.block.property.PropertyTile
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.util.NEI
+import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.InventoryUtils
@@ -40,7 +40,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   setLightOpacity(1)
   setHardness(1)
   setCreativeTab(null)
-  NEI.hide(this)
+  ItemBlacklist.hide(this)
 
   // ----------------------------------------------------------------------- //
 
