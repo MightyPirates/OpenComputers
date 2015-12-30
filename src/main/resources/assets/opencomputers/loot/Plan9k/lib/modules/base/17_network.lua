@@ -178,10 +178,10 @@ startNetwork  = function()
         sent = nil
     end
     
-    local function sendHostFound(dest, age, addr)--H[ttl-byte][age-short][Found host]
+    local function sendHostFound(dest, age, addr, dist)--H[ttl-byte][age-short][distance][Found host]
         --kernel.io.println("found "..addr.." for "..dest)
         if dest ~= "localhost" then
-            return rawSend(dest, "H"..string.pack(">BH", cfg.ttl, math.floor(age + cfg.route_relayage))..addr)
+            return rawSend(dest, "H"..string.pack(">BHB", cfg.ttl, math.floor(age + cfg.route_relayage), dist)..addr)
         end
     end
     
@@ -218,7 +218,7 @@ startNetwork  = function()
         end
     end
     
-    local function processRouteRequests(host, age)
+    local function processRouteRequests(host, age, dist)
         if routeRequests[host] then
             age = age or (computer.uptime() - routeRequests[host].timeout)
             for t, request in pairs(routeRequests[host]) do
@@ -230,7 +230,7 @@ startNetwork  = function()
                             sendRoutedDataAs(host, request.origin, request.data, request.ttl)
                         end
                     elseif request.type == "R" then
-                        sendHostFound(request.host, age, host)
+                        sendHostFound(request.host, age, host, dist or 1)
                     end
                 end
             end
@@ -249,8 +249,8 @@ startNetwork  = function()
     end
     
     bindAddr = function(addr)
-        routes[addr] = {thisHost=true}
-        processRouteRequests(addr, 0)
+        routes[addr] = {thisHost=true, dist = 0}
+        processRouteRequests(addr, 0, 1)
     end
     
     kernel.modules.keventd.listen("hostname", function(_, name) bindAddr(name)end)
@@ -307,7 +307,7 @@ startNetwork  = function()
                         for host in pairs(n.hosts)do
                             if host == dest then
                                 --Found it!
-                                sendHostFound(origin, 0, dest)
+                                sendHostFound(origin, 0, dest, 1)
                                 return
                             end
                         end
@@ -318,9 +318,9 @@ startNetwork  = function()
                 if routes[dest] then
                     if routes[dest].thisHost then
                         --sendHostFound(origin, nodes[node].selfAddr)
-                        sendHostFound(origin, 0 ,dest)
+                        sendHostFound(origin, 0 , dest, 1)
                     elseif routes[dest].router ~= origin then--Router might have rebooted and is asking about route
-                        sendHostFound(origin, computer.uptime() - routes[dest].age, dest)
+                        sendHostFound(origin, computer.uptime() - routes[dest].age, dest, routes[dest].dist + 1)
                         --routes[dest].active = computer.uptime()
                     end
                     return
@@ -367,16 +367,31 @@ startNetwork  = function()
                 routeRequests[dest][#routeRequests[dest]+1] = {type = "R", host = origin}
             end
         elseif data:sub(1,1) == "H" then --Host found
-            local nttl, age, n = string.unpack(">BH", data, 2)
+            local nttl, age, dist, n = string.unpack(">BHB", data, 2)
             local host = data:sub(n)
             
             if not isAccessible(host) then
                 if not routes[host] then
-                    routes[host] = {router = origin, node = node, age = computer.uptime() - age, active = computer.uptime()}
-                    processRouteRequests(host, age)
-                elseif routes[host].age < computer.uptime() - age then
-                    routes[host] = {router = origin, node = node, age = computer.uptime() - age, active = routes[host].active}
-            end
+                    routes[host] = {
+                        router = origin,
+                        node = node,
+                        age = computer.uptime() - age,
+                        active = computer.uptime(),
+                        dist = dist
+                    }
+                    processRouteRequests(host, age, dist + 1)
+                else
+                    if (routes[host].dist > dist) or
+                       ((routes[host].age < computer.uptime() - age) and (routes[host].dist >= dist)) then
+                        routes[host] = {
+                            router = origin,
+                            node = node,
+                            age = computer.uptime() - age,
+                            active = routes[host].active,
+                            dist = dist
+                        }
+                    end
+                end
             end
         end
     end
@@ -402,14 +417,14 @@ startNetwork  = function()
         local now = computer.uptime()
         
         for k,v in pairs(routeRequests) do
-            res[k] = {router = "", interface = "", age = now - v.timeout}
+            res[k] = {router = "", interface = "", age = now - v.timeout, dist = 0}
         end
         
         for k,v in pairs(routes) do
             if v.router then
-                res[k] = {router = v.router, interface = v.node, age = now - v.age}
+                res[k] = {router = v.router, interface = v.node, age = now - v.age, dist = v.dist}
             elseif v.thisHost then
-                res[k] = {router = computer.address(), interface = "lo", age = 0}
+                res[k] = {router = computer.address(), interface = "lo", age = 0, dist = 0}
             end
         end
         return res
@@ -436,7 +451,7 @@ startNetwork  = function()
         for host, request in pairs(routeRequests) do
             if now - request.update >= cfg.routereq_retry then
                 if routes[host] then
-                    processRouteRequests(host, now - routes[host].age)
+                    processRouteRequests(host, now - routes[host].age, routes[host].dist + 1)
                 else
                     sendRouteRequest(host, now - request.update)
                     request.update = computer.uptime()

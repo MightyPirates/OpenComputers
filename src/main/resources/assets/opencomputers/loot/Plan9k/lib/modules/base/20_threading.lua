@@ -90,7 +90,8 @@ function spawn(exec, child, name, isthread, _, ...)
             signal = kernel.modules.cgroups.spawnGroupGetters["signal"](),
             network = kernel.modules.cgroups.spawnGroupGetters["network"](),
             filesystem = kernel.modules.cgroups.spawnGroupGetters["filesystem"](),
-            module = kernel.modules.cgroups.spawnGroupGetters["module"]()
+            module = kernel.modules.cgroups.spawnGroupGetters["module"](),
+            component = kernel.modules.cgroups.spawnGroupGetters["component"](),
         }
     }
     

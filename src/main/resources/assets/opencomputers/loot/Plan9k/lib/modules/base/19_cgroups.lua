@@ -29,12 +29,40 @@ end
 
 groupConstructors.module = function()
     local group = newGroup()
-    group.preload = {}
+        
+    group.preload = {
+        package = kernel.userspace.package, --TODO TODO TODO: METATABLE THIZ!!!!!!!!
+        filesystem = setmetatable({}, {__index = kernel.modules.vfs}),
+        buffer = setmetatable({}, {__index = kernel.modules.buffer}),
+        bit32 = setmetatable({}, {__index = kernel.userspace.bit32}),
+        component = setmetatable({}, {__index = kernel.userspace.component}),
+        computer = setmetatable({}, {__index = kernel.userspace.computer}),
+        io = setmetatable({}, {__index = kernel.modules.io.io}),
+        unicode = setmetatable({}, {__index = kernel.userspace.unicode}),
+    }
     group.loaded = {}
     group.loading = {}
     group.searchers = {}
     return group
 end
+
+groupConstructors.component = function(parent, wl, bl)
+    local group = newGroup()
+    group.parent = parent
+    group.whitelist = wl
+    group.blacklist = bl
+    group.adding = not parent and kernel.modules.component.kernelGroup.adding or {}
+    group.removing = not parent and kernel.modules.component.kernelGroup.removing or {}
+    group.primaries = not parent and kernel.modules.component.kernelGroup.primaries or {}
+    group.allow = function(addr)
+        if not group.parent or group.parent.allow(addr) then
+            return (not group.whitelist or group.whitelist[addr]) and (not group.blacklist or (not group.blacklist[addr]))
+        end
+    end
+    return group
+end
+
+------------------------------
 
 spawnGroupGetters.signal = function()
     if not kernel.modules.threading.currentThread then
@@ -68,6 +96,15 @@ spawnGroupGetters.module = function()
     end
 end
 
+spawnGroupGetters.component = function()
+    if not kernel.modules.threading.currentThread then
+        return groupConstructors.component()
+    else
+        return kernel.modules.threading.currentThread.cgroups.component
+    end
+end
+
+------------------------------
 --Signal group functions
 
 function pushSignal(...)
@@ -76,11 +113,19 @@ function pushSignal(...)
     end
 end
 
+------------------------------
+
 userConstructors = {}
 
 function userConstructors.module()
     return groupConstructors.module()
 end
+
+function userConstructors.component(wl, bl)
+    return groupConstructors.component(kernel.modules.threading.currentThread and kernel.modules.threading.currentThread.cgroups.component, wl, bl)
+end
+
+------------------------------
 
 function new(pid, name, ...)
     if kernel.modules.threading.currentThread.pid ~= pid and 
