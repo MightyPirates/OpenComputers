@@ -32,13 +32,13 @@ local mcnetTransportTypes = {
 
 local mcnetTypes = {
     ["H"] = function(localAddress, remoteAddress, data)
-        local ttl, age, n = string.unpack(">BH", data)
+        local ttl, age, dist, n = string.unpack(">BHB", data)
         local host = data:sub(n)
-        print("\t>> L2 mcnet HOST_FOUND ttl=" .. ttl .. " age=" .. age .. " host=" .. host)
+        print("\t>> L2 mcnet HOST_FOUND ttl=" .. ttl .. " age=" .. age .. " dist=" .. dist .. " host=" .. normLine(host))
     end,
     ["R"] = function(localAddress, remoteAddress, data)
         local ttl, dest, age = string.unpack(">Bs1H", data)
-        print("\t>> L2 mcnet SEEK_ROUTE ttl=" .. ttl .. " age=" .. age .. " dest=" .. dest)
+        print("\t>> L2 mcnet SEEK_ROUTE ttl=" .. ttl .. " age=" .. age .. " dest=" .. normLine(dest))
     end,
     ["D"] = function(localAddress, remoteAddress, data)
         local ttl = string.unpack(">B", data)
@@ -52,7 +52,7 @@ local mcnetTypes = {
     ["E"] = function(localAddress, remoteAddress, data)
         local ttl, dest, orig, dstart = string.unpack(">Bs1s1", data)
         local dat = data:sub(dstart)
-        print("\t>> L2 mcnet ROUTED_DATA ttl=" .. ttl .. " dest=" .. dest .. " origin=" .. orig)
+        print("\t>> L2 mcnet ROUTED_DATA ttl=" .. ttl .. " dest=" .. normLine(dest) .. " origin=" .. orig)
         if mcnetTransportTypes[dat:sub(1,1)] then
             mcnetTransportTypes[dat:sub(1,1)](localAddress, remoteAddress, dat:sub(2))
         else
@@ -62,7 +62,10 @@ local mcnetTypes = {
 }
 
 local ethTypes = {
-    ["\0"] = function(localAddress, remoteAddress, msg) --PKT_BEACON
+    ["\0"] = function(localAddress, remoteAddress, msg) --PKT_BEACON_OLD
+        print("\t> L1 PKT_OLD_BEACON remote=" .. remoteAddress)
+    end, 
+    ["\32"] = function(localAddress, remoteAddress, msg) --PKT_BEACON
         print("\t> L1 PKT_BEACON remote=" .. remoteAddress)
     end, 
     ["\1"] = function(localAddress, remoteAddress, msg) --PKT_REGISTER
@@ -82,6 +85,7 @@ local ethTypes = {
     ["\3"] = function(localAddress, remoteAddress, msg) --PKT_QUIT
         print("\t> L1 PKT_QUIT remote=" .. remoteAddress)
     end, 
+    
 }
 
 function dataExpanders.modem_message(_, localAddress, remoteAddress, port, distance, msg)

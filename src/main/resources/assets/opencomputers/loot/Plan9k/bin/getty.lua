@@ -320,11 +320,12 @@ end
 control["!"] = function(char) --Disable
     if commandMode == "9" then
         charHandlers.active = function(c)
-            if c == "\255" then
+            if c == "\255" or c == "!" then
                 commandList = {}
                 commandBuf = ""
                 commandMode = ""
                 charHandlers.active = charHandlers.base
+                blink = true
             end
         end
         blink = false
