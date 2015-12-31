@@ -1,5 +1,8 @@
-local component = {}
+local rawComponent = kernel._K.component
+component = {}
+
 kernel.userspace.component = component
+kernel._K.component = component
 
 kernelGroup = {
     adding = {},
@@ -12,12 +15,13 @@ local function getGroup()
 end
 
 local function allow(addr)
+    if not kernel.modules.threading then return true end
     return not kernel.modules.threading.currentThread or kernel.modules.threading.currentThread.cgroups.component.allow(addr)
 end
 
 component.doc = function(addr, method)
     if allow(addr) then
-        return kernel._K.component.doc(addr, method)
+        return rawComponent.doc(addr, method)
     else
         error("no such component")
     end
@@ -25,7 +29,7 @@ end
 
 component.invoke = function(addr, ...)
     if allow(addr) then
-        return kernel._K.component.invoke(addr, ...)
+        return rawComponent.invoke(addr, ...)
     else
         error("no such component")
     end
@@ -33,7 +37,7 @@ end
 
 component.list = function(filter, exact)
     local list = {}
-    for k, v in pairs(kernel._K.component.list(filter, not not exact)) do
+    for k, v in pairs(rawComponent.list(filter, not not exact)) do
         if allow(k) then
             list[k] = v
         end
@@ -49,7 +53,7 @@ end
 
 component.methods = function(addr)
     if allow(addr) then
-        return kernel._K.component.methods(addr)
+        return rawComponent.methods(addr)
     else
         return nil, "no such component"
     end
@@ -57,7 +61,7 @@ end
 
 component.fields = function(addr)
     if allow(addr) then
-        return kernel._K.component.fields(addr)
+        return rawComponent.fields(addr)
     else
         return nil, "no such component"
     end
@@ -65,7 +69,7 @@ end
 
 component.proxy = function(addr)
     if allow(addr) then
-        return kernel._K.component.proxy(addr)
+        return rawComponent.proxy(addr)
     else
         return nil, "no such component"
     end
@@ -73,7 +77,7 @@ end
 
 component.type = function(addr)
     if allow(addr) then
-        return kernel._K.component.type(addr)
+        return rawComponent.type(addr)
     else
         return nil, "no such component"
     end
@@ -81,7 +85,7 @@ end
 
 component.slot = function(addr)
     if allow(addr) then
-        return kernel._K.component.slot(addr)
+        return rawComponent.slot(addr)
     else
         return nil, "no such component"
     end
