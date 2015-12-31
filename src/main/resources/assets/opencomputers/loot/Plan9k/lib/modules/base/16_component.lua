@@ -15,6 +15,7 @@ local function getGroup()
 end
 
 local function allow(addr)
+    if not kernel.modules.threading then return true end
     return not kernel.modules.threading.currentThread or kernel.modules.threading.currentThread.cgroups.component.allow(addr)
 end
 
