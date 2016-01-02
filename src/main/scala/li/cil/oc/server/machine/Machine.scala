@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
-import li.cil.oc.api.FileSystem
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
 import li.cil.oc.api.driver.item.CallBudget
@@ -30,6 +29,7 @@ import li.cil.oc.common.Slot
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.fs.FileSystem
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper.result
 import li.cil.oc.util.ThreadPoolFactory
@@ -729,6 +729,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
     assert(!isExecuting) // Lock on 'this' should guarantee this.
+
+    if (FileSystem.savingForClients) {
+      return
+    }
 
     // Make sure we don't continue running until everything has saved.
     pause(0.05)
