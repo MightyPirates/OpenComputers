@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.OutputStream
 import java.util.zip.Deflater
+import java.util.zip.DeflaterOutputStream
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.internal.FMLProxyPacket
@@ -18,8 +19,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
-import org.apache.commons.compress.compressors.gzip.GzipParameters
 import org.apache.logging.log4j.LogManager
 
 import scala.collection.convert.WrapAsScala._
@@ -104,7 +103,7 @@ class SimplePacketBuilder(val packetType: PacketType.Value) extends PacketBuilde
   }
 }
 
-class CompressedPacketBuilder(val packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new GzipCompressorOutputStream(data, PacketBuilder.gzipParams)) {
+class CompressedPacketBuilder(val packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new DeflaterOutputStream(data, new Deflater(Deflater.BEST_SPEED))) {
   writeByte(packetType.id)
 
   override protected def packet = {
@@ -118,9 +117,6 @@ class CompressedPacketBuilder(val packetType: PacketType.Value, private val data
 object PacketBuilder {
   val log = LogManager.getLogger(OpenComputers.Name + "-PacketBuilder")
   var isProfilingEnabled = false
-
-  val gzipParams = new GzipParameters()
-  gzipParams.setCompressionLevel(Deflater.BEST_SPEED)
 
   def logPacket(packetType: PacketType.Value, payloadSize: Int, tileEntity: Option[TileEntity]): Unit = {
     if (PacketBuilder.isProfilingEnabled) {

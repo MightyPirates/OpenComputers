@@ -1,9 +1,8 @@
 package li.cil.oc.common
 
-import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.io.InputStream
-import java.util.zip.GZIPInputStream
+import java.util.zip.InflaterInputStream
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufInputStream
@@ -14,7 +13,6 @@ import li.cil.oc.common.block.RobotAfterimage
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.nbt.NBTSizeTracker
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -30,7 +28,7 @@ abstract class PacketHandler {
     try {
       val stream = new ByteBufInputStream(data)
       if (stream.read() == 0) dispatch(new PacketParser(stream, player))
-      else dispatch(new PacketParser(new GZIPInputStream(stream), player))
+      else dispatch(new PacketParser(new InflaterInputStream(stream), player))
     } catch {
       case e: Throwable =>
         OpenComputers.log.warn("Received a badly formatted packet.", e)
