@@ -5,15 +5,16 @@ import java.io.IOException
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.fs.{FileSystem => IFileSystem}
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.server.fs.FileSystem
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
@@ -282,19 +283,22 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
   override def save(nbt: NBTTagCompound) = fileSystem.synchronized {
     super.save(nbt)
 
-    val ownersNbt = new NBTTagList()
-    for ((address, handles) <- owners) {
-      val ownerNbt = new NBTTagCompound()
-      ownerNbt.setString("address", address)
-      ownerNbt.setTag("handles", new NBTTagIntArray(handles.toArray))
-      ownersNbt.appendTag(ownerNbt)
-    }
-    nbt.setTag("owners", ownersNbt)
-
     if (label != null) {
       label.save(nbt)
     }
-    nbt.setNewCompoundTag("fs", fileSystem.save)
+
+    if (!FileSystem.savingForClients) {
+      val ownersNbt = new NBTTagList()
+      for ((address, handles) <- owners) {
+        val ownerNbt = new NBTTagCompound()
+        ownerNbt.setString("address", address)
+        ownerNbt.setTag("handles", new NBTTagIntArray(handles.toArray))
+        ownersNbt.appendTag(ownerNbt)
+      }
+      nbt.setTag("owners", ownersNbt)
+
+      nbt.setNewCompoundTag("fs", fileSystem.save)
+    }
   }
 
   // ----------------------------------------------------------------------- //

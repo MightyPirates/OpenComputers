@@ -22,6 +22,8 @@ import net.minecraftforge.common.DimensionManager
 import scala.util.Try
 
 object FileSystem extends api.detail.FileSystemAPI {
+  var savingForClients = false
+
   lazy val isCaseInsensitive = Settings.get.forceCaseInsensitive || (try {
     val uuid = UUID.randomUUID().toString
     val lowerCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
