@@ -192,7 +192,7 @@ kernel.userspace.io = io
 
 setmetatable(io, {__index = function(_, k)
     if k == "stdout" then return io.output()
-    elseif k == "stdout" then return io.output()
+    elseif k == "stdin" then return io.input()
     elseif k == "stderr" then return kernel.modules.threading.currentThread.io_error
     end
 end})

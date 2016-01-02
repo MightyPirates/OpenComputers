@@ -12,7 +12,7 @@ local driver = {}
 local nodes = {}
 local eventHnd
 
-local PKT_BEACON        = "\0"
+local PKT_BEACON        = "\32"
 local PKT_REGISTER      = "\1"
 local PKT_REGISTER_ACK  = "\2"
 local PKT_QUIT          = "\3"

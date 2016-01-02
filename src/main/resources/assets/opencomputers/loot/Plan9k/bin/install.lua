@@ -66,6 +66,7 @@ local distros = {
   {desc = "[online]  Plan9k - lightest, experimental",                          params = {"-SYy", "plan9k"}},
   {desc = "[online]  Plan9k-extra - experimental, contains tools, docs",        params = {"-SYy", "plan9k-extra", "plan9k-docs"}},
   {desc = "[online]  StarOS - Plan9k-extra distro with additional tools",       params = {"-SYy", "staros"}},
+  {desc = "[online]  Update - update installed system",                         params = {"--mirror=/", "-uyY"}},
 }
 
 for n, dist in pairs(distros) do

@@ -310,6 +310,12 @@ builtin.alias("....", "cd", "../../..")
 -------------------
 -- Main loop
 
+if fs.exists("~/.shrc") then
+    for line in io.lines("~/.shrc") do
+        execute(line)
+    end
+end
+
 while run do
     --if term.getCursor() > 1 then
     --    io.write("\n")
