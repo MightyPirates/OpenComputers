@@ -254,11 +254,16 @@ object PacketHandler extends CommonPacketHandler {
       case entity: EntityPlayerMP =>
         ComponentTracker.get(p.player.worldObj, address) match {
           case Some(buffer: TextBuffer) =>
-            val nbt = new NBTTagCompound()
-            buffer.data.save(nbt)
-            nbt.setInteger("maxWidth", buffer.getMaximumWidth)
-            nbt.setInteger("maxHeight", buffer.getMaximumHeight)
-            PacketSender.sendTextBufferInit(address, nbt, entity)
+            if (buffer.host match {
+              case screen: Screen if !screen.isOrigin => false
+              case _ => true
+            }) {
+              val nbt = new NBTTagCompound()
+              buffer.data.save(nbt)
+              nbt.setInteger("maxWidth", buffer.getMaximumWidth)
+              nbt.setInteger("maxHeight", buffer.getMaximumHeight)
+              PacketSender.sendTextBufferInit(address, nbt, entity)
+            }
           case _ => // Invalid packet.
         }
       case _ => // Invalid packet.
