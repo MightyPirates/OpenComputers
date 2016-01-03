@@ -146,6 +146,7 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTank)
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
+    api.Driver.add(DriverUpgradeTrading)
 
     api.Driver.add(DriverAPU.Provider)
     api.Driver.add(DriverDataCard.Provider)
@@ -200,7 +201,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.SolarGeneratorUpgrade,
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TractorBeamUpgrade,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.TradingUpgrade)
     blacklistHost(classOf[internal.Drone],
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
@@ -240,7 +242,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TankControllerUpgrade,
       Constants.ItemName.TractorBeamUpgrade,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.TradingUpgrade)
     blacklistHost(classOf[internal.Robot],
       Constants.BlockName.Transposer,
       Constants.ItemName.LeashUpgrade)
@@ -263,7 +266,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.InventoryControllerUpgrade,
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TankControllerUpgrade,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.TradingUpgrade)
 
     if (!WirelessRedstone.isAvailable) {
       blacklistHost(classOf[internal.Drone], Constants.ItemName.RedstoneCardTier2)

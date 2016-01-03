@@ -367,6 +367,12 @@ upgradeContainer3 {
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 
+upgradeTrading {
+  input: [[ingotGold, chest, ingotGold]
+          [emerald, "oc:circuitChip2", emerald]
+          [dropper, "oc:materialCircuitBoardPrinted", craftingPiston]]
+}
+
 # Note: iron ingot and nugget recipes are *only* registered if no other mod
 # already provides the same functionality.
 nuggetIron {
