@@ -18,7 +18,7 @@ object DriverUpgradeTankController extends Item with HostAware {
     api.Items.get(Constants.ItemName.TankControllerUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world.isRemote) null
+    if (host.world != null && host.world.isRemote) null
     else host match {
       case host: EnvironmentHost with Adapter => new component.UpgradeTankController.Adapter(host)
       case host: EnvironmentHost with Drone => new component.UpgradeTankController.Drone(host)

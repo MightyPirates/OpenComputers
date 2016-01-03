@@ -18,7 +18,7 @@ object DriverDataCard extends Item {
     api.Items.get(Constants.ItemName.DataCardTier3))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world.isRemote) null
+    if (host.world != null && host.world.isRemote) null
     else tier(stack) match {
       case Tier.One => new component.DataCard.Tier1()
       case Tier.Two => new component.DataCard.Tier2()

@@ -16,7 +16,7 @@ object DriverUpgradeGenerator extends Item with HostAware {
     api.Items.get(Constants.ItemName.GeneratorUpgrade))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world.isRemote) null
+    if (host.world != null && host.world.isRemote) null
     else host match {
       case host: internal.Agent => new component.UpgradeGenerator(host)
       case _ => null

@@ -14,7 +14,7 @@ object DriverWirelessNetworkCard extends Item {
     api.Items.get(Constants.ItemName.WirelessNetworkCard))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world.isRemote) null
+    if (host.world != null && host.world.isRemote) null
     else new component.WirelessNetworkCard(host)
 
   override def slot(stack: ItemStack) = Slot.Card

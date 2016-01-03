@@ -18,7 +18,7 @@ object DriverTablet extends Item {
     api.Items.get(Constants.ItemName.Tablet))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (host.world.isRemote) null
+    if (host.world != null && host.world.isRemote) null
     else {
       Tablet.Server.cache.invalidate(Tablet.getId(stack))
       val data = new TabletData(stack)
