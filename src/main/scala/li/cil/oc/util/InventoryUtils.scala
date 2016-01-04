@@ -243,7 +243,7 @@ object InventoryUtils {
     val remaining = stack.copy()
     for (slot <- range if remaining.stackSize > 0) {
       extractFromInventorySlot(stack => {
-        if (haveSameItemType(remaining, stack)) {
+        if (haveSameItemType(remaining, stack, checkNBT = true)) {
           val transferred = stack.stackSize min remaining.stackSize
           remaining.stackSize -= transferred
           if (!simulate) {
