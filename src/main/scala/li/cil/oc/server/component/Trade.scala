@@ -4,253 +4,192 @@ import java.util.UUID
 
 import li.cil.oc.Settings
 import li.cil.oc.api.machine._
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.EventHandler
 import li.cil.oc.util.InventoryUtils
-import net.minecraft.entity.passive.EntityVillager
+import net.minecraft.entity.Entity
+import net.minecraft.entity.IMerchant
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.village.MerchantRecipe
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.ForgeDirection
-import ref.WeakReference
-import li.cil.oc.api.network.EnvironmentHost
-import scala.collection.JavaConverters._
 
-class Trade(info: TradeInfo) extends AbstractValue {
+import scala.collection.convert.WrapAsScala._
+import scala.ref.WeakReference
 
+class Trade(val info: TradeInfo) extends AbstractValue {
   def this() = this(new TradeInfo())
-  def this(upgr: UpgradeTrading, villager: EntityVillager, recipeID: Int) = {
-    this(new TradeInfo(upgr.host, villager, recipeID))
-  }
 
+  def this(upgrade: UpgradeTrading, merchant: IMerchant, recipeID: Int) =
+    this(new TradeInfo(upgrade.host, merchant, recipeID))
 
-  override def load(nbt: NBTTagCompound) = {
-    EventHandler.scheduleServer(() => {
-      //Tell the info to load from NBT, behind EventHandler because when load is called we can't access the world yet
-      //and we need to access it to get the Robot/Drone TileEntity/Entity
-      info.load(nbt)
-    })
-  }
+  def maxRange = Settings.get.tradingRange
 
-  override def save(nbt: NBTTagCompound) = {
-    //Tell info to save to nbt
-    info.save(nbt)
-  }
-
-  def inventory = info.inventory
-
-  @Callback(doc="function():table, table -- returns the items the villager wants for this trade")
-  def getInput(context: Context, arguments: Arguments): Array[AnyRef] = {
-    Array(info.recipe.getItemToBuy.copy(),
-      info.recipe.hasSecondItemToBuy match {
-        case true => info.recipe.getSecondItemToBuy.copy()
-        case false => null
-      })
-  }
-
-  @Callback(doc = "function():table -- returns the item the villager offers for this trade")
-  def getOutput(context: Context, arguments: Arguments): Array[AnyRef] = {
-    Array(info.recipe.getItemToSell.copy())
-  }
-
-  @Callback(doc="function():boolean -- returns whether the villager currently wants to trade this")
-  def isEnabled(context: Context, arguments: Arguments): Array[AnyRef] = {
-    Array(info.villager.exists((villager: EntityVillager) => // Make sure villager is neither dead/gone nor the recipe
-      !info.recipe.isRecipeDisabled                          // has been disabled
-    ).asInstanceOf[AnyRef])
-  }
-
-  val maxRange = Settings.get.tradingRange
-  def inRange = info.villager.isDefined && distance.exists((distance: Double) => distance < maxRange)
-  def distance = info.villager match {
-    case Some(villager: EntityVillager) =>
-      info.host match {
-        case Some(h: EnvironmentHost) => Some(Math.sqrt(Math.pow(villager.posX - h.xPosition, 2) + Math.pow(villager.posY - h.yPosition, 2) + Math.pow(villager.posZ - h.zPosition, 2)))
-        case _ => None
-      }
-    case None => None
-  }
-
-  @Callback(doc="function():boolean, string -- returns true when trade succeeds and nil, error when not")
-  def trade(context: Context, arguments: Arguments): Array[AnyRef] = {
-    //Make sure we can access an inventory
-    val inventory = info.inventory match {
-      case Some(i) => i
-      case None => return result(false, "trading requires an inventory upgrade to be installed")
-    }
-
-    //Make sure villager hasn't died, it somehow gone or moved out of range
-    if (info.villager.isEmpty)
-      return result(false, "trade has become invalid")
-    else if (!info.villager.get.isEntityAlive)
-      return result(false, "trader died")
-    if (!inRange) {
-      return result(false, "out of range")
-    }
-
-    //Make sure villager wants to trade this
-    if (info.recipe.isRecipeDisabled)
-      return result(false, "recipe is disabled")
-
-    //Now we'll check if we have enough items to perform the trade, caching first
-    val firstItem = info.recipe.getItemToBuy
-    val secondItem = info.recipe.hasSecondItemToBuy match {
-      case true => Some(info.recipe.getSecondItemToBuy)
-      case false => None
-    }
-
-    //Check if we have enough of the first item
-    var extracting: Int = firstItem.stackSize
-    for (slot <- 0 until inventory.getSizeInventory) {
-      val stack = inventory.getStackInSlot(slot)
-      if (stack != null && stack.isItemEqual(firstItem) && extracting > 0)
-        //Takes the stack in the slot, extracts up to limit and calls the function in the first argument
-        //We don't actually consume anything, we just count that we have extracted as much as we need
-        InventoryUtils.extractFromInventorySlot((stack: ItemStack) => extracting -= stack.stackSize, inventory, ForgeDirection.UNKNOWN, slot, extracting)
-    }
-    //If we had enough, the left-over amount will be 0
-    if (extracting != 0)
-      return result(false, "not enough items to trade")
-
-    //Do the same with the second item if there is one
-    if (secondItem.isDefined) {
-      extracting = secondItem.orNull.stackSize
-      for (slot <- 0 until inventory.getSizeInventory) {
-        val stack = inventory.getStackInSlot(slot)
-        if (stack != null && stack.isItemEqual(secondItem.orNull) && extracting > 0)
-          InventoryUtils.extractFromInventorySlot((stack: ItemStack) => extracting -= stack.stackSize, inventory, ForgeDirection.UNKNOWN, slot, extracting)
-      }
-      if (extracting != 0)
-        return result(false, "not enough items to trade")
-    }
-
-    //Now we need to check if we have enough inventory space to accept the item we get for the trade
-    val outputItemSim = info.recipe.getItemToSell.copy()
-    InventoryUtils.insertIntoInventory(outputItemSim, inventory, None, 64, simulate = true)
-    if (outputItemSim.stackSize != 0)
-      return result(false, "not enough inventory space to trade")
-
-    //We established that out inventory allows to perform the trade, now actaully do the trade
-    extracting = firstItem.stackSize
-    for (slot <- 0 until inventory.getSizeInventory) {
-      if (extracting != 0) {
-        val stack = inventory.getStackInSlot(slot)
-        if (stack != null && stack.isItemEqual(firstItem))
-          //Pretty much the same as earlier (but counting down, and not up now)
-          //but this time we actually consume the stack we get
-          InventoryUtils.extractFromInventorySlot((stack: ItemStack) => {
-            extracting -= stack.stackSize
-            stack.stackSize = 0
-          }, inventory, ForgeDirection.UNKNOWN, slot, extracting)
-      }
-    }
-
-    //Do the same for the second item
-    if (secondItem.isDefined) {
-      extracting = secondItem.orNull.stackSize
-      for (slot <- 0 until inventory.getSizeInventory) {
-        if (extracting != 0) {
-          val stack = inventory.getStackInSlot(slot)
-          if (stack != null && stack.isItemEqual(secondItem.orNull))
-            InventoryUtils.extractFromInventorySlot((stack: ItemStack) => {
-              extracting -= stack.stackSize
-              stack.stackSize = 0
-            }, inventory, ForgeDirection.UNKNOWN, slot, extracting)
-        }
-      }
-    }
-
-    //Now put our output item into the inventory
-    val outputItem = info.recipe.getItemToSell.copy()
-    while (outputItem.stackSize != 0)
-      InventoryUtils.insertIntoInventory(outputItem, inventory, None, outputItem.stackSize)
-
-    //Tell the villager we used the recipe, so MC can disable it and/or enable more recipes
-    info.villager.orNull.useRecipe(info.recipe)
-    result(true)
-  }
-}
-
-class TradeInfo() {
-  def this(host: EnvironmentHost, villager: EntityVillager, recipeID: Int) = {
-    this()
-    _vilRef = new WeakReference[EntityVillager](villager)
-    _recipeID = recipeID
-    this.host = host
-  }
-
-  def getEntityByUUID(dimID: Int, uuid: UUID) = DimensionManager.getProvider(dimID).worldObj.getLoadedEntityList.asScala.find {
-    case entAny: net.minecraft.entity.Entity if entAny.getPersistentID == uuid => true
+  def isInRange = (info.merchant.get, info.host) match {
+    case (Some(merchant: Entity), Some(host)) => merchant.getDistanceSq(host.xPosition, host.yPosition, host.zPosition) < maxRange * maxRange
     case _ => false
   }
 
-  def getTileEntity(dimID: Int, posX: Int, posY: Int, posZ: Int) = Option(DimensionManager.getProvider(dimID).worldObj.getTileEntity(posX, posY, posZ) match {
-    case robot : li.cil.oc.common.tileentity.Robot => robot
-    case robotProxy : li.cil.oc.common.tileentity.RobotProxy => robotProxy.robot
-    case null => None
-  })
+  // Queue the load because when load is called we can't access the world yet
+  // and we need to access it to get the Robot's TileEntity / Drone's Entity.
+  override def load(nbt: NBTTagCompound) = EventHandler.scheduleServer(() => info.load(nbt))
+
+  override def save(nbt: NBTTagCompound) = info.save(nbt)
+
+  @Callback(doc = "function():table, table -- Returns the items the merchant wants for this trade.")
+  def getInput(context: Context, arguments: Arguments): Array[AnyRef] =
+    result(info.recipe.map(_.getItemToBuy.copy()).orNull,
+      if (info.recipe.exists(_.hasSecondItemToBuy)) info.recipe.map(_.getSecondItemToBuy.copy()).orNull else null)
+
+  @Callback(doc = "function():table -- Returns the item the merchant offers for this trade.")
+  def getOutput(context: Context, arguments: Arguments): Array[AnyRef] =
+    result(info.recipe.map(_.getItemToSell.copy()).orNull)
+
+  @Callback(doc = "function():boolean -- Returns whether the merchant currently wants to trade this.")
+  def isEnabled(context: Context, arguments: Arguments): Array[AnyRef] =
+    result(info.merchant.get.exists(merchant => !info.recipe.exists(_.isRecipeDisabled))) // Make sure merchant is neither dead/gone nor the recipe has been disabled.
+
+  @Callback(doc = "function():boolean, string -- Returns true when trade succeeds and nil, error when not.")
+  def trade(context: Context, arguments: Arguments): Array[AnyRef] = {
+    // Make sure we can access an inventory.
+    info.inventory match {
+      case Some(inventory) =>
+        // Make sure merchant hasn't died, it somehow gone or moved out of range and still wants to trade this.
+        info.merchant.get match {
+          case Some(merchant: Entity) if merchant.isEntityAlive && isInRange =>
+            if (!merchant.isEntityAlive) {
+              result(false, "trader died")
+            } else if (!isInRange) {
+              result(false, "out of range")
+            } else {
+              info.recipe match {
+                case Some(recipe) =>
+                  if (recipe.isRecipeDisabled) {
+                    result(false, "trade is disabled")
+                  } else {
+                    // Now we'll check if we have enough items to perform the trade, caching first
+                    val firstInputStack = recipe.getItemToBuy
+                    val secondInputStack = if (recipe.hasSecondItemToBuy) Option(recipe.getSecondItemToBuy) else None
+
+                    def containsAccumulativeItemStack(stack: ItemStack) =
+                      InventoryUtils.extractFromInventory(stack, inventory, ForgeDirection.UNKNOWN, simulate = true).stackSize == 0
+                    def hasRoomForItemStack(stack: ItemStack) = {
+                      val remainder = stack.copy()
+                      InventoryUtils.insertIntoInventory(remainder, inventory, None, remainder.stackSize, simulate = true)
+                      remainder.stackSize == 0
+                    }
+
+                    // Check if we have enough to perform the trade.
+                    if (containsAccumulativeItemStack(firstInputStack) && secondInputStack.forall(containsAccumulativeItemStack)) {
+                      // Now we need to check if we have enough inventory space to accept the item we get for the trade.
+                      val outputStack = recipe.getItemToSell.copy()
+                      if (hasRoomForItemStack(outputStack)) {
+                        // We established that out inventory allows to perform the trade, now actually do the trade.
+                        InventoryUtils.extractFromInventory(firstInputStack, inventory, ForgeDirection.UNKNOWN)
+                        secondInputStack.map(InventoryUtils.extractFromInventory(_, inventory, ForgeDirection.UNKNOWN))
+                        InventoryUtils.insertIntoInventory(outputStack, inventory, None, outputStack.stackSize)
+
+                        // Tell the merchant we used the recipe, so MC can disable it and/or enable more recipes.
+                        info.merchant.get.orNull.useRecipe(recipe)
+
+                        result(true)
+                      } else {
+                        result(false, "not enough inventory space to trade")
+                      }
+                    } else {
+                      result(false, "not enough items to trade")
+                    }
+                  }
+                case _ => result(false, "trade has become invalid")
+              }
+            }
+          case _ => result(false, "trade has become invalid")
+        }
+      case _ => result(false, "trading requires an inventory upgrade to be installed")
+    }
+  }
+}
+
+class TradeInfo(var host: Option[EnvironmentHost], var merchant: WeakReference[IMerchant], var recipeID: Int) {
+  def this() = this(None, new WeakReference[IMerchant](null), -1)
+
+  def this(host: EnvironmentHost, merchant: IMerchant, recipeID: Int) =
+    this(Option(host), new WeakReference[IMerchant](merchant), recipeID)
+
+  def recipe = merchant.get.map(_.getRecipes(null).get(recipeID).asInstanceOf[MerchantRecipe])
+
+  def inventory = host match {
+    case Some(agent: li.cil.oc.api.internal.Agent) => Option(agent.mainInventory())
+    case _ => None
+  }
 
   def load(nbt: NBTTagCompound): Unit = {
-    val dimID = nbt.getInteger("dimensionID")
-    val _hostIsDrone = nbt.getBoolean("hostIsDrone")
-    //If drone we find it again by its UUID, if Robot we know the X/Y/Z of the TileEntity
-    host = Option(_hostIsDrone match {
-      case true => getEntityByUUID(dimID, UUID.fromString(nbt.getString("hostUUID"))).orNull.asInstanceOf[EnvironmentHost]
-      case false => getTileEntity(
-        dimID,
-        nbt.getInteger("hostX"),
-        nbt.getInteger("hostY"),
-        nbt.getInteger("hostZ")
-      ).orNull.asInstanceOf[EnvironmentHost]
+    val isEntity = nbt.getBoolean("hostIsEntity")
+    // If drone we find it again by its UUID, if Robot we know the X/Y/Z of the TileEntity.
+    host = if (isEntity) loadHostEntity(nbt) else loadHostTileEntity(nbt)
+    merchant = new WeakReference[IMerchant](loadEntity(nbt, new UUID(nbt.getLong("merchantUUIDMost"), nbt.getLong("merchantUUIDLeast"))) match {
+      case Some(merchant: IMerchant) => merchant
+      case _ => null
     })
-    _recipeID = nbt.getInteger("recipeID")
-    _vilRef = new WeakReference[EntityVillager](getEntityByUUID(dimID, UUID.fromString(nbt.getString("villagerUUID"))).orNull.asInstanceOf[EntityVillager])
+    recipeID = nbt.getInteger("recipeID")
   }
 
   def save(nbt: NBTTagCompound): Unit = {
     host match {
-      case Some(h) =>
-        nbt.setInteger("dimensionID", h.world.provider.dimensionId)
-        hostIsDrone match {
-          case true => nbt.setString("hostUUID", h.asInstanceOf[li.cil.oc.common.entity.Drone].getPersistentID.toString)
-          case false =>
-            nbt.setInteger("hostX", h.xPosition.floor.toInt)
-            nbt.setInteger("hostY", h.yPosition.floor.toInt)
-            nbt.setInteger("hostZ", h.zPosition.floor.toInt)
-        }
-      case None =>
+      case Some(entity: Entity) =>
+        nbt.setBoolean("hostIsEntity", true)
+        nbt.setInteger("dimensionID", entity.world.provider.dimensionId)
+        nbt.setLong("hostUUIDLeast", entity.getPersistentID.getLeastSignificantBits)
+        nbt.setLong("hostUUIDMost", entity.getPersistentID.getMostSignificantBits)
+      case Some(tileEntity: TileEntity) =>
+        nbt.setBoolean("hostIsEntity", false)
+        nbt.setInteger("dimensionID", tileEntity.getWorldObj.provider.dimensionId)
+        nbt.setInteger("hostX", tileEntity.xCoord)
+        nbt.setInteger("hostY", tileEntity.yCoord)
+        nbt.setInteger("hostZ", tileEntity.zCoord)
+      case _ => // Welp!
     }
-    villager match {
-      case Some(v) => nbt.setString("villagerUUID", v.getPersistentID.toString)
-      case None =>
+    merchant.get match {
+      case Some(entity: Entity) =>
+        nbt.setLong("merchantUUIDLeast", entity.getPersistentID.getLeastSignificantBits)
+        nbt.setLong("merchantUUIDMost", entity.getPersistentID.getMostSignificantBits)
+      case _ =>
     }
-    nbt.setBoolean("hostIsDrone", hostIsDrone)
-    nbt.setInteger("recipeID", _recipeID)
+    nbt.setInteger("recipeID", recipeID)
   }
 
-  def hostIsDrone = host.orNull match {
-    case h : li.cil.oc.common.tileentity.Robot => false
-    case h : li.cil.oc.common.entity.Drone => true
-    case _ => false
+  private def loadEntity(nbt: NBTTagCompound, uuid: UUID): Option[Entity] = {
+    val dimension = nbt.getInteger("dimensionID")
+    val world = DimensionManager.getProvider(dimension).worldObj
+
+    world.loadedEntityList.find {
+      case entity: Entity if entity.getPersistentID == uuid => true
+      case _ => false
+    }.map(_.asInstanceOf[Entity])
   }
-  private var _host: Option[EnvironmentHost] = None
-  private var _recipeID: Int = _
-  private var _vilRef: WeakReference[EntityVillager] = new WeakReference[EntityVillager](null)
 
-  def host = _host
-  private def host_= (value: EnvironmentHost): Unit = _host = Option(value)
-  private def host_= (value: Option[EnvironmentHost]): Unit = _host = value
-
-  def villager = _vilRef.get
-  def recipeID = _recipeID
-  def recipe : MerchantRecipe = villager.orNull.getRecipes(null).get(recipeID).asInstanceOf[MerchantRecipe]
-
-  def inventory = host match {
-    case Some(h) => hostIsDrone match {
-      case true => Some(h.asInstanceOf[li.cil.oc.common.entity.Drone].mainInventory)
-      case false => Some(h.asInstanceOf[li.cil.oc.common.tileentity.Robot].mainInventory)
+  private def loadHostEntity(nbt: NBTTagCompound): Option[EnvironmentHost] = {
+    loadEntity(nbt, new UUID(nbt.getLong("hostUUIDMost"), nbt.getLong("hostUUIDLeast"))) match {
+      case Some(entity: Entity with li.cil.oc.api.internal.Agent) => Option(entity: EnvironmentHost)
+      case _ => None
     }
-    case None => None
+  }
+
+  private def loadHostTileEntity(nbt: NBTTagCompound): Option[EnvironmentHost] = {
+    val dimension = nbt.getInteger("dimensionID")
+    val world = DimensionManager.getProvider(dimension).worldObj
+
+    val x = nbt.getInteger("hostX")
+    val y = nbt.getInteger("hostY")
+    val z = nbt.getInteger("hostZ")
+
+    world.getTileEntity(x, y, z) match {
+      case robotProxy: li.cil.oc.common.tileentity.RobotProxy => Option(robotProxy.robot)
+      case agent: li.cil.oc.api.internal.Agent => Option(agent)
+      case null => None
+    }
   }
 }

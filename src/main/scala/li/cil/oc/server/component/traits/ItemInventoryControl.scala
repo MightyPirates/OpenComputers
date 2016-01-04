@@ -21,7 +21,7 @@ trait ItemInventoryControl extends InventoryAware {
   def dropIntoItemInventory(context: Context, args: Arguments): Array[AnyRef] = {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
       val count = args.optItemCount(1)
-      result(InventoryUtils.extractFromInventory(InventoryUtils.insertIntoInventory(_, itemInventory), inventory, ForgeDirection.UNKNOWN, count))
+      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, itemInventory), inventory, ForgeDirection.UNKNOWN, count))
     })
   }
 
@@ -29,7 +29,7 @@ trait ItemInventoryControl extends InventoryAware {
   def suckFromItemInventory(context: Context, args: Arguments): Array[AnyRef] = {
     withItemInventory(args.checkSlot(inventory, 0), itemInventory => {
       val count = args.optItemCount(1)
-      result(InventoryUtils.extractFromInventory(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, ForgeDirection.UNKNOWN, count))
+      result(InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, inventory, slots = Option(insertionSlots)), itemInventory, ForgeDirection.UNKNOWN, count))
     })
   }
 

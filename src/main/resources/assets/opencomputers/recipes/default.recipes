@@ -335,6 +335,11 @@ tractorBeamUpgrade {
           [ingotIron, "oc:capacitor", ingotIron]
           [ingotGold, "oc:circuitChip3", ingotGold]]
 }
+tradingUpgrade {
+  input: [[ingotGold, chest, ingotGold]
+          [emerald, "oc:circuitChip2", emerald]
+          [dropper, "oc:materialCircuitBoardPrinted", craftingPiston]]
+}
 
 cardContainer1 {
   input: [[ingotIron, "oc:circuitChip1", ingotIron]
@@ -365,12 +370,6 @@ upgradeContainer3 {
   input: [[ingotGold, "oc:circuitChip2", ingotGold]
           [craftingPiston, chest, ""]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
-}
-
-upgradeTrading {
-  input: [[ingotGold, chest, ingotGold]
-          [emerald, "oc:circuitChip2", emerald]
-          [dropper, "oc:materialCircuitBoardPrinted", craftingPiston]]
 }
 
 # Note: iron ingot and nugget recipes are *only* registered if no other mod

@@ -181,8 +181,7 @@ solarGeneratorUpgrade {
   input: [[blockGlass, blockGlass, blockGlass]
           ["oc:circuitChip3", "oc:generatorUpgrade", "oc:circuitChip3"]]
 }
-
-upgradeTrading {
+tradingUpgrade {
   input: [["oc:circuitChip2", chest, "oc:circuitChip2"]
           [emerald, "oc:circuitChip2", emerald]
           [dropper, "oc:materialCircuitBoardPrinted", craftingPiston]]
