@@ -9,8 +9,8 @@ import cpw.mods.fml.common.eventhandler.EventPriority
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.util.BlockPosition
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.nbt.NBTTagCompound
@@ -31,6 +31,16 @@ object SaveHandler {
   private val uuidRegex = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
 
   private val TimeToHoldOntoOldSaves = 60 * 1000
+
+  // THIS IS A MASSIVE HACK OF THE UGLIEST KINDS.
+  // But it works, and the alternative would be to change the Persistable
+  // interface to pass along this state to *everything that gets saved ever*,
+  // which in 99% of the cases it doesn't need to know. So yes, this is fugly,
+  // but the "clean" solution would be no less fugly.
+  // Why is this even required? To avoid flushing file systems to disk and
+  // avoid persisting machine states when sending description packets to clients,
+  // which takes a lot of time and is completely unnecessary in those cases.
+  var savingForClients = false
 
   val saveData = mutable.Map.empty[Int, mutable.Map[ChunkCoordIntPair, mutable.Map[String, Array[Byte]]]]
 

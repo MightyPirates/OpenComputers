@@ -730,7 +730,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
     assert(!isExecuting) // Lock on 'this' should guarantee this.
 
-    if (FileSystem.savingForClients) {
+    if (SaveHandler.savingForClients) {
       return
     }
 

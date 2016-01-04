@@ -14,7 +14,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
-import li.cil.oc.server.fs.FileSystem
+import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
@@ -287,7 +287,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
       label.save(nbt)
     }
 
-    if (!FileSystem.savingForClients) {
+    if (!SaveHandler.savingForClients) {
       val ownersNbt = new NBTTagList()
       for ((address, handles) <- owners) {
         val ownerNbt = new NBTTagCompound()
