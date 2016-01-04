@@ -182,6 +182,12 @@ solarGeneratorUpgrade {
           ["oc:circuitChip3", "oc:generatorUpgrade", "oc:circuitChip3"]]
 }
 
+upgradeTrading {
+  input: [["oc:circuitChip2", chest, "oc:circuitChip2"]
+          [emerald, "oc:circuitChip2", emerald]
+          [dropper, "oc:materialCircuitBoardPrinted", craftingPiston]]
+}
+
 nuggetIron {
   type: shapeless
   input: ingotIron

@@ -342,6 +342,7 @@ class Settings(val config: Config) {
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
   val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
   val redstoneDelay = config.getDouble("misc.redstoneDelay") max 0
+  val tradingRange = config.getDouble("misc.tradingRange") max 0
 
   // ----------------------------------------------------------------------- //
   // nanomachines
