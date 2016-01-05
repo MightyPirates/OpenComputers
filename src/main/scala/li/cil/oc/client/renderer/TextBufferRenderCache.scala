@@ -54,7 +54,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
         RenderState.checkError(getClass.getName + ".compileOrDraw: glNewList")
       }
 
-      renderer.drawBuffer(currentBuffer.data)
+      renderer.drawBuffer(currentBuffer.data, currentBuffer.viewport._1, currentBuffer.viewport._2)
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: drawString")
 

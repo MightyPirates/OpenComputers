@@ -594,6 +594,13 @@ object PacketSender {
     pb.writeInt(h)
   }
 
+  def appendTextBufferViewportResolutionChange(pb: PacketBuilder, w: Int, h: Int) {
+    pb.writePacketType(PacketType.TextBufferMultiViewportResolutionChange)
+
+    pb.writeInt(w)
+    pb.writeInt(h)
+  }
+
   def appendTextBufferMaxResolutionChange(pb: PacketBuilder, w: Int, h: Int): Unit = {
     pb.writePacketType(PacketType.TextBufferMultiMaxResolutionChange)
 

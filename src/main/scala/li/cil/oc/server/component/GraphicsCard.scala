@@ -217,6 +217,26 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
       result(math.min(gmw, smw), math.min(gmh, smh))
     })
 
+  @Callback(direct = true, doc = """function():number, number -- Get the current screen resolution.""")
+  def getViewport(context: Context, args: Arguments): Array[AnyRef] =
+    screen(s => result(s.getViewportWidth, s.getViewportHeight))
+
+  @Callback(doc = """function(width:number, height:number):boolean -- Set the screen resolution. Returns true if the resolution changed.""")
+  def setViewport(context: Context, args: Arguments): Array[AnyRef] = {
+    val w = args.checkInteger(0)
+    val h = args.checkInteger(1)
+    val (mw, mh) = maxResolution
+    // Even though the buffer itself checks this again, we need this here for
+    // the minimum of screen and GPU resolution.
+    if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
+      throw new IllegalArgumentException("unsupported viewport size")
+    screen(s => {
+      if (w > s.getWidth || h > s.getHeight)
+        throw new IllegalArgumentException("unsupported viewport size")
+      result(s.setViewport(w, h))
+    })
+  }
+
   @Callback(direct = true, doc = """function(x:number, y:number):string, number, number, number or nil, number or nil -- Get the value displayed on the screen at the specified index, as well as the foreground and background color. If the foreground or background is from the palette, returns the palette indices as fourth and fifth results, else nil, respectively.""")
   def get(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0) - 1

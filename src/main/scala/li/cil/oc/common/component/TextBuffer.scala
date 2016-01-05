@@ -92,6 +92,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
 
   val data = new util.TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
 
+  var viewport = data.size
+
   def markInitialized(): Unit = {
     syncCooldown = -1 // Stop polling for init state.
     relativeLitArea = -1 // Recompute lit area, avoid screens blanking out until something changes.
@@ -109,8 +111,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
         // versus the number of pixels in the *current* resolution. This is
         // scaled to multi-block screens, since we only compute this for the
         // origin.
-        val w = getWidth
-        val h = getHeight
+        val w = getViewportWidth
+        val h = getViewportHeight
         relativeLitArea = (data.buffer, data.color).zipped.foldLeft(0) {
           case (acc, (line, colors)) => acc + (line, colors).zipped.foldLeft(0) {
             case (acc2, (char, color)) =>
@@ -240,7 +242,10 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       throw new IllegalArgumentException("unsupported resolution")
     // Always send to clients, their state might be dirty.
     proxy.onBufferResolutionChange(w, h)
-    if (data.size = (w, h)) {
+    // Force set viewport to new resolution. This is partially for
+    // backwards compatibility, and partially to enforce a valid one.
+    // Binary or to evaluate both, negated setViewport to only send signal once.
+    if ((data.size = (w, h)) | !setViewport(w, h)) {
       if (node != null) {
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
@@ -252,6 +257,27 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def getWidth = data.width
 
   override def getHeight = data.height
+
+  override def setViewport(w: Int, h: Int): Boolean = {
+    val (mw, mh) = data.size
+    if (w < 1 || h < 1 || w > mw || h > mh)
+      throw new IllegalArgumentException("unsupported viewport resolution")
+    // Always send to clients, their state might be dirty.
+    proxy.onBufferViewportResolutionChange(w, h)
+    val (cw, ch) = viewport
+    if (w != cw || h != ch) {
+      viewport = (w, h)
+      if (node != null) {
+        node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
+      }
+      true
+    }
+    else false
+  }
+
+  override def getViewportWidth: Int = viewport._1
+
+  override def getViewportHeight: Int = viewport._2
 
   override def setMaximumColorDepth(depth: api.internal.TextBuffer.ColorDepth) = maxDepth = depth
 
@@ -402,10 +428,10 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
   override def renderText() = relativeLitArea != 0 && proxy.render()
 
   @SideOnly(Side.CLIENT)
-  override def renderWidth = TextBufferRenderCache.renderer.charRenderWidth * data.width
+  override def renderWidth = TextBufferRenderCache.renderer.charRenderWidth * getViewportWidth
 
   @SideOnly(Side.CLIENT)
-  override def renderHeight = TextBufferRenderCache.renderer.charRenderHeight * data.height
+  override def renderHeight = TextBufferRenderCache.renderer.charRenderHeight * getViewportHeight
 
   @SideOnly(Side.CLIENT)
   override def setRenderingEnabled(enabled: Boolean) = isRendering = enabled
@@ -484,6 +510,12 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
       maxResolution = (maxWidth, maxHeight)
     }
     precisionMode = nbt.getBoolean(Settings.namespace + "precise")
+
+    if (nbt.hasKey(Settings.namespace + "viewportWidth")) {
+      val vpw = nbt.getInteger(Settings.namespace + "viewportWidth")
+      val vph = nbt.getInteger(Settings.namespace + "viewportHeight")
+      viewport = (vpw, vph)
+    }
   }
 
   // Null check for Waila (and other mods that may call this client side).
@@ -512,6 +544,8 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     nbt.setInteger(Settings.namespace + "maxWidth", maxResolution._1)
     nbt.setInteger(Settings.namespace + "maxHeight", maxResolution._2)
     nbt.setBoolean(Settings.namespace + "precise", precisionMode)
+    nbt.setInteger(Settings.namespace + "viewportWidth", viewport._1)
+    nbt.setInteger(Settings.namespace + "viewportHeight", viewport._2)
   }
 }
 
@@ -579,6 +613,10 @@ object TextBuffer {
       owner.relativeLitArea = -1
     }
 
+    def onBufferViewportResolutionChange(w: Int, h: Int) {
+      owner.relativeLitArea = -1
+    }
+
     def onBufferMaxResolutionChange(w: Int, h: Int) {
     }
 
@@ -622,6 +660,8 @@ object TextBuffer {
       override def dirty_=(value: Boolean) = ClientProxy.this.dirty = value
 
       override def data = owner.data
+
+      override def viewport: (Int, Int) = owner.viewport
     }
 
     override def render() = {
@@ -654,6 +694,11 @@ object TextBuffer {
 
     override def onBufferResolutionChange(w: Int, h: Int) {
       super.onBufferResolutionChange(w, h)
+      markDirty()
+    }
+
+    override def onBufferViewportResolutionChange(w: Int, h: Int) {
+      super.onBufferViewportResolutionChange(w, h)
       markDirty()
     }
 
@@ -744,6 +789,12 @@ object TextBuffer {
       owner.synchronized(ServerPacketSender.appendTextBufferResolutionChange(owner.pendingCommands, w, h))
     }
 
+    override def onBufferViewportResolutionChange(w: Int, h: Int) {
+      super.onBufferViewportResolutionChange(w, h)
+      owner.host.markChanged()
+      owner.synchronized(ServerPacketSender.appendTextBufferViewportResolutionChange(owner.pendingCommands, w, h))
+    }
+
     override def onBufferMaxResolutionChange(w: Int, h: Int) {
       if (owner.node.network != null) {
         super.onBufferMaxResolutionChange(w, h)
@@ -812,7 +863,7 @@ object TextBuffer {
         }
         stack.getTagCompound.removeTag(Settings.namespace + "clipboard")
 
-        if (line >= 0 && line < owner.data.height) {
+        if (line >= 0 && line < owner.getViewportHeight) {
           val text = new String(owner.data.buffer(line)).trim
           if (!Strings.isNullOrEmpty(text)) {
             stack.getTagCompound.setString(Settings.namespace + "clipboard", text)

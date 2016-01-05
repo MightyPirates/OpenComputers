@@ -7,7 +7,7 @@ end
 
 local args = shell.parse(...)
 if #args == 0 then
-  local w, h = gpu().getResolution()
+  local w, h = gpu().getViewport()
   io.write(w .. " " .. h)
   return
 end

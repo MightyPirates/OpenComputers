@@ -17,9 +17,9 @@ import scala.collection.mutable
 trait InputBuffer extends DisplayBuffer {
   protected def buffer: api.internal.TextBuffer
 
-  override protected def bufferColumns = if (buffer == null) 0 else buffer.getWidth
+  override protected def bufferColumns = if (buffer == null) 0 else buffer.getViewportWidth
 
-  override protected def bufferRows = if (buffer == null) 0 else buffer.getHeight
+  override protected def bufferRows = if (buffer == null) 0 else buffer.getViewportHeight
 
   protected def hasKeyboard: Boolean
 

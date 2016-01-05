@@ -568,6 +568,7 @@ object PacketHandler extends CommonPacketHandler {
             case PacketType.TextBufferMultiFill => onTextBufferMultiFill(p, buffer)
             case PacketType.TextBufferMultiPaletteChange => onTextBufferMultiPaletteChange(p, buffer)
             case PacketType.TextBufferMultiResolutionChange => onTextBufferMultiResolutionChange(p, buffer)
+            case PacketType.TextBufferMultiViewportResolutionChange => onTextBufferMultiViewportResolutionChange(p, buffer)
             case PacketType.TextBufferMultiMaxResolutionChange => onTextBufferMultiMaxResolutionChange(p, buffer)
             case PacketType.TextBufferMultiSet => onTextBufferMultiSet(p, buffer)
             case PacketType.TextBufferMultiRawSetText => onTextBufferMultiRawSetText(p, buffer)
@@ -628,6 +629,12 @@ object PacketHandler extends CommonPacketHandler {
     val w = p.readInt()
     val h = p.readInt()
     buffer.setResolution(w, h)
+  }
+
+  def onTextBufferMultiViewportResolutionChange(p: PacketParser, buffer: api.internal.TextBuffer) {
+    val w = p.readInt()
+    val h = p.readInt()
+    buffer.setViewport(w, h)
   }
 
   def onTextBufferMultiMaxResolutionChange(p: PacketParser, buffer: api.internal.TextBuffer) {

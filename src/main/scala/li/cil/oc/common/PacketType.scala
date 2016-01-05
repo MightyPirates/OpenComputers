@@ -53,6 +53,7 @@ object PacketType extends Enumeration {
   TextBufferMultiFill,
   TextBufferMultiPaletteChange,
   TextBufferMultiResolutionChange,
+  TextBufferMultiViewportResolutionChange,
   TextBufferMultiMaxResolutionChange,
   TextBufferMultiSet,
   TextBufferMultiRawSetText,

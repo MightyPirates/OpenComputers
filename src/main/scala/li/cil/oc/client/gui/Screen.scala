@@ -84,8 +84,8 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
   private def toBufferCoordinates(mouseX: Int, mouseY: Int): Option[(Double, Double)] = {
     val bx = (mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth
     val by = (mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight
-    val bw = buffer.getWidth
-    val bh = buffer.getHeight
+    val bw = buffer.getViewportWidth
+    val bh = buffer.getViewportHeight
     if (bx >= 0 && by >= 0 && bx < bw && by < bh) Some((bx, by))
     else None
   }

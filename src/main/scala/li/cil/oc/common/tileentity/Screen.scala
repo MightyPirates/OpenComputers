@@ -116,8 +116,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
     // Make it a relative position in the displayed buffer.
-    val bw = origin.buffer.getWidth
-    val bh = origin.buffer.getHeight
+    val bw = origin.buffer.getViewportWidth
+    val bh = origin.buffer.getViewportHeight
     val (bpw, bph) = (origin.buffer.renderWidth / iw.toDouble, origin.buffer.renderHeight / ih.toDouble)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble

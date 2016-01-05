@@ -132,6 +132,32 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
     int getHeight();
 
     /**
+     * Set the buffer's active viewport resolution.
+     * <p/>
+     * This cannot exceed the current buffer resolution.
+     *
+     * @param width  the horizontal resolution.
+     * @param height the vertical resolution.
+     * @return <tt>true</tt> if the resolution changed.
+     * @see #setResolution(int, int)
+     */
+    boolean setViewport(int width, int height);
+
+    /**
+     * Get the current horizontal viewport resolution.
+     *
+     * @see #setViewport(int, int)
+     */
+    int getViewportWidth();
+
+    /**
+     * Get the current vertical viewport resolution.
+     *
+     * @see #setViewport(int, int)
+     */
+    int getViewportHeight();
+
+    /**
      * Sets the maximum color depth supported by this buffer.
      * <p/>
      * Note that this is the <em>maximum</em> supported depth, lower depths
