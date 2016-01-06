@@ -145,6 +145,7 @@ item.oc.UpgradeSolarGenerator.name=Улучшение "Солнечный ген
 item.oc.UpgradeTank.name=Улучшение "Бак для жидкостей"
 item.oc.UpgradeTankController.name=Улучшение "Контроллер бака"
 item.oc.UpgradeTractorBeam.name=Улучшение "Притягивающий луч"
+item.oc.UpgradeTrading.name=Улучшение "Торговля"
 item.oc.WirelessNetworkCard.name=Плата беспроводной сети
 item.oc.WorldSensorCard.name=Карта-мировой сенсор
 item.oc.wrench.name=Ключ
