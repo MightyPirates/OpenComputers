@@ -111,7 +111,13 @@ abstract class PacketHandler {
       else null
     }
 
-    def readNBT() = CompressedStreamTools.read(this)
+    def readNBT() = {
+      val haveNbt = readBoolean()
+      if (haveNbt) {
+        CompressedStreamTools.read(this)
+      }
+      else null
+    }
 
     def readPacketType() = PacketType(readByte())
   }

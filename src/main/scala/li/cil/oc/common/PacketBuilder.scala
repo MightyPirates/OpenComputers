@@ -49,7 +49,13 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     }
   }
 
-  def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.write(nbt, this)
+  def writeNBT(nbt: NBTTagCompound) = {
+    val haveNbt = nbt != null
+    writeBoolean(haveNbt)
+    if (haveNbt) {
+      CompressedStreamTools.write(nbt, this)
+    }
+  }
 
   def writePacketType(pt: PacketType.Value) = writeByte(pt.id)
 
