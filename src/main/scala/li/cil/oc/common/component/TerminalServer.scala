@@ -21,7 +21,6 @@ import li.cil.oc.api.util.StateAware.State
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -31,7 +30,7 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.mutable
 
-class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environment with EnvironmentHost with Analyzable with RackMountable with Lifecycle {
+class TerminalServer(val rack: api.internal.Rack, val slot: Int) extends Environment with EnvironmentHost with Analyzable with RackMountable with Lifecycle {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   lazy val buffer = {
@@ -64,7 +63,7 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
   def address = rack.getMountableData(slot).getString("terminalAddress")
 
   def sidedKeys = {
-    if (rack.isServer) keys
+    if (!rack.world.isRemote) keys
     else rack.getMountableData(slot).getTagList("keys", NBT.TAG_STRING).map((tag: NBTTagString) => tag.func_150285_a_())
   }
 
@@ -148,7 +147,7 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
   // Persistable
 
   override def load(nbt: NBTTagCompound): Unit = {
-    if (rack.isServer) {
+    if (!rack.world.isRemote) {
       node.load(nbt)
     }
     buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
@@ -190,7 +189,7 @@ class TerminalServer(val rack: tileentity.Rack, val slot: Int) extends Environme
   // ----------------------------------------------------------------------- //
   // LifeCycle
 
-  override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.isClient) state match {
+  override def onLifecycleStateChange(state: Lifecycle.LifecycleState): Unit = if (rack.world.isRemote) state match {
     case Lifecycle.LifecycleState.Initialized =>
       TerminalServer.loaded += this
     case Lifecycle.LifecycleState.Disposed =>

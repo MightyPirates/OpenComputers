@@ -22,6 +22,14 @@ import net.minecraft.nbt.NBTTagCompound;
  */
 public interface Rack extends SidedEnvironment, EnvironmentHost, Rotatable, IInventory {
     /**
+     * Determine the index of the specified mountable.
+     *
+     * @param mountable the mountable in this rack to get the index of.
+     * @return the index in the rack, or <tt>-1</tt> if it's not in the rack.
+     */
+    int indexOfMountable(RackMountable mountable);
+
+    /**
      * The mountable in the specified slot.
      * <p/>
      * This can be <tt>null</tt>, for example when there is no mountable installed

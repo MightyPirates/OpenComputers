@@ -15,6 +15,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 
 object GuiHandler extends CommonGuiHandler {
@@ -105,23 +106,26 @@ object GuiHandler extends CommonGuiHandler {
               val key = stack.getTagCompound.getString(Settings.namespace + "key")
               if (!Strings.isNullOrEmpty(key) && !Strings.isNullOrEmpty(address)) {
                 component.TerminalServer.loaded.find(_.address == address) match {
-                  case Some(term) =>
-                    def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.range * term.range
-                    if (inRange) {
-                      if (term.sidedKeys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
-                        // Check if someone else bound a term to our server.
-                        if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
-                          Minecraft.getMinecraft.displayGuiScreen(null)
-                        }
-                        // Check whether we're still in range.
-                        if (!inRange) {
-                          Minecraft.getMinecraft.displayGuiScreen(null)
-                        }
-                        true
-                      })
-                      else player.addChatMessage(Localization.Terminal.InvalidKey)
-                    }
-                    else player.addChatMessage(Localization.Terminal.OutOfRange)
+                  case Some(term) => term.rack match {
+                    case rack: TileEntity with api.internal.Rack =>
+                      def inRange = player.isEntityAlive && !rack.isInvalid && rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.range * term.range
+                      if (inRange) {
+                        if (term.sidedKeys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
+                          // Check if someone else bound a term to our server.
+                          if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
+                            Minecraft.getMinecraft.displayGuiScreen(null)
+                          }
+                          // Check whether we're still in range.
+                          if (!inRange) {
+                            Minecraft.getMinecraft.displayGuiScreen(null)
+                          }
+                          true
+                        })
+                        else player.addChatMessage(Localization.Terminal.InvalidKey)
+                      }
+                      else player.addChatMessage(Localization.Terminal.OutOfRange)
+                    case _ => // Eh?
+                  }
                   case _ => player.addChatMessage(Localization.Terminal.OutOfRange)
                 }
               }

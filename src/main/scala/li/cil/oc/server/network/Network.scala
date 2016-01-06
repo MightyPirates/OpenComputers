@@ -258,7 +258,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       // editing stuff or using mods to clone blocks (e.g. WorldEdit).
       otherNetwork.data.filter(entry => data.contains(entry._1)).toArray.foreach {
         case (_, node: Network.Vertex) =>
-          val neighbors = node.edges.map(_.other(node))
+          val neighbors = node.edges.map(_.other(node)).toArray
           node.data.remove()
           do {
             node.data.address = java.util.UUID.randomUUID().toString

@@ -13,16 +13,16 @@ import li.cil.oc.api.network.Analyzable
 import li.cil.oc.api.network.Environment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
-import li.cil.oc.common.inventory.ComponentInventory
-import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.item.Delegator
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
+import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.item.Delegator
 import li.cil.oc.server.network.Connector
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -31,10 +31,10 @@ import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 
-class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server {
+class Server(val rack: api.internal.Rack, val slot: Int) extends Environment with MachineHost with ServerInventory with ComponentInventory with Analyzable with internal.Server {
   lazy val machine = Machine.create(this)
 
-  val node = if (rack.isServer) machine.node else null
+  val node = if (!rack.world.isRemote) machine.node else null
 
   var wasRunning = false
   var hadErrored = false
@@ -61,14 +61,14 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (rack.isServer) {
+    if (!rack.world.isRemote) {
       machine.load(nbt.getCompoundTag("machine"))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    if (rack.isServer) {
+    if (!rack.world.isRemote) {
       nbt.setNewCompoundTag("machine", machine.save)
     }
   }
@@ -128,7 +128,7 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
     super.onItemRemoved(slot, stack)
-    if (rack.isServer) {
+    if (!rack.world.isRemote) {
       val slotType = InventorySlots.server(tier)(slot).slot
       if (slotType == Slot.CPU) {
         machine.stop()
@@ -167,7 +167,8 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
         }
       }
       else {
-        player.openGui(OpenComputers, GuiType.ServerInRack.id, world, rack.x, GuiType.embedSlot(rack.y, slot), rack.z)
+        val position = BlockPosition(rack)
+        player.openGui(OpenComputers, GuiType.ServerInRack.id, world, position.x, GuiType.embedSlot(position.y, slot), position.z)
       }
     }
     true
@@ -179,7 +180,7 @@ class Server(val rack: tileentity.Rack, val slot: Int) extends Environment with 
   override def canUpdate: Boolean = true
 
   override def update(): Unit = {
-    if (rack.isServer) {
+    if (!rack.world.isRemote) {
       machine.update()
 
       val isRunning = machine.isRunning

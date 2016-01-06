@@ -276,6 +276,8 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   // ----------------------------------------------------------------------- //
   // internal.Rack
 
+  override def indexOfMountable(mountable: RackMountable): Int = components.indexWhere(_.contains(mountable))
+
   override def getMountable(slot: Int): RackMountable = components(slot) match {
     case Some(mountable: RackMountable) => mountable
     case _ => null
