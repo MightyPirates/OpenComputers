@@ -36,7 +36,7 @@ object PetRenderer {
     "076541f1-f10a-46de-a127-dfab8adfbb75" ->(0.2, 1.0, 0.1), //vifino
     "e7e90198-0ccf-4662-a827-192ec8f4419d" ->(0.0, 0.2, 0.6), //Izaya
     "f514ee69-7bbb-4e46-9e94-d8176324cec2" ->(0.098, 0.471, 0.784) //Izaya
-    //For later addition :) ,"893daf0b-b2a4-47ad-bc19-739fc60b0721" ->(1.0, 1.0, 1.0) //tim4200
+    ,"893daf0b-b2a4-47ad-bc19-739fc60b0721" ->(1.0, 1.0, 1.0) //tim4200 (For later addition :))
   )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().
@@ -144,8 +144,11 @@ object PetRenderer {
       GL11.glTranslated(0.3, -0.1, -0.2)
     }
 
-    // Someone please tell me a cleaner solution than this...
-    private def isForInventory = new Exception().getStackTrace.exists(_.getClassName == classOf[GuiContainer].getName)
+    //Sangar: Someone please tell me a cleaner solution than this...
+    //tim4242: This seems to be cleaner, but what do I know?
+    private def isForInventory = Minecraft.getMinecraft.currentScreen != null //Check if the player is currently in an inventory
+    //private def isForInventory = new Exception().getStackTrace.exists(_.getClassName == classOf[GuiContainer].getName)
+
   }
 
   @SubscribeEvent
