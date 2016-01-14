@@ -115,9 +115,9 @@ repositories {
         name 'ProjectRed'
         url 'http://files.projectredwiki.com/maven/'
     }
-    maven {
+    ivy {
         name 'ColoredLightCore'
-        url "http://coloredlightscore.us.to/maven/clc/"
+        artifactPattern "http://coloredlightscore.us.to:8080/job/ColoredLightsCore%20v1.7.10/${config.coloredlights.build}/artifact/build/libs/[module]-[revision]-[classifier].[ext]"
     }
     ivy {
         name "BuildCraft"
