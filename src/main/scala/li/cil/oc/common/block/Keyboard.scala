@@ -29,9 +29,9 @@ class Keyboard extends SimpleBlock(Material.rock) {
 
   override def createBlockState(): BlockState = new BlockState(this, PropertyRotatable.Pitch, PropertyRotatable.Yaw)
 
-  override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 8) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
+  override def getMetaFromState(state: IBlockState): Int = (state.getValue(PropertyRotatable.Pitch).ordinal() << 2) | state.getValue(PropertyRotatable.Yaw).getHorizontalIndex
 
-  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 8)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0xF))
+  override def getStateFromMeta(meta: Int): IBlockState = getDefaultState.withProperty(PropertyRotatable.Pitch, EnumFacing.getFront(meta >> 2)).withProperty(PropertyRotatable.Yaw, EnumFacing.getHorizontal(meta & 0x3))
 
   // ----------------------------------------------------------------------- //
 
