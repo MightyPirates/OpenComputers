@@ -217,11 +217,11 @@ class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
       result(math.min(gmw, smw), math.min(gmh, smh))
     })
 
-  @Callback(direct = true, doc = """function():number, number -- Get the current screen resolution.""")
+  @Callback(direct = true, doc = """function():number, number -- Get the current viewport resolution.""")
   def getViewport(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getViewportWidth, s.getViewportHeight))
 
-  @Callback(doc = """function(width:number, height:number):boolean -- Set the screen resolution. Returns true if the resolution changed.""")
+  @Callback(doc = """function(width:number, height:number):boolean -- Set the viewport resolution. Cannot exceed the screen resolution. Returns true if the resolution changed.""")
   def setViewport(context: Context, args: Arguments): Array[AnyRef] = {
     val w = args.checkInteger(0)
     val h = args.checkInteger(1)
