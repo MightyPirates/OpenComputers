@@ -388,6 +388,16 @@ object DebugCard {
       null
     }
 
+    @Callback(doc = """function(x:number, y:number, z:number, sound:string, range:number) -- Play a sound at the specified coordinates.""")
+    def playSoundAt(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      val sound = args.checkString(3)
+      val range = args.checkInteger(4)
+      world.playSoundEffect(x, y, z, sound, range / 15 + 0.5F, 1.0F)
+      null
+    }
+
     // ----------------------------------------------------------------------- //
 
     @Callback(doc = """function(x:number, y:number, z:number):number -- Get the ID of the block at the specified coordinates.""")
