@@ -174,7 +174,7 @@ configurations {
 }
 
 dependencies {
-    deobfCompile "mezz.jei:jei_1.8.8:${config.jei.version}"
+    deobfCompile "mezz.jei:jei_1.8.9:${config.jei.version}"
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
 /*
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
@@ -275,7 +275,7 @@ minecraft {
 
     // snapshot_YYYYMMDD   snapshot are built nightly.
     // stable_#            stables are built at the discretion of the MCP team.
-    mappings = "snapshot_20151219"
+    mappings = "stable_20"
 
     replace "@VERSION@", project.simpleVersion
 }
