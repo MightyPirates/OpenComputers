@@ -168,7 +168,7 @@ object NetworkControl {
     @Callback(doc = "function():table -- Returns the item stack representation of the crafting result.")
     def getItemStack(context: Context, args: Arguments): Array[AnyRef] = Array(stack.getItemStack)
 
-    @Callback(doc = "function([int amount]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
+    @Callback(doc = "function([amount:int[, prioritizePower:boolean[, cpuName:string]]]):userdata -- Requests the item to be crafted, returning an object that allows tracking the crafting status.")
     def request(context: Context, args: Arguments): Array[AnyRef] = {
       if (controller == null || controller.isInvalid) {
         return result(Unit, "no controller")
@@ -181,13 +181,20 @@ object NetworkControl {
       val craftingGrid = controller.getProxy.getCrafting
       val source = new MachineSource(controller)
       val future = craftingGrid.beginCraftingJob(controller.getWorldObj, controller.getProxy.getGrid, source, request, null)
+      val prioritizePower = args.optBoolean(1, true)
+      val cpuName = args.optString(2, "")
+      val cpu = if (!cpuName.isEmpty()) {
+        controller.getProxy.getCrafting.getCpus.collectFirst({
+          case c if cpuName.equals(c.getName()) => c
+        }).orNull
+      } else null
 
       val status = new CraftingStatus()
       Future {
         try {
           val job = future.get() // Make 100% sure we wait for this outside the scheduled closure.
           EventHandler.scheduleServer(() => {
-            val link = craftingGrid.submitJob(job, Craftable.this, null, true, source)
+            val link = craftingGrid.submitJob(job, Craftable.this, cpu, prioritizePower, source)
             if (link != null) {
               status.setLink(link)
               links += link
