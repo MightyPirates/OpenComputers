@@ -75,6 +75,10 @@ repositories {
     maven {
         url "http://dvs1.progwml6.com/files/maven"
     }
+    maven {
+        name = "mobius"
+        url = "http://mobiusstrip.eu/maven"
+    }
     /*
     maven {
         name = "BluePower"
@@ -91,10 +95,6 @@ repositories {
     maven {
         name = "IGW"
         url = "http://maven.k-4u.nl/"
-    }
-    maven {
-        name = "mobius"
-        url = "http://mobiusstrip.eu/maven"
     }
     maven {
         name = "dmodoomsirius"
@@ -176,11 +176,11 @@ configurations {
 dependencies {
     deobfCompile "mezz.jei:jei_1.8.8:${config.jei.version}"
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
+    deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"
 /*
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
     provided "codechicken:NotEnoughItems:${config.minecraft.version}-${config.nei.version}:dev"
-    provided "mcp.mobius.waila:Waila:${config.waila.version}"
     provided "appeng:RotaryCraft:${config.rotc.version}:api"
     provided ("appeng:appliedenergistics2:${config.ae2.version}:dev") {
         exclude module: 'buildcraft'
@@ -192,7 +192,6 @@ dependencies {
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
     provided "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
-    provided "mcp.mobius.waila:Waila:${config.waila.version}_${config.minecraft.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
@@ -262,7 +261,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/thermalexpansion/**'
             exclude 'li/cil/oc/integration/thaumcraft/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
-            exclude 'li/cil/oc/integration/waila/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
             exclude 'li/cil/oc/integration/wrsve/**'
         }
