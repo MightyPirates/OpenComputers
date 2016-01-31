@@ -7,7 +7,8 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
+import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.event.NetworkActivityEvent
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
@@ -549,6 +550,11 @@ object PacketHandler extends CommonPacketHandler {
           val maxWidth = nbt.getInteger("maxWidth")
           val maxHeight = nbt.getInteger("maxHeight")
           buffer.setMaximumResolution(maxWidth, maxHeight)
+        }
+        if (nbt.hasKey("viewportWidth")) {
+          val viewportWidth = nbt.getInteger("viewportWidth")
+          val viewportHeight = nbt.getInteger("viewportHeight")
+          buffer.setViewport(viewportWidth, viewportHeight)
         }
         buffer.data.load(nbt)
         buffer.proxy.markDirty()
