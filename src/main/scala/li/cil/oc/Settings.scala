@@ -76,6 +76,7 @@ class Settings(val config: Config) {
 
   // computer.lua
   val allowBytecode = config.getBoolean("computer.lua.allowBytecode")
+  val allowGC = config.getBoolean("computer.lua.allowGC")
   val enableLua53 = config.getBoolean("computer.lua.enableLua53")
   val ramSizes = Array(config.getIntList("computer.lua.ramSizes"): _*) match {
     case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
