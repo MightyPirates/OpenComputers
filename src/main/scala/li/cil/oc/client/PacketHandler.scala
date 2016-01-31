@@ -551,12 +551,12 @@ object PacketHandler extends CommonPacketHandler {
           val maxHeight = nbt.getInteger("maxHeight")
           buffer.setMaximumResolution(maxWidth, maxHeight)
         }
+        buffer.data.load(nbt)
         if (nbt.hasKey("viewportWidth")) {
           val viewportWidth = nbt.getInteger("viewportWidth")
           val viewportHeight = nbt.getInteger("viewportHeight")
           buffer.setViewport(viewportWidth, viewportHeight)
         }
-        buffer.data.load(nbt)
         buffer.proxy.markDirty()
         buffer.markInitialized()
       case _ => // Invalid packet.

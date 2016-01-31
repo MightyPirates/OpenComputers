@@ -514,7 +514,9 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     if (nbt.hasKey(Settings.namespace + "viewportWidth")) {
       val vpw = nbt.getInteger(Settings.namespace + "viewportWidth")
       val vph = nbt.getInteger(Settings.namespace + "viewportHeight")
-      viewport = (vpw, vph)
+      viewport = (vpw min data.width max 1, vph min data.height max 1)
+    } else {
+      viewport = data.size
     }
   }
 
