@@ -16,11 +16,12 @@ else
       os.exit(false)
     end
     repeat
-      local line = file:read("*L")
-      if line then
-        io.write(line)
+      local blob = file:read(1024)
+      if blob then
+        io.write(blob)
+        os.sleep( 0 )
       end
-    until not line
+    until not blob
     file:close()
   end
 end
