@@ -172,7 +172,7 @@ object Sound {
     }
   }
 
-  private class StopCommand(tileEntity: TileEntity) extends Command(0, tileEntity) {
+  private class StopCommand(tileEntity: TileEntity) extends Command(System.currentTimeMillis() + 1, tileEntity) {
     override def apply() {
       sources.synchronized {
         sources.remove(tileEntity) match {
@@ -189,7 +189,7 @@ object Sound {
     }
   }
 
-  private class UpdatePositionCommand(tileEntity: TileEntity) extends Command(0, tileEntity) {
+  private class UpdatePositionCommand(tileEntity: TileEntity) extends Command(System.currentTimeMillis(), tileEntity) {
     override def apply() {
       sources.synchronized {
         sources.get(tileEntity) match {
