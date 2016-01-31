@@ -99,15 +99,7 @@ function internet.socket(address, port)
   end
 
   local stream = {inet = inet, socket = socket}
-
-  -- stream:close does a syscall, which yields, and that's not possible in
-  -- the __gc metamethod. So we start a timer to do the yield/cleanup.
-  local function cleanup(self)
-    if not self.socket then return end
-    pcall(self.socket.close)
-  end
   local metatable = {__index = socketStream,
-                     __gc = cleanup,
                      __metatable = "socketstream"}
   return setmetatable(stream, metatable)
 end
