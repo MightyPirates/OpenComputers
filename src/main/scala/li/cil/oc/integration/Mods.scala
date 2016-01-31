@@ -131,7 +131,7 @@ object Mods {
     //    integration.tmechworks.ModTMechworks,
     integration.vanilla.ModVanilla,
     integration.versionchecker.ModVersionChecker,
-    //    integration.waila.ModWaila,
+    integration.waila.ModWaila,
     //    integration.wrcbe.ModWRCBE,
     //    integration.wrsve.ModWRSVE,
 
