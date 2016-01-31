@@ -65,7 +65,6 @@ function memoryStream.new()
   local stream = {closed = false, buffer = "",
                   redirect = {}, result = {}, args = {}}
   local metatable = {__index = memoryStream,
-                     __gc = memoryStream.close,
                      __metatable = "memorystream"}
   return setmetatable(stream, metatable)
 end

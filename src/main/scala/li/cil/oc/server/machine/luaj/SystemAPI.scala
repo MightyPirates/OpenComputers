@@ -12,6 +12,9 @@ class SystemAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     // Whether bytecode may be loaded directly.
     system.set("allowBytecode", (_: Varargs) => LuaValue.valueOf(Settings.get.allowBytecode))
 
+    // Whether custom __gc callbacks are allowed.
+    system.set("allowGC", (_: Varargs) => LuaValue.valueOf(Settings.get.allowGC))
+
     // How long programs may run without yielding before we stop them.
     system.set("timeout", (_: Varargs) => LuaValue.valueOf(Settings.get.timeout))
 
