@@ -720,7 +720,7 @@ sandbox = {
       -- which can lead to noticeable lag if the __gc function behaves badly.
       local sbmt = {} -- sandboxed metatable. only for __gc stuff, so it's
                       -- kinda ok to have a shallow copy instead... meh.
-      for k, v in pairs(mt) do
+      for k, v in next, mt do
         sbmt[k] = v
       end
       sbmt.mt = mt
