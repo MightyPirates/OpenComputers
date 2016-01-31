@@ -724,7 +724,14 @@ sandbox = {
         sbmt[k] = v
       end
       sbmt.mt = mt
-      sbmt.__gc = sgc
+      -- Garbage collector callbacks apparently can't be sandboxed after
+      -- all, because hooks are disabled while they're running. So we just
+      -- disable them altogether by default.
+      if not system.allowGC() then
+        sbmt.__gc = nil -- Silent fail for backwards compat. TODO error in OC 1.7
+      else
+        sbmt.__gc = sgc
+      end
       mt = sbmt
     end
     return setmetatable(t, mt)

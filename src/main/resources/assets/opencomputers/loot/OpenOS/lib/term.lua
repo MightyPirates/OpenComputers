@@ -11,17 +11,11 @@ local methods = {}
 local validateFocus
 local metatable = {
   __index = methods,
-  __gc = function(self)
-    self:setCursorBlink(false)
-  end,
   __pairs = function(self)
     return function(_, k)
       return next(methods, k)
     end, self, nil
-  end,
-  __gc = function(self)
-    validateFocus(self, nil)
-  end,
+  end
 }
 
 --allows collection of windows with enabled cursor blink
