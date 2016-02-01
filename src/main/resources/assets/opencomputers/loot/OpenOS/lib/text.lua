@@ -70,42 +70,137 @@ end
 
 -------------------------------------------------------------------------------
 
+local quotes = {
+  -- array part must be ordered from long to short (irrelevant for now)
+  '"', "'", "`";
+  ['"']   = '"',
+  ["'"]   = "'",
+  ["`"]   = "`",
+--["${"]  = "}",
+--["$("]  = ")",
+--["$(("] = "))"
+}
+
 function text.tokenize(value)
   checkArg(1, value, "string")
-  local tokens, token = {}, ""
-  local escaped, quoted, start = false, false, -1
-  for i = 1, unicode.len(value) do
-    local char = unicode.sub(value, i, i)
-    if escaped then -- escaped character
-      escaped = false
-      token = token .. char
-    elseif char == "\\" and quoted ~= "'" then -- escape character?
-      escaped = true
-      token = token .. char
-    elseif char == quoted then -- end of quoted string
-      quoted = false
-      token = token .. char
-    elseif (char == "'" or char == '"') and not quoted then
-      quoted = char
-      start = i
-      token = token .. char
-    elseif string.find(char, "%s") and not quoted then -- delimiter
-      if token ~= "" then
-        table.insert(tokens, token)
-        token = ""
+
+  local i = 0
+  local len = unicode.len(value)
+
+  local function consume(n)
+    if type(n) == "string" then -- try to consume a predefined token
+      local begin = i + 1
+      local final = i + unicode.len(n)
+      local sub = unicode.sub(value, begin, final)
+
+      if sub == n then
+        i = final
+        return sub
+      else
+        return nil
       end
-    else -- normal char
-      token = token .. char
+    elseif type(n) ~= "number" then -- for for loop iteration
+      n = 1
+    end
+    if len - i <= 0 then
+      return nil
+    end
+    n = math.min(n, len - i)
+    local begin = i + 1
+    i = i + n
+    return unicode.sub(value, begin, i)
+  end
+
+  local function lookahead(n)
+    if type(n) ~= "number" then
+      n = 1
+    end
+    n = math.min(n, len - i)
+    local begin = i + 1
+    local final = i + n
+    if final - i <= 0 then
+      return nil
+    end
+    return unicode.sub(value, begin, final)
+  end
+
+  local tokens, token = {}, {}
+  local start, quoted
+  local lastOp
+  while lookahead() do
+    local char = lookahead()
+    local closed
+    if quoted then
+      closed = consume(quotes[quoted])
+    end
+    if closed then
+      table.insert(token, closed)
+      quoted = nil
+    elseif quoted == "'" then
+      table.insert(token, consume(char))
+    elseif char == "\\" then
+      table.insert(token, consume(2)) -- backslashes will be removed later
+    elseif not quoted then
+      local opened
+      for _, quote in ipairs(quotes) do
+        opened = consume(quote)
+        if opened then
+          table.insert(token, opened)
+          quoted = opened
+          start = i + 1
+          break
+        end
+      end
+      if not opened then
+        local isOp
+        for _, op in ipairs(operators) do
+          isOp = consume(op)
+          if isOp then
+            local tokenOut = table.concat(token)
+            if tokenOut == "" then
+              if tokens[#tokens] == lastOp then
+                return nil, "parse error near '"..isOp.."'"
+              end
+            else
+              table.insert(tokens, tokenOut)
+            end
+            table.insert(tokens, isOp)
+            token = {}
+            lastOp = isOp
+            break
+          end
+        end
+        if not isOp then
+          if char == "#" then -- comment
+            while lookahead() ~= "\n" do
+              consume()
+            end
+          elseif char:match("%s") then
+            local tokenOut = table.concat(token)
+            if tokenOut ~= "" then
+              table.insert(tokens, table.concat(token))
+              token = {}
+            end
+            consume(char)
+          else
+            table.insert(token, consume(char))
+          end
+        end
+      end
+    else
+      table.insert(token, consume(char))
     end
   end
   if quoted then
-    return nil, "unclosed quote at index " .. start
+    return nil, "unclosed quote at index " .. start, quoted
   end
-  if token ~= "" then
+  token = table.concat(token)
+  if token ~= "" then -- insert trailing token
     table.insert(tokens, token)
   end
   return tokens
 end
+
 
 -------------------------------------------------------------------------------
 
