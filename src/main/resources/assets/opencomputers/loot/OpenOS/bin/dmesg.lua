@@ -4,7 +4,7 @@ local keyboard = require "keyboard"
 
 local args = {...}
 
-local interactive = io.output() == io.stdout
+local interactive = io.output().tty
 local function gpu()
   return select(2, term.getGPU())
 end

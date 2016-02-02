@@ -17,8 +17,8 @@ for address in component.list("filesystem", true) do
 end
 
 if #candidates == 0 then
-  io.write("No writable disks found, aborting.\n")
-  os.exit()
+  io.stderr:write("No writable disks found, aborting.\n")
+  return 1
 end
 
 for i = 1, #candidates do

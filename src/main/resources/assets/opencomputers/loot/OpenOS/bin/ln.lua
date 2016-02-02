@@ -4,8 +4,8 @@ local shell = require("shell")
 
 local dirs = shell.parse(...)
 if #dirs == 0 then
-  io.write("Usage: ln <target> [<name>]")
-  return
+  io.write("Usage: ln <target> [<name>]\n")
+  return 1
 end
 
 local target = shell.resolve(dirs[1])
@@ -18,5 +18,6 @@ end
 
 local result, reason = fs.link(target, linkpath)
 if not result then
-  io.stderr:write(reason)
+  io.stderr:write(reason..'\n')
+  return 1
 end

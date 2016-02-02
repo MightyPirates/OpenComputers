@@ -1,0 +1,18 @@
+alias dir=ls
+alias list=ls
+alias move=mv
+alias rename=mv
+alias copy=cp
+alias del=rm
+alias md=mkdir
+alias cls=clear
+alias less=more
+alias rs=redstone
+alias view=edit\ -r
+alias help=man
+alias cp=cp\ -i
+
+cd $HOME
+clear
+/etc/motd
+source $HOME/.shrc -q

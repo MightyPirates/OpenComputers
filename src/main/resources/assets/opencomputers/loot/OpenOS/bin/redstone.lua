@@ -4,8 +4,8 @@ local shell = require("shell")
 local sides = require("sides")
 
 if not component.isAvailable("redstone") then
-  io.stderr:write("This program requires a redstone card or redstone I/O block.")
-  return
+  io.stderr:write("This program requires a redstone card or redstone I/O block.\n")
+  return 1
 end
 local rs = component.redstone
 
@@ -25,8 +25,8 @@ end
 
 if options.w then
   if not rs.setWirelessOutput then
-    io.stderr:write("wireless redstone not available")
-    return
+    io.stderr:write("wireless redstone not available\n")
+    return 1
   end
   if #args > 0 then
     local value = args[1]
@@ -38,17 +38,17 @@ if options.w then
     rs.setWirelessOutput(value)
   end
   io.write("in: " .. tostring(rs.getWirelessInput()) .. "\n")
-  io.write("out: " .. tostring(rs.getWirelessOutput()))
+  io.write("out: " .. tostring(rs.getWirelessOutput()) .. "\n")
 elseif options.f then
   if not rs.setWirelessOutput then
-    io.stderr:write("wireless redstone not available")
-    return
+    io.stderr:write("wireless redstone not available\n")
+    return 1
   end
   if #args > 0 then
     local value = args[1]
     if not tonumber(value) then
-      io.stderr:write("invalid frequency")
-      return
+      io.stderr:write("invalid frequency\n")
+      return 1
     end
     rs.setWirelessFrequency(tonumber(value))
   end
@@ -56,8 +56,8 @@ elseif options.f then
 else
   local side = sides[args[1]]
   if not side then
-    io.stderr:write("invalid side")
-    return
+    io.stderr:write("invalid side\n")
+    return 1
   end
   if type(side) == "string" then
     side = sides[side]
@@ -65,13 +65,13 @@ else
 
   if options.b then
     if not rs.setBundledOutput then
-      io.stderr:write("bundled redstone not available")
-      return
+      io.stderr:write("bundled redstone not available\n")
+      return 1
     end
     local color = colors[args[2]]
     if not color then
-      io.stderr:write("invalid color")
-      return
+      io.stderr:write("invalid color\n")
+      return 1
     end
     if type(color) == "string" then
       color = colors[color]
@@ -86,7 +86,7 @@ else
       rs.setBundledOutput(side, color, value)
     end
     io.write("in: " .. rs.getBundledInput(side, color) .. "\n")
-    io.write("out: " .. rs.getBundledOutput(side, color))
+    io.write("out: " .. rs.getBundledOutput(side, color) .. "\n")
   else
     if #args > 1 then
       local value = args[2]
@@ -98,6 +98,6 @@ else
       rs.setOutput(side, value)
     end
     io.write("in: " .. rs.getInput(side) .. "\n")
-    io.write("out: " .. rs.getOutput(side))
+    io.write("out: " .. rs.getOutput(side) .. "\n")
   end
 end

@@ -4,8 +4,8 @@ local shell = require("shell")
 local args = shell.parse(...)
 if #args == 0 then
   io.write("Usage: man <topic>\n")
-  io.write("Where `topic` will usually be the name of a program or library.")
-  return
+  io.write("Where `topic` will usually be the name of a program or library.\n")
+  return 1
 end
 
 local topic = args[1]
@@ -16,4 +16,5 @@ for path in string.gmatch(os.getenv("MANPATH"), "[^:]+") do
     os.exit()
   end
 end
-io.stderr:write("No manual entry for " .. topic)
+io.stderr:write("No manual entry for " .. topic .. '\n')
+return 1

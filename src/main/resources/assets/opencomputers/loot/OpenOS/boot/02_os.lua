@@ -3,20 +3,10 @@ local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
 local unicode = require("unicode")
+local process = require("process")
 
 local function env()
-  -- copy parent env when first requested; easiest way to keep things
-  -- like number of env vars trivial (#vars).
-  local data = require("process").info().data
-  if not rawget(data, "vars") then
-    local vars = {}
-    for k, v in pairs(data.vars or {}) do
-      vars[k] = v
-    end
-    data.vars = vars
-  end
-  data.vars = data.vars or {}
-  return data.vars
+  return process.info().data.vars
 end
 
 os.execute = function(command)
@@ -27,7 +17,7 @@ os.execute = function(command)
 end
 
 function os.exit(code)
-  error({reason="terminated", code=code~=false}, 0)
+  error({reason="terminated", code=code}, 0)
 end
 
 function os.getenv(varname)
@@ -95,6 +85,7 @@ os.setenv("PWD", "/")
 os.setenv("SHELL", "/bin/sh")
 os.setenv("TMP", "/tmp") -- Deprecated
 os.setenv("TMPDIR", "/tmp")
+os.setenv("LS_COLORS",[[{FILE=0xFFFFFF,DIR=0x66CCFF,LINK=0xFFAA00,["*.lua"]=0x00FF00}]])
 
 if computer.tmpAddress() then
   fs.mount(computer.tmpAddress(), os.getenv("TMPDIR") or "/tmp")

@@ -407,6 +407,9 @@ function methods:hasFocus(screenAddress)
   local keyboardAddress
   if screenAddress then
     keyboardAddress = term.__screenToKeyboard[screenAddress]
+    if not next(term.__focus) then
+      term.__focus[screenAddress] = self
+    end
     if term.__focus[screenAddress] == self then
       return true, screenAddress, keyboardAddress
     end
@@ -581,13 +584,16 @@ function methods:read(history, dobreak, hint, pwchar, filter)
     local cursorX = getTextCursor()
     local historyIndex = getHistoryIndex()
     if not hintCache then -- hint is never nil, see onKeyDown
-      hintCache = hint(line(), cursorX)
+      local full_line = line()
+      hintCache = hint(full_line, cursorX)
       hintIndex = 0
       if type(hintCache) == "string" then
         hintCache = {hintCache}
       end
       if type(hintCache) ~= "table" or #hintCache < 1 then
         hintCache = nil -- invalid hint
+      else
+        hintCache.trail = full_line:len() - cursorX -- zero when at end of line
       end
     end
     if hintCache then
@@ -599,6 +605,7 @@ function methods:read(history, dobreak, hint, pwchar, filter)
       local savedCache = hintCache
       redraw()
       ende()
+      setTextCursor(getTextCursor()-savedCache.trail-1)
       if #savedCache > 1 then -- stop if only one hint exists.
         hintCache = savedCache
       end
@@ -734,6 +741,37 @@ function methods:read(history, dobreak, hint, pwchar, filter)
 end
 
 function methods:write(value, wrap)
+  local stdout = io.output()
+  local stream = stdout and stdout.stream
+  if stream then
+    local previous_wrap = stream.wrap
+    stream.wrap = wrap == nil and true or wrap
+    stdout:write(value)
+    stdout:flush()
+    stream.wrap = previous_wrap
+  end
+end
+
+function methods:debug(...)
+  local args = {...}
+  for _,v in ipairs(args) do
+    local s = v
+    if type(s) ~= 'string' then
+      local r = require('serialization').serialize(s,10000)
+      if type(s) == 'thread' then
+        r = string.format('%s{%s}',r,coroutine.status(s))
+      end
+      s = r
+    end
+    self:drawText(s,true)
+    if _ < #args then
+      self:drawText('\t',true)
+    end
+  end
+  self:drawText('\n',true)
+end
+
+function methods:drawText(value, wrap)
   if not self:isAvailable() then
     return
   end

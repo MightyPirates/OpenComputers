@@ -1,0 +1,31 @@
+NAME
+  head - Print the first 10 lines of each FILE to stdout.
+
+SYNOPSIS
+  head [OPTION]... [FILE]...
+
+DESCRIPTION
+  Print the first 10 lines of each FILE to stdout.
+  With no FILE, or when FILE is -, read stdin.
+
+      --bytes=[-]n        print the first n bytes of each file'
+                            with the leading '-', print all but the last
+                            n bytes of each file
+      --lines=[-]n        print the first n lines instead of the first 10;
+                            with the leading '-', print all but the last
+                            n lines of each file
+  -q, --quiet, --silent   never print headers giving file names
+  -v, --verbose           always print headers giving file names
+      --help              print help message
+
+EXAMPLES
+  head
+  head -
+    Read next 10 lines from standard in and print to standard out, then close.
+
+  head file.txt
+    Print first 10 lines of file.txt and print to stdout
+
+  head -n 32 file.txt
+    Print first 32 lines of file.txt and print to stdout
+

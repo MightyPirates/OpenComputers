@@ -18,7 +18,7 @@ if #args > 0 then
   end
   local result, reason = pcall(script, table.unpack(args, 2))
   if not result then
-    io.stderr:write(reason)
+    io.stderr:write(reason, "\n")
     os.exit(false)
   end
 end
