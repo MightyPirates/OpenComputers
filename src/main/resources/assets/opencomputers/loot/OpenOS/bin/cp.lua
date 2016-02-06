@@ -59,16 +59,7 @@ local function areEqual(path1, path2)
   return result
 end
 
-local function isMount(path)
-  path = fs.canonical(path)
-  for _, mountPath in fs.mounts() do
-    if path == fs.canonical(mountPath) then
-      return true
-    end
-  end
-end
-
-local function recurse(fromPath, toPath)
+local function recurse(fromPath, toPath, origin)
   status(fromPath, toPath)
   if fs.isDirectory(fromPath) then
     if not options.r then
@@ -82,12 +73,12 @@ local function recurse(fromPath, toPath)
       -- my real cp always does this, even with -f, -n or -i.
       return nil, "cannot overwrite non-directory `" .. toPath .. "' with directory `" .. fromPath .. "'"
     end
-    if options.x and isMount(fromPath) then
+    fs.makeDirectory(toPath)
+    if options.x and origin and fs.get(fromPath) ~= origin then
       return true
     end
-    fs.makeDirectory(toPath)
     for file in fs.list(fromPath) do
-      local result, reason = recurse(fs.concat(fromPath, file), fs.concat(toPath, file))
+      local result, reason = recurse(fs.concat(fromPath, file), fs.concat(toPath, file), origin or fs.get(fromPath))
       if not result then
         return nil, reason
       end

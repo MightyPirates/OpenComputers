@@ -1,8 +1,11 @@
 local sh = require('sh')
 
 local clock_before = os.clock()
-sh.execute(nil, ...)
-local cmd_result = sh.getLastExitCode()
+local cmd_result = 0
+if ... then
+  sh.execute(nil, ...) 
+  cmd_result = sh.getLastExitCode()
+end
 
 local clock_after = os.clock()
 local clock_diff = clock_after - clock_before
