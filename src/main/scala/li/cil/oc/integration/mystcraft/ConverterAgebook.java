@@ -16,8 +16,8 @@ public class ConverterAgebook implements Converter {
                 final NBTTagCompound tag = stack.getTagCompound();
                 if (tag.hasKey("Dimension"))
                     output.put("dimensionId", tag.getInteger("Dimension"));
-                if (tag.hasKey("agename"))
-                    output.put("dimensionName", tag.getString("agename"));
+                if (tag.hasKey("DisplayName"))
+                    output.put("dimensionName", tag.getString("DisplayName"));
 
                 if (tag.hasKey("Flags")) {
                     final HashMap<String, Boolean> flags = new HashMap<String, Boolean>();
