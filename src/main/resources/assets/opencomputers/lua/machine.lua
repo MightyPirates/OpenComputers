@@ -737,7 +737,7 @@ sandbox = {
         local ret = table.pack(pcall(setmetatable, t, mt))
         rawset(mt, "__gc", gc) -- restore __gc
         if not ret[1] then error(ret[2], 0) end
-        return table.unpack(ret, 1, ret.n)
+        return table.unpack(ret, 2, ret.n)
       end
     end
     return setmetatable(t, mt)
