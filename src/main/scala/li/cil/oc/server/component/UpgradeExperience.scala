@@ -44,8 +44,12 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
   def updateXpInfo() {
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
+    val oldLevel = level
     level = math.min((Math.pow(experience - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
     if (node != null) {
+      if (level != oldLevel) {
+        updateClient()
+      }
       node.setLocalBufferSize(Settings.get.bufferPerLevel * level)
     }
   }
@@ -84,6 +88,11 @@ class UpgradeExperience(val host: EnvironmentHost with internal.Agent) extends p
     }
     addExperience(xp * Settings.get.constantXpGrowth)
     result(true)
+  }
+
+  private def updateClient() = host match {
+    case robot: internal.Robot => robot.synchronizeSlot(robot.componentSlot(node.address))
+    case _ =>
   }
 
   override def save(nbt: NBTTagCompound) {
