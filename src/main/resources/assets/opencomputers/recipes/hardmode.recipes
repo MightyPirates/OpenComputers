@@ -85,7 +85,7 @@ dataCard2 {
           ["", "oc:dataCard1", ""]]
 }
 dataCard3 {
-  input: [[diamond, "oc:cpu2", "oc:ram5"]
+  input: [[gemDiamond, "oc:cpu2", "oc:ram5"]
           ["", "oc:dataCard2", ""]]
 }
 graphicsCard1 {
@@ -138,9 +138,9 @@ batteryUpgrade2 {
           [ingotGold, "oc:capacitor", ingotGold]]
 }
 batteryUpgrade3 {
-  input: [[diamond, "oc:capacitor", diamond]
+  input: [[gemDiamond, "oc:capacitor", gemDiamond]
           ["oc:materialTransistor", "oc:capacitor", "oc:materialTransistor"]
-          [diamond, "oc:capacitor", diamond]]
+          [gemDiamond, "oc:capacitor", gemDiamond]]
 }
 craftingUpgrade {
   input: [[ingotIron, craftingPiston, ingotIron]
@@ -232,7 +232,7 @@ chip2 {
 }
 chip3 {
   input: [[yellowDust, comparator, yellowDust]
-          ["oc:circuitChip2", diamond, "oc:circuitChip2"]
+          ["oc:circuitChip2", gemDiamond, "oc:circuitChip2"]
           [yellowDust, comparator, yellowDust]]
 }
 alu {
@@ -251,9 +251,9 @@ componentBus2 {
           [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
 }
 componentBus3 {
-  input: [[diamond, "oc:ram5", diamond]
+  input: [[gemDiamond, "oc:ram5", gemDiamond]
           ["oc:circuitChip3", "oc:componentBus2", ""]
-          [diamond, "oc:materialCircuitBoardPrinted", diamond]]
+          [gemDiamond, "oc:materialCircuitBoardPrinted", gemDiamond]]
 }
 cpu1 {
   input: [[nuggetIron, redstone, nuggetIron]
@@ -266,9 +266,9 @@ cpu2 {
           [nuggetGold, "oc:ram3", nuggetGold]]
 }
 cpu3 {
-  input: [[diamond, "oc:ram5", diamond]
+  input: [[gemDiamond, "oc:ram5", gemDiamond]
           ["oc:circuitChip3", "oc:cpu2", "oc:circuitChip3"]
-          [diamond, "oc:ram5", diamond]]
+          [gemDiamond, "oc:ram5", gemDiamond]]
 }
 cu {
   input: [[nuggetGold, torchRedstoneActive, nuggetGold]
@@ -333,9 +333,9 @@ case2 {
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 case3 {
-  input: [[diamond, "oc:circuitChip3", diamond]
+  input: [[gemDiamond, "oc:circuitChip3", gemDiamond]
           ["oc:circuitChip3", "oc:case2", "oc:circuitChip3"]
-          [diamond, "oc:materialCircuitBoardPrinted", diamond]]
+          [gemDiamond, "oc:materialCircuitBoardPrinted", gemDiamond]]
 }
 diskDrive {
   input: [[ingotIron, "oc:circuitChip1", ingotIron]

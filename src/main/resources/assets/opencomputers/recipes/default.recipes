@@ -155,9 +155,9 @@ hdd2 {
           ["oc:circuitChip2", "oc:materialDisk", ingotGold]]
 }
 hdd3 {
-  input: [["oc:circuitChip3", "oc:materialDisk", diamond]
+  input: [["oc:circuitChip3", "oc:materialDisk", gemDiamond]
           ["oc:materialCircuitBoardPrinted", "oc:materialDisk", craftingPiston]
-          ["oc:circuitChip3", "oc:materialDisk", diamond]]
+          ["oc:circuitChip3", "oc:materialDisk", gemDiamond]]
 }
 
 dataCard1 {
@@ -169,7 +169,7 @@ dataCard2 {
           ["", "oc:materialCard", ""]]
 }
 dataCard3 {
-  input: [[diamond, "oc:cpu2", "oc:ram5"]
+  input: [[gemDiamond, "oc:cpu2", "oc:ram5"]
           ["", "oc:materialCard", ""]]
 }
 graphicsCard1 {
@@ -236,9 +236,9 @@ batteryUpgrade2 {
           [ingotGold, "oc:capacitor", ingotGold]]
 }
 batteryUpgrade3 {
-  input: [[diamond, "oc:capacitor", diamond]
+  input: [[gemDiamond, "oc:capacitor", gemDiamond]
           [fenceIron, "oc:capacitor", fenceIron]
-          [diamond, "oc:capacitor", diamond]]
+          [gemDiamond, "oc:capacitor", gemDiamond]]
 }
 chunkloaderUpgrade {
   input: [[ingotGold, blockGlass, ingotGold]
@@ -451,9 +451,9 @@ chip2 {
           [nuggetGold, "", nuggetGold]]
 }
 chip3 {
-  input: [[diamond, "", diamond]
+  input: [[gemDiamond, "", gemDiamond]
           [redstone, "oc:materialTransistor", redstone]
-          [diamond, "", diamond]]
+          [gemDiamond, "", gemDiamond]]
 }
 alu {
   input: [[nuggetIron, redstone, nuggetIron]
@@ -466,9 +466,9 @@ apu1 {
           [nuggetGold, "oc:circuitChip1", nuggetGold]]
 }
 apu2 {
-  input: [[diamond, "oc:circuitChip2", diamond]
+  input: [[gemDiamond, "oc:circuitChip2", gemDiamond]
           ["oc:cpu3", "oc:componentBus2", "oc:graphicsCard2"]
-          [diamond, "oc:circuitChip2", diamond]]
+          [gemDiamond, "oc:circuitChip2", gemDiamond]]
 }
 componentBus1 {
   input: [[nuggetIron, redstone, nuggetIron]
@@ -564,9 +564,9 @@ case2 {
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 case3 {
-  input: [[diamond, "oc:circuitChip3", diamond]
+  input: [[gemDiamond, "oc:circuitChip3", gemDiamond]
           [fenceIron, chest, fenceIron]
-          [diamond, "oc:materialCircuitBoardPrinted", diamond]]
+          [gemDiamond, "oc:materialCircuitBoardPrinted", gemDiamond]]
 }
 disassembler {
   input: [["oc:materialCU", paneGlass, "oc:analyzer"]
@@ -585,7 +585,7 @@ geolyzer {
 }
 hologram1 {
   input: [["oc:circuitChip2", paneGlass, "oc:circuitChip2"]
-          ["oc:materialCircuitBoardPrinted", diamond, "oc:materialCircuitBoardPrinted"]
+          ["oc:materialCircuitBoardPrinted", gemDiamond, "oc:materialCircuitBoardPrinted"]
           [obsidian, yellowDust, obsidian]]
 }
 hologram2 {
