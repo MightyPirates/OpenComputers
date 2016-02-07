@@ -11,8 +11,7 @@ local pipeStream = {}
 local function bfd() return nil, "bad file descriptor" end
 function pipeStream.new(pm)
   local stream = {pm=pm}
-  local metatable = {__index = pipeStream,
-                     __gc = pipeStream.close}
+  local metatable = {__index = pipeStream}
   return setmetatable(stream, metatable)
 end
 function pipeStream:resume()
