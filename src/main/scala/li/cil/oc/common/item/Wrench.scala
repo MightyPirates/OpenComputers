@@ -4,6 +4,7 @@ import li.cil.oc.api
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import net.minecraft.block.Block
+import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityMinecart
 import net.minecraft.entity.player.EntityPlayer
@@ -58,6 +59,10 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
   def canWrench(player: EntityPlayer, pos: BlockPos): Boolean = true
 
   def wrenchUsed(player: EntityPlayer, pos: BlockPos): Unit = player.swingItem()
+
+  def canWrench(player: EntityPlayer, entity: Entity): Boolean = true
+
+  def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingItem()
 
   // CoFH
 
