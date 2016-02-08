@@ -66,16 +66,18 @@ local function recurse(fromPath, toPath, origin)
       io.write("omitting directory `" .. fromPath .. "'\n")
       return true
     end
-    if fs.canonical(fs.path(toPath)):find(fs.canonical(fromPath),1,true)  then
-      return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'"
-    end
     if fs.exists(toPath) and not fs.isDirectory(toPath) then
       -- my real cp always does this, even with -f, -n or -i.
       return nil, "cannot overwrite non-directory `" .. toPath .. "' with directory `" .. fromPath .. "'"
     end
     fs.makeDirectory(toPath)
-    if options.x and origin and fs.get(fromPath) ~= origin then
-      return true
+    if options.x then
+      if origin and fs.get(fromPath) ~= origin then
+        return true
+      end
+      if fs.get(fromPath) == fs.get(toPath) and fs.canonical(fs.path(toPath)):find(fs.canonical(fromPath),1,true)  then
+        return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'"
+      end
     end
     for file in fs.list(fromPath) do
       local result, reason = recurse(fs.concat(fromPath, file), fs.concat(toPath, file), origin or fs.get(fromPath))
