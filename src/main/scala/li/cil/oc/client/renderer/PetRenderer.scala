@@ -26,16 +26,16 @@ object PetRenderer {
 
   // http://goo.gl/frLWYR
   private val entitledPlayers = Map(
-    "Sangar" ->(0.3, 0.9, 0.6),
-    "Jodarion" ->(1.0, 0.0, 0.0),
-    "DaKaTotal" ->(0.5, 0.7, 1.0),
-    "MichiRavencroft" ->(1.0, 0.0, 0.0),
-    "Vexatos" ->(0.18, 0.95, 0.922),
-    "StoneNomad" ->(0.8, 0.77, 0.75),
-    "LizzyTheSiren" ->(0.3, 0.3, 1.0),
-    "vifino" ->(0.2, 1.0, 0.1),
-    "Izaya" ->(0.0, 0.2, 0.6),
-    "Wobbo" ->(0.098, 0.471, 0.784)
+    "9f1f262f-0d68-4e13-9161-9eeaf4a0a1a8" ->(0.3, 0.9, 0.6), //Sangar
+    "18f8bed4-f027-44af-8947-6a3a2317645a" ->(1.0, 0.0, 0.0), //Jodarion
+    "36123742-2cf6-4cfc-8b65-278581b3caeb" ->(0.5, 0.7, 1.0), //DaKaTotal
+    "2c0c214b-96f4-4565-b513-de90d5fbc977" ->(1.0, 0.0, 0.0), //MichiRavencroft
+    "f3ba6ec8-c280-4950-bb08-1fcb2eab3a9c" ->(0.18, 0.95, 0.922), //Vexatos
+    "9d636bdd-b9f4-4b80-b9ce-586ca04bd4f3" ->(0.8, 0.77, 0.75), //StoneNomad
+    "23c7ed71-fb13-4abe-abe7-f355e1de6e62" ->(0.3, 0.3, 1.0), //LizzyTheSiren
+    "076541f1-f10a-46de-a127-dfab8adfbb75" ->(0.2, 1.0, 0.1), //vifino
+    "e7e90198-0ccf-4662-a827-192ec8f4419d" ->(0.0, 0.2, 0.6), //Izaya
+    "f514ee69-7bbb-4e46-9e94-d8176324cec2" ->(0.098, 0.471, 0.784) //Wobbo
   )
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().
@@ -47,9 +47,9 @@ object PetRenderer {
 
   @SubscribeEvent
   def onPlayerRender(e: RenderPlayerEvent.Pre) {
-    val name = e.entityPlayer.getCommandSenderName
-    if (hidden.contains(name) || !entitledPlayers.contains(name)) return
-    rendering = Some(entitledPlayers(name))
+    val uuid = e.entityPlayer.getUniqueID.toString
+    if (hidden.contains(uuid) || !entitledPlayers.contains(uuid)) return
+    rendering = Some(entitledPlayers(uuid))
 
     val worldTime = e.entityPlayer.getEntityWorld.getTotalWorldTime
     val timeJitter = e.entityPlayer.hashCode ^ 0xFF
@@ -143,8 +143,11 @@ object PetRenderer {
       GL11.glTranslated(0.3, -0.1, -0.2)
     }
 
-    // Someone please tell me a cleaner solution than this...
-    private def isForInventory = new Exception().getStackTrace.exists(_.getClassName == classOf[GuiContainer].getName)
+    //Sangar: Someone please tell me a cleaner solution than this...
+    //tim4242: This seems to be cleaner, but what do I know?
+    private def isForInventory = Minecraft.getMinecraft.currentScreen != null //Check if the player is currently in an inventory
+    //private def isForInventory = new Exception().getStackTrace.exists(_.getClassName == classOf[GuiContainer].getName)
+
   }
 
   @SubscribeEvent
