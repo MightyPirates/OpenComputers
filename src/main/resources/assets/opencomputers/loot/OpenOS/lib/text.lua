@@ -118,31 +118,42 @@ function text.removeEscapes(txt)
 end
 
 -------------------------------------------------------------------------------
-
-function --[[@delayloaded-start@]] text.split(input, delimiters, dropDelims)
+function --[[@delayloaded-start@]] text.split(input, delimiters, dropDelims, di)
   checkArg(1, input, "string")
   checkArg(2, delimiters, "table")
   checkArg(3, dropDelims, "boolean", "nil")
+  checkArg(4, di, "number", "nil")
 
-  local input_table = text.internal.table_view(input)
-  local delim_table = tx.select(delimiters, function(e,i,t)
-    return text.internal.table_view(e)
-  end)
-  local parts = tx.partition(input_table, function(e,i,t)
-    local ns, ne = tx.first(t,delim_table,i)
-    if not ns or dropDelims or ns == i then
-      return ns, ne
-    else -- not droping delims and ns>i
-      return i, ns-1
+  if #input == 0 then return {} end
+  di = di or 1
+  local result = {input}
+  if di > #delimiters then return result end
+
+  local function add(part, index, r, s, e)
+    local sub = part:sub(s,e)
+    if #sub == 0 then return index end
+    local subs = r and text.split(sub,delimiters,dropDelims,r) or {sub}
+    for i=1,#subs do
+      table.insert(result, index+i-1, subs[i])
     end
-  end, dropDelims)
-  return tx.select(parts, function(e,i,t)
-    local inner = ''
-    tx.foreach(e, function(ee,ii,tt)
-      inner = inner..ee
-    end)
-    return inner
-  end)
+    return index+#subs
+  end
+
+  local i,d=1,delimiters[di]
+  while true do
+    local next = table.remove(result,i)
+    if not next then break end
+    local si,ei = next:find(d)
+    if si and ei and ei~=0 then -- delim found
+      i=add(next, i, di+1, 1, si-1)
+      i=dropDelims and i or add(next, i, false, si, ei)
+      i=add(next, i, di, ei+1)
+    else
+      i=add(next, i, di+1, 1, #next)
+    end
+  end
+  
+  return result
 end --[[@delayloaded-end@]]
 
 -----------------------------------------------------------------------------
