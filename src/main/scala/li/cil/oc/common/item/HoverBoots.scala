@@ -1,19 +1,17 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.relauncher.Side
-import cpw.mods.fml.relauncher.SideOnly
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.item.HoverBootRenderer
 import li.cil.oc.common.item.data.HoverBootsData
+import li.cil.oc.util.ItemColorizer
 import net.minecraft.client.model.ModelBiped
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumRarity
-import net.minecraft.item.ItemArmor
-import net.minecraft.item.ItemStack
-import net.minecraft.potion.Potion
-import net.minecraft.potion.PotionEffect
+import net.minecraft.entity.{Entity, EntityLivingBase}
+import net.minecraft.item.{EnumRarity, ItemArmor, ItemStack}
+import net.minecraft.potion.{Potion, PotionEffect}
+import net.minecraft.util.IIcon
 import net.minecraft.world.World
 
 class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with traits.SimpleItem with traits.Chargeable {
@@ -56,7 +54,10 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
 
   @SideOnly(Side.CLIENT)
   override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: Int): ModelBiped = {
-    if (armorSlot == armorType) HoverBootRenderer
+    if (armorSlot == armorType) {
+      HoverBootRenderer.lightColor = if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
+      HoverBootRenderer
+    }
     else super.getArmorModel(entityLiving, itemStack, armorSlot)
   }
 
@@ -70,6 +71,28 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     if (!Settings.get.ignorePower && player.getActivePotionEffect(Potion.moveSlowdown) == null && getCharge(stack) == 0) {
       player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.getId, 20, 1))
     }
+  }
+
+  @SideOnly(Side.CLIENT)
+  var lightOverlay: IIcon = null
+
+  @SideOnly(Side.CLIENT)
+  override def registerIcons(ir: IIconRegister): Unit = {
+    this.itemIcon = ir.registerIcon(this.getIconString)
+    this.lightOverlay = ir.registerIcon(this.getIconString + "Light")
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def requiresMultipleRenderPasses(): Boolean = true
+
+  @SideOnly(Side.CLIENT)
+  override def getIconFromDamageForRenderPass(meta : Int, pass : Int): IIcon = if (pass == 1 ) lightOverlay else super.getIconFromDamageForRenderPass(meta, pass)
+
+  override def getColorFromItemStack(itemStack: ItemStack, pass: Int): Int = {
+    if (pass == 1) {
+      return if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
+    }
+    super.getColorFromItemStack(itemStack, pass)
   }
 
   override def getDisplayDamage(stack: ItemStack): Int = {
