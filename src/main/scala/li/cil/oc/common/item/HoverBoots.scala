@@ -7,11 +7,13 @@ import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.util.ItemColorizer
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
+import net.minecraft.init.Blocks
 import net.minecraft.item.{EnumRarity, ItemArmor, ItemStack}
 import net.minecraft.potion.{Potion, PotionEffect}
-import net.minecraft.util.IIcon
+import net.minecraft.util.{IIcon, MathHelper}
 import net.minecraft.world.World
 
 class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with traits.SimpleItem with traits.Chargeable {
@@ -73,6 +75,23 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     }
   }
 
+  override def onEntityItemUpdate(entity: EntityItem): Boolean = {
+    if (entity != null && entity.worldObj != null && !entity.worldObj.isRemote && ItemColorizer.hasColor(entity.getEntityItem)) {
+      val x = MathHelper.floor_double(entity.posX)
+      val y = MathHelper.floor_double(entity.posY)
+      val z = MathHelper.floor_double(entity.posZ)
+      if (entity.worldObj.getBlock(x, y, z) == Blocks.cauldron) {
+        val meta = entity.worldObj.getBlockMetadata(x, y, z)
+        if (meta > 0) {
+          ItemColorizer.removeColor(entity.getEntityItem)
+          entity.worldObj.setBlockMetadataWithNotify(x, y, z, meta - 1, 3)
+          return true
+        }
+      }
+    }
+    super.onEntityItemUpdate(entity)
+  }
+
   @SideOnly(Side.CLIENT)
   var lightOverlay: IIcon = null
 
@@ -86,7 +105,7 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
   override def requiresMultipleRenderPasses(): Boolean = true
 
   @SideOnly(Side.CLIENT)
-  override def getIconFromDamageForRenderPass(meta : Int, pass : Int): IIcon = if (pass == 1 ) lightOverlay else super.getIconFromDamageForRenderPass(meta, pass)
+  override def getIconFromDamageForRenderPass(meta: Int, pass: Int): IIcon = if (pass == 1) lightOverlay else super.getIconFromDamageForRenderPass(meta, pass)
 
   override def getColorFromItemStack(itemStack: ItemStack, pass: Int): Int = {
     if (pass == 1) {
