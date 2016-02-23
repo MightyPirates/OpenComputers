@@ -2,9 +2,8 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Localization
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.component.TextBuffer
-import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -15,21 +14,33 @@ import net.minecraft.nbt.NBTTagCompound
 
 import scala.util.matching.Regex
 
-abstract class GraphicsCard extends prefab.ManagedEnvironment {
+// IMPORTANT: usually methods with side effects should *not* be direct
+// callbacks to avoid the massive headache synchronizing them ensues, in
+// particular when it comes to world saving. I'm making an exception for
+// screens, though since they'd be painfully sluggish otherwise. This also
+// means we have to use a somewhat nasty trick in common.component.Buffer's
+// save function: we wait for all computers in the same network to finish
+// their current execution and then pause them, to ensure the state of the
+// buffer is "clean", meaning the computer has the correct state when it is
+// saved in turn. If we didn't, a computer might change a screen after it was
+// saved, but before the computer was saved, leading to mismatching states in
+// the save file - a Bad Thing (TM).
+
+class GraphicsCard(val tier: Int) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
     create()
 
-  protected val maxResolution: (Int, Int)
+  private val maxResolution = Settings.screenResolutionsByTier(tier)
 
-  protected val maxDepth: ColorDepth
+  private val maxDepth = Settings.screenDepthsByTier(tier)
 
   private var screenAddress: Option[String] = None
 
-  private var screenInstance: Option[TextBuffer] = None
+  private var screenInstance: Option[api.internal.TextBuffer] = None
 
-  private def screen(f: (TextBuffer) => Array[AnyRef]) = screenInstance match {
+  private def screen(f: (api.internal.TextBuffer) => Array[AnyRef]) = screenInstance match {
     case Some(screen) => screen.synchronized(f(screen))
     case _ => Array(Unit, "no screen")
   }
@@ -42,8 +53,8 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     super.update()
     if (node.network != null && screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
-        case Some(node: Node) if node.host.isInstanceOf[TextBuffer] =>
-          screenInstance = Some(node.host.asInstanceOf[TextBuffer])
+        case Some(node: Node) if node.host.isInstanceOf[api.internal.TextBuffer] =>
+          screenInstance = Some(node.host.asInstanceOf[api.internal.TextBuffer])
         case _ =>
           // This could theoretically happen after loading an old address, but
           // if the screen either disappeared between saving and now or changed
@@ -61,16 +72,16 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     val reset = args.optBoolean(1, true)
     node.network.node(address) match {
       case null => result(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[TextBuffer] =>
+      case node: Node if node.host.isInstanceOf[api.internal.TextBuffer] =>
         screenAddress = Option(address)
-        screenInstance = Some(node.host.asInstanceOf[TextBuffer])
+        screenInstance = Some(node.host.asInstanceOf[api.internal.TextBuffer])
         screen(s => {
           if (reset) {
             val (gmw, gmh) = maxResolution
             val smw = s.getMaximumWidth
             val smh = s.getMaximumHeight
             s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
-            s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+            s.setColorDepth(api.internal.TextBuffer.ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
             s.setForegroundColor(0xFFFFFF)
             s.setBackgroundColor(0x000000)
           }
@@ -88,7 +99,9 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getBackgroundColor, s.isBackgroundFromPalette))
 
+  @Callback(direct = true, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setBackgroundCosts(tier))
     val color = args.checkInteger(0)
     screen(s => {
       val oldValue = s.getBackgroundColor
@@ -104,11 +117,15 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
+  final val setBackgroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
+
   @Callback(direct = true, doc = """function():number, boolean -- Get the current foreground color and whether it's from the palette or not.""")
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.getForegroundColor, s.isForegroundFromPalette))
 
+  @Callback(direct = true, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setForegroundCosts(tier))
     val color = args.checkInteger(0)
     screen(s => {
       val oldValue = s.getForegroundColor
@@ -124,6 +141,8 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
+  final val setForegroundCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
+
   @Callback(direct = true, doc = """function(index:number):number -- Get the palette color at the specified palette index.""")
   def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
@@ -132,7 +151,9 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
+  @Callback(direct = true, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
   def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setPaletteColorCosts(tier))
     val index = args.checkInteger(0)
     val color = args.checkInteger(1)
     context.pause(0.1)
@@ -146,6 +167,8 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
+  final val setPaletteColorCosts = Array(1.0 / 2, 1.0 / 8, 1.0 / 16)
+
   @Callback(direct = true, doc = """function():number -- Returns the currently set color depth.""")
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(PackedColor.Depth.bits(s.getColorDepth)))
@@ -156,9 +179,9 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     screen(s => {
       val oldDepth = s.getColorDepth
       depth match {
-        case 1 => s.setColorDepth(ColorDepth.OneBit)
-        case 4 if maxDepth.ordinal >= ColorDepth.FourBit.ordinal => s.setColorDepth(ColorDepth.FourBit)
-        case 8 if maxDepth.ordinal >= ColorDepth.EightBit.ordinal => s.setColorDepth(ColorDepth.EightBit)
+        case 1 => s.setColorDepth(api.internal.TextBuffer.ColorDepth.OneBit)
+        case 4 if maxDepth.ordinal >= api.internal.TextBuffer.ColorDepth.FourBit.ordinal => s.setColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
+        case 8 if maxDepth.ordinal >= api.internal.TextBuffer.ColorDepth.EightBit.ordinal => s.setColorDepth(api.internal.TextBuffer.ColorDepth.EightBit)
         case _ => throw new IllegalArgumentException("unsupported depth")
       }
       result(oldDepth)
@@ -167,7 +190,7 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
 
   @Callback(direct = true, doc = """function():number -- Get the maximum supported color depth.""")
   def maxDepth(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(PackedColor.Depth.bits(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))))
+    screen(s => result(PackedColor.Depth.bits(api.internal.TextBuffer.ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))))
 
   @Callback(direct = true, doc = """function():number, number -- Get the current screen resolution.""")
   def getResolution(context: Context, args: Arguments): Array[AnyRef] =
@@ -193,6 +216,26 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
       val smh = s.getMaximumHeight
       result(math.min(gmw, smw), math.min(gmh, smh))
     })
+
+  @Callback(direct = true, doc = """function():number, number -- Get the current viewport resolution.""")
+  def getViewport(context: Context, args: Arguments): Array[AnyRef] =
+    screen(s => result(s.getViewportWidth, s.getViewportHeight))
+
+  @Callback(doc = """function(width:number, height:number):boolean -- Set the viewport resolution. Cannot exceed the screen resolution. Returns true if the resolution changed.""")
+  def setViewport(context: Context, args: Arguments): Array[AnyRef] = {
+    val w = args.checkInteger(0)
+    val h = args.checkInteger(1)
+    val (mw, mh) = maxResolution
+    // Even though the buffer itself checks this again, we need this here for
+    // the minimum of screen and GPU resolution.
+    if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
+      throw new IllegalArgumentException("unsupported viewport size")
+    screen(s => {
+      if (w > s.getWidth || h > s.getHeight)
+        throw new IllegalArgumentException("unsupported viewport size")
+      result(s.setViewport(w, h))
+    })
+  }
 
   @Callback(direct = true, doc = """function(x:number, y:number):string, number, number, number or nil, number or nil -- Get the value displayed on the screen at the specified index, as well as the foreground and background color. If the foreground or background is from the palette, returns the palette indices as fourth and fifth results, else nil, respectively.""")
   def get(context: Context, args: Arguments): Array[AnyRef] = {
@@ -221,7 +264,9 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
+  @Callback(direct = true, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
   def set(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(setCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val value = args.checkString(2)
@@ -236,7 +281,11 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
+  final val setCosts = Array(1.0 / 64, 1.0 / 128, 1.0 / 256)
+
+  @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
   def copy(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(copyCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val w = math.max(0, args.checkInteger(2))
@@ -252,7 +301,11 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     })
   }
 
+  final val copyCosts = Array(1.0 / 16, 1.0 / 32, 1.0 / 64)
+
+  @Callback(direct = true, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
   def fill(context: Context, args: Arguments): Array[AnyRef] = {
+    context.consumeCallBudget(fillCosts(tier))
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val w = math.max(0, args.checkInteger(2))
@@ -272,6 +325,8 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
     else throw new Exception("invalid fill value")
   }
 
+  final val fillCosts = Array(1.0 / 32, 1.0 / 64, 1.0 / 128)
+
   private def consumePower(n: Double, cost: Double) = node.tryChangeBuffer(-n * cost)
 
   // ----------------------------------------------------------------------- //
@@ -284,13 +339,13 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
         val smw = s.getMaximumWidth
         val smh = s.getMaximumHeight
         s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
-        s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+        s.setColorDepth(api.internal.TextBuffer.ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
         s.setForegroundColor(0xFFFFFF)
         val w = s.getWidth
         val h = s.getHeight
         message.source.host match {
           case machine: li.cil.oc.server.machine.Machine if machine.lastError != null =>
-            if (s.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
+            if (s.getColorDepth.ordinal > api.internal.TextBuffer.ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
             else s.setBackgroundColor(0x000000)
             s.fill(0, 0, w, h, ' ')
             try {
@@ -349,89 +404,4 @@ abstract class GraphicsCard extends prefab.ManagedEnvironment {
       nbt.setString("screen", screenAddress.get)
     }
   }
-}
-
-object GraphicsCard {
-
-  // IMPORTANT: usually methods with side effects should *not* be direct
-  // callbacks to avoid the massive headache synchronizing them ensues, in
-  // particular when it comes to world saving. I'm making an exception for
-  // screens, though since they'd be painfully sluggish otherwise. This also
-  // means we have to use a somewhat nasty trick in common.component.Buffer's
-  // save function: we wait for all computers in the same network to finish
-  // their current execution and then pause them, to ensure the state of the
-  // buffer is "clean", meaning the computer has the correct state when it is
-  // saved in turn. If we didn't, a computer might change a screen after it was
-  // saved, but before the computer was saved, leading to mismatching states in
-  // the save file - a Bad Thing (TM).
-
-  class Tier1 extends GraphicsCard {
-    protected val maxDepth = Settings.screenDepthsByTier(0)
-    protected val maxResolution = Settings.screenResolutionsByTier(0)
-
-    @Callback(direct = true, limit = 16, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
-    override def copy(context: Context, args: Arguments) = super.copy(context, args)
-
-    @Callback(direct = true, limit = 32, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
-    override def fill(context: Context, args: Arguments) = super.fill(context, args)
-
-    @Callback(direct = true, limit = 64, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
-    override def set(context: Context, args: Arguments) = super.set(context, args)
-
-    @Callback(direct = true, limit = 32, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
-    override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
-
-    @Callback(direct = true, limit = 32, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
-    override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
-
-    @Callback(direct = true, limit = 2, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
-    override def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = super.setPaletteColor(context, args)
-  }
-
-  class Tier2 extends GraphicsCard {
-    protected val maxDepth = Settings.screenDepthsByTier(1)
-    protected val maxResolution = Settings.screenResolutionsByTier(1)
-
-    @Callback(direct = true, limit = 32, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
-    override def copy(context: Context, args: Arguments) = super.copy(context, args)
-
-    @Callback(direct = true, limit = 64, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
-    override def fill(context: Context, args: Arguments) = super.fill(context, args)
-
-    @Callback(direct = true, limit = 128, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
-    override def set(context: Context, args: Arguments) = super.set(context, args)
-
-    @Callback(direct = true, limit = 64, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
-    override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
-
-    @Callback(direct = true, limit = 64, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
-    override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
-
-    @Callback(direct = true, limit = 8, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
-    override def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = super.setPaletteColor(context, args)
-  }
-
-  class Tier3 extends GraphicsCard {
-    protected val maxDepth = Settings.screenDepthsByTier(2)
-    protected val maxResolution = Settings.screenResolutionsByTier(2)
-
-    @Callback(direct = true, limit = 64, doc = """function(x:number, y:number, width:number, height:number, tx:number, ty:number):boolean -- Copies a portion of the screen from the specified location with the specified size by the specified translation.""")
-    override def copy(context: Context, args: Arguments) = super.copy(context, args)
-
-    @Callback(direct = true, limit = 128, doc = """function(x:number, y:number, width:number, height:number, char:string):boolean -- Fills a portion of the screen at the specified position with the specified size with the specified character.""")
-    override def fill(context: Context, args: Arguments) = super.fill(context, args)
-
-    @Callback(direct = true, limit = 256, doc = """function(x:number, y:number, value:string[, vertical:boolean]):boolean -- Plots a string value to the screen at the specified position. Optionally writes the string vertically.""")
-    override def set(context: Context, args: Arguments) = super.set(context, args)
-
-    @Callback(direct = true, limit = 128, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the background color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
-    override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
-
-    @Callback(direct = true, limit = 128, doc = """function(value:number[, palette:boolean]):number, number or nil -- Sets the foreground color to the specified value. Optionally takes an explicit palette index. Returns the old value and if it was from the palette its palette index.""")
-    override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
-
-    @Callback(direct = true, limit = 16, doc = """function(index:number, color:number):number -- Set the palette color at the specified palette index. Returns the previous value.""")
-    override def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = super.setPaletteColor(context, args)
-  }
-
 }

@@ -5,7 +5,6 @@ import li.cil.oc.api
 import li.cil.oc.api.driver.item.MutableProcessor
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.network.Connector
-import li.cil.oc.server.machine.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
 import scala.collection.convert.WrapAsScala._
@@ -117,7 +116,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         case (stack, processor: Processor) => Seq(processor.architecture(stack))
       } match {
         case Some(architectures) =>
-          lua.pushValue(architectures.map(Machine.getArchitectureName))
+          lua.pushValue(architectures.map(api.Machine.getArchitectureName))
         case _ =>
           lua.newTable()
       }
@@ -128,7 +127,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {
         case (stack, processor: Processor) =>
-          lua.pushString(Machine.getArchitectureName(processor.architecture(stack)))
+          lua.pushString(api.Machine.getArchitectureName(processor.architecture(stack)))
           1
       }.getOrElse(0)
     })
@@ -137,7 +136,7 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       val archName = lua.checkString(1)
       machine.host.internalComponents.map(stack => (stack, api.Driver.driverFor(stack))).collectFirst {
-        case (stack, processor: MutableProcessor) => processor.allArchitectures.find(arch => Machine.getArchitectureName(arch) == archName) match {
+        case (stack, processor: MutableProcessor) => processor.allArchitectures.find(arch => api.Machine.getArchitectureName(arch) == archName) match {
           case Some(archClass) =>
             if (archClass != processor.architecture(stack)) {
               processor.setArchitecture(stack, archClass)

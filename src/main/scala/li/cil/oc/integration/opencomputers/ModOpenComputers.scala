@@ -86,10 +86,10 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(FileSystemAccessHandler)
-    MinecraftForge.EVENT_BUS.register(GeolyzerHandler)
     MinecraftForge.EVENT_BUS.register(HoverBootsHandler)
     MinecraftForge.EVENT_BUS.register(Loot)
     MinecraftForge.EVENT_BUS.register(NanomachinesHandler.Common)
+    MinecraftForge.EVENT_BUS.register(NetworkActivityHandler)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
     MinecraftForge.EVENT_BUS.register(Tablet)
@@ -100,8 +100,6 @@ object ModOpenComputers extends ModProxy {
     MinecraftForge.EVENT_BUS.register(li.cil.oc.server.ComponentTracker)
 
     api.Driver.add(ConverterNanomachines)
-
-    api.Driver.add(DriverBlockEnvironments)
 
     api.Driver.add(DriverAPU)
     api.Driver.add(DriverComponentBus)
@@ -129,6 +127,10 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverScreen)
     api.Driver.add(DriverTransposer)
 
+    api.Driver.add(DriverDiskDriveMountable)
+    api.Driver.add(DriverServer)
+    api.Driver.add(DriverTerminalServer)
+
     api.Driver.add(DriverUpgradeAngel)
     api.Driver.add(DriverUpgradeBattery)
     api.Driver.add(DriverUpgradeChunkloader)
@@ -147,6 +149,39 @@ object ModOpenComputers extends ModProxy {
     api.Driver.add(DriverUpgradeTank)
     api.Driver.add(DriverUpgradeTankController)
     api.Driver.add(DriverUpgradeTractorBeam)
+    api.Driver.add(DriverUpgradeTrading)
+
+    api.Driver.add(DriverAPU.Provider)
+    api.Driver.add(DriverDataCard.Provider)
+    api.Driver.add(DriverDebugCard.Provider)
+    api.Driver.add(DriverEEPROM.Provider)
+    api.Driver.add(DriverGraphicsCard.Provider)
+    api.Driver.add(DriverInternetCard.Provider)
+    api.Driver.add(DriverLinkedCard.Provider)
+    api.Driver.add(DriverNetworkCard.Provider)
+    api.Driver.add(DriverRedstoneCard.Provider)
+    api.Driver.add(DriverWirelessNetworkCard.Provider)
+
+    api.Driver.add(DriverGeolyzer.Provider)
+    api.Driver.add(DriverScreen.Provider)
+    api.Driver.add(DriverTransposer.Provider)
+
+    api.Driver.add(DriverUpgradeChunkloader.Provider)
+    api.Driver.add(DriverUpgradeCrafting.Provider)
+    api.Driver.add(DriverUpgradeExperience.Provider)
+    api.Driver.add(DriverUpgradeGenerator.Provider)
+    api.Driver.add(DriverUpgradeInventoryController.Provider)
+    api.Driver.add(DriverUpgradeLeash.Provider)
+    api.Driver.add(DriverUpgradeNavigation.Provider)
+    api.Driver.add(DriverUpgradePiston.Provider)
+    api.Driver.add(DriverUpgradeSign.Provider)
+    api.Driver.add(DriverUpgradeTankController.Provider)
+    api.Driver.add(DriverUpgradeTractorBeam.Provider)
+
+    api.Driver.add(EnvironmentProviderBlocks)
+
+    api.Driver.add(InventoryProviderDatabase)
+    api.Driver.add(InventoryProviderServer)
 
     blacklistHost(classOf[internal.Adapter],
       Constants.BlockName.Geolyzer,
@@ -169,7 +204,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.SolarGeneratorUpgrade,
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TractorBeamUpgrade,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.TradingUpgrade)
     blacklistHost(classOf[internal.Drone],
       Constants.BlockName.Keyboard,
       Constants.BlockName.ScreenTier1,
@@ -209,7 +245,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TankControllerUpgrade,
       Constants.ItemName.TractorBeamUpgrade,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.TradingUpgrade)
     blacklistHost(classOf[internal.Robot],
       Constants.BlockName.Transposer,
       Constants.ItemName.LeashUpgrade)
@@ -232,7 +269,8 @@ object ModOpenComputers extends ModProxy {
       Constants.ItemName.InventoryControllerUpgrade,
       Constants.ItemName.TankUpgrade,
       Constants.ItemName.TankControllerUpgrade,
-      Constants.ItemName.LeashUpgrade)
+      Constants.ItemName.LeashUpgrade,
+      Constants.ItemName.TradingUpgrade)
 
     if (!WirelessRedstone.isAvailable) {
       blacklistHost(classOf[internal.Drone], Constants.ItemName.RedstoneCardTier2)

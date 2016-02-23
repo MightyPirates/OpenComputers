@@ -1,6 +1,6 @@
 package li.cil.oc.api.event;
 
-import li.cil.oc.api.driver.EnvironmentHost;
+import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
@@ -37,18 +37,42 @@ public abstract class GeolyzerEvent extends Event {
      * the geolyzer. By default this will yield a (noisy) listing of the
      * hardness of the blocks.
      * <p/>
-     * Note: the y coordinate is computed as <tt>geolyzer.y - 32 + data.index</tt>.
+     * The bounds are guaranteed to not define a volume larger than 64.
+     * Resulting data should be written to the {@link #data} array such that
+     * <code>index = x + z*w + y*w*d</code>, with <code>w = maxX - minX</code>
+     * and <code>d = maxZ - minZ</code> (<tt>h</tt> meaning height, <tt>d</tt>
+     * meaning depth).
      */
     public static class Scan extends GeolyzerEvent {
         /**
-         * The <em>relative</em> x coordinate of the column being scanned.
+         * The <em>relative</em> minimal x coordinate of the box being scanned (inclusive).
          */
-        public final int scanX;
+        public final int minX;
 
         /**
-         * The <em>relative</em> z coordinate of the column being scanned.
+         * The <em>relative</em> minimal y coordinate of the box being scanned (inclusive).
          */
-        public final int scanZ;
+        public final int minY;
+
+        /**
+         * The <em>relative</em> minimal z coordinate of the box being scanned (inclusive).
+         */
+        public final int minZ;
+
+        /**
+         * The <em>relative</em> maximal x coordinate of the box being scanned (inclusive).
+         */
+        public final int maxX;
+
+        /**
+         * The <em>relative</em> maximal y coordinate of the box being scanned (inclusive).
+         */
+        public final int maxY;
+
+        /**
+         * The <em>relative</em> maximal z coordinate of the box being scanned (inclusive).
+         */
+        public final int maxZ;
 
         /**
          * The data for the column of blocks being scanned, which is an
@@ -57,10 +81,14 @@ public abstract class GeolyzerEvent extends Event {
          */
         public final float[] data = new float[64];
 
-        public Scan(EnvironmentHost host, Map<?, ?> options, int scanX, int scanZ) {
+        public Scan(EnvironmentHost host, Map<?, ?> options, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
             super(host, options);
-            this.scanX = scanX;
-            this.scanZ = scanZ;
+            this.minX = minX;
+            this.minY = minY;
+            this.minZ = minZ;
+            this.maxX = maxX;
+            this.maxY = maxY;
+            this.maxZ = maxZ;
         }
     }
 

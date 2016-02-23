@@ -183,26 +183,6 @@ object Items extends ItemAPI {
 
   // ----------------------------------------------------------------------- //
 
-  // Nobody should use this anyway, since it's internal, but IIRC some people do, so let's be nice...
-  // TODO remove in OC 1.6
-  /**
-   * @deprecated use <tt>api.Items.get("openOS").createItemStack(amount)</tt> instead.
-   */
-  @Deprecated
-  def createOpenOS(amount: Int = 1) = {
-    get(Constants.ItemName.OpenOS).createItemStack(amount)
-  }
-
-  // Nobody should use this anyway, since it's internal, but IIRC some people do, so let's be nice...
-  // TODO remove in OC 1.6
-  /**
-   * @deprecated use <tt>api.Items.get("luaBios").createItemStack(amount)</tt> instead.
-   */
-  @Deprecated
-  def createLuaBios(amount: Int = 1) = {
-    get(Constants.ItemName.LuaBios).createItemStack(amount)
-  }
-
   private def safeGetStack(name: String) = Option(get(name)).map(_.createItemStack(1)).orNull
 
   def createConfiguredDrone() = {

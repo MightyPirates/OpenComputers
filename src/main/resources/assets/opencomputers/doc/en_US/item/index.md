@@ -50,6 +50,7 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Tank Controller](tankControllerUpgrade.md)
 * [Tank Upgrade](tankUpgrade.md)
 * [Tractor Beam Upgrade](tractorBeamUpgrade.md)
+* [Trading Upgrade](tradingUpgrade.md)
 * [Upgrade Container](upgradeContainer1.md)
 
 ### Other

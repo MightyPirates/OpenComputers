@@ -1,10 +1,12 @@
 local shell = require("shell")
-local fs = require("filesystem")
-local args = shell.parse(...)
+local args, options = shell.parse(...)
 
-local shell_name = '-' .. fs.name(os.getenv("SHELL"))
-local cmd_name = "alias"
-local error_prefix = shell_name .. ": " .. cmd_name .. ": "
+local ec = 0
+
+if options.help then
+  print(string.format("Usage: alias: [name[=value] ... ]", cmd_name))
+  return
+end
 
 local function validAliasName(k)
   return k:match("[/%$`=|&;%(%)<> \t]") == nil
@@ -22,6 +24,7 @@ local function printAlias(k)
   local v = shell.getAlias(k)
   if not v then
     io.stderr:write(string.format("%s %s: not found\n", error_prefix, k))
+    ec = 1
   else
     io.write(string.format("alias %s='%s'\n", k, v))
   end
@@ -55,3 +58,5 @@ else
     handlePair(splitPair(v))
   end
 end
+
+return ec

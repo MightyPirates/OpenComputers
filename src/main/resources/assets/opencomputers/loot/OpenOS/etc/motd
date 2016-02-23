@@ -19,7 +19,7 @@ if f then
   f:close()
   local greeting = greetings[math.random(1, #greetings)]
   if greeting then
-    local width = math.max(10, component.gpu.getResolution())
+    local width = math.max(10, component.gpu.getViewport())
     for line in text.wrappedLines(greeting, width - 4, width - 4) do
       table.insert(lines, line)
       maxWidth = math.max(maxWidth, unicode.len(line))

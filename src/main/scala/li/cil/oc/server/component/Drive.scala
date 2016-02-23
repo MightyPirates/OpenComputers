@@ -10,7 +10,7 @@ import com.google.common.io.Files
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -21,7 +21,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
 
-class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Option[EnvironmentHost], val sound: Option[String]) extends prefab.ManagedEnvironment {
+class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Option[EnvironmentHost], val sound: Option[String], val speed: Int) extends prefab.ManagedEnvironment {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("drive", Visibility.Neighbors).
     withConnector().
@@ -63,7 +63,9 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
   @Callback(direct = true, doc = """function():number -- Returns the number of platters in the drive.""")
   def getPlatterCount(context: Context, args: Arguments): Array[AnyRef] = result(platterCount)
 
+  @Callback(direct = true, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
   def readSector(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(readSectorCosts(speed))
     val sector = moveToSector(context, checkSector(args, 0))
     diskActivity()
     val sectorData = new Array[Byte](sectorSize)
@@ -71,7 +73,11 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
     result(sectorData)
   }
 
+  final val readSectorCosts = Array(1.0 / 10, 1.0 / 20, 1.0 / 30, 1.0 / 40, 1.0 / 50, 1.0 / 60)
+
+  @Callback(direct = true, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
   def writeSector(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(writeSectorCosts(speed))
     val sectorData = args.checkByteArray(1)
     val sector = moveToSector(context, checkSector(args, 0))
     diskActivity()
@@ -79,14 +85,22 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
     null
   }
 
+  final val writeSectorCosts = Array(1.0 / 5, 1.0 / 10, 1.0 / 15, 1.0 / 20, 1.0 / 25, 1.0 / 30)
+
+  @Callback(direct = true, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
   def readByte(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(readByteCosts(speed))
     val offset = args.checkInteger(0) - 1
     moveToSector(context, checkSector(offset))
     diskActivity()
     result(data(offset))
   }
 
+  final val readByteCosts = Array(1.0 / 48, 1.0 / 64, 1.0 / 80, 1.0 / 96, 1.0 / 112, 1.0 / 128)
+
+  @Callback(direct = true, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
   def writeByte(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    context.consumeCallBudget(writeByteCosts(speed))
     val offset = args.checkInteger(0) - 1
     val value = args.checkInteger(1).toByte
     moveToSector(context, checkSector(offset))
@@ -94,6 +108,8 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
     data(offset) = value
     null
   }
+
+  final val writeByteCosts = Array(1.0 / 24, 1.0 / 32, 1.0 / 40, 1.0 / 48, 1.0 / 56, 1.0 / 64)
 
   // ----------------------------------------------------------------------- //
 
@@ -179,90 +195,6 @@ class Drive(val capacity: Int, val platterCount: Int, val label: Label, host: Op
     (sound, host) match {
       case (Some(s), Some(h)) => ServerPacketSender.sendFileSystemActivity(node, h, s)
       case _ =>
-    }
-  }
-}
-
-object Drive {
-  // I really need to come up with a way to make the call limit dynamic...
-  def apply(capacity: Int, platterCount: Int, label: Label, host: Option[EnvironmentHost], sound: Option[String], speed: Int = 1): Drive = speed match {
-    case 6 => new Drive(capacity, platterCount, label, host, sound) {
-      @Callback(direct = true, limit = 60, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
-      override def readSector(context: Context, args: Arguments): Array[AnyRef] = super.readSector(context, args)
-
-      @Callback(direct = true, limit = 30, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
-      override def writeSector(context: Context, args: Arguments): Array[AnyRef] = super.writeSector(context, args)
-
-      @Callback(direct = true, limit = 128, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
-      override def readByte(context: Context, args: Arguments): Array[AnyRef] = super.readByte(context, args)
-
-      @Callback(direct = true, limit = 64, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
-      override def writeByte(context: Context, args: Arguments): Array[AnyRef] = super.writeByte(context, args)
-    }
-    case 5 => new Drive(capacity, platterCount, label, host, sound) {
-      @Callback(direct = true, limit = 50, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
-      override def readSector(context: Context, args: Arguments): Array[AnyRef] = super.readSector(context, args)
-
-      @Callback(direct = true, limit = 25, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
-      override def writeSector(context: Context, args: Arguments): Array[AnyRef] = super.writeSector(context, args)
-
-      @Callback(direct = true, limit = 112, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
-      override def readByte(context: Context, args: Arguments): Array[AnyRef] = super.readByte(context, args)
-
-      @Callback(direct = true, limit = 56, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
-      override def writeByte(context: Context, args: Arguments): Array[AnyRef] = super.writeByte(context, args)
-    }
-    case 4 => new Drive(capacity, platterCount, label, host, sound) {
-      @Callback(direct = true, limit = 40, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
-      override def readSector(context: Context, args: Arguments): Array[AnyRef] = super.readSector(context, args)
-
-      @Callback(direct = true, limit = 20, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
-      override def writeSector(context: Context, args: Arguments): Array[AnyRef] = super.writeSector(context, args)
-
-      @Callback(direct = true, limit = 96, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
-      override def readByte(context: Context, args: Arguments): Array[AnyRef] = super.readByte(context, args)
-
-      @Callback(direct = true, limit = 48, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
-      override def writeByte(context: Context, args: Arguments): Array[AnyRef] = super.writeByte(context, args)
-    }
-    case 3 => new Drive(capacity, platterCount, label, host, sound) {
-      @Callback(direct = true, limit = 30, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
-      override def readSector(context: Context, args: Arguments): Array[AnyRef] = super.readSector(context, args)
-
-      @Callback(direct = true, limit = 15, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
-      override def writeSector(context: Context, args: Arguments): Array[AnyRef] = super.writeSector(context, args)
-
-      @Callback(direct = true, limit = 80, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
-      override def readByte(context: Context, args: Arguments): Array[AnyRef] = super.readByte(context, args)
-
-      @Callback(direct = true, limit = 40, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
-      override def writeByte(context: Context, args: Arguments): Array[AnyRef] = super.writeByte(context, args)
-    }
-    case 2 => new Drive(capacity, platterCount, label, host, sound) {
-      @Callback(direct = true, limit = 20, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
-      override def readSector(context: Context, args: Arguments): Array[AnyRef] = super.readSector(context, args)
-
-      @Callback(direct = true, limit = 10, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
-      override def writeSector(context: Context, args: Arguments): Array[AnyRef] = super.writeSector(context, args)
-
-      @Callback(direct = true, limit = 64, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
-      override def readByte(context: Context, args: Arguments): Array[AnyRef] = super.readByte(context, args)
-
-      @Callback(direct = true, limit = 32, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
-      override def writeByte(context: Context, args: Arguments): Array[AnyRef] = super.writeByte(context, args)
-    }
-    case _ => new Drive(capacity, platterCount, label, host, sound) {
-      @Callback(direct = true, limit = 10, doc = """function(sector:number):string -- Read the current contents of the specified sector.""")
-      override def readSector(context: Context, args: Arguments): Array[AnyRef] = super.readSector(context, args)
-
-      @Callback(direct = true, limit = 5, doc = """function(sector:number, value:string) -- Write the specified contents to the specified sector.""")
-      override def writeSector(context: Context, args: Arguments): Array[AnyRef] = super.writeSector(context, args)
-
-      @Callback(direct = true, limit = 48, doc = """function(offset:number):number -- Read a single byte at the specified offset.""")
-      override def readByte(context: Context, args: Arguments): Array[AnyRef] = super.readByte(context, args)
-
-      @Callback(direct = true, limit = 24, doc = """function(offset:number, value:number) -- Write a single byte to the specified offset.""")
-      override def writeByte(context: Context, args: Arguments): Array[AnyRef] = super.writeByte(context, args)
     }
   }
 }

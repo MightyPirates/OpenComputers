@@ -112,9 +112,9 @@ repositories {
         name 'ProjectRed'
         url 'http://files.projectredwiki.com/maven/'
     }
-    maven {
+    ivy {
         name 'ColoredLightCore'
-        url "http://coloredlightscore.us.to/maven/clc/"
+        artifactPattern "http://coloredlightscore.us.to:8080/job/ColoredLightsCore%20v1.7.10/${config.coloredlights.build}/artifact/build/libs/[module]-[revision]-[classifier].[ext]"
     }
     ivy {
         name "BuildCraft"
@@ -191,7 +191,6 @@ dependencies {
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
-    provided "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"

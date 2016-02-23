@@ -2,7 +2,7 @@ local unicode = unicode
 
 local filesystem, fileStream = {}, {}
 local isAutorunEnabled = nil
-local mtab = {name="", children={}, links={}}
+mtab = {name="", children={}, links={}}
 
 local function segments(path)
   path = path:gsub("\\", "/")
@@ -528,13 +528,7 @@ function filesystem.open(path, mode)
   end
 
   local stream = {fs = node.fs, handle = handle}
-
-  local function cleanup(self)
-    if not self.handle then return end
-    pcall(self.fs.close, self.handle)
-  end
   local metatable = {__index = fileStream,
-                     __gc = cleanup,
                      __metatable = "filestream"}
   return setmetatable(stream, metatable)
 end

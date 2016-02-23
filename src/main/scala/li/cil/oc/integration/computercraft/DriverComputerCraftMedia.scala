@@ -5,7 +5,7 @@ import dan200.computercraft.api.filesystem.IWritableMount
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
 import li.cil.oc.Settings
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.Slot
 import li.cil.oc.integration.opencomputers.Item

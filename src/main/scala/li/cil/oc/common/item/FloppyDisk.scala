@@ -2,7 +2,9 @@ package li.cil.oc.common.item
 
 import li.cil.oc.Constants
 import li.cil.oc.Settings
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.item.ItemStack
@@ -37,4 +39,6 @@ class FloppyDisk(val parent: Delegator) extends traits.Delegate with CustomModel
       ModelBakery.addVariantName(parent, location.getResourceDomain + ":" + location.getResourcePath)
     }
   }
+
+  override def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer): Boolean = true
 }

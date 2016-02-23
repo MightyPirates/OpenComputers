@@ -110,7 +110,7 @@ function put(path)
       io.write("success.\n")
       local pasteId = string.match(info, "[^/]+$")
       io.write("Uploaded as " .. info .. "\n")
-      io.write('Run "pastebin get ' .. pasteId .. '" to download anywhere.')
+      io.write('Run "pastebin get ' .. pasteId .. '" to download anywhere.\n')
     end
   else
     io.write("failed.\n")
@@ -121,12 +121,12 @@ end
 local command = args[1]
 if command == "put" then
   if #args == 2 then
-    put(shell.resolve(args[2]))
+    put(args[2])
     return
   end
 elseif command == "get" then
   if #args == 3 then
-    local path = shell.resolve(args[3])
+    local path = args[3]
     if fs.exists(path) then
       if not options.f or not os.remove(path) then
         io.stderr:write("file already exists")
@@ -145,9 +145,9 @@ end
 
 -- If we come here there was some invalid input.
 io.write("Usages:\n")
-io.write("pastebin put [-f] <file>\n")
-io.write("pastebin get [-f] <id> <file>\n")
-io.write("pastebin run [-f] <id> [<arguments...>]\n")
+io.write("pastebin put [-f] \n")
+io.write("pastebin get [-f]  \n")
+io.write("pastebin run [-f]  []\n")
 io.write(" -f: Force overwriting existing files.\n")
 io.write(" -k: keep line endings as-is (will convert\n")
 io.write("     Windows line endings to Unix otherwise).")

@@ -35,7 +35,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Switch], Settings.namespace + "switch")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
-    GameRegistry.registerTileEntity(classOf[tileentity.ServerRack], Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntityWithAlternatives(classOf[tileentity.Rack], Settings.namespace + "rack", Settings.namespace + "serverRack")
     GameRegistry.registerTileEntity(classOf[tileentity.Transposer], Settings.namespace + "transposer")
     GameRegistry.registerTileEntity(classOf[tileentity.Waypoint], Settings.namespace + "waypoint")
 
@@ -65,7 +65,7 @@ object Blocks {
     Recipes.addBlock(new Screen(Tier.One), Constants.BlockName.ScreenTier1, "oc:screen1")
     Recipes.addBlock(new Screen(Tier.Three), Constants.BlockName.ScreenTier3, "oc:screen3")
     Recipes.addBlock(new Screen(Tier.Two), Constants.BlockName.ScreenTier2, "oc:screen2")
-    Recipes.addBlock(new ServerRack(), Constants.BlockName.ServerRack, "oc:serverRack")
+    Recipes.addBlock(new Rack(), Constants.BlockName.Rack, "oc:rack", "oc:rack")
     Items.registerBlock(new Switch(), Constants.BlockName.Switch)
     Recipes.addBlock(new Waypoint(), Constants.BlockName.Waypoint, "oc:waypoint")
 

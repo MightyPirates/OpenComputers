@@ -45,7 +45,7 @@ thread = kernel.modules.threading.spawn(function()
                         kernel.modules.manageg.protect(timer.thread.sandbox)
                         kernel.modules.threading.currentThread = timer.thread
                     end
-                    local res, reason = pcall(timer.func)
+                    local res, reason = pcall(timer.func, now)
                     if type(timer.thread) == "table" then
                         kernel.modules.threading.currentThread = thread
                         kernel.modules.manageg.unprotect()

@@ -35,6 +35,8 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
     override def dirty_=(value: Boolean) = _dirty = value
 
     override def data = buffer
+
+    override def viewport: (Int, Int) = buffer.size
   }
 
   override protected val bufferX = 9

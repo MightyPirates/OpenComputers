@@ -87,7 +87,7 @@ trait RedstoneAware extends RotationAware /* with IConnectable with IRedstoneEmi
   override def validate(): Unit = {
     super.validate()
     if (!canUpdate) {
-      EventHandler.schedule(() => EnumFacing.values().foreach(updateRedstoneInput))
+      EventHandler.scheduleServer(() => EnumFacing.values().foreach(updateRedstoneInput))
     }
   }
 

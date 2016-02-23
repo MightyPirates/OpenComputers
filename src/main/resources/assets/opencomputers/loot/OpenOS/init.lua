@@ -1,5 +1,5 @@
 do
-  _G._OSVERSION = "OpenOS 1.5"
+  _G._OSVERSION = "OpenOS 1.6"
 
   local component = component
   local computer = computer
@@ -109,24 +109,28 @@ do
     _G.unicode = nil
 
     -- Initialize the package module with some of our own APIs.
+    package.loaded.component = component
+    package.loaded.computer = computer
+    package.loaded.unicode = unicode
     package.preload["buffer"] = loadfile("/lib/buffer.lua")
-    package.preload["component"] = function() return component end
-    package.preload["computer"] = function() return computer end
     package.preload["filesystem"] = loadfile("/lib/filesystem.lua")
-    package.preload["io"] = loadfile("/lib/io.lua")
-    package.preload["unicode"] = function() return unicode end
 
     -- Inject the package and io modules into the global namespace, as in Lua.
     _G.package = package
-    _G.io = require("io")
+    _G.io = loadfile("/lib/io.lua")()
+
+    --mark modules for delay loaded api
+    package.delayed["text"] = true
+    package.delayed["sh"] = true
+    package.delayed["transforms"] = true
   end
 
   status("Initializing file system...")
 
   -- Mount the ROM and temporary file systems to allow working on the file
   -- system module from this point on.
-  local filesystem = require("filesystem")
-  filesystem.mount(computer.getBootAddress(), "/")
+  require("filesystem").mount(computer.getBootAddress(), "/")
+  package.preload={}
 
   status("Running boot scripts...")
 
@@ -160,34 +164,16 @@ do
   computer.pushSignal("init") -- so libs know components are initialized.
 
   status("Initializing system...")
-  require("term").clear()
   os.sleep(0.1) -- Allow init processing.
   runlevel = 1
 end
 
-local function motd()
-  local f = io.open("/etc/motd")
-  if not f then
-    return
-  end
-  if f:read(2) == "#!" then
-    f:close()
-    os.execute("/etc/motd")
-  else
-    f:seek("set", 0)
-    io.write(f:read("*a") .. "\n")
-    f:close()
-  end
-end
-
 while true do
-  motd()
-  local result, reason = os.execute(os.getenv("SHELL"))
+  local result, reason = require("shell").execute()
   if not result then
     io.stderr:write((reason ~= nil and tostring(reason) or "unknown error") .. "\n")
     io.write("Press any key to continue.\n")
     os.sleep(0.5)
     require("event").pull("key")
   end
-  require("term").clear()
 end

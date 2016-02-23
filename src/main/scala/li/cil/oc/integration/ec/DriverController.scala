@@ -2,7 +2,7 @@ package li.cil.oc.integration.ec
 
 import appeng.api.networking.security.IActionHost
 import appeng.me.helpers.IGridProxyable
-import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.prefab.DriverTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
@@ -13,7 +13,7 @@ import net.minecraft.world.World
 
 import scala.language.existentials
 
-object DriverController extends DriverTileEntity with EnvironmentAware {
+object DriverController extends DriverTileEntity {
   private type TileController = TileEntity with IGridProxyable with IActionHost
 
   def getTileEntityClass = AEUtil.controllerClass
@@ -21,10 +21,13 @@ object DriverController extends DriverTileEntity with EnvironmentAware {
   def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileController])
 
-  override def providedEnvironment(stack: ItemStack) =
-    if (AEUtil.isController(stack)) classOf[Environment]
-    else null
+  final class Environment(val tile: TileController) extends ManagedTileEntityEnvironment[TileController](tile, "me_controller") with NetworkControl[TileController]
 
-  class Environment(val tile: TileController) extends ManagedTileEntityEnvironment[TileController](tile, "me_controller") with NetworkControl[TileController]
+  object Provider extends EnvironmentProvider {
+    override def getEnvironment(stack: ItemStack): Class[_] =
+      if (AEUtil.isController(stack))
+        classOf[Environment]
+      else null
+  }
 
 }

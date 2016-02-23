@@ -7,7 +7,7 @@ local function buildDevfs()
         end
     end
     for k, tape in ipairs(tapes) do
-        kernel.modules.devfs.data["tape" .. k] = {
+        kernel.modules.devfs.data["tape" .. tape:sub(1,4):upper()] = {
             __type = "f",
             open = function(hnd)
                 if not component.invoke(tape, "isReady") then

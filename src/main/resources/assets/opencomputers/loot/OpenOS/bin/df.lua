@@ -7,6 +7,8 @@ local args, options = shell.parse(...)
 local function formatSize(size)
   if not options.h then
     return tostring(size)
+  elseif type(size) == "string" then
+    return size
   end
   local sizes = {"", "K", "M", "G"}
   local unit = 1
@@ -67,5 +69,5 @@ for _, row in ipairs(result) do
   for col, value in ipairs(row) do
     io.write(text.padRight(value, m[col] + 2))
   end
-  io.write("\n")
+  print()
 end

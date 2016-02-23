@@ -587,17 +587,17 @@ class Robot extends traits.Computer with traits.PowerInformation with traits.Rot
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
     if (node != null) node.host match {
-      case buffer: api.component.TextBuffer =>
+      case buffer: api.internal.TextBuffer =>
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
-            case keyboard: api.component.Keyboard => buffer.node.connect(keyboard.node)
+            case keyboard: api.internal.Keyboard => buffer.node.connect(keyboard.node)
             case _ =>
           }
         }
-      case keyboard: api.component.Keyboard =>
+      case keyboard: api.internal.Keyboard =>
         for (slot <- componentSlots) {
           getComponentInSlot(slot) match {
-            case buffer: api.component.TextBuffer => keyboard.node.connect(buffer.node)
+            case buffer: api.internal.TextBuffer => keyboard.node.connect(buffer.node)
             case _ =>
           }
         }

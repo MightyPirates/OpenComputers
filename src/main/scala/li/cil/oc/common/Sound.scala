@@ -1,7 +1,7 @@
 package li.cil.oc.common
 
 import li.cil.oc.Settings
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 
 import scala.collection.mutable
 

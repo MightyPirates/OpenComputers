@@ -5,9 +5,13 @@ import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.EnvironmentProvider
+import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
+import li.cil.oc.api.network.EnvironmentHost
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.world.World
@@ -38,6 +42,10 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
 
+  val environmentProviders = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
+
+  val inventoryProviders = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
+
   val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
 
   /** Used to keep track of whether we're past the init phase. */
@@ -67,6 +75,22 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
+  override def add(provider: EnvironmentProvider): Unit = {
+    if (locked) throw new IllegalStateException("Please register all environment providers in the init phase.")
+    if (!environmentProviders.contains(provider)) {
+      OpenComputers.log.debug(s"Registering environment provider ${provider.getClass.getName}.")
+      environmentProviders += provider
+    }
+  }
+
+  override def add(provider: InventoryProvider): Unit = {
+    if (locked) throw new IllegalStateException("Please register all inventory providers in the init phase.")
+    if (!inventoryProviders.contains(provider)) {
+      OpenComputers.log.debug(s"Registering inventory provider ${provider.getClass.getName}.")
+      inventoryProviders += provider
+    }
+  }
+
   override def driverFor(world: World, pos: BlockPos) =
     blocks.filter(_.worksWith(world, pos)) match {
       case drivers if drivers.nonEmpty => new CompoundBlockDriver(drivers: _*)
@@ -88,6 +112,18 @@ private[oc] object Registry extends api.detail.DriverAPI {
   override def driverFor(stack: ItemStack) =
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
+
+  override def environmentFor(stack: ItemStack): Class[_] = {
+    environmentProviders.map(provider => provider.getEnvironment(stack)).collectFirst {
+      case clazz: Class[_] => clazz
+    }.orNull
+  }
+
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
+    inventoryProviders.find(provider => provider.worksWith(stack, player)).
+      map(provider => provider.getInventory(stack, player)).
+      orNull
+  }
 
   override def blockDrivers = blocks.toSeq
 

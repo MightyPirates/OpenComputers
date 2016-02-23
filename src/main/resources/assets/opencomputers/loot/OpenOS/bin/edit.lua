@@ -1,4 +1,3 @@
-local component = require("component")
 local event = require("event")
 local fs = require("filesystem")
 local keyboard = require("keyboard")
@@ -10,6 +9,11 @@ local unicode = require("unicode")
 if not term.isAvailable() then
   return
 end
+
+local function gpu()
+  return select(2, term.getGPU())
+end
+
 
 local args, options = shell.parse(...)
 if #args == 0 then
@@ -23,11 +27,11 @@ local readonly = options.r or fs.get(filename) == nil or fs.get(filename).isRead
 
 if not fs.exists(filename) then
   if fs.isDirectory(filename) then
-    io.stderr:write("file is a directory")
-    return
+    io.stderr:write("file is a directory\n")
+    return 1
   elseif readonly then
-    io.stderr:write("file system is read only")
-    return
+    io.stderr:write("file system is read only\n")
+    return 1
   end
 end
 
@@ -114,13 +118,60 @@ end
 -------------------------------------------------------------------------------
 
 local function setStatus(value)
-  local w, h = component.gpu.getResolution()
-  component.gpu.set(1, h, text.padRight(unicode.sub(value, 1, w - 10), w - 10))
+  local x, y, w, h = term.getGlobalArea()
+  value = unicode.wlen(value) > w - 10 and unicode.wtrunc(value, w - 9) or value
+  value = text.padRight(value, w - 10)
+  gpu().set(x, y + h - 1, value)
 end
 
-local function getSize()
-  local w, h = component.gpu.getResolution()
-  return w, h - 1
+local function getArea()
+  local x, y, w, h = term.getGlobalArea()
+  return x, y, w, h - 1
+end
+
+local function removePrefix(line, length)
+  if length >= unicode.wlen(line) then
+    return ""
+  else
+    local prefix = unicode.wtrunc(line, length + 1)
+    local suffix = unicode.sub(line, unicode.len(prefix) + 1)
+    length = length - unicode.wlen(prefix)
+    if length > 0 then
+      suffix = (" "):rep(unicode.charWidth(suffix) - length) .. unicode.sub(suffix, 2)
+    end
+    return suffix
+  end
+end
+
+local function lengthToChars(line, length)
+  if length > unicode.wlen(line) then
+    return unicode.len(line) + 1
+  else
+    local prefix = unicode.wtrunc(line, length)
+    return unicode.len(prefix) + 1
+  end
+end
+
+
+local function isWideAtPosition(line, x)
+  local index = lengthToChars(line, x)
+  if index > unicode.len(line) then
+    return false, false
+  end
+  local prefix = unicode.sub(line, 1, index)
+  local char = unicode.sub(line, index, index)
+  --isWide, isRight
+  return unicode.isWide(char), unicode.wlen(prefix) == x
+end
+
+local function drawLine(x, y, w, h, lineNr)
+  local yLocal = lineNr - scrollY
+  if yLocal > 0 and yLocal <= h then
+    local str = removePrefix(buffer[lineNr] or "", scrollX)
+    str = unicode.wlen(str) > w and unicode.wtrunc(str, w + 1) or str
+    str = text.padRight(str, w)
+    gpu().set(x, y - 1 + lineNr - scrollY, str)
+  end
 end
 
 local function getCursor()
@@ -133,8 +184,17 @@ local function line()
   return buffer[cby]
 end
 
+local function getNormalizedCursor()
+  local cbx, cby = getCursor()
+  local wide, right = isWideAtPosition(buffer[cby], cbx)
+  if wide and right then
+    cbx = cbx - 1
+  end
+  return cbx, cby
+end
+
 local function setCursor(nbx, nby)
-  local w, h = getSize()
+  local x, y, w, h = getArea()
   nby = math.max(1, math.min(#buffer, nby))
 
   local ncy = nby - scrollY
@@ -143,75 +203,70 @@ local function setCursor(nbx, nby)
     local sy = nby - h
     local dy = math.abs(scrollY - sy)
     scrollY = sy
-    component.gpu.copy(1, 1 + dy, w, h - dy, 0, -dy)
-    for by = nby - (dy - 1), nby do
-      local str = text.padRight(unicode.sub(buffer[by], 1 + scrollX), w)
-      component.gpu.set(1, by - scrollY, str)
+    if h > dy then
+      gpu().copy(x, y + dy, w, h - dy, 0, -dy)
+    end
+    for lineNr = nby - (math.min(dy, h) - 1), nby do
+      drawLine(x, y, w, h, lineNr)
     end
   elseif ncy < 1 then
     term.setCursorBlink(false)
     local sy = nby - 1
     local dy = math.abs(scrollY - sy)
     scrollY = sy
-    component.gpu.copy(1, 1, w, h - dy, 0, dy)
-    for by = nby, nby + (dy - 1) do
-      local str = text.padRight(unicode.sub(buffer[by], 1 + scrollX), w)
-      component.gpu.set(1, by - scrollY, str)
+    if h > dy then
+      gpu().copy(x, y, w, h - dy, 0, dy)
+    end
+    for lineNr = nby, nby + (math.min(dy, h) - 1) do
+      drawLine(x, y, w, h, lineNr)
     end
   end
   term.setCursor(term.getCursor(), nby - scrollY)
 
-  nbx = math.max(1, math.min(unicode.len(line()) + 1, nbx))
+  nbx = math.max(1, math.min(unicode.wlen(line()) + 1, nbx))
+  local wide, right = isWideAtPosition(line(), nbx)
   local ncx = nbx - scrollX
-  if ncx > w then
+  if ncx > w or (ncx + 1 > w and wide and not right) then
     term.setCursorBlink(false)
-    local sx = nbx - w
-    local dx = math.abs(scrollX - sx)
-    scrollX = sx
-    component.gpu.copy(1 + dx, 1, w - dx, h, -dx, 0)
-    for by = 1 + scrollY, math.min(h + scrollY, #buffer) do
-      local str = unicode.sub(buffer[by], nbx - (dx - 1), nbx)
-      str = text.padRight(str, dx)
-      component.gpu.set(1 + (w - dx), by - scrollY, str)
+    scrollX = nbx - w + ((wide and not right) and 1 or 0)
+    for lineNr = 1 + scrollY, math.min(h + scrollY, #buffer) do
+      drawLine(x, y, w, h, lineNr)
     end
-  elseif ncx < 1 then
+  elseif ncx < 1 or (ncx - 1 < 1 and wide and right) then
     term.setCursorBlink(false)
-    local sx = nbx - 1
-    local dx = math.abs(scrollX - sx)
-    scrollX = sx
-    component.gpu.copy(1, 1, w - dx, h, dx, 0)
-    for by = 1 + scrollY, math.min(h + scrollY, #buffer) do
-      local str = unicode.sub(buffer[by], nbx, nbx + dx)
-      --str = text.padRight(str, dx)
-      component.gpu.set(1, by - scrollY, str)
+    scrollX = nbx - 1 - ((wide and right) and 1 or 0)
+    for lineNr = 1 + scrollY, math.min(h + scrollY, #buffer) do
+      drawLine(x, y, w, h, lineNr)
     end
   end
   term.setCursor(nbx - scrollX, nby - scrollY)
-
-  component.gpu.set(w - 9, h + 1, text.padLeft(string.format("%d,%d", nby, nbx), 10))
+  --update with term lib
+  nbx, nby = getCursor()
+  gpu().set(x + w - 10, y + h, text.padLeft(string.format("%d,%d", nby, nbx), 10))
 end
 
 local function highlight(bx, by, length, enabled)
-  local w, h = getSize()
+  local x, y, w, h = getArea()
   local cx, cy = bx - scrollX, by - scrollY
   cx = math.max(1, math.min(w, cx))
   cy = math.max(1, math.min(h, cy))
   length = math.max(1, math.min(w - cx, length))
 
-  local fg, fgp = component.gpu.getForeground()
-  local bg, bgp = component.gpu.getBackground()
+  local fg, fgp = gpu().getForeground()
+  local bg, bgp = gpu().getBackground()
   if enabled then
-    component.gpu.setForeground(bg, bgp)
-    component.gpu.setBackground(fg, fgp)
+    gpu().setForeground(bg, bgp)
+    gpu().setBackground(fg, fgp)
   end
-  local value = ""
-  for x = cx, cx + length - 1 do
-    value = value .. component.gpu.get(x, cy)
+  local indexFrom = lengthToChars(buffer[by], bx)
+  local value = unicode.sub(buffer[by], indexFrom)
+  if unicode.wlen(value) > length then
+    value = unicode.wtrunc(value, length + 1)
   end
-  component.gpu.set(cx, cy, value)
+  gpu().set(x - 1 + cx, y - 1 + cy, value)
   if enabled then
-    component.gpu.setForeground(fg, fgp)
-    component.gpu.setBackground(bg, bgp)
+    gpu().setForeground(fg, fgp)
+    gpu().setBackground(bg, bgp)
   end
 end
 
@@ -222,13 +277,18 @@ end
 
 local function ende()
   local cbx, cby = getCursor()
-  setCursor(unicode.len(line()) + 1, cby)
+  setCursor(unicode.wlen(line()) + 1, cby)
 end
 
 local function left()
-  local cbx, cby = getCursor()
+  local cbx, cby = getNormalizedCursor()
   if cbx > 1 then
-    setCursor(cbx - 1, cby)
+    local wideTarget, rightTarget = isWideAtPosition(line(), cbx - 1)
+    if wideTarget and rightTarget then
+      setCursor(cbx - 2, cby)
+    else
+      setCursor(cbx - 1, cby)
+    end
     return true -- for backspace
   elseif cby > 1 then
     setCursor(cbx, cby - 1)
@@ -239,9 +299,13 @@ end
 
 local function right(n)
   n = n or 1
-  local cbx, cby = getCursor()
-  local be = unicode.len(line()) + 1
-  if cbx < be then
+  local cbx, cby = getNormalizedCursor()
+  local be = unicode.wlen(line()) + 1
+  local wide, right = isWideAtPosition(line(), cbx + n)
+  if wide and right then
+    n = n + 1
+  end
+  if cbx + n <= be then
     setCursor(cbx + n, cby)
   elseif cby < #buffer then
     setCursor(1, cby + 1)
@@ -253,9 +317,6 @@ local function up(n)
   local cbx, cby = getCursor()
   if cby > 1 then
     setCursor(cbx, cby - n)
-    if getCursor() > unicode.len(line()) then
-      ende()
-    end
   end
 end
 
@@ -264,22 +325,19 @@ local function down(n)
   local cbx, cby = getCursor()
   if cby < #buffer then
     setCursor(cbx, cby + n)
-    if getCursor() > unicode.len(line()) then
-      ende()
-    end
   end
 end
 
 local function delete(fullRow)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
-  local w, h = getSize()
+  local x, y, w, h = getArea()
   local function deleteRow(row)
     local content = table.remove(buffer, row)
     local rcy = cy + (row - cby)
     if rcy <= h then
-      component.gpu.copy(1, rcy + 1, w, h - rcy, 0, -1)
-      component.gpu.set(1, h, text.padRight(buffer[row + (h - rcy)], w))
+      gpu().copy(x, y + rcy, w, h - rcy, 0, -1)
+      drawLine(x, y, w, h, row + (h - rcy))
     end
     return content
   end
@@ -289,25 +347,20 @@ local function delete(fullRow)
       deleteRow(cby)
     else
       buffer[cby] = ""
-      component.gpu.fill(1, cy, w, 1, " ")
+      gpu().fill(x, y - 1 + cy, w, 1, " ")
     end
     setCursor(1, cby)
-  elseif cbx <= unicode.len(line()) then
+  elseif cbx <= unicode.wlen(line()) then
     term.setCursorBlink(false)
-    buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
-                  unicode.sub(line(), cbx + 1)
-    component.gpu.copy(cx + 1, cy, w - cx, 1, -1, 0)
-    local br = cbx + (w - cx)
-    local char = unicode.sub(line(), br, br)
-    if not char or unicode.len(char) == 0 then
-      char = " "
-    end
-    component.gpu.set(w, cy, char)
+    local index = lengthToChars(line(), cbx)
+    buffer[cby] = unicode.sub(line(), 1, index - 1) ..
+                  unicode.sub(line(), index + 1)
+    drawLine(x, y, w, h, cby)
   elseif cby < #buffer then
     term.setCursorBlink(false)
     local append = deleteRow(cby + 1)
     buffer[cby] = buffer[cby] .. append
-    component.gpu.set(cx, cy, append)
+    drawLine(x, y, w, h, cby)
   else
     return
   end
@@ -321,17 +374,13 @@ local function insert(value)
   term.setCursorBlink(false)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
-  local w, h = getSize()
-  buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
+  local x, y, w, h = getArea()
+  local index = lengthToChars(line(), cbx)
+  buffer[cby] = unicode.sub(line(), 1, index - 1) ..
                 value ..
-                unicode.sub(line(), cbx)
-  local len = unicode.len(value)
-  local n = w - (cx - 1) - len
-  if n > 0 then
-    component.gpu.copy(cx, cy, n, 1, len, 0)
-  end
-  component.gpu.set(cx, cy, value)
-  right(len)
+                unicode.sub(line(), index)
+  drawLine(x, y, w, h, cby)
+  right(unicode.wlen(value))
   setStatus(helpStatusText())
 end
 
@@ -339,15 +388,16 @@ local function enter()
   term.setCursorBlink(false)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
-  local w, h = getSize()
-  table.insert(buffer, cby + 1, unicode.sub(buffer[cby], cbx))
-  buffer[cby] = unicode.sub(buffer[cby], 1, cbx - 1)
-  component.gpu.fill(cx, cy, w - (cx - 1), 1, " ")
+  local x, y, w, h = getArea()
+  local index = lengthToChars(line(), cbx)
+  table.insert(buffer, cby + 1, unicode.sub(buffer[cby], index))
+  buffer[cby] = unicode.sub(buffer[cby], 1, index - 1)
+  drawLine(x, y, w, h, cby)
   if cy < h then
     if cy < h - 1 then
-      component.gpu.copy(1, cy + 1, w, h - (cy + 1), 0, 1)
+      gpu().copy(x, y + cy, w, h - (cy + 1), 0, 1)
     end
-    component.gpu.set(1, cy + 1, text.padRight(buffer[cby + 1], w))
+    drawLine(x, y, w, h, cby + 1)
   end
   setCursor(1, cby + 1)
   setStatus(helpStatusText())
@@ -356,7 +406,7 @@ end
 local findText = ""
 
 local function find()
-  local w, h = getSize()
+  local x, y, w, h = getArea()
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local ibx, iby = cbx, cby
@@ -375,28 +425,32 @@ local function find()
         sx = string.find(buffer[sy], findText, nil, true)
       end
       if sx then
+        sx = unicode.wlen(string.sub(buffer[sy], 1, sx - 1)) + 1
         cbx, cby = sx, sy
         setCursor(cbx, cby)
-        highlight(cbx, cby, unicode.len(findText), true)
+        highlight(cbx, cby, unicode.wlen(findText), true)
       end
     end
-    term.setCursor(7 + unicode.len(findText), h + 1)
+    term.setCursor(7 + unicode.wlen(findText), h + 1)
     setStatus("Find: " .. findText)
 
-    local _, _, char, code = event.pull("key_down")
-    local handler, name = getKeyBindHandler(code)
-    highlight(cbx, cby, unicode.len(findText), false)
-    if name == "newline" then
-      break
-    elseif name == "close" then
-      handler()
-    elseif name == "backspace" then
-      findText = unicode.sub(findText, 1, -2)
-    elseif name == "find" or name == "findnext" then
-      ibx = cbx + 1
-      iby = cby
-    elseif not keyboard.isControl(char) then
-      findText = findText .. unicode.char(char)
+    local _, address, char, code = event.pull("key_down")
+    local inFocus, screenAddress, keyboardAddress = term.hasFocus()
+    if inFocus and address == keyboardAddress then
+      local handler, name = getKeyBindHandler(code, keyboardAddress)
+      highlight(cbx, cby, unicode.wlen(findText), false)
+      if name == "newline" then
+        break
+      elseif name == "close" then
+        handler()
+      elseif name == "backspace" then
+        findText = unicode.sub(findText, 1, -2)
+      elseif name == "find" or name == "findnext" then
+        ibx = cbx + 1
+        iby = cby
+      elseif not keyboard.isControl(char) then
+        findText = findText .. unicode.char(char)
+      end
     end
   end
   setCursor(cbx, cby)
@@ -413,11 +467,11 @@ local keyBindHandlers = {
   home = home,
   eol = ende,
   pageUp = function()
-    local w, h = getSize()
+    local x, y, w, h = getArea()
     up(h - 1)
   end,
   pageDown = function()
-    local w, h = getSize()
+    local x, y, w, h = getArea()
     down(h - 1)
   end,
 
@@ -493,7 +547,7 @@ local keyBindHandlers = {
   findnext = find
 }
 
-getKeyBindHandler = function(code)
+getKeyBindHandler = function(code, keyboardAddress)
   if type(config.keybinds) ~= "table" then return end
   -- Look for matches, prefer more 'precise' keybinds, e.g. prefer
   -- ctrl+del over del.
@@ -509,9 +563,9 @@ getKeyBindHandler = function(code)
             elseif value == "shift" then shift = true
             else key = value end
           end
-          if (not alt or keyboard.isAltDown()) and
-             (not control or keyboard.isControlDown()) and
-             (not shift or keyboard.isShiftDown()) and
+          if (not alt or keyboard.isAltDown(keyboardAddress)) and
+             (not control or keyboard.isControlDown(keyboardAddress)) and
+             (not shift or keyboard.isShiftDown(keyboardAddress)) and
              code == keyboard.keys[key] and
              #keybind > resultWeight
           then
@@ -528,8 +582,8 @@ end
 
 -------------------------------------------------------------------------------
 
-local function onKeyDown(char, code)
-  local handler = getKeyBindHandler(code)
+local function onKeyDown(char, code, keyboardAddress)
+  local handler = getKeyBindHandler(code, keyboardAddress)
   if handler then
     handler()
   elseif readonly and code == keyboard.keys.q then
@@ -575,7 +629,7 @@ end
 do
   local f = io.open(filename)
   if f then
-    local w, h = getSize()
+    local x, y, w, h = getArea()
     local chars = 0
     for line in f:lines() do
       if line:sub(-1) == "\r" then
@@ -584,7 +638,7 @@ do
       table.insert(buffer, line)
       chars = chars + unicode.len(line)
       if #buffer <= h then
-        component.gpu.set(1, #buffer, line)
+        drawLine(x, y, w, h, #buffer)
       end
     end
     f:close()
@@ -607,14 +661,20 @@ end
 
 while running do
   local event, address, arg1, arg2, arg3 = event.pull()
-  if type(address) == "string" and component.isPrimary(address) then
+  local inFocus, screenAddress, keyboardAddress = term.hasFocus()
+  if inFocus and (address == screenAddress or address == keyboardAddress) then
     local blink = true
     if event == "key_down" then
-      onKeyDown(arg1, arg2)
+      onKeyDown(arg1, arg2, keyboardAddress)
     elseif event == "clipboard" and not readonly then
       onClipboard(arg1)
     elseif event == "touch" or event == "drag" then
-      onClick(arg1, arg2)
+      local x, y, w, h = getArea()
+      arg1 = arg1 - x + 1
+      arg2 = arg2 - y + 1
+      if arg1 >= 1 and arg2 >= 1 and arg1 <= w and arg2 <= h then
+        onClick(arg1, arg2)
+      end
     elseif event == "scroll" then
       onScroll(arg3)
     else

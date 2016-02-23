@@ -21,6 +21,14 @@ object Textures {
 
     override protected def basePath = "textures/font/%s.png"
 
+    val blockRackDiskDriveActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/DiskDriveMountableActivity.png")
+    val blockRackServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontOn.png")
+    val blockRackServerError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontError.png")
+    val blockRackServerActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontActivity.png")
+    val blockRackServerNetworkActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontNetworkActivity.png")
+    val blockRackTerminalServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontOn.png")
+    val blockRackTerminalServerPresence = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontPresence.png")
+
     override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
@@ -34,7 +42,7 @@ object Textures {
     val ButtonRun = L("button_run")
     val ButtonScroll = L("button_scroll")
     val ButtonSide = L("button_side")
-    val ButtonSwitch = L("button_switch")
+    val ButtonRelay = L("button_relay")
     val Computer = L("computer")
     val Database = L("database")
     val Database1 = L("database1")
@@ -53,6 +61,7 @@ object Textures {
     val PrinterInk = L("printer_ink")
     val PrinterMaterial = L("printer_material")
     val PrinterProgress = L("printer_progress")
+    val Rack = L("rack")
     val Raid = L("raid")
     val Range = L("range")
     val Robot = L("robot")
@@ -124,9 +133,16 @@ object Textures {
     val NetSplitterOn = L("overlay/netSplitter_on")
     val PowerDistributorSideOn = L("overlay/powerDistributor_side_on")
     val PowerDistributorTopOn = L("overlay/powerDistributor_top_on")
-    val RackFrontActivity = L("overlay/serverRack_front_activity")
-    val RackFrontOn = L("overlay/serverRack_front_on")
-    val RackFrontError = L("overlay/serverRack_front_error")
+    val RackDiskDrive = L("rack_disk_drive")
+    val RackDiskDriveActivity = L("overlay/rack_disk_drive_activity")
+    val RackServer = L("rack_server")
+    val RackServerActivity = L("overlay/rack_server_activity")
+    val RackServerOn = L("overlay/rack_server_on")
+    val RackServerError = L("overlay/rack_server_error")
+    val RackServerNetworkActivity = L("overlay/rack_server_network_activity")
+    val RackTerminalServer = L("rack_terminal_server")
+    val RackTerminalServerOn = L("overlay/rack_terminal_server_on")
+    val RackTerminalServerPresence = L("overlay/rack_terminal_server_presence")
     val RaidFrontActivity = L("overlay/raid_front_activity")
     val RaidFrontError = L("overlay/raid_front_error")
     val ScreenUpIndicator = L("overlay/screen_up_indicator")

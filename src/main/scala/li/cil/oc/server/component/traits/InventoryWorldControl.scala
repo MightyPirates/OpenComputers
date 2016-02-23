@@ -75,7 +75,7 @@ trait InventoryWorldControl extends InventoryAware with WorldAware with SideRest
 
     val blockPos = position.offset(facing)
     if (InventoryUtils.inventoryAt(blockPos).exists(inventory => {
-      inventory.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, facing.getOpposite) && InventoryUtils.extractFromInventory(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, facing.getOpposite, count)
+      inventory.isUseableByPlayer(fakePlayer) && mayInteract(blockPos, facing.getOpposite) && InventoryUtils.extractAnyFromInventory(InventoryUtils.insertIntoInventory(_, this.inventory, slots = Option(insertionSlots)), inventory, facing.getOpposite, count)
     })) {
       context.pause(Settings.get.suckDelay)
       result(true)

@@ -1,8 +1,99 @@
-local component = kernel._K.component
+local rawComponent = kernel._K.component
+component = {}
 
-local adding = {}
-local removing = {}
-local primaries = {}
+kernel.userspace.component = component
+kernel._K.component = component
+
+kernelGroup = {
+    adding = {},
+    removing = {},
+    primaries = {},
+}
+
+local function getGroup()
+    return kernel.modules.threading.currentThread and kernel.modules.threading.currentThread.cgroups.component or kernelGroup
+end
+
+local function allow(addr)
+    if not kernel.modules.threading then return true end
+    return not kernel.modules.threading.currentThread or kernel.modules.threading.currentThread.cgroups.component.allow(addr)
+end
+
+component.doc = function(addr, method)
+    if allow(addr) then
+        return rawComponent.doc(addr, method)
+    else
+        error("no such component")
+    end
+end
+
+component.invoke = function(addr, ...)
+    if allow(addr) then
+        return rawComponent.invoke(addr, ...)
+    else
+        error("no such component")
+    end
+end
+
+component.list = function(filter, exact)
+    local list = {}
+    for k, v in pairs(rawComponent.list(filter, not not exact)) do
+        if allow(k) then
+            list[k] = v
+        end
+    end
+    local key = nil
+    return setmetatable(list, {__call=function()
+        key = next(list, key)
+        if key then
+            return key, list[key]
+        end
+    end})
+end
+
+component.methods = function(addr)
+    if allow(addr) then
+        return rawComponent.methods(addr)
+    else
+        return nil, "no such component"
+    end
+end
+
+component.fields = function(addr)
+    if allow(addr) then
+        return rawComponent.fields(addr)
+    else
+        return nil, "no such component"
+    end
+end
+
+component.proxy = function(addr)
+    if allow(addr) then
+        return rawComponent.proxy(addr)
+    else
+        return nil, "no such component"
+    end
+end
+
+component.type = function(addr)
+    if allow(addr) then
+        return rawComponent.type(addr)
+    else
+        return nil, "no such component"
+    end
+end
+
+component.slot = function(addr)
+    if allow(addr) then
+        return rawComponent.slot(addr)
+    else
+        return nil, "no such component"
+    end
+end
+
+--local adding = {}
+--local removing = {}
+--local primaries = {}
 
 -------------------------------------------------------------------------------
 
@@ -16,12 +107,12 @@ setmetatable(component, {
     local parent = false
     return function(_, key)
       if parent then
-        return next(primaries, key)
+        return next(getGroup().primaries, key)
       else
         local k, v = next(self, key)
         if not k then
           parent = true
-          return next(primaries)
+          return next(getGroup().primaries)
         else
           return k, v
         end
@@ -43,20 +134,20 @@ end
 
 function component.isAvailable(componentType)
   checkArg(1, componentType, "string")
-  if not primaries[componentType] and not adding[componentType] then
+  if not getGroup().primaries[componentType] and not getGroup().adding[componentType] then
     -- This is mostly to avoid out of memory errors preventing proxy
     -- creation cause confusion by trying to create the proxy again,
     -- causing the oom error to be thrown again.
     component.setPrimary(componentType, component.list(componentType, true)())
   end
-  return primaries[componentType] ~= nil
+  return getGroup().primaries[componentType] ~= nil
 end
 
 function component.isPrimary(address)
   local componentType = component.type(address)
   if componentType then
     if component.isAvailable(componentType) then
-      return primaries[componentType].address == address
+      return getGroup().primaries[componentType].address == address
     end
   end
   return false
@@ -66,7 +157,7 @@ function component.getPrimary(componentType)
   checkArg(1, componentType, "string")
   assert(component.isAvailable(componentType),
     "no primary '" .. componentType .. "' available")
-  return primaries[componentType]
+  return getGroup().primaries[componentType]
 end
 
 function component.setPrimary(componentType, address)
@@ -77,19 +168,19 @@ function component.setPrimary(componentType, address)
     assert(address, "no such component")
   end
 
-  local wasAvailable = primaries[componentType]
+  local wasAvailable = getGroup().primaries[componentType]
   if wasAvailable and address == wasAvailable.address then
     return
   end
-  local wasAdding = adding[componentType]
+  local wasAdding = getGroup().adding[componentType]
   if wasAdding and address == wasAdding.address then
     return
   end
   if wasAdding then
     kernel.modules.timer.remove(wasAdding.timer)
   end
-  primaries[componentType] = nil
-  adding[componentType] = nil
+  getGroup().primaries[componentType] = nil
+  getGroup().adding[componentType] = nil
 
   local primary = address and component.proxy(address) or nil
   if wasAvailable then
@@ -97,16 +188,16 @@ function component.setPrimary(componentType, address)
   end
   if primary then
     if wasAvailable or wasAdding then
-      adding[componentType] = {
+      getGroup().adding[componentType] = {
         address=address,
         timer=kernel.modules.timer.add(function()
-          adding[componentType] = nil
-          primaries[componentType] = primary
+          getGroup().adding[componentType] = nil
+          getGroup().primaries[componentType] = primary
           --computer.pushSignal("component_available", componentType)
         end, 0.1)
       }
     else
-      primaries[componentType] = primary
+      getGroup().primaries[componentType] = primary
       computer.pushSignal("component_available", componentType)
     end
   end
@@ -124,14 +215,14 @@ function start()
 end
 
 local function onComponentAdded(_, address, componentType)
-  if not (primaries[componentType] or adding[componentType]) then
+  if not (getGroup().primaries[componentType] or getGroup().adding[componentType]) then
     component.setPrimary(componentType, address)
   end
 end
 
 local function onComponentRemoved(_, address, componentType)
-  if primaries[componentType] and primaries[componentType].address == address or
-     adding[componentType] and adding[componentType].address == address
+  if getGroup().primaries[componentType] and getGroup().primaries[componentType].address == address or
+     getGroup().adding[componentType] and getGroup().adding[componentType].address == address
   then
     component.setPrimary(componentType, component.list(componentType, true)())
   end

@@ -4,13 +4,9 @@ import java.lang
 import java.util
 
 import li.cil.oc.Settings
-import li.cil.oc.api.Machine
-import li.cil.oc.api.machine.MachineHost
-import li.cil.oc.api.network.Analyzable
-import li.cil.oc.api.network.Node
+import li.cil.oc.api
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
-import li.cil.oc.common.tileentity.traits
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.integration.util.Waila
 import li.cil.oc.server.agent
@@ -28,8 +24,8 @@ import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable with MachineHost with StateAware {
-  private lazy val _machine = if (isServer) Machine.create(this) else null
+trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with api.network.Analyzable with api.machine.MachineHost with StateAware {
+  private lazy val _machine = if (isServer) api.Machine.create(this) else null
 
   def machine = _machine
 
@@ -72,9 +68,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
     _users ++= list
   }
 
-  override def currentState = {
-    if (isRunning) util.EnumSet.of(traits.State.IsWorking)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isRunning) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //
@@ -84,9 +80,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   }
 
 
-  override def onMachineConnect(node: Node) = this.onConnect(node)
+  override def onMachineConnect(node: api.network.Node) = this.onConnect(node)
 
-  override def onMachineDisconnect(node: Node) = this.onDisconnect(node)
+  override def onMachineDisconnect(node: api.network.Node) = this.onDisconnect(node)
 
   def hasRedstoneCard = items.exists {
     case Some(item) => machine.isRunning && DriverRedstoneCard.worksWith(item, getClass)

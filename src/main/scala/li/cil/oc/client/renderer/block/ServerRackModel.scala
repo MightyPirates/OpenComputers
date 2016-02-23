@@ -61,7 +61,7 @@ class ServerRackModel(val parent: IFlexibleBakedModel) extends SmartBlockModelBa
     override def getFaceQuads(side: EnumFacing) = {
 
       state.getValue(block.property.PropertyTile.Tile) match {
-        case rack: tileentity.ServerRack =>
+        case rack: tileentity.Rack =>
           val facing = rack.facing
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
@@ -69,9 +69,9 @@ class ServerRackModel(val parent: IFlexibleBakedModel) extends SmartBlockModelBa
             faces ++= bakeQuads(Case(side.getIndex), serverRackTexture, None)
           }
 
-          for (i <- 0 until 4 if rack.isPresent(i).isDefined) {
-            faces ++= bakeQuads(Servers(i), serverTexture, None)
-          }
+//          for (i <- 0 until 4 if rack.isPresent(i).isDefined) {
+//            faces ++= bakeQuads(Servers(i), serverTexture, None)
+//          }
 
           bufferAsJavaList(faces)
         case _ => super.getFaceQuads(side)

@@ -1,22 +1,16 @@
 package li.cil.oc.common.item
 
 import java.util
-import java.util.UUID
 
 import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.Tier
-import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.resources.model.ModelBakery
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.Side
@@ -51,46 +45,6 @@ class Terminal(val parent: Delegator) extends traits.Delegate with CustomModel {
     for (state <- Seq(true, false)) {
       val location = modelLocationFromState(state)
       ModelBakery.addVariantName(parent, location.getResourceDomain + ":" + location.getResourcePath)
-    }
-  }
-
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) = {
-    val world = position.world.get
-    world.getTileEntity(position) match {
-      case rack: tileentity.ServerRack if side == rack.facing =>
-        val l = 2 / 16.0
-        val h = 14 / 16.0
-        val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
-        if (slot >= 0 && slot <= 3 && rack.items(slot).isDefined) {
-          if (!world.isRemote) {
-            rack.servers(slot) match {
-              case Some(server) =>
-                val terminal = rack.terminals(slot)
-                val key = UUID.randomUUID().toString
-                val keys = terminal.keys
-                if (!stack.hasTagCompound) {
-                  stack.setTagCompound(new NBTTagCompound())
-                }
-                else {
-                  keys -= stack.getTagCompound.getString(Settings.namespace + "key")
-                }
-                val maxSize = Settings.get.terminalsPerTier(math.min(Tier.Three, server.tier))
-                while (keys.length >= maxSize) {
-                  keys.remove(0)
-                }
-                keys += key
-                terminal.connect(server.machine.node)
-                ServerPacketSender.sendServerState(rack, slot)
-                stack.getTagCompound.setString(Settings.namespace + "key", key)
-                stack.getTagCompound.setString(Settings.namespace + "server", server.machine.node.address)
-                player.inventory.markDirty()
-              case _ => // Huh?
-            }
-          }
-          true
-        }
-        else false
-      case _ => super.onItemUse(stack, player, position, side, hitX, hitY, hitZ)
     }
   }
 

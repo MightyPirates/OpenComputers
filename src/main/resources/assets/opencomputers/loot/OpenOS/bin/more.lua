@@ -1,4 +1,3 @@
-local component = require("component")
 local event = require("event")
 local keyboard = require("keyboard")
 local shell = require("shell")
@@ -7,20 +6,26 @@ local text = require("text")
 local unicode = require("unicode")
 
 local args = shell.parse(...)
-if #args == 0 then
-  io.write("Usage: more <filename1>")
-  return
+if #args > 1 then
+  io.write("Usage: more <filename>\n")
+  io.write("- or no args reads stdin\n")
+  return 1
 end
-
-local file, reason = io.open(shell.resolve(args[1]))
+local arg = args[1] or "-"
+local file, reason
+if arg == "-" then
+  file, reason = io.stdin, "this process has no stdin"
+else
+  file, reason = io.open(shell.resolve(arg))
+end
 if not file then
-  io.stderr:write(reason)
-  return
+  io.stderr:write(reason,'\n')
+  return 1
 end
 
 local line = nil
 local function readlines(num)
-  local w, h = component.gpu.getResolution()
+  local x, y, w, h = term.getGlobalArea()
   num = num or (h - 1)
   term.setCursorBlink(false)
   for _ = 1, num do
@@ -32,7 +37,7 @@ local function readlines(num)
     end
     local wrapped
     wrapped, line = text.wrap(text.detab(line), w, w)
-    io.write(wrapped .. "\n")
+    io.write(wrapped,"\n")
   end
   term.setCursor(1, h)
   term.write(":")
@@ -47,7 +52,8 @@ while true do
   end
   while true do
     local event, address, char, code = event.pull("key_down")
-    if component.isPrimary(address) then
+    local hasFocus, screenAddress, keyboardAddress = term.hasFocus()
+    if hasFocus and address == keyboardAddress then
       if code == keyboard.keys.q then
         term.setCursorBlink(false)
         term.clearLine()

@@ -270,28 +270,13 @@ function term.getResolution()
     return tonumber(h), tonumber(w)
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function term.getInfo()
+    io.write("\x1b9I")
+    local code = read("\x1b", "I")
+    local gpu, screen = code:match("\x1b9([^;]+);([^;]+)I")
+    
+    return gpu, screen
+end
 
 
 
@@ -335,9 +320,20 @@ function term.setCursorBlink(enabled)
 
 end
 
-function term.read(history)
+function term.read(history, dobreak, hint, pwchar)
     history = history or {}
     local x, y = 1, 1
+    
+    local completions = {}
+    local lastCompletion = nil
+    local refreshHint = false
+    local basePart = ""
+    
+    local function resetCompletion()
+        completions = {}
+        lastCompletion = nil
+        refreshHint = true
+    end
     
     local function getLine()
         if not history[y] then
@@ -351,17 +347,22 @@ function term.read(history)
         history[y] = text
     end
     
-    local function insert(char)
+    local function insert(str)
         local pre = unicode.sub(getLine(), 1, x - 1)
         local after = unicode.sub(getLine(), x)
-        setLine(pre .. char .. after)
-        x = x + 1
-        io.write("\x1b[K"..char..after.."\x1b["..unicode.len(after).."D")
+        str = pwchar and pwchar:rep(unicode.len(str)) or str
+        setLine(pre .. str .. after)
+        x = x + unicode.len(str)
+        io.write("\x1b[K"..str..after.."\x1b["..unicode.len(after).."D")
+        resetCompletion()
     end
     
     while true do
         local char = io.read(1)
-        if char == "\n" then
+        --if char then print(#char) else print("WUT")end
+        if not char then
+            --WTF?
+        elseif char == "\n" then
             io.write("\n")
             local line = getLine()
             if y == 1 and line ~= "" and line ~= history[2] then
@@ -372,14 +373,34 @@ function term.read(history)
             else
                 history[1] = ""
             end
+            resetCompletion()
             return line
-        elseif char == "\t" then
+        elseif char == "\t" and hint then
+            if refreshHint then
+                resetCompletion()
+                refreshHint = false
+                basePart = getLine()
+                if type(hint) == "function" then
+                    completions = hint(getLine(), x) or {}
+                else
+                    completions = hint or {}
+                end
+            end
+            local cur, completion = next(completions, lastCompletion)
+            lastCompletion = cur
+            if not completion then
+                completion = basePart
+            end
+            setLine(completion)
+            io.write("\x1b[" .. (x - 1) .. "D\x1b[K" .. completion)
+            x = unicode.len(completion) + 1
         elseif char == "\b" and x > 1 then
             local pre = unicode.sub(getLine(), 1, x - 2)
             local after = unicode.sub(getLine(), x)
             setLine(pre .. after)
             x = x - 1
-            io.write("\x1bD\x1b[K" .. after .. "\x1b[" .. unicode.len(after) .. "D")
+            io.write("\x1b[D\x1b[K" .. after .. "\x1b[" .. unicode.len(after) .. "D")
+            resetCompletion()
         elseif char == "\x1b" then
             local mode = io.read(1)
             if mode == "[" then
@@ -426,6 +447,7 @@ function term.read(history)
                     x = unicode.len(line) + 1
                 end
             end
+            resetCompletion()
         elseif char:match("[%g%s]") then
             insert(char)
         end

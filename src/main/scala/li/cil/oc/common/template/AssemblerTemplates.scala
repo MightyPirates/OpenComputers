@@ -5,7 +5,7 @@ import java.lang.reflect.Method
 import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.IMC
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier

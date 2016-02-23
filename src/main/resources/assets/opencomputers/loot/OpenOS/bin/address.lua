@@ -1,3 +1,2 @@
 local computer = require("computer")
-
-io.write(computer.address())
+io.write(computer.address(),"\n")

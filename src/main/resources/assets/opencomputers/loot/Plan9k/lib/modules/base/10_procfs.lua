@@ -1,5 +1,22 @@
 proxy = {}
 data = {}
+local realroot = computer.getBootAddress()
+
+--------------
+-- Utils
+local random = math.random
+local bootID
+local function uuid()
+    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return string.gsub(template, '[xy]', function (c)
+        local v = (c == 'x') and random(0, 0xf) or random(8, 0xb)
+        return string.format('%x', v)
+    end)
+end
+
+--------------
+-- Actual code
+
 
 proxy.address = "procfs000"
 proxy.spaceUsed = function() return 0 end
@@ -23,7 +40,7 @@ proxy.open = function(path)
         file = file[d]
     end
     local hnd = allocator:get()
-    hnd.data = file()
+    hnd.data = type(file) == "function" and file() or tostring(file)
     hnd.at = 1
     function hnd:read(n)
         n = n or #self.data
@@ -44,6 +61,15 @@ end
 
 proxy.write = function() error("Permission Denied") end
 
+proxy.size = function(path)
+    local seg = kernel.modules.vfs.segments(path)
+    local file = data
+    for _, d in pairs(seg) do
+        file = file[d]
+    end
+    return type(file) == "function" and #(file()) or 0
+end
+
 proxy.isDirectory = function()
     
 end
@@ -59,6 +85,9 @@ proxy.list = function(path)
         if thr.coro and dir == data then
             list[#list + 1] = tostring(pid) .. "/"
         end
+    end
+    if type(dir) ~= "table" then
+        return nil, "Not a directory"
     end
     for f, node in pairs(dir) do
         list[#list + 1] = f .. (type(node) == "table" and "/" or "")
@@ -86,6 +115,28 @@ data.uptime = function()
     return tostring(computer.uptime())
 end
 
+data.sys = {}
+
+data.sys.kernel = {}
+data.sys.fs = {}
+
+
+data.sys.kernel.random = {}
+
+data.sys.kernel.random.uuid = function()
+    return uuid()
+end
+
+data.sys.kernel.random.boot_id = function()
+    return bootID
+end
+
+data.sys.kernel.version = function()return _OSVERSION end
+
+data.sys.kernel.poweroff_cmd = function()return "/bin/shutdown.lua" end
+
+data.sys.kernel["real-root-dev"] = function()return realroot end
+
 setmetatable(data, {__index = function(_, k)
     if tonumber(k) and kernel.modules.threading.threads[tonumber(k)] and kernel.modules.threading.threads[tonumber(k)].coro then
         return {
@@ -105,6 +156,7 @@ setmetatable(data, {__index = function(_, k)
                 
                 --TODO: count actual signals
                 status = status .. "SigQ: " .. #kernel.modules.threading.threads[tonumber(k)].eventQueue .. "/" .. kernel.modules.threading.threads[tonumber(k)].maxPendingSignals .. "\n"
+                status = status .. "CurH: " .. kernel.modules.threading.threads[tonumber(k)].currentHandler .. "\n"
                 return status
             end
         }
@@ -113,4 +165,6 @@ end})
 
 function start()
     kernel.modules.vfs.mount(proxy, "/proc")
+    bootID = uuid()
+    kernel.io.println("Boot UUID is " .. bootID)
 end

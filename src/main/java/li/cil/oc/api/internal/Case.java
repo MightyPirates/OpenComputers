@@ -1,8 +1,8 @@
 package li.cil.oc.api.internal;
 
-import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.machine.MachineHost;
 import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.inventory.IInventory;
 
 /**

@@ -1,7 +1,7 @@
 package li.cil.oc.integration.appeng
 
 import li.cil.oc.api.driver
-import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -14,7 +14,7 @@ import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-object DriverExportBus extends driver.Block with EnvironmentAware {
+object DriverExportBus extends driver.Block {
   override def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartExportBus])
@@ -23,24 +23,10 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
-  override def providedEnvironment(stack: ItemStack) =
-    if (AEUtil.isExportBus(stack)) classOf[Environment]
-    else null
-
-  class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
+  final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_exportbus") with NamedBlock with PartEnvironmentBase {
     override def preferredName = "me_exportbus"
 
     override def priority = 2
-
-    // TODO remove in OC 1.6
-    @Deprecated
-    @Callback(doc = "function(side:number, [ slot:number]):boolean -- DEPRECATED, use getExportConfiguration.")
-    def getConfiguration(context: Context, args: Arguments): Array[AnyRef] = getExportConfiguration(context, args)
-
-    // TODO remove in OC 1.6
-    @Deprecated
-    @Callback(doc = "function(side:number[, slot:number][, database:address, entry:number]):boolean -- DEPRECATED, use setExportConfiguration.")
-    def setConfiguration(context: Context, args: Arguments): Array[AnyRef] = setExportConfiguration(context, args)
 
     @Callback(doc = "function(side:number, [ slot:number]):boolean -- Get the configuration of the export bus pointing in the specified direction.")
     def getExportConfiguration(context: Context, args: Arguments): Array[AnyRef] = getPartConfig[PartExportBus](context, args)
@@ -107,6 +93,13 @@ object DriverExportBus extends driver.Block with EnvironmentAware {
         case _ => result(Unit, "no export bus")
       }
     }
+  }
+
+  object Provider extends EnvironmentProvider {
+    override def getEnvironment(stack: ItemStack): Class[_] =
+      if (AEUtil.isExportBus(stack))
+        classOf[Environment]
+      else null
   }
 
 }

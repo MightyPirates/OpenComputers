@@ -2,14 +2,18 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args < 1 then
-  io.write("Usage: unalias <name>")
-  return
+  io.write("Usage: unalias <name>...\n")
+  return 2
 end
+local e = 0
 
-local result = shell.getAlias(args[1])
-if not result then
-  io.stderr:write("no such alias")
-else
-  shell.setAlias(args[1], nil)
-  io.write("alias removed: " .. args[1] .. " -> " .. result)
+for _,arg in ipairs(args) do
+  local result = shell.getAlias(arg)
+  if not result then
+    io.stderr:write(string.format("unalias: %s: not found\n", arg))
+    e = 1
+  else
+    shell.setAlias(arg, nil)
+  end
 end
+return e

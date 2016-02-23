@@ -8,4 +8,6 @@ trait TextBufferRenderData {
   def dirty_=(value: Boolean): Unit
 
   def data: TextBuffer
+
+  def viewport: (Int, Int)
 }

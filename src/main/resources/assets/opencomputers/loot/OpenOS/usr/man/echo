@@ -1,11 +1,15 @@
 NAME
-  echo - display a line of test
+  echo - display a line of text
 
 SYNOPSIS
   echo [STRING]...
 
 DESCRIPTION
   `echo` writes the provided string(s) to the standard output.
+
+  -n      do not output the trialing newline
+
+  --help  display this help and exit
 
 EXAMPLES
   echo test

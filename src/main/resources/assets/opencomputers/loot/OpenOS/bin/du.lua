@@ -22,19 +22,13 @@ Summarize disk usage of each FILE, recursively for directories.
       --help     display this help and exit
       --version  output version information and exit]]
 
-local function writeline(value, pipe)
-  pipe = pipe or io.stdout
-  pipe:write(value)
-  pipe:write('\n')
-end
-
 if options.help then
-  writeline(HELP)
+  print(HELP)
   return true
 end
 
 if options.version then
-  writeline(VERSION)
+  print(VERSION)
   return true
 end
 
@@ -56,12 +50,12 @@ end
 local bHuman = opCheck('h', 'human-readable')
 local bSummary = opCheck('s', 'summarize')
 
-if (next(options)) then
+if next(options) then
   for op,v in pairs(options) do
     io.stderr:write(string.format("du: invalid option -- '%s'\n", op))
   end
-  writeline(TRY, io.stderr)
-  return false
+  io.stderr:write(TRY..'\n')
+  return 1
 end
 
 local function formatSize(size)
@@ -81,7 +75,7 @@ end
 
 local function printSize(size, rpath)
   local displaySize = formatSize(size)
-  writeline(string.format("%s%s", string.format("%-12s", displaySize), rpath))
+  io.write(string.format("%s%s\n", string.format("%-12s", displaySize), rpath))
 end
 
 local function visitor(rpath)
@@ -89,7 +83,7 @@ local function visitor(rpath)
   local dirs = 0
   local spath = shell.resolve(rpath)
 
-  if (fs.isDirectory(spath)) then
+  if fs.isDirectory(spath) then
     local list_result = fs.list(spath)
     for list_item in list_result do
       local vtotal, vdirs = visitor(addTrailingSlash(rpath) .. list_item)
@@ -97,13 +91,13 @@ local function visitor(rpath)
       dirs = dirs + vdirs
     end
         
-    if (dirs == 0) then -- no child dirs
-      if (not bSummary) then
+    if dirs == 0 then -- no child dirs
+      if not bSummary then
         printSize(subtotal, rpath)
       end
     end
 
-  elseif (not fs.isLink(spath)) then
+  elseif not fs.isLink(spath) then
     subtotal = fs.size(spath)
   end
 
@@ -113,16 +107,17 @@ end
 for i,arg in ipairs(args) do
   local path = shell.resolve(arg)
 
-  if (not fs.exists(path)) then
-    writeline(string.format("%s does not exist", arg), io.stderr)
+  if not fs.exists(path) then
+    io.stderr:write(string.format("du: cannot access '%s': no such file or directory\n", arg))
+    return 1
   else
-    if (fs.isDirectory(path)) then
+    if fs.isDirectory(path) then
       local total = visitor(arg)
                 
-      if (bSummary) then
+      if bSummary then
         printSize(total, arg)
       end
-    elseif (fs.isLink(path)) then
+    elseif fs.isLink(path) then
       printSize(0, arg)
     else
       printSize(fs.size(path), arg)

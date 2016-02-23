@@ -6,7 +6,7 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.common.Slot
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.DimensionManager
@@ -20,7 +20,7 @@ object DriverLootDisk extends Item {
     (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "lootPath"))
 
   override def createEnvironment(stack: ItemStack, host: EnvironmentHost) =
-    if (stack.hasTagCompound && DimensionManager.getWorld(0) != null) {
+    if (!host.world.isRemote && stack.hasTagCompound && DimensionManager.getWorld(0) != null) {
       val lootPath = "loot/" + stack.getTagCompound.getString(Settings.namespace + "lootPath")
       val savePath = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + lootPath)
       val fs =

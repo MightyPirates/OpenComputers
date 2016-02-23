@@ -4,19 +4,27 @@ import com.google.common.base.Charsets
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.component.RackBusConnectable
+import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt._
 
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
-  override val node = Network.newNode(this, Visibility.Network).
+class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with RackBusConnectable {
+  protected val visibility = host match {
+    case _: Rack => Visibility.Neighbors
+    case _ => Visibility.Network
+  }
+
+  override val node = Network.newNode(this, visibility).
     withComponent("modem", Visibility.Neighbors).
     create()
 
@@ -66,6 +74,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     val port = checkPort(args.checkInteger(1))
     val packet = api.Network.newPacket(node.address, address, port, args.drop(2).toArray)
     doSend(packet)
+    networkActivity()
     result(true)
   }
 
@@ -74,6 +83,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     val port = checkPort(args.checkInteger(0))
     val packet = api.Network.newPacket(node.address, null, port, args.drop(1).toArray)
     doBroadcast(packet)
+    networkActivity()
     result(true)
   }
 
@@ -97,12 +107,16 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     result(oldMessage.orNull, oldFuzzy)
   }
 
-  protected def doSend(packet: Packet) {
-    node.sendToReachable("network.message", packet)
+  protected def doSend(packet: Packet) = visibility match {
+    case Visibility.Neighbors => node.sendToNeighbors("network.message", packet)
+    case Visibility.Network => node.sendToReachable("network.message", packet)
+    case _ => // Ignore.
   }
 
-  protected def doBroadcast(packet: Packet) {
-    node.sendToReachable("network.message", packet)
+  protected def doBroadcast(packet: Packet) = visibility match {
+    case Visibility.Neighbors => node.sendToNeighbors("network.message", packet)
+    case Visibility.Network => node.sendToReachable("network.message", packet)
+    case _ => // Ignore.
   }
 
   // ----------------------------------------------------------------------- //
@@ -128,6 +142,7 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
     if (packet.source != node.address && Option(packet.destination).forall(_ == node.address)) {
       if (openPorts.contains(packet.port)) {
         node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
+        networkActivity()
       }
       // Accept wake-up messages regardless of port because we close all ports
       // when our computer shuts down.
@@ -143,6 +158,10 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
         case _ =>
       }
     }
+  }
+
+  override def receivePacket(packet: Packet): Unit = {
+    receivePacket(packet, 0)
   }
 
   // ----------------------------------------------------------------------- //
@@ -171,4 +190,11 @@ class NetworkCard(val host: EnvironmentHost) extends prefab.ManagedEnvironment {
   protected def checkPort(port: Int) =
     if (port < 1 || port > 0xFFFF) throw new IllegalArgumentException("invalid port number")
     else port
+
+  private def networkActivity() {
+    host match {
+      case h: EnvironmentHost => ServerPacketSender.sendNetworkActivity(node, h)
+      case _ =>
+    }
+  }
 }

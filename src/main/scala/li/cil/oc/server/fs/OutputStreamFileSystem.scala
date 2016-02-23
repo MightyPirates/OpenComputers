@@ -28,9 +28,9 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
         case Some(fileHandle) =>
           handles += handle -> fileHandle
           handle
-        case _ => throw new FileNotFoundException()
+        case _ => throw new FileNotFoundException(path)
       }
-    } else throw new FileNotFoundException()
+    } else throw new FileNotFoundException(path)
   })
 
   override def getHandle(handle: Int): api.fs.Handle = this.synchronized(Option(super.getHandle(handle)).orElse(handles.get(handle)).orNull)

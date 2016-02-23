@@ -3,8 +3,6 @@ package li.cil.oc.integration.ic2
 import ic2.api.item.IElectricItemManager
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.Chargeable
-import li.cil.oc.common.item.HoverBoots
-import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.integration.util.Power
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemStack
@@ -13,8 +11,8 @@ object ElectricItemManager extends IElectricItemManager {
   override def getCharge(stack: ItemStack): Double = {
     if (stack == null) 0
     else stack.getItem match {
-      // TODO in OC 1.6, add a getCharge method to Chargeable and use that instead.
-      case hoverBoots: HoverBoots => new HoverBootsData(stack).charge
+      case chargeable: Chargeable =>
+        Power.toEU(Int.MaxValue + chargeable.charge(stack, -Int.MaxValue, true))
       case _ => 0
     }
   }

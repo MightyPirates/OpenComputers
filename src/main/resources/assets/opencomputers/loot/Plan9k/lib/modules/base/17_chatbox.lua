@@ -7,7 +7,7 @@ local function buildDevfs()
         end
     end
     for k, chatbox in ipairs(chatboxes) do
-        kernel.modules.devfs.data["chatbox" .. k] = {
+        kernel.modules.devfs.data["chatbox" .. chatbox:sub(1,4):upper()] = {
             __type = "f",
             open = function(hnd, mode)
                 if mode == "r" then error("Invalid mode") end
