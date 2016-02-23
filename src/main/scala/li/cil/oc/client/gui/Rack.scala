@@ -6,6 +6,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.InventoryPlayer
@@ -159,13 +160,13 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
 
   override def drawSecondaryForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawSecondaryForegroundLayer(mouseX, mouseY)
-    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Prevents NEI render glitch.
+    GlStateManager.pushAttrib() // Prevents NEI render glitch.
 
     fontRendererObj.drawString(
       Localization.localizeImmediately(rack.getName),
       8, 6, 0x404040)
 
-    GL11.glColor3f(1, 1, 1)
+    GlStateManager.color(1, 1, 1)
     mc.renderEngine.bindTexture(Textures.GUI.Rack)
 
     if (rack.isRelayEnabled) {
@@ -249,11 +250,11 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
         x, y, 0x404040)
     }
 
-    GL11.glPopAttrib()
+    GlStateManager.popAttrib()
   }
 
   override def drawSecondaryBackgroundLayer() {
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
+    GlStateManager.color(1, 1, 1) // Required under Linux.
     mc.renderEngine.bindTexture(Textures.GUI.Rack)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }

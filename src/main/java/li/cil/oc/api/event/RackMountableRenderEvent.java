@@ -5,6 +5,8 @@ import li.cil.oc.api.internal.Rack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -55,45 +57,39 @@ public abstract class RackMountableRenderEvent extends Event {
      * <p/>
      * The bounds will be set up before this call, so you may adjust those, if you wish.
      */
-//    @Cancelable
-//    public static class Block extends RackMountableRenderEvent {
-//        /**
-//         * The front-facing side, i.e. where the mountable is visible on the rack.
-//         */
-//        public final EnumFacing side;
-//
-//        /**
-//         * The renderer used for rendering the block.
-//         */
-//        public final RenderBlocks renderer;
-//
-//        /**
-//         * Texture to use for the front of the mountable.
-//         */
-//        private IIcon frontTextureOverride;
-//
-//        public Block(final Rack rack, final int mountable, final NBTTagCompound data, final EnumFacing side, final RenderBlocks renderer) {
-//            super(rack, mountable, data);
-//            this.side = side;
-//            this.renderer = renderer;
-//        }
-//
-//        /**
-//         * The texture currently set to use for the front of the mountable, or <tt>null</tt>.
-//         */
-//        public IIcon getFrontTextureOverride() {
-//            return frontTextureOverride;
-//        }
-//
-//        /**
-//         * Set the texture to use for the front of the mountable.
-//         *
-//         * @param texture the texture to use.
-//         */
-//        public void setFrontTextureOverride(final IIcon texture) {
-//            frontTextureOverride = texture;
-//        }
-//    }
+    @Cancelable
+    public static class Block extends RackMountableRenderEvent {
+        /**
+         * The front-facing side, i.e. where the mountable is visible on the rack.
+         */
+        public final EnumFacing side;
+
+        /**
+         * Texture to use for the front of the mountable.
+         */
+        private TextureAtlasSprite frontTextureOverride;
+
+        public Block(final Rack rack, final int mountable, final NBTTagCompound data, final EnumFacing side) {
+            super(rack, mountable, data);
+            this.side = side;
+        }
+
+        /**
+         * The texture currently set to use for the front of the mountable, or <tt>null</tt>.
+         */
+        public TextureAtlasSprite getFrontTextureOverride() {
+            return frontTextureOverride;
+        }
+
+        /**
+         * Set the texture to use for the front of the mountable.
+         *
+         * @param texture the texture to use.
+         */
+        public void setFrontTextureOverride(final TextureAtlasSprite texture) {
+            frontTextureOverride = texture;
+        }
+    }
 
     /**
      * Fired when the dynamic rack model is rendered.
@@ -142,14 +138,15 @@ public abstract class RackMountableRenderEvent extends Event {
          * @param u1      the upper end of the vertical area to render at.
          */
         public void renderOverlay(final ResourceLocation texture, final float u0, final float u1) {
-            Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
+            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+            final TextureAtlasSprite icon = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(texture.toString());
             final Tessellator t = Tessellator.getInstance();
             final WorldRenderer r = t.getWorldRenderer();
             r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-            r.pos(u0, v1, 0).tex(u0, v1);
-            r.pos(u1, v1, 0).tex(u1, v1);
-            r.pos(u1, v0, 0).tex(u1, v0);
-            r.pos(u0, v0, 0).tex(u0, v0);
+            r.pos(u0, v1, 0).tex(icon.getInterpolatedU(u0 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();
+            r.pos(u1, v1, 0).tex(icon.getInterpolatedU(u1 * 16), icon.getInterpolatedV(v1 * 16)).endVertex();
+            r.pos(u1, v0, 0).tex(icon.getInterpolatedU(u1 * 16), icon.getInterpolatedV(v0 * 16)).endVertex();
+            r.pos(u0, v0, 0).tex(icon.getInterpolatedU(u0 * 16), icon.getInterpolatedV(v0 * 16)).endVertex();
             t.draw();
         }
     }

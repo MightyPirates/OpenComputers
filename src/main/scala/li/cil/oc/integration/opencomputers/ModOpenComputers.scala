@@ -346,8 +346,10 @@ object ModOpenComputers extends ModProxy {
   }
 
   private def blacklistHost(host: Class[_], itemNames: String*) {
-    for (itemName <- itemNames) {
+    for (itemName <- itemNames) try {
       api.IMC.blacklistHost(itemName, host, api.Items.get(itemName).createItemStack(1))
+    } catch {
+      case t: Throwable => OpenComputers.log.warn(s"Error blacklisting '$itemName' for '${host.getSimpleName}.", t)
     }
   }
 

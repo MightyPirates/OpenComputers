@@ -21,14 +21,6 @@ object Textures {
 
     override protected def basePath = "textures/font/%s.png"
 
-    val blockRackDiskDriveActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/DiskDriveMountableActivity.png")
-    val blockRackServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontOn.png")
-    val blockRackServerError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontError.png")
-    val blockRackServerActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontActivity.png")
-    val blockRackServerNetworkActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontNetworkActivity.png")
-    val blockRackTerminalServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontOn.png")
-    val blockRackTerminalServerPresence = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontPresence.png")
-
     override protected def loader(map: TextureMap, loc: ResourceLocation) = Textures.bind(loc)
   }
 
@@ -154,8 +146,8 @@ object Textures {
     val GenericTop = L("generic_top", load = false)
     val NetSplitterSide = L("netSplitter_side")
     val NetSplitterTop = L("netSplitter_top")
-    val RackFront = L("serverRack_front", load = false)
-    val RackSide = L("serverRack_side", load = false)
+    val RackFront = L("rack_front", load = false)
+    val RackSide = L("rack_side", load = false)
 
     // Kill me now.
     object Screen {
@@ -541,15 +533,18 @@ object Textures {
   }
 
   def bind(location: ResourceLocation): Unit = {
-    val manager = Minecraft.getMinecraft.renderEngine
-    manager.bindTexture(location)
-    // IMPORTANT: manager.bindTexture uses GlStateManager.bindTexture, and
-    // that has borked caching, so binding textures will sometimes fail,
-    // because it'll think the texture is already bound although it isn't.
-    // So we do it manually.
-    val texture = manager.getTexture(location)
-    if (texture != null) {
-      RenderState.bindTexture(texture.getGlTextureId)
+    if (location == null) RenderState.bindTexture(0)
+    else {
+      val manager = Minecraft.getMinecraft.renderEngine
+      manager.bindTexture(location)
+      // IMPORTANT: manager.bindTexture uses GlStateManager.bindTexture, and
+      // that has borked caching, so binding textures will sometimes fail,
+      // because it'll think the texture is already bound although it isn't.
+      // So we do it manually.
+      val texture = manager.getTexture(location)
+      if (texture != null) {
+        RenderState.bindTexture(texture.getGlTextureId)
+      }
     }
   }
 

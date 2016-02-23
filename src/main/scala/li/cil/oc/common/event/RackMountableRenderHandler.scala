@@ -9,6 +9,7 @@ import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.entity.item.EntityItem
@@ -37,10 +38,11 @@ object RackMountableRenderHandler {
       if (e.data.hasKey("disk")) {
         val stack = ItemStack.loadItemStackFromNBT(e.data.getCompoundTag("disk"))
         if (stack != null) {
-          GL11.glPushMatrix()
-          GL11.glScalef(1, -1, 1)
-          GL11.glTranslatef(10 / 16f, -(3.5f + e.mountable * 3f) / 16f, 1 / 16f)
-          GL11.glRotatef(90, -1, 0, 0)
+          GlStateManager.pushMatrix()
+          GlStateManager.scale(1, -1, 1)
+          GlStateManager.translate(10 / 16f, -(3.5f + e.mountable * 3f) / 16f, -2 / 16f)
+          GlStateManager.rotate(90, -1, 0, 0)
+          GlStateManager.scale(0.5f, 0.5f, 0.5f)
 
           val brightness = e.rack.world.getLightBrightnessForSkyBlocks(BlockPosition(e.rack).offset(e.rack.facing), 0)
           OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, brightness % 65536, brightness / 65536)
@@ -49,22 +51,22 @@ object RackMountableRenderHandler {
           val entity = new EntityItem(e.rack.world, 0, 0, 0, stack)
           entity.hoverStart = 0
           Minecraft.getMinecraft.getRenderItem.renderItem(entity.getEntityItem, ItemCameraTransforms.TransformType.FIXED)
-          GL11.glPopMatrix()
+          GlStateManager.popMatrix()
         }
       }
 
       if (System.currentTimeMillis() - e.data.getLong("lastAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
-        RenderState.disableLighting()
+        RenderState.disableEntityLighting()
         RenderState.makeItBlend()
 
         e.renderOverlay(Textures.Block.RackDiskDriveActivity)
 
-        RenderState.enableLighting()
+        RenderState.enableEntityLighting()
       }
     }
     else if (e.data != null && Servers.contains(api.Items.get(e.rack.getStackInSlot(e.mountable)))) {
       // Server.
-      RenderState.disableLighting()
+      RenderState.disableEntityLighting()
       RenderState.makeItBlend()
 
       if (e.data.getBoolean("isRunning")) {
@@ -80,11 +82,11 @@ object RackMountableRenderHandler {
         e.renderOverlay(Textures.Block.RackServerNetworkActivity)
       }
 
-      RenderState.enableLighting()
+      RenderState.enableEntityLighting()
     }
     else if (e.data != null && TerminalServer == api.Items.get(e.rack.getStackInSlot(e.mountable))) {
       // Terminal server.
-      RenderState.disableLighting()
+      RenderState.disableEntityLighting()
       RenderState.makeItBlend()
 
       e.renderOverlay(Textures.Block.RackTerminalServerOn)
@@ -96,23 +98,23 @@ object RackMountableRenderHandler {
         e.renderOverlay(Textures.Block.RackTerminalServerPresence, u0, u1)
       }
 
-      RenderState.enableLighting()
+      RenderState.enableEntityLighting()
     }
   }
 
-//  @SubscribeEvent
-//  def onRackMountableRendering(e: RackMountableRenderEvent.Block): Unit = {
-//    if (DiskDriveMountable == api.Items.get(e.rack.getStackInSlot(e.mountable))) {
-//      // Disk drive.
-//      e.setFrontTextureOverride(Textures.Block.RackDiskDrive)
-//    }
-//    else if (Servers.contains(api.Items.get(e.rack.getStackInSlot(e.mountable)))) {
-//      // Server.
-//      e.setFrontTextureOverride(Textures.Block.RackServer)
-//    }
-//    else if (TerminalServer == api.Items.get(e.rack.getStackInSlot(e.mountable))) {
-//      // Terminal server.
-//      e.setFrontTextureOverride(Textures.Block.RackTerminalServer)
-//    }
-//  }
+  @SubscribeEvent
+  def onRackMountableRendering(e: RackMountableRenderEvent.Block): Unit = {
+    if (DiskDriveMountable == api.Items.get(e.rack.getStackInSlot(e.mountable))) {
+      // Disk drive.
+      e.setFrontTextureOverride(Textures.getSprite(Textures.Block.RackDiskDrive))
+    }
+    else if (Servers.contains(api.Items.get(e.rack.getStackInSlot(e.mountable)))) {
+      // Server.
+      e.setFrontTextureOverride(Textures.getSprite(Textures.Block.RackServer))
+    }
+    else if (TerminalServer == api.Items.get(e.rack.getStackInSlot(e.mountable))) {
+      // Terminal server.
+      e.setFrontTextureOverride(Textures.getSprite(Textures.Block.RackTerminalServer))
+    }
+  }
 }

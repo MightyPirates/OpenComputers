@@ -1,5 +1,5 @@
 {
-    "parent": "opencomputers:block/serverRack",
+    "parent": "opencomputers:block/rack",
     "display": {
         "thirdperson": {
             "rotation": [ 10, -45, 170 ],

@@ -1,11 +1,13 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.Settings
+import li.cil.oc.api.component.RackMountable
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.block.property.PropertyRotatable
 import li.cil.oc.common.tileentity
 import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.IBlockAccess
@@ -61,4 +63,20 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
   override def hasTileEntity(state: IBlockState) = true
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Rack()
+
+  // ----------------------------------------------------------------------- //
+
+  override def localOnBlockActivated(world: World, pos: BlockPos, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    world.getTileEntity(pos) match {
+      case rack: tileentity.Rack => rack.slotAt(side, hitX, hitY, hitZ) match {
+        case Some(slot) => rack.getMountable(slot) match {
+          case mountable: RackMountable if mountable.onActivate(player, side, hitX, hitY, hitZ) => return true // Activation handled by mountable.
+          case _ =>
+        }
+        case _ =>
+      }
+      case _ =>
+    }
+    super.localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
+  }
 }

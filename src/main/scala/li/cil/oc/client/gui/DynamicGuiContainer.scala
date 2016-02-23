@@ -4,6 +4,7 @@ package li.cil.oc.client.gui
 import codechicken.nei.ItemPanel
 import codechicken.nei.LayoutManager
 */
+
 import li.cil.oc.Localization
 import li.cil.oc.client.Textures
 import li.cil.oc.common
@@ -19,8 +20,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.Optional
-import net.minecraftforge.fml.relauncher.ReflectionHelper
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsScala._
@@ -64,12 +63,12 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
 
   protected def drawInventorySlots(): Unit = {
     GlStateManager.pushMatrix()
-    GL11.glTranslatef(guiLeft, guiTop, 0)
-    GL11.glDisable(GL11.GL_DEPTH_TEST)
+    GlStateManager.translate(guiLeft, guiTop, 0)
+    GlStateManager.disableDepth()
     for (slot <- 0 until inventorySlots.inventorySlots.size()) {
       drawSlotInventory(inventorySlots.inventorySlots.get(slot))
     }
-    GL11.glEnable(GL11.GL_DEPTH_TEST)
+    GlStateManager.enableDepth()
     GlStateManager.popMatrix()
     RenderState.makeItBlend()
   }
@@ -194,8 +193,7 @@ abstract class DynamicGuiContainer[C <: Container](container: C) extends CustomG
           }
         case _ =>
       }
+      zLevel -= 350
     }
-    zLevel -= 350
-  }
-*/
+  */
 }

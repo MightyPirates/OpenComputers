@@ -4,8 +4,8 @@ import li.cil.oc.api
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.input.Mouse
-import org.lwjgl.opengl.GL11
 
 class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val hasKeyboardCallback: () => Boolean, val hasPower: () => Boolean) extends traits.InputBuffer {
   override protected def hasKeyboard = hasKeyboardCallback()
@@ -96,11 +96,11 @@ class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val has
   }
 
   override def drawBuffer() {
-    GL11.glTranslatef(x, y, 0)
+    GlStateManager.translate(x, y, 0)
     BufferRenderer.drawBackground()
     if (hasPower()) {
-      GL11.glTranslatef(bufferMargin, bufferMargin, 0)
-      GL11.glScaled(scale, scale, 1)
+      GlStateManager.translate(bufferMargin, bufferMargin, 0)
+      GlStateManager.scale(scale, scale, 1)
       RenderState.makeItBlend()
       BufferRenderer.drawText(buffer)
     }

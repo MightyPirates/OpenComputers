@@ -74,10 +74,10 @@ class Drone(playerInventory: InventoryPlayer, val drone: entity.Drone) extends D
   }
 
   override protected def drawBuffer() {
-    GL11.glTranslatef(bufferX, bufferY, 0)
+    GlStateManager.translate(bufferX, bufferY, 0)
     RenderState.disableEntityLighting()
     RenderState.makeItBlend()
-    GL11.glScaled(scale, scale, 1)
+    GlStateManager.scale(scale, scale, 1)
     GlStateManager.pushAttrib()
     GlStateManager.depthMask(false)
     GlStateManager.color(0.5f, 0.5f, 1f)

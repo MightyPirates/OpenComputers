@@ -706,7 +706,7 @@ object TextBuffer {
 
     override def onBufferSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onBufferSet(col, row, s, vertical)
-      dirty = true
+      markDirty()
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
