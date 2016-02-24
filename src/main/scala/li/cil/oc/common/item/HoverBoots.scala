@@ -1,6 +1,7 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.item.HoverBootRenderer
 import li.cil.oc.common.item.data.HoverBootsData
@@ -9,11 +10,16 @@ import net.minecraft.client.model.ModelBiped
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.{Entity, EntityLivingBase}
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.init.Blocks
-import net.minecraft.item.{EnumRarity, ItemArmor, ItemStack}
-import net.minecraft.potion.{Potion, PotionEffect}
-import net.minecraft.util.{IIcon, MathHelper}
+import net.minecraft.item.EnumRarity
+import net.minecraft.item.ItemArmor
+import net.minecraft.item.ItemStack
+import net.minecraft.potion.Potion
+import net.minecraft.potion.PotionEffect
+import net.minecraft.util.IIcon
+import net.minecraft.util.MathHelper
 import net.minecraft.world.World
 
 class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with traits.SimpleItem with traits.Chargeable {
