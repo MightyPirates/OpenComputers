@@ -3,6 +3,7 @@ package li.cil.oc.common.item
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.item.HoverBootRenderer
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.util.ItemColorizer
@@ -99,19 +100,16 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
   }
 
   @SideOnly(Side.CLIENT)
-  var lightOverlay: IIcon = null
-
-  @SideOnly(Side.CLIENT)
   override def registerIcons(ir: IIconRegister): Unit = {
     this.itemIcon = ir.registerIcon(this.getIconString)
-    this.lightOverlay = ir.registerIcon(this.getIconString + "Light")
+    Textures.HoverBoots.lightOverlay = ir.registerIcon(this.getIconString + "Light")
   }
 
   @SideOnly(Side.CLIENT)
   override def requiresMultipleRenderPasses(): Boolean = true
 
   @SideOnly(Side.CLIENT)
-  override def getIconFromDamageForRenderPass(meta: Int, pass: Int): IIcon = if (pass == 1) lightOverlay else super.getIconFromDamageForRenderPass(meta, pass)
+  override def getIconFromDamageForRenderPass(meta: Int, pass: Int): IIcon = if (pass == 1) Textures.HoverBoots.lightOverlay else super.getIconFromDamageForRenderPass(meta, pass)
 
   override def getColorFromItemStack(itemStack: ItemStack, pass: Int): Int = {
     if (pass == 1) {

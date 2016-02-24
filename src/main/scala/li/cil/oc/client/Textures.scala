@@ -92,6 +92,10 @@ object Textures {
     var iconTopOn: IIcon = _
   }
 
+  object HoverBoots {
+    var lightOverlay: IIcon = _
+  }
+
   object PowerDistributor {
     var iconSideOn: IIcon = _
     var iconTopOn: IIcon = _
