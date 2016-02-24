@@ -2,7 +2,6 @@ package li.cil.oc.integration.thaumicenergistics
 
 import appeng.api.networking.security.IActionHost
 import appeng.me.helpers.IGridProxyable
-import extracells.api.ECApi
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
