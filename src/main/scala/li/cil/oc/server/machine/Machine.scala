@@ -298,35 +298,36 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
   }
 
-  override def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
-    case Machine.State.Stopped | Machine.State.Stopping => false
-    case _ => signals.synchronized {
-      if (signals.size >= 256) false
-      else if (args == null) {
-        signals.enqueue(new Machine.Signal(name, Array.empty))
-        if (architecture != null) architecture.onSignal()
-        true
+  override def signal(name: String, args: AnyRef*): Boolean = {
+    state.synchronized(state.top match {
+      case Machine.State.Stopped | Machine.State.Stopping => return false
+      case _ => signals.synchronized {
+        if (signals.size >= 256) return false
+        else if (args == null) {
+          signals.enqueue(new Machine.Signal(name, Array.empty))
+        }
+        else {
+          signals.enqueue(new Machine.Signal(name, args.map {
+            case null | Unit | None => null
+            case arg: java.lang.Boolean => arg
+            case arg: java.lang.Character => Double.box(arg.toDouble)
+            case arg: java.lang.Long => arg
+            case arg: java.lang.Number => Double.box(arg.doubleValue)
+            case arg: java.lang.String => arg
+            case arg: Array[Byte] => arg
+            case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
+            case arg: NBTTagCompound => arg
+            case arg =>
+              OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
+              null
+          }.toArray[AnyRef]))
+        }
       }
-      else {
-        signals.enqueue(new Machine.Signal(name, args.map {
-          case null | Unit | None => null
-          case arg: java.lang.Boolean => arg
-          case arg: java.lang.Character => Double.box(arg.toDouble)
-          case arg: java.lang.Long => arg
-          case arg: java.lang.Number => Double.box(arg.doubleValue)
-          case arg: java.lang.String => arg
-          case arg: Array[Byte] => arg
-          case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
-          case arg: NBTTagCompound => arg
-          case arg =>
-            OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
-            null
-        }.toArray[AnyRef]))
-        if (architecture != null) architecture.onSignal()
-        true
-      }
-    }
-  })
+    })
+
+    if (architecture != null) architecture.onSignal()
+    true
+  }
 
   override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue().convert())
 
