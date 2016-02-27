@@ -5,11 +5,13 @@ import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentProvider;
 import li.cil.oc.api.driver.InventoryProvider;
 import li.cil.oc.api.driver.Item;
+import li.cil.oc.api.driver.SidedBlock;
 import li.cil.oc.api.network.EnvironmentHost;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 import java.util.Collection;
@@ -28,7 +30,7 @@ import java.util.Collection;
  * at that time. Only start calling these methods in the init phase or later.
  *
  * @see Network
- * @see Block
+ * @see SidedBlock
  * @see Item
  */
 public final class Driver {
@@ -43,8 +45,27 @@ public final class Driver {
      * phases.
      *
      * @param driver the driver to register.
+     * @deprecated Use {@link SidedBlock} instead.
      */
+    @Deprecated // TODO Remove in OC 1.7
     public static void add(final Block driver) {
+        if (API.driver != null)
+            API.driver.add(driver);
+    }
+
+    /**
+     * Registers a new side-aware block driver.
+     * <p/>
+     * Whenever the neighboring blocks of an Adapter block change, it checks if
+     * there exists a driver for the changed block, and if it is configured to
+     * interface that block type connects it to the component network.
+     * <p/>
+     * This must be called in the init phase, <em>not</em> the pre- or post-init
+     * phases.
+     *
+     * @param driver the driver to register.
+     */
+    public static void add(final SidedBlock driver) {
         if (API.driver != null)
             API.driver.add(driver);
     }
@@ -121,10 +142,32 @@ public final class Driver {
      * @param world the world containing the block.
      * @param pos   the position of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
+     * @deprecated Use {@link #driverFor(World, BlockPos, EnumFacing)},
+     * passing <tt>null</tt> if the side is to be ignored.
      */
+    @Deprecated // TODO Remove in OC 1.7
     public static Block driverFor(World world, BlockPos pos) {
         if (API.driver != null)
             return API.driver.driverFor(world, pos);
+        return null;
+    }
+
+    /**
+     * Looks up a driver for the block at the specified position in the
+     * specified world.
+     * <p/>
+     * Note that several drivers for a single block can exist. Because of this
+     * block drivers are always encapsulated in a 'compound' driver, which is
+     * what will be returned here. In other words, you should will <em>not</em>
+     * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.Block)}.
+     *
+     * @param world the world containing the block.
+     * @param pos   the position of the block.
+     * @return a driver for the block, or <tt>null</tt> if there is none.
+     */
+    public static SidedBlock driverFor(World world, BlockPos pos, EnumFacing side) {
+        if (API.driver != null)
+            return API.driver.driverFor(world, pos, side);
         return null;
     }
 

@@ -9,13 +9,20 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
-class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
-  override def createEnvironment(world: World, pos: BlockPos) = {
-    val list = blocks.map {
+// TODO Remove blocks in OC 1.7.
+class CompoundBlockDriver(val sidedBlocks: Array[driver.SidedBlock], val blocks: Array[driver.Block]) extends driver.SidedBlock {
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing) = {
+    val list = sidedBlocks.map {
+      driver => Option(driver.createEnvironment(world, pos, side)) match {
+        case Some(environment) => (driver.getClass.getName, environment)
+        case _ => null
+      }
+    } ++ blocks.map {
       driver => Option(driver.createEnvironment(world, pos)) match {
-        case Some(environment) => (driver, environment)
+        case Some(environment) => (driver.getClass.getName, environment)
         case _ => null
       }
     } filter (_ != null)
@@ -23,10 +30,10 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     else new CompoundBlockEnvironment(cleanName(tryGetName(world, pos, list.map(_._2))), list: _*)
   }
 
-  override def worksWith(world: World, pos: BlockPos) = blocks.forall(_.worksWith(world, pos))
+  override def worksWith(world: World, pos: BlockPos, side: EnumFacing) = sidedBlocks.forall(_.worksWith(world, pos, side)) && blocks.forall(_.worksWith(world, pos))
 
   override def equals(obj: Any) = obj match {
-    case multi: CompoundBlockDriver if multi.blocks.length == blocks.length => blocks.intersect(multi.blocks).length == blocks.length
+    case multi: CompoundBlockDriver if multi.sidedBlocks.length == sidedBlocks.length && multi.blocks.length == blocks.length => sidedBlocks.intersect(multi.sidedBlocks).length == sidedBlocks.length && blocks.intersect(multi.blocks).length == blocks.length
     case _ => false
   }
 

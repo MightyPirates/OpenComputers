@@ -3,10 +3,14 @@ package li.cil.oc.common.item
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.item.HoverBootRenderer
 import li.cil.oc.common.item.data.HoverBootsData
+import li.cil.oc.util.ItemColorizer
+import net.minecraft.block.BlockCauldron
 import net.minecraft.client.model.ModelBiped
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.init.Blocks
 import net.minecraft.item.EnumRarity
 import net.minecraft.item.ItemArmor
 import net.minecraft.item.ItemStack
@@ -56,7 +60,10 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
 
   @SideOnly(Side.CLIENT)
   override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: Int): ModelBiped = {
-    if (armorSlot == 4 - armorType) HoverBootRenderer
+    if (armorSlot == 4 - armorType) {
+      HoverBootRenderer.lightColor = if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
+      HoverBootRenderer
+    }
     else super.getArmorModel(entityLiving, itemStack, armorSlot)
   }
 
@@ -75,6 +82,29 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     if (!Settings.get.ignorePower && player.getActivePotionEffect(Potion.moveSlowdown) == null && getCharge(stack) == 0) {
       player.addPotionEffect(new PotionEffect(Potion.moveSlowdown.getId, 20, 1))
     }
+  }
+
+  override def onEntityItemUpdate(entity: EntityItem): Boolean = {
+    if (entity != null && entity.worldObj != null && !entity.worldObj.isRemote && ItemColorizer.hasColor(entity.getEntityItem)) {
+      val pos = entity.getPosition
+      val state = entity.worldObj.getBlockState(pos)
+      if (state.getBlock == Blocks.cauldron) {
+        val level = state.getValue(BlockCauldron.LEVEL).toInt
+        if (level > 0) {
+          ItemColorizer.removeColor(entity.getEntityItem)
+          entity.worldObj.setBlockState(pos, state.withProperty(BlockCauldron.LEVEL, Int.box(level - 1)), 3)
+          return true
+        }
+      }
+    }
+    super.onEntityItemUpdate(entity)
+  }
+
+  override def getColorFromItemStack(itemStack: ItemStack, pass: Int): Int = {
+    if (pass == 1) {
+      return if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
+    }
+    super.getColorFromItemStack(itemStack, pass)
   }
 
   override def showDurabilityBar(stack: ItemStack): Boolean = true

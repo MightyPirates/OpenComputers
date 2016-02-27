@@ -2,10 +2,11 @@ package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.ManagedEnvironment;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 /**
- * Interface for block component drivers.
+ * Interface for side-aware block component drivers.
  * <p/>
  * This driver type is used for components that are blocks, i.e. that can be
  * placed in the world, but cannot be modified to or don't want to have their
@@ -21,12 +22,11 @@ import net.minecraft.world.World;
  * Note that it is possible to write one driver that supports as many different
  * blocks as you wish. I'd recommend writing one per device (type), though, to
  * keep things modular.
- *
- * @deprecated Use {@link SidedBlock} instead, ignoring the side argument if
- * the side doesn't matter.
+ * </p>
+ * Note that side-aware block drivers are queried before regular block drivers,
+ * because they are more specific.
  */
-@Deprecated // TODO Remove in OC 1.7
-public interface Block {
+public interface SidedBlock {
     /**
      * Used to determine the block types this driver handles.
      * <p/>
@@ -35,12 +35,16 @@ public interface Block {
      * over time; if it does, though, an already installed component will not
      * be removed, since this value is only checked when scanning blocks. You
      * can force this by sending a neighbor block change notification.
+     * <p/>
+     * The side is relative to the block, i.e. "south" is the side of the block
+     * facing south.
      *
      * @param world the world in which the block to check lives.
      * @param pos   the position coordinate of the block to check.
+     * @param side  the side of the block to check.
      * @return <tt>true</tt> if the block is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(World world, BlockPos pos);
+    boolean worksWith(World world, BlockPos pos, EnumFacing side);
 
     /**
      * Create a new managed environment interfacing the specified block.
@@ -54,10 +58,14 @@ public interface Block {
      * This is expected to return a <em>new instance</em> each time it is
      * called. The created instance's life cycle is managed by the
      * <tt>Adapter</tt> block that caused its creation.
+     * <p/>
+     * The side is relative to the block, i.e. "south" is the side of the block
+     * facing south.
      *
      * @param world the world containing the block to get the environment for.
-     * @param pos   the position of the block to get the environment for.
+     * @param pos   the position coordinate of the block to check.
+     * @param side  the side of the block to check.
      * @return the environment for the block at that location.
      */
-    ManagedEnvironment createEnvironment(World world, BlockPos pos);
+    ManagedEnvironment createEnvironment(World world, BlockPos pos, EnumFacing side);
 }

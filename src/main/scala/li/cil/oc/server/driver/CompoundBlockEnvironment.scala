@@ -5,12 +5,12 @@ import java.nio.charset.Charset
 import com.google.common.hash.Hashing
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
-import li.cil.oc.api.driver
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 
-class CompoundBlockEnvironment(val name: String, val environments: (driver.Block, ManagedEnvironment)*) extends ManagedEnvironment {
+// TODO Remove block in OC 1.7.
+class CompoundBlockEnvironment(val name: String, val environments: (String, ManagedEnvironment)*) extends ManagedEnvironment {
   // Block drivers with visibility < network usually won't make much sense,
   // but let's play it safe and use the least possible visibility based on
   // the drivers we encapsulate.
@@ -58,12 +58,11 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
     if (nbt.hasKey("typeHash") && nbt.getLong("typeHash") != typeHash) return
     node.load(nbt)
     for ((driver, environment) <- environments) {
-      val name = driver.getClass.getName
-      if (nbt.hasKey(name)) {
+      if (nbt.hasKey(driver)) {
         try {
-          environment.load(nbt.getCompoundTag(name))
+          environment.load(nbt.getCompoundTag(driver))
         } catch {
-          case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$name') threw an error while loading.", e)
+          case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$driver') threw an error while loading.", e)
         }
       }
     }
@@ -73,11 +72,10 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
     nbt.setLong("typeHash", typeHash)
     node.save(nbt)
     for ((driver, environment) <- environments) {
-      val name = driver.getClass.getName
       try {
-        nbt.setNewCompoundTag(name, environment.save)
+        nbt.setNewCompoundTag(driver, environment.save)
       } catch {
-        case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$name') threw an error while saving.", e)
+        case e: Throwable => OpenComputers.log.warn(s"A block component of type '${environment.getClass.getName}' (provided by driver '$driver') threw an error while saving.", e)
       }
     }
   }

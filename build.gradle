@@ -164,6 +164,10 @@ repositories {
         name 'ExtraCells'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.ec.cf}/[module]-[revision].[ext]"
     }
+    ivy {
+        name 'ThaumicEnergistics'
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.thaumicenergistics.cf}/[module]-[revision].[ext]"
+    }
     */
 }
 
@@ -214,6 +218,7 @@ dependencies {
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
     provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
+    provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
     provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
 */
 

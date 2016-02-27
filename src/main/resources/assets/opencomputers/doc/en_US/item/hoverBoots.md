@@ -9,3 +9,5 @@ Either way, these boots have a few useful properties: as long as they have power
 Additionally, due to always being in kind of a hovering state anyway, they allow you to seamlessly walk up steps of up to one block height. This is particularly handy when sprinting up a mountain, for example, a very commonplace fitness routine amongst Minecrafters. Or so I hear.
 
 The boots can be recharged in an OpenComputers [charger](../block/charger.md) or any other such device, like the Applied Energistics 2 charger, an IndustrialCraft 2 battery box, or the Energetic Infuser from Thermal Expansion.
+
+You can change the boots' color by crafting them with any type of dye. Akin to leather armor, it is possible to apply multiple dyes at once or in succession to create a large variety of colors. The dye can be removed again either by crafting the boots with a bucket of water or by tossing them into a cauldron. 

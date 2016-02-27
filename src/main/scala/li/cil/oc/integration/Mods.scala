@@ -78,6 +78,7 @@ object Mods {
     override def isModAvailable: Boolean = isModAvailable_
   }
   val Thaumcraft = new SimpleMod(IDs.Thaumcraft)
+  val ThaumicEnergistics = new SimpleMod(IDs.ThaumicEnergistics)
   val ThermalExpansion = new SimpleMod(IDs.ThermalExpansion, providesPower = true)
   val TinkersConstruct = new SimpleMod(IDs.TinkersConstruct)
   val TIS3D = new SimpleMod(IDs.TIS3D, version = "@[0.7,)")
@@ -125,6 +126,7 @@ object Mods {
     //    integration.rotarycraft.ModRotaryCraft,
     //    integration.stargatetech2.ModStargateTech2,
     //    integration.thaumcraft.ModThaumcraft,
+    //    integration.thaumicenergistics.ModThaumicEnergistics,
     //    integration.thermalexpansion.ModThermalExpansion,
     integration.tis3d.ModTIS3D,
     //    integration.tcon.ModTinkersConstruct,
@@ -219,6 +221,7 @@ object Mods {
     final val RotaryCraft = "RotaryCraft"
     final val StargateTech2 = "StargateTech2"
     final val Thaumcraft = "Thaumcraft"
+    final val ThaumicEnergistics = "thaumicenergistics"
     final val ThermalExpansion = "ThermalExpansion"
     final val TinkersConstruct = "TConstruct"
     final val TIS3D = "tis3d"

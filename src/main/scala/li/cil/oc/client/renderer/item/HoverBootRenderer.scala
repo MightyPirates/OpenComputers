@@ -91,6 +91,8 @@ object HoverBootRenderer extends ModelBiped {
   bipedRightArm.isHidden = true
   bipedLeftArm.isHidden = true
 
+  var lightColor = 0x66DD55
+
   override def render(entity: Entity, f0: Float, f1: Float, f2: Float, f3: Float, f4: Float, f5: Float): Unit = {
     // Because Forge is being a dummy...
     isSneak = entity.isSneaking
@@ -103,10 +105,12 @@ object HoverBootRenderer extends ModelBiped {
     override def render(dt: Float): Unit = {
       GlStateManager.pushAttrib()
       GlStateManager.disableLighting()
-      RenderHelper.disableStandardItemLighting()
       GlStateManager.depthFunc(GL11.GL_LEQUAL)
       GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
-      GlStateManager.color(0x66 / 255f, 0xDD / 255f, 0x55 / 255f)
+      val r = ((lightColor >>> 16) & 0xFF) / 255f
+      val g = ((lightColor >>> 8) & 0xFF) / 255f
+      val b = ((lightColor >>> 0) & 0xFF) / 255f
+      GlStateManager.color(r, g, b)
 
       super.render(dt)
 
