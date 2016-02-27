@@ -59,7 +59,7 @@ object RackMountableRenderHandler {
         RenderState.disableEntityLighting()
         RenderState.makeItBlend()
 
-        e.renderOverlay(Textures.Block.RackDiskDriveActivity)
+        e.renderOverlayFromAtlas(Textures.Block.RackDiskDriveActivity)
 
         RenderState.enableEntityLighting()
       }
@@ -70,16 +70,16 @@ object RackMountableRenderHandler {
       RenderState.makeItBlend()
 
       if (e.data.getBoolean("isRunning")) {
-        e.renderOverlay(Textures.Block.RackServerOn)
+        e.renderOverlayFromAtlas(Textures.Block.RackServerOn)
       }
       if (e.data.getBoolean("hasErrored") && RenderUtil.shouldShowErrorLight(e.rack.hashCode * (e.mountable + 1))) {
-        e.renderOverlay(Textures.Block.RackServerError)
+        e.renderOverlayFromAtlas(Textures.Block.RackServerError)
       }
       if (System.currentTimeMillis() - e.data.getLong("lastFileSystemAccess") < 400 && e.rack.world.rand.nextDouble() > 0.1) {
-        e.renderOverlay(Textures.Block.RackServerActivity)
+        e.renderOverlayFromAtlas(Textures.Block.RackServerActivity)
       }
       if ((System.currentTimeMillis() - e.data.getLong("lastNetworkActivity") < 300 && System.currentTimeMillis() % 200 > 100) && e.data.getBoolean("isRunning")) {
-        e.renderOverlay(Textures.Block.RackServerNetworkActivity)
+        e.renderOverlayFromAtlas(Textures.Block.RackServerNetworkActivity)
       }
 
       RenderState.enableEntityLighting()
@@ -89,13 +89,13 @@ object RackMountableRenderHandler {
       RenderState.disableEntityLighting()
       RenderState.makeItBlend()
 
-      e.renderOverlay(Textures.Block.RackTerminalServerOn)
+      e.renderOverlayFromAtlas(Textures.Block.RackTerminalServerOn)
       val countConnected = e.data.getTagList("keys", NBT.TAG_STRING).tagCount()
 
       if (countConnected > 0) {
         val u0 = 7 / 16f
         val u1 = u0 + (2 * countConnected - 1) / 16f
-        e.renderOverlay(Textures.Block.RackTerminalServerPresence, u0, u1)
+        e.renderOverlayFromAtlas(Textures.Block.RackTerminalServerPresence, u0, u1)
       }
 
       RenderState.enableEntityLighting()

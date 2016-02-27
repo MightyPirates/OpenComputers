@@ -138,6 +138,35 @@ public abstract class RackMountableRenderEvent extends Event {
          * @param u1      the upper end of the vertical area to render at.
          */
         public void renderOverlay(final ResourceLocation texture, final float u0, final float u1) {
+            Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
+            final Tessellator t = Tessellator.getInstance();
+            final WorldRenderer r = t.getWorldRenderer();
+            r.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+            r.pos(u0, v1, 0).tex(u0, v1).endVertex();
+            r.pos(u1, v1, 0).tex(u1, v1).endVertex();
+            r.pos(u1, v0, 0).tex(u1, v0).endVertex();
+            r.pos(u0, v0, 0).tex(u0, v0).endVertex();
+            t.draw();
+        }
+
+        /**
+         * Utility method for rendering an atlas texture as the front-side overlay.
+         *
+         * @param texture the atlas texture to use to render the overlay.
+         */
+        public void renderOverlayFromAtlas(final ResourceLocation texture) {
+            renderOverlayFromAtlas(texture, 0, 1);
+        }
+
+        /**
+         * Utility method for rendering an atlas texture as the front-side overlay
+         * over a specified horizontal area.
+         *
+         * @param texture the atlas texture to use to render the overlay.
+         * @param u0      the lower end of the vertical area to render at.
+         * @param u1      the upper end of the vertical area to render at.
+         */
+        public void renderOverlayFromAtlas(final ResourceLocation texture, final float u0, final float u1) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
             final TextureAtlasSprite icon = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(texture.toString());
             final Tessellator t = Tessellator.getInstance();
