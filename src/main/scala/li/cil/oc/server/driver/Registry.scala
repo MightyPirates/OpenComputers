@@ -10,10 +10,12 @@ import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
 import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -37,6 +39,8 @@ import scala.math.ScalaNumber
 private[oc] object Registry extends api.detail.DriverAPI {
   val blocks = mutable.ArrayBuffer.empty[api.driver.Block]
 
+  val sidedBlocks = mutable.ArrayBuffer.empty[api.driver.SidedBlock]
+
   val items = mutable.ArrayBuffer.empty[api.driver.Item]
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
@@ -58,9 +62,17 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
+  override def add(driver: api.driver.SidedBlock) {
+    if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
+    if (!sidedBlocks.contains(driver)) {
+      OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
+      sidedBlocks += driver
+    }
+  }
+
   override def add(driver: api.driver.Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.contains(driver)) {
+    if (!items.contains(driver)) {
       OpenComputers.log.debug(s"Registering item driver ${driver.getClass.getName}.")
       items += driver
     }
@@ -90,9 +102,21 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  override def driverFor(world: World, x: Int, y: Int, z: Int) =
-    blocks.filter(_.worksWith(world, x, y, z)) match {
-      case drivers if drivers.nonEmpty => new CompoundBlockDriver(drivers: _*)
+  // TODO Remove in OC 1.7
+  override def driverFor(world: World, x: Int, y: Int, z: Int) = {
+    driverFor(world, x, y, z, ForgeDirection.UNKNOWN) match {
+      case driver: api.driver.SidedBlock => new api.driver.Block {
+        override def worksWith(world: World, x: Int, y: Int, z: Int): Boolean = driver.worksWith(world, x, y, z, ForgeDirection.UNKNOWN)
+
+        override def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment = driver.createEnvironment(world, x, y, z, ForgeDirection.UNKNOWN)
+      }
+      case _ => null
+    }
+  }
+
+  override def driverFor(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    (sidedBlocks.filter(_.worksWith(world, x, y, z, side)), blocks.filter(_.worksWith(world, x, y, z))) match {
+      case (sidedDrivers, drivers) if sidedDrivers.nonEmpty || drivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray, drivers.toArray)
       case _ => null
     }
 

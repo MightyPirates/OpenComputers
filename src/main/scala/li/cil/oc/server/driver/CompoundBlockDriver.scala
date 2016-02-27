@@ -9,12 +9,19 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
-class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = {
-    val list = blocks.map {
+// TODO Remove blocks in OC 1.7.
+class CompoundBlockDriver(val sidedBlocks: Array[driver.SidedBlock], val blocks: Array[driver.Block]) extends driver.SidedBlock {
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = {
+    val list = sidedBlocks.map {
+      driver => Option(driver.createEnvironment(world, x, y, z, side)) match {
+        case Some(environment) => (driver.getClass.getName, environment)
+        case _ => null
+      }
+    } ++ blocks.map {
       driver => Option(driver.createEnvironment(world, x, y, z)) match {
-        case Some(environment) => (driver, environment)
+        case Some(environment) => (driver.getClass.getName, environment)
         case _ => null
       }
     } filter (_ != null)
@@ -22,10 +29,10 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     else new CompoundBlockEnvironment(cleanName(tryGetName(world, x, y, z, list.map(_._2))), list: _*)
   }
 
-  override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))
+  override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = sidedBlocks.forall(_.worksWith(world, x, y, z, side)) && blocks.forall(_.worksWith(world, x, y, z))
 
   override def equals(obj: Any) = obj match {
-    case multi: CompoundBlockDriver if multi.blocks.length == blocks.length => blocks.intersect(multi.blocks).length == blocks.length
+    case multi: CompoundBlockDriver if multi.sidedBlocks.length == sidedBlocks.length && multi.blocks.length == blocks.length => sidedBlocks.intersect(multi.sidedBlocks).length == sidedBlocks.length && blocks.intersect(multi.blocks).length == blocks.length
     case _ => false
   }
 
