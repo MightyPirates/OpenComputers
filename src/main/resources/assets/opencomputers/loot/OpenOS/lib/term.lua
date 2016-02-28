@@ -1,833 +1,490 @@
-local component = require("component")
-local computer = require("computer")
-local event = require("event")
-local keyboard = require("keyboard")
-local text = require("text")
 local unicode = require("unicode")
+local event = require("event")
+local process = require("process")
+local kb = require("keyboard")
+local keys = kb.keys
 
 local term = {}
-local methods = {}
+term.internal = {}
 
-local validateFocus
-local metatable = {
-  __index = methods,
-  __pairs = function(self)
-    return function(_, k)
-      return next(methods, k)
-    end, self, nil
-  end
-}
-
---allows collection of windows with enabled cursor blink
---timer id -> window
-term.__blinking = setmetatable({}, {__mode = "v"})
-
---screen address -> window
-term.__focus = setmetatable({}, {__mode = "v"})
-term.__nextFocus = setmetatable({}, {__mode = "v"})
---window -> screen address
-term.__usedScreen = setmetatable({}, {__mode = "k"})
---
-term.__knownWindows = setmetatable({}, {
-  __mode = "v",
-  __index = function(t, k)
-    local v = setmetatable({}, {__mode = "v"})
-    t[k] = v
-    return v
-  end,
-})
-
-local function register(self, address)
-  local state = self.__state
-  if address then
-    state.neighbors = term.__knownWindows[address]
-    table.insert(state.neighbors, self)
-  else
-    state.neighbors = {self}
-  end
+function term.internal.window()
+  return process.info().data.window
 end
 
-local function unregister(self, address)
-  local state = self.__state
-  local i, n = 1, #state.neighbors
-  for i = 1, n do
-    if state.neighbors[i] == self then
-      table.remove(state.neighbors, i)
-      break
-    end
-  end
-  state.neighbors = nil
-end
+local W = term.internal.window
 
-local function setFocus(self, screenAddress)
-  if screenAddress and term.__focus[screenAddress] ~= self and term.__nextFocus[screenAddress] ~= self then
-    term.__focus[screenAddress] = nil
-    term.__nextFocus[screenAddress] = self
-    computer.pushSignal("term_focus", screenAddress)
-  end
-end
+local local_env = {unicode=unicode,event=event,process=process,W=W,kb=kb}
 
-validateFocus = function(self, address)
-  local oldAddress = term.__usedScreen[self]
-  if oldAddress ~= address then
-    self:unfocus()
-    unregister(self, oldAddress)
-    term.__usedScreen[self] = address
-    register(self, address)
-  end
-  if address then
-    if term.__focus[address] == nil and term.__nextFocus[address] == nil then
-      setFocus(self, address)
-    end
-  end
-end
-
-local function gpu(self)
-  local state = self.__state
-  return state.gpu or (component.isAvailable("gpu") and component.gpu) or nil
-end
-
-local function getScreenAddress(self)
-  if gpu(self) then
-    local ok, address = pcall(gpu(self).getScreen)
-    if ok then
-      validateFocus(self, address)
-      return address
-    end
-    validateFocus(self, nil)
-  end
-end
-
-local function toggleBlink(self)
-  local state = self.__state
-  local cursorBlink = state.cursorBlink
-  local screenAddress = getScreenAddress(self)
-  if screenAddress then
-    local currentFocus = term.__focus[screenAddress]
-    local isInFocus = (currentFocus == self or currentFocus == nil)
-    cursorBlink.state = not cursorBlink.state
-    local x, y, w, h = self:getGlobalArea()
-    local cursorX, cursorY = state.cursorX, state.cursorY
-    if cursorX < 1 or cursorY < 1 or cursorX > w or cursorY > h then
-      return
-    end
-    local xAbs, yAbs = x + cursorX - 1, y + cursorY - 1
-    if cursorBlink.state then
-      local char = isInFocus and unicode.char(0x2588) or unicode.char(0x2592) -- solid block or medium shade
-      cursorBlink.alt = gpu(self).get(xAbs, yAbs) or cursorBlink.alt
-      gpu(self).set(xAbs, yAbs, string.rep(char, unicode.charWidth(cursorBlink.alt)))
-    else
-      gpu(self).set(xAbs, yAbs, cursorBlink.alt)
-    end
-  end
-end
-
-term.__keyboardToScreen = {}
-term.__screenToKeyboard = {}
-
--------------------------------------------------------------------------------
-
-function term.newWindow(x, y, width, height, gpu)
-  checkArg(1, x, "number", "nil")
-  checkArg(2, y, "number", "nil")
-  checkArg(3, width, "number", "nil")
-  checkArg(4, height, "number", "nil")
-  checkArg(5, gpu, "table", "nil")
-  local window = setmetatable({}, metatable)
-  window.__state = {
-    x = x or 1,
-    y = y or 1,
-    width = width or -1,
-    height = height or -1,
-    gpu = gpu,
-    cursorX = 1, cursorY = 1,
-    cursorBlink = nil,
-    neighbors = {window},
-  }
+function term.internal.open(dx, dy, w, h)
+  local window = {x=1,y=1,dx=dx or 0,dy=dy or 0,w=w,h=h,blink=true}
   return window
 end
 
-local defaultWindow = term.newWindow()
+function term.getViewport(window)
+  window = window or W()
+  return window.w, window.h, window.dx, window.dy, window.x, window.y
+end
 
-function term.setWindow(newWindow)
-  checkArg(1, newWindow, "table")
-  local info = require("process").info()
-  local oldWindow
-  if info then
-    local data = info.data
-    oldWindow = data.term_window
-    data.term_window = newWindow
-  else
-    oldWindow = defaultWindow
-    defaultWindow = newWindow
+function term.gpu(window)
+  window = window or W()
+  return window.gpu
+end
+
+function term.clear()
+  local w = W()
+  local gpu = w.gpu
+  if not gpu then return end
+  gpu.fill(1+w.dx,1+w.dy,w.w,w.h," ")
+  w.x,w.y=1,1
+end
+
+function term.isAvailable(w)
+  w = w or W()
+  return not not (w.gpu and w.screen)
+end
+
+function term.internal.pull(input, c, off, p, ...)
+  local w=W()
+  local d,h,dx,dy,x,y=term.getViewport(w)
+  local out = (x<1 or x>d or y<1 or y>h)
+  if not w.blink or (not input and out) or type(p) == "number" then
+    return event.pull(p,...)
   end
-  return oldWindow
-end
-
-function term.getWindow()
-  local info = require("process").info()
-  if info then
-    local data = info.data
-    if data.term_window then
-      return data.term_window
-    end
+  local gpu=w.gpu
+  if out then
+    input:move(0)
+    y=w.y
+    input:scroll()
   end
-  return defaultWindow
-end
-
-
-function methods:setArea(x, y, width, height)
-  checkArg(1, x, "number")
-  checkArg(2, y, "number")
-  checkArg(3, width, "number")
-  checkArg(4, height, "number")
-  assert(x ~= 0 and y ~= 0 and width ~= 0 and height ~= 0, "Nonzero arguments only!")
-  
-  local state = self.__state
-  local oldX, oldY, oldWidth, oldHeight = state.x, state.y, state.width, state.height
-  state.x, state.y, state.width, state.height = x, y, width, height
-  return oldX, oldY, oldWidth, oldHeight
-end
-
-function methods:getArea()
-  local state = self.__state
-  return state.x, state.y, state.width, state.height
-end
-
-function methods:setGPU(newGPU)
-  local state = self.__state
-  local oldGPU = state.gpu
-  state.gpu = newGPU
-  return oldGPU
-end
-
-function methods:getGPU()
-  local state = self.__state
-  return state.gpu, gpu(self)
-end
-
-local function getAbsolute(pos, size)
-  if pos < 0 then
-    pos = size + pos + 1
+  x,y=w.x+dx,w.y+dy
+  c=c or {gpu.getBackground(),gpu.getForeground(),gpu.get(x,y)}
+  if not off then
+    gpu.setForeground(c[1])
+    gpu.setBackground(c[2])
   end
-  return math.min(math.max(pos, 1), size)
+  gpu.set(x,y,c[3])
+  gpu.setForeground(c[2])
+  gpu.setBackground(c[1])
+  local a={pcall(event.pull,0.5,p,...)}
+  if #a>1 then
+    gpu.set(x,y,c[3])
+    return select(2,table.unpack(a))
+  end
+  return term.internal.pull(input,c,not off,p,...)
 end
 
-function methods:getGlobalArea(w, h)
-  checkArg(1, w, "number", "nil")
-  checkArg(2, h, "number", "nil")
-  local state = self.__state
-  if not w or not h then
-    if gpu(self) then
-      w, h = gpu(self).getViewport()
-      validateFocus(self, gpu(self).getScreen())
-    end
-  end
-  if not w then
-    return
-  end
-  local x, y = getAbsolute(state.x, w), getAbsolute(state.y, h)
-  local wMax, hMax = w - x + 1, h - y + 1
-  return x, y, getAbsolute(state.width, wMax), getAbsolute(state.height, hMax)
+function term.pull(...)
+  return term.internal.pull(nil,nil,nil,...)
 end
 
-
-function methods:toGlobal(x, y)
-  checkArg(1, x, "number")
-  checkArg(2, y, "number")
-  local dx, dy = self:getGlobalArea()
-  if dx then
-    return x + dx - 1, y + dy - 1
-  end
-end
-function methods:toLocal(x, y)
-  checkArg(1, x, "number")
-  checkArg(2, y, "number")
-  local dx, dy = self:getGlobalArea()
-  if dx then
-    return x - dx + 1, y - dy + 1
-  end
+function term.read(history,dobreak,hintHandler,pwchar,filter)
+  if not io.stdin.tty then return io.read() end
+  local ops = history or {}
+  ops.dobreak = ops.dobreak or dobreak
+  ops.hintHandler = ops.hintHandler or hintHandler
+  ops.pwchar = ops.pwchar or pwchar
+  ops.filter = ops.filter or filter
+  return term.readKeyboard(ops)
 end
 
-function methods:clear()
-  local state = self.__state
-  local x, y, w, h = self:getGlobalArea()
-  if x then
-    gpu(self).fill(x, y, w, h, " ")
-  end
-  state.cursorX, state.cursorY = 1, 1
+function term.internal.split(input)
+  local data,index=input.data,input.index
+  local dlen = unicode.len(data)
+  index=math.max(0,math.min(index,dlen))
+  local tail=dlen-index
+  return unicode.sub(data,1,index),tail==0 and""or unicode.sub(data,-tail)
 end
 
-function methods:reset()
-  if self:isAvailable() then
-    local maxw, maxh = gpu(self).maxResolution()
-    gpu(self).setResolution(maxw, maxh)
-    gpu(self).setBackground(0x000000)
-    gpu(self).setForeground(0xFFFFFF)
-    self:clear()
+function term.internal.build_vertical_reader(input)
+  input.sy = 0
+  input.scroll = function(_)
+    _.sy = _.sy + term.internal.scroll(_.w)
+    _.w.y = math.min(_.w.y,_.w.h)
   end
-end
-
-function methods:clearLine()
-  local state = self.__state
-  local x, y, w, h = self:getGlobalArea()
-  if x then
-    gpu(self).fill(x, state.cursorY + y - 1, w, 1, " ")
-  end
-  state.cursorX = 1
-end
-
-function methods:getCursor()
-  local state = self.__state
-  return state.cursorX, state.cursorY
-end
-
-function methods:setCursor(col, row)
-  checkArg(1, col, "number")
-  checkArg(2, row, "number")
-  local state = self.__state
-  local cursorBlink = state.cursorBlink
-  if cursorBlink and cursorBlink.state then
-    toggleBlink(self)
-  end
-  state.cursorX = math.floor(col)
-  state.cursorY = math.floor(row)
-  local wide, right = self:isWide(state.cursorX, state.cursorY)
-  if wide and right then
-    state.cursorX = state.cursorX - 1
-  end
-end
-
-function methods:getCursorBlink()
-  local state = self.__state
-  return state.cursorBlink ~= nil
-end
-
-function methods:setCursorBlink(enabled)
-  checkArg(1, enabled, "boolean")
-  local state = self.__state
-  local cursorBlink = state.cursorBlink
-  if enabled then
-    if not cursorBlink then
-      cursorBlink = {}
-      cursorBlink.id = event.timer(0.5, function() toggleBlink(term.__blinking[cursorBlink.id]) end, math.huge)
-      term.__blinking[cursorBlink.id] = self
-      cursorBlink.state = false
-    elseif not cursorBlink.state then
-      toggleBlink(self)
-    end
-  elseif cursorBlink then
-    term.__blinking[cursorBlink.id] = nil
-    event.cancel(cursorBlink.id)
-    if cursorBlink.state then
-      toggleBlink(self)
-    end
-    cursorBlink = nil
-  end
-  state.cursorBlink = cursorBlink
-end
-
-function methods:isWide(x, y)
-  local xWin, yWin, wWin, hWin = self:getGlobalArea()
-  if xWin == nil then
-    return false
-  end
-  if x < 1 or x > wWin or y < 1 or y > hWin then
-    return false
-  end
-  x = x + xWin - 1
-  y = y + yWin - 1
-  local char = gpu(self).get(x, y)
-  if unicode.isWide(char) then
-    -- The char at the specified position is a wide char.
-    return true
-  end
-  if char == " " and x > xWin then
-    local charLeft = gpu(self).get(x - 1, y)
-    if charLeft and unicode.isWide(charLeft) then
-      -- The char left to the specified position is a wide char.
-      return true, true
-    end
-  end
-  -- Not a wide char.
-  return false
-end
-
-function methods:isAvailable()
-  if getScreenAddress(self) then
-    return true
-  end
-  return false
-end
-
-function methods:focus()
-  setFocus(self, getScreenAddress(self))
-end
-
-function methods:unfocus()
-  local screenAddress = term.__usedScreen[self]
-  if screenAddress then
-    if term.__focus[screenAddress] == self or term.__nextFocus[screenAddress] == self then
-      term.__focus[screenAddress] = nil
-      term.__nextFocus[screenAddress] = nil
-      self:focusNext()
-    end
-  end
-end
-
-function methods:focusNext()
-  local state = self.__state
-  local i, n = 1, #state.neighbors
-  if n > 1 then
-    for i = 1, n do
-      if state.neighbors[i] == self then
-        state.neighbors[(i % n) + 1]:focus()
+  input.move = function(_,n)
+    local w=_.w
+    _.index = math.min(math.max(0,_.index+n),unicode.len(_.data))
+    local s1,s2 = term.internal.split(_)
+    s2 = unicode.sub(s2.." ",1,1)
+    local data_remaining = ("_"):rep(_.promptx-1)..s1..s2
+    w.y = _.prompty - _.sy
+    while true do
+      local wlen_remaining = unicode.wlen(data_remaining)
+      if wlen_remaining > w.w then
+        local line_cut = unicode.wtrunc(data_remaining, w.w+1)
+        data_remaining = unicode.sub(data_remaining,unicode.len(line_cut)+1)
+        w.y=w.y+1
+      else
+        w.x = wlen_remaining-unicode.wlen(s2)+1
         break
       end
     end
   end
-end
-
-function methods:focusPrevious()
-  local state = self.__state
-  local i, n = 1, #state.neighbors
-  if n > 1 then
-    for i = 1, n do
-      if state.neighbors[i] == self then
-        state.neighbors[((i - 2) % n) + 1]:focus()
-        break
+  input.clear_tail = function(_)
+    local win=_.w
+    local oi,w,h,dx,dy,ox,oy = _.index,term.getViewport(win)
+    _:move(math.huge)
+    local ex,ey=win.x,win.y
+    win.x,win.y,_.index=ox,oy,oi
+    x=oy==ey and ox or 1
+    win.gpu.fill(x+dx,ey+dy,w-x+1,1," ")
+  end
+  input.update = function(_,arg)
+    local w,cursor,suffix=_.w
+    local s1,s2=term.internal.split(_)
+    if type(arg) == "number" then
+      local ndata
+      if arg < 0 then if _.index<=0 then return end
+        _:move(-1)
+        ndata=unicode.wtrunc(s1,unicode.wlen(s1))..s2
+      else if _.index>=unicode.len(_.data) then return end
+        s2=unicode.sub(s2,2)
+        ndata=s1..s2
       end
-    end
-  end
-end
-
-function methods:hasFocus(screenAddress)
-  checkArg(1, screenAddress, "string", "nil")
-  screenAddress = screenAddress or getScreenAddress(self)
-  local keyboardAddress
-  if screenAddress then
-    keyboardAddress = term.__screenToKeyboard[screenAddress]
-    if not next(term.__focus) then
-      term.__focus[screenAddress] = self
-    end
-    if term.__focus[screenAddress] == self then
-      return true, screenAddress, keyboardAddress
-    end
-  end
-  return false, screenAddress, keyboardAddress
-end
-
-function methods:read(history, dobreak, hint, pwchar, filter)
-  checkArg(1, history, "table", "nil")
-  checkArg(3, hint, "function", "table", "nil")
-  checkArg(4, pwchar, "string", "nil")
-  checkArg(5, filter, "string", "function", "nil")
-  history = history or {}
-  table.insert(history, "")
-
-  local state = self.__state
-  local offset = self:getCursor() - 1
-  local scrollX = 0
-  local textCursorX = 1
-  local historyIndex = #history
-
-  if type(hint) == "table" then
-    local hintTable = hint
-    hint = function()
-      return hintTable
-    end
-  end
-  local hintCache, hintIndex
-  local redraw
-
-  if pwchar and unicode.len(pwchar) > 0 then
-    pwchar = unicode.sub(pwchar, 1, 1)
-  end
-
-  if type(filter) == "string" then
-    local pattern = filter
-    filter = function(line)
-      return line:match(pattern)
-    end
-  end
-
-  local function masktext(str)
-    return pwchar and pwchar:rep(unicode.len(str)) or str
-  end
-
-  local function getTextCursor()
-    return textCursorX
-  end
-  
-  local function getHistoryIndex()
-    return historyIndex
-  end
-  
-  local function setHistoryIndex(newIndex)
-    historyIndex = newIndex
-  end
-
-  local function line()
-    return history[getHistoryIndex()]
-  end
-
-  local function clearHint()
-    hintCache = nil
-  end
-
-  local function setTextCursor(newCursor)
-    local x, y, w, h = self:getGlobalArea()
-    local termCursorX, termCursorY = self:getCursor()
-    local str = line() .. " "
-    
-    textCursorX = math.max(1, math.min(unicode.len(str), newCursor))
-    
-    while offset + unicode.wlen(unicode.sub(str, 1 + scrollX, textCursorX)) > w do
-      scrollX = scrollX + 1
-    end
-    if textCursorX <= scrollX then
-      scrollX = textCursorX - 1
-    end
-    termCursorX = offset + unicode.wlen(unicode.sub(str, 1 + scrollX, textCursorX - 1)) + 1
-    
-    self:setCursor(termCursorX, termCursorY)
-    redraw()
-    clearHint()
-  end
-
-  local function copyIfNecessary()
-    local index = getHistoryIndex()
-    if index ~= #history then
-      history[#history] = line()
-      setHistoryIndex(#history)
-    end
-  end
-
-  redraw = function()
-    local _, termCursorY = self:getCursor()
-    local x, y, w, h = self:getGlobalArea()
-    local l = w - offset
-    local str = history[getHistoryIndex()]
-    str = masktext(unicode.sub(str, scrollX + 1, scrollX + l))
-    str = (unicode.wlen(str) > l) and unicode.wtrunc(str, l + 1) or str
-    str = text.padRight(str, l)
-    gpu(self).set(x + offset, termCursorY + y - 1, str)
-  end
-
-  local function home()
-    setTextCursor(1)
-  end
-
-  local function ende()
-    setTextCursor(unicode.len(line()) + 1)
-  end
-
-  local function left()
-    local cursorX = getTextCursor()
-    if cursorX > 1 then
-      setTextCursor(cursorX - 1)
-      return true -- for backspace
-    end
-  end
-
-  local function right(n)
-    n = n or 1
-    local cursorX = getTextCursor()
-    local maxX = unicode.len(line()) + 1
-    if cursorX < maxX then
-      setTextCursor(math.min(maxX, cursorX + n))
-    end
-  end
-
-  local function up()
-    local index = getHistoryIndex()
-    if index > 1 then
-      setHistoryIndex(index - 1)
-      redraw()
-      ende()
-    end
-  end
-
-  local function down()
-    local index = getHistoryIndex()
-    if index < #history then
-      setHistoryIndex(index + 1)
-      redraw()
-      ende()
-    end
-  end
-
-  local function delete()
-    copyIfNecessary()
-    clearHint()
-    local cursorX = getTextCursor()
-    local index = getHistoryIndex()
-    if cursorX <= unicode.len(line()) then
-      history[index] = unicode.sub(line(), 1, cursorX - 1) ..
-                       unicode.sub(line(), cursorX + 1)
-      redraw()
-    end
-  end
-
-  local function insert(value)
-    copyIfNecessary()
-    clearHint()
-    local cursorX = getTextCursor()
-    local index = getHistoryIndex()
-    history[index] = unicode.sub(line(), 1, cursorX - 1) ..
-                     value ..
-                     unicode.sub(line(), cursorX)
-    right(unicode.len(value))
-  end
-
-  local function tab(direction)
-    local cursorX = getTextCursor()
-    local historyIndex = getHistoryIndex()
-    if not hintCache then -- hint is never nil, see onKeyDown
-      local full_line = line()
-      hintCache = hint(full_line, cursorX)
-      hintIndex = 0
-      if type(hintCache) == "string" then
-        hintCache = {hintCache}
-      end
-      if type(hintCache) ~= "table" or #hintCache < 1 then
-        hintCache = nil -- invalid hint
-      else
-        hintCache.trail = full_line:len() - cursorX -- zero when at end of line
-      end
-    end
-    if hintCache then
-      hintIndex = (hintIndex + direction + #hintCache - 1) % #hintCache + 1
-      history[historyIndex] = tostring(hintCache[hintIndex])
-      -- because all other cases of the cursor being moved will result
-      -- in the hint cache getting invalidated we do that in setCursor,
-      -- so we have to back it up here to restore it after moving.
-      local savedCache = hintCache
-      redraw()
-      ende()
-      setTextCursor(getTextCursor()-savedCache.trail-1)
-      if #savedCache > 1 then -- stop if only one hint exists.
-        hintCache = savedCache
-      end
-    end
-  end
-
-  local function onKeyDown(keyboardAddress, char, code)
-    self:setCursorBlink(false)
-    if code == keyboard.keys.back then
-      if left() then delete() end
-    elseif code == keyboard.keys.delete then
-      delete()
-    elseif code == keyboard.keys.left then
-      left()
-    elseif code == keyboard.keys.right then
-      right()
-    elseif code == keyboard.keys.home then
-      home()
-    elseif code == keyboard.keys["end"] then
-      ende()
-    elseif code == keyboard.keys.up then
-      up()
-    elseif code == keyboard.keys.down then
-      down()
-    elseif code == keyboard.keys.tab then
-      if not keyboard.isControlDown(keyboardAddress) and hint then
-        tab(keyboard.isShiftDown(keyboardAddress) and -1 or 1)
-      end
-    elseif code == keyboard.keys.enter then
-      if not filter or filter(line() or "") then
-        local index = getHistoryIndex()
-        if index ~= #history then -- bring entry to front
-          history[#history] = line()
-          table.remove(history, index)
-        end
-        return true, history[#history] .. "\n"
-      else
-        computer.beep(2000, 0.1)
-      end
-    elseif keyboard.isControlDown(keyboardAddress) and code == keyboard.keys.d then
-      if line() == "" then
-        history[#history] = ""
-        return true, nil
-      end
-    elseif not keyboard.isControl(char) then
-      insert(unicode.char(char))
-    end
-    self:setCursorBlink(true)
-    self:setCursorBlink(true) -- force toggle to caret
-  end
-
-  local function onClipboard(value)
-    copyIfNecessary()
-    self:setCursorBlink(false)
-    local cursorX = getTextCursor()
-    local index = getHistoryIndex()
-    local l = value:find("\n", 1, true)
-    if l then
-      history[index] = unicode.sub(line(), 1, cursorX - 1)
-      redraw()
-      insert(unicode.sub(value, 1, l - 1))
-      return true, line() .. "\n"
+      suffix=s2
+      input:clear_tail()
+      _.data = ndata
     else
-      insert(value)
-      self:setCursorBlink(true)
-      self:setCursorBlink(true) -- force toggle to caret
+      _.data=s1..arg..s2
+      _.index=_.index+unicode.len(arg)
+      cursor,suffix=arg,s2
+    end
+    if cursor then _:draw(_.mask(cursor)) end
+    if suffix and suffix~="" then
+      local px,py,ps=w.x,w.y,_.sy
+      _:draw(_.mask(suffix))
+      w.x,w.y=px,py-(_.sy-ps)
     end
   end
-  
-  local function onTouch(x, y)
-    local xWin, yWin, wWin, hWin = self:getGlobalArea()
-    x = x - xWin + 1
-    y = y - yWin + 1
-    if x > 0 and y > 0 and x <= wWin and y <= hWin then
-      local _, termCursorY = self:getCursor()
-      if y == termCursorY and x > offset then
-        local l = wWin - offset
-        local str = history[getHistoryIndex()]
-        str = masktext(unicode.sub(str, scrollX + 1, scrollX + l))
-        str = (unicode.wlen(str) >= x - offset) and unicode.wtrunc(str, x - offset) or str
-        setTextCursor(scrollX + 1 + unicode.len(str))
-      end
-    end
+  input.clear = function(_)
+    _:move(-math.huge)
+    _:draw((" "):rep(unicode.wlen(_.data)))
+    _:move(-math.huge)
+    _.index=0
+    _.data=""
   end
-
-  local function cleanup()
-    if history[#history] == "" then
-      table.remove(history)
-    end
-    self:setCursorBlink(false)
-    if self:getCursor() > 1 and dobreak ~= false then
-      self:write("\n")
-    end
+  input.draw = function(_,text)
+    _.sy = _.sy + term.drawText(text,true)
   end
-
-  self:setCursorBlink(true)
-  while self:isAvailable() do
-    local ok, name, address, charOrValueOrX, codeOrY = pcall(event.pull)
-    if not ok then
-      cleanup()
-      error("interrupted", 0)
-    end
-    if name == "interrupted" then
-      cleanup()
-      return nil
-    end
-    local isInFocus, screenAddress, keyboardAddress = self:hasFocus()
-    --screen may have changed since pull
-    if isInFocus and type(address) == "string" then
-      local done, result
-      if address == screenAddress then
-        if name == "touch" then
-          done, result = onTouch(charOrValueOrX, codeOrY)
-        end
-      elseif address == keyboardAddress then
-        if isInFocus then
-          if name == "key_down" then
-            done, result = onKeyDown(address, charOrValueOrX, codeOrY)
-          elseif name == "clipboard" then
-            done, result = onClipboard(charOrValueOrX)
-          end
-        end
-      end
-
-      if done then
-        cleanup()
-        return result
-      end
-    end
-  end
-  cleanup()
-  return nil -- fail the read if term becomes unavailable
 end
 
-function methods:write(value, wrap)
+function term.internal.read_history(history,input,change)
+  if not change then
+    if unicode.wlen(input.data) > 0 then
+      table.insert(history.list,1,input.data)
+      history.list[(tonumber(os.getenv("HISTSIZE")) or 10)+1]=nil
+      history.list[0]=nil
+    end
+  else
+    local ni = history.index + change
+    if ni >= 0 and ni <= #history.list then
+      history.list[history.index]=input.data
+      history.index = ni
+      input:clear()
+      input:update(history.list[ni])
+    end
+  end
+end
+
+function term.readKeyboard(ops)
+  checkArg(1,ops,"table")
+  local filter = ops.filter and function(i) return term.internal.filter(ops.filter,i) end or term.internal.nop
+  local pwchar = ops.pwchar and function(i) return term.internal.mask(ops.pwchar,i) end or term.internal.nop
+  local history,db,hints={list=ops,index=0},ops.dobreak,{handler=ops.hintHandler,cache={}}
+  term.setCursorBlink(true)
+  local w=W()
+  local draw=io.stdin.tty and term.drawText or term.internal.nop
+  local input={w=w,promptx=w.x,prompty=w.y,index=0,data="",mask=pwchar}
+  if ops.nowrap then
+    term.internal.build_horizontal_reader(input)
+  else
+    term.internal.build_vertical_reader(input)
+  end
+  while true do
+    local c = nil
+    local name, address, char, code = term.internal.pull(input)
+    hints.cache=char==9 and hints.cache or nil
+    if name =="interrupted" then draw("^C\n",true) return ""
+    elseif name=="touch" or name=="drag" then term.internal.onTouch(input,char,code)
+    elseif name=="clipboard" then c=char
+    elseif name=="key_down" then
+      if kb.isControlDown(address) and code == keys.d then return
+      elseif char==9 then term.internal.tab(input,hints)
+      elseif char==13 and filter(input) then
+        input:move(math.huge)
+        if db ~= false then draw("\n") end
+        term.internal.read_history(history,input)
+        return input.data.."\n"
+      elseif char==8 then
+        input:update(-1)
+      elseif code==keys.left then
+        input:move(-1)
+      elseif code==keys.right then
+        input:move(1)
+      elseif code==keys.up then
+        term.internal.read_history(history,input,1)
+      elseif code==keys.down then
+        term.internal.read_history(history,input,-1)
+      elseif code==keys.home then
+        input:move(-math.huge)
+      elseif code==keys["end"] then
+        input:move(math.huge)
+      elseif code==keys.delete then
+        input:update(0)
+      elseif char>=32 then
+        c=unicode.char(char)
+      end
+    end
+    if c then input:update(c) end
+  end
+end
+
+-- cannot use term.write = io.write because io.write invokes metatable
+function term.write(value,wrap)
   local stdout = io.output()
   local stream = stdout and stdout.stream
-  if stream then
-    local previous_wrap = stream.wrap
-    stream.wrap = wrap == nil and true or wrap
-    stdout:write(value)
-    stdout:flush()
-    stream.wrap = previous_wrap
-  end
+  local previous_wrap = stream.wrap
+  stream.wrap = wrap == nil and true or wrap
+  stdout:write(value)
+  stdout:flush()
+  stream.wrap = previous_wrap
 end
 
-function methods:debug(...)
-  local args = {...}
-  for _,v in ipairs(args) do
-    local s = v
-    if type(s) ~= 'string' then
-      local r = require('serialization').serialize(s,10000)
-      if type(s) == 'thread' then
-        r = string.format('%s{%s}',r,coroutine.status(s))
+function term.getCursor()
+  local w = W()
+  return w.x,w.y
+end
+
+function term.setCursor(x,y)
+  local w = W()
+  w.x,w.y=x,y
+end
+
+function term.drawText(value, wrap, window)
+  window = window or W()
+  local gpu = window.gpu
+  if not gpu then return end
+  local w,h,dx,dy,x,y = term.getViewport(window)
+  local sy = 0
+  local vlen = #value
+  local index = 1
+  local cr_last,beeped = false,false
+  local function scroll(_sy,_y)
+    return _sy + term.internal.scroll(window,_y-h), math.min(_y,h)
+  end
+  while index <= vlen do
+    local si,ei = value:find("[\t\r\n\a]", index)
+    si = si or vlen+1
+    if index==si then
+      local delim = value:sub(index, index)
+      if delim=="\t" then
+        x=((x-1)-((x-1)%8))+9
+      elseif delim=="\r" or (delim=="\n" and not cr_last) then
+        x,y=1,y+1
+        sy,y = scroll(sy,y)
+      elseif delim=="\a" and not beeped then
+        require("computer").beep()
+        beeped = true
       end
-      s = r
+      cr_last = delim == "\r"
+    else
+      sy,y = scroll(sy,y)
+      si = si - 1
+      local next = value:sub(index, si)
+      local wlen_needed = unicode.wlen(next)
+      local slen = #next
+      local wlen_remaining = w - x + 1
+      local clean_end = ""
+      if wlen_remaining < wlen_needed then
+        if type(wrap)=="number" then
+          next,wlen_needed,slen = term.internal.horizontal_push(x,y,window,wrap,next)
+        else
+          next = unicode.wtrunc(next, wlen_remaining + 1)
+          wlen_needed = unicode.wlen(next)
+          clean_end = (" "):rep(wlen_remaining-wlen_needed)
+        end
+      end
+      gpu.set(x+dx,y+dy,next..clean_end)
+      x = x + wlen_needed
+      if wrap and slen ~= #next then
+        si = si - (slen - #next)
+        x = 1
+        y = y + 1
+      end
     end
-    self:drawText(s,true)
-    if _ < #args then
-      self:drawText('\t',true)
-    end
+    index = si + 1
   end
-  self:drawText('\n',true)
+
+  window.x,window.y = x,y
+  return sy
 end
 
-function methods:drawText(value, wrap)
-  if not self:isAvailable() then
-    return
-  end
-  value = tostring(value):gsub("\0", "")
-  value = text.detab(value)
-  if unicode.wlen(value) == 0 then
-    return
-  end
-  do
-    local noBell = value:gsub("\a", "")
-    if #noBell ~= #value then
-      value = noBell
-      computer.beep()
-    end
-  end
-  local x, y, w, h = self:getGlobalArea()
-  if not w then
-    return -- gpu lost its screen but the signal wasn't processed yet.
-  end
-  local blink = self:getCursorBlink()
-  local state = self.__state
-  self:setCursorBlink(false)
-  local line, nl
-  repeat
-    local remainingWidth = w - (state.cursorX - 1)
-    local wrapAfter, margin = math.huge, math.huge
-    if wrap then
-      wrapAfter, margin = remainingWidth, w
-    end
-    line, value, nl = text.wrap(value, wrapAfter, margin)
-    line = (unicode.wlen(line) > remainingWidth) and unicode.wtrunc(line, remainingWidth + 1) or line
-    gpu(self).set(state.cursorX + x - 1, state.cursorY + y - 1, line)
-    state.cursorX = state.cursorX + unicode.wlen(line)
-    if nl or (state.cursorX > w and wrap) then
-      state.cursorX = 1
-      state.cursorY = state.cursorY + 1
-    end
-    if state.cursorY > h then
-      gpu(self).copy(x, y + 1, w, h - 1, 0, -1)
-      gpu(self).fill(x, h + y - 1, w, 1, " ")
-      state.cursorY = h
-    end
-  until not value
-  self:setCursorBlink(blink)
+function term.internal.scroll(w,n)
+  w = w or W()
+  local gpu,d,h,dx,dy,x,y = w.gpu,term.getViewport(w)
+  n = n or (y-h)
+  if n <= 0 then return 0 end
+  gpu.copy(dx+1,dy+n+1,d,h-n,0,-n)
+  gpu.fill(dx+1,dy+h-n+1,d,n," ")
+  return n
 end
 
--------------------------------------------------------------------------------
-
---Automaticly generate term library functions from window methods
-for k, v in pairs(methods) do
-  if type(v) == "function" then
-    term[k] = function(...)
-      local self = term.getWindow()
-      return self[k](self, ...)
-    end
-  end
+function term.internal.nop(...)
+  return ...
 end
 
-return term
+function term.setCursorBlink(enabled)
+  W().blink=enabled
+end
+
+function term.bind(gpu, screen, kb, window)
+  checkArg(1,gpu,"table")
+  checkArg(2,screen,"table")
+  checkArg(3,kb,"table","nil")
+  checkArg(4,window,"table","nil")
+  window = window or W()
+  window.gpu = gpu
+  window.screen = screen
+  window.keyboard = kb
+  window.gw,window.gh = gpu.getViewport()
+  window.w = math.min(window.gw - window.dx, window.w or window.gw)
+  window.h = math.min(window.gh - window.dy, window.h or window.gh)
+end
+
+function --[[@delayloaded-start@]] term.internal.horizontal_push(x,y,win,wrap,next)
+  local gpu,w,h,dx,dy = win.gpu,term.getViewport(win)
+  local wlen_needed = unicode.wlen(next)
+  local next_width = math.min(wlen_needed, w - wrap)
+  next = unicode.sub(next, -next_width)
+  wlen_needed = unicode.wlen(next)
+  local xdiff = x - (w - wlen_needed)
+  gpu.copy(wrap+xdiff+dx,y+dy,x-(wrap+xdiff),1,-xdiff,0)
+  return next,wlen_needed,#next
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] term.internal.onTouch(input,gx,gy)
+  input:move(math.huge)
+  local x2,y2,d = input.w.x,input.w.y-input.sy,input.w.w
+  input:move((gy*d+gx)-(y2*d+x2))
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] term.internal.build_horizontal_reader(input)
+  term.internal.build_vertical_reader(input)
+  input.clear_tail = function(_)
+    local w,h,dx,dy,x,y = term.getViewport(_.w)
+    local s1,s2=term.internal.split(_)
+    local wlen = math.min(unicode.wlen(s2),w-x+1)
+    _.w.gpu.fill(x,y,wlen,1," ")
+  end
+  input.move = function(_,n)
+    local win = _.w
+    local a = _.index
+    local b = math.max(0,math.min(unicode.len(_.data),_.index+n))
+    _.index = b
+    a,b = a<b and a or b,a<b and b or a
+    local wlen_moved = unicode.wlen(unicode.sub(_.data,a+1,b))
+    win.x = win.x + wlen_moved * (n<0 and -1 or 1)
+    _:scroll()
+  end
+  input.draw = function(_,text)
+    term.drawText(text,_.promptx)
+  end
+  input.scroll = function(_)
+    local win = _.w
+    local gpu,data,px,i = win.gpu,_.data,_.promptx,_.index
+    local w,h,dx,dy,x,y = term.getViewport(win)
+    win.x = math.max(_.promptx, math.min(w, x))
+    local len = unicode.len(data)
+    local available,sx,sy,last = w-px+1,px+dx,y+dy,i==len
+    if x > w then
+      local blank
+      if i == unicode.len(data) then
+        available,blank=available-1," "
+      else
+        i,blank=i+1,""
+      end
+      data = unicode.sub(data,1,i)
+      local rev = unicode.reverse(data)
+      local ending = unicode.wtrunc(rev, available+1)
+      local cut_wlen = unicode.wlen(data) - unicode.wlen(ending)
+      data = unicode.reverse(ending)
+      gpu.set(sx,sy,data..blank:rep(cut_wlen))
+      win.x=math.min(w,_.promptx+unicode.wlen(data))
+    elseif x < _.promptx then
+      data = unicode.sub(data,_.index+1)
+      if unicode.wlen(data) > available then
+        data = unicode.wtrunc(data,available+1)
+      end
+      gpu.set(sx,sy,data)
+    end
+  end
+  input.clear = function(_)
+    local win = _.w
+    local gpu,data,px=win.gpu,_.data,_.promptx
+    local w,h,dx,dy,x,y = term.getViewport(win)
+    _.index,_.data,win.x=0,"",px
+    gpu.fill(px+dx,y+dy,w-px+1,1," ")
+  end
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] term.clearLine(window)
+  window = window or W()
+  local w,h,dx,dy,x,y = term.getViewport(window)
+  window.gpu.fill(dx+1,dy+math.max(1,math.min(y,h)),w,1," ")
+  window.x=1
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] term.internal.mask(mask,input)
+  if not mask then return input end
+  if type(mask) == "function" then return mask(input) end
+  return mask:rep(unicode.wlen(input))
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] term.internal.filter(filter,input)
+  if not filter then return true
+  elseif type(filter) == "string" then return input:match(filter)
+  elseif filter(input) then return true
+  else require("computer").beep(2000, 0.1) end
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] term.internal.tab(input,hints)
+  if not hints.handler then return end
+  if not hints.cache then
+    hints.cache = type(hints.handler)=="table" and hints.handler
+      or hints.handler(input.data,input.index + 1) or {}
+    hints.cache.i=-1
+  end
+  local c=hints.cache
+  c.i=(c.i+1)%#c
+  local next=c[c.i+1]
+  if next then
+    local tail = unicode.wlen(input.data) - input.index - 1
+    input:clear()
+    input:update(next)
+    input:move(-tail)
+  end
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] term.getGlobalArea(window)
+  local w,h,dx,dy = term.getViewport(window)
+  return dx+1,dy+1,w,h
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] term.screen(window)
+  return (window or W()).screen
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] term.keyboard(window)
+  window = window or W()
+  local kba = window.keyboard and window.keyboard.address
+  if kba and kb.pressedCodes[kba] then return window.keyboard end
+  window.keyboard=nil
+  local component = require("component")
+  if not window.screen or not component.proxy(window.screen.address) then window.screen = nil return end
+  local kba = window.screen.getKeyboards()[1]
+  if not kba then return end
+  window.keyboard = component.proxy(kba)
+  return window.keyboard
+end --[[@delayloaded-end@]]
+
+return term, local_env

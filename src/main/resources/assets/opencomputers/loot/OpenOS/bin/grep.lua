@@ -14,9 +14,7 @@ local term = require("term")
 
 local args, options = shell.parse(...)
 
-local function gpu()
-  return select(2, term.getGPU())
-end
+local gpu = term.gpu()
 
 local function printUsage(ostream, msg)
   local s = ostream or io.stdout
@@ -111,8 +109,8 @@ local print_count = pop('c','count')
 local colorize = pop('color','colour') and io.output().tty and term.isAvailable()
 
 local noop = function(...)return ...;end
-local setc = colorize and gpu().setForeground or noop
-local getc = colorize and gpu().getForeground or noop
+local setc = colorize and gpu.setForeground or noop
+local getc = colorize and gpu.getForeground or noop
 
 local trim = pop('t','trim')
 local trim_front = trim and function(s)return s:gsub('^%s+','')end or noop

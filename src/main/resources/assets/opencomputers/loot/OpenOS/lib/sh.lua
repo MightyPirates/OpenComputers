@@ -24,63 +24,6 @@ local local_env = {event=event,fs=fs,process=process,shell=shell,term=term,text=
 
 -------------------------------------------------------------------------------
 
-function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
-local memoryStream = {}
-
-function memoryStream:close()
-  self.closed = true
-end
-
-function memoryStream:seek()
-  return nil, "bad file descriptor"
-end
-
-function memoryStream:read(n)
-  if self.closed then
-    return nil -- eof
-  end
-  if self.redirect.read then
-    -- popen could be using this code path
-    -- if that is the case, it is important to leave stream.buffer alone
-    return self.redirect.read:read(n)
-  elseif self.buffer == "" then
-    self.args = table.pack(coroutine.yield(table.unpack(self.result)))
-  end
-  local result = string.sub(self.buffer, 1, n)
-  self.buffer = string.sub(self.buffer, n + 1)
-  return result
-end
-
-function memoryStream:write(value)
-  if not self.redirect.write and self.closed then
-    -- if next is dead, ignore all writes
-    if coroutine.status(self.next) ~= "dead" then
-      error("attempt to use a closed stream")
-    end
-  elseif self.redirect.write then
-    return self.redirect.write:write(value)
-  elseif not self.closed then
-    self.buffer = self.buffer .. value
-    self.result = table.pack(coroutine.resume(self.next, table.unpack(self.args)))
-    if coroutine.status(self.next) == "dead" then
-      self:close()
-    end
-    if not self.result[1] then
-      error(self.result[2], 0)
-    end
-    table.remove(self.result, 1)
-    return self
-  end
-  return nil, 'stream closed'
-end
-
-  local stream = {closed = false, buffer = "",
-                  redirect = {}, result = {}, args = {}}
-  local metatable = {__index = memoryStream,
-                     __metatable = "memorystream"}
-  return setmetatable(stream, metatable)
-end --[[@delayloaded-end@]]
-
 --SH API
 
 sh.internal.globbers = {{"*",".*"},{"?","."}}
@@ -108,107 +51,6 @@ function sh.internal.command_result_as_code(ec)
     return ec
   end
 end
-
-function --[[@delayloaded-start@]] sh.internal.boolean_executor(chains, predicator)
-  local function not_gate(result)
-    return sh.internal.command_passed(result) and 1 or 0
-  end
-
-  local last = true
-  local boolean_stage = 1
-  local negation_stage = 2
-  local command_stage = 0
-  local stage = negation_stage
-  local skip = false
-
-  for ci=1,#chains do
-    local next = chains[ci]
-    local single = #next == 1 and #next[1] == 1 and not next[1][1].qr and next[1][1].txt
-
-    if single == "||" then
-      if stage ~= command_stage or #chains == 0 then
-        return nil, "syntax error near unexpected token '"..single.."'"
-      end
-      if sh.internal.command_passed(last) then
-        skip = true
-      end
-      stage = boolean_stage
-    elseif single == "&&" then
-      if stage ~= command_stage or #chains == 0 then
-        return nil, "syntax error near unexpected token '"..single.."'"
-      end
-      if not sh.internal.command_passed(last) then
-        skip = true
-      end
-      stage = boolean_stage
-    elseif not skip then
-      local chomped = #next
-      local negate = sh.internal.remove_negation(next)
-      chomped = chomped ~= #next
-      if negate then
-        local prev = predicator
-        predicator = function(n,i)
-          local result = not_gate(prev(n,i))
-          predicator = prev
-          return result
-        end
-      end
-      if chomped then
-        stage = negation_stage
-      end
-      if #next > 0 then
-        last = predicator(next,ci)
-        stage = command_stage
-      end
-    else
-      skip = false
-      stage = command_stage
-    end
-  end
-
-  if stage == negation_stage then
-    last = not_gate(last)
-  end
-
-  return last
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] sh.internal.splitStatements(words, semicolon)
-  checkArg(1, words, "table")
-  checkArg(2, semicolon, "string", "nil")
-  semicolon = semicolon or ";"
-  
-  return tx.partition(words, function(g, i, t)
-    if isWord(g,semicolon) then
-      return i, i
-    end
-  end, true)
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] sh.internal.splitChains(s,pc)
-  checkArg(1, s, "table")
-  checkArg(2, pc, "string", "nil")
-  pc = pc or "|"
-  return tx.partition(s, function(w)
-    -- each word has multiple parts due to quotes
-    if isWord(w,pc) then
-      return true
-    end
-  end, true) -- drop |s
-end --[[@delayloaded-end@]]
-
-function --[[@delayloaded-start@]] sh.internal.groupChains(s)
-  checkArg(1,s,"table")
-  return tx.partition(s,function(w)return isWordOf(w,{"&&","||"})end)
-end --[[@delayloaded-end@]] 
-
-function --[[@delayloaded-start@]] sh.internal.remove_negation(chain)
-  if isWord(chain[1],"!") then
-    table.remove(chain, 1)
-    return true and not sh.internal.remove_negation(chain)
-  end
-  return false
-end --[[@delayloaded-end@]] 
 
 function sh.internal.resolveActions(input, resolver, resolved)
   checkArg(1, input, "string")
@@ -281,46 +123,8 @@ function sh.internal.statements(input)
   return statements
 end
 
--- verifies that no pipes are doubled up nor at the start nor end of words
-function --[[@delayloaded-start@]] sh.internal.hasValidPiping(words, pipes)
-  checkArg(1, words, "table")
-  checkArg(2, pipes, "table", "nil")
-
-  if #words == 0 then
-    return true
-  end
-
-  pipes = pipes or tx.sub(text.syntax, 2) -- first text syntax is ; which CAN be repeated
-
-  local pies = tx.select(words, function(parts, i, t)
-    return (#parts == 1 and tx.first(pipes, {{parts[1].txt}}) and true or false), i
-  end)
-
-  local bad_pipe
-  local last = 0
-  for k,v in ipairs(pies) do
-    if v then
-      if k-last == 1 then
-        bad_pipe = words[k][1].txt
-        break
-      end
-      last=k
-    end
-  end
-
-  if not bad_pipe and last == #pies then
-    bad_pipe = words[last][1].txt
-  end
-
-  if bad_pipe then
-    return false, "parse error near " .. bad_pipe
-  else
-    return true
-  end
-end --[[@delayloaded-end@]]
-
 -- returns true if key is a string that represents a valid command line identifier
-function sh.isIdentifier(key)
+function sh.internal.isIdentifier(key)
   if type(key) ~= "string" then
     return false
   end
@@ -328,77 +132,32 @@ function sh.isIdentifier(key)
   return key:match("^[%a_][%w_]*$") == key
 end
 
--- returns the environment stored value of key if it exists else an empty string
-function sh.expandKey(key)
-  -- reserved alias $? is last error codes
-  if key == "?" then
-    return tostring(sh.getLastExitCode())
-  end
-
-  return os.getenv(key) or ''
-end
-
-function sh.keySubstitution(key)
-  if sh.isIdentifier(key) then
-    return sh.expandKey(key)
-  end
-
-  error("${" .. key .. "}: bad substitution")
-end
-
 function sh.expand(value)
-  local result = value:gsub("%$([_%w%?]+)", sh.expandKey):gsub("%${(.*)}", sh.keySubstitution)
-  return result -- we return just result because gsub returns multiple to the stack
+  return value
+  :gsub("%$([_%w%?]+)", function(key)
+    if key == "?" then
+      return tostring(sh.getLastExitCode())
+    end
+    return os.getenv(key) or '' end)
+  :gsub("%${(.*)}", function(key)
+    if sh.internal.isIdentifier(key) then
+      return sh.internal.expandKey(key)
+    end
+    error("${" .. key .. "}: bad substitution")
+  end)
 end
 
-function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
-  local segments = text.split(glob_pattern, {"/"}, true)
-  local hiddens = tx.select(segments,function(e)return e:match("^%%%.")==nil end)
-  local function is_visible(s,i) 
-    return not hiddens[i] or s:match("^%.") == nil 
+function sh.internal.expand(word)
+  if #word == 0 then return {} end
+
+  local result = ''
+  for i=1,#word do
+    local part = word[i]
+    result = result .. (not (part.qr and part.qr[3]) and sh.expand(part.txt) or part.txt)
   end
 
-  local function magical(s)
-    for _,glob_rule in ipairs(sh.internal.globbers) do
-      if s:match("[^%%]-"..text.escapeMagic(glob_rule[2])) then
-        return true
-      end
-    end
-  end
-
-  local is_abs = glob_pattern:sub(1, 1) == "/"
-  local root = is_abs and '' or shell.getWorkingDirectory()
-  local paths = {is_abs and "/" or ''}
-  local relative_separator = ''
-
-  for i,segment in ipairs(segments) do
-    local enclosed_pattern = string.format("^(%s)/?$", segment)
-    local next_paths = {}
-    for _,path in ipairs(paths) do
-      if fs.isDirectory(root..path) then
-        if magical(segment) then
-          for file in fs.list(root..path) do
-            if file:match(enclosed_pattern) and is_visible(file, i) then
-              table.insert(next_paths, path..relative_separator..file:gsub("/+$",''))
-            end
-          end
-        else -- not a globbing segment, just use it raw
-          local plain = text.removeEscapes(segment)
-          local fpath = root..path..relative_separator..plain
-          local hit = path..relative_separator..plain:gsub("/+$",'')
-          if fs.exists(fpath) then
-            table.insert(next_paths, hit)
-          end
-        end
-      end
-    end
-    paths = next_paths
-    if not next(paths) then break end
-    relative_separator = "/"
-  end
-  -- if no next_paths were hit here, the ENTIRE glob value is not a path
-  return paths
-end --[[@delayloaded-end@]] 
+  return {result}
+end
 
 -- expand to files in path, or try key substitution
 -- word is a list of metadata-filled word parts
@@ -408,7 +167,7 @@ function sh.internal.evaluate(word)
   if #word == 0 then
     return {}
   elseif #word == 1 and word[1].qr then
-    return {sh.expand(word[1].txt)}
+    return sh.internal.expand(word)
   end
   local function make_pattern(seg)
     local result = seg
@@ -422,12 +181,10 @@ function sh.internal.evaluate(word)
     end
     return result
   end
-  local normalized = ''
   local glob_pattern = ''
   local has_globits = false
   for i=1,#word do local part = word[i]
     local next = part.txt
-    normalized = normalized .. next
     if not part.qr then
       local escaped = text.escapeMagic(next)
       next = make_pattern(escaped)
@@ -438,113 +195,11 @@ function sh.internal.evaluate(word)
     glob_pattern = glob_pattern .. next
   end
   if not has_globits then
-    return {sh.expand(normalized)}
+    return sh.internal.expand(word)
   end
   local globs = sh.internal.glob(glob_pattern)
-  return #globs == 0 and {sh.expand(normalized)} or globs
+  return #globs == 0 and sh.internal.expand(word) or globs
 end
-
-function --[[@delayloaded-start@]] sh.getMatchingPrograms(baseName)
-  local result = {}
-  local result_keys = {} -- cache for fast value lookup
-  -- TODO only matching files with .lua extension for now, might want to
-  --      extend this to other extensions at some point? env var? file attrs?
-  if not baseName or #baseName == 0 then
-    baseName = "^(.*)%.lua$"
-  else
-    baseName = "^(" .. text.escapeMagic(baseName) .. ".*)%.lua$"
-  end
-  for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
-    for file in fs.list(basePath) do
-      local match = file:match(baseName)
-      if match and not result_keys[match] then
-        table.insert(result, match)
-        result_keys[match] = true
-      end
-    end
-  end
-  return result
-end --[[@delayloaded-end@]] 
-
-function --[[@delayloaded-start@]] sh.getMatchingFiles(basePath, name)
-  local resolvedPath = shell.resolve(basePath)
-  local result, baseName = {}
-
-  -- note: we strip the trailing / to make it easier to navigate through
-  -- directories using tab completion (since entering the / will then serve
-  -- as the intention to go into the currently hinted one).
-  -- if we have a directory but no trailing slash there may be alternatives
-  -- on the same level, so don't look inside that directory... (cont.)
-  if fs.isDirectory(resolvedPath) and name:len() == 0 then
-    baseName = "^(.-)/?$"
-  else
-    baseName = "^(" .. text.escapeMagic(name) .. ".-)/?$"
-  end
-
-  for file in fs.list(resolvedPath) do
-    local match = file:match(baseName)
-    if match then
-      table.insert(result, basePath ..  match)
-    end
-  end
-  -- (cont.) but if there's only one match and it's a directory, *then* we
-  -- do want to add the trailing slash here.
-  if #result == 1 and fs.isDirectory(shell.resolve(result[1])) then
-    result[1] = result[1] .. "/"
-  end
-  return result
-end --[[@delayloaded-end@]] 
-
-function --[[@delayloaded-start@]] sh.internal.hintHandlerSplit(line)
-  if line:sub(-1):find("%s") then
-    return '', line
-  end
-  local splits = text.internal.tokenize(line)
-  if not splits then -- parse error, e.g. unclosed quotes
-    return nil -- no split, no hints
-  end
-  local num_splits = #splits
-  if num_splits == 1 or not isWordOf(splits[num_splits-1],{";","&&","||","|"}) then
-    return '', line
-  end
-  local l = text.internal.normalize({splits[num_splits]})[1]
-  return line:sub(1,-l:len()-1), l
-end --[[@delayloaded-end@]] 
-
-function --[[@delayloaded-start@]] sh.internal.hintHandlerImpl(full_line, cursor)
-  local line = unicode.sub(full_line, 1, cursor - 1)
-  local suffix = unicode.sub(full_line, cursor)
-  if not line or #line < 1 then
-    return {}
-  end
-  local prev,line = sh.internal.hintHandlerSplit(line)
-  if not prev then -- failed to parse, e.g. unclosed quote, no hints
-    return {}
-  end
-  local result
-  local prefix, partial = string.match(line, "^(.+%s+)(.*)$")
-  local partialPrefix = (partial or line)
-  local name = partialPrefix:gsub(".*/", "")
-  partialPrefix = partialPrefix:sub(1, -name:len() - 1)
-  local searchInPath = not prefix and not partialPrefix:find("/")
-  if searchInPath then
-    result = sh.getMatchingPrograms(line)
-  else
-    result = sh.getMatchingFiles(partialPrefix, name)
-  end
-  local resultSuffix = suffix
-  if #result > 0 and unicode.sub(result[1], -1) ~= "/" and
-     not suffix:sub(1,1):find('%s') and
-     (#result == 1 or searchInPath or not prefix) then 
-    resultSuffix  = " " .. resultSuffix 
-  end
-  prefix = prev .. (prefix or "")
-  table.sort(result)
-  for i = 1, #result do
-    result[i] = prefix .. result[i] .. resultSuffix
-  end
-  return result
-end --[[@delayloaded-end@]] 
 
 function sh.hintHandler(full_line, cursor)
   return sh.internal.hintHandlerImpl(full_line, cursor)
@@ -764,6 +419,358 @@ function sh.execute(env, command, ...)
     return true
   end
 
+  return sh.internal.execute_complex(statements)
+end
+
+function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
+  local segments = text.split(glob_pattern, {"/"}, true)
+  local hiddens = tx.select(segments,function(e)return e:match("^%%%.")==nil end)
+  local function is_visible(s,i) 
+    return not hiddens[i] or s:match("^%.") == nil 
+  end
+
+  local function magical(s)
+    for _,glob_rule in ipairs(sh.internal.globbers) do
+      if s:match("[^%%]-"..text.escapeMagic(glob_rule[2])) then
+        return true
+      end
+    end
+  end
+
+  local is_abs = glob_pattern:sub(1, 1) == "/"
+  local root = is_abs and '' or shell.getWorkingDirectory()
+  local paths = {is_abs and "/" or ''}
+  local relative_separator = ''
+
+  for i,segment in ipairs(segments) do
+    local enclosed_pattern = string.format("^(%s)/?$", segment)
+    local next_paths = {}
+    for _,path in ipairs(paths) do
+      if fs.isDirectory(root..path) then
+        if magical(segment) then
+          for file in fs.list(root..path) do
+            if file:match(enclosed_pattern) and is_visible(file, i) then
+              table.insert(next_paths, path..relative_separator..file:gsub("/+$",''))
+            end
+          end
+        else -- not a globbing segment, just use it raw
+          local plain = text.removeEscapes(segment)
+          local fpath = root..path..relative_separator..plain
+          local hit = path..relative_separator..plain:gsub("/+$",'')
+          if fs.exists(fpath) then
+            table.insert(next_paths, hit)
+          end
+        end
+      end
+    end
+    paths = next_paths
+    if not next(paths) then break end
+    relative_separator = "/"
+  end
+  -- if no next_paths were hit here, the ENTIRE glob value is not a path
+  return paths
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] sh.getMatchingPrograms(baseName)
+  local result = {}
+  local result_keys = {} -- cache for fast value lookup
+  -- TODO only matching files with .lua extension for now, might want to
+  --      extend this to other extensions at some point? env var? file attrs?
+  if not baseName or #baseName == 0 then
+    baseName = "^(.*)%.lua$"
+  else
+    baseName = "^(" .. text.escapeMagic(baseName) .. ".*)%.lua$"
+  end
+  for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
+    for file in fs.list(basePath) do
+      local match = file:match(baseName)
+      if match and not result_keys[match] then
+        table.insert(result, match)
+        result_keys[match] = true
+      end
+    end
+  end
+  return result
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] sh.getMatchingFiles(basePath, name)
+  local resolvedPath = shell.resolve(basePath)
+  local result, baseName = {}
+
+  -- note: we strip the trailing / to make it easier to navigate through
+  -- directories using tab completion (since entering the / will then serve
+  -- as the intention to go into the currently hinted one).
+  -- if we have a directory but no trailing slash there may be alternatives
+  -- on the same level, so don't look inside that directory... (cont.)
+  if fs.isDirectory(resolvedPath) and name == "" then
+    baseName = "^(.-)/?$"
+  else
+    baseName = "^(" .. text.escapeMagic(name) .. ".-)/?$"
+  end
+
+  for file in fs.list(resolvedPath) do
+    local match = file:match(baseName)
+    if match then
+      table.insert(result, basePath ..  match)
+    end
+  end
+  -- (cont.) but if there's only one match and it's a directory, *then* we
+  -- do want to add the trailing slash here.
+  if #result == 1 and fs.isDirectory(shell.resolve(result[1])) then
+    result[1] = result[1] .. "/"
+  end
+  return result
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] sh.internal.hintHandlerSplit(line)
+  if line:sub(-1):find("%s") then
+    return '', line
+  end
+  local splits = text.internal.tokenize(line)
+  if not splits then -- parse error, e.g. unclosed quotes
+    return nil -- no split, no hints
+  end
+  local num_splits = #splits
+  if num_splits == 1 or not isWordOf(splits[num_splits-1],{";","&&","||","|"}) then
+    return '', line
+  end
+  local l = text.internal.normalize({splits[num_splits]})[1]
+  return line:sub(1,-unicode.len(l)-1), l
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] sh.internal.hintHandlerImpl(full_line, cursor)
+  local line = unicode.sub(full_line, 1, cursor - 1)
+  local suffix = unicode.sub(full_line, cursor)
+  if not line or #line < 1 then
+    return {}
+  end
+  local prev,line = sh.internal.hintHandlerSplit(line)
+  if not prev then -- failed to parse, e.g. unclosed quote, no hints
+    return {}
+  end
+  local result
+  local prefix, partial = line:match("^(.*=)(.*)$")
+  if not prefix then prefix, partial = line:match("^(.+%s+)(.*)$") end
+  local partialPrefix = (partial or line)
+  local name = partialPrefix:gsub(".*/", "")
+  partialPrefix = partialPrefix:sub(1, -unicode.len(name) - 1)
+  local searchInPath = not prefix and not partialPrefix:find("/")
+  if searchInPath then
+    result = sh.getMatchingPrograms(line)
+  else
+    result = sh.getMatchingFiles(partialPrefix, name)
+  end
+  local resultSuffix = suffix
+  if #result > 0 and unicode.sub(result[1], -1) ~= "/" and
+     not suffix:sub(1,1):find('%s') and
+     (#result == 1 or searchInPath or not prefix) then 
+    resultSuffix  = " " .. resultSuffix 
+  end
+  prefix = prev .. (prefix or "")
+  table.sort(result)
+  for i = 1, #result do
+    result[i] = prefix .. result[i] .. resultSuffix
+  end
+  return result
+end --[[@delayloaded-end@]] 
+
+-- verifies that no pipes are doubled up nor at the start nor end of words
+function --[[@delayloaded-start@]] sh.internal.hasValidPiping(words, pipes)
+  checkArg(1, words, "table")
+  checkArg(2, pipes, "table", "nil")
+
+  if #words == 0 then
+    return true
+  end
+
+  pipes = pipes or tx.sub(text.syntax, 2) -- first text syntax is ; which CAN be repeated
+
+  local pies = tx.select(words, function(parts, i, t)
+    return (#parts == 1 and tx.first(pipes, {{parts[1].txt}}) and true or false), i
+  end)
+
+  local bad_pipe
+  local last = 0
+  for k,v in ipairs(pies) do
+    if v then
+      if k-last == 1 then
+        bad_pipe = words[k][1].txt
+        break
+      end
+      last=k
+    end
+  end
+
+  if not bad_pipe and last == #pies then
+    bad_pipe = words[last][1].txt
+  end
+
+  if bad_pipe then
+    return false, "parse error near " .. bad_pipe
+  else
+    return true
+  end
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.boolean_executor(chains, predicator)
+  local function not_gate(result)
+    return sh.internal.command_passed(result) and 1 or 0
+  end
+
+  local last = true
+  local boolean_stage = 1
+  local negation_stage = 2
+  local command_stage = 0
+  local stage = negation_stage
+  local skip = false
+
+  for ci=1,#chains do
+    local next = chains[ci]
+    local single = #next == 1 and #next[1] == 1 and not next[1][1].qr and next[1][1].txt
+
+    if single == "||" then
+      if stage ~= command_stage or #chains == 0 then
+        return nil, "syntax error near unexpected token '"..single.."'"
+      end
+      if sh.internal.command_passed(last) then
+        skip = true
+      end
+      stage = boolean_stage
+    elseif single == "&&" then
+      if stage ~= command_stage or #chains == 0 then
+        return nil, "syntax error near unexpected token '"..single.."'"
+      end
+      if not sh.internal.command_passed(last) then
+        skip = true
+      end
+      stage = boolean_stage
+    elseif not skip then
+      local chomped = #next
+      local negate = sh.internal.remove_negation(next)
+      chomped = chomped ~= #next
+      if negate then
+        local prev = predicator
+        predicator = function(n,i)
+          local result = not_gate(prev(n,i))
+          predicator = prev
+          return result
+        end
+      end
+      if chomped then
+        stage = negation_stage
+      end
+      if #next > 0 then
+        last = predicator(next,ci)
+        stage = command_stage
+      end
+    else
+      skip = false
+      stage = command_stage
+    end
+  end
+
+  if stage == negation_stage then
+    last = not_gate(last)
+  end
+
+  return last
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.splitStatements(words, semicolon)
+  checkArg(1, words, "table")
+  checkArg(2, semicolon, "string", "nil")
+  semicolon = semicolon or ";"
+  
+  return tx.partition(words, function(g, i, t)
+    if isWord(g,semicolon) then
+      return i, i
+    end
+  end, true)
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.splitChains(s,pc)
+  checkArg(1, s, "table")
+  checkArg(2, pc, "string", "nil")
+  pc = pc or "|"
+  return tx.partition(s, function(w)
+    -- each word has multiple parts due to quotes
+    if isWord(w,pc) then
+      return true
+    end
+  end, true) -- drop |s
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.groupChains(s)
+  checkArg(1,s,"table")
+  return tx.partition(s,function(w)return isWordOf(w,{"&&","||"})end)
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] sh.internal.remove_negation(chain)
+  if isWord(chain[1],"!") then
+    table.remove(chain, 1)
+    return true and not sh.internal.remove_negation(chain)
+  end
+  return false
+end --[[@delayloaded-end@]] 
+
+function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
+  local memoryStream = {}
+
+  function memoryStream:close()
+    self.closed = true
+  end
+
+  function memoryStream:seek()
+    return nil, "bad file descriptor"
+  end
+
+  function memoryStream:read(n)
+    if self.closed then
+      return nil -- eof
+    end
+    if self.redirect.read then
+      -- popen could be using this code path
+      -- if that is the case, it is important to leave stream.buffer alone
+      return self.redirect.read:read(n)
+    elseif self.buffer == "" then
+      self.args = table.pack(coroutine.yield(table.unpack(self.result)))
+    end
+    local result = string.sub(self.buffer, 1, n)
+    self.buffer = string.sub(self.buffer, n + 1)
+    return result
+  end
+
+  function memoryStream:write(value)
+    if not self.redirect.write and self.closed then
+      -- if next is dead, ignore all writes
+      if coroutine.status(self.next) ~= "dead" then
+        error("attempt to use a closed stream")
+      end
+    elseif self.redirect.write then
+      return self.redirect.write:write(value)
+    elseif not self.closed then
+      self.buffer = self.buffer .. value
+      self.result = table.pack(coroutine.resume(self.next, table.unpack(self.args)))
+      if coroutine.status(self.next) == "dead" then
+        self:close()
+      end
+      if not self.result[1] then
+        error(self.result[2], 0)
+      end
+      table.remove(self.result, 1)
+      return self
+    end
+    return nil, 'stream closed'
+  end
+
+  local stream = {closed = false, buffer = "",
+                  redirect = {}, result = {}, args = {}}
+  local metatable = {__index = memoryStream,
+                     __metatable = "memorystream"}
+  return setmetatable(stream, metatable)
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.execute_complex(statements)
   for si=1,#statements do local s = statements[si]
     local chains = sh.internal.groupChains(s)
     local last_code,br = sh.internal.boolean_executor(chains, function(chain, chain_index)
@@ -777,6 +784,6 @@ function sh.execute(env, command, ...)
     sh.internal.ec.last = sh.internal.command_result_as_code(last_code)
   end
   return true, br
-end
+end --[[@delayloaded-end@]]
 
 return sh, local_env
