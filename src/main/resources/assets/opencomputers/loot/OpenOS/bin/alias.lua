@@ -1,7 +1,7 @@
 local shell = require("shell")
 local args, options = shell.parse(...)
 
-local ec = 0
+local ec, error_prefix = 0, "alias:"
 
 if options.help then
   print(string.format("Usage: alias: [name[=value] ... ]", cmd_name))

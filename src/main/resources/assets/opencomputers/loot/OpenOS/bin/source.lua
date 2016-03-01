@@ -17,15 +17,15 @@ if not file then
   end
   return 1
 else
-  local status, reason = pcall(function()
+  local status, reason = xpcall(function()
     repeat
       local line = file:read("*L")
       if line then
         sh.execute(nil, line)
       end
     until not line
-  end)
+  end, function(msg) return {msg, debug.traceback()} end)
 
   file:close()
-  assert(status, reason)
+  if not status and reason then assert(false, tostring(reason[1]) .."\n".. tostring(reason[2])) end
 end

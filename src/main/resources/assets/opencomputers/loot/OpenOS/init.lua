@@ -123,6 +123,7 @@ do
     package.delayed["text"] = true
     package.delayed["sh"] = true
     package.delayed["transforms"] = true
+    package.delayed["term"] = true
   end
 
   status("Initializing file system...")
@@ -169,7 +170,9 @@ do
 end
 
 while true do
-  local result, reason = require("shell").execute()
+  local result, reason = xpcall(require("shell").getShell(), function(msg)
+    return tostring(msg).."\n"..debug.traceback()
+  end)
   if not result then
     io.stderr:write((reason ~= nil and tostring(reason) or "unknown error") .. "\n")
     io.write("Press any key to continue.\n")

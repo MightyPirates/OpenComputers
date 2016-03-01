@@ -2,13 +2,10 @@ local shell = require("shell")
 local term = require("term")
 
 local args = shell.parse(...)
-
-local function gpu()
-  return select(2, term.getGPU())
-end
+local gpu = term.gpu()
 
 if #args == 0 then
-  local w, h = gpu().getViewport()
+  local w, h = gpu.getViewport()
   io.write(w," ",h,"\n")
   return
 end
@@ -25,7 +22,7 @@ if not w or not h then
   return 1
 end
 
-local result, reason = gpu().setResolution(w, h)
+local result, reason = gpu.setResolution(w, h)
 if not result then
   if reason then -- otherwise we didn't change anything
     io.stderr:write(reason..'\n')

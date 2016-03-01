@@ -13,13 +13,10 @@ end
 local history = {}
 shell.prime()
 
-local function gpu()
-  return select(2, term.getGPU())
-end
-
 if #args == 0 and (io.stdin.tty or options.i) and not options.c then
   -- interactive shell.
   -- source profile
+  if not term.isAvailable() then event.pull("term_available") end
   loadfile(shell.resolve("source","lua"))("/etc/profile")
   while true do
     if not term.isAvailable() then -- don't clear unless we lost the term
@@ -28,17 +25,15 @@ if #args == 0 and (io.stdin.tty or options.i) and not options.c then
       end
       term.clear()
     end
+    local gpu = term.gpu()
     while term.isAvailable() do
-      local foreground = gpu().setForeground(0xFF0000)
+      local foreground = gpu.setForeground(0xFF0000)
       term.write(sh.expand(os.getenv("PS1") or "$ "))
-      gpu().setForeground(foreground)
+      gpu.setForeground(foreground)
       local command = term.read(history, nil, sh.hintHandler)
       if not command then
         io.write("exit\n")
         return -- eof
-      end
-      while #history > (tonumber(os.getenv("HISTSIZE")) or 10) do
-        table.remove(history, 1)
       end
       command = text.trim(command)
       if command == "exit" then

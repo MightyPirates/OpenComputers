@@ -133,7 +133,9 @@ end
 -- calls callback(e,i,tbl) for each ith element e in table tbl from first
 function lib.foreach(tbl,c,f,l)
   checkArg(1,tbl,'table')
-  checkArg(2,c,'function')
+  checkArg(2,c,'function','string')
+  local ck=c
+  c=type(c)=="string" and function(e) return e[ck] end or c
   local s=#tbl
   f,l=adjust(f,l,s)
   tbl=view(tbl,f,l)
