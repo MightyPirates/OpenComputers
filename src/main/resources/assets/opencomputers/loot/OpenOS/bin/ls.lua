@@ -29,7 +29,7 @@ For more info run: man ls]])
 end
 
 local ec = 0
-local gpu = select(2, term.getGPU())
+local gpu = term.gpu()
 local fOut = term.isAvailable() and io.output().tty
 local function perr(msg) io.stderr:write(msg,"\n") ec = 2 end
 local function _path(n,i) return n[i]:sub(1, 1) == '/' and "" or n.path end
@@ -53,7 +53,7 @@ if fOut and not ops["no-color"] then
     LSC = require("serialization").unserialize(LSC)
   end
   if not LSC then
-    perr("ls: unparsable value for LSC environment variable")
+    perr("ls: unparsable value for LS_COLORS environment variable")
   else
     prev_color = gpu.getForeground()
     restore_color = function() gpu.setForeground(prev_color) end
@@ -215,12 +215,12 @@ local function display(n)
       end
       return max
     end
-    local function measure()
+    local function measure(_cols)
       local t=0
-      for c=1,cols do t=t+max_name(c)+(c>1 and 2 or 0) end
+      for c=1,_cols do t=t+max_name(c)+(c>1 and 2 or 0) end
       return t
     end
-    repeat d=d+1 cols=math.ceil(#n/d) until d>=#n or measure()<w
+    while d<#n do d=d+1 cols=math.ceil(#n/d) if measure(cols)<w then break end end
     lines.n=d
     mt.__index=function(tbl,di)return setmetatable({},{
       __len=function()return cols end,

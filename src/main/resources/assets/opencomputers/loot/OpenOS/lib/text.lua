@@ -17,7 +17,7 @@ setmetatable(text.internal,
 
 text.syntax = {";","&&","||","|",">>",">","<"}
 
-function text.detab(value, tabWidth)
+function --[[@delayloaded-start@]] text.detab(value, tabWidth)
   checkArg(1, value, "string")
   checkArg(2, tabWidth, "number", "nil")
   tabWidth = tabWidth or 8
@@ -27,8 +27,9 @@ function text.detab(value, tabWidth)
   end
   local result = value:gsub("([^\n]-)\t", rep) -- truncate results
   return result
-end
+end --[[@delayloaded-end@]]
 
+-- used in motd
 function text.padRight(value, length)
   checkArg(1, value, "string", "nil")
   checkArg(2, length, "number")
@@ -39,7 +40,7 @@ function text.padRight(value, length)
   end
 end
 
-function text.padLeft(value, length)
+function --[[@delayloaded-start@]] text.padLeft(value, length)
   checkArg(1, value, "string", "nil")
   checkArg(2, length, "number")
   if not value or unicode.wlen(value) == 0 then
@@ -47,7 +48,7 @@ function text.padLeft(value, length)
   else
     return string.rep(" ", length - unicode.wlen(value)) .. value
   end
-end
+end --[[@delayloaded-end@]]
 
 function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
   local from = string.match(value, "^%s*()")
@@ -175,13 +176,6 @@ function text.internal.tokenize(value, quotes, delimiters)
 
   return text.internal.splitWords(words, delimiters)
 end
-
-function --[[@delayloaded-start@]] text.internal.table_view(str)
-  checkArg(1, str, 'string')
-  return setmetatable({s=str},
-  { __index = function(_,k) return unicode.sub(_.s,k,k) end,
-    __len = function(_) return unicode.len(_.s) end})
-end --[[@delayloaded-end@]]
 
 -- tokenize input by quotes and whitespace
 function text.internal.words(input, quotes)

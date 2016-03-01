@@ -1,12 +1,8 @@
 local package = require("package")
 local term = require("term")
-local serialization = require("serialization")
 local shell = require("shell")
 
-local function gpu()
-  return select(2, term.getGPU())
-end
-
+local gpu = term.gpu()
 local args, options = shell.parse(...)
 local env = setmetatable({}, {__index = _ENV})
 
@@ -105,24 +101,21 @@ if #args == 0 or options.i then
     return r2
   end
 
-  gpu().setForeground(0xFFFFFF)
+  gpu.setForeground(0xFFFFFF)
   term.write(_VERSION .. " Copyright (C) 1994-2015 Lua.org, PUC-Rio\n")
-  gpu().setForeground(0xFFFF00)
+  gpu.setForeground(0xFFFF00)
   term.write("Enter a statement and hit enter to evaluate it.\n")
   term.write("Prefix an expression with '=' to show its value.\n")
-  term.write("Press Ctrl+C to exit the interpreter.\n")
-  gpu().setForeground(0xFFFFFF)
+  term.write("Press Ctrl+D to exit the interpreter.\n")
+  gpu.setForeground(0xFFFFFF)
 
   while term.isAvailable() do
-    local foreground = gpu().setForeground(0x00FF00)
+    local foreground = gpu.setForeground(0x00FF00)
     term.write(tostring(env._PROMPT or "lua> "))
-    gpu().setForeground(foreground)
+    gpu.setForeground(foreground)
     local command = term.read(history, nil, hint)
-    if command == nil then -- eof
+    if command == nil or command == "" then -- eof
       return
-    end
-    while #history > 10 do
-      table.remove(history, 1)
     end
     local code, reason
     if string.sub(command, 1, 1) == "=" then
@@ -139,7 +132,7 @@ if #args == 0 or options.i then
         io.stderr:write(tostring(result[2]) .. "\n")
       else
         for i = 2, result.n do
-          term.write(serialization.serialize(result[i], true) .. "\t", true)
+          term.write(require("serialization").serialize(result[i], true) .. "\t", true)
         end
         if term.getCursor() > 1 then
           term.write("\n")
