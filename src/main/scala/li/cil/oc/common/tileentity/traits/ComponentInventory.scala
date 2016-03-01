@@ -54,11 +54,14 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
           if (!removed.isItemEqual(added) || !ItemStack.areItemStackTagsEqual(removed, added)) {
             super.onItemRemoved(slot, removed)
             super.onItemAdded(slot, added)
+            markDirty()
           } // else: No change, ignore.
         case (Some(removed), None) =>
           super.onItemRemoved(slot, removed)
+          markDirty()
         case (None, Some(added)) =>
           super.onItemAdded(slot, added)
+          markDirty()
         case _ => // No change.
       }
 
