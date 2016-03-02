@@ -190,7 +190,7 @@ function term.readKeyboard(ops)
   checkArg(1,ops,"table")
   local filter = ops.filter and function(i) return term.internal.filter(ops.filter,i) end or term.internal.nop
   local pwchar = ops.pwchar and function(i) return term.internal.mask(ops.pwchar,i) end or term.internal.nop
-  local history,db,hints={list=ops,index=0},ops.dobreak,{handler=ops.hintHandler,cache={}}
+  local history,db,hints={list=ops,index=0},ops.dobreak,{handler=ops.hintHandler}
   term.setCursorBlink(true)
   local w=W()
   local draw=io.stdin.tty and term.drawText or term.internal.nop
@@ -201,14 +201,14 @@ function term.readKeyboard(ops)
     term.internal.build_vertical_reader(input)
   end
   while true do
-    local c = nil
     local name, address, char, code = term.internal.pull(input)
+    local c, ctrl = nil, kb.isControlDown(address)
     hints.cache=char==9 and hints.cache or nil
     if name =="interrupted" then draw("^C\n",true) return ""
     elseif name=="touch" or name=="drag" then term.internal.onTouch(input,char,code)
     elseif name=="clipboard" then c=char
     elseif name=="key_down" then
-      if kb.isControlDown(address) and code == keys.d then return
+      if ctrl and code == keys.d then return
       elseif char==9 then term.internal.tab(input,hints)
       elseif char==13 and filter(input) then
         input:move(math.huge)
@@ -218,9 +218,9 @@ function term.readKeyboard(ops)
       elseif char==8 then
         input:update(-1)
       elseif code==keys.left then
-        input:move(-1)
+        input:move(ctrl and term.internal.ctrl_movement(input, -1) or -1)
       elseif code==keys.right then
-        input:move(1)
+        input:move(ctrl and term.internal.ctrl_movement(input, 1) or 1)
       elseif code==keys.up then
         term.internal.read_history(history,input,1)
       elseif code==keys.down then
@@ -351,6 +351,22 @@ function term.bind(gpu, screen, kb, window)
   window.h = math.min(window.gh - window.dy, window.h or window.gh)
 end
 
+function --[[@delayloaded-start@]] term.internal.ctrl_movement(input, dir)
+  local index, data = input.index, input.data
+
+  local function isEdge(char)
+    return char == "" or not not char:find("%s")
+  end
+
+  local last=dir<0 and 0 or unicode.len(data)
+  local start=index+dir+1
+  for i=start,last,dir do
+    local a,b = unicode.sub(data, i-1, i-1), unicode.sub(data, i, i)
+    if isEdge(a) and not isEdge(b) then return i-(index+1) end
+  end
+  return last - index
+end --[[@delayloaded-end@]]
+
 function --[[@delayloaded-start@]] term.internal.horizontal_push(x,y,win,wrap,next)
   local gpu,w,h,dx,dy = win.gpu,term.getViewport(win)
   local wlen_needed = unicode.wlen(next)
@@ -364,7 +380,7 @@ end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.internal.onTouch(input,gx,gy)
   input:move(math.huge)
-  local x2,y2,d = input.w.x,input.w.y-input.sy,input.w.w
+  local x2,y2,d = input.w.x,input.w.y,input.w.w
   input:move((gy*d+gx)-(y2*d+x2))
 end --[[@delayloaded-end@]]
 
