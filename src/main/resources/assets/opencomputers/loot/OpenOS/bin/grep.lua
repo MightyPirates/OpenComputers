@@ -152,13 +152,13 @@ if ignore_case then
 end
 
 local function getAllFiles(dir, file_list)
-  local spath = shell.resolve(dir)
-  for node in fs.list(spath) do
-    local node_path = shell.resolve(spath ..'/'.. node)
-    if fs.isDirectory(node_path) then
-      getAllFiles(node_path, file_list)
+  for node in fs.list(shell.resolve(dir)) do
+    local rel_path = dir:gsub("/+$","") .. '/' .. node
+    local resolved_path = shell.resolve(rel_path)
+    if fs.isDirectory(resolved_path) then
+      getAllFiles(rel_path, file_list)
     else
-      file_list[#file_list+1] = node_path
+      file_list[#file_list+1] = rel_path
     end
   end
 end
@@ -248,36 +248,52 @@ end
 local ec = nil
 local any_hit_ec = 1
 local function test(m,p)
-  local match = {}
-  local i, j = m.line:find(p, 1, plain)
-  if i then
-    match.word = not match_whole_word or not (m.line:sub(i-1,i-1)..m.line:sub(j+1,j+1)):find("[%a_]")
-    match.line = not match_whole_line or i==1 and j==#m.line
+  local empty_line = true
+  local last_index, slen = 1, #m.line
+  local needs_filename, needs_line_num = include_filename, print_line_num
+  local hit_value = 1
+  while last_index <= slen and not m.close do
+    local i, j = m.line:find(p, last_index, plain)
+    local word_fail, line_fail =
+      match_whole_word and not (i and not (m.line:sub(i-1,i-1)..m.line:sub(j+1,j+1)):find("[%a_]")),
+      match_whole_line and not (i==1 and j==slen)
+    local matched = not ((m_only or last_index==1) and not i)
+    if (hit_value == 1 and word_fail) or line_fail then
+      matched,i,j = false
+    end
+    if invert_match == matched then break end
+    if max_matches == 0 then os.exit(1) end
+    any_hit_ec = 0
+    m.hits, hit_value = m.hits + hit_value, 0
+    if max_matches == m.hits or f_only or no_only then
+      m.close = true
+    end
+    if flush or quiet then return end
+    if needs_filename then
+      write(m.label, LABEL_COLOR)
+      write(':', COLON_COLOR)
+      needs_filename = nil
+    end
+    if needs_line_num then
+      write(m.line_num, LINE_NUM_COLOR)
+      write(':', COLON_COLOR)
+      needs_line_num = nil
+    end
+    local p=m_only and '' or m.line:sub(last_index,(i or 0)-1)
+    local g=i and m.line:sub(i,j) or ''
+    if i==1 then g=trim_front(g) elseif last_index==1 then p=trim_front(p) end
+    if j==slen then g=trim_back(g) elseif not i then p=trim_back(p) end
+    write(p)
+    write(g, MATCH_COLOR)
+    empty_line = false
+    last_index = (j or slen)+1
+    if m_only or last_index>slen then
+      write("\n")
+      empty_line = true
+      needs_filename, needs_line_num = include_filename, print_line_num
+    end
   end
-  if invert_match == not not (i and match.word and match.line) then return end
-  if max_matches == 0 then os.exit(1) end
-  any_hit_ec = 0
-  m.hits = m.hits + 1
-  if max_matches == m.hits or f_only or no_only then
-    m.close = true
-  end
-  if flush or quiet then return end
-  if include_filename then
-    write(m.label, LABEL_COLOR)
-    write(':', COLON_COLOR)
-  end
-  if print_line_num then
-    write(m.line_num, LINE_NUM_COLOR)
-    write(':', COLON_COLOR)
-  end
-  local p=m_only and '' or trim_front(i and m.line:sub(1,i-1) or m.line)
-  local g=i and m.line:sub(i,j) or ''
-  local s=m_only and '' or trim_back(i and m.line:sub(j+1,-1) or '')
-  if p==''then g=trim_front(g) end
-  if s==''then g=trim_back(g) end
-  write(p) 
-  write(g, MATCH_COLOR)
-  write(s..'\n')
+  if not empty_line then write("\n") end
 end
 for meta,status in readLines() do
   if not meta then

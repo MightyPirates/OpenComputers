@@ -202,12 +202,13 @@ function term.readKeyboard(ops)
   end
   while true do
     local name, address, char, code = term.internal.pull(input)
-    local c, ctrl = nil, kb.isControlDown(address)
+    local c = nil
     hints.cache=char==9 and hints.cache or nil
     if name =="interrupted" then draw("^C\n",true) return ""
     elseif name=="touch" or name=="drag" then term.internal.onTouch(input,char,code)
     elseif name=="clipboard" then c=char
     elseif name=="key_down" then
+      local ctrl = kb.isControlDown(address)
       if ctrl and code == keys.d then return
       elseif char==9 then term.internal.tab(input,hints)
       elseif char==13 and filter(input) then
