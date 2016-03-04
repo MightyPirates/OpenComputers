@@ -15,14 +15,25 @@ local W = term.internal.window
 
 local local_env = {unicode=unicode,event=event,process=process,W=W,kb=kb}
 
-function term.internal.open(dx, dy, w, h)
-  local window = {x=1,y=1,dx=dx or 0,dy=dy or 0,w=w,h=h,blink=true}
+function term.internal.open(...)
+  local dx, dy, w, h = ...
+  local window = {x=1,y=1,fullscreen=select("#",...)==0,dx=dx or 0,dy=dy or 0,w=w,h=h,blink=true}
   return window
 end
 
 function term.getViewport(window)
   window = window or W()
   return window.w, window.h, window.dx, window.dy, window.x, window.y
+end
+
+function term.setViewport(w,h,dx,dy,x,y,window)
+  window = window or W()
+
+  local gw,gh = window.gpu.getViewport()
+  w,h,dx,dy,x,y = w or gw,h or gh,dx or 0,dy or 0,x or 1,y or 1
+
+  window.w,window.h,window.dx,window.dy,window.x,window.y,window.gw,window.gh=
+    w,h,dx,dy,x,y, gw, gh
 end
 
 function term.gpu(window)
@@ -40,7 +51,7 @@ end
 
 function term.isAvailable(w)
   w = w or W()
-  return not not (w.gpu and w.screen)
+  return w and not not (w.gpu and w.screen)
 end
 
 function term.internal.pull(input, c, off, p, ...)
@@ -263,6 +274,7 @@ end
 
 function term.drawText(value, wrap, window)
   window = window or W()
+  if not window then return end
   local gpu = window.gpu
   if not gpu then return end
   local w,h,dx,dy,x,y = term.getViewport(window)
@@ -339,17 +351,13 @@ function term.setCursorBlink(enabled)
 end
 
 function term.bind(gpu, screen, kb, window)
-  checkArg(1,gpu,"table")
-  checkArg(2,screen,"table")
-  checkArg(3,kb,"table","nil")
-  checkArg(4,window,"table","nil")
   window = window or W()
-  window.gpu = gpu
-  window.screen = screen
-  window.keyboard = kb
-  window.gw,window.gh = gpu.getViewport()
-  window.w = math.min(window.gw - window.dx, window.w or window.gw)
-  window.h = math.min(window.gh - window.dy, window.h or window.gh)
+  window.gpu = gpu or window.gpu
+  window.screen = screen or window.screen
+  window.keyboard = kb or window.keyboard
+  if window.fullscreen then
+    term.setViewport(nil,nil,nil,nil,window.x,window.y,window)
+  end
 end
 
 function --[[@delayloaded-start@]] term.internal.ctrl_movement(input, dir)

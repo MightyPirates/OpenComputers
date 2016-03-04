@@ -27,3 +27,10 @@ event.listen("component_unavailable", function(_,type)
     end
   end
 end)
+
+event.listen("screen_resized", function(_,addr,w,h)
+  local window = term.internal.window()
+  if term.isAvailable(window) and window.screen.address == addr and window.fullscreen then
+    window.w,window.h = w,h
+  end
+end)
