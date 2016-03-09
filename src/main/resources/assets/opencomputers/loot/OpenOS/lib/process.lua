@@ -86,10 +86,10 @@ function process.load(path, env, init, name)
       -- msg can be a custom error object
       local msg = result[2]
       if type(msg) == 'table' then
-        assert(msg.reason=="terminated",msg.reason)
+        if msg.reason~="terminated" then error(msg.reason,2) end
         result={0,msg.code}
       else
-        assert(false, msg)
+        error(msg,2)
       end
     end
     return select(2,table.unpack(result))

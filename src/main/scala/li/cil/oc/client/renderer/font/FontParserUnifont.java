@@ -25,7 +25,7 @@ public class FontParserUnifont implements IGlyphProvider {
             glyphs[i] = null;
         }
         try {
-            final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "unifont.hex")).getInputStream();
+            final InputStream font = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(Settings.resourceDomain(), "font.hex")).getInputStream();
             OpenComputers.log().info("Initialized Unifont glyph provider.");
             try {
                 OpenComputers.log().info("Initializing Unifont glyph provider.");
