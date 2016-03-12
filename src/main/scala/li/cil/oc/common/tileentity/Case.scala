@@ -19,8 +19,9 @@ import net.minecraftforge.common.util.ForgeDirection
 class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with traits.Colored with internal.Case {
   def this() = this(0)
 
-  // Used on client side to check whether to render disk activity indicators.
-  var lastAccess = 0L
+  // Used on client side to check whether to render disk activity/network indicators.
+  var lastFileSystemAccess = 0L
+  var lastNetworkActivity = 0L
 
   color = Color.byTier(tier)
 

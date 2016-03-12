@@ -115,9 +115,9 @@ repositories {
         name 'ProjectRed'
         url 'http://files.projectredwiki.com/maven/'
     }
-    maven {
+    ivy {
         name 'ColoredLightCore'
-        url "http://coloredlightscore.us.to/maven/clc/"
+        artifactPattern "http://coloredlightscore.us.to:8080/job/ColoredLightsCore%20v1.7.10/${config.coloredlights.build}/artifact/build/libs/[module]-[revision]-[classifier].[ext]"
     }
     ivy {
         name "BuildCraft"
@@ -167,6 +167,10 @@ repositories {
         name 'ExtraCells'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.ec.cf}/[module]-[revision].[ext]"
     }
+    ivy {
+        name 'ThaumicEnergistics'
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.thaumicenergistics.cf}/[module]-[revision].[ext]"
+    }
 }
 
 configurations {
@@ -213,6 +217,7 @@ dependencies {
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
     provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
+	provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 

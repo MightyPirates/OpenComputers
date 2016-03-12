@@ -300,8 +300,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       node.connect(tablet.node)
     }
     else node.host match {
-      case buffer: api.component.TextBuffer =>
-        buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
+      case buffer: api.internal.TextBuffer =>
+        buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
         buffer.setMaximumResolution(80, 25)
       case _ =>
     }
@@ -310,11 +310,11 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
   override protected def connectItemNode(node: Node) {
     super.connectItemNode(node)
     if (node != null) node.host match {
-      case buffer: api.component.TextBuffer => components collect {
-        case Some(keyboard: api.component.Keyboard) => buffer.node.connect(keyboard.node)
+      case buffer: api.internal.TextBuffer => components collect {
+        case Some(keyboard: api.internal.Keyboard) => buffer.node.connect(keyboard.node)
       }
-      case keyboard: api.component.Keyboard => components collect {
-        case Some(buffer: api.component.TextBuffer) => keyboard.node.connect(buffer.node)
+      case keyboard: api.internal.Keyboard => components collect {
+        case Some(buffer: api.internal.TextBuffer) => keyboard.node.connect(buffer.node)
       }
       case _ =>
     }
@@ -400,8 +400,8 @@ class TabletWrapper(var stack: ItemStack, var player: EntityPlayer) extends Comp
       // caused this wrapper's initialization).
       connectComponents()
       components collect {
-        case Some(buffer: api.component.TextBuffer) =>
-          buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
+        case Some(buffer: api.internal.TextBuffer) =>
+          buffer.setMaximumColorDepth(api.internal.TextBuffer.ColorDepth.FourBit)
           buffer.setMaximumResolution(80, 25)
       }
     }

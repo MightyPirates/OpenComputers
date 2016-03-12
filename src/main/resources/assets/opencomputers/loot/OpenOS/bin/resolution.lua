@@ -1,31 +1,32 @@
-local component = require("component")
 local shell = require("shell")
 local term = require("term")
 
 local args = shell.parse(...)
+local gpu = term.gpu()
+
 if #args == 0 then
-  local w, h = component.gpu.getResolution()
-  io.write(w .. " " .. h)
+  local w, h = gpu.getViewport()
+  io.write(w," ",h,"\n")
   return
 end
 
-if #args < 2 then
-  io.write("Usage: resolution [<width> <height>]")
+if #args ~= 2 then
+  print("Usage: resolution [<width> <height>]")
   return
 end
 
 local w = tonumber(args[1])
 local h = tonumber(args[2])
 if not w or not h then
-  io.stderr:write("invalid width or height")
-  return
+  io.stderr:write("invalid width or height\n")
+  return 1
 end
 
-local result, reason = component.gpu.setResolution(w, h)
+local result, reason = gpu.setResolution(w, h)
 if not result then
   if reason then -- otherwise we didn't change anything
-    io.stderr:write(reason)
+    io.stderr:write(reason..'\n')
   end
-  return
+  return 1
 end
 term.clear()

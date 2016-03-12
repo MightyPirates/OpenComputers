@@ -23,8 +23,6 @@ object ExtendedNBT {
 
   implicit def toNbt(value: Int): NBTTagInt = new NBTTagInt(value)
 
-  implicit def toNbt(value: Array[Int]): NBTTagIntArray = new NBTTagIntArray(value)
-
   implicit def toNbt(value: Long): NBTTagLong = new NBTTagLong(value)
 
   implicit def toNbt(value: Float): NBTTagFloat = new NBTTagFloat(value)
@@ -32,6 +30,8 @@ object ExtendedNBT {
   implicit def toNbt(value: Double): NBTTagDouble = new NBTTagDouble(value)
 
   implicit def toNbt(value: Array[Byte]): NBTTagByteArray = new NBTTagByteArray(value)
+
+  implicit def toNbt(value: Array[Int]): NBTTagIntArray = new NBTTagIntArray(value)
 
   implicit def toNbt(value: Array[Boolean]): NBTTagByteArray = new NBTTagByteArray(value.map(if (_) 1: Byte else 0: Byte))
 
@@ -58,11 +58,11 @@ object ExtendedNBT {
       case value: Byte => nbt.setTag(key, value)
       case value: Short => nbt.setTag(key, value)
       case value: Int => nbt.setTag(key, value)
-      case value: Array[Int] => nbt.setTag(key, value)
       case value: Long => nbt.setTag(key, value)
       case value: Float => nbt.setTag(key, value)
       case value: Double => nbt.setTag(key, value)
       case value: Array[Byte] => nbt.setTag(key, value)
+      case value: Array[Int] => nbt.setTag(key, value)
       case value: String => nbt.setTag(key, value)
       case value: ItemStack => nbt.setTag(key, value)
       case _ =>

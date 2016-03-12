@@ -1,16 +1,16 @@
 local fs = require("filesystem")
 local text = require("text")
 local unicode = require("unicode")
+local process = require("process")
 
 local shell = {}
-local aliases = {}
 
 -- Cache loaded shells for command execution. This puts the requirement on
 -- shells that they do not keep a global state, since they may be called
 -- multiple times, but reduces memory usage a lot.
 local shells = setmetatable({}, {__mode="v"})
 
-local function getShell()
+function shell.getShell()
   local shellPath = os.getenv("SHELL") or "/bin/sh"
   local shellName, reason = shell.resolve(shellPath, "lua")
   if not shellName then
@@ -75,18 +75,36 @@ end
 
 -------------------------------------------------------------------------------
 
+function shell.prime()
+  local data = process.info().data
+  for _,key in ipairs({'aliases','vars'}) do
+    -- first time get need to populate
+    local raw = rawget(data, key)
+    if not raw then
+      -- current process does not have the key
+      local current = data[key]
+      data[key] = {}
+      if current then
+        for k,v in pairs(current) do
+          data[key][k] = v
+        end
+      end
+    end
+  end
+end
+
 function shell.getAlias(alias)
-  return aliases[alias]
+  return process.info().data.aliases[alias]
 end
 
 function shell.setAlias(alias, value)
   checkArg(1, alias, "string")
   checkArg(2, value, "string", "nil")
-  aliases[alias] = value
+  process.info().data.aliases[alias] = value
 end
 
 function shell.aliases()
-  return pairs(aliases)
+  return pairs(process.info().data.aliases)
 end
 
 function shell.resolveAlias(command, args)
@@ -151,7 +169,7 @@ function shell.resolve(path, ext)
 end
 
 function shell.execute(command, env, ...)
-  local sh, reason = getShell()
+  local sh, reason = shell.getShell()
   if not sh then
     return false, reason
   end

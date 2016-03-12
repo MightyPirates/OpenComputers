@@ -53,10 +53,10 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   override def energyThroughput = Settings.get.disassemblerRate
 
-  override def currentState = {
-    if (isActive) util.EnumSet.of(traits.State.IsWorking)
-    else if (queue.nonEmpty) util.EnumSet.of(traits.State.CanWork)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isActive) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+    else if (queue.nonEmpty) util.EnumSet.of(api.util.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

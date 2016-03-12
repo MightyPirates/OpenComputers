@@ -59,7 +59,7 @@ class EEPROM extends prefab.ManagedEnvironment {
     result(label)
   }
 
-  @Callback(direct = true, doc = """function():string -- Get the storage capacity of this EEPROM.""")
+  @Callback(direct = true, doc = """function():number -- Get the storage capacity of this EEPROM.""")
   def getSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.eepromSize)
 
   @Callback(direct = true, doc = """function():string -- Get the checksum of the data on this EEPROM.""")
@@ -74,7 +74,7 @@ class EEPROM extends prefab.ManagedEnvironment {
     else result(Unit, "incorrect checksum")
   }
 
-  @Callback(direct = true, doc = """function():string -- Get the storage capacity of this EEPROM.""")
+  @Callback(direct = true, doc = """function():number -- Get the storage capacity of this EEPROM.""")
   def getDataSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.eepromDataSize)
 
   @Callback(direct = true, doc = """function():string -- Get the currently stored byte array.""")

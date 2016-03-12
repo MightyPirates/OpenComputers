@@ -43,10 +43,10 @@ class Assembler extends traits.Environment with traits.PowerAcceptor with traits
 
   override def energyThroughput = Settings.get.assemblerRate
 
-  override def currentState = {
-    if (isAssembling) util.EnumSet.of(traits.State.IsWorking)
-    else if (canAssemble) util.EnumSet.of(traits.State.CanWork)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isAssembling) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+    else if (canAssemble) util.EnumSet.of(api.util.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

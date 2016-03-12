@@ -11,7 +11,6 @@ import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion
 import cpw.mods.fml.common.versioning.VersionRange
-import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.common.Tier
 import li.cil.oc.integration.Mods
 import org.apache.commons.lang3.StringEscapeUtils
@@ -65,7 +64,7 @@ class Settings(val config: Config) {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Double, tier2: Double, tier3: Double)
     case _ =>
-      OpenComputers.log.warn("Bad number of CPU call budgets, ignoring.")
+      OpenComputers.log.warn("Bad number of call budgets, ignoring.")
       Array(0.5, 1.0, 1.5)
   }
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
@@ -275,6 +274,7 @@ class Settings(val config: Config) {
   // ----------------------------------------------------------------------- //
   // internet
   val httpEnabled = config.getBoolean("internet.enableHttp")
+  val httpHeadersEnabled = config.getBoolean("internet.enableHttpHeaders")
   val tcpEnabled = config.getBoolean("internet.enableTcp")
   val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
   val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
@@ -322,13 +322,7 @@ class Settings(val config: Config) {
   val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
   val rTreeMaxEntries = 10
-  val terminalsPerTier = Array(config.getIntList("misc.terminalsPerTier"): _*) match {
-    case Array(tier1, tier2, tier3) =>
-      Array(math.max(tier1, 1), math.max(tier2, 1), math.max(tier3, 1))
-    case _ =>
-      OpenComputers.log.warn("Bad number of Remote Terminal counts, ignoring.")
-      Array(2, 4, 8)
-  }
+  val terminalsPerServer = 4
   val updateCheck = config.getBoolean("misc.updateCheck")
   val lootProbability = config.getInt("misc.lootProbability")
   val geolyzerRange = config.getInt("misc.geolyzerRange")
@@ -349,6 +343,7 @@ class Settings(val config: Config) {
   val dataCardTimeout = config.getDouble("misc.dataCardTimeout") max 0
   val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
   val redstoneDelay = config.getDouble("misc.redstoneDelay") max 0
+  val tradingRange = config.getDouble("misc.tradingRange") max 0
 
   // ----------------------------------------------------------------------- //
   // nanomachines
@@ -423,7 +418,7 @@ object Settings {
   val savePath = "opencomputers/"
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
-  val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
+  val screenDepthsByTier = Array(api.internal.TextBuffer.ColorDepth.OneBit, api.internal.TextBuffer.ColorDepth.FourBit, api.internal.TextBuffer.ColorDepth.EightBit)
   val deviceComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
   var blockRenderId = -1

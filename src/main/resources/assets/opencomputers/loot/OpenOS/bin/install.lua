@@ -17,8 +17,8 @@ for address in component.list("filesystem", true) do
 end
 
 if #candidates == 0 then
-  io.write("No writable disks found, aborting.\n")
-  os.exit()
+  io.stderr:write("No writable disks found, aborting.\n")
+  return 1
 end
 
 for i = 1, #candidates do
@@ -60,7 +60,7 @@ io.write("Installing " .. name .." to device " .. (choice.getLabel() or choice.a
 os.sleep(0.25)
 local cpPath = filesystem.concat(findMount(filesystem.get(os.getenv("_")).address), "bin/cp")
 local cpOptions = "-vrx" .. (options.u and "ui " or "")
-local cpSource = filesystem.concat(findMount(fromAddress), options.fromDir or "/", "*")
+local cpSource = filesystem.concat(findMount(fromAddress), options.fromDir or "/")
 local cpDest = findMount(choice.address) .. "/"
 local result, reason = os.execute(cpPath .. " " .. cpOptions .. " " .. cpSource .. " " .. cpDest)
 if not result then

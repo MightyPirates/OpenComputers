@@ -3,20 +3,10 @@ local event = require("event")
 local fs = require("filesystem")
 local shell = require("shell")
 local unicode = require("unicode")
+local process = require("process")
 
 local function env()
-  -- copy parent env when first requested; easiest way to keep things
-  -- like number of env vars trivial (#vars).
-  local data = require("process").info().data
-  if not rawget(data, "vars") then
-    local vars = {}
-    for k, v in pairs(data.vars or {}) do
-      vars[k] = v
-    end
-    data.vars = vars
-  end
-  data.vars = data.vars or {}
-  return data.vars
+  return process.info().data.vars
 end
 
 os.execute = function(command)
@@ -27,7 +17,7 @@ os.execute = function(command)
 end
 
 function os.exit(code)
-  error({reason="terminated", code=code~=false}, 0)
+  error({reason="terminated", code=code}, 0)
 end
 
 function os.getenv(varname)
@@ -83,16 +73,7 @@ function os.tmpname()
   end
 end
 
-os.setenv("EDITOR", "/bin/edit")
-os.setenv("HISTSIZE", "10")
-os.setenv("HOME", "/home")
-os.setenv("IFS", " ")
-os.setenv("MANPATH", "/usr/man:.")
-os.setenv("PAGER", "/bin/more")
 os.setenv("PATH", "/bin:/usr/bin:/home/bin:.")
-os.setenv("PS1", "$PWD# ")
-os.setenv("PWD", "/")
-os.setenv("SHELL", "/bin/sh")
 os.setenv("TMP", "/tmp") -- Deprecated
 os.setenv("TMPDIR", "/tmp")
 

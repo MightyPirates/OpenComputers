@@ -1,3 +1,5 @@
+local text = require("text")
+
 local args = {...}
 
 if #args < 1 then
@@ -7,9 +9,9 @@ if #args < 1 then
 else
   local count = 0 
   for _, expr in ipairs(args) do
-    local k, v = string.match(expr, "(.-)=(.*)")
-    if v then
-      os.setenv(k, v)
+    local e = expr:find('=')
+    if e then
+      os.setenv(expr:sub(1,e-1), expr:sub(e+1))
     else
       if count == 0 then
         for i = 1, os.getenv('#') do

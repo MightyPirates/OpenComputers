@@ -2,18 +2,18 @@ local process = {}
 
 -------------------------------------------------------------------------------
 
-local running = setmetatable({}, {__mode="k"})
-local coroutine_create = coroutine.create
+--Initialize coroutine library--
+process.list = setmetatable({}, {__mode="k"})
 
-local function findProcess(co)
+function process.findProcess(co)
   co = co or coroutine.running()
-  for main, process in pairs(running) do
+  for main, p in pairs(process.list) do
     if main == co then
-      return process
+      return p
     end
-    for _, instance in pairs(process.instances) do
+    for _, instance in pairs(p.instances) do
       if instance == co then
-        return process
+        return p
       end
     end
   end
@@ -22,55 +22,88 @@ end
 -------------------------------------------------------------------------------
 
 function process.load(path, env, init, name)
-  checkArg(1, path, "string")
+  checkArg(1, path, "string", "function")
   checkArg(2, env, "table", "nil")
   checkArg(3, init, "function", "nil")
   checkArg(4, name, "string", "nil")
 
-  local process = findProcess()
-  if process then
-    env = env or process.env
+  assert(type(path) == "string" or env == nil, "process cannot load function environemnts")
+
+  local p = process.findProcess()
+  if p then
+    env = env or p.env
   end
   env = setmetatable({}, {__index=env or _G})
-  local f, reason = io.open(path)
-  if not f then
-    return nil, reason
-  end
-  local code, reason
-  if f:read(2) == "#!" then
-    local command = f:read()
-    if require("text").trim(command) == "" then
-      reason = "no exec command"
-    else
-      code = function()
-        local result = table.pack(require("shell").execute(command, env, path))
-        if not result[1] then
-          error(result[2], 0)
-        else
-          return table.unpack(result, 1, result.n)
+
+  local code = nil
+  if type(path) == 'string' then
+    local f, reason = io.open(path)
+    if not f then
+      return nil, reason
+    end
+    local reason
+    if f:read(2) == "#!" then
+      local command = f:read()
+      if require("text").trim(command) == "" then
+        reason = "no exec command"
+      else
+        code = function()
+          local result = table.pack(require("shell").execute(command, env, path))
+          if not result[1] then
+            error(result[2], 0)
+          else
+            return table.unpack(result, 1, result.n)
+          end
         end
       end
+    else
+      code, reason = loadfile(path, "t", env)
     end
-  else
-    code, reason = loadfile(path, "t", env)
-  end
-  f:close()
-  if not code then
-    return nil, reason
+    f:close()
+    if not code then
+      return nil, reason
+    end
+  else -- path is code
+    code = path
   end
 
-  local thread = coroutine_create(function(...)
+  local thread = nil
+  thread = coroutine.create(function(...)
     if init then
       init()
     end
-    return code(...)
-  end)
-  running[thread] = {
+    -- pcall code so that we can remove it from the process list on exit
+    local result = 
+    {
+      xpcall(code, function(msg)
+        if type(msg) == 'table' then return msg end
+        local stack = debug.traceback():gsub('^([^\n]*\n)[^\n]*\n[^\n]*\n','%1')
+        return string.format('%s:\n%s', msg or '', stack)
+      end, ...)
+    }
+    process.list[thread] = nil
+    if not result[1] then
+      -- msg can be a custom error object
+      local msg = result[2]
+      if type(msg) == 'table' then
+        if msg.reason~="terminated" then error(msg.reason,2) end
+        result={0,msg.code}
+      else
+        error(msg,2)
+      end
+    end
+    return select(2,table.unpack(result))
+  end,true)
+  process.list[thread] = {
     path = path,
     command = name,
     env = env,
-    data = setmetatable({}, {__index=process and process.data or nil}),
-    parent = process,
+    data = setmetatable(
+    {
+      io = setmetatable({}, {__index=p and p.data and p.data.io or nil}),
+      coroutine_handler = setmetatable({}, {__index=p and p.data and p.data.coroutine_handler or nil}),
+    }, {__index=p and p.data or nil}),
+    parent = p,
     instances = setmetatable({}, {__mode="v"})
   }
   return thread
@@ -84,41 +117,20 @@ function process.running(level) -- kept for backwards compat, prefer process.inf
 end
 
 function process.info(levelOrThread)
-  local process
+  local p
   if type(levelOrThread) == "thread" then
-    process = findProcess(levelOrThread)
+    p = process.findProcess(levelOrThread)
   else
     local level = levelOrThread or 1
-    process = findProcess()
-    while level > 1 and process do
-      process = process.parent
+    p = process.findProcess()
+    while level > 1 and p do
+      p = p.parent
       level = level - 1
     end
   end
-  if process then
-    return {path=process.path, env=process.env, command=process.command, data=process.data}
+  if p then
+    return {path=p.path, env=p.env, command=p.command, data=p.data}
   end
-end
-
-function process.install(path, name)
-  _G.coroutine.create = function(f)
-    local co = coroutine_create(f)
-    table.insert(findProcess().instances, co)
-    return co
-  end
-  local load = load
-  _G.load = function(ld, source, mode, env)
-    env = env or select(2, process.running())
-    return load(ld, source, mode, env)
-  end
-  local thread = coroutine.running()
-  running[thread] = {
-    path = path,
-    command = name,
-    env = _ENV,
-    data = {},
-    instances = setmetatable({}, {__mode="v"})
-  }
 end
 
 return process

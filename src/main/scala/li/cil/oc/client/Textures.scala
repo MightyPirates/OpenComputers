@@ -18,7 +18,7 @@ object Textures {
   val guiButtonRun = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_run.png")
   val guiButtonScroll = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_scroll.png")
   val guiButtonSide = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
-  val guiButtonSwitch = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_switch.png")
+  val guiButtonRelay = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_switch.png")
   val guiComputer = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
   val guiDatabase = new ResourceLocation(Settings.resourceDomain, "textures/gui/database.png")
   val guiDatabase1 = new ResourceLocation(Settings.resourceDomain, "textures/gui/database1.png")
@@ -35,6 +35,7 @@ object Textures {
   val guiPrinterInk = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_ink.png")
   val guiPrinterMaterial = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_material.png")
   val guiPrinterProgress = new ResourceLocation(Settings.resourceDomain, "textures/gui/printer_progress.png")
+  val guiRack = new ResourceLocation(Settings.resourceDomain, "textures/gui/rack.png")
   val guiRaid = new ResourceLocation(Settings.resourceDomain, "textures/gui/raid.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
   val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
@@ -54,13 +55,17 @@ object Textures {
   val blockMicrocontrollerFrontLight = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontLight.png")
   val blockMicrocontrollerFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontOn.png")
   val blockMicrocontrollerFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/MicrocontrollerFrontError.png")
-  val blockRackFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontOn.png")
-  val blockRackFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontError.png")
-  val blockRackFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerRackFrontActivity.png")
   val blockRaidFrontError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontError.png")
   val blockRaidFrontActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/RaidFrontActivity.png")
   val blockRobot = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")
   val blockScreenUpIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
+  val blockRackDiskDriveActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/DiskDriveMountableActivity.png")
+  val blockRackServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontOn.png")
+  val blockRackServerError = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontError.png")
+  val blockRackServerActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontActivity.png")
+  val blockRackServerNetworkActivity = new ResourceLocation(Settings.resourceDomain, "textures/blocks/ServerFrontNetworkActivity.png")
+  val blockRackTerminalServerOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontOn.png")
+  val blockRackTerminalServerPresence = new ResourceLocation(Settings.resourceDomain, "textures/blocks/TerminalServerFrontPresence.png")
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeCrafting.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/model/UpgradeGenerator.png")
@@ -87,13 +92,20 @@ object Textures {
     var iconTopOn: IIcon = _
   }
 
+  object HoverBoots {
+    var lightOverlay: IIcon = _
+  }
+
   object PowerDistributor {
     var iconSideOn: IIcon = _
     var iconTopOn: IIcon = _
   }
 
-  object ServerRack {
+  object Rack {
     val icons = Array.fill[IIcon](6)(null)
+    var diskDrive: IIcon = _
+    var server: IIcon = _
+    var terminal: IIcon = _
   }
 
   object Assembler {
@@ -141,7 +153,7 @@ object Textures {
     tm.bindTexture(blockHologram)
     tm.bindTexture(blockMicrocontrollerFrontLight)
     tm.bindTexture(blockMicrocontrollerFrontOn)
-    tm.bindTexture(blockRackFrontOn)
+    tm.bindTexture(blockRackServerOn)
     tm.bindTexture(blockRobot)
     tm.bindTexture(blockScreenUpIndicator)
 

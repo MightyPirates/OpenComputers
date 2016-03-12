@@ -5,12 +5,14 @@ import cpw.mods.fml.relauncher.SideOnly
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.texture.TextureUtil
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 @SideOnly(Side.CLIENT)
 class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
-                  val image: ResourceLocation, text: String = null,
+                  val image: ResourceLocation = null,
+                  text: String = null,
                   val canToggle: Boolean = false,
                   val textColor: Int = 0xE0E0E0,
                   val textDisabledColor: Int = 0xA0A0A0,
@@ -23,7 +25,12 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
 
   override def drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
     if (visible) {
-      mc.renderEngine.bindTexture(image)
+      if (image != null) {
+        mc.renderEngine.bindTexture(image)
+      }
+      else {
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
+      }
       GL11.glColor4f(1, 1, 1, 1)
       field_146123_n = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
 
@@ -32,17 +39,37 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
       val y0 = yPosition
       val y1 = yPosition + height
 
-      val u0 = if (toggled) 0.5 else 0
-      val u1 = u0 + (if (canToggle) 0.5 else 1)
-      val v0 = if (hoverOverride || getHoverState(field_146123_n) == 2) 0.5 else 0
-      val v1 = v0 + 0.5
+      val isHovered = hoverOverride || getHoverState(field_146123_n) == 2
 
       val t = Tessellator.instance
       t.startDrawingQuads()
-      t.addVertexWithUV(x0, y1, zLevel, u0, v1)
-      t.addVertexWithUV(x1, y1, zLevel, u1, v1)
-      t.addVertexWithUV(x1, y0, zLevel, u1, v0)
-      t.addVertexWithUV(x0, y0, zLevel, u0, v0)
+      if (image != null) {
+        val u0 = if (toggled) 0.5 else 0
+        val u1 = u0 + (if (canToggle) 0.5 else 1)
+        val v0 = if (isHovered) 0.5 else 0
+        val v1 = v0 + 0.5
+
+        t.addVertexWithUV(x0, y1, zLevel, u0, v1)
+        t.addVertexWithUV(x1, y1, zLevel, u1, v1)
+        t.addVertexWithUV(x1, y0, zLevel, u1, v0)
+        t.addVertexWithUV(x0, y0, zLevel, u0, v0)
+      }
+      else if (isHovered) {
+        GL11.glColor4f(1, 1, 1, 0.8f)
+
+        t.addVertex(x0, y1, zLevel)
+        t.addVertex(x1, y1, zLevel)
+        t.addVertex(x1, y0, zLevel)
+        t.addVertex(x0, y0, zLevel)
+      }
+      else {
+        GL11.glColor4f(1, 1, 1, 0.4f)
+
+        t.addVertex(x0, y1, zLevel)
+        t.addVertex(x1, y1, zLevel)
+        t.addVertex(x1, y0, zLevel)
+        t.addVertex(x0, y0, zLevel)
+      }
       t.draw()
 
       if (displayString != null) {

@@ -48,10 +48,10 @@ class Printer extends traits.Environment with traits.Inventory with traits.Rotat
 
   override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
 
-  override def currentState = {
-    if (isPrinting) util.EnumSet.of(traits.State.IsWorking)
-    else if (canPrint) util.EnumSet.of(traits.State.CanWork)
-    else util.EnumSet.noneOf(classOf[traits.State])
+  override def getCurrentState = {
+    if (isPrinting) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+    else if (canPrint) util.EnumSet.of(api.util.StateAware.State.CanWork)
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   // ----------------------------------------------------------------------- //

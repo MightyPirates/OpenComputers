@@ -125,7 +125,10 @@ function new(readfs, writefs)
             if writefs.isDirectory(path) then
                 return nil, "Cannot open a directory"
             end
-            local hnd = writefs.open(path, mode)
+            local hnd, err= writefs.open(path, mode)
+            if not hnd then
+                return hnd, err 
+            end
             return hnd * 2
         elseif mode:sub(1, 1) == "a" then
             if readfs.exists(path) and not writefs.exists(kernel.modules.vfs.path(path)..".cfsdel."..kernel.modules.vfs.name(path)) then

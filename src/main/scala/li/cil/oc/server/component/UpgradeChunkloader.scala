@@ -3,10 +3,10 @@ package li.cil.oc.server.component
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
@@ -44,8 +44,10 @@ class UpgradeChunkloader(val host: EnvironmentHost) extends prefab.ManagedEnviro
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).
-        orElse(host match {
+      if (ChunkloaderUpgradeHandler.restoredTickets.contains(node.address)) {
+        OpenComputers.log.info(s"Reclaiming chunk loader ticket at (${host.xPosition()}, ${host.yPosition()}, ${host.zPosition()}) in dimension ${host.world().provider.dimensionId}.")
+      }
+      ticket = ChunkloaderUpgradeHandler.restoredTickets.remove(node.address).orElse(host match {
         case context: Context if context.isRunning => Option(ForgeChunkManager.requestTicket(OpenComputers, host.world, ForgeChunkManager.Type.NORMAL))
         case _ => None
       })

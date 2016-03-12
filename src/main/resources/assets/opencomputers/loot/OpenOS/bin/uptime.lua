@@ -10,4 +10,4 @@ if minutes >= 60 then
   hours = math.floor(minutes / 60)
   minutes = minutes % 60
 end
-io.write(string.format("%02d:%02d:%02d", hours, minutes, seconds))
+io.write(string.format("%02d:%02d:%02d\n", hours, minutes, seconds))

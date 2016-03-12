@@ -3,7 +3,9 @@ package li.cil.oc.common.item
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.Settings
+import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
 class FloppyDisk(val parent: Delegator) extends traits.Delegate with traits.FileSystemLike {
@@ -28,4 +30,6 @@ class FloppyDisk(val parent: Delegator) extends traits.Delegate with traits.File
         icons(index) = iconRegister.registerIcon(baseTextureName + color)
     }
   }
+
+  override def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer): Boolean = true
 }

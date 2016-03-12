@@ -7,7 +7,7 @@ local function buildDevfs()
         end
     end
     for k, nfc in ipairs(programmers) do
-        kernel.modules.devfs.data["nfc" .. k] = {
+        kernel.modules.devfs.data["nfc" .. nfc:sub(1,4):upper()] = {
             __type = "f",
             open = function(hnd, mode)
                 if mode == "r" then error("Invalid mode") end

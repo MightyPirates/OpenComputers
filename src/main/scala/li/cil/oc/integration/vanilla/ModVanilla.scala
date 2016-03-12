@@ -16,13 +16,21 @@ object ModVanilla extends ModProxy with RedstoneProvider {
   def getMod = Mods.Minecraft
 
   def initialize() {
-    Driver.add(new DriverBeacon)
-    Driver.add(new DriverBrewingStand)
-    Driver.add(new DriverComparator)
-    Driver.add(new DriverFurnace)
-    Driver.add(new DriverMobSpawner)
-    Driver.add(new DriverNoteBlock)
-    Driver.add(new DriverRecordPlayer)
+    Driver.add(DriverBeacon)
+    Driver.add(DriverBrewingStand)
+    Driver.add(DriverComparator)
+    Driver.add(DriverFurnace)
+    Driver.add(DriverMobSpawner)
+    Driver.add(DriverNoteBlock)
+    Driver.add(DriverRecordPlayer)
+
+    Driver.add(DriverBeacon.Provider)
+    Driver.add(DriverBrewingStand.Provider)
+    Driver.add(DriverComparator.Provider)
+    Driver.add(DriverFurnace.Provider)
+    Driver.add(DriverMobSpawner.Provider)
+    Driver.add(DriverNoteBlock.Provider)
+    Driver.add(DriverRecordPlayer.Provider)
 
     if (Settings.get.enableInventoryDriver) {
       Driver.add(new DriverInventory)
@@ -32,7 +40,7 @@ object ModVanilla extends ModProxy with RedstoneProvider {
       Driver.add(new DriverFluidTank)
     }
     if (Settings.get.enableCommandBlockDriver) {
-      Driver.add(new DriverCommandBlock)
+      Driver.add(DriverCommandBlock)
     }
 
     Driver.add(ConverterFluidStack)

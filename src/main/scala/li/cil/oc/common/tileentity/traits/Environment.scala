@@ -2,7 +2,6 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
-import li.cil.oc.api.driver
 import li.cil.oc.api.network
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.Node
@@ -17,7 +16,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
 @Injectable.Interface(value = "appeng.api.movable.IMovableTile", modid = Mods.IDs.AppliedEnergistics2)
-trait Environment extends TileEntity with network.Environment with driver.EnvironmentHost {
+trait Environment extends TileEntity with network.Environment with network.EnvironmentHost {
   protected var isChangeScheduled = false
 
   override def xPosition = x + 0.5
@@ -35,7 +34,7 @@ trait Environment extends TileEntity with network.Environment with driver.Enviro
   override protected def initialize() {
     super.initialize()
     if (isServer) {
-      EventHandler.schedule(this)
+      EventHandler.scheduleServer(this)
     }
   }
 

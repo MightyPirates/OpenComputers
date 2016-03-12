@@ -47,13 +47,13 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   override def energyThroughput = Settings.get.chargerRate
 
-  override def currentState = {
+  override def getCurrentState = {
     // TODO Refine to only report working if present robots/drones actually *need* power.
     if (connectors.nonEmpty) {
-      if (hasPower) util.EnumSet.of(traits.State.IsWorking)
-      else util.EnumSet.of(traits.State.CanWork)
+      if (hasPower) util.EnumSet.of(api.util.StateAware.State.IsWorking)
+      else util.EnumSet.of(api.util.StateAware.State.CanWork)
     }
-    else util.EnumSet.noneOf(classOf[traits.State])
+    else util.EnumSet.noneOf(classOf[api.util.StateAware.State])
   }
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {

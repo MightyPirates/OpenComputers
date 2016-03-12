@@ -84,7 +84,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   override def validate(): Unit = {
     super.validate()
     if (!canUpdate) {
-      EventHandler.schedule(() => ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput))
+      EventHandler.scheduleServer(() => ForgeDirection.VALID_DIRECTIONS.foreach(updateRedstoneInput))
     }
   }
 

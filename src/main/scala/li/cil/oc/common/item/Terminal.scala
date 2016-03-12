@@ -1,21 +1,15 @@
 package li.cil.oc.common.item
 
 import java.util
-import java.util.UUID
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.Tier
-import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.BlockPosition
-import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
 class Terminal(val parent: Delegator) extends traits.Delegate {
@@ -45,46 +39,6 @@ class Terminal(val parent: Delegator) extends traits.Delegate {
 
     iconOn = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOn"))
     iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":TerminalOff"))
-  }
-
-  override def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    val world = position.world.get
-    world.getTileEntity(position) match {
-      case rack: tileentity.ServerRack if side == rack.facing.ordinal() =>
-        val l = 2 / 16.0
-        val h = 14 / 16.0
-        val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
-        if (slot >= 0 && slot <= 3 && rack.items(slot).isDefined) {
-          if (!world.isRemote) {
-            rack.servers(slot) match {
-              case Some(server) =>
-                val terminal = rack.terminals(slot)
-                val key = UUID.randomUUID().toString
-                val keys = terminal.keys
-                if (!stack.hasTagCompound) {
-                  stack.setTagCompound(new NBTTagCompound())
-                }
-                else {
-                  keys -= stack.getTagCompound.getString(Settings.namespace + "key")
-                }
-                val maxSize = Settings.get.terminalsPerTier(math.min(Tier.Three, server.tier))
-                while (keys.length >= maxSize) {
-                  keys.remove(0)
-                }
-                keys += key
-                terminal.connect(server.machine.node)
-                ServerPacketSender.sendServerState(rack, slot)
-                stack.getTagCompound.setString(Settings.namespace + "key", key)
-                stack.getTagCompound.setString(Settings.namespace + "server", server.machine.node.address)
-                player.inventory.markDirty()
-              case _ => // Huh?
-            }
-          }
-          true
-        }
-        else false
-      case _ => super.onItemUse(stack, player, position, side, hitX, hitY, hitZ)
-    }
   }
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {

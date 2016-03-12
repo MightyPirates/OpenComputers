@@ -34,7 +34,9 @@ end
 
 function buffer:flush()
   if #self.bufferWrite > 0 then
-    local result, reason = self.stream:write(self.bufferWrite)
+    local tmp = self.bufferWrite
+    self.bufferWrite = ""
+    local result, reason = self.stream:write(tmp)
     if result then
       self.bufferWrite = ""
     else
@@ -61,6 +63,10 @@ function buffer:lines(...)
 end
 
 function buffer:read(...)
+  if not self.mode.r then
+    return nil, "read mode was not enabled for this stream"
+  end
+
   local timeout = computer.uptime() + self.readTimeout
 
   local function readChunk()
@@ -357,6 +363,9 @@ end
 function buffer:write(...)
   if self.closed then
     return nil, "bad file descriptor"
+  end
+  if not self.mode.w and not self.mode.a then
+    return nil, "write mode was not enabled for this stream"
   end
   local args = table.pack(...)
   for i = 1, args.n do

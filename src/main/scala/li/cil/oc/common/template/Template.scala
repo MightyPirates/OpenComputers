@@ -4,12 +4,6 @@ import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver._
-import li.cil.oc.api.driver.item.Container
-import li.cil.oc.api.driver.item.Inventory
-import li.cil.oc.api.driver.item.Memory
-import li.cil.oc.api.driver.item.Processor
-import li.cil.oc.api.machine.Architecture
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import net.minecraft.inventory.IInventory
@@ -35,7 +29,7 @@ abstract class Template {
     "Inventory" -> hasInventory _,
     "OS" -> hasFileSystem _)
 
-  protected def hostClass: Class[_ <: EnvironmentHost]
+  protected def hostClass: Class[_ <: api.network.EnvironmentHost]
 
   protected def validateComputer(inventory: IInventory): Array[AnyRef] = {
     val hasCase = caseTier(inventory) != Tier.None
@@ -73,23 +67,23 @@ abstract class Template {
   }
 
   protected def hasCPU(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
-    case _: Processor => true
+    case _: api.driver.item.Processor => true
     case _ => false
   })
 
   protected def hasRAM(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
-    case _: Memory => true
+    case _: api.driver.item.Memory => true
     case _ => false
   })
 
   protected def requiresRAM(inventory: IInventory) = !(0 until inventory.getSizeInventory).
     map(inventory.getStackInSlot).
     exists(stack => api.Driver.driverFor(stack, hostClass) match {
-    case driver: Processor =>
-      val architecture = driver.architecture(stack)
-      architecture != null && architecture.getAnnotation(classOf[Architecture.NoMemoryRequirements]) != null
-    case _ => false
-  })
+      case driver: api.driver.item.Processor =>
+        val architecture = driver.architecture(stack)
+        architecture != null && architecture.getAnnotation(classOf[api.machine.Architecture.NoMemoryRequirements]) != null
+      case _ => false
+    })
 
   protected def hasComponent(name: String)(inventory: IInventory) = exists(inventory, stack => Option(api.Items.get(stack)) match {
     case Some(descriptor) => descriptor.name == name
@@ -97,7 +91,7 @@ abstract class Template {
   })
 
   protected def hasInventory(inventory: IInventory) = exists(inventory, api.Driver.driverFor(_, hostClass) match {
-    case _: Inventory => true
+    case _: api.driver.item.Inventory => true
     case _ => false
   })
 
@@ -111,8 +105,8 @@ abstract class Template {
     for (slot <- 1 until inventory.getSizeInventory) {
       val stack = inventory.getStackInSlot(slot)
       acc += (Option(api.Driver.driverFor(stack, hostClass)) match {
-        case Some(driver: Processor) => 0 // CPUs are exempt, since they control the limit.
-        case Some(driver: Container) => (1 + driver.tier(stack)) * 2
+        case Some(driver: api.driver.item.Processor) => 0 // CPUs are exempt, since they control the limit.
+        case Some(driver: api.driver.item.Container) => (1 + driver.tier(stack)) * 2
         case Some(driver) if driver.slot(stack) != Slot.EEPROM => 1 + driver.tier(stack)
         case _ => 0
       })
@@ -125,7 +119,7 @@ abstract class Template {
     val cpuTier = (0 until inventory.getSizeInventory).foldRight(0)((slot, acc) => {
       val stack = inventory.getStackInSlot(slot)
       acc + (api.Driver.driverFor(stack, hostClass) match {
-        case processor: Processor => processor.tier(stack)
+        case processor: api.driver.item.Processor => processor.tier(stack)
         case _ => 0
       })
     })

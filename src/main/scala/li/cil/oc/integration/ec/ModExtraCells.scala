@@ -11,5 +11,8 @@ object ModExtraCells extends ModProxy {
   override def initialize(): Unit = {
     Driver.add(DriverController)
     Driver.add(DriverBlockInterface)
+
+    Driver.add(DriverController.Provider)
+    Driver.add(DriverBlockInterface.Provider)
   }
 }

@@ -30,6 +30,14 @@ public interface MachineAPI {
     Collection<Class<? extends Architecture>> architectures();
 
     /**
+     * Get the name of the specified architecture.
+     *
+     * @param architecture the architecture to get the name for.
+     * @return the name of the specified architecture.
+     */
+    String getArchitectureName(Class<? extends Architecture> architecture);
+
+    /**
      * Creates a new machine for the specified host.
      * <p/>
      * You are responsible for calling update and save / load functions on the

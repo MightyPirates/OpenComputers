@@ -17,7 +17,10 @@ import net.minecraft.item.ItemStack;
  * For block drivers there is a bit more work involved, since you have to check
  * if the item is the item block that corresponds to the supported block type.
  * This should usually not be an issue either, though.
+ *
+ * @deprecated Use an {@link EnvironmentProvider} instead.
  */
+@Deprecated
 public interface EnvironmentAware {
     /**
      * Get the type of environment that would be created for the specified

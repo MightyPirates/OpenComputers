@@ -53,6 +53,16 @@ end
 
 function spawn(exec, child, name, isthread, _, ...)
     local thread
+    local function errprint(text)
+        if thread.io_error then
+            if not pcall(thread.io_error.write, thread.io_error, tostring(text) .. "\n") then
+                kernel.io.println(text)
+            end
+        else
+            kernel.io.println(text)
+        end
+    end
+    
     thread = {
         child = child,
         coro = coroutine.create(function(...)
@@ -60,9 +70,10 @@ function spawn(exec, child, name, isthread, _, ...)
             local r = {xpcall(function()
                 exec(table.unpack(arg))
             end, function(e)
-                pcall(kernel.io.println, "ERROR IN THREAD " .. thread.pid .. ": " .. tostring(thread.name))
-                pcall(kernel.io.println, e)
-                pcall(kernel.io.println, debug.traceback())
+                pcall(errprint, "ERROR IN THREAD " .. thread.pid .. ": " .. tostring(thread.name))
+                pcall(errprint, e)
+                pcall(errprint, debug.traceback())
+                
             end)}
             return table.unpack(r, 2)
         end),
@@ -73,7 +84,15 @@ function spawn(exec, child, name, isthread, _, ...)
         name = name or "unnamed",
         maxPendingSignals = 32,
         maxOpenFiles = 8,
-        uid = nextUid
+        uid = nextUid,
+        parent = currentThread and {pid = currentThread.pid, uid = currentThread.uid},
+        cgroups = {
+            signal = kernel.modules.cgroups.spawnGroupGetters["signal"](),
+            network = kernel.modules.cgroups.spawnGroupGetters["network"](),
+            filesystem = kernel.modules.cgroups.spawnGroupGetters["filesystem"](),
+            module = kernel.modules.cgroups.spawnGroupGetters["module"](),
+            component = kernel.modules.cgroups.spawnGroupGetters["component"](),
+        }
     }
     
     nextUid = nextUid + 1
@@ -143,7 +162,9 @@ local function processSignals()
                     thread.eventQueue[#thread.eventQueue + 1] = {"yield"}
                 end
             end
-            thread.eventQueue[#thread.eventQueue + 1] = sig
+            if thread.cgroups.signal.global then
+                thread.eventQueue[#thread.eventQueue + 1] = sig
+            end
         end
     end
 end

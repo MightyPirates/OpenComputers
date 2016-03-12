@@ -509,6 +509,7 @@ function filesystem.open(path, mode)
   end
 
   local stream = {fs = node.fs, handle = handle}
+
   local metatable = {__index = fileStream,
                      __metatable = "filestream"}
   return setmetatable(stream, metatable)

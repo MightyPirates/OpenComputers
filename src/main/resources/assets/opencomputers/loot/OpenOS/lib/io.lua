@@ -10,22 +10,6 @@ function io.flush()
   return io.output():flush()
 end
 
-function io.input(file)
-  if file then
-    if type(file) == "string" then
-      local result, reason = io.open(file)
-      if not result then
-        error(reason, 2)
-      end
-      file = result
-    elseif not io.type(file) then
-      error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
-    end
-    require("process").info().data.io_input = file
-  end
-  return require("process").info().data.io_input
-end
-
 function io.lines(filename, ...)
   if filename then
     local file, reason = io.open(filename)
@@ -60,10 +44,12 @@ function io.open(path, mode)
   end
 end
 
-function io.output(file)
+function io.stream(fd,file,mode)
+  checkArg(1,fd,'number')
+  assert(fd>=0,'fd must be >= 0. 0 is input, 1 is stdout, 2 is stderr')
   if file then
     if type(file) == "string" then
-      local result, reason = io.open(file, "w")
+      local result, reason = io.open(file, mode)
       if not result then
         error(reason, 2)
       end
@@ -71,12 +57,26 @@ function io.output(file)
     elseif not io.type(file) then
       error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
-    require("process").info().data.io_output = file
+    require("process").info().data.io[fd] = file
   end
-  return require("process").info().data.io_output
+  return require("process").info().data.io[fd]
 end
 
--- TODO io.popen = function(prog, mode) end
+function io.input(file)
+  return io.stream(0, file, 'r')
+end
+
+function io.output(file)
+  return io.stream(1, file,'w')
+end
+
+function io.error(file)
+  return io.stream(2, file,'w')
+end
+
+function io.popen(prog, mode, env)
+  return require('pipes').popen(prog, mode, env)
+end
 
 function io.read(...)
   return io.input():read(...)

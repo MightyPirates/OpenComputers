@@ -215,6 +215,8 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     }
   }
 
+  override def onSignal(): Unit = {}
+
   // ----------------------------------------------------------------------- //
 
   override def initialize() = {

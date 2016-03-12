@@ -1,7 +1,7 @@
 package li.cil.oc.integration.appeng
 
 import appeng.tile.misc.TileInterface
-import li.cil.oc.api.driver.EnvironmentAware
+import li.cil.oc.api.driver.EnvironmentProvider
 import li.cil.oc.api.driver.NamedBlock
 import li.cil.oc.api.internal.Database
 import li.cil.oc.api.machine.Arguments
@@ -16,17 +16,13 @@ import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-object DriverBlockInterface extends DriverTileEntity with EnvironmentAware {
+object DriverBlockInterface extends DriverTileEntity {
   def getTileEntityClass: Class[_] = classOf[TileInterface]
 
   def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileInterface])
 
-  override def providedEnvironment(stack: ItemStack) =
-    if (AEUtil.isBlockInterface(stack)) classOf[Environment]
-    else null
-
-  class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] {
+  final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] {
     override def preferredName = "me_interface"
 
     override def priority = 5
@@ -67,6 +63,13 @@ object DriverBlockInterface extends DriverTileEntity with EnvironmentAware {
       context.pause(0.5)
       result(true)
     }
+  }
+
+  object Provider extends EnvironmentProvider {
+    override def getEnvironment(stack: ItemStack): Class[_] =
+      if (AEUtil.isBlockInterface(stack))
+        classOf[Environment]
+      else null
   }
 
 }

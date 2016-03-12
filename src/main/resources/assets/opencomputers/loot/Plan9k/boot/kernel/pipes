@@ -6,7 +6,7 @@ local kernel = {}
 kernel.io = {}
 kernel._K = _G
 
-_G._OSVERSION = "Pipes/1.0"
+_G._OSVERSION = "Pipes/1.2"
 
 local runlevel, shutdown = "S", computer.shutdown
 computer.runlevel = function() return runlevel end
@@ -49,6 +49,8 @@ do
         h = h - 3
         component.invoke(gpu, "setBackground", 0x555555)
         component.invoke(gpu, "fill", 1, 1, w, 3, " ")
+        component.invoke(gpu, "setForeground", 0x000000)
+        component.invoke(gpu, "set", 1, 1, _OSVERSION)
         component.invoke(gpu, "setBackground", 0xAAAAAA)
         component.invoke(gpu, "fill", 4, 2, w-7, 1, "-")
         component.invoke(gpu, "setBackground", 0x000000)
@@ -85,6 +87,9 @@ do
 end
 
 kernel.io.println(_OSVERSION .. " Starting")
+if computer.setArchitecture then
+    computer.setArchitecture("Lua 5.3")
+end
 
 --The most important function
 
@@ -188,4 +193,5 @@ for i = 1, #modules do
     kernel._status(0.5 + (0.5 / (#modules)) * i)
 end
 
+kernel._println("All modules finished")
 kernel.panic()

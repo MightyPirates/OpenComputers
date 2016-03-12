@@ -6,7 +6,7 @@ import net.minecraftforge.common.util.ForgeDirection;
  * This interface is implemented by the computer case and robot tile entities
  * to allow item components to query the orientation of their host, i.e. to
  * allow getting the facing of the tile entity passed to their drivers'
- * {@link li.cil.oc.api.driver.Item#createEnvironment(net.minecraft.item.ItemStack, li.cil.oc.api.driver.EnvironmentHost)}
+ * {@link li.cil.oc.api.driver.Item#createEnvironment(net.minecraft.item.ItemStack, li.cil.oc.api.network.EnvironmentHost)}
  * method.
  * <p/>
  * This interface is <em>not meant to be implemented</em>, just used.

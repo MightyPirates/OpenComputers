@@ -3,11 +3,12 @@ package li.cil.oc.common.inventory
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.EnvironmentHost
 import li.cil.oc.api.driver.{Item => ItemDriver}
 import li.cil.oc.api.network
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.network.Node
+import li.cil.oc.api.util.Lifecycle
 import li.cil.oc.integration.opencomputers.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -50,6 +51,7 @@ trait ComponentInventory extends Inventory with network.Environment {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, host)) match {
               case Some(component) =>
+                applyLifecycleState(component, Lifecycle.LifecycleState.Constructing)
                 try {
                   component.load(dataTag(driver, stack))
                 }
@@ -70,13 +72,19 @@ trait ComponentInventory extends Inventory with network.Environment {
     // Make sure our node is connected.
     api.Network.joinNewNetwork(node)
     components collect {
-      case Some(component) => connectItemNode(component.node)
+      case Some(component) =>
+        applyLifecycleState(component, Lifecycle.LifecycleState.Initializing)
+        connectItemNode(component.node)
+        applyLifecycleState(component, Lifecycle.LifecycleState.Initialized)
     }
   }
 
   def disconnectComponents() {
     components collect {
-      case Some(component) if component.node != null => component.node.remove()
+      case Some(component) =>
+        applyLifecycleState(component, Lifecycle.LifecycleState.Disposing)
+        if (component.node != null) component.node.remove()
+        applyLifecycleState(component, Lifecycle.LifecycleState.Disposed)
     }
   }
 
@@ -110,16 +118,19 @@ trait ComponentInventory extends Inventory with network.Environment {
       Option(driver.createEnvironment(stack, host)) match {
         case Some(component) => this.synchronized {
           components(slot) = Some(component)
+          applyLifecycleState(component, Lifecycle.LifecycleState.Constructing)
           try {
             component.load(dataTag(driver, stack))
           } catch {
             case e: Throwable => OpenComputers.log.warn(s"An item component of type '${component.getClass.getName}' (provided by driver '${driver.getClass.getName}') threw an error while loading.", e)
           }
-          connectItemNode(component.node)
           if (component.canUpdate) {
             assert(!updatingComponents.contains(component))
             updatingComponents += component
           }
+          applyLifecycleState(component, Lifecycle.LifecycleState.Initializing)
+          connectItemNode(component.node)
+          applyLifecycleState(component, Lifecycle.LifecycleState.Initialized)
           save(component, driver, stack)
         }
         case _ => // No environment (e.g. RAM).
@@ -136,12 +147,15 @@ trait ComponentInventory extends Inventory with network.Environment {
         // being installed into a different computer, even!)
         components(slot) = None
         updatingComponents -= component
+        applyLifecycleState(component, Lifecycle.LifecycleState.Disposing)
         Option(component.node).foreach(_.remove())
         Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
         // However, nodes then may add themselves to a network again, to
         // ensure they have an address that gets sent to the client, used
         // for associating some components with each other. So we do it again.
+        // TODO Should be possible to avoid this with lifecycle state now.
         Option(component.node).foreach(_.remove())
+        applyLifecycleState(component, Lifecycle.LifecycleState.Disposed)
       }
       case _ => // Nothing to do.
     }
@@ -158,7 +172,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   protected def dataTag(driver: ItemDriver, stack: ItemStack) =
     Option(driver.dataTag(stack)).getOrElse(Item.dataTag(stack))
 
-  protected def save(component: ManagedEnvironment, driver: ItemDriver, stack: ItemStack) {
+  protected def save(component: ManagedEnvironment, driver: ItemDriver, stack: ItemStack): Unit = {
     try {
       val tag = dataTag(driver, stack)
       // Clear the tag compound before saving to get the same behavior as
@@ -170,5 +184,10 @@ trait ComponentInventory extends Inventory with network.Environment {
     } catch {
       case e: Throwable => OpenComputers.log.warn(s"An item component of type '${component.getClass.getName}' (provided by driver '${driver.getClass.getName}') threw an error while saving.", e)
     }
+  }
+
+  protected def applyLifecycleState(component: AnyRef, state: Lifecycle.LifecycleState): Unit = component match {
+    case lifecycle: Lifecycle => lifecycle.onLifecycleStateChange(state)
+    case _ =>
   }
 }

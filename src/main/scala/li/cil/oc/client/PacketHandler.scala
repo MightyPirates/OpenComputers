@@ -7,8 +7,8 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.component
 import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.event.NetworkActivityEvent
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.Loot
 import li.cil.oc.common.PacketType
@@ -64,10 +64,13 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.NanomachinesInputs => onNanomachinesInputs(p)
       case PacketType.NanomachinesPower => onNanomachinesPower(p)
       case PacketType.NetSplitterState => onNetSplitterState(p)
+      case PacketType.NetworkActivity => onNetworkActivity(p)
       case PacketType.ParticleEffect => onParticleEffect(p)
       case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.PrinterState => onPrinterState(p)
+      case PacketType.RackInventory => onRackInventory(p)
+      case PacketType.RackMountableData => onRackMountableData(p)
       case PacketType.RaidStateChange => onRaidStateChange(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
@@ -83,7 +86,6 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
       case PacketType.TextBufferMulti => onTextBufferMulti(p)
       case PacketType.ScreenTouchMode => onScreenTouchMode(p)
-      case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case PacketType.SoundPattern => onSoundPattern(p)
       case PacketType.TransposerActivity => onTransposerActivity(p)
@@ -124,26 +126,10 @@ object PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerState(p: PacketParser) =
-    p.readTileEntity[TileEntity]() match {
-      case Some(t: Computer) =>
+    p.readTileEntity[Computer]() match {
+      case Some(t) =>
         t.setRunning(p.readBoolean())
         t.hasErrored = p.readBoolean()
-      case Some(t: ServerRack) =>
-        val number = p.readInt()
-        if (number == -1) {
-          t.range = p.readInt()
-        }
-        else {
-          t.setRunning(number, p.readBoolean())
-          t.setErrored(number, p.readBoolean())
-          t.sides(number) = p.readDirection()
-          val keyCount = p.readInt()
-          val keys = t.terminals(number).keys
-          keys.clear()
-          for (i <- 0 until keyCount) {
-            keys += p.readUTF()
-          }
-        }
       case _ => // Invalid packet.
     }
 
@@ -185,6 +171,23 @@ object PacketHandler extends CommonPacketHandler {
         val y = p.readDouble()
         val z = p.readDouble()
         MinecraftForge.EVENT_BUS.post(new FileSystemAccessEvent.Client(sound, world, x, y, z, data))
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onNetworkActivity(p: PacketParser) = {
+    val data = CompressedStreamTools.read(p)
+    if (p.readBoolean()) p.readTileEntity[net.minecraft.tileentity.TileEntity]() match {
+      case Some(t) =>
+        MinecraftForge.EVENT_BUS.post(new NetworkActivityEvent.Client(t, data))
+      case _ => // Invalid packet.
+    }
+    else world(p.player, p.readInt()) match {
+      case Some(world) =>
+        val x = p.readDouble()
+        val y = p.readDouble()
+        val z = p.readDouble()
+        MinecraftForge.EVENT_BUS.post(new NetworkActivityEvent.Client(world, x, y, z, data))
       case _ => // Invalid packet.
     }
   }
@@ -420,6 +423,25 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onRackInventory(p: PacketParser) =
+    p.readTileEntity[Rack]() match {
+      case Some(t) =>
+        val count = p.readInt()
+        for (_ <- 0 until count) {
+          val slot = p.readInt()
+          t.setInventorySlotContents(slot, p.readItemStack())
+        }
+      case _ => // Invalid packet.
+    }
+
+  def onRackMountableData(p: PacketParser) =
+    p.readTileEntity[Rack]() match {
+      case Some(t) =>
+        val mountableIndex = p.readInt()
+        t.lastData(mountableIndex) = p.readNBT()
+      case _ => // Invalid packet.
+    }
+
   def onRaidStateChange(p: PacketParser) =
     p.readTileEntity[Raid]() match {
       case Some(t) =>
@@ -515,7 +537,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onTextBufferPowerChange(p: PacketParser) =
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: component.TextBuffer) =>
+      case Some(buffer: api.internal.TextBuffer) =>
         buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
@@ -530,6 +552,11 @@ object PacketHandler extends CommonPacketHandler {
           buffer.setMaximumResolution(maxWidth, maxHeight)
         }
         buffer.data.load(nbt)
+        if (nbt.hasKey("viewportWidth")) {
+          val viewportWidth = nbt.getInteger("viewportWidth")
+          val viewportHeight = nbt.getInteger("viewportHeight")
+          buffer.setViewport(viewportWidth, viewportHeight)
+        }
         buffer.proxy.markDirty()
         buffer.markInitialized()
       case _ => // Invalid packet.
@@ -538,7 +565,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onTextBufferMulti(p: PacketParser) =
     ComponentTracker.get(p.player.worldObj, p.readUTF()) match {
-      case Some(buffer: component.TextBuffer) =>
+      case Some(buffer: api.internal.TextBuffer) =>
         try while (true) {
           p.readPacketType() match {
             case PacketType.TextBufferMultiColorChange => onTextBufferMultiColorChange(p, buffer)
@@ -547,6 +574,7 @@ object PacketHandler extends CommonPacketHandler {
             case PacketType.TextBufferMultiFill => onTextBufferMultiFill(p, buffer)
             case PacketType.TextBufferMultiPaletteChange => onTextBufferMultiPaletteChange(p, buffer)
             case PacketType.TextBufferMultiResolutionChange => onTextBufferMultiResolutionChange(p, buffer)
+            case PacketType.TextBufferMultiViewportResolutionChange => onTextBufferMultiViewportResolutionChange(p, buffer)
             case PacketType.TextBufferMultiMaxResolutionChange => onTextBufferMultiMaxResolutionChange(p, buffer)
             case PacketType.TextBufferMultiSet => onTextBufferMultiSet(p, buffer)
             case PacketType.TextBufferMultiRawSetText => onTextBufferMultiRawSetText(p, buffer)
@@ -561,9 +589,9 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onTextBufferMultiColorChange(p: PacketParser, env: component.TextBuffer) {
+  def onTextBufferMultiColorChange(p: PacketParser, env: api.internal.TextBuffer) {
     env match {
-      case buffer: component.TextBuffer =>
+      case buffer: api.internal.TextBuffer =>
         val foreground = p.readInt()
         val foregroundIsPalette = p.readBoolean()
         buffer.setForegroundColor(foreground, foregroundIsPalette)
@@ -574,7 +602,7 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onTextBufferMultiCopy(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiCopy(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
@@ -584,11 +612,11 @@ object PacketHandler extends CommonPacketHandler {
     buffer.copy(col, row, w, h, tx, ty)
   }
 
-  def onTextBufferMultiDepthChange(p: PacketParser, buffer: component.TextBuffer) {
-    buffer.setColorDepth(component.TextBuffer.ColorDepth.values.apply(p.readInt()))
+  def onTextBufferMultiDepthChange(p: PacketParser, buffer: api.internal.TextBuffer) {
+    buffer.setColorDepth(api.internal.TextBuffer.ColorDepth.values.apply(p.readInt()))
   }
 
-  def onTextBufferMultiFill(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiFill(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
@@ -597,25 +625,31 @@ object PacketHandler extends CommonPacketHandler {
     buffer.fill(col, row, w, h, c)
   }
 
-  def onTextBufferMultiPaletteChange(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiPaletteChange(p: PacketParser, buffer: api.internal.TextBuffer) {
     val index = p.readInt()
     val color = p.readInt()
     buffer.setPaletteColor(index, color)
   }
 
-  def onTextBufferMultiResolutionChange(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiResolutionChange(p: PacketParser, buffer: api.internal.TextBuffer) {
     val w = p.readInt()
     val h = p.readInt()
     buffer.setResolution(w, h)
   }
 
-  def onTextBufferMultiMaxResolutionChange(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiViewportResolutionChange(p: PacketParser, buffer: api.internal.TextBuffer) {
+    val w = p.readInt()
+    val h = p.readInt()
+    buffer.setViewport(w, h)
+  }
+
+  def onTextBufferMultiMaxResolutionChange(p: PacketParser, buffer: api.internal.TextBuffer) {
     val w = p.readInt()
     val h = p.readInt()
     buffer.setMaximumResolution(w, h)
   }
 
-  def onTextBufferMultiSet(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiSet(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
     val s = p.readUTF()
@@ -623,7 +657,7 @@ object PacketHandler extends CommonPacketHandler {
     buffer.set(col, row, s, vertical)
   }
 
-  def onTextBufferMultiRawSetText(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiRawSetText(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
 
@@ -641,7 +675,7 @@ object PacketHandler extends CommonPacketHandler {
     buffer.rawSetText(col, row, text)
   }
 
-  def onTextBufferMultiRawSetBackground(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiRawSetBackground(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
 
@@ -659,7 +693,7 @@ object PacketHandler extends CommonPacketHandler {
     buffer.rawSetBackground(col, row, color)
   }
 
-  def onTextBufferMultiRawSetForeground(p: PacketParser, buffer: component.TextBuffer) {
+  def onTextBufferMultiRawSetForeground(p: PacketParser, buffer: api.internal.TextBuffer) {
     val col = p.readInt()
     val row = p.readInt()
 
@@ -680,17 +714,6 @@ object PacketHandler extends CommonPacketHandler {
   def onScreenTouchMode(p: PacketParser) =
     p.readTileEntity[Screen]() match {
       case Some(t) => t.invertTouchMode = p.readBoolean()
-      case _ => // Invalid packet.
-    }
-
-  def onServerPresence(p: PacketParser) =
-    p.readTileEntity[ServerRack]() match {
-      case Some(t) => for (i <- t.isPresent.indices) {
-        if (p.readBoolean()) {
-          t.isPresent(i) = Some(p.readUTF())
-        }
-        else t.isPresent(i) = None
-      }
       case _ => // Invalid packet.
     }
 

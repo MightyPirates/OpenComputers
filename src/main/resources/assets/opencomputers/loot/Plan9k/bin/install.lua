@@ -59,9 +59,37 @@ end
 local name = options.name or "Plan9k"
 io.write("Installing " .. name .." to device " .. (choice.getLabel() or choice.address) .. "\n")
 
+local distros = {
+  {desc = "[offline] Plan9k - lightest, stable",                                params = {"--offline", "--mirror=/", "-SY", "plan9k"}},
+  {desc = "[offline] Plan9k-extra - stable, contains tools(recomended!)",       params = {"--offline", "--mirror=/", "-SY", "plan9k-extra"}},
+  {desc = "[offline] Update - update installed offilne system",                 params = {"--offline", "--mirror=/", "-uY"}},
+  {desc = "[online]  Plan9k - lightest, experimental",                          params = {"-SYy", "plan9k"}},
+  {desc = "[online]  Plan9k-extra - experimental, contains tools, docs",        params = {"-SYy", "plan9k-extra", "plan9k-docs"}},
+  {desc = "[online]  StarOS - Plan9k-extra distro with additional tools",       params = {"-SYy", "staros"}},
+  {desc = "[online]  Update - update installed system",                         params = {"--mirror=/", "-uyY"}},
+}
+
+for n, dist in pairs(distros) do
+  print(n .. ". " .. dist.desc)
+end
+
+io.write("Select distribution/action(online distros require internet card to install!):\n")
+
+local params
+while not params do
+  local result = term.read()
+  if result:sub(1, 1):lower() == "q" then
+    os.exit()
+  end
+  local n = tonumber(result)
+  if distros[n] then
+    params = distros[n].params
+  end
+end
+
 local dest = findMount(choice.address) .. "/"
 --We only install base system
-local pid = os.spawn("/usr/bin/mpt.lua", "-v", "--offline", "--root="..dest, "--mirror=/", "-S", "plan9k" )
+local pid = os.spawn("/usr/bin/mpt.lua", "-v", "--root="..dest, table.unpack(params))
 kernel.joinThread(pid)
 
 if not options.nolabelset then pcall(choice.setLabel, name) end

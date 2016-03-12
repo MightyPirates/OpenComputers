@@ -19,7 +19,7 @@ import scala.collection.mutable
 class Adapter extends traits.Environment with traits.ComponentInventory with Analyzable with internal.Adapter {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
-  private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
+  private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.SidedBlock)]](6)(None)
 
   private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
@@ -55,7 +55,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
         // but the only 'downside' is that it can't be used to manipulate
         // inventories, which I actually consider a plus :P
         case _ =>
-          Option(api.Driver.driverFor(world, x, y, z)) match {
+          Option(api.Driver.driverFor(world, x, y, z, d)) match {
             case Some(newDriver) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
@@ -66,7 +66,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                   node.disconnect(oldEnvironment.node)
 
                   // Then rebuild - if we have something.
-                  val environment = newDriver.createEnvironment(world, x, y, z)
+                  val environment = newDriver.createEnvironment(world, x, y, z, d)
                   if (environment != null) {
                     blocks(d.ordinal()) = Some((environment, newDriver))
                     if (environment.canUpdate) {
@@ -78,7 +78,7 @@ class Adapter extends traits.Environment with traits.ComponentInventory with Ana
                 } // else: the more things change, the more they stay the same.
               case _ =>
                 // A challenger appears. Maybe.
-                val environment = newDriver.createEnvironment(world, x, y, z)
+                val environment = newDriver.createEnvironment(world, x, y, z, d)
                 if (environment != null) {
                   blocks(d.ordinal()) = Some((environment, newDriver))
                   if (environment.canUpdate) {

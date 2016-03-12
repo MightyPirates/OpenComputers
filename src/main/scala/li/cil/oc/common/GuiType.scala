@@ -30,6 +30,7 @@ object GuiType extends ScalaEnum {
   val Robot = new EnumVal { def name = "Robot"; def subType = GuiType.Category.Block }
   val Screen = new EnumVal { def name = "Screen"; def subType = GuiType.Category.Block }
   val Server = new EnumVal { def name = "Server"; def subType = GuiType.Category.Item }
+  val ServerInRack = new EnumVal { def name = "ServerInRack"; def subType = GuiType.Category.Block }
   val Switch = new EnumVal { def name = "Switch"; def subType = GuiType.Category.Block }
   val Tablet = new EnumVal { def name = "Tablet"; def subType = GuiType.Category.Item }
   val TabletInner = new EnumVal { def name = "TabletInner"; def subType = GuiType.Category.Item }
@@ -44,4 +45,10 @@ object GuiType extends ScalaEnum {
     val Entity = new EnumVal { def name = "Entity" }
     val Item = new EnumVal { def name = "Item" }
   }
+
+  def embedSlot(y: Int, slot: Int) = (y & 0x00FFFFFF) | (slot << 24)
+
+  def extractY(value: Int) = value & 0x00FFFFFF
+
+  def extractSlot(value: Int) = (value >>> 24) & 0xFF
 }

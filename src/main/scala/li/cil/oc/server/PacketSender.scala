@@ -1,9 +1,8 @@
 package li.cil.oc.server
 
 import li.cil.oc.api
-import li.cil.oc.api.component.TextBuffer.ColorDepth
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
 import li.cil.oc.common.nanomachines.ControllerImpl
@@ -101,10 +100,10 @@ object PacketSender {
   }
 
   // Avoid spamming the network with disk activity notices.
-  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[EnvironmentHost, mutable.Map[String, Long]]
+  val fileSystemAccessTimeouts = mutable.WeakHashMap.empty[Node, mutable.Map[String, Long]]
 
   def sendFileSystemActivity(node: Node, host: EnvironmentHost, name: String) = fileSystemAccessTimeouts.synchronized {
-    fileSystemAccessTimeouts.get(host) match {
+    fileSystemAccessTimeouts.get(node) match {
       case Some(hostTimeouts) if hostTimeouts.getOrElse(name, 0L) > System.currentTimeMillis() => // Cooldown.
       case _ =>
         val event = host match {
@@ -113,7 +112,7 @@ object PacketSender {
         }
         MinecraftForge.EVENT_BUS.post(event)
         if (!event.isCanceled) {
-          fileSystemAccessTimeouts.getOrElseUpdate(host, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
+          fileSystemAccessTimeouts.getOrElseUpdate(node, mutable.Map.empty) += name -> (System.currentTimeMillis() + 500)
 
           val pb = new SimplePacketBuilder(PacketType.FileSystemActivity)
 
@@ -133,6 +132,34 @@ object PacketSender {
 
           pb.sendToPlayersNearHost(host, Option(64))
         }
+    }
+  }
+
+  def sendNetworkActivity(node: Node, host: EnvironmentHost) = {
+
+    val event = host match {
+      case t: net.minecraft.tileentity.TileEntity => new NetworkActivityEvent.Server(t, node)
+      case _ => new NetworkActivityEvent.Server(host.world, host.xPosition, host.yPosition, host.zPosition, node)
+    }
+    MinecraftForge.EVENT_BUS.post(event)
+    if (!event.isCanceled) {
+
+      val pb = new SimplePacketBuilder(PacketType.NetworkActivity)
+
+      CompressedStreamTools.write(event.getData, pb)
+      event.getTileEntity match {
+        case t: net.minecraft.tileentity.TileEntity =>
+          pb.writeBoolean(true)
+          pb.writeTileEntity(t)
+        case _ =>
+          pb.writeBoolean(false)
+          pb.writeInt(event.getWorld.provider.dimensionId)
+          pb.writeDouble(event.getX)
+          pb.writeDouble(event.getY)
+          pb.writeDouble(event.getZ)
+      }
+
+      pb.sendToPlayersNearHost(host, Option(64))
     }
   }
 
@@ -373,6 +400,40 @@ object PacketSender {
     pb.sendToPlayersNearHost(t)
   }
 
+  def sendRackInventory(t: tileentity.Rack) {
+    val pb = new SimplePacketBuilder(PacketType.RackInventory)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.getSizeInventory)
+    for (slot <- 0 until t.getSizeInventory) {
+      pb.writeInt(slot)
+      pb.writeItemStack(t.getStackInSlot(slot))
+    }
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendRackInventory(t: tileentity.Rack, slot: Int): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.RackInventory)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(1)
+    pb.writeInt(slot)
+    pb.writeItemStack(t.getStackInSlot(slot))
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
+  def sendRackMountableData(t: tileentity.Rack, mountable: Int) {
+    val pb = new SimplePacketBuilder(PacketType.RackMountableData)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(mountable)
+    pb.writeNBT(t.lastData(mountable))
+
+    pb.sendToPlayersNearTileEntity(t)
+  }
+
   def sendRaidChange(t: tileentity.Raid) {
     val pb = new SimplePacketBuilder(PacketType.RaidStateChange)
 
@@ -503,7 +564,7 @@ object PacketSender {
     pb.writeInt(ty)
   }
 
-  def appendTextBufferDepthChange(pb: PacketBuilder, value: ColorDepth) {
+  def appendTextBufferDepthChange(pb: PacketBuilder, value: api.internal.TextBuffer.ColorDepth) {
     pb.writePacketType(PacketType.TextBufferMultiDepthChange)
 
     pb.writeInt(value.ordinal)
@@ -528,6 +589,13 @@ object PacketSender {
 
   def appendTextBufferResolutionChange(pb: PacketBuilder, w: Int, h: Int) {
     pb.writePacketType(PacketType.TextBufferMultiResolutionChange)
+
+    pb.writeInt(w)
+    pb.writeInt(h)
+  }
+
+  def appendTextBufferViewportResolutionChange(pb: PacketBuilder, w: Int, h: Int) {
+    pb.writePacketType(PacketType.TextBufferMultiViewportResolutionChange)
 
     pb.writeInt(w)
     pb.writeInt(h)
@@ -619,51 +687,6 @@ object PacketSender {
     pb.writeBoolean(value)
 
     pb.sendToPlayersNearTileEntity(t)
-  }
-
-  def sendServerPresence(t: tileentity.ServerRack) {
-    val pb = new SimplePacketBuilder(PacketType.ServerPresence)
-
-    pb.writeTileEntity(t)
-    t.servers.foreach {
-      case Some(server) =>
-        pb.writeBoolean(true)
-        pb.writeUTF(server.machine.node.address)
-      case _ =>
-        pb.writeBoolean(false)
-    }
-
-    pb.sendToPlayersNearTileEntity(t)
-  }
-
-  def sendServerState(t: tileentity.ServerRack) {
-    val pb = new SimplePacketBuilder(PacketType.ComputerState)
-
-    pb.writeTileEntity(t)
-    pb.writeInt(-1)
-    pb.writeInt(t.range)
-
-    pb.sendToPlayersNearTileEntity(t)
-  }
-
-  def sendServerState(t: tileentity.ServerRack, number: Int, player: Option[EntityPlayerMP] = None) {
-    val pb = new SimplePacketBuilder(PacketType.ComputerState)
-
-    pb.writeTileEntity(t)
-    pb.writeInt(number)
-    pb.writeBoolean(t.isRunning(number))
-    pb.writeBoolean(t.hasErrored(number))
-    pb.writeDirection(t.sides(number))
-    val keys = t.terminals(number).keys
-    pb.writeInt(keys.length)
-    for (key <- keys) {
-      pb.writeUTF(key)
-    }
-
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToPlayersNearTileEntity(t)
-    }
   }
 
   def sendSound(world: World, x: Double, y: Double, z: Double, frequency: Int, duration: Int) {

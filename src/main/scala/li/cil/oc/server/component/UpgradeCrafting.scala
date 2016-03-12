@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.internal
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
@@ -27,7 +27,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
 
   @Callback(doc = """function([count:number]):number -- Tries to craft the specified number of items in the top left area of the inventory.""")
   def craft(context: Context, args: Arguments): Array[AnyRef] = {
-    val count = args.optInteger(0, Int.MaxValue)
+    val count = args.optInteger(0, 64) max 0 min 64
     result(CraftingInventory.craft(count): _*)
   }
 

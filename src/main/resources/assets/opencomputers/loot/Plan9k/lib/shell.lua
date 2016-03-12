@@ -11,7 +11,7 @@ local aliases = {}
 local shells = setmetatable({}, {__mode="v"})
 
 local function getShell()
-  local shellPath = os.getenv("SHELL") or "/bin/rc"
+  local shellPath = os.getenv("SHELL") or "/bin/sh.lua"
   local shellName, reason = shell.resolve(shellPath, "lua")
   if not shellName then
     return nil, "cannot resolve shell `" .. shellPath .. "': " .. reason
@@ -133,6 +133,7 @@ function shell.setPath(value)
 end
 
 function shell.resolve(path, ext)
+  if path == "-" then return path end
   if ext then
     checkArg(2, ext, "string")
     local where = findFile(path, ext)
@@ -142,13 +143,14 @@ function shell.resolve(path, ext)
       return nil, "file not found"
     end
   else
-    if unicode.sub(path, 1, 1) == "/" then
+    return path
+    --[[if unicode.sub(path, 1, 1) == "/" then
       return fs.canonical(path)
     elseif unicode.sub(path, 1, 2) == "~/" then
       return fs.concat(os.getenv("HOME"), path:sub(2))
     else
       return fs.concat(shell.getWorkingDirectory(), path)
-    end
+    end ]]--
   end
 end
 

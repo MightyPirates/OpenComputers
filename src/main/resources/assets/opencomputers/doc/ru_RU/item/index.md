@@ -50,6 +50,7 @@
 * [Контроллер жидкости](tankControllerUpgrade.md)
 * [Жидкость](tankUpgrade.md)
 * [Притягивающий луч](tractorBeamUpgrade.md)
+* [Торговля](tradingUpgrade.md)
 * [Улучшение](upgradeContainer1.md)
 
 ### Другое

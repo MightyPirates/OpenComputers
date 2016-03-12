@@ -45,7 +45,7 @@ function kernel.userspace.os.spawn(prog, ...)
         name = kernel.modules.vfs.resolve(prog)
         prog, reason = kernel._G.loadfile(prog, nil, kernel._G)
         if not prog then
-            error(reason)
+            error(tostring(reason) .. ": " .. tostring(prog))
         end
     end
     local thread = kernel.modules.threading.spawn(prog, 0, name, isThread, _, ...)
@@ -62,7 +62,7 @@ function kernel.userspace.os.spawnp(prog, stdin, stdout, stderr, ...)
         name = kernel.modules.vfs.resolve(prog)
         prog, reason = kernel._G.loadfile(prog, nil, kernel._G)
         if not prog then
-            error(reason)
+            error(tostring(reason) .. ": " .. tostring(prog))
         end
     end
     local thread = kernel.modules.threading.spawn(prog, 0, name, isThread, _, ...)
