@@ -263,7 +263,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/stargatetech2/**'
             exclude 'li/cil/oc/integration/tcon/**'
             exclude 'li/cil/oc/integration/thermalexpansion/**'
-            exclude 'li/cil/oc/integration/thaumcraft/**'
             exclude 'li/cil/oc/integration/thaumicenergistics/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
