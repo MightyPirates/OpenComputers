@@ -19,6 +19,8 @@ import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
@@ -26,7 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
+public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
     private static Set<Class<?>> blacklist;
 
     private boolean isBlacklisted(final Object o) {
@@ -53,21 +55,21 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
         return false;
     }
 
-    private IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
+    private IPeripheral findPeripheral(final World world, final BlockPos pos) {
         try {
-            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, -1);
+            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, pos, null);
             if (!isBlacklisted(p)) {
                 return p;
             }
         } catch (Exception e) {
-            OpenComputers.log().warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
+            OpenComputers.log().warn(String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", pos.getX(), pos.getY(), pos.getZ()), e);
         }
         return null;
     }
 
     @Override
-    public boolean worksWith(final World world, final int x, final int y, final int z) {
-        final TileEntity tileEntity = world.getTileEntity(x, y, z);
+    public boolean worksWith(final World world, final BlockPos pos, final EnumFacing side) {
+        final TileEntity tileEntity = world.getTileEntity(pos);
         return tileEntity != null
                 // This ensures we don't get duplicate components, in case the
                 // tile entity is natively compatible with OpenComputers.
@@ -76,12 +78,12 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 // to be incompatible with OpenComputers when used directly.
                 && !isBlacklisted(tileEntity)
                 // Actual check if it's a peripheral.
-                && findPeripheral(world, x, y, z) != null;
+                && findPeripheral(world, pos) != null;
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment(findPeripheral(world, x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
+        return new Environment(findPeripheral(world, pos));
     }
 
     public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral {
@@ -169,7 +171,7 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 if (fileSystems.containsKey(desiredLocation)) {
                     return null;
                 }
-                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount)));
+                return mount(desiredLocation, FileSystem.asManagedEnvironment(DriverComputerCraftMedia.fromComputerCraft(mount)));
             }
 
             @Override
@@ -177,7 +179,7 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 if (fileSystems.containsKey(desiredLocation)) {
                     return null;
                 }
-                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
+                return mount(desiredLocation, FileSystem.asManagedEnvironment(DriverComputerCraftMedia.fromComputerCraft(mount), driveName));
             }
 
             @Override
@@ -185,7 +187,7 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 if (fileSystems.containsKey(desiredLocation)) {
                     return null;
                 }
-                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount)));
+                return mount(desiredLocation, FileSystem.asManagedEnvironment(DriverComputerCraftMedia.fromComputerCraft(mount)));
             }
 
             @Override
@@ -193,7 +195,7 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 if (fileSystems.containsKey(desiredLocation)) {
                     return null;
                 }
-                return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount), driveName));
+                return mount(desiredLocation, FileSystem.asManagedEnvironment(DriverComputerCraftMedia.fromComputerCraft(mount), driveName));
             }
 
             private String mount(final String path, final li.cil.oc.api.network.ManagedEnvironment fileSystem) {

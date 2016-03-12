@@ -79,6 +79,10 @@ repositories {
         name = "mobius"
         url = "http://mobiusstrip.eu/maven"
     }
+    ivy {
+        name 'ComputerCraft'
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
+    }
     /*
     maven {
         name = "BluePower"
@@ -145,10 +149,6 @@ repositories {
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.mfr.cf}/[module]-[revision].[ext]"
     }
     ivy {
-        name 'ComputerCraft'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
-    }
-    ivy {
         name 'EnderIO'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.eio.cf}/[module]-[revision].[ext]"
     }
@@ -213,7 +213,6 @@ dependencies {
     provided name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
     provided name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar'
     provided name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
-    provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
@@ -221,6 +220,7 @@ dependencies {
     provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
     provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
 */
+    provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
