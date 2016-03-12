@@ -4,10 +4,10 @@ import li.cil.oc.api
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.input.Mouse
-import org.lwjgl.opengl.GL11
 
-class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val hasKeyboardCallback: () => Boolean, val hasPower: () => Boolean) extends traits.InputBuffer {
+class Screen(val buffer: api.internal.TextBuffer, val hasMouse: Boolean, val hasKeyboardCallback: () => Boolean, val hasPower: () => Boolean) extends traits.InputBuffer {
   override protected def hasKeyboard = hasKeyboardCallback()
 
   override protected def bufferX = 8 + x
@@ -84,8 +84,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
   private def toBufferCoordinates(mouseX: Int, mouseY: Int): Option[(Double, Double)] = {
     val bx = (mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth
     val by = (mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight
-    val bw = buffer.getWidth
-    val bh = buffer.getHeight
+    val bw = buffer.getViewportWidth
+    val bh = buffer.getViewportHeight
     if (bx >= 0 && by >= 0 && bx < bw && by < bh) Some((bx, by))
     else None
   }
@@ -96,11 +96,11 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
   }
 
   override def drawBuffer() {
-    GL11.glTranslatef(x, y, 0)
+    GlStateManager.translate(x, y, 0)
     BufferRenderer.drawBackground()
     if (hasPower()) {
-      GL11.glTranslatef(bufferMargin, bufferMargin, 0)
-      GL11.glScaled(scale, scale, 1)
+      GlStateManager.translate(bufferMargin, bufferMargin, 0)
+      GlStateManager.scale(scale, scale, 1)
       RenderState.makeItBlend()
       BufferRenderer.drawText(buffer)
     }

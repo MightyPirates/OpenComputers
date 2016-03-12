@@ -718,17 +718,17 @@ sandbox = {
       -- all, because hooks are disabled while they're running. So we just
       -- disable them altogether by default.
       if system.allowGC() then
-      -- For all user __gc functions we enforce a much tighter deadline.
-      -- This is because these functions may be called from the main
-      -- thread under certain circumstanced (such as when saving the world),
-      -- which can lead to noticeable lag if the __gc function behaves badly.
-      local sbmt = {} -- sandboxed metatable. only for __gc stuff, so it's
-                      -- kinda ok to have a shallow copy instead... meh.
-      for k, v in pairs(mt) do
-        sbmt[k] = v
-      end
+        -- For all user __gc functions we enforce a much tighter deadline.
+        -- This is because these functions may be called from the main
+        -- thread under certain circumstanced (such as when saving the world),
+        -- which can lead to noticeable lag if the __gc function behaves badly.
+        local sbmt = {} -- sandboxed metatable. only for __gc stuff, so it's
+                        -- kinda ok to have a shallow copy instead... meh.
+        for k, v in next, mt do
+          sbmt[k] = v
+        end
         sbmt.__gc = sgc
-      sbmt.mt = mt
+        sbmt.mt = mt
         mt = sbmt
       else
         -- Don't allow marking for finalization, but use the raw metatable.

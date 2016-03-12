@@ -10,8 +10,8 @@ if #args < 2 then
   io.write(" -u: copy only when the SOURCE file differs from the destination\n")
   io.write("     file or when the destination file is missing.\n")
   io.write(" -v: verbose output.\n")
-  io.write(" -x: stay on original source file system.")
-  return
+  io.write(" -x: stay on original source file system.\n")
+  return 1
 end
 
 local from = {}
@@ -30,7 +30,7 @@ end
 local result, reason
 
 local function prompt(message)
-  io.write(message .. " [Y/n]\n")
+  io.write(message .. " [Y/n] ")
   local result = io.read()
   return result and (result == "" or result:sub(1, 1):lower() == "y")
 end
@@ -59,35 +59,31 @@ local function areEqual(path1, path2)
   return result
 end
 
-local function isMount(path)
-  path = fs.canonical(path)
-  for _, mountPath in fs.mounts() do
-    if path == fs.canonical(mountPath) then
-      return true
-    end
-  end
+local mounts = {}
+for dev,path in fs.mounts() do
+  mounts[fs.canonical(path)] = dev
 end
 
-local function recurse(fromPath, toPath)
+local function recurse(fromPath, toPath, origin)
   status(fromPath, toPath)
   if fs.isDirectory(fromPath) then
     if not options.r then
       io.write("omitting directory `" .. fromPath .. "'\n")
       return true
     end
-    if fs.canonical(fromPath) == fs.canonical(fs.path(toPath)) then
-      return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'\n"
-    end
     if fs.exists(toPath) and not fs.isDirectory(toPath) then
       -- my real cp always does this, even with -f, -n or -i.
       return nil, "cannot overwrite non-directory `" .. toPath .. "' with directory `" .. fromPath .. "'"
     end
-    if options.x and isMount(fromPath) then
+    if options.x and origin and mounts[fs.canonical(fromPath)] then
       return true
+    end
+    if fs.get(fromPath) == fs.get(toPath) and fs.canonical(fs.path(toPath)):find(fs.canonical(fromPath),1,true)  then
+      return nil, "cannot copy a directory, `" .. fromPath .. "', into itself, `" .. toPath .. "'"
     end
     fs.makeDirectory(toPath)
     for file in fs.list(fromPath) do
-      local result, reason = recurse(fs.concat(fromPath, file), fs.concat(toPath, file))
+      local result, reason = recurse(fs.concat(fromPath, file), fs.concat(toPath, file), origin or fs.get(fromPath))
       if not result then
         return nil, reason
       end
@@ -135,6 +131,9 @@ for _, fromPath in ipairs(from) do
   end
   result, reason = recurse(fromPath, toPath)
   if not result then
-    error(reason, 0)
+    if reason then
+      io.stderr:write(reason..'\n')
+    end
+    return 1
   end
 end

@@ -15,6 +15,7 @@ import li.cil.oc.common.Tier
 import li.cil.oc.common.block.SimpleBlock
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
+import li.cil.oc.common.item.UpgradeTrading
 import li.cil.oc.common.item.data.DroneData
 import li.cil.oc.common.item.data.HoverBootsData
 import li.cil.oc.common.item.data.MicrocontrollerData
@@ -182,26 +183,6 @@ object Items extends ItemAPI {
   }
 
   // ----------------------------------------------------------------------- //
-
-  // Nobody should use this anyway, since it's internal, but IIRC some people do, so let's be nice...
-  // TODO remove in OC 1.6
-  /**
-   * @deprecated use <tt>api.Items.get("openOS").createItemStack(amount)</tt> instead.
-   */
-  @Deprecated
-  def createOpenOS(amount: Int = 1) = {
-    get(Constants.ItemName.OpenOS).createItemStack(amount)
-  }
-
-  // Nobody should use this anyway, since it's internal, but IIRC some people do, so let's be nice...
-  // TODO remove in OC 1.6
-  /**
-   * @deprecated use <tt>api.Items.get("luaBios").createItemStack(amount)</tt> instead.
-   */
-  @Deprecated
-  def createLuaBios(amount: Int = 1) = {
-    get(Constants.ItemName.LuaBios).createItemStack(amount)
-  }
 
   private def safeGetStack(name: String) = Option(get(name)).map(_.createItemStack(1)).orNull
 
@@ -433,6 +414,10 @@ object Items extends ItemAPI {
 
     // 1.5.12
     registerItem(new item.APU(components, Tier.Three), Constants.ItemName.APUCreative)
+
+    // 1.6
+    Recipes.addSubItem(new item.TerminalServer(components), Constants.ItemName.TerminalServer, "oc:terminalServer")
+    Recipes.addSubItem(new item.DiskDriveMountable(components), Constants.ItemName.DiskDriveMountable, "oc:diskDriveMountable")
   }
 
   // Card components.
@@ -494,6 +479,9 @@ object Items extends ItemAPI {
     // 1.5.8
     Recipes.addSubItem(new item.UpgradeHover(upgrades, Tier.One), Constants.ItemName.HoverUpgradeTier1, "oc:hoverUpgrade1")
     Recipes.addSubItem(new item.UpgradeHover(upgrades, Tier.Two), Constants.ItemName.HoverUpgradeTier2, "oc:hoverUpgrade2")
+
+    // 1.6
+    Recipes.addSubItem(new UpgradeTrading(upgrades), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
   }
 
   // Storage media of all kinds.

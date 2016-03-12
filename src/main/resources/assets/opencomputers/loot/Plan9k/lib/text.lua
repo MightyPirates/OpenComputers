@@ -70,36 +70,79 @@ end
 
 -------------------------------------------------------------------------------
 
+local operators = {";", "&&", "||", "|"}
+local function checkOp(string)
+  for _, v in pairs(operators) do
+    if unicode.sub(v, 1, unicode.len(string)) == string then
+      return true
+    end
+  end
+  return false
+end
+
 function text.tokenize(value)
   checkArg(1, value, "string")
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
+  local op = false
   for i = 1, unicode.len(value) do
     local char = unicode.sub(value, i, i)
     if escaped then -- escaped character
       escaped = false
-      token = token .. char
-    elseif char == "\\" and quoted ~= "'" then -- escape character?
-      escaped = true
-      token = token .. char
-    elseif char == quoted then -- end of quoted string
-      quoted = false
-      token = token .. char
-    elseif (char == "'" or char == '"') and not quoted then
-      quoted = char
-      start = i
-      token = token .. char
-    elseif string.find(char, "%s") and not quoted then -- delimiter
-      if token ~= "" then
-        table.insert(tokens, token)
-        token = ""
+      token = token..char
+    else
+      local newOp
+      if op then
+        newOp = token..char
+      else
+        newOp = char
       end
-    else -- normal char
-      token = token .. char
+      if checkOp(newOp) then -- part of operator?
+        if not op then -- delimit token if start of operator
+          table.insert(tokens, token)
+          op = true
+        end
+        token = newOp
+      else
+        if op then -- end of operator?
+          local foundOp = false
+          for _, v in pairs(operators) do
+            if v == token then
+              table.insert(tokens, token)
+              foundOp = true
+            end
+          end
+          if not foundOp then
+            tokens[#tokens] = tokens[#tokens]..token
+          end
+          token = ""
+          op = false
+        end
+
+        -- Continue with regular matching
+        if char == "\\" and quoted ~= "'" then -- escape character?
+          escaped = true
+          token = token..char
+        elseif char == quoted then -- end of quoted string
+          quoted = false
+          token = token..char
+        elseif (char == "'" or char == '"' or char == '`') and not quoted then
+          quoted = char
+          start = i
+          token = token..char
+        elseif string.find(char, "%s") and not quoted then -- delimiter
+          if token ~= "" then
+            table.insert(tokens, token)
+            token = ""
+          end
+        else -- normal char
+          token = token..char
+        end
+      end
     end
   end
   if quoted then
-    return nil, "unclosed quote at index " .. start
+    return nil, "unclosed quote at index " .. start, quoted
   end
   if token ~= "" then
     table.insert(tokens, token)

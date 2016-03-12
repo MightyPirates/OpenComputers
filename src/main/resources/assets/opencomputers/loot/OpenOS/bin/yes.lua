@@ -4,7 +4,7 @@ local shell = require("shell")
 local args, options = shell.parse(...)
 
 if options.V or options.version then
-  io.write("yes v:1.0-2\n")
+  io.write("yes v:1.0-3\n")
   io.write("Inspired by functionality of yes from GNU coreutils\n")
   return 0
 end
@@ -21,19 +21,12 @@ if options.h or options.help then
   return 0
 end
 
--- If there are no arguments, print 'y' and new line, if there is print it.
-if #args == 0 then
-  while pcall(io.write, "y\n") do
+local msg = #args == 0 and 'y' or table.concat(args, ' ')
+msg = msg .. '\n'
+
+while io.write(msg) do
+  if io.stdout.tty then
     os.sleep(0)
   end
-else
-  repeat
-    local ok = true
-    for i=1, #args, 1 do
-      ok = ok and pcall(io.write, args[i], " ")
-    end
-    pcall(io.write, "\n")
-    os.sleep(0)
-  until not ok
 end
 return 0

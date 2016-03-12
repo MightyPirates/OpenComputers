@@ -7,7 +7,7 @@ package li.cil.oc.api.driver;
  * <p/>
  * This was previously to be implemented on the driver itself, but that has been
  * deprecated. Implement it in the environment returned from the block driver's
- * {@link Block#createEnvironment(net.minecraft.world.World, net.minecraft.util.BlockPos)}
+ * {@link SidedBlock#createEnvironment(net.minecraft.world.World, net.minecraft.util.BlockPos, net.minecraft.util.EnumFacing)}
  * method instead.
  */
 public interface NamedBlock {

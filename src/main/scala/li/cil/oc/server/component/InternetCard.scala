@@ -28,6 +28,7 @@ import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class InternetCard extends prefab.ManagedEnvironment {
@@ -47,7 +48,7 @@ class InternetCard extends prefab.ManagedEnvironment {
   @Callback(direct = true, doc = """function():boolean -- Returns whether HTTP requests can be made (config setting).""")
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @Callback(doc = """function(url:string[, postData:string]):userdata -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
+  @Callback(doc = """function(url:string[, postData:string[, headers:table]]):userdata -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
   def request(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
@@ -58,7 +59,13 @@ class InternetCard extends prefab.ManagedEnvironment {
       throw new IOException("too many open connections")
     }
     val post = if (args.isString(1)) Option(args.checkString(1)) else None
-    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post)
+    val headers = if (args.isTable(2)) args.checkTable(2).collect {
+        case (key: String, value: AnyRef) => (key, value.toString)
+      }.toMap else Map.empty[String, String]
+    if (!Settings.get.httpHeadersEnabled && headers.size > 0) {
+      return result(Unit, "http request headers are unavailable")
+    }
+    val request = new InternetCard.HTTPRequest(this, checkAddress(address), post, headers)
     connections += request
     result(request)
   }
@@ -289,10 +296,10 @@ object InternetCard {
   }
 
   class HTTPRequest extends AbstractValue with Closable {
-    def this(owner: InternetCard, url: URL, post: Option[String]) {
+    def this(owner: InternetCard, url: URL, post: Option[String], headers: Map[String, String]) {
       this()
       this.owner = Some(owner)
-      this.stream = threadPool.submit(new RequestSender(url, post))
+      this.stream = threadPool.submit(new RequestSender(url, post, headers))
     }
 
     private var owner: Option[InternetCard] = None
@@ -391,13 +398,14 @@ object InternetCard {
     }
 
     // This one doesn't (see comment in TCP socket), but I like to keep it consistent.
-    private class RequestSender(val url: URL, val post: Option[String]) extends Callable[InputStream] {
+    private class RequestSender(val url: URL, val post: Option[String], val headers: Map[String, String]) extends Callable[InputStream] {
       override def call() = try {
         checkLists(InetAddress.getByName(url.getHost), url.getHost)
         val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
         url.openConnection(proxy) match {
           case http: HttpURLConnection => try {
             http.setDoInput(true)
+            headers.foreach(Function.tupled(http.setRequestProperty _))
             if (post.isDefined) {
               http.setRequestMethod("POST")
               http.setDoOutput(true)

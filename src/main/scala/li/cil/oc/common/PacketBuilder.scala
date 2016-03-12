@@ -3,11 +3,12 @@ package li.cil.oc.common
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.OutputStream
-import java.util.zip.GZIPOutputStream
+import java.util.zip.Deflater
+import java.util.zip.DeflaterOutputStream
 
 import io.netty.buffer.Unpooled
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -48,7 +49,13 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     }
   }
 
-  def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.writeCompressed(nbt, this)
+  def writeNBT(nbt: NBTTagCompound) = {
+    val haveNbt = nbt != null
+    writeBoolean(haveNbt)
+    if (haveNbt) {
+      CompressedStreamTools.write(nbt, this)
+    }
+  }
 
   def writePacketType(pt: PacketType.Value) = writeByte(pt.id)
 
@@ -64,7 +71,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
     val dimension = world.provider.getDimensionId
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
     val manager = server.getConfigurationManager
-    for (player <- manager.playerEntityList.map(_.asInstanceOf[EntityPlayerMP]) if player.dimension == dimension) {
+    for (player <- manager.playerEntityList if player.dimension == dimension) {
       val playerRenderDistance = 16 // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
       val playerSpecificRange = range.getOrElse((manager.getViewDistance min playerRenderDistance) * 16.0)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
@@ -83,7 +90,7 @@ abstract class PacketBuilder(stream: OutputStream) extends DataOutputStream(stre
 // Necessary to keep track of the GZIP stream.
 abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends PacketBuilder(stream)
 
-class SimplePacketBuilder(packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
+class SimplePacketBuilder(val packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
   writeByte(packetType.id)
 
   override protected def packet = {
@@ -91,7 +98,7 @@ class SimplePacketBuilder(packetType: PacketType.Value) extends PacketBuilderBas
   }
 }
 
-class CompressedPacketBuilder(packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new GZIPOutputStream(data)) {
+class CompressedPacketBuilder(val packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new DeflaterOutputStream(data, new Deflater(Deflater.BEST_SPEED))) {
   writeByte(packetType.id)
 
   override protected def packet = {

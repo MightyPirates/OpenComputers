@@ -10,7 +10,6 @@ import li.cil.oc.api.driver.item.Chargeable
 import li.cil.oc.api.event.RobotRenderEvent.MountPoint
 import li.cil.oc.api.internal.Robot
 import li.cil.oc.client.renderer.item.UpgradeRenderer
-import li.cil.oc.common.tileentity
 import li.cil.oc.util.BlockPosition
 import net.minecraft.client.resources.model.ModelResourceLocation
 import net.minecraft.creativetab.CreativeTabs
@@ -113,15 +112,13 @@ class Delegator extends Item with driver.item.UpgradeRenderer with Chargeable {
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
-  override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer) = {
-    world.getTileEntity(pos) match {
-      case drive: tileentity.DiskDrive => true
-      case drive: tileentity.Microcontroller => true
+  // ----------------------------------------------------------------------- //
+
+  override def doesSneakBypassUse(world: World, pos: BlockPos, player: EntityPlayer): Boolean =
+    Delegator.subItem(player.getHeldItem) match {
+      case Some(subItem) => subItem.doesSneakBypassUse(BlockPosition(pos, world), player)
       case _ => super.doesSneakBypassUse(world, pos, player)
     }
-  }
-
-  // ----------------------------------------------------------------------- //
 
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, pos: BlockPos, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
     Delegator.subItem(stack) match {

@@ -1,7 +1,7 @@
 package li.cil.oc.util
 
 import com.google.common.hash.Hashing
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import net.minecraft.entity.Entity
 import net.minecraft.util._
 import net.minecraft.world.World

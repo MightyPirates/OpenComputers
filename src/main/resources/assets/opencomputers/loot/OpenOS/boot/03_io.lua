@@ -22,15 +22,13 @@ stdoutStream.close = stdinStream.close
 stderrStream.close = stdinStream.close
 
 function stdinStream:read(n, dobreak)
-  local result = term.read(stdinHistory, dobreak)
-  while #stdinHistory > 10 do
-    table.remove(stdinHistory, 1)
-  end
+  stdinHistory.dobreak = dobreak
+  local result = term.readKeyboard(stdinHistory)
   return result
 end
 
 function stdoutStream:write(str)
-  term.write(str, true)
+  term.drawText(str, self.wrap ~= false)
   return self
 end
 
@@ -53,16 +51,44 @@ stdoutStream.seek = badFileDescriptor
 stderrStream.read = badFileDescriptor
 stderrStream.seek = badFileDescriptor
 
-io.stdin = buffer.new("r", stdinStream)
-io.stdout = buffer.new("w", stdoutStream)
-io.stderr = buffer.new("w", stderrStream)
+local core_stdin = buffer.new("r", stdinStream)
+local core_stdout = buffer.new("w", stdoutStream)
+local core_stderr = buffer.new("w", stderrStream)
 
-io.stdout:setvbuf("no")
-io.stderr:setvbuf("no")
+core_stdout:setvbuf("no")
+core_stderr:setvbuf("no")
+core_stdin.tty = true
+core_stdout.tty = true
+core_stderr.tty = true
 
-io.stdin.close = stdinStream.close
-io.stdout.close = stdinStream.close
-io.stderr.close = stdinStream.close
+core_stdin.close = stdinStream.close
+core_stdout.close = stdinStream.close
+core_stderr.close = stdinStream.close
 
-io.input(io.stdin)
-io.output(io.stdout)
+local fd_map =
+{
+  -- key name => method name
+  stdin = 'input',
+  stdout = 'output',
+  stderr = 'error'
+}
+
+local io_mt = getmetatable(io) or {}
+io_mt.__index = function(t, k)
+  if fd_map[k] then
+    return io[fd_map[k]]()
+  end
+end
+io_mt.__newindex = function(t, k, v)
+  if fd_map[k] then
+    io[fd_map[k]](v)
+  else
+    rawset(io, k, v)
+  end
+end
+
+setmetatable(io, io_mt)
+
+io.stdin = core_stdin
+io.stdout = core_stdout
+io.stderr = core_stderr

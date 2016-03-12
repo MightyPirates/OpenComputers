@@ -62,7 +62,7 @@ public interface Item {
      * @param host  the host the environment will be managed by.
      * @return the environment for that item.
      */
-    ManagedEnvironment createEnvironment(ItemStack stack, EnvironmentHost host);
+    ManagedEnvironment createEnvironment(ItemStack stack, li.cil.oc.api.network.EnvironmentHost host);
 
     /**
      * The slot type of the specified item this driver supports.

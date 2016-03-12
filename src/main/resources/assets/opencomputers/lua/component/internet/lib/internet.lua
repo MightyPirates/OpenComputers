@@ -6,9 +6,10 @@ local internet = {}
 
 -------------------------------------------------------------------------------
 
-function internet.request(url, data)
+function internet.request(url, data, headers)
   checkArg(1, url, "string")
   checkArg(2, data, "string", "table", "nil")
+  checkArg(3, headers, "table", "nil")
 
   local inet = component.internet
   if not inet then
@@ -25,7 +26,7 @@ function internet.request(url, data)
     end
   end
 
-  local request, reason = inet.request(url, post)
+  local request, reason = inet.request(url, post, headers)
   if not request then
     error(reason, 2)
   end

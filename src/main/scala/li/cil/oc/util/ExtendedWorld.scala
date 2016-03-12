@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
@@ -28,6 +28,8 @@ object ExtendedWorld {
     def getTileEntity(host: EnvironmentHost): TileEntity = getTileEntity(BlockPosition(host))
 
     def isAirBlock(position: BlockPosition) = world.isAirBlock(position.toBlockPos)
+
+    def getLightBrightnessForSkyBlocks(position: BlockPosition, minBrightness: Int) = world.getCombinedLight(position.toBlockPos, minBrightness)
   }
 
   class ExtendedWorld(override val world: World) extends ExtendedBlockAccess(world) {

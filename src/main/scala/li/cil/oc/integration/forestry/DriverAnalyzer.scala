@@ -16,7 +16,7 @@ class DriverAnalyzer extends DriverTileEntity {
 
   override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileAnalyzer])
 
-  class Environment(tileEntity: TileAnalyzer) extends ManagedTileEntityEnvironment[TileAnalyzer](tileEntity, "forestry_analyzer") with NamedBlock {
+  final class Environment(tileEntity: TileAnalyzer) extends ManagedTileEntityEnvironment[TileAnalyzer](tileEntity, "forestry_analyzer") with NamedBlock {
     override def preferredName = "forestry_analyzer"
 
     override def priority = 0

@@ -3,8 +3,8 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.Network
-import li.cil.oc.api.component.Keyboard.UsabilityChecker
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.internal.Keyboard.UsabilityChecker
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.prefab
@@ -15,14 +15,14 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.component.Keyboard {
+class Keyboard(val host: EnvironmentHost) extends prefab.ManagedEnvironment with api.internal.Keyboard {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()
 
   val pressedKeys = mutable.Map.empty[EntityPlayer, mutable.Map[Integer, Character]]
 
-  var usableOverride: Option[api.component.Keyboard.UsabilityChecker] = None
+  var usableOverride: Option[api.internal.Keyboard.UsabilityChecker] = None
 
   override def setUsableOverride(callback: UsabilityChecker) = usableOverride = Option(callback)
 

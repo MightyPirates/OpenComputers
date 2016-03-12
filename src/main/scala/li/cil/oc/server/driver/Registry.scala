@@ -5,11 +5,17 @@ import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.api
 import li.cil.oc.api.driver.Converter
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.driver.EnvironmentProvider
+import li.cil.oc.api.driver.InventoryProvider
 import li.cil.oc.api.driver.item.HostAware
 import li.cil.oc.api.machine.Value
+import li.cil.oc.api.network.EnvironmentHost
+import li.cil.oc.api.network.ManagedEnvironment
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
 import scala.collection.convert.WrapAsJava._
@@ -34,9 +40,15 @@ import scala.math.ScalaNumber
 private[oc] object Registry extends api.detail.DriverAPI {
   val blocks = mutable.ArrayBuffer.empty[api.driver.Block]
 
+  val sidedBlocks = mutable.ArrayBuffer.empty[api.driver.SidedBlock]
+
   val items = mutable.ArrayBuffer.empty[api.driver.Item]
 
   val converters = mutable.ArrayBuffer.empty[api.driver.Converter]
+
+  val environmentProviders = mutable.ArrayBuffer.empty[api.driver.EnvironmentProvider]
+
+  val inventoryProviders = mutable.ArrayBuffer.empty[api.driver.InventoryProvider]
 
   val blacklist = mutable.ArrayBuffer.empty[(ItemStack, mutable.Set[Class[_]])]
 
@@ -51,9 +63,17 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
+  override def add(driver: api.driver.SidedBlock) {
+    if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
+    if (!sidedBlocks.contains(driver)) {
+      OpenComputers.log.debug(s"Registering block driver ${driver.getClass.getName}.")
+      sidedBlocks += driver
+    }
+  }
+
   override def add(driver: api.driver.Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.contains(driver)) {
+    if (!items.contains(driver)) {
       OpenComputers.log.debug(s"Registering item driver ${driver.getClass.getName}.")
       items += driver
     }
@@ -67,9 +87,37 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
   }
 
-  override def driverFor(world: World, pos: BlockPos) =
-    blocks.filter(_.worksWith(world, pos)) match {
-      case drivers if drivers.nonEmpty => new CompoundBlockDriver(drivers: _*)
+  override def add(provider: EnvironmentProvider): Unit = {
+    if (locked) throw new IllegalStateException("Please register all environment providers in the init phase.")
+    if (!environmentProviders.contains(provider)) {
+      OpenComputers.log.debug(s"Registering environment provider ${provider.getClass.getName}.")
+      environmentProviders += provider
+    }
+  }
+
+  override def add(provider: InventoryProvider): Unit = {
+    if (locked) throw new IllegalStateException("Please register all inventory providers in the init phase.")
+    if (!inventoryProviders.contains(provider)) {
+      OpenComputers.log.debug(s"Registering inventory provider ${provider.getClass.getName}.")
+      inventoryProviders += provider
+    }
+  }
+
+  // TODO Remove in OC 1.7
+  override def driverFor(world: World, pos: BlockPos) = {
+    driverFor(world, pos, null) match {
+      case driver: api.driver.SidedBlock => new api.driver.Block {
+        override def worksWith(world: World, pos: BlockPos): Boolean = driver.worksWith(world, pos, null)
+
+        override def createEnvironment(world: World, pos: BlockPos): ManagedEnvironment = driver.createEnvironment(world, pos, null)
+      }
+      case _ => null
+    }
+  }
+
+  override def driverFor(world: World, pos: BlockPos, side: EnumFacing): api.driver.SidedBlock =
+    (sidedBlocks.filter(_.worksWith(world, pos, side)), blocks.filter(_.worksWith(world, pos))) match {
+      case (sidedDrivers, drivers) if sidedDrivers.nonEmpty || drivers.nonEmpty => new CompoundBlockDriver(sidedDrivers.toArray, drivers.toArray)
       case _ => null
     }
 
@@ -88,6 +136,18 @@ private[oc] object Registry extends api.detail.DriverAPI {
   override def driverFor(stack: ItemStack) =
     if (stack != null) items.find(_.worksWith(stack)).orNull
     else null
+
+  override def environmentFor(stack: ItemStack): Class[_] = {
+    environmentProviders.map(provider => provider.getEnvironment(stack)).collectFirst {
+      case clazz: Class[_] => clazz
+    }.orNull
+  }
+
+  override def inventoryFor(stack: ItemStack, player: EntityPlayer): IInventory = {
+    inventoryProviders.find(provider => provider.worksWith(stack, player)).
+      map(provider => provider.getInventory(stack, player)).
+      orNull
+  }
 
   override def blockDrivers = blocks.toSeq
 

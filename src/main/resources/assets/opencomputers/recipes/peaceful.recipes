@@ -1,28 +1,28 @@
 include file("default.recipes")
 
 redstoneCard2 {
-  input: [[blockRedstone, "oc:circuitChip2", diamond]
+  input: [[blockRedstone, "oc:circuitChip2", gemDiamond]
           ["", "oc:materialCard", ""]]
 }
 wlanCard {
-  input: [[diamond, "oc:circuitChip2", ""]
+  input: [[gemDiamond, "oc:circuitChip2", ""]
           ["", "oc:materialCard", ""]]
 }
 linkedCard {
-  input: [[diamond, "", diamond]
+  input: [[gemDiamond, "", gemDiamond]
           ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
           ["oc:circuitChip3", "", "oc:circuitChip3"]]
   output: 2 # Note: all resulting cards are linked to each other.
 }
 
 angelUpgrade {
-  input: [[ingotIron, diamond, ingotIron]
+  input: [[ingotIron, gemDiamond, ingotIron]
           ["oc:circuitChip1", pistonStickyBase, "oc:circuitChip1"]
-          [ingotIron, diamond, ingotIron]]
+          [ingotIron, gemDiamond, ingotIron]]
 }
 chunkloaderUpgrade {
   input: [[ingotGold, blockGlass, ingotGold]
-          ["oc:circuitChip3", diamond, "oc:circuitChip3"]
+          ["oc:circuitChip3", gemDiamond, "oc:circuitChip3"]
           [obsidian, "oc:materialCircuitBoardPrinted", obsidian]]
 }
 inventoryUpgrade {
@@ -59,13 +59,13 @@ inkCartridgeEmpty {
 
 interweb {
   input: [[redstone, {block="minecraft:wool", subID=9}, redstone]
-          [{block="minecraft:wool", subID=9}, diamond, {block="minecraft:wool", subID=9}]
+          [{block="minecraft:wool", subID=9}, gemDiamond, {block="minecraft:wool", subID=9}]
           [redstone, {block="minecraft:wool", subID=9}, redstone]]
 }
 
 geolyzer {
   input: [[ingotGold, compass, ingotGold]
-          [diamond, "oc:circuitChip2", diamond]
+          [gemDiamond, "oc:circuitChip2", gemDiamond]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 hologram2 {

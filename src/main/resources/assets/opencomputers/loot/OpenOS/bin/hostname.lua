@@ -3,6 +3,7 @@ if args[1] then
   local file, reason = io.open("/etc/hostname", "w")
   if not file then
     io.stderr:write(reason .. "\n")
+    return 1
   else
     file:write(args[1])
     file:close()
@@ -16,5 +17,6 @@ else
     file:close()
   else
     io.stderr:write("Hostname not set\n")
+    return 1
   end
 end

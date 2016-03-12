@@ -1,9 +1,6 @@
 -- Run all enabled rc scripts.
-local results = require('rc').allRunCommand('start')
-
-for name, result in pairs(results) do
-  local ok, reason = table.unpack(result)
-  if not ok then
-    io.stderr:write(reason .. "\n")
-  end
+local shell = require("shell")
+local rc = shell.resolve("rc", "lua")
+if rc then 
+  dofile(rc)
 end

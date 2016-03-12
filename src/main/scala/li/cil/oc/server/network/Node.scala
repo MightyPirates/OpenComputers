@@ -43,7 +43,7 @@ trait Node extends ImmutableNode {
 
   def remove() = if (network != null) network.remove(this)
 
-  private def isInSameNetwork(other: ImmutableNode) = network != null && network == other.network
+  private def isInSameNetwork(other: ImmutableNode) = network != null && other != null && network == other.network
 
   // ----------------------------------------------------------------------- //
 

@@ -79,6 +79,10 @@ repositories {
         name = "mobius"
         url = "http://mobiusstrip.eu/maven"
     }
+    ivy {
+        name 'ComputerCraft'
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
+    }
     /*
     maven {
         name = "BluePower"
@@ -112,9 +116,9 @@ repositories {
         name 'ProjectRed'
         url 'http://files.projectredwiki.com/maven/'
     }
-    maven {
+    ivy {
         name 'ColoredLightCore'
-        url "http://coloredlightscore.us.to/maven/clc/"
+        artifactPattern "http://coloredlightscore.us.to:8080/job/ColoredLightsCore%20v1.7.10/${config.coloredlights.build}/artifact/build/libs/[module]-[revision]-[classifier].[ext]"
     }
     ivy {
         name "BuildCraft"
@@ -145,10 +149,6 @@ repositories {
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.mfr.cf}/[module]-[revision].[ext]"
     }
     ivy {
-        name 'ComputerCraft'
-        artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
-    }
-    ivy {
         name 'EnderIO'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.eio.cf}/[module]-[revision].[ext]"
     }
@@ -163,6 +163,10 @@ repositories {
     ivy {
         name 'ExtraCells'
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.ec.cf}/[module]-[revision].[ext]"
+    }
+    ivy {
+        name 'ThaumicEnergistics'
+        artifactPattern "http://addons-origin.cursecdn.com/files/${config.thaumicenergistics.cf}/[module]-[revision].[ext]"
     }
     */
 }
@@ -191,7 +195,6 @@ dependencies {
     provided "com.bluepowermod:BluePower:${config.bluepower.version}:deobf"
     provided "com.gregoriust.gregtech:gregtech_${config.minecraft.version}:${config.gt.version}:dev"
     provided "igwmod:IGW-Mod-1.7.10:${config.igwmod.version}:userdev"
-    provided "li.cil.tis3d:TIS-3D:${config.tis3d.version}:dev"
     provided "net.industrial-craft:industrialcraft-2:${config.ic2.version}:dev"
     provided "net.sengir.forestry:forestry_${config.minecraft.version}:${config.forestry.version}:dev"
     provided "dev.modwarriors.notenoughkeys:NotEnoughKeys:${config.minecraft.version}-${config.nek.version}:deobf-dev"
@@ -210,13 +213,14 @@ dependencies {
     provided name: 'CoFHLib', version: config.cofhlib.version, ext: 'jar'
     provided name: 'CoFHCore', version: config.cofhcore.version, ext: 'jar'
     provided name: 'MineFactoryReloaded', version: config.mfr.version, ext: 'jar'
-    provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
     provided name: 'EnderIO', version: config.eio.version, ext: 'jar'
     provided name: 'Railcraft', version: config.rc.version, ext: 'jar'
     provided name: 'BloodMagic', version: config.bloodmagic.version, ext: 'jar'
     provided name: 'ExtraCells', version: config.ec.version, ext: 'jar'
+    provided name: 'ThaumicEnergistics', version: config.thaumicenergistics.version, ext: 'jar'
     provided "cyano.poweradvantage:PowerAdvantage-API:${config.poweradvantage.version}"
 */
+    provided name: 'ComputerCraft', version: config.cc.version, ext: 'jar'
 
     compile 'com.google.code.findbugs:jsr305:1.3.9' // Annotations used by google libs.
 
@@ -259,7 +263,7 @@ sourceSets {
             exclude 'li/cil/oc/integration/stargatetech2/**'
             exclude 'li/cil/oc/integration/tcon/**'
             exclude 'li/cil/oc/integration/thermalexpansion/**'
-            exclude 'li/cil/oc/integration/thaumcraft/**'
+            exclude 'li/cil/oc/integration/thaumicenergistics/**'
             exclude 'li/cil/oc/integration/tmechworks/**'
             exclude 'li/cil/oc/integration/wrcbe/**'
             exclude 'li/cil/oc/integration/wrsve/**'

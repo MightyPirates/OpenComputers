@@ -1,7 +1,7 @@
 function dofile(filename)
   local program, reason = loadfile(filename)
   if not program then
-    return error(reason, 0)
+    return error(reason .. ':' .. filename, 0)
   end
   return program()
 end
@@ -29,15 +29,16 @@ end
 
 function print(...)
   local args = table.pack(...)
-  io.stdout:setvbuf("line")
+  local stdout = io.stdout
+  stdout:setvbuf("line")
   for i = 1, args.n do
     local arg = tostring(args[i])
     if i > 1 then
       arg = "\t" .. arg
     end
-    io.stdout:write(arg)
+    stdout:write(arg)
   end
-  io.stdout:write("\n")
-  io.stdout:setvbuf("no")
-  io.stdout:flush()
+  stdout:write("\n")
+  stdout:setvbuf("no")
+  stdout:flush()
 end

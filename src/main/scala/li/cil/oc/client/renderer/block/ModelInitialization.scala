@@ -38,7 +38,7 @@ object ModelInitialization {
   final val RobotItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Robot, "inventory")
   final val RobotAfterimageBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "normal")
   final val RobotAfterimageItemLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.RobotAfterimage, "inventory")
-  final val RackBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.ServerRack, "normal")
+  final val RackBlockLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Rack, "normal")
 
   private val meshableItems = mutable.ArrayBuffer.empty[Item]
   private val itemDelegates = mutable.ArrayBuffer.empty[(String, Delegate)]
@@ -158,7 +158,7 @@ object ModelInitialization {
       Constants.BlockName.ScreenTier1 -> (_ => ScreenModel),
       Constants.BlockName.ScreenTier2 -> (_ => ScreenModel),
       Constants.BlockName.ScreenTier3 -> (_ => ScreenModel),
-      Constants.BlockName.ServerRack -> (parent => new ServerRackModel(parent))
+      Constants.BlockName.Rack -> (parent => new ServerRackModel(parent))
     )
 
     registry.getKeys.collect {

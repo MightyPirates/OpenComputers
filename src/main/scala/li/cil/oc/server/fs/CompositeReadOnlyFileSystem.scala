@@ -72,7 +72,7 @@ class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Calla
 
   override def open(path: String, mode: Mode) = findFileSystem(path) match {
     case Some(fs) => fs.open(path, mode)
-    case _ => throw new FileNotFoundException()
+    case _ => throw new FileNotFoundException(path)
   }
 
   override def getHandle(handle: Int) = parts.valuesIterator.map(_.getHandle(handle)).find(_ != null).orNull

@@ -258,49 +258,63 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       // a running machine the computer will most likely crash), but it should
       // never happen in normal operation anyway. It *can* happen when NBT
       // editing stuff or using mods to clone blocks (e.g. WorldEdit).
-      otherNetwork.data.filter(entry => data.contains(entry._1)).toArray.foreach {
-        case (_, node: Network.Vertex) =>
-          val neighbors = node.edges.map(_.other(node))
-          node.data.remove()
+      val duplicates = otherNetwork.data.filter(entry => data.contains(entry._1)).values.toArray
+      val otherNetworkAfterReaddress = if (duplicates.isEmpty) {
+        otherNetwork
+      } else {
+        duplicates.foreach(vertex => {
+          val node = vertex.data
+          val neighbors = vertex.edges.map(_.other(vertex).data).toArray
+
+          // This may lead to splits, which is the whole reason we have to
+          // check the network of the other nodes after the readdressing.
+          node.remove()
+
           do {
-            node.data.address = java.util.UUID.randomUUID().toString
-          } while (data.contains(node.data.address) || otherNetwork.data.contains(node.data.address))
-          if (neighbors.isEmpty)
-            otherNetwork.addNew(node.data)
-          else
-            neighbors.foreach(_.data.connect(node.data))
+            node.address = java.util.UUID.randomUUID().toString
+          } while (data.contains(node.address) || otherNetwork.data.contains(node.address))
+
+          if (neighbors.isEmpty) {
+            assert(otherNetwork.data.size == 1)
+            Network.joinNewNetwork(node)
+          } else {
+            neighbors.foreach(_.connect(node))
+          }
+        })
+
+        duplicates.head.data.network.asInstanceOf[Network.Wrapper].network
       }
 
       // The address change can theoretically cause the node to be kicked from
       // its old network (via onConnect callbacks), so we make sure it's still
       // in the same network. If it isn't we start over.
-      if (addedNode.network != null && addedNode.network.asInstanceOf[Network.Wrapper].network == otherNetwork) {
+      if (addedNode.network != null && addedNode.network.asInstanceOf[Network.Wrapper].network == otherNetworkAfterReaddress) {
         if (addedNode.reachability == Visibility.Neighbors)
           connects += ((addedNode, Iterable(oldNode.data)))
         if (oldNode.data.reachability == Visibility.Neighbors)
           connects += ((oldNode.data, Iterable(addedNode)))
 
         val oldNodes = nodes
-        val newNodes = otherNetwork.nodes
+        val newNodes = otherNetworkAfterReaddress.nodes
         val oldVisibleNodes = oldNodes.filter(_.reachability == Visibility.Network)
         val newVisibleNodes = newNodes.filter(_.reachability == Visibility.Network)
 
         newVisibleNodes.foreach(node => connects += ((node, oldNodes)))
         oldVisibleNodes.foreach(node => connects += ((node, newNodes)))
 
-        data ++= otherNetwork.data
-        connectors ++= otherNetwork.connectors
-        globalBuffer += otherNetwork.globalBuffer
-        globalBufferSize += otherNetwork.globalBufferSize
-        otherNetwork.data.values.foreach(node => {
+        data ++= otherNetworkAfterReaddress.data
+        connectors ++= otherNetworkAfterReaddress.connectors
+        globalBuffer += otherNetworkAfterReaddress.globalBuffer
+        globalBufferSize += otherNetworkAfterReaddress.globalBufferSize
+        otherNetworkAfterReaddress.data.values.foreach(node => {
           node.data match {
             case connector: Connector => connector.distributor = Some(wrapper)
             case _ =>
           }
           node.data.network = wrapper
         })
-        otherNetwork.data.clear()
-        otherNetwork.connectors.clear()
+        otherNetworkAfterReaddress.data.clear()
+        otherNetworkAfterReaddress.connectors.clear()
 
         Network.Edge(oldNode, node(addedNode))
       }

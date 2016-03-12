@@ -2,7 +2,7 @@ local unicode = unicode
 
 local filesystem, fileStream = {}, {}
 local isAutorunEnabled = nil
-local mtab = {name="", children={}, links={}}
+mtab = {name="", children={}, links={}}
 
 local function segments(path)
   path = path:gsub("\\", "/")

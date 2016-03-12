@@ -35,9 +35,7 @@ object InventoryUtils {
     case Some(world) if world.blockExists(position) => (world.getBlock(position), world.getTileEntity(position)) match {
       case (block: BlockChest, chest: TileEntityChest) => Option(block.getLockableContainer(world, chest.getPos))
       case (_, inventory: IInventory) => Some(inventory)
-      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).
-        map(_.asInstanceOf[EntityMinecartContainer]).
-        find(!_.isDead)
+      case _ => world.getEntitiesWithinAABB(classOf[EntityMinecartContainer], position.bounds).find(!_.isDead)
     }
     case _ => None
   }
@@ -209,7 +207,7 @@ object InventoryUtils {
 
   /**
    * Extracts a slot from an inventory.
-   * </p>
+   * <p/>
    * This will try to extract a stack from any inventory slot. It will iterate
    * all slots until an item can be extracted from a slot.
    * <p/>
@@ -218,12 +216,41 @@ object InventoryUtils {
    * <p/>
    * This returns <tt>true</tt> if at least one item was extracted.
    */
-  def extractFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: EnumFacing, limit: Int = 64) = {
+  def extractAnyFromInventory(consumer: (ItemStack) => Unit, inventory: IInventory, side: EnumFacing, limit: Int = 64) = {
     val range = inventory match {
       case sided: ISidedInventory => sided.getSlotsForFace(side).toIterable
       case _ => 0 until inventory.getSizeInventory
     }
     range.exists(slot => extractFromInventorySlot(consumer, inventory, side, slot, limit))
+  }
+
+  /**
+   * Extracts an item stack from an inventory.
+   * <p/>
+   * This will try to remove items of the same type as the specified item stack
+   * up to the number of the stack's size for all slots in the specified inventory.
+   * <p/>
+   * This uses the <tt>extractFromInventorySlot</tt> method, and therefore
+   * handles special cases such as sided inventories and stack size limits.
+   */
+  def extractFromInventory(stack: ItemStack, inventory: IInventory, side: EnumFacing, simulate: Boolean = false) = {
+    val range = inventory match {
+      case sided: ISidedInventory => sided.getSlotsForFace(side).toIterable
+      case _ => 0 until inventory.getSizeInventory
+    }
+    val remaining = stack.copy()
+    for (slot <- range if remaining.stackSize > 0) {
+      extractFromInventorySlot(stack => {
+        if (haveSameItemType(remaining, stack, checkNBT = true)) {
+          val transferred = stack.stackSize min remaining.stackSize
+          remaining.stackSize -= transferred
+          if (!simulate) {
+            stack.stackSize -= transferred
+          }
+        }
+      }, inventory, side, slot, remaining.stackSize)
+    }
+    remaining
   }
 
   /**
@@ -238,7 +265,7 @@ object InventoryUtils {
    * in the world.
    */
   def extractFromInventoryAt(consumer: (ItemStack) => Unit, position: BlockPosition, side: EnumFacing, limit: Int = 64) =
-    inventoryAt(position).exists(extractFromInventory(consumer, _, side, limit))
+    inventoryAt(position).exists(extractAnyFromInventory(consumer, _, side, limit))
 
   /**
    * Transfers some items between two inventories.
@@ -254,7 +281,7 @@ object InventoryUtils {
    * This returns <tt>true</tt> if at least one item was transferred.
    */
   def transferBetweenInventories(source: IInventory, sourceSide: EnumFacing, sink: IInventory, sinkSide: Option[EnumFacing], limit: Int = 64) =
-    extractFromInventory(
+    extractAnyFromInventory(
       insertIntoInventory(_, sink, sinkSide, limit), source, sourceSide, limit)
 
   /**

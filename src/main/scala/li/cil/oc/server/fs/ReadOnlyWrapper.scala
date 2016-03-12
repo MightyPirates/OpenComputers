@@ -33,8 +33,8 @@ private class ReadOnlyWrapper(val fileSystem: api.fs.FileSystem) extends api.fs.
 
   override def open(path: String, mode: Mode) = mode match {
     case Mode.Read => fileSystem.open(path, mode)
-    case Mode.Write => throw new FileNotFoundException()
-    case Mode.Append => throw new FileNotFoundException()
+    case Mode.Write => throw new FileNotFoundException("read-only filesystem; cannot open for writing: " + path)
+    case Mode.Append => throw new FileNotFoundException("read-only filesystem; cannot open for appending: " + path)
   }
 
   override def getHandle(handle: Int) = fileSystem.getHandle(handle)

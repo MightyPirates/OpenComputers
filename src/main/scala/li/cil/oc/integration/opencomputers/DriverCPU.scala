@@ -4,15 +4,10 @@ import li.cil.oc.Constants
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.driver.EnvironmentHost
-import li.cil.oc.api.driver.item.MutableProcessor
-import li.cil.oc.api.machine.Architecture
-import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.common.Slot
 import li.cil.oc.common.Tier
 import li.cil.oc.common.item
 import li.cil.oc.common.item.Delegator
-import li.cil.oc.server.machine.Machine
 import li.cil.oc.server.machine.luac.NativeLuaArchitecture
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -22,13 +17,13 @@ import scala.collection.convert.WrapAsScala._
 
 object DriverCPU extends DriverCPU
 
-abstract class DriverCPU extends Item with MutableProcessor {
+abstract class DriverCPU extends Item with api.driver.item.MutableProcessor with api.driver.item.CallBudget {
   override def worksWith(stack: ItemStack) = isOneOf(stack,
     api.Items.get(Constants.ItemName.CPUTier1),
     api.Items.get(Constants.ItemName.CPUTier2),
     api.Items.get(Constants.ItemName.CPUTier3))
 
-  override def createEnvironment(stack: ItemStack, host: EnvironmentHost): ManagedEnvironment = null
+  override def createEnvironment(stack: ItemStack, host: api.network.EnvironmentHost): api.network.ManagedEnvironment = null
 
   override def slot(stack: ItemStack) = Slot.CPU
 
@@ -44,7 +39,7 @@ abstract class DriverCPU extends Item with MutableProcessor {
 
   override def allArchitectures = api.Machine.architectures.toList
 
-  override def architecture(stack: ItemStack): Class[_ <: Architecture] = {
+  override def architecture(stack: ItemStack): Class[_ <: api.machine.Architecture] = {
     if (stack.hasTagCompound) {
       val archClass = stack.getTagCompound.getString(Settings.namespace + "archClass") match {
         case clazz if clazz == classOf[NativeLuaArchitecture].getName =>
@@ -53,7 +48,7 @@ abstract class DriverCPU extends Item with MutableProcessor {
           api.Machine.LuaArchitecture.getName
         case clazz => clazz
       }
-      if (!archClass.isEmpty) try return Class.forName(archClass).asSubclass(classOf[Architecture]) catch {
+      if (!archClass.isEmpty) try return Class.forName(archClass).asSubclass(classOf[api.machine.Architecture]) catch {
         case t: Throwable =>
           OpenComputers.log.warn("Failed getting class for CPU architecture. Resetting CPU to use the default.", t)
           stack.getTagCompound.removeTag(Settings.namespace + "archClass")
@@ -63,10 +58,12 @@ abstract class DriverCPU extends Item with MutableProcessor {
     api.Machine.architectures.headOption.orNull
   }
 
-  override def setArchitecture(stack: ItemStack, architecture: Class[_ <: Architecture]): Unit = {
+  override def setArchitecture(stack: ItemStack, architecture: Class[_ <: api.machine.Architecture]): Unit = {
     if (!worksWith(stack)) throw new IllegalArgumentException("Unsupported processor type.")
     if (!stack.hasTagCompound) stack.setTagCompound(new NBTTagCompound())
     stack.getTagCompound.setString(Settings.namespace + "archClass", architecture.getName)
-    stack.getTagCompound.setString(Settings.namespace + "archName", Machine.getArchitectureName(architecture))
+    stack.getTagCompound.setString(Settings.namespace + "archName", api.Machine.getArchitectureName(architecture))
   }
+
+  override def getCallBudget(stack: ItemStack): Double = Settings.get.callBudgets(tier(stack) max Tier.One min Tier.Three)
 }

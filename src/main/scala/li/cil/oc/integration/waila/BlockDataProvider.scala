@@ -100,10 +100,11 @@ object BlockDataProvider extends IWailaDataProvider {
       case te: tileentity.Hologram => ignoreSidedness(te.node)
       case te: tileentity.Keyboard => ignoreSidedness(te.node)
       case te: tileentity.Screen => ignoreSidedness(te.node)
-      case te: tileentity.ServerRack =>
+      case te: tileentity.Rack =>
         tag.removeTag("nodes")
-        tag.setNewTagList("servers", stringIterableToNbt(te.servers.map(_.fold("")(_.node.address))))
-        tag.setByteArray("sideIndexes", EnumFacing.values.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
+        //tag.setNewTagList("servers", stringIterableToNbt(te.servers.map(_.fold("")(_.node.address))))
+        //tag.setByteArray("sideIndexes", EnumFacing.values.map(side => te.sides.indexWhere(_.contains(side))).map(_.toByte))
+        // TODO
       case _ =>
     }
 
@@ -135,16 +136,17 @@ object BlockDataProvider extends IWailaDataProvider {
       case _: tileentity.Charger =>
         val chargeSpeed = tag.getDouble("chargeSpeed")
         tooltip.add(Localization.Analyzer.ChargerSpeed(chargeSpeed).getUnformattedText)
-      case te: tileentity.ServerRack =>
-        val servers = tag.getTagList("servers", NBT.TAG_STRING).map((t: NBTTagString) => t.getString).toArray
-        val hitPos = accessor.getMOP.hitVec
-        val address = te.slotAt(accessor.getSide, (hitPos.xCoord - accessor.getMOP.getBlockPos.getX).toFloat, (hitPos.yCoord - accessor.getMOP.getBlockPos.getY).toFloat, (hitPos.zCoord - accessor.getMOP.getBlockPos.getZ).toFloat) match {
-          case Some(slot) => servers(slot)
-          case _ => tag.getByteArray("sideIndexes").map(index => if (index >= 0) servers(index) else "").apply(te.toLocal(accessor.getSide).ordinal)
-        }
-        if (address.nonEmpty && config.getConfig(ConfigAddress)) {
-          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
-        }
+      case te: tileentity.Rack =>
+//        val servers = tag.getTagList("servers", NBT.TAG_STRING).map((t: NBTTagString) => t.getString).toArray
+//        val hitPos = accessor.getMOP.hitVec
+//        val address = te.slotAt(accessor.getSide, (hitPos.xCoord - accessor.getMOP.getBlockPos.getX).toFloat, (hitPos.yCoord - accessor.getMOP.getBlockPos.getY).toFloat, (hitPos.zCoord - accessor.getMOP.getBlockPos.getZ).toFloat) match {
+//          case Some(slot) => servers(slot)
+//          case _ => tag.getByteArray("sideIndexes").map(index => if (index >= 0) servers(index) else "").apply(te.toLocal(accessor.getSide).ordinal)
+//        }
+//        if (address.nonEmpty && config.getConfig(ConfigAddress)) {
+//          tooltip.add(Localization.Analyzer.Address(address).getUnformattedText)
+//        }
+        // TODO
       case _ =>
     }
 

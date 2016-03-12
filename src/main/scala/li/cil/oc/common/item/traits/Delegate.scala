@@ -40,6 +40,8 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
+  def doesSneakBypassUse(position: BlockPosition, player: EntityPlayer) = false
+
   def onItemUseFirst(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
   def onItemUse(stack: ItemStack, player: EntityPlayer, position: BlockPosition, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false

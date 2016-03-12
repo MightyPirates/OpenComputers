@@ -12,7 +12,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
   val hasScreen = robot.components.exists {
-    case Some(buffer: api.component.TextBuffer) => true
+    case Some(buffer: api.internal.TextBuffer) => true
     case _ => false
   }
   private val withScreenHeight = 256

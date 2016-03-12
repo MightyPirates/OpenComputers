@@ -7,8 +7,8 @@ import li.cil.oc.util.OldScaledResolution
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.GuiTextField
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.input.Keyboard
-import org.lwjgl.opengl.GL11
 
 class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
   var guiLeft = 0
@@ -70,7 +70,7 @@ class Waypoint(val waypoint: tileentity.Waypoint) extends GuiScreen {
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
     super.drawScreen(mouseX, mouseY, dt)
-    GL11.glColor3f(1, 1, 1) // Required under Linux.
+    GlStateManager.color(1, 1, 1) // Required under Linux.
     mc.renderEngine.bindTexture(Textures.GUI.Waypoint)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     textField.drawTextBox()

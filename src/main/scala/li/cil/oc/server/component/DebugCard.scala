@@ -4,7 +4,7 @@ import com.google.common.base.Strings
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.driver.EnvironmentHost
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
@@ -388,6 +388,16 @@ object DebugCard {
     def setSpawnPoint(context: Context, args: Arguments): Array[AnyRef] = {
       checkEnabled()
       world.getWorldInfo.setSpawn(new BlockPos(args.checkInteger(0), args.checkInteger(1), args.checkInteger(2)))
+      null
+    }
+
+    @Callback(doc = """function(x:number, y:number, z:number, sound:string, range:number) -- Play a sound at the specified coordinates.""")
+    def playSoundAt(context: Context, args: Arguments): Array[AnyRef] = {
+      checkEnabled()
+      val (x, y, z) = (args.checkInteger(0), args.checkInteger(1), args.checkInteger(2))
+      val sound = args.checkString(3)
+      val range = args.checkInteger(4)
+      world.playSoundEffect(x, y, z, sound, range / 15 + 0.5F, 1.0F)
       null
     }
 

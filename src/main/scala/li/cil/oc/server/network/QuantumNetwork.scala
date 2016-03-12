@@ -4,7 +4,7 @@ import li.cil.oc.api.network.Packet
 
 import scala.collection.mutable
 
-// Just because the name if so fancy!
+// Just because the name is so fancy!
 object QuantumNetwork {
   val tunnels = mutable.Map.empty[String, mutable.WeakHashMap[QuantumNode, Unit]]
 

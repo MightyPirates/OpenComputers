@@ -297,6 +297,8 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
     }
   }
 
+  override def onSignal(): Unit = {}
+
   // ----------------------------------------------------------------------- //
 
   override def initialize(): Boolean = {

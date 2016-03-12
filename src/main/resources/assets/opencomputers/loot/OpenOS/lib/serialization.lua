@@ -97,7 +97,7 @@ function serialization.serialize(value, pretty)
       return (r or "{") .. "}"
     else
       if pretty then
-        return tostring(t)
+        return tostring(v)
       else
         error("unsupported type: " .. t)
       end

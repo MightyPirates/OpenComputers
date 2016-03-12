@@ -102,6 +102,8 @@ object Recipes {
   def init() {
     RecipeSorter.register(Settings.namespace + "extshaped", classOf[ExtendedShapedOreRecipe], Category.SHAPED, "after:forge:shapedore")
     RecipeSorter.register(Settings.namespace + "extshapeless", classOf[ExtendedShapelessOreRecipe], Category.SHAPELESS, "after:forge:shapelessore")
+    RecipeSorter.register(Settings.namespace + "colorizer", classOf[ColorizeRecipe], Category.SHAPELESS, "after:forge:shapelessore")
+    RecipeSorter.register(Settings.namespace + "decolorizer", classOf[DecolorizeRecipe], Category.SHAPELESS, "after:oc:colorizer")
 
     for ((name, stack) <- oreDictEntries) {
       if (!OreDictionary.getOres(name).contains(stack)) {
@@ -333,6 +335,10 @@ object Recipes {
         api.Items.get(Constants.BlockName.AccessPoint).createItemStack(1))
       GameRegistry.addShapelessRecipe(api.Items.get(Constants.BlockName.Relay).createItemStack(1),
         api.Items.get(Constants.BlockName.Switch).createItemStack(1))
+
+      // Hover Boot dyeing
+      GameRegistry.addRecipe(new ColorizeRecipe(api.Items.get(Constants.ItemName.HoverBoots).item()))
+      GameRegistry.addRecipe(new DecolorizeRecipe(api.Items.get(Constants.ItemName.HoverBoots).item()))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

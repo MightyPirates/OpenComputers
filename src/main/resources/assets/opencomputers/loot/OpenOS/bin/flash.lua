@@ -8,7 +8,7 @@ if #args < 1 and not options.l then
   io.write("Usage: flash [-qlr] [<bios.lua>] [label]\n")
   io.write(" q: quiet mode, don't ask questions.\n")
   io.write(" l: print current contents of installed EEPROM.\n")
-  io.write(" r: save the current contents of installed EEPROM to file.")
+  io.write(" r: save the current contents of installed EEPROM to file.\n")
   return
 end
 

@@ -1,5 +1,7 @@
 package li.cil.oc.client.renderer.block
 
+import li.cil.oc.api.component.RackMountable
+import li.cil.oc.api.event.RackMountableRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity
@@ -10,6 +12,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.model.IFlexibleBakedModel
 import net.minecraftforge.client.model.ISmartItemModel
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.property.IExtendedBlockState
 
 import scala.collection.convert.WrapAsJava.bufferAsJavaList
@@ -61,7 +64,7 @@ class ServerRackModel(val parent: IFlexibleBakedModel) extends SmartBlockModelBa
     override def getFaceQuads(side: EnumFacing) = {
 
       state.getValue(block.property.PropertyTile.Tile) match {
-        case rack: tileentity.ServerRack =>
+        case rack: tileentity.Rack =>
           val facing = rack.facing
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
@@ -69,8 +72,21 @@ class ServerRackModel(val parent: IFlexibleBakedModel) extends SmartBlockModelBa
             faces ++= bakeQuads(Case(side.getIndex), serverRackTexture, None)
           }
 
-          for (i <- 0 until 4 if rack.isPresent(i).isDefined) {
-            faces ++= bakeQuads(Servers(i), serverTexture, None)
+          val textures = serverTexture
+          val defaultFront = Textures.getSprite(Textures.Block.RackFront)
+          for (slot <- 0 until 4) rack.getMountable(slot) match {
+            case mountable: RackMountable =>
+              val event = new RackMountableRenderEvent.Block(rack, slot, rack.lastData(slot), side)
+              MinecraftForge.EVENT_BUS.post(event)
+              if (!event.isCanceled) {
+                if (event.getFrontTextureOverride != null) {
+                  (2 until 6).foreach(textures(_) = event.getFrontTextureOverride)
+                } else {
+                  (2 until 6).foreach(textures(_) = defaultFront)
+                }
+                faces ++= bakeQuads(Servers(slot), textures, None)
+              }
+            case _ =>
           }
 
           bufferAsJavaList(faces)

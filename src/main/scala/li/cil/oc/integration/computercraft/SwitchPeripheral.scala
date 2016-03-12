@@ -10,7 +10,7 @@ import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Component
 import li.cil.oc.common.tileentity.traits.SwitchLike
 import li.cil.oc.util.ResultWrapper._
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -138,7 +138,7 @@ class SwitchPeripheral(val switch: SwitchLike) extends IPeripheral {
   }
 
   private def visibleComponents = {
-    ForgeDirection.VALID_DIRECTIONS.flatMap(side => {
+    EnumFacing.values().flatMap(side => {
       val node = switch.sidedNode(side)
       node.reachableNodes.collect {
         case component: Component if component.canBeSeenFrom(node) => component
@@ -165,6 +165,8 @@ class SwitchPeripheral(val switch: SwitchLike) extends IPeripheral {
     override def isRunning = true
 
     override def start() = false
+
+    override def consumeCallBudget(callCost: Double): Unit = {}
   }
 
 }

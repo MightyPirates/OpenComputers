@@ -10,8 +10,8 @@ import li.cil.oc.client.{Manual => ManualAPI}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.input.Mouse
-import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
@@ -108,10 +108,10 @@ class Manual extends GuiScreen with traits.Window {
 
     for ((tab, i) <- ManualAPI.tabs.zipWithIndex if i < maxTabsPerSide) {
       val button = buttonList.get(i).asInstanceOf[ImageButton]
-      GL11.glPushMatrix()
-      GL11.glTranslated(button.xPosition + 5, button.yPosition + 5, zLevel)
+      GlStateManager.pushMatrix()
+      GlStateManager.translate(button.xPosition + 5, button.yPosition + 5, zLevel)
       tab.renderer.render()
-      GL11.glPopMatrix()
+      GlStateManager.popMatrix()
     }
 
     currentSegment = Document.render(document, guiLeft + 8, guiTop + 8, documentMaxWidth, documentMaxHeight, offset, fontRendererObj, mouseX, mouseY)

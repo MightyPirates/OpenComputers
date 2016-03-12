@@ -1,3 +1,3 @@
 local shell = require("shell")
 
-io.write(shell.getWorkingDirectory())
+io.write(shell.getWorkingDirectory(), "\n")

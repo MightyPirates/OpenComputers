@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.Driver
-import li.cil.oc.api.FileSystem
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.driver.item.CallBudget
 import li.cil.oc.api.driver.item.Processor
 import li.cil.oc.api.machine
 import li.cil.oc.api.machine.Architecture
@@ -26,10 +26,10 @@ import li.cil.oc.api.prefab
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.common.Slot
-import li.cil.oc.common.Tier
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.fs.FileSystem
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ResultWrapper.result
 import li.cil.oc.util.ThreadPoolFactory
@@ -111,13 +111,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       }
       case _ => 0
     }))
-    maxCallBudget = components.foldLeft(0.0)((sum, item) => sum + (Option(item) match {
-      case Some(stack) => Option(Driver.driverFor(stack, host.getClass)) match {
-        case Some(driver: Processor) if driver.slot(stack) == Slot.CPU => Settings.get.callBudgets(driver.tier(stack) max Tier.One min Tier.Three)
-        case _ => 0
-      }
-      case _ => 0
-    }))
+    val callBudgets = components.map(stack => (stack, Option(Driver.driverFor(stack, host.getClass)))).collect({
+      case (stack, Some(driver: CallBudget)) => driver.getCallBudget(stack)
+    })
+    maxCallBudget = if (callBudgets.isEmpty) 1.0 else callBudgets.sum / callBudgets.size
     var newArchitecture: Architecture = null
     components.find {
       case stack: ItemStack => Option(Driver.driverFor(stack, host.getClass)) match {
@@ -270,6 +267,16 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
       true
   })
 
+  override def consumeCallBudget(callCost: Double): Unit = {
+    if (architecture.isInitialized && !inSynchronizedCall) {
+      val clampedCost = math.max(0.001, callCost)
+      if (clampedCost > callBudget) {
+        throw new LimitReachedException()
+      }
+      callBudget -= clampedCost
+    }
+  }
+
   override def beep(frequency: Short, duration: Short): Unit = {
     PacketSender.sendSound(host.world, host.xPosition, host.yPosition, host.zPosition, frequency, duration)
   }
@@ -291,33 +298,36 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
   }
 
-  override def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
-    case Machine.State.Stopped | Machine.State.Stopping => false
-    case _ => signals.synchronized {
-      if (signals.size >= 256) false
-      else if (args == null) {
-        signals.enqueue(new Machine.Signal(name, Array.empty))
-        true
+  override def signal(name: String, args: AnyRef*): Boolean = {
+    state.synchronized(state.top match {
+      case Machine.State.Stopped | Machine.State.Stopping => return false
+      case _ => signals.synchronized {
+        if (signals.size >= 256) return false
+        else if (args == null) {
+          signals.enqueue(new Machine.Signal(name, Array.empty))
+        }
+        else {
+          signals.enqueue(new Machine.Signal(name, args.map {
+            case null | Unit | None => null
+            case arg: java.lang.Boolean => arg
+            case arg: java.lang.Character => Double.box(arg.toDouble)
+            case arg: java.lang.Long => arg
+            case arg: java.lang.Number => Double.box(arg.doubleValue)
+            case arg: java.lang.String => arg
+            case arg: Array[Byte] => arg
+            case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
+            case arg: NBTTagCompound => arg
+            case arg =>
+              OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
+              null
+          }.toArray[AnyRef]))
+        }
       }
-      else {
-        signals.enqueue(new Machine.Signal(name, args.map {
-          case null | Unit | None => null
-          case arg: java.lang.Boolean => arg
-          case arg: java.lang.Character => Double.box(arg.toDouble)
-          case arg: java.lang.Long => arg
-          case arg: java.lang.Number => Double.box(arg.doubleValue)
-          case arg: java.lang.String => arg
-          case arg: Array[Byte] => arg
-          case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
-          case arg: NBTTagCompound => arg
-          case arg =>
-            OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
-            null
-        }.toArray[AnyRef]))
-        true
-      }
-    }
-  })
+    })
+
+    if (architecture != null) architecture.onSignal()
+    true
+  }
 
   override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue().convert())
 
@@ -326,38 +336,36 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     name -> callback.annotation
   })
 
-  override def invoke(address: String, method: String, args: Array[AnyRef]) =
-    if (node != null && node.network != null) Option(node.network.node(address)) match {
-      case Some(component: Component) if component.canBeSeenFrom(node) || component == node =>
-        val direct = component.annotation(method).direct
-        if (direct && architecture.isInitialized) {
-          checkLimit(component.annotation(method).limit)
-        }
-        component.invoke(method, this, args: _*)
-      case _ => throw new IllegalArgumentException("no such component")
+  override def invoke(address: String, method: String, args: Array[AnyRef]): Array[AnyRef] = {
+    if (node != null && node.network != null) {
+      Option(node.network.node(address)) match {
+        case Some(component: li.cil.oc.server.network.Component) if component.canBeSeenFrom(node) || component == node =>
+          val annotation = component.annotation(method)
+          if (annotation.direct) {
+            consumeCallBudget(1.0 / annotation.limit)
+          }
+          component.invoke(method, this, args: _*)
+        case _ => throw new IllegalArgumentException("no such component")
+      }
     }
     else {
       // Not really, but makes the VM stop, which is what we want in this case,
       // because it means we've been disconnected / disposed already.
       throw new LimitReachedException()
     }
-
-  override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
-    case Some(callback) =>
-      val direct = callback.annotation.direct
-      if (direct && architecture.isInitialized) {
-        checkLimit(callback.annotation.limit)
-      }
-      Registry.convert(callback(value, this, new ArgumentsImpl(Seq(args: _*))))
-    case _ => throw new NoSuchMethodException()
   }
 
-  private def checkLimit(limit: Int): Unit = if (!inSynchronizedCall) {
-    val callCost = math.max(1.0 / limit, 0.001)
-    if (callCost >= callBudget) {
-      throw new LimitReachedException()
+  override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = {
+    Callbacks(value).get(method) match {
+      case Some(callback) =>
+        val annotation = callback.annotation
+        if (annotation.direct) {
+          consumeCallBudget(1.0 / annotation.limit)
+        }
+        val arguments = new ArgumentsImpl(Seq(args: _*))
+        Registry.convert(callback(value, this, arguments))
+      case _ => throw new NoSuchMethodException()
     }
-    callBudget -= callCost
   }
 
   override def addUser(name: String) {
@@ -653,9 +661,8 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = Machine.this.synchronized(state.synchronized {
-    assert(state.top == Machine.State.Stopped)
-    assert(_users.isEmpty)
-    assert(signals.isEmpty)
+    assert(state.top == Machine.State.Stopped || state.top == Machine.State.Paused)
+    close()
     state.clear()
 
     super.load(nbt)
@@ -710,8 +717,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error loading a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
-          s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
+        OpenComputers.log.error(
+          s"""Unexpected error loading a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
+            s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
         close()
     }
     else {
@@ -722,6 +730,10 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
 
   override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized(state.synchronized {
     assert(!isExecuting) // Lock on 'this' should guarantee this.
+
+    if (SaveHandler.savingForClients) {
+      return
+    }
 
     // Make sure we don't continue running until everything has saved.
     pause(0.05)
@@ -783,8 +795,9 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.error( s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
-          s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
+        OpenComputers.log.error(
+          s"""Unexpected error saving a state of computer at (${host.xPosition}, ${host.yPosition}, ${host.zPosition}). """ +
+            s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   })
 
@@ -945,7 +958,7 @@ class Machine(val host: MachineHost) extends prefab.ManagedEnvironment with mach
             state.clear()
             state.push(Machine.State.Stopping)
           case Machine.State.Restarting =>
-            // Nothing to do!
+          // Nothing to do!
           case _ => throw new AssertionError("Invalid state in executor post-processing.")
         }
         assert(!isExecuting)
@@ -980,7 +993,6 @@ object Machine extends MachineAPI {
 
   override def architectures = checked.toSeq
 
-  // TODO Expose in Machine API in 1.6
   def getArchitectureName(architecture: Class[_ <: Architecture]) =
     architecture.getAnnotation(classOf[Architecture.Name]) match {
       case annotation: Architecture.Name => annotation.value

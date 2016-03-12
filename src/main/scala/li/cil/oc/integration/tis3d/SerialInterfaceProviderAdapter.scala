@@ -32,12 +32,12 @@ object SerialInterfaceProviderAdapter extends SerialInterfaceProvider {
 
   override def getDocumentationReference = new SerialProtocolDocumentationReference("OpenComputers Adapter", "protocols/opencomputersAdapter.md")
 
-  override def worksWith(world: World, position: BlockPos, side: EnumFacing): Boolean = world.getTileEntity(position).isInstanceOf[Adapter]
+  override def worksWith(world: World, pos: BlockPos, side: EnumFacing): Boolean = world.getTileEntity(pos).isInstanceOf[Adapter]
 
-  override def interfaceFor(world: World, position: BlockPos, side: EnumFacing): SerialInterface = new SerialInterfaceAdapter(world.getTileEntity(position).asInstanceOf[Adapter])
+  override def interfaceFor(world: World, pos: BlockPos, side: EnumFacing): SerialInterface = new SerialInterfaceAdapter(world.getTileEntity(pos).asInstanceOf[Adapter])
 
-  override def isValid(world: World, position: BlockPos, side: EnumFacing, serialInterface: SerialInterface): Boolean = serialInterface match {
-    case adapter: SerialInterfaceAdapter => adapter.tileEntity == world.getTileEntity(position)
+  override def isValid(world: World, pos: BlockPos, side: EnumFacing, serialInterface: SerialInterface): Boolean = serialInterface match {
+    case adapter: SerialInterfaceAdapter => adapter.tileEntity == world.getTileEntity(pos)
     case _ => false
   }
 

@@ -140,6 +140,26 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendRackMountableMapping(t: Rack, mountableIndex: Int, nodeIndex: Int, side: Option[EnumFacing]) {
+    val pb = new SimplePacketBuilder(PacketType.RackMountableMapping)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(mountableIndex)
+    pb.writeInt(nodeIndex)
+    pb.writeDirection(side)
+
+    pb.sendToServer()
+  }
+
+  def sendRackRelayState(t: Rack, enabled: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.RackRelayState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(enabled)
+
+    pb.sendToServer()
+  }
+
   def sendRobotAssemblerStart(t: Assembler) {
     val pb = new SimplePacketBuilder(PacketType.RobotAssemblerStart)
 
@@ -159,40 +179,12 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendServerPower(t: ServerRack, number: Int, power: Boolean) {
-    val pb = new SimplePacketBuilder(PacketType.ComputerPower)
+  def sendServerPower(t: Rack, mountableIndex: Int, power: Boolean) {
+    val pb = new SimplePacketBuilder(PacketType.ServerPower)
 
     pb.writeTileEntity(t)
-    pb.writeInt(number)
+    pb.writeInt(mountableIndex)
     pb.writeBoolean(power)
-
-    pb.sendToServer()
-  }
-
-  def sendServerRange(t: ServerRack, range: Int) {
-    val pb = new SimplePacketBuilder(PacketType.ServerRange)
-
-    pb.writeTileEntity(t)
-    pb.writeInt(range)
-
-    pb.sendToServer()
-  }
-
-  def sendServerSide(t: ServerRack, number: Int, side: Option[EnumFacing]) {
-    val pb = new SimplePacketBuilder(PacketType.ServerSide)
-
-    pb.writeTileEntity(t)
-    pb.writeInt(number)
-    pb.writeDirection(side)
-
-    pb.sendToServer()
-  }
-
-  def sendServerSwitchMode(t: ServerRack, internal: Boolean) {
-    val pb = new SimplePacketBuilder(PacketType.ServerSwitchMode)
-
-    pb.writeTileEntity(t)
-    pb.writeBoolean(internal)
 
     pb.sendToServer()
   }
