@@ -215,9 +215,9 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   }
 
   def load(nbt: NBTTagCompound): Unit = {
-    val maxResolution = math.max(Settings.screenResolutionsByTier(2)._1, Settings.screenResolutionsByTier(2)._2)
-    val w = nbt.getInteger("width") max 1 min maxResolution
-    val h = nbt.getInteger("height") max 1 min maxResolution
+    val maxResolution = math.max(Settings.screenResolutionsByTier.last._1, Settings.screenResolutionsByTier.last._2)
+    val w = nbt.getInteger("width") min maxResolution max 1
+    val h = nbt.getInteger("height") min maxResolution max 1
     size = (w, h)
 
     val b = nbt.getTagList("buffer", NBT.TAG_STRING)
