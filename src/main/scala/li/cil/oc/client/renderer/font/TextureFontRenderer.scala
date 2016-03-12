@@ -46,7 +46,7 @@ abstract class TextureFontRenderer {
     // Background first. We try to merge adjacent backgrounds of the same
     // color to reduce the number of quads we have to draw.
     GL11.glBegin(GL11.GL_QUADS)
-    for (y <- 0 until viewportHeight) {
+    for (y <- 0 until (viewportHeight min buffer.height)) {
       val color = buffer.color(y)
       var cbg = 0x000000
       var x = 0
@@ -74,7 +74,7 @@ abstract class TextureFontRenderer {
 
     // Foreground second. We only have to flush when the color changes, so
     // unless every char has a different color this should be quite efficient.
-    for (y <- 0 until viewportHeight) {
+    for (y <- 0 until (viewportHeight min buffer.height)) {
       val line = buffer.buffer(y)
       val color = buffer.color(y)
       val ty = y * charHeight

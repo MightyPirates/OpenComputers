@@ -244,8 +244,9 @@ class TextBuffer(val host: EnvironmentHost) extends prefab.ManagedEnvironment wi
     proxy.onBufferResolutionChange(w, h)
     // Force set viewport to new resolution. This is partially for
     // backwards compatibility, and partially to enforce a valid one.
-    // Binary or to evaluate both, negated setViewport to only send signal once.
-    if ((data.size = (w, h)) | !setViewport(w, h)) {
+    val sizeChanged = data.size = (w, h)
+    val viewportChanged = setViewport(w, h)
+    if (sizeChanged && !viewportChanged) {
       if (node != null) {
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
       }
