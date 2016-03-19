@@ -239,7 +239,6 @@ sourceSets {
             exclude 'li/cil/oc/integration/bluepower/**'
             exclude 'li/cil/oc/integration/buildcraft/**'
             exclude 'li/cil/oc/integration/cofh/**'
-            exclude 'li/cil/oc/integration/computercraft/**'
             exclude 'li/cil/oc/integration/dsu/**'
             exclude 'li/cil/oc/integration/ec/**'
             exclude 'li/cil/oc/integration/enderio/**'
