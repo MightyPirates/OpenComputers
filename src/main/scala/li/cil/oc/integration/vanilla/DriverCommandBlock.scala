@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.prefab.DriverTileEntity
+import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
@@ -15,11 +15,12 @@ import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntityCommandBlock
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
-object DriverCommandBlock extends DriverTileEntity {
+object DriverCommandBlock extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityCommandBlock]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileEntityCommandBlock])
 
   final class Environment(tileEntity: TileEntityCommandBlock) extends ManagedTileEntityEnvironment[TileEntityCommandBlock](tileEntity, "command_block") with NamedBlock {

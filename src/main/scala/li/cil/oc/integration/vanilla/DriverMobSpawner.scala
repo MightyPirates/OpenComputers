@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.prefab.DriverTileEntity
+import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
@@ -14,11 +14,12 @@ import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityMobSpawner
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
-object DriverMobSpawner extends DriverTileEntity {
+object DriverMobSpawner extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityMobSpawner]
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileEntityMobSpawner])
 
   final class Environment(tileEntity: TileEntityMobSpawner) extends ManagedTileEntityEnvironment[TileEntityMobSpawner](tileEntity, "mob_spawner") with NamedBlock {
