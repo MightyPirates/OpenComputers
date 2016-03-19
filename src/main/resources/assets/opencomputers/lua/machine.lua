@@ -1055,7 +1055,7 @@ local userdataWrapper = {
   __metatable = "userdata",
   __tostring = function(self)
     local data = wrappedUserdata[self]
-    return tostring(select(2, pcall(data.toString, data)))
+    return tostring(select(2, pcall(tostring, data)))
   end
 }
 
