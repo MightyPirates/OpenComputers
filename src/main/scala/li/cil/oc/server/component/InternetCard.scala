@@ -50,7 +50,7 @@ class InternetCard extends prefab.ManagedEnvironment {
     val headers = if (args.isTable(2)) args.checkTable(2).collect {
         case (key: String, value: AnyRef) => (key, value.toString)
       }.toMap else Map.empty[String, String]
-    if (!Settings.get.httpHeadersEnabled && headers.size > 0) {
+    if (!Settings.get.httpHeadersEnabled && headers.nonEmpty) {
       return result(Unit, "http request headers are unavailable")
     }
     val request = new InternetCard.HTTPRequest(this, checkAddress(address), post, headers)
@@ -392,7 +392,7 @@ object InternetCard {
         url.openConnection(proxy) match {
           case http: HttpURLConnection => try {
             http.setDoInput(true)
-            headers.foreach(Function.tupled(http.setRequestProperty _))
+            headers.foreach(Function.tupled(http.setRequestProperty))
             if (post.isDefined) {
               http.setRequestMethod("POST")
               http.setDoOutput(true)
