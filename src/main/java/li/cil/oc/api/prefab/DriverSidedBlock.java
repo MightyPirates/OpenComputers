@@ -5,6 +5,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -19,21 +20,22 @@ import net.minecraftforge.oredict.OreDictionary;
  * <p/>
  * You still have to provide the implementation for creating its environment, if
  * any.
+ * <p/>
+ * To limit sidedness, I recommend overriding {@link #worksWith(World, BlockPos, EnumFacing)}
+ * and calling <code>super.worksWith</code> in addition to the side check.
  *
  * @see li.cil.oc.api.network.ManagedEnvironment
- * @deprecated Use {@link DriverSidedBlock} instead.
  */
-@Deprecated // TODO Remove in OC 1.7
 @SuppressWarnings("UnusedDeclaration")
-public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
+public abstract class DriverSidedBlock implements li.cil.oc.api.driver.SidedBlock {
     protected final ItemStack[] blocks;
 
-    protected DriverBlock(final ItemStack... blocks) {
+    protected DriverSidedBlock(final ItemStack... blocks) {
         this.blocks = blocks.clone();
     }
 
     @Override
-    public boolean worksWith(final World world, final BlockPos pos) {
+    public boolean worksWith(final World world, final BlockPos pos, final EnumFacing side) {
         final IBlockState state = world.getBlockState(pos);
         final Block block = state.getBlock();
         return worksWith(block, block.getMetaFromState(state));

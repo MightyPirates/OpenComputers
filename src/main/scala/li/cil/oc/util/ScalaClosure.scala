@@ -76,6 +76,7 @@ object ScalaClosure {
     case LuaValue.TTABLE =>
       val table = value.checktable()
       table.keys.map(key => toSimpleJavaObject(key) -> toSimpleJavaObject(table.get(key))).toMap
+    case LuaValue.TUSERDATA => value.touserdata()
     case _ => null
   }
 

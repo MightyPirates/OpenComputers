@@ -55,9 +55,9 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
         return false;
     }
 
-    private IPeripheral findPeripheral(final World world, final BlockPos pos) {
+    private IPeripheral findPeripheral(final World world, final BlockPos pos, final EnumFacing side) {
         try {
-            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, pos, null);
+            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, pos, side);
             if (!isBlacklisted(p)) {
                 return p;
             }
@@ -78,12 +78,12 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
                 // to be incompatible with OpenComputers when used directly.
                 && !isBlacklisted(tileEntity)
                 // Actual check if it's a peripheral.
-                && findPeripheral(world, pos) != null;
+                && findPeripheral(world, pos, side) != null;
     }
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
-        return new Environment(findPeripheral(world, pos));
+        return new Environment(findPeripheral(world, pos, side));
     }
 
     public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral {
