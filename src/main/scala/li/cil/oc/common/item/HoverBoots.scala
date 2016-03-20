@@ -67,8 +67,12 @@ class HoverBoots extends ItemArmor(ItemArmor.ArmorMaterial.DIAMOND, 0, 3) with t
     else super.getArmorModel(entityLiving, itemStack, armorSlot)
   }
 
+  @SideOnly(Side.CLIENT)
   override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: Int, _default: ModelBiped): ModelBiped = {
-    if (armorSlot == 4 - armorType) HoverBootRenderer
+    if (armorSlot == 4 - armorType) {
+      HoverBootRenderer.lightColor = if (ItemColorizer.hasColor(itemStack)) ItemColorizer.getColor(itemStack) else 0x66DD55
+      HoverBootRenderer
+    }
     else super.getArmorModel(entityLiving, itemStack, armorSlot, _default)
   }
 
