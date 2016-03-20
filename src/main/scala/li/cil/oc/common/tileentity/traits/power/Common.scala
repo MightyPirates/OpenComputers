@@ -22,9 +22,9 @@ trait Common extends TileEntity {
     // but our throughput is per tick, so multiply this up for actual budget.
     var budget = energyThroughput * Settings.get.tickFrequency
     for (side <- EnumFacing.values) {
-      val demand = fromOther(math.min(budget, globalDemand(side)))
+      val demand = toOther(math.min(budget, globalDemand(side)))
       if (demand > 1) {
-        val energy = toOther(provider(demand, side))
+        val energy = fromOther(provider(demand, side))
         if (energy > 0) {
           budget -= tryChangeBuffer(side, energy)
         }
