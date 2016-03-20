@@ -436,6 +436,7 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         val mountableIndex = p.readInt()
         t.lastData(mountableIndex) = p.readNBT()
+        t.getWorld.markBlockForUpdate(t.getPos)
       case _ => // Invalid packet.
     }
 
