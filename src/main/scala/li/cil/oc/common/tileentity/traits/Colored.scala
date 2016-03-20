@@ -17,6 +17,8 @@ trait Colored extends TileEntity with internal.Colored {
     onColorChanged()
   }
 
+  def consumesDye = false
+
   override def getColor = color
 
   override def setColor(value: Int) = color = value

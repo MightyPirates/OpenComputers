@@ -9,6 +9,8 @@ import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Color
+import li.cil.oc.util.ItemColorizer
 import li.cil.oc.util.ItemCosts
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
@@ -60,6 +62,16 @@ class Item(value: Block) extends ItemBlock(value) {
   override def getUnlocalizedName = block match {
     case simple: SimpleBlock => simple.getUnlocalizedName
     case _ => Settings.namespace + "tile"
+  }
+
+  override def getDamage(stack: ItemStack): Int = {
+    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Cable)) {
+      if (ItemColorizer.hasColor(stack)) {
+        ItemColorizer.getColor(stack)
+      }
+      else Color.LightGray
+    }
+    else super.getDamage(stack)
   }
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false

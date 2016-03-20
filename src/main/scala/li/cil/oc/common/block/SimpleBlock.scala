@@ -258,6 +258,9 @@ class SimpleBlock(material: Material = Material.iron) extends Block(material) {
       case colored: Colored if Color.isDye(player.getHeldItem) =>
         colored.color = Color.dyeColor(player.getHeldItem)
         world.markBlockForUpdate(x, y, z)
+        if (colored.consumesDye) {
+          player.getHeldItem.splitStack(1)
+        }
         true
       case _ => onBlockActivated(world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
     }
