@@ -236,6 +236,7 @@ class Settings(val config: Config) {
   private val valueIndustrialCraft2 = config.getDouble("power.value.IndustrialCraft2")
   private val valueMekanism = config.getDouble("power.value.Mekanism")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
+  private val valueRotaryCraft = config.getDouble("power.value.RotaryCraft") / 11256.0
 
   private val valueInternal = 1000
 
@@ -245,6 +246,7 @@ class Settings(val config: Config) {
   val ratioIndustrialCraft2 = valueIndustrialCraft2 / valueInternal
   val ratioMekanism = valueMekanism / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
+  val ratioRotaryCraft = valueRotaryCraft / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem
