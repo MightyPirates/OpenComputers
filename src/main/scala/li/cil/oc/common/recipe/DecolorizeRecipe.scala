@@ -1,6 +1,7 @@
 package li.cil.oc.common.recipe
 
 import li.cil.oc.util.ItemColorizer
+import net.minecraft.block.Block
 import net.minecraft.init.Items
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.Item
@@ -11,6 +12,8 @@ import net.minecraft.world.World
   * @author Vexatos
   */
 class DecolorizeRecipe(target: Item) extends ContainerItemAwareRecipe {
+  def this(target: Block) = this(Item.getItemFromBlock(target))
+
   val targetItem = target
 
   override def matches(crafting: InventoryCrafting, world: World): Boolean = {

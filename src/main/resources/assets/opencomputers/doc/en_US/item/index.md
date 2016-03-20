@@ -53,6 +53,11 @@ Keep in mind that some of these may not be available, depending on the recipe se
 * [Trading Upgrade](tradingUpgrade.md)
 * [Upgrade Container](upgradeContainer1.md)
 
+### Rack Mountables
+* [Disk Drive](diskDriveMountable.md)
+* [Server](server1.md)
+* [Terminal Server](terminalServer.md)
+
 ### Other
 * [APU](apu1.md)
 * [Component Bus](componentBus1.md)

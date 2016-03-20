@@ -6,6 +6,7 @@ import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.util.BlockPosition
+import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
@@ -26,9 +27,9 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
     override def getGeneralQuads = {
       val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-      faces ++= bakeQuads(Middle, cableTexture, Some(EnumDyeColor.SILVER))
-      faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(EnumDyeColor.SILVER))
-      faces ++= bakeQuads(Connected(1)._2, cableTexture, Some(EnumDyeColor.SILVER))
+      faces ++= bakeQuads(Middle, cableTexture, Some(Color.rgbValues(EnumDyeColor.SILVER)))
+      faces ++= bakeQuads(Connected(0)._2, cableTexture, Some(Color.rgbValues(EnumDyeColor.SILVER)))
+      faces ++= bakeQuads(Connected(1)._2, cableTexture, Some(Color.rgbValues(EnumDyeColor.SILVER)))
       faces ++= bakeQuads(Connected(0)._1, cableCapTexture, None)
       faces ++= bakeQuads(Connected(1)._1, cableCapTexture, None)
 

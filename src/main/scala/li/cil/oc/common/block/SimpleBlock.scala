@@ -94,7 +94,7 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
   @SideOnly(Side.CLIENT)
   override def colorMultiplier(world: IBlockAccess, pos: BlockPos, renderPass: Int) =
     world.getTileEntity(pos) match {
-      case colored: Colored => Color.rgbValues(colored.color)
+      case colored: Colored => colored.color
       case _ => getRenderColor(world.getBlockState(pos))
     }
 
@@ -192,8 +192,8 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
 
   override def recolorBlock(world: World, pos: BlockPos, side: EnumFacing, color: EnumDyeColor) =
     world.getTileEntity(pos) match {
-      case colored: Colored if colored.color != Color.byMeta(color) =>
-        colored.color = Color.byMeta(color)
+      case colored: Colored if colored.color != Color.rgbValues(color) =>
+        colored.color = Color.rgbValues(color)
         world.markBlockForUpdate(pos)
         true // Blame Vexatos.
       case _ => super.recolorBlock(world, pos, side, color)
@@ -205,8 +205,11 @@ abstract class SimpleBlock(material: Material = Material.iron) extends BlockCont
   override def onBlockActivated(world: World, pos: BlockPos, state: IBlockState, player: EntityPlayer, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float) =
     world.getTileEntity(pos) match {
       case colored: Colored if Color.isDye(player.getHeldItem) =>
-        colored.color = Color.dyeColor(player.getHeldItem)
+        colored.color = Color.rgbValues(Color.dyeColor(player.getHeldItem))
         world.markBlockForUpdate(pos)
+        if (colored.consumesDye) {
+          player.getHeldItem.splitStack(1)
+        }
         true
       case _ => localOnBlockActivated(world, pos, player, side, hitX, hitY, hitZ)
     }

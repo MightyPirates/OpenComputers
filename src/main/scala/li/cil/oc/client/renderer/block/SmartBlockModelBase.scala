@@ -120,8 +120,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     * <p/>
     * Usually used to generate the quads for a cube previously generated using makeBox().
     */
-  protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], color: Option[EnumDyeColor]): Array[BakedQuad] = {
-    val tintIndex = color.fold(NoTint)(_.getDyeDamage)
+  protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], color: Option[Int]): Array[BakedQuad] = {
+    val tintIndex = color.getOrElse(NoTint)
     bakeQuads(box, texture, tintIndex)
   }
 
@@ -141,8 +141,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   /**
     * Create a single BakedQuad of a unit cube's specified side.
     */
-  protected def bakeQuad(side: EnumFacing, texture: TextureAtlasSprite, color: Option[EnumDyeColor], rotation: Int) = {
-    val tintIndex = color.fold(NoTint)(_.getDyeDamage)
+  protected def bakeQuad(side: EnumFacing, texture: TextureAtlasSprite, color: Option[Int], rotation: Int) = {
+    val tintIndex = color.getOrElse(NoTint)
     val vertices = UnitCube(side.getIndex)
     val data = quadData(vertices, side, texture, rotation)
     new BakedQuad(data, tintIndex, side)

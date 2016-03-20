@@ -32,16 +32,16 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   // ----------------------------------------------------------------------- //
 
   /**
-   * Check for multi-block screen option in next update. We do this in the
-   * update to avoid unnecessary checks on chunk unload.
-   */
+    * Check for multi-block screen option in next update. We do this in the
+    * update to avoid unnecessary checks on chunk unload.
+    */
   var shouldCheckForMultiBlock = true
 
   /**
-   * On the client we delay connecting screens a little, to avoid glitches
-   * when not all tile entity data for a chunk has been received within a
-   * single tick (meaning some screens are still "missing").
-   */
+    * On the client we delay connecting screens a little, to avoid glitches
+    * when not all tile entity data for a chunk has been received within a
+    * single tick (meaning some screens are still "missing").
+    */
   var delayUntilCheckForMultiBlock = 40
 
   var width, height = 1
@@ -58,7 +58,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   private val arrows = mutable.Set.empty[EntityArrow]
 
-  color = Color.byTier(tier)
+  color = Color.rgbValues(Color.byTier(tier))
 
   @SideOnly(Side.CLIENT)
   override def canConnect(side: EnumFacing) = toLocal(side) != EnumFacing.SOUTH
@@ -291,7 +291,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
-    color = Color.byTier(tier)
+    color = Color.rgbValues(Color.byTier(tier))
     super.readFromNBTForServer(nbt)
     hadRedstoneInput = nbt.getBoolean(Settings.namespace + "hadRedstoneInput")
     invertTouchMode = nbt.getBoolean(Settings.namespace + "invertTouchMode")

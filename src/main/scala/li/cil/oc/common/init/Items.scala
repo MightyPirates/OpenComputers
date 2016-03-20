@@ -364,6 +364,8 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.InkCartridgeEmpty(materials), Constants.ItemName.InkCartridgeEmpty, "oc:inkCartridgeEmpty")
     Recipes.addSubItem(new item.InkCartridge(materials), Constants.ItemName.InkCartridge, "oc:inkCartridge")
     Recipes.addSubItem(new item.Chamelium(materials), Constants.ItemName.Chamelium, "oc:chamelium")
+
+    registerItem(new item.DiamondNugget(materials), Constants.ItemName.DiamondNugget)
   }
 
   // All kinds of tools.

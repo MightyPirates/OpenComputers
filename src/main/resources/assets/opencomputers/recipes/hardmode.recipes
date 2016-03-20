@@ -240,6 +240,11 @@ alu {
           ["oc:materialTransistor", "oc:materialTransistor", "oc:materialTransistor"]
           [nuggetIron, redstone, nuggetIron]]
 }
+apu2 {
+  input: [[gemDiamond, "oc:circuitChip2", gemDiamond]
+          ["oc:cpu3", "oc:componentBus2", "oc:graphicsCard2"]
+          [gemDiamond, "oc:circuitChip2", gemDiamond]]
+}
 componentBus1 {
   input: [[nuggetIron, redstone, nuggetIron]
           ["oc:circuitChip1", "oc:materialCU", ""]
@@ -346,6 +351,16 @@ geolyzer {
   input: [[ingotGold, "oc:analyzer", ingotGold]
           [eyeOfEnder, "oc:circuitChip2", eyeOfEnder]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
+}
+hologram1 {
+  input: [["oc:circuitChip2", paneGlass, "oc:circuitChip2"]
+          ["oc:materialCircuitBoardPrinted", gemDiamond, "oc:materialCircuitBoardPrinted"]
+          [obsidian, yellowDust, obsidian]]
+}
+hologram2 {
+  input: [["oc:circuitChip3", blockGlass, "oc:circuitChip3"]
+          ["oc:materialCircuitBoardPrinted", blockDiamond, "oc:materialCircuitBoardPrinted"]
+          [obsidian, blazePowder, obsidian]]
 }
 keyboard {
   input: [["oc:materialButtonGroup", "oc:materialButtonGroup", "oc:materialButtonGroup"]

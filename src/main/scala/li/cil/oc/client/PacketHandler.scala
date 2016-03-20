@@ -20,7 +20,6 @@ import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumParticleTypes
@@ -117,7 +116,7 @@ object PacketHandler extends CommonPacketHandler {
   def onColorChange(p: PacketParser) =
     p.readTileEntity[Colored]() match {
       case Some(t) =>
-        t.color = EnumDyeColor.byMetadata(p.readInt())
+        t.color = p.readInt()
         t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }

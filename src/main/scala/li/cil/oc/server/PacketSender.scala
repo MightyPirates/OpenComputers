@@ -1,7 +1,8 @@
 package li.cil.oc.server
 
 import li.cil.oc.api
-import li.cil.oc.api.event.{NetworkActivityEvent, FileSystemAccessEvent}
+import li.cil.oc.api.event.FileSystemAccessEvent
+import li.cil.oc.api.event.NetworkActivityEvent
 import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.network.Node
 import li.cil.oc.common._
@@ -47,7 +48,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
     pb.writeTileEntity(t)
-    pb.writeInt(t.color.getMetadata)
+    pb.writeInt(t.color)
 
     pb.sendToPlayersNearTileEntity(t)
   }
