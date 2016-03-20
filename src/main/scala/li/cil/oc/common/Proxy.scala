@@ -47,7 +47,7 @@ class Proxy {
     OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
 
     tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.iron_ingot, "ingotIron")
-    tryRegisterNugget[item.DiamondNugget](Constants.ItemName.DiamondNugget, "nuggetDiamond", net.minecraft.init.Items.diamond, "gemDiamond")
+    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.diamond, "gemDiamond")
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
     // oredict entry, but not normal obsidian, breaking some recipes.

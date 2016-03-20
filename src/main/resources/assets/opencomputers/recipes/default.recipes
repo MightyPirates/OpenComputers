@@ -169,7 +169,7 @@ dataCard2 {
           ["", "oc:materialCard", ""]]
 }
 dataCard3 {
-  input: [[nuggetDiamond, "oc:cpu2", "oc:ram5"]
+  input: [[chipDiamond, "oc:cpu2", "oc:ram5"]
           ["", "oc:materialCard", ""]]
 }
 graphicsCard1 {
@@ -237,7 +237,7 @@ batteryUpgrade2 {
 }
 batteryUpgrade3 {
   input: [[nuggetIron, "oc:capacitor", nuggetIron]
-          ["oc:capacitor", nuggetDiamond, "oc:capacitor"]
+          ["oc:capacitor", chipDiamond, "oc:capacitor"]
           [nuggetIron, "oc:capacitor", nuggetIron]]
 }
 chunkloaderUpgrade {
@@ -380,20 +380,17 @@ nuggetIron {
   output: 9
 }
 ingotIron {
-  input: [[nuggetIron, nuggetIron, nuggetIron],
-          [nuggetIron, nuggetIron, nuggetIron],
-          [nuggetIron, nuggetIron, nuggetIron]]
+  type: shapeless
+  input: [nuggetIron, nuggetIron, nuggetIron,
+          nuggetIron, nuggetIron, nuggetIron,
+          nuggetIron, nuggetIron, nuggetIron]
 }
-nuggetDiamond {
+chipDiamond {
   type: shapeless
   input: gemDiamond
-  output: 9
+  output: 6
 }
-gemDiamond {
-  input: [[nuggetDiamond, nuggetDiamond, nuggetDiamond],
-          [nuggetDiamond, nuggetDiamond, nuggetDiamond],
-          [nuggetDiamond, nuggetDiamond, nuggetDiamond]]
-}
+gemDiamond = false
 
 cuttingWire = false
 acid {
@@ -465,9 +462,9 @@ chip2 {
   output: 4
 }
 chip3 {
-  input: [[nuggetDiamond, nuggetDiamond, nuggetDiamond]
+  input: [[chipDiamond, chipDiamond, chipDiamond]
           [redstone, "oc:materialTransistor", redstone]
-          [nuggetDiamond, nuggetDiamond, nuggetDiamond]]
+          [chipDiamond, chipDiamond, chipDiamond]]
   output: 2
 }
 alu {
@@ -481,9 +478,9 @@ apu1 {
           [nuggetGold, "oc:circuitChip1", nuggetGold]]
 }
 apu2 {
-  input: [[nuggetDiamond, "oc:circuitChip2", nuggetDiamond]
+  input: [[chipDiamond, "oc:circuitChip2", chipDiamond]
           ["oc:cpu3", "oc:componentBus2", "oc:graphicsCard2"]
-          [nuggetDiamond, "oc:circuitChip2", nuggetDiamond]]
+          [chipDiamond, "oc:circuitChip2", chipDiamond]]
 }
 componentBus1 {
   input: [[nuggetIron, redstone, nuggetIron]
@@ -496,9 +493,9 @@ componentBus2 {
           [nuggetGold, "oc:materialCircuitBoardPrinted", nuggetGold]]
 }
 componentBus3 {
-  input: [[nuggetDiamond, redstone, nuggetDiamond]
+  input: [[chipDiamond, redstone, chipDiamond]
           ["oc:circuitChip3", "oc:materialCU", ""]
-          [nuggetDiamond, "oc:materialCircuitBoardPrinted", nuggetDiamond]]
+          [chipDiamond, "oc:materialCircuitBoardPrinted", chipDiamond]]
 }
 cpu1 {
   input: [[nuggetIron, redstone, nuggetIron]
@@ -511,9 +508,9 @@ cpu2 {
           [nuggetGold, "oc:materialALU", nuggetGold]]
 }
 cpu3 {
-  input: [[nuggetDiamond, redstone, nuggetDiamond]
+  input: [[chipDiamond, redstone, chipDiamond]
           ["oc:circuitChip3", "oc:materialCU", "oc:circuitChip3"]
-          [nuggetDiamond, "oc:materialALU", nuggetDiamond]]
+          [chipDiamond, "oc:materialALU", chipDiamond]]
 }
 cu {
   input: [[nuggetGold, redstone, nuggetGold]
@@ -601,7 +598,7 @@ geolyzer {
 }
 hologram1 {
   input: [["oc:circuitChip2", paneGlass, "oc:circuitChip2"]
-          ["oc:materialCircuitBoardPrinted", nuggetDiamond, "oc:materialCircuitBoardPrinted"]
+          ["oc:materialCircuitBoardPrinted", chipDiamond, "oc:materialCircuitBoardPrinted"]
           [obsidian, yellowDust, obsidian]]
 }
 hologram2 {

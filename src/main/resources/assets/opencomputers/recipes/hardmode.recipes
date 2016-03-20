@@ -187,11 +187,6 @@ tradingUpgrade {
           [dropper, "oc:materialCircuitBoardPrinted", craftingPiston]]
 }
 
-nuggetIron {
-  type: shapeless
-  input: ingotIron
-  output: 9
-}
 cuttingWire {
   input: [[stickWood, nuggetIron, stickWood]]
 }

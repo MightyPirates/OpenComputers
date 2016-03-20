@@ -87,7 +87,7 @@ object Constants {
     final val DataCardTier3 = "dataCard3"
     final val DebugCard = "debugCard"
     final val Debugger = "debugger"
-    final val DiamondNugget = "nuggetDiamond"
+    final val DiamondChip = "chipDiamond"
     final val Disk = "disk"
     final val DiskDriveMountable = "diskDriveMountable"
     final val Drone = "drone"
