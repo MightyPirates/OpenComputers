@@ -93,13 +93,5 @@ public final class DriverReactorRedstonePort extends DriverTileEntity {
                 return new Object[]{false};
             }
         }
-
-        @Callback(doc = "function(enabled:boolean):boolean -- Set whether the reactor should be enabled via setting its redstone state.")
-        public Object[] setEnabled(final Context context, final Arguments args) {
-            final boolean redstoneState = args.checkBoolean(0);
-            getReactor().setRedstoneSignal(redstoneState);
-
-            return new Object[]{redstoneState};
-        }
     }
 }
