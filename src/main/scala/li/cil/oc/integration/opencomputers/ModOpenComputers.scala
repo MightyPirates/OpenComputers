@@ -350,7 +350,8 @@ object ModOpenComputers extends ModProxy {
 
   object DefinitionPathProvider extends PathProvider {
     private final val Blacklist = Set(
-      "debugger"
+      Constants.ItemName.Debugger,
+      Constants.BlockName.Endstone
     )
 
     override def pathFor(stack: ItemStack): String = Option(api.Items.get(stack)) match {
