@@ -45,6 +45,7 @@ class Settings(val config: Config) {
       OpenComputers.log.warn("Bad number of HUD coordiantes, ignoring.")
       (-1.0, -1.0)
   }
+  val enableNanomachinePfx = config.getBoolean("client.enableNanomachinePfx")
 
   // ----------------------------------------------------------------------- //
   // computer
