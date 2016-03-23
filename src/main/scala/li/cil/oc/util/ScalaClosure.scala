@@ -3,6 +3,7 @@ package li.cil.oc.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api.machine.Value
+import li.cil.repack.org.luaj.vm2.LuaString
 import li.cil.repack.org.luaj.vm2.LuaValue
 import li.cil.repack.org.luaj.vm2.Varargs
 import li.cil.repack.org.luaj.vm2.lib.VarArgFunction
@@ -72,7 +73,10 @@ object ScalaClosure {
   def toSimpleJavaObject(value: LuaValue): AnyRef = value.`type`() match {
     case LuaValue.TBOOLEAN => Boolean.box(value.toboolean())
     case LuaValue.TNUMBER => Double.box(value.todouble())
-    case LuaValue.TSTRING => value.tojstring()
+    case LuaValue.TSTRING => value match {
+      case s: LuaString => s.m_bytes.slice(s.m_offset, s.m_offset + s.m_length)
+      case _ => value.tojstring() // Waddafaq?
+    }
     case LuaValue.TTABLE =>
       val table = value.checktable()
       table.keys.map(key => toSimpleJavaObject(key) -> toSimpleJavaObject(table.get(key))).toMap
