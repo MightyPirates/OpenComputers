@@ -9,9 +9,8 @@ import java.util.UUID
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
-import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.api.fs.Label
-import li.cil.oc.api.fs.Mode
+import li.cil.oc.api.network.EnvironmentHost
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -41,6 +40,20 @@ object FileSystem extends api.detail.FileSystemAPI {
       OpenComputers.log.warn("Couldn't determine if file system is case sensitive, falling back to insensitive.", t)
       true
   })
+
+  // Worst-case: we're on Windows or using a FAT32 partition mounted in *nix.
+  // Note: we allow / as the path separator and expect all \s to be converted
+  // accordingly before the path is passed to the file system.
+  private val invalidChars = """\:*?"<>|""".toSet
+
+  def isValidFilename(name: String) = !name.exists(invalidChars.contains)
+
+  def validatePath(path: String) = {
+    if (!isValidFilename(path)) {
+      throw new java.io.IOException("path contains invalid characters")
+    }
+    path
+  }
 
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
     val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
@@ -158,27 +171,9 @@ object FileSystem extends api.detail.FileSystemAPI {
     extends VirtualFileSystem
     with Buffered
     with Capacity {
-    // Worst-case: we're on Windows or using a FAT32 partition mounted in *nix.
-    // Note: we allow / as the path separator and expect all \s to be converted
-    // accordingly before the path is passed to the file system.
-    private val invalidChars = """\:*?"<>|""".toSet
-
-    override protected def isValidFilename(name: String) = !name.exists(invalidChars.contains)
-
-    override def makeDirectory(path: String) = super.makeDirectory(validatePath(path))
-
-    override protected def openOutputHandle(id: Int, path: String, mode: Mode) = super.openOutputHandle(id, validatePath(path), mode)
-
     protected override def segments(path: String) = {
       val parts = super.segments(path)
       if (isCaseInsensitive) toCaseInsensitive(parts) else parts
-    }
-
-    private def validatePath(path: String) = {
-      if (!isValidFilename(path)) {
-        throw new java.io.IOException("path contains invalid characters")
-      }
-      path
     }
 
     private def toCaseInsensitive(path: Array[String]): Array[String] = {
