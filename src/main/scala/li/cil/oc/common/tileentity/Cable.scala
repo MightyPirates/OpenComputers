@@ -28,6 +28,8 @@ class Cable extends traits.Environment with traits.NotAnalyzable with traits.Imm
     }
   }
 
+  override def controlsConnectivity = true
+
   override def consumesDye = true
 
   override protected def onColorChanged() {

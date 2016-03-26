@@ -1,24 +1,15 @@
 package li.cil.oc.server.network
 
-/* FMP
-import codechicken.lib.vec.Cuboid6
-import codechicken.multipart.JNormalOcclusion
-import codechicken.multipart.NormalOcclusionTest
-import codechicken.multipart.TFacePart
-import codechicken.multipart.TileMultipart
-import li.cil.oc.common.block.Cable
-import li.cil.oc.integration.fmp.CablePart
-*/
-
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network
 import li.cil.oc.api.network._
 import li.cil.oc.api.network.{Node => ImmutableNode}
+import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
 import li.cil.oc.server.network.{Node => MutableNode}
+import li.cil.oc.util.Color
 import li.cil.oc.util.SideTracker
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt._
@@ -443,10 +434,8 @@ object Network extends api.detail.NetworkAPI {
               neighborNode match {
                 case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
                   val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
-                  val canConnectFMP = !Mods.ForgeMultipart.isAvailable ||
-                    (canConnectFromSideFMP(tileEntity, side) && canConnectFromSideFMP(neighborTileEntity, side.getOpposite))
                   val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
-                  if (canConnectColor && canConnectFMP && canConnectIM) neighbor.connect(node)
+                  if (canConnectColor && canConnectIM) neighbor.connect(node)
                   else node.disconnect(neighbor)
                 case _ =>
               }
@@ -465,69 +454,37 @@ object Network extends api.detail.NetworkAPI {
     case _ =>
   }
 
-  def getNetworkNode(tileEntity: TileEntity, side: EnumFacing) =
-    tileEntity match {
-      case host: SidedEnvironment => Option(host.sidedNode(side))
-      case host: Environment with SidedComponent =>
-        if (host.canConnectNode(side)) Option(host.node)
-        else None
-      case host: Environment => Option(host.node)
-      case host if Mods.ForgeMultipart.isAvailable => getMultiPartNode(host)
-      case _ => None
-    }
-
-  private def getMultiPartNode(tileEntity: TileEntity) = None
-
-  /* TODO FMP
-    tileEntity match {
-      case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
-        case Some(part: CablePart) => Some(part.node)
-        case _ => None
+  def getNetworkNode(tileEntity: TileEntity, side: EnumFacing): Option[ImmutableNode] = {
+    if (tileEntity != null) {
+      if (tileEntity.hasCapability(Capabilities.SidedEnvironmentCapability, side)) {
+        val host = tileEntity.getCapability(Capabilities.SidedEnvironmentCapability, side)
+        if (host != null) return Option(host.sidedNode(side))
       }
-      case _ => None
-    }
-  */
 
-  private def cableColor(tileEntity: TileEntity) =
-    tileEntity match {
-      case cable: tileentity.Cable => cable.color
-      case _ =>
-        if (Mods.ForgeMultipart.isAvailable) cableColorFMP(tileEntity)
-        else EnumDyeColor.SILVER
+      if (tileEntity.hasCapability(Capabilities.EnvironmentCapability, side)) {
+        val host = tileEntity.getCapability(Capabilities.EnvironmentCapability, side)
+        if (host != null) return Option(host.node)
+      }
     }
 
-  private def cableColorFMP(tileEntity: TileEntity) = EnumDyeColor.SILVER
-
-  /* TODO FMP
-    tileEntity match {
-      case host: TileMultipart => (host.partList collect {
-        case cable: CablePart => cable.color
-      }).headOption.getOrElse(Color.LightGray)
-      case _ => Color.LightGray
-    }
-  */
-
-  private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity) = {
-    val (c1, c2) = (cableColor(te1), cableColor(te2))
-    c1 == c2 || c1 == EnumDyeColor.SILVER || c2 == EnumDyeColor.SILVER
+    None
   }
 
-  private def canConnectFromSideFMP(tileEntity: TileEntity, side: EnumFacing) = true
-
-  /* TODO FMP
-    tileEntity match {
-      case host: TileMultipart =>
-        host.partList.forall {
-          case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
-            val ownBounds = Iterable(new Cuboid6(Cable.cachedBounds(side.flag)))
-            val otherBounds = part.getOcclusionBoxes
-            NormalOcclusionTest(ownBounds, otherBounds)
-          case part: TFacePart => !part.solid(side.ordinal) || (part.getSlotMask & codechicken.multipart.PartMap.face(side.ordinal).mask) == 0
-          case _ => true
-        }
-      case _ => true
+  private def getConnectionColor(tileEntity: TileEntity): Int = {
+    if (tileEntity != null) {
+      if (tileEntity.hasCapability(Capabilities.ColoredCapability, null)) {
+        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, null)
+        if (colored != null && colored.controlsConnectivity) return colored.getColor
+      }
     }
-  */
+
+    Color.rgbValues(EnumDyeColor.SILVER)
+  }
+
+  private def canConnectBasedOnColor(te1: TileEntity, te2: TileEntity) = {
+    val (c1, c2) = (getConnectionColor(te1), getConnectionColor(te2))
+    c1 == c2 || c1 == Color.rgbValues(EnumDyeColor.SILVER) || c2 == Color.rgbValues(EnumDyeColor.SILVER)
+  }
 
   private def canConnectFromSideIM(tileEntity: TileEntity, side: EnumFacing) =
     tileEntity match {

@@ -5,11 +5,19 @@ import java.util.Calendar
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.internal.Colored
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.SidedComponent
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.asm.ClassTransformer
+import li.cil.oc.common.capabilities.CapabilityColored
+import li.cil.oc.common.capabilities.CapabilityEnvironment
+import li.cil.oc.common.capabilities.CapabilitySidedComponent
+import li.cil.oc.common.capabilities.CapabilitySidedEnvironment
 import li.cil.oc.common.component.TerminalServer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
@@ -31,6 +39,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.FakePlayer
+import net.minecraftforge.event.AttachCapabilitiesEvent
 import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.ChunkEvent
@@ -92,6 +101,29 @@ object EventHandler {
         util.WirelessRedstone.addReceiver(rs)
         util.WirelessRedstone.updateOutput(rs)
       })
+    }
+  }
+
+  @SubscribeEvent
+  def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity) {
+    event.getTileEntity match {
+      case tileEntity: TileEntity with Environment =>
+        event.addCapability(CapabilityEnvironment.ProviderEnvironment, new CapabilityEnvironment.Provider(tileEntity))
+      case _ =>
+    }
+
+    event.getTileEntity match {
+      case tileEntity: TileEntity with Environment with SidedComponent =>
+        event.addCapability(CapabilitySidedComponent.SidedComponent, new CapabilitySidedComponent.Provider(tileEntity))
+      case tileEntity: TileEntity with SidedEnvironment =>
+        event.addCapability(CapabilitySidedEnvironment.ProviderSidedEnvironment, new CapabilitySidedEnvironment.Provider(tileEntity))
+      case _ =>
+    }
+
+    event.getTileEntity match {
+      case tileEntity: TileEntity with Colored =>
+        event.addCapability(CapabilityColored.ProviderColored, new CapabilityColored.Provider(tileEntity))
+      case _ =>
     }
   }
 

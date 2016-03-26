@@ -4,6 +4,7 @@ import java.io.File
 
 import com.google.common.base.Strings
 import li.cil.oc._
+import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
@@ -90,6 +91,9 @@ class Proxy {
 
     OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
+
+    OpenComputers.log.info("Initializing capabilities.")
+    Capabilities.init()
 
     api.API.isPowerEnabled = !Settings.get.ignorePower
   }
