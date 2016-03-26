@@ -320,7 +320,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
 
   private def clean(path: String) = {
     val result = com.google.common.io.Files.simplifyPath(path)
-    if (result.startsWith("../")) throw new FileNotFoundException(path)
+    if (result.startsWith("../") || result == "..") throw new FileNotFoundException(path)
     if (result == "/" || result == ".") ""
     else result
   }
