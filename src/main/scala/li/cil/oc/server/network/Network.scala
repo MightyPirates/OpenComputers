@@ -422,7 +422,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
 object Network extends api.detail.NetworkAPI {
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
-    if (!tileEntity.isInvalid && !tileEntity.getWorld.isRemote) {
+    if (!tileEntity.isInvalid && tileEntity.getWorld != null && !tileEntity.getWorld.isRemote) {
       for (side <- EnumFacing.values) {
         val npos = tileEntity.getPos.offset(side)
         if (tileEntity.getWorld.isBlockLoaded(npos)) {
@@ -472,8 +472,8 @@ object Network extends api.detail.NetworkAPI {
 
   private def getConnectionColor(tileEntity: TileEntity): Int = {
     if (tileEntity != null) {
-      if (tileEntity.hasCapability(Capabilities.ColoredCapability, null)) {
-        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, null)
+      if (tileEntity.hasCapability(Capabilities.ColoredCapability, EnumFacing.DOWN)) {
+        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, EnumFacing.DOWN)
         if (colored != null && colored.controlsConnectivity) return colored.getColor
       }
     }

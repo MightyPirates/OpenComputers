@@ -105,7 +105,7 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity) {
+  def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity): Unit = {
     event.getTileEntity match {
       case tileEntity: TileEntity with Environment =>
         event.addCapability(CapabilityEnvironment.ProviderEnvironment, new CapabilityEnvironment.Provider(tileEntity))
