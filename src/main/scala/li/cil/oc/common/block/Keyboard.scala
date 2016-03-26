@@ -54,8 +54,6 @@ class Keyboard extends SimpleBlock(Material.rock) {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Keyboard()
 
   // ----------------------------------------------------------------------- //

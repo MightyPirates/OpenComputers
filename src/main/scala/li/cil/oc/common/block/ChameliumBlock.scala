@@ -28,4 +28,6 @@ class ChameliumBlock extends SimpleBlock(Material.rock) {
     state.getValue(ChameliumBlock.Color).getDyeDamage
 
   override def createBlockState(): BlockState = new BlockState(this, ChameliumBlock.Color)
+
+  override def hasTileEntity(state: IBlockState): Boolean = false
 }

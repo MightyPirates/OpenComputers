@@ -48,7 +48,5 @@ class Hologram(val tier: Int) extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Hologram(tier)
 }

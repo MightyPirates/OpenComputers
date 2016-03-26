@@ -208,8 +208,6 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(worldIn: World, meta: Int) = new tileentity.Print()
 
   // ----------------------------------------------------------------------- //

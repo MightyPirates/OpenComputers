@@ -41,6 +41,8 @@ class RobotAfterimage extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
+  override def hasTileEntity(state: IBlockState): Boolean = false
+
   override def createNewTileEntity(worldIn: World, meta: Int) = null
 
   // ----------------------------------------------------------------------- //

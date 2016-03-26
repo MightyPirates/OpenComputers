@@ -10,7 +10,5 @@ class Geolyzer extends SimpleBlock {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Geolyzer()
 }
