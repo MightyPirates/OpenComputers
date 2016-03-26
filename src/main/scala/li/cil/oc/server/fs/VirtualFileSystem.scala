@@ -135,7 +135,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected def segments(path: String) = path.split("/").filter(_ != "")
+  protected def segments(path: String) = FileSystem.validatePath(path).split("/").filter(_ != "")
 
   // ----------------------------------------------------------------------- //
 
