@@ -23,34 +23,42 @@ for key,value in pairs(_coroutine) do
   end
 end
 
-local kernel_create = _coroutine.create
-local function install(path, name)
-  _coroutine.create = function(f,standAlone)
-    local co = kernel_create(f)
-    if not standAlone then
-      table.insert(process.findProcess().instances, co)
-    end
-    return co
-  end
-  local load = load
-  _G.load = function(ld, source, mode, env)
-    env = env or select(2, process.running())
-    return load(ld, source, mode, env)
-  end
-  local thread = _coroutine.running()
-  process.list[thread] = {
-    path = path,
-    command = name,
-    env = _ENV,
-    data =
-    {
-      vars={},
-      io={}, --init will populate this
-      coroutine_handler=setmetatable({}, {__index=_coroutine})
-    },
-    instances = setmetatable({}, {__mode="v"})
-  }
+local init_thread = _coroutine.running()
+local init_load = _G.load
+
+_G.load = function(ld, source, mode, env)
+  env = env or select(2, process.running())
+  return init_load(ld, source, mode, env)
 end
 
-install("/init.lua", "init")
+local kernel_create = _coroutine.create
+_coroutine.create = function(f,standAlone)
+  local co = kernel_create(f)
+  if not standAlone then
+    table.insert(process.findProcess().instances, co)
+  end
+  return co
+end
 
+_coroutine.wrap = function(f)
+  local thread = coroutine.create(f)
+  return function(...)
+    local result_pack = table.pack(coroutine.resume(thread, ...))
+    local result, reason = result_pack[1], result_pack[2]
+    assert(result, reason)
+    return select(2, table.unpack(result_pack))
+  end
+end
+
+process.list[init_thread] = {
+  path = "/init.lua",
+  command = "init",
+  env = _ENV,
+  data =
+  {
+    vars={},
+    io={}, --init will populate this
+    coroutine_handler=setmetatable({}, {__index=_coroutine})
+  },
+  instances = setmetatable({}, {__mode="v"})
+}
