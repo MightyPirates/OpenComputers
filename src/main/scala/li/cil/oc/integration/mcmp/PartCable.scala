@@ -10,11 +10,11 @@ import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.block.property
+import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
-import mcmultipart.multipart.ISlottedPart
-import mcmultipart.multipart.Multipart
-import mcmultipart.multipart.PartSlot
+import mcmultipart.capabilities.ISlottedCapabilityProvider
+import mcmultipart.multipart._
 import mcmultipart.raytrace.PartMOP
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.BlockState
@@ -26,10 +26,14 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.PacketBuffer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.AxisAlignedBB
-import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.property.ExtendedBlockState
+import net.minecraftforge.common.property.IExtendedBlockState
 
-class PartCable extends Multipart with ISlottedPart with Environment with Colored {
+import scala.collection.convert.WrapAsScala._
+
+class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISlottedCapabilityProvider with Environment with Colored {
   final val CableDefinition = api.Items.get(Constants.BlockName.Cable)
   final val CableBlock = CableDefinition.block()
 
@@ -38,13 +42,13 @@ class PartCable extends Multipart with ISlottedPart with Environment with Colore
   // ----------------------------------------------------------------------- //
   // Environment
 
-  override def node(): Node = wrapped.node
+  override def node = wrapped.node
 
-  override def onMessage(message: Message): Unit = wrapped.onMessage(message)
+  override def onMessage(message: Message) = wrapped.onMessage(message)
 
-  override def onConnect(node: Node): Unit = wrapped.onConnect(node)
+  override def onConnect(node: Node) = wrapped.onConnect(node)
 
-  override def onDisconnect(node: Node): Unit = wrapped.onDisconnect(node)
+  override def onDisconnect(node: Node) = wrapped.onDisconnect(node)
 
   // ----------------------------------------------------------------------- //
   // Colored
@@ -66,6 +70,36 @@ class PartCable extends Multipart with ISlottedPart with Environment with Colore
   // ISlottedPart
 
   override def getSlotMask: util.EnumSet[PartSlot] = util.EnumSet.of(PartSlot.CENTER)
+
+  // ----------------------------------------------------------------------- //
+  // IOccludingPart
+
+  override def addOcclusionBoxes(list: util.List[AxisAlignedBB]): Unit = list.add(Cable.DefaultBounds)
+
+  // ----------------------------------------------------------------------- //
+  // ISlottedCapabilityProvider
+
+  override def hasCapability(capability: Capability[_], slot: PartSlot, facing: EnumFacing): Boolean = {
+    capability == Capabilities.EnvironmentCapability && canConnect(facing)
+  }
+
+  override def getCapability[T](capability: Capability[T], slot: PartSlot, facing: EnumFacing): T = {
+    if (capability == Capabilities.EnvironmentCapability && canConnect(facing)) this.asInstanceOf[T]
+    else null.asInstanceOf[T]
+  }
+
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
+    (capability == Capabilities.ColoredCapability) || super.hasCapability(capability, facing)
+  }
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
+    if (capability == Capabilities.ColoredCapability) this.asInstanceOf[T]
+    else super.getCapability(capability, facing)
+  }
+
+  private def canConnect(facing: EnumFacing) =
+    !OcclusionHelper.isSlotOccluded(getContainer.getParts, this, PartSlot.getFaceSlot(facing)) &&
+      OcclusionHelper.occlusionTest(getContainer.getParts, this, Cable.CachedBounds(Cable.mask(facing)))
 
   // ----------------------------------------------------------------------- //
   // IMultipart
@@ -107,11 +141,47 @@ class PartCable extends Multipart with ISlottedPart with Environment with Colore
       case _ => state
     }
 
+  override def onPartChanged(part: IMultipart): Unit = {
+    super.onPartChanged(part)
+    if (getWorld.isRemote) {
+      markRenderUpdate()
+    } else {
+      // This is a bit meh... when a previously valid connection to a neighbor of
+      // a multipart tile becomes invalid due to a new, occluding part, we can't
+      // access the now occluded node anymore, so we can't just disconnect it from
+      // it's neighbor. So instead we get the old list of neighbor nodes and kill
+      // every connection for which we can't find a currently valid neighbor.
+      val mask = Cable.neighbors(getWorld, getPos)
+      val neighbors = EnumFacing.VALUES.filter(side => (mask & (1 << side.getIndex)) != 0).map(side => {
+        val neighborPos = getPos.offset(side)
+        val neighborTile = getWorld.getTileEntity(neighborPos)
+        if (neighborTile == null || !canConnect(side)) null
+        else if (neighborTile.hasCapability(Capabilities.SidedEnvironmentCapability, side.getOpposite)) {
+          val host = neighborTile.getCapability(Capabilities.SidedEnvironmentCapability, side.getOpposite)
+          if (host != null) host.sidedNode(side.getOpposite)
+          else null
+        }
+        else if (neighborTile.hasCapability(Capabilities.EnvironmentCapability, side.getOpposite)) {
+          val host = neighborTile.getCapability(Capabilities.EnvironmentCapability, side.getOpposite)
+          if (host != null) host.node
+          else null
+        }
+        else null
+      }).filter(_ != null).toSet
+      for (neighborNode <- node.neighbors.toSeq) {
+        if (!neighbors.contains(neighborNode)) {
+          node.disconnect(neighborNode)
+        }
+      }
+      api.Network.joinOrCreateNetwork(getWorld, getPos)
+    }
+  }
+
   override def onAdded(): Unit = {
     super.onAdded()
-    wrapped.validate()
     wrapped.setWorldObj(getWorld)
     wrapped.setPos(getPos)
+    wrapped.validate()
   }
 
   override def onRemoved(): Unit = {
@@ -123,23 +193,28 @@ class PartCable extends Multipart with ISlottedPart with Environment with Colore
 
   override def onLoaded(): Unit = {
     super.onLoaded()
-    wrapped.validate()
     wrapped.setWorldObj(getWorld)
     wrapped.setPos(getPos)
+    wrapped.validate()
   }
 
   override def onUnloaded(): Unit = {
     super.onUnloaded()
-    wrapped.invalidate()
+    wrapped.onChunkUnload()
     wrapped.setWorldObj(null)
     wrapped.setPos(null)
   }
 
   override def onConverted(tile: TileEntity): Unit = {
     super.onConverted(tile)
-    val nbt = new NBTTagCompound()
-    tile.writeToNBT(nbt)
-    wrapped.readFromNBT(nbt)
+    tile match {
+      case cable: tileentity.Cable =>
+        wrapped.setColor(cable.getColor)
+      case _ =>
+    }
+    wrapped.setWorldObj(getWorld)
+    wrapped.setPos(getPos)
+    wrapped.validate()
   }
 
   // ----------------------------------------------------------------------- //

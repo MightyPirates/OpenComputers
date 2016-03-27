@@ -16,6 +16,8 @@ import net.minecraft.block.Block
 import net.minecraft.util.BlockPos
 import net.minecraft.world.IBlockAccess
 
+import scala.collection.convert.WrapAsScala._
+
 object PartConverter extends IPartConverter2 with IReversePartConverter {
   final lazy val CableBlock = api.Items.get(Constants.BlockName.Cable).block()
 
@@ -26,6 +28,12 @@ object PartConverter extends IPartConverter2 with IReversePartConverter {
       case tileEntity: Cable =>
         val part = new PartCable()
         part.setColor(tileEntity.getColor)
+        if (!simulated && tileEntity.node != null && part.node != null) {
+          // Immediately connect node to avoid short disconnect.
+          for (node <- tileEntity.node.neighbors) {
+            node.connect(part.node)
+          }
+        }
         Collections.singletonList(part)
       case _ => Collections.emptyList()
     }
@@ -35,7 +43,6 @@ object PartConverter extends IPartConverter2 with IReversePartConverter {
     val parts = container.getParts
     (parts.size() == 1) && (parts.iterator().next() match {
       case part: PartCable =>
-        // TODO Create temporary node bridging hole left by removing multipart, remove after tile entity creation?
         val color = part.getColor
         val world = container.getWorldIn
         val pos = container.getPosIn
@@ -47,6 +54,12 @@ object PartConverter extends IPartConverter2 with IReversePartConverter {
             EventHandler.scheduleServer(() => PacketSender.sendColorChange(tileEntity)) // HACKS!
           case _ =>
         }
+        // Immediately connect node to avoid short disconnect.
+        api.Network.joinOrCreateNetwork(world, pos)
+        // Required to dispose the old node because invalidate isn't forwarded to parts.
+        // Can't use removePart because if the list is empty when this returns, MCMP
+        // will tell MC that the block was removed so MC will set it to air.
+        part.wrapped.invalidate()
         true
       case _ =>
         false
