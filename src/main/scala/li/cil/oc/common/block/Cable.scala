@@ -166,8 +166,8 @@ object Cable {
 
   private def getConnectionColor(tileEntity: TileEntity): Int = {
     if (tileEntity != null) {
-      if (tileEntity.hasCapability(Capabilities.ColoredCapability, EnumFacing.DOWN)) {
-        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, EnumFacing.DOWN)
+      if (tileEntity.hasCapability(Capabilities.ColoredCapability, null)) {
+        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, null)
         if (colored != null && colored.controlsConnectivity) return colored.getColor
       }
     }
