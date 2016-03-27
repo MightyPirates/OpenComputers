@@ -4,16 +4,13 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
-import li.cil.oc.integration.Mods
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.block.model.BakedQuad
-import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.model.ISmartItemModel
@@ -88,7 +85,7 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
         case t: tileentity.Cable =>
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-          val color = Some(t.color)
+          val color = Some(t.getColor)
           val mask = Cable.neighbors(t.world, t.getPos)
           faces ++= bakeQuads(Middle, cableTexture, color)
           for (side <- EnumFacing.values) {
@@ -112,20 +109,13 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
         case _ => super.getGeneralQuads
       }
 
-    private def isCable(pos: BlockPosition) = {
+    protected def isCable(pos: BlockPosition) = {
       pos.world match {
         case Some(world) =>
-          val tileEntity = world.getTileEntity(pos)
-          tileEntity.isInstanceOf[tileentity.Cable] || (Mods.ForgeMultipart.isAvailable && isCableFMP(tileEntity))
+          world.getTileEntity(pos).isInstanceOf[tileentity.Cable]
         case _ => false
       }
     }
-
-    private def isCableFMP(tileEntity: TileEntity) = false
-
-    /* TODO FMP
-      tileEntity.isInstanceOf[TileMultipart]
-    */
   }
 
 }

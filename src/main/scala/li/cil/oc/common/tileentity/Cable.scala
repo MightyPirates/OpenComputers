@@ -12,19 +12,19 @@ import net.minecraft.item.ItemStack
 class Cable extends traits.Environment with traits.NotAnalyzable with traits.ImmibisMicroblock with traits.Colored {
   val node = api.Network.newNode(this, Visibility.None).create()
 
-  color = Color.rgbValues(EnumDyeColor.SILVER)
+  setColor(Color.rgbValues(EnumDyeColor.SILVER))
 
   def createItemStack() = {
     val stack = new ItemStack(Item.getItemFromBlock(getBlockType))
-    if (color != Color.rgbValues(EnumDyeColor.SILVER)) {
-      ItemColorizer.setColor(stack, color)
+    if (getColor != Color.rgbValues(EnumDyeColor.SILVER)) {
+      ItemColorizer.setColor(stack, getColor)
     }
     stack
   }
 
   def fromItemStack(stack: ItemStack): Unit = {
     if (ItemColorizer.hasColor(stack)) {
-      color = ItemColorizer.getColor(stack)
+      setColor(ItemColorizer.getColor(stack))
     }
   }
 

@@ -48,7 +48,7 @@ object PacketSender {
     val pb = new SimplePacketBuilder(PacketType.ColorChange)
 
     pb.writeTileEntity(t)
-    pb.writeInt(t.color)
+    pb.writeInt(t.getColor)
 
     pb.sendToPlayersNearTileEntity(t)
   }

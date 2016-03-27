@@ -12,18 +12,14 @@ import net.minecraftforge.fml.relauncher.SideOnly
 trait Colored extends TileEntity with internal.Colored {
   private var _color = 0
 
-  def color = _color
+  def consumesDye = false
 
-  def color_=(value: Int) = if (value != _color) {
+  override def getColor: Int = _color
+
+  override def setColor(value: Int) = if (value != _color) {
     _color = value
     onColorChanged()
   }
-
-  def consumesDye = false
-
-  override def getColor: Int = color
-
-  override def setColor(value: Int) = color = value
 
   override def controlsConnectivity = false
 

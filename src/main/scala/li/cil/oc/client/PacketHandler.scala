@@ -116,7 +116,7 @@ object PacketHandler extends CommonPacketHandler {
   def onColorChange(p: PacketParser) =
     p.readTileEntity[Colored]() match {
       case Some(t) =>
-        t.color = p.readInt()
+        t.setColor(p.readInt())
         t.world.markBlockForUpdate(t.position)
       case _ => // Invalid packet.
     }

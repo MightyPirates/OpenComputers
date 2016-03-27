@@ -24,7 +24,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
   var lastFileSystemAccess = 0L
   var lastNetworkActivity = 0L
 
-  color = Color.rgbValues(Color.byTier(tier))
+  setColor(Color.rgbValues(Color.byTier(tier)))
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: EnumFacing) = side != facing
@@ -64,7 +64,7 @@ class Case(var tier: Int) extends traits.PowerAcceptor with traits.Computer with
 
   override def readFromNBTForServer(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 3
-    color = Color.rgbValues(Color.byTier(tier))
+    setColor(Color.rgbValues(Color.byTier(tier)))
     super.readFromNBTForServer(nbt)
   }
 
