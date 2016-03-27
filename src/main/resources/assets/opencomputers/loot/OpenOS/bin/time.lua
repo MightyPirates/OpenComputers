@@ -1,22 +1,18 @@
+local computer = require('computer')
 local sh = require('sh')
 
-local clock_before = os.clock()
+local real_before, cpu_before = computer.uptime(), os.clock()
 local cmd_result = 0
 if ... then
   sh.execute(nil, ...) 
   cmd_result = sh.getLastExitCode()
 end
+local real_after, cpu_after = computer.uptime(), os.clock()
 
-local clock_after = os.clock()
-local clock_diff = clock_after - clock_before
+local real_diff = real_after - real_before
+local cpu_diff = cpu_after - cpu_before
 
--- format time
-local minutes = clock_diff / 60
-local seconds = clock_diff % 60
-
-local seconds_txt = string.format('%f', seconds)
-seconds_txt = seconds_txt:gsub('^(.*%....).*$','%1')
-
-io.write(string.format('\nreal%5dm%ss\n', minutes, seconds_txt))
+print(string.format('real%5dm%.3fs', math.floor(real_diff/60), real_diff%60))
+print(string.format('cpu %5dm%.3fs', math.floor(cpu_diff/60), cpu_diff%60))
 
 return cmd_result
