@@ -53,6 +53,11 @@
 * [Торговля](tradingUpgrade.md)
 * [Улучшение](upgradeContainer1.md)
 
+### Для монтажа в стойку
+* [Подключаемый дисковод](diskDriveMountable.md)
+* [Сервер](server1.md)
+* [Терминальный сервер](terminalServer.md)
+
 ### Другое
 * [Процессор с видеркартой (APU)](apu1.md)
 * [Компонентная шина](componentBus1.md)
