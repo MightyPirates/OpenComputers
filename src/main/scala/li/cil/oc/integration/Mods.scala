@@ -52,6 +52,7 @@ object Mods {
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
+  val MCMultiPart = new SimpleMod(IDs.MCMultiPart)
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
@@ -114,6 +115,7 @@ object Mods {
     //    integration.gc.ModGalacticraft,
     //    integration.gregtech.ModGregtech,
     //    integration.ic2.ModIndustrialCraft2,
+    integration.mcmp.ModMCMultiPart,
     //    integration.mekanism.ModMekanism,
     //    integration.mekanism.gas.ModMekanismGas,
     //    integration.mfr.ModMineFactoryReloaded,
@@ -204,6 +206,7 @@ object Mods {
     final val IndustrialCraft2Classic = "IC2-Classic"
     final val IngameWiki = "IGWMod"
     final val JustEnoughItems = "JEI"
+    final val MCMultiPart = "mcmultipart"
     final val Mekanism = "Mekanism"
     final val MekanismGas = "MekanismAPI|gas"
     final val Minecraft = "Minecraft"

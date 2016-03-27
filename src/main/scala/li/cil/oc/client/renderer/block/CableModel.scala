@@ -4,6 +4,8 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.tileentity
+import li.cil.oc.integration.Mods
+import li.cil.oc.integration.mcmp.PartCableModel
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.Color
 import li.cil.oc.util.ExtendedWorld._
@@ -35,7 +37,9 @@ object CableModel extends SmartBlockModelBase with ISmartItemModel {
   }
 
   override def handleBlockState(state: IBlockState) = state match {
-    case extended: IExtendedBlockState => new BlockModel(extended)
+    case extended: IExtendedBlockState =>
+      if (Mods.MCMultiPart.isAvailable) new PartCableModel.BlockModel(extended)
+      else new BlockModel(extended)
     case _ => missingModel
   }
 

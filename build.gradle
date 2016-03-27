@@ -80,8 +80,12 @@ repositories {
         url = "http://mobiusstrip.eu/maven"
     }
     ivy {
-        name 'ComputerCraft'
+        name = "ComputerCraft"
         artifactPattern "http://addons-origin.cursecdn.com/files/${config.cc.cf}/[module][revision].[ext]"
+    }
+    maven {
+        name = "MCMP"
+        url "http://maven.amadornes.com/"
     }
     /*
     maven {
@@ -181,6 +185,7 @@ dependencies {
     deobfCompile "mezz.jei:jei_1.8.9:${config.jei.version}"
     deobfCompile "li.cil.tis3d:TIS-3D:${config.tis3d.version}"
     deobfCompile "mcp.mobius.waila:Waila:${config.waila.version}"
+    deobfCompile "MCMultiPart:MCMultiPart:${config.mcmp.version}:universal"
 /*
     provided "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     provided "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
