@@ -94,7 +94,7 @@ class Cable(protected implicit val tileTag: ClassTag[tileentity.Cable]) extends 
 }
 
 object Cable {
-  val cachedBounds = {
+  final val CachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {
       var minX = -0.125
@@ -118,23 +118,27 @@ object Cable {
         maxX + 0.5, maxY + 0.5, maxZ + 0.5)
     }).toArray
   }
+  final val DefaultBounds = CachedBounds(0)
+
+  def mask(side: EnumFacing, value: Int = 0) = value | (1 << side.getIndex)
 
   def neighbors(world: IBlockAccess, pos: BlockPos) = {
     var result = 0
     val tileEntity = world.getTileEntity(pos)
     for (side <- EnumFacing.values) {
       val tpos = pos.offset(side)
-      if (world match {
+      val hasNode = hasNetworkNode(tileEntity, side)
+      if (hasNode && (world match {
         case world: World => world.isBlockLoaded(tpos)
         case _ => !world.isAirBlock(tpos)
-      }) {
+      })) {
         val neighborTileEntity = world.getTileEntity(tpos)
         if (neighborTileEntity != null && neighborTileEntity.getWorld != null) {
           val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
           val canConnectColor = canConnectBasedOnColor(tileEntity, neighborTileEntity)
           val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
           if (neighborHasNode && canConnectColor && canConnectIM) {
-            result |= (1 << side.getIndex)
+            result = mask(side, result)
           }
         }
       }
@@ -142,7 +146,7 @@ object Cable {
     result
   }
 
-  def bounds(world: IBlockAccess, pos: BlockPos) = Cable.cachedBounds(Cable.neighbors(world, pos))
+  def bounds(world: IBlockAccess, pos: BlockPos) = Cable.CachedBounds(Cable.neighbors(world, pos))
 
   private def hasNetworkNode(tileEntity: TileEntity, side: EnumFacing): Boolean = {
     if (tileEntity != null) {
