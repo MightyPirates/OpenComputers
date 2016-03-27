@@ -15,6 +15,8 @@ import net.minecraft.item.EnumDyeColor
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.BlockPos
+import net.minecraft.world.IBlockAccess
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -421,8 +423,9 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 }
 
 object Network extends api.detail.NetworkAPI {
-  override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
-    if (!tileEntity.isInvalid && tileEntity.getWorld != null && !tileEntity.getWorld.isRemote) {
+  override def joinOrCreateNetwork(world: IBlockAccess, pos: BlockPos): Unit = {
+    val tileEntity = world.getTileEntity(pos)
+    if (tileEntity != null && !tileEntity.isInvalid && tileEntity.getWorld != null && !tileEntity.getWorld.isRemote) {
       for (side <- EnumFacing.values) {
         val npos = tileEntity.getPos.offset(side)
         if (tileEntity.getWorld.isBlockLoaded(npos)) {
@@ -447,6 +450,17 @@ object Network extends api.detail.NetworkAPI {
         }
       }
     }
+  }
+
+  override def joinOrCreateNetwork(tileEntity: TileEntity): Unit = {
+    if (tileEntity != null) {
+      val world = tileEntity.getWorld
+      val pos = tileEntity.getPos
+      if (world != null && pos != null) {
+        joinOrCreateNetwork(world, pos)
+      }
+    }
+  }
 
   def joinNewNetwork(node: ImmutableNode): Unit = node match {
     case mutableNode: MutableNode if mutableNode.network == null =>
@@ -472,8 +486,8 @@ object Network extends api.detail.NetworkAPI {
 
   private def getConnectionColor(tileEntity: TileEntity): Int = {
     if (tileEntity != null) {
-      if (tileEntity.hasCapability(Capabilities.ColoredCapability, EnumFacing.DOWN)) {
-        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, EnumFacing.DOWN)
+      if (tileEntity.hasCapability(Capabilities.ColoredCapability, null)) {
+        val colored = tileEntity.getCapability(Capabilities.ColoredCapability, null)
         if (colored != null && colored.controlsConnectivity) return colored.getColor
       }
     }
