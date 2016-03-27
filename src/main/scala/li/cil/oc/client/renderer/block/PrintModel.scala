@@ -38,7 +38,7 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
           for (shape <- if (t.state) t.data.stateOn else t.data.stateOff if !Strings.isNullOrEmpty(shape.texture)) {
             val bounds = shape.bounds.rotateTowards(t.facing)
             val texture = resolveTexture(shape.texture)
-            faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
+            faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(White))
           }
 
           bufferAsJavaList(faces)
@@ -61,7 +61,7 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
       for (shape <- shapes) {
         val bounds = shape.bounds
         val texture = resolveTexture(shape.texture)
-        faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(NoTint))
+        faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(White))
       }
       if (shapes.isEmpty) {
         val bounds = ExtendedAABB.unitBounds

@@ -9,10 +9,10 @@ import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.client.renderer.block.model.ItemTransformVec3f
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.item.EnumDyeColor
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
+import net.minecraftforge.client.model.IColoredBakedQuad.ColoredBakedQuad
 import net.minecraftforge.client.model.ISmartBlockModel
 import net.minecraftforge.client.model.ISmartItemModel
 import org.lwjgl.util.vector.Vector3f
@@ -78,7 +78,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     (new Vec3(0, 0, -1), new Vec3(0, -1, 0))
   )
 
-  protected final val NoTint = -1
+  protected final val White = 0xFFFFFF
 
   /**
     * Generates a list of arrays, each containing the four vertices making up a
@@ -121,8 +121,8 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     * Usually used to generate the quads for a cube previously generated using makeBox().
     */
   protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], color: Option[Int]): Array[BakedQuad] = {
-    val tintIndex = color.getOrElse(NoTint)
-    bakeQuads(box, texture, tintIndex)
+    val colorRGB = color.getOrElse(White)
+    bakeQuads(box, texture, colorRGB)
   }
 
   /**
@@ -130,11 +130,11 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     * <p/>
     * Usually used to generate the quads for a cube previously generated using makeBox().
     */
-  protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], tintIndex: Int): Array[BakedQuad] = {
+  protected def bakeQuads(box: Array[Array[Vec3]], texture: Array[TextureAtlasSprite], colorRGB: Int): Array[BakedQuad] = {
     EnumFacing.values.map(side => {
       val vertices = box(side.getIndex)
-      val data = quadData(vertices, side, texture(side.getIndex), 0)
-      new BakedQuad(data, tintIndex, side)
+      val data = quadData(vertices, side, texture(side.getIndex), colorRGB, 0)
+      new ColoredBakedQuad(data, -1, side)
     })
   }
 
@@ -142,16 +142,16 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
     * Create a single BakedQuad of a unit cube's specified side.
     */
   protected def bakeQuad(side: EnumFacing, texture: TextureAtlasSprite, color: Option[Int], rotation: Int) = {
-    val tintIndex = color.getOrElse(NoTint)
+    val colorRGB = color.getOrElse(White)
     val vertices = UnitCube(side.getIndex)
-    val data = quadData(vertices, side, texture, rotation)
-    new BakedQuad(data, tintIndex, side)
+    val data = quadData(vertices, side, texture, colorRGB, rotation)
+    new ColoredBakedQuad(data, -1, side)
   }
 
   // Generate raw data used for a BakedQuad based on the specified facing, vertices, texture and rotation.
   // The UV coordinates are generated from the positions of the vertices, i.e. they are simply cube-
   // mapped. This is good enough for us.
-  protected def quadData(vertices: Array[Vec3], facing: EnumFacing, texture: TextureAtlasSprite, rotation: Int): Array[Int] = {
+  protected def quadData(vertices: Array[Vec3], facing: EnumFacing, texture: TextureAtlasSprite, colorRGB: Int, rotation: Int): Array[Int] = {
     val (uAxis, vAxis) = Planes(facing.getIndex)
     val rot = (rotation + 4) % 4
     vertices.flatMap(vertex => {
@@ -165,12 +165,12 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
         u = v
         v = (-(tmp - 0.5)) + 0.5
       }
-      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, facing, texture, texture.getInterpolatedU(u * 16), texture.getInterpolatedV(v * 16))
+      rawData(vertex.xCoord, vertex.yCoord, vertex.zCoord, facing, texture, texture.getInterpolatedU(u * 16), texture.getInterpolatedV(v * 16), colorRGB)
     })
   }
 
   // See FaceBakery#storeVertexData.
-  protected def rawData(x: Double, y: Double, z: Double, face: EnumFacing, texture: TextureAtlasSprite, u: Float, v: Float) = {
+  protected def rawData(x: Double, y: Double, z: Double, face: EnumFacing, texture: TextureAtlasSprite, u: Float, v: Float, colorRGB: Int) = {
     val vx = (face.getFrontOffsetX * 127) & 0xFF
     val vy = (face.getFrontOffsetY * 127) & 0xFF
     val vz = (face.getFrontOffsetZ * 127) & 0xFF
@@ -179,7 +179,7 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
       java.lang.Float.floatToRawIntBits(x.toFloat),
       java.lang.Float.floatToRawIntBits(y.toFloat),
       java.lang.Float.floatToRawIntBits(z.toFloat),
-      getFaceShadeColor(face),
+      getFaceShadeColor(face, colorRGB),
       java.lang.Float.floatToRawIntBits(u),
       java.lang.Float.floatToRawIntBits(v),
       vx | (vy << 0x08) | (vz << 0x10)
@@ -187,11 +187,15 @@ trait SmartBlockModelBase extends ISmartBlockModel with ISmartItemModel {
   }
 
   // See FaceBakery.
-  protected def getFaceShadeColor(face: EnumFacing): Int = {
+  protected def getFaceShadeColor(face: EnumFacing, colorRGB: Int): Int = {
     val brightness = getFaceBrightness(face)
-    val color = (brightness * 255).toInt max 0 min 255
-    0xFF000000 | color << 16 | color << 8 | color
+    val b = (colorRGB >> 16) & 0xFF
+    val g = (colorRGB >> 8) & 0xFF
+    val r = colorRGB & 0xFF
+    0xFF000000 | shade(r, brightness) << 16 | shade(g, brightness) << 8 | shade(b, brightness)
   }
+
+  private def shade(value: Int, brightness: Float) = (brightness * value).toInt max 0 min 255
 
   protected def getFaceBrightness(face: EnumFacing): Float = {
     face match {
