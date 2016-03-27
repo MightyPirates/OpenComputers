@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common
+import li.cil.oc.Constants
 import li.cil.oc.util.Color
 import net.minecraft.item.EnumDyeColor
 import li.cil.oc.util.ItemColorizer
@@ -15,7 +16,7 @@ class Cable extends traits.Environment with traits.NotAnalyzable with traits.Imm
   setColor(Color.rgbValues(EnumDyeColor.SILVER))
 
   def createItemStack() = {
-    val stack = new ItemStack(Item.getItemFromBlock(getBlockType))
+    val stack = api.Items.get(Constants.BlockName.Cable).createItemStack(1)
     if (getColor != Color.rgbValues(EnumDyeColor.SILVER)) {
       ItemColorizer.setColor(stack, getColor)
     }
