@@ -129,7 +129,7 @@ class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISl
 
   // ----------------------------------------------------------------------- //
 
-  override def getModelPath = MCMultiPart.CableMultipartLocation
+  override def getModelPath = MCMultiPart.CableMultipartLocation.getResourceDomain + ":" + MCMultiPart.CableMultipartLocation.getResourcePath
 
   override def createBlockState(): BlockState = new ExtendedBlockState(CableBlock, Array.empty, Array(property.PropertyTile.Tile))
 

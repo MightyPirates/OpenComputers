@@ -8,6 +8,7 @@ import mcmultipart.multipart.MultipartHelper
 import mcmultipart.multipart.PartSlot
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.resources.model.IBakedModel
+import net.minecraft.item.ItemStack
 import net.minecraftforge.common.property.IExtendedBlockState
 
 object PartCableModel extends SmartBlockModelBase with ISmartMultipartModel {
@@ -15,6 +16,13 @@ object PartCableModel extends SmartBlockModelBase with ISmartMultipartModel {
     case extended: IExtendedBlockState => new BlockModel(extended)
     case _ => missingModel
   }
+
+  override def handleBlockState(state: IBlockState) = state match {
+    case extended: IExtendedBlockState => new BlockModel(extended)
+    case _ => missingModel
+  }
+
+  override def handleItemState(stack: ItemStack) = CableModel.ItemModel
 
   class BlockModel(state: IExtendedBlockState) extends CableModel.BlockModel(state) {
     override protected def isCable(pos: BlockPosition): Boolean = super.isCable(pos) || (pos.world match {

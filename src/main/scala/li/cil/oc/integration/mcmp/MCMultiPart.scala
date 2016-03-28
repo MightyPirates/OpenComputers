@@ -3,6 +3,7 @@ package li.cil.oc.integration.mcmp
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.client.renderer.block.ModelInitialization
 import mcmultipart.item.PartPlacementWrapper
 import mcmultipart.multipart.MultipartRegistry
 import net.minecraft.client.resources.model.IBakedModel
@@ -11,10 +12,10 @@ import net.minecraft.util.RegistrySimple
 import net.minecraftforge.client.event.ModelBakeEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 
 object MCMultiPart {
-  final val CableMultipartLocation = Settings.resourceDomain + ":" + "multipart_" + Constants.BlockName.Cable
-  final val CableMultipartVariantLocation = new ModelResourceLocation(CableMultipartLocation, "multipart")
+  final val CableMultipartLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "multipart")
 
   def init(): Unit = {
     MultipartRegistry.registerPart(classOf[PartCable], PartProvider.PartTypeCable)
@@ -28,10 +29,13 @@ object MCMultiPart {
     MinecraftForge.EVENT_BUS.register(this)
   }
 
-  @SubscribeEvent
+  @SubscribeEvent(priority = EventPriority.LOW)
   def onModelBake(e: ModelBakeEvent): Unit = {
     val registry = e.modelRegistry.asInstanceOf[RegistrySimple[ModelResourceLocation, IBakedModel]]
 
-    registry.putObject(CableMultipartVariantLocation, PartCableModel)
+    // Replace default cable model with part model to properly handle connection
+    // rendering to multipart cables.
+    registry.putObject(ModelInitialization.CableBlockLocation, PartCableModel)
+    registry.putObject(CableMultipartLocation, PartCableModel)
   }
 }
