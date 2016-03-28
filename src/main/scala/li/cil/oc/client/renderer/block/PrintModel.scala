@@ -35,7 +35,7 @@ object PrintModel extends SmartBlockModelBase with ISmartItemModel {
         case t: tileentity.Print =>
           val faces = mutable.ArrayBuffer.empty[BakedQuad]
 
-          for (shape <- if (t.state) t.data.stateOn else t.data.stateOff if !Strings.isNullOrEmpty(shape.texture)) {
+          for (shape <- t.shapes if !Strings.isNullOrEmpty(shape.texture)) {
             val bounds = shape.bounds.rotateTowards(t.facing)
             val texture = resolveTexture(shape.texture)
             faces ++= bakeQuads(makeBox(bounds.min, bounds.max), Array.fill(6)(texture), shape.tint.getOrElse(White))
