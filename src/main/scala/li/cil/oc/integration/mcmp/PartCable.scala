@@ -112,7 +112,8 @@ class PartCable extends Multipart with ISlottedPart with IOccludingPart with ISl
 
   override def addCollisionBoxes(mask: AxisAlignedBB, list: util.List[AxisAlignedBB], collidingEntity: Entity): Unit = {
     if (getWorld != null) {
-      list.add(Cable.bounds(getWorld, getPos)) //.offset(getPos.getX, getPos.getY, getPos.getZ))
+      val bounds = Cable.bounds(getWorld, getPos)
+      if (bounds.intersectsWith(mask)) list.add(bounds)
     }
   }
 
