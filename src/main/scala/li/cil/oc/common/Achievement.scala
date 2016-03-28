@@ -213,6 +213,7 @@ object Achievement {
     withParent(Cable).
     whenCrafting(Constants.BlockName.Switch).
     whenCrafting(Constants.BlockName.AccessPoint).
+    whenCrafting(Constants.BlockName.Relay).
     add()
   val Adapter = newAchievement("adapter").
     at(-4, 1).
