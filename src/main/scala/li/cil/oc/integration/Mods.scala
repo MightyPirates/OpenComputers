@@ -139,9 +139,9 @@ object Mods {
     //    integration.wrcbe.ModWRCBE,
     //    integration.wrsve.ModWRSVE,
 
-    //    // Register the general IPeripheral driver last, if at all, to avoid it
-    //    // being used rather than other more concrete implementations.
-    //    integration.computercraft.ModComputerCraft,
+    // Register the general IPeripheral driver last, if at all, to avoid it
+    // being used rather than other more concrete implementations.
+    integration.computercraft.ModComputerCraft,
 
     // We go late to ensure all other mod integration is done, e.g. to
     // allow properly checking if wireless redstone is present.
