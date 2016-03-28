@@ -3,7 +3,6 @@ package li.cil.oc.integration.mcmp
 import li.cil.oc.Constants
 import li.cil.oc.Settings
 import li.cil.oc.api
-import mcmultipart.capabilities.CapabilityWrapperRegistry
 import mcmultipart.item.PartPlacementWrapper
 import mcmultipart.multipart.MultipartRegistry
 import net.minecraft.client.resources.model.IBakedModel
@@ -22,10 +21,6 @@ object MCMultiPart {
     MultipartRegistry.registerPartFactory(PartProvider, PartProvider.PartTypeCable)
     MultipartRegistry.registerPartConverter(PartConverter)
     MultipartRegistry.registerReversePartConverter(PartConverter)
-
-    CapabilityWrapperRegistry.registerCapabilityWrapper(WrapperColored)
-    CapabilityWrapperRegistry.registerCapabilityWrapper(WrapperEnvironment)
-    CapabilityWrapperRegistry.registerCapabilityWrapper(WrapperSidedEnvironment)
 
     val placementWrapper = new PartPlacementWrapper(api.Items.get(Constants.BlockName.Cable).createItemStack(1), PartProvider)
     placementWrapper.register(PartProvider.PartTypeCable)
