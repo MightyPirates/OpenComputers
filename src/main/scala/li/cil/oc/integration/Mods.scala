@@ -52,7 +52,7 @@ object Mods {
   val IndustrialCraft2Classic = new SimpleMod(IDs.IndustrialCraft2Classic, providesPower = true)
   val IngameWiki = new SimpleMod(IDs.IngameWiki, version = "@[1.1.3,)")
   val JustEnoughItems = new SimpleMod(IDs.JustEnoughItems)
-  val MCMultiPart = new SimpleMod(IDs.MCMultiPart)
+  val MCMultiPart = new SimpleMod(IDs.MCMultiPart, version = "@[1.0.9,)")
   val Mekanism = new SimpleMod(IDs.Mekanism, providesPower = true)
   val MekanismGas = new SimpleMod(IDs.MekanismGas)
   val Minecraft = new SimpleMod(IDs.Minecraft)
