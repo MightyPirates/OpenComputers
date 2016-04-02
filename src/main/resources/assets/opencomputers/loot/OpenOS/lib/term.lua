@@ -54,38 +54,52 @@ function term.isAvailable(w)
   return w and not not (w.gpu and w.screen)
 end
 
-function term.internal.pull(input, c, off, p, ...)
-  local w=W()
+function term.internal.pull(input, c, off, t, ...)
+  t=t or math.huge
+  if t < 0 then return end
+  local w,unpack=W(),table.unpack
   local d,h,dx,dy,x,y=term.getViewport(w)
   local out = (x<1 or x>d or y<1 or y>h)
-  if not w.blink or (not input and out) or type(p) == "number" then
-    return event.pull(p,...)
-  end
-  local gpu=w.gpu
-  if out then
+  if input and out then
     input:move(0)
     y=w.y
     input:scroll()
   end
   x,y=w.x+dx,w.y+dy
-  c=c or {gpu.getBackground(),gpu.getForeground(),gpu.get(x,y)}
-  if not off then
-    gpu.setForeground(c[1])
-    gpu.setBackground(c[2])
-  end
-  gpu.set(x,y,c[3])
-  gpu.setForeground(c[2])
-  gpu.setBackground(c[1])
-  local a={pcall(event.pull,0.5,p,...)}
-  if #a>1 then
+  local gpu
+
+  if input or not out then
+    gpu=w.gpu
+    local sf,sb=gpu.setForeground,gpu.setBackground
+    c=c or {{gpu.getBackground()},{gpu.getForeground()},gpu.get(x,y)}
+    local c11,c12 = unpack(c[1])
+    local c21,c22 = unpack(c[2])
+    if not off then
+      sf(c11,c12)
+      sb(c21,c22)
+    end
     gpu.set(x,y,c[3])
-    return select(2,table.unpack(a))
+    sb(c11,c12)
+    sf(c21,c22)
   end
-  return term.internal.pull(input,c,not off,p,...)
+
+  local a={pcall(event.pull,math.min(t,0.5),...)}
+
+  if #a>1 or t<.5 then
+    if gpu then
+      gpu.set(x,y,c[3])
+    end
+    return select(2,unpack(a))
+  end
+  local blinking = w.blink
+  if input then blinking = input.blink end
+  return term.internal.pull(input,c,blinking and not off,t-0.5,...)
 end
 
-function term.pull(...)
-  return term.internal.pull(nil,nil,nil,...)
+function term.pull(p,...)
+  local a,t = {p,...}
+  if type(p) == "number" then t = table.remove(a,1) end
+  return term.internal.pull(nil,nil,nil,t,table.unpack(a))
 end
 
 function term.read(history,dobreak,hintHandler,pwchar,filter)
@@ -202,10 +216,11 @@ function term.readKeyboard(ops)
   local filter = ops.filter and function(i) return term.internal.filter(ops.filter,i) end or term.internal.nop
   local pwchar = ops.pwchar and function(i) return term.internal.mask(ops.pwchar,i) end or term.internal.nop
   local history,db,hints={list=ops,index=0},ops.dobreak,{handler=ops.hintHandler}
-  term.setCursorBlink(true)
   local w=W()
   local draw=io.stdin.tty and term.drawText or term.internal.nop
   local input={w=w,promptx=w.x,prompty=w.y,index=0,data="",mask=pwchar}
+  input.blink = ops.blink
+  if input.blink == nil then input.blink = w.blink end
   if ops.nowrap then
     term.internal.build_horizontal_reader(input)
   else
@@ -350,6 +365,10 @@ function term.setCursorBlink(enabled)
   W().blink=enabled
 end
 
+function term.getCursorBlink()
+  return W().blink
+end
+
 function term.bind(gpu, screen, kb, window)
   window = window or W()
   window.gpu = gpu or window.gpu
@@ -480,7 +499,7 @@ function --[[@delayloaded-start@]] term.internal.tab(input,hints)
     hints.cache.i=-1
   end
   local c=hints.cache
-  c.i=(c.i+1)%#c
+  c.i=(c.i+1)%math.max(#c,1)
   local next=c[c.i+1]
   if next then
     local tail = unicode.wlen(input.data) - input.index - 1
