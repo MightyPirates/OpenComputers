@@ -157,13 +157,10 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
     memory > 0
   }
 
-  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
-    case Some(driver: Memory) =>
-      val sizes = Settings.get.ramSizes
-      val tier = math.round(driver.amount(stack)).toInt - 1
-      sizes(tier max 0 min (sizes.length - 1)) * 1024
+  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0.0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
+    case Some(driver: Memory) => driver.amount(stack) * 1024
     case _ => 0
-  }))
+  })).toInt max 0 min 50000000
 
   // ----------------------------------------------------------------------- //
 
