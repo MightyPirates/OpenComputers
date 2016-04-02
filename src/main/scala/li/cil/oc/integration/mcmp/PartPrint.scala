@@ -31,7 +31,7 @@ class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
   final val PrintDefinition = api.Items.get(Constants.BlockName.Print)
   final val PrintBlock = PrintDefinition.block()
 
-  val wrapped = new tileentity.Print(Option(canToggle _), Option(scheduleUpdate _))
+  val wrapped = new tileentity.Print(canToggle _, scheduleUpdate _, onStateChange _)
 
   def canToggle: Boolean = getWorld != null && !getWorld.isRemote && {
     val toggled = new PartPrint()
@@ -47,6 +47,10 @@ class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
       if (wrapped.state) wrapped.toggleState()
       if (wrapped.state) scheduleUpdate(delay)
     }, delay)
+  }
+
+  def onStateChange(): Unit = {
+    notifyPartUpdate()
   }
 
   // ----------------------------------------------------------------------- //

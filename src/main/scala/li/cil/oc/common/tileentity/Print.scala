@@ -14,8 +14,9 @@ import net.minecraft.util._
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit]) extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
-  def this() = this(None, None)
+class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit], val onStateChange: Option[() => Unit]) extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
+  def this() = this(None, None, None)
+  def this(canToggle: () => Boolean, scheduleUpdate: Int => Unit, onStateChange: () => Unit) = this(Option(canToggle), Option(scheduleUpdate), Option(onStateChange))
 
   _isOutputEnabled = true
 
@@ -119,6 +120,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
           case _ => world.scheduleUpdate(getPos, block, delay)
         }
       }
+      onStateChange.foreach(_.apply())
     }
   }
 
