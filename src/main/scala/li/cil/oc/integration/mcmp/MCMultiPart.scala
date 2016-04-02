@@ -16,15 +16,17 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 
 object MCMultiPart {
   final val CableMultipartLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Cable, "multipart")
+  final val PrintMultipartLocation = new ModelResourceLocation(Settings.resourceDomain + ":" + Constants.BlockName.Print, "multipart")
 
   def init(): Unit = {
-    MultipartRegistry.registerPart(classOf[PartCable], PartProvider.PartTypeCable)
-    MultipartRegistry.registerPartFactory(PartProvider, PartProvider.PartTypeCable)
+    MultipartRegistry.registerPart(classOf[PartCable], PartFactory.PartTypeCable)
+    MultipartRegistry.registerPart(classOf[PartPrint], PartFactory.PartTypePrint)
+    MultipartRegistry.registerPartFactory(PartFactory, PartFactory.PartTypeCable)
     MultipartRegistry.registerPartConverter(PartConverter)
     MultipartRegistry.registerReversePartConverter(PartConverter)
 
-    val placementWrapper = new PartPlacementWrapper(api.Items.get(Constants.BlockName.Cable).createItemStack(1), PartProvider)
-    placementWrapper.register(PartProvider.PartTypeCable)
+    new PartPlacementWrapper(api.Items.get(Constants.BlockName.Cable).createItemStack(1), PartFactory).register(PartFactory.PartTypeCable)
+    new PartPlacementWrapper(api.Items.get(Constants.BlockName.Print).createItemStack(1), PartFactory).register(PartFactory.PartTypePrint)
 
     MinecraftForge.EVENT_BUS.register(this)
   }
@@ -37,5 +39,6 @@ object MCMultiPart {
     // rendering to multipart cables.
     registry.putObject(ModelInitialization.CableBlockLocation, PartCableModel)
     registry.putObject(CableMultipartLocation, PartCableModel)
+    registry.putObject(PrintMultipartLocation, PartPrintModel)
   }
 }

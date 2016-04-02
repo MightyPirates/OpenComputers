@@ -3,6 +3,8 @@ package li.cil.oc.common.tileentity
 import java.util
 
 import com.google.common.base.Strings
+import li.cil.oc.Constants
+import li.cil.oc.api
 import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.util.ExtendedAABB
 import li.cil.oc.util.ExtendedAABB._
@@ -12,7 +14,8 @@ import net.minecraft.util._
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 
-class Print extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
+class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit]) extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
+  def this() = this(None, None)
   _isOutputEnabled = true
 
   val data = new PrintData()
@@ -102,14 +105,21 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
   }
 
   def toggleState(): Unit = {
-    state = !state
-    world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
-    world.markBlockForUpdate(getPos)
-    if (data.emitRedstoneWhenOn) {
-      EnumFacing.values().foreach(output(_, if (state) data.redstoneLevel else 0))
-    }
-    if (state && data.isButtonMode) {
-      world.scheduleUpdate(getPos, getBlockType, getBlockType.tickRate(world))
+    if (canToggle.fold(true)(_.apply())) {
+      state = !state
+      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
+      world.markBlockForUpdate(getPos)
+      if (data.emitRedstoneWhenOn) {
+        EnumFacing.values().foreach(output(_, if (state) data.redstoneLevel else 0))
+      }
+      if (state && data.isButtonMode) {
+        val block = api.Items.get(Constants.BlockName.Print).block()
+        val delay = block.tickRate(world)
+        scheduleUpdate match {
+          case Some(callback) => callback(delay)
+          case _ => world.scheduleUpdate(getPos, block, delay)
+        }
+      }
     }
   }
 
@@ -130,13 +140,9 @@ class Print extends traits.TileEntity with traits.RedstoneAware with traits.Rota
 
   override protected def onRedstoneInputChanged(side: EnumFacing, oldMaxValue: Int, newMaxValue: Int): Unit = {
     super.onRedstoneInputChanged(side, oldMaxValue, newMaxValue)
-    if (!data.emitRedstone && data.hasActiveState) {
-      state = newMaxValue > 0
-      world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
-      world.markBlockForUpdate(getPos)
-      if (state && data.isButtonMode) {
-        world.scheduleUpdate(getPos, getBlockType, getBlockType.tickRate(world))
-      }
+    val newState = newMaxValue > 0
+    if (!data.emitRedstone && data.hasActiveState && state != newState) {
+      toggleState()
     }
   }
 

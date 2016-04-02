@@ -151,7 +151,9 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random): Unit = {
     if (!world.isRemote) world.getTileEntity(pos) match {
-      case print: tileentity.Print => if (print.state) print.toggleState()
+      case print: tileentity.Print =>
+        if (print.state) print.toggleState()
+        if (print.state) world.scheduleUpdate(pos, state.getBlock, tickRate(world))
       case _ =>
     }
   }

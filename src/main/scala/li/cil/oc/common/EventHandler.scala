@@ -57,6 +57,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EventHandler {
+  private var serverTicks = 0L
+  private val pendingServerTimed = mutable.PriorityQueue.empty[(Long, () => Unit)](Ordering.by(x => -x._1))
+
   private val pendingServer = mutable.Buffer.empty[() => Unit]
 
   private val pendingClient = mutable.Buffer.empty[() => Unit]
@@ -86,6 +89,12 @@ object EventHandler {
   def scheduleServer(f: () => Unit) {
     pendingServer.synchronized {
       pendingServer += f
+    }
+  }
+
+  def scheduleServer(f: () => Unit, delay: Int): Unit = {
+    pendingServerTimed.synchronized {
+      pendingServerTimed += (serverTicks + (delay max 0)) -> f
     }
   }
 
@@ -138,6 +147,14 @@ object EventHandler {
         case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
+
+    serverTicks += 1
+    while (pendingServerTimed.nonEmpty && pendingServerTimed.head._1 < serverTicks) {
+      val (_, callback) = pendingServerTimed.dequeue()
+      try callback() catch {
+        case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
+      }
+    }
 
     val invalid = mutable.ArrayBuffer.empty[Robot]
     runningRobots.foreach(robot => {
