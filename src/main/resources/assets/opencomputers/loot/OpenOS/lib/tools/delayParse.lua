@@ -1,4 +1,4 @@
-local filepath,delay_index,delay_newindex,delay_pairs = ...
+local filepath,delay_data = ...
 local file, reason = io.open(filepath, "r")
 if not file then
   return reason
@@ -45,23 +45,20 @@ local library, local_env = loader()
 if library then
   local_env = local_env or {}
   local_env[lib_name] = library
-  local mt =
-  {
-    methods={},
-    cache={},
-    env=setmetatable(local_env, {__index=_G}),
-    path=filepath,
-    __pairs=delay_pairs,
-    __index=delay_index,
-    __newindex=delay_newindex,
-  }
+
+  local env = setmetatable(local_env, {__index=_G})
   
   for path,pack in pairs(methods) do
     local target = library
     for name in path:gmatch("[^%.]+") do target = target[name] end
-    mt.methods[target]=pack
-    mt.cache[target]={}
-    setmetatable(target, mt)
+    delay_data[target] =
+    {
+      methods = pack,
+      cache = {},
+      env = env,
+      path = filepath
+    }
+    setmetatable(target, delay_data)
   end
 
   return function()return library end, filepath
