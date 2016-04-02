@@ -562,7 +562,7 @@ object PacketHandler extends CommonPacketHandler {
   }
 
   def onTextBufferMulti(p: PacketParser) =
-    ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
+    if (p.player != null) ComponentTracker.get(p.player.getEntityWorld, p.readUTF()) match {
       case Some(buffer: api.internal.TextBuffer) =>
         try while (true) {
           p.readPacketType() match {
