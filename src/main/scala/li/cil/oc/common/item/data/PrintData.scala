@@ -33,6 +33,8 @@ class PrintData extends ItemData(Constants.BlockName.Print) {
   var noclipOff = false
   var noclipOn = false
 
+  def complexity = stateOn.size max stateOff.size
+
   def hasActiveState = stateOn.nonEmpty
 
   def emitLight = lightLevel > 0
