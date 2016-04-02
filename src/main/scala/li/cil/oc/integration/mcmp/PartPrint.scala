@@ -74,6 +74,8 @@ class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
     }
   }
 
+  override def getLightValue: Int = wrapped.data.lightLevel
+
   override def getPickBlock(player: EntityPlayer, hit: PartMOP): ItemStack = wrapped.data.createItemStack()
 
   override def getDrops: util.List[ItemStack] = util.Arrays.asList(wrapped.data.createItemStack())
@@ -109,9 +111,7 @@ class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
 
   override def onAdded(): Unit = {
     super.onAdded()
-    wrapped.setWorldObj(getWorld)
-    wrapped.setPos(getPos)
-    wrapped.validate()
+    initialize()
   }
 
   override def onRemoved(): Unit = {
@@ -123,9 +123,7 @@ class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
 
   override def onLoaded(): Unit = {
     super.onLoaded()
-    wrapped.setWorldObj(getWorld)
-    wrapped.setPos(getPos)
-    wrapped.validate()
+    initialize()
   }
 
   override def onUnloaded(): Unit = {
@@ -144,9 +142,18 @@ class PartPrint extends Multipart with IOccludingPart with IRedstonePart {
         wrapped.readFromNBTForServer(nbt)
       case _ =>
     }
+    initialize()
+  }
+
+  private def initialize(): Unit = {
     wrapped.setWorldObj(getWorld)
     wrapped.setPos(getPos)
     wrapped.validate()
+    wrapped.updateRedstone()
+
+    if (wrapped.state && wrapped.data.isButtonMode) {
+      scheduleUpdate(PrintBlock.tickRate(getWorld))
+    }
   }
 
   // ----------------------------------------------------------------------- //

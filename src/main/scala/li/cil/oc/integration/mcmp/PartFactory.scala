@@ -48,10 +48,12 @@ object PartFactory extends IPartFactory with IItemMultipartFactory {
 
   private def canAddPrint(world: World, pos: BlockPos, stack: ItemStack): Boolean = {
     val container = MultipartHelper.getPartContainer(world, pos)
-    val complexity = container.getParts.collect {
-      case print: PartPrint => print.wrapped.data.complexity
-    }.sum
-    val data = new PrintData(stack)
-    data.complexity + complexity <= Settings.get.maxPrintComplexity
+    container == null || {
+      val complexity = container.getParts.collect {
+        case print: PartPrint => print.wrapped.data.complexity
+      }.sum
+      val data = new PrintData(stack)
+      data.complexity + complexity <= Settings.get.maxPrintComplexity
+    }
   }
 }

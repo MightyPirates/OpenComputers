@@ -182,6 +182,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     super.doCustomInit(tileEntity, player, stack)
     tileEntity.data.load(stack)
     tileEntity.updateBounds()
+    tileEntity.updateRedstone()
     tileEntity.world.checkLight(tileEntity.getPos)
   }
 

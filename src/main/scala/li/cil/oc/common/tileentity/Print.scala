@@ -16,6 +16,7 @@ import net.minecraftforge.fml.relauncher.SideOnly
 
 class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int => Unit]) extends traits.TileEntity with traits.RedstoneAware with traits.RotatableTile {
   def this() = this(None, None)
+
   _isOutputEnabled = true
 
   val data = new PrintData()
@@ -109,9 +110,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
       state = !state
       world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.click", 0.3F, if (state) 0.6F else 0.5F)
       world.markBlockForUpdate(getPos)
-      if (data.emitRedstoneWhenOn) {
-        EnumFacing.values().foreach(output(_, if (state) data.redstoneLevel else 0))
-      }
+      updateRedstone()
       if (state && data.isButtonMode) {
         val block = api.Items.get(Constants.BlockName.Print).block()
         val delay = block.tickRate(world)
@@ -130,9 +129,11 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     boundsOn = data.stateOn.drop(1).foldLeft(data.stateOn.headOption.fold(ExtendedAABB.unitBounds)(_.bounds))((a, b) => a.union(b.bounds))
     if (boundsOn.volume == 0) boundsOn = ExtendedAABB.unitBounds
     else boundsOn = boundsOn.rotateTowards(facing)
+  }
 
-    if (data.emitRedstoneWhenOff) {
-      EnumFacing.values().foreach(output(_, data.redstoneLevel))
+  def updateRedstone(): Unit = {
+    if (data.emitRedstone) {
+      EnumFacing.values().foreach(output(_, if (data.emitRedstone(state)) data.redstoneLevel else 0))
     }
   }
 
@@ -167,6 +168,7 @@ class Print(val canToggle: Option[() => Boolean], val scheduleUpdate: Option[Int
     updateBounds()
     if (world != null) {
       world.markBlockForUpdate(getPos)
+      if (data.emitLight) world.checkLight(getPos)
     }
   }
 
