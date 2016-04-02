@@ -41,11 +41,35 @@ object SpawnComputerCommand extends SimpleCommand("oc_spawnComputer") {
               return
             }
 
+            def rotateProperly(pos: BlockPosition):tileentity.traits.Rotatable = {
+              world.getTileEntity(pos) match {
+                case rotatable: tileentity.traits.Rotatable =>
+                  rotatable.setFromEntityPitchAndYaw(player)
+                  if (!rotatable.validFacings.contains(rotatable.pitch)) {
+                    rotatable.pitch = rotatable.validFacings.headOption.getOrElse(ForgeDirection.NORTH)
+                  }
+                  rotatable.invertRotation()
+                  rotatable
+                case _ => null // not rotatable
+              }
+            }
+
             world.setBlock(casePos, api.Items.get(Constants.BlockName.CaseCreative).block())
+            rotateProperly(casePos)
             world.setBlock(screenPos, api.Items.get(Constants.BlockName.ScreenTier2).block())
+            rotateProperly(screenPos) match {
+              case rotatable: tileentity.traits.Rotatable => rotatable.pitch match {
+                case ForgeDirection.UP | ForgeDirection.DOWN =>
+                  rotatable.pitch = ForgeDirection.NORTH
+                case _ => // nothing to do here, pitch is fine
+              }
+              case _ => // ???
+            }
             world.setBlock(keyboardPos, api.Items.get(Constants.BlockName.Keyboard).block())
             world.getTileEntity(keyboardPos) match {
-              case t: tileentity.traits.Rotatable => t.setFromFacing(ForgeDirection.UP)
+              case t: tileentity.traits.Rotatable =>
+                t.setFromEntityPitchAndYaw(player)
+                t.setFromFacing(ForgeDirection.UP)
               case _ => // ???
             }
 
