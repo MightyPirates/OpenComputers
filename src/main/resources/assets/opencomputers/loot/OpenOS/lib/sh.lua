@@ -482,7 +482,7 @@ function --[[@delayloaded-start@]] sh.getMatchingPrograms(baseName)
     baseName = "^(" .. text.escapeMagic(baseName) .. ".*)%.lua$"
   end
   for basePath in string.gmatch(os.getenv("PATH"), "[^:]+") do
-    for file in fs.list(basePath) do
+    for file in fs.list(shell.resolve(basePath)) do
       local match = file:match(baseName)
       if match and not result_keys[match] then
         table.insert(result, match)

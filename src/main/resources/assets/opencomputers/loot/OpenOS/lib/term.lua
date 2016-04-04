@@ -149,6 +149,7 @@ function term.internal.build_vertical_reader(input)
     local win=_.w
     local oi,w,h,dx,dy,ox,oy = _.index,term.getViewport(win)
     _:move(math.huge)
+    _:move(-1)
     local ex,ey=win.x,win.y
     win.x,win.y,_.index=ox,oy,oi
     x=oy==ey and ox or 1
@@ -161,7 +162,7 @@ function term.internal.build_vertical_reader(input)
       local ndata
       if arg < 0 then if _.index<=0 then return end
         _:move(-1)
-        ndata=unicode.wtrunc(s1,unicode.wlen(s1))..s2
+        ndata=unicode.sub(s1,1,-2)..s2
       else if _.index>=unicode.len(_.data) then return end
         s2=unicode.sub(s2,2)
         ndata=s1..s2
@@ -324,12 +325,11 @@ function term.drawText(value, wrap, window)
       local wlen_remaining = w - x + 1
       local clean_end = ""
       if wlen_remaining < wlen_needed then
-        if type(wrap)=="number" then
-          next,wlen_needed,slen = term.internal.horizontal_push(x,y,window,wrap,next)
-        else
-          next = unicode.wtrunc(next, wlen_remaining + 1)
-          wlen_needed = unicode.wlen(next)
-          clean_end = (" "):rep(wlen_remaining-wlen_needed)
+        next = unicode.wtrunc(next, wlen_remaining + 1)
+        wlen_needed = unicode.wlen(next)
+        clean_end = (" "):rep(wlen_remaining-wlen_needed)
+        if not wrap then
+          si = math.huge
         end
       end
       gpu.set(x+dx,y+dy,next..clean_end)
@@ -395,17 +395,6 @@ function --[[@delayloaded-start@]] term.internal.ctrl_movement(input, dir)
   return last - index
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] term.internal.horizontal_push(x,y,win,wrap,next)
-  local gpu,w,h,dx,dy = win.gpu,term.getViewport(win)
-  local wlen_needed = unicode.wlen(next)
-  local next_width = math.min(wlen_needed, w - wrap)
-  next = unicode.sub(next, -next_width)
-  wlen_needed = unicode.wlen(next)
-  local xdiff = x - (w - wlen_needed)
-  gpu.copy(wrap+xdiff+dx,y+dy,x-(wrap+xdiff),1,-xdiff,0)
-  return next,wlen_needed,#next
-end --[[@delayloaded-end@]]
-
 function --[[@delayloaded-start@]] term.internal.onTouch(input,gx,gy)
   input:move(math.huge)
   local x2,y2,d = input.w.x,input.w.y,input.w.w
@@ -418,7 +407,7 @@ function --[[@delayloaded-start@]] term.internal.build_horizontal_reader(input)
     local w,h,dx,dy,x,y = term.getViewport(_.w)
     local s1,s2=term.internal.split(_)
     local wlen = math.min(unicode.wlen(s2),w-x+1)
-    _.w.gpu.fill(x,y,wlen,1," ")
+    _.w.gpu.fill(x+dx,y+dy,wlen,1," ")
   end
   input.move = function(_,n)
     local win = _.w
@@ -431,7 +420,7 @@ function --[[@delayloaded-start@]] term.internal.build_horizontal_reader(input)
     _:scroll()
   end
   input.draw = function(_,text)
-    term.drawText(text,_.promptx)
+    term.drawText(text,false)
   end
   input.scroll = function(_)
     local win = _.w
@@ -450,9 +439,8 @@ function --[[@delayloaded-start@]] term.internal.build_horizontal_reader(input)
       data = unicode.sub(data,1,i)
       local rev = unicode.reverse(data)
       local ending = unicode.wtrunc(rev, available+1)
-      local cut_wlen = unicode.wlen(data) - unicode.wlen(ending)
       data = unicode.reverse(ending)
-      gpu.set(sx,sy,data..blank:rep(cut_wlen))
+      gpu.set(sx,sy,data..blank)
       win.x=math.min(w,_.promptx+unicode.wlen(data))
     elseif x < _.promptx then
       data = unicode.sub(data,_.index+1)
@@ -467,7 +455,7 @@ function --[[@delayloaded-start@]] term.internal.build_horizontal_reader(input)
     local gpu,data,px=win.gpu,_.data,_.promptx
     local w,h,dx,dy,x,y = term.getViewport(win)
     _.index,_.data,win.x=0,"",px
-    gpu.fill(px+dx,y+dy,w-px+1,1," ")
+    gpu.fill(px+dx,y+dy,w-px+1-dx,1," ")
   end
 end --[[@delayloaded-end@]] 
 
