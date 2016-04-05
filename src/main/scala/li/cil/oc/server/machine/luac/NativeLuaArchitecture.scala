@@ -160,7 +160,7 @@ abstract class NativeLuaArchitecture(val machine: api.machine.Machine) extends A
   private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0.0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
     case Some(driver: Memory) => driver.amount(stack) * 1024
     case _ => 0
-  })).toInt max 0 min 50000000
+  })).toInt max 0 min Settings.get.maxTotalRam
 
   // ----------------------------------------------------------------------- //
 
