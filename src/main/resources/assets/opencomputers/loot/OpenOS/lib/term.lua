@@ -105,7 +105,8 @@ end
 function term.read(history,dobreak,hintHandler,pwchar,filter)
   if not io.stdin.tty then return io.read() end
   local ops = history or {}
-  ops.dobreak = ops.dobreak or dobreak
+  ops.dobreak = ops.dobreak
+  if ops.dobreak==nil then ops.dobreak = dobreak end
   ops.hintHandler = ops.hintHandler or hintHandler
   ops.pwchar = ops.pwchar or pwchar
   ops.filter = ops.filter or filter
@@ -397,6 +398,8 @@ end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.internal.onTouch(input,gx,gy)
   input:move(math.huge)
+  local w = W()
+  gx,gy=gx-w.dx,gy-w.dy
   local x2,y2,d = input.w.x,input.w.y,input.w.w
   input:move((gy*d+gx)-(y2*d+x2))
 end --[[@delayloaded-end@]]
@@ -474,8 +477,8 @@ end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] term.internal.filter(filter,input)
   if not filter then return true
-  elseif type(filter) == "string" then return input:match(filter)
-  elseif filter(input) then return true
+  elseif type(filter) == "string" then return input.data:match(filter)
+  elseif filter(input.data) then return true
   else require("computer").beep(2000, 0.1) end
 end --[[@delayloaded-end@]]
 
