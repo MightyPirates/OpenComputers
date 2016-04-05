@@ -69,7 +69,7 @@ if #args == 0 or options.i then
   local function findKeys(t, r, prefix, name)
     if type(t) ~= "table" then return end
     for k, v in pairs(t) do
-      if string.match(k, "^"..name) then
+      if type(k) == "string" and string.match(k, "^"..name) then
         local postfix = ""
         if type(v) == "function" then postfix = "()"
         elseif type(v) == "table" and getmetatable(v) and getmetatable(v).__call then postfix = "()"
