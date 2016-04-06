@@ -42,8 +42,10 @@ if filename == "" then
 end
 filename = shell.resolve(filename)
 
+local preexisted
 if fs.exists(filename) then
-  if not options.f or not os.remove(filename) then
+  preexisted = true
+  if not options.f then
     if not options.Q then
       io.stderr:write("file already exists")
     end
@@ -51,13 +53,15 @@ if fs.exists(filename) then
   end
 end
 
-local f, reason = io.open(filename, "wb")
+local f, reason = io.open(filename, "a")
 if not f then
   if not options.Q then
     io.stderr:write("failed opening file for writing: " .. reason)
   end
   return nil, "failed opening file for writing: " .. reason -- for programs using wget as a function
 end
+f:close()
+f = nil
 
 if not options.q then
   io.write("Downloading... ")
@@ -66,6 +70,10 @@ local result, response = pcall(internet.request, url)
 if result then
   local result, reason = pcall(function()
     for chunk in response do
+      if not f then
+        f, reason = io.open(filename, "wb")
+        assert(f, "failed opening file for writing: " .. tostring(reason))
+      end
       f:write(chunk)
     end
   end)
@@ -73,8 +81,12 @@ if result then
     if not options.q then
       io.stderr:write("failed.\n")
     end
-    f:close()
-    fs.remove(filename)
+    if f then
+      f:close()
+      if not preexisted then
+        fs.remove(filename)
+      end
+    end
     if not options.Q then
       io.stderr:write("HTTP request failed: " .. reason .. "\n")
     end
@@ -83,8 +95,11 @@ if result then
   if not options.q then
     io.write("success.\n")
   end
+  
+  if f then
+    f:close()
+  end
 
-  f:close()
   if not options.q then
     io.write("Saved data to " .. filename .. "\n")
   end
@@ -92,8 +107,6 @@ else
   if not options.q then
     io.write("failed.\n")
   end
-  f:close()
-  fs.remove(filename)
   if not options.Q then
     io.stderr:write("HTTP request failed: " .. response .. "\n")
   end
