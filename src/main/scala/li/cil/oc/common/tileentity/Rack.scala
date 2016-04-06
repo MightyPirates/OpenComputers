@@ -8,33 +8,26 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.component.RackMountable
 import li.cil.oc.api.internal
 import li.cil.oc.api.network.Analyzable
-import li.cil.oc.api.network.ComponentHost
 import li.cil.oc.api.network.Connector
 import li.cil.oc.api.network.EnvironmentHost
-import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import li.cil.oc.api.network.Packet
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.Slot
-import li.cil.oc.integration.Mods
 import li.cil.oc.integration.opencomputers.DriverRedstoneCard
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedInventory._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagIntArray
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.common.util.Constants.NBT
-import net.minecraftforge.fml.common.Optional.Method
-import net.minecraftforge.fml.relauncher.Side
-import net.minecraftforge.fml.relauncher.SideOnly
-
-import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
+import _root_.net.minecraft.entity.player.EntityPlayer
+import _root_.net.minecraft.inventory.IInventory
+import _root_.net.minecraft.item.ItemStack
+import _root_.net.minecraft.nbt.NBTTagCompound
+import _root_.net.minecraft.nbt.NBTTagIntArray
+import _root_.net.minecraft.util.EnumFacing
+import _root_.net.minecraftforge.common.util.Constants.NBT
+import _root_.net.minecraftforge.fml.relauncher.Side
+import _root_.net.minecraftforge.fml.relauncher.SideOnly
 
 class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with Analyzable with internal.Rack with traits.StateAware {
   var isRelayEnabled = true
@@ -104,8 +97,10 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
       mapping(0) match {
         case Some(side) if toGlobal(side) == plugSide =>
           val mountable = getMountable(slot)
-          if (mountable != null && mountable.node != null && node != mountable.node) {
-            mountable.node.connect(sidedNode(plugSide))
+          val busNode = sidedNode(plugSide)
+          if (busNode != null && mountable != null && mountable.node != null && busNode != mountable.node) {
+            api.Network.joinNewNetwork(mountable.node)
+            busNode.connect(mountable.node)
           }
         case _ => // Not connected to this side.
       }

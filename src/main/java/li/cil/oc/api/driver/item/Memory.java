@@ -17,7 +17,8 @@ public interface Memory extends Item {
      * This factor has to be interpreted by each individual architecture to fit
      * its own memory needs. The actual values returned here should roughly be
      * equivalent to the item's tier. For example, the built-in memory modules
-     * provide 1 for tier one, 2 for tier 1.5, 3 for tier 2, etc.
+     * provide defaults of 192 for tier one, 256 for tier 1.5, 384 for tier 2, etc.
+     * Mind that those values may be changed in the config file.
      *
      * @param stack the item to get the provided memory for.
      * @return the amount of memory the specified component provides.

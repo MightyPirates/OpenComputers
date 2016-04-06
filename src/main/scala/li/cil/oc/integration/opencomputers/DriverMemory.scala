@@ -11,7 +11,9 @@ import net.minecraft.item.ItemStack
 
 object DriverMemory extends Item with api.driver.item.Memory with api.driver.item.CallBudget {
   override def amount(stack: ItemStack) = Delegator.subItem(stack) match {
-    case Some(memory: item.Memory) => memory.tier + 1
+    case Some(memory: item.Memory) =>
+      val sizes = Settings.get.ramSizes
+      Settings.get.ramSizes(memory.tier max 0 min (sizes.length - 1))
     case _ => 0.0
   }
 

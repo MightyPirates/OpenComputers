@@ -102,13 +102,10 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     memory > 0
   }
 
-  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
-    case Some(driver: Memory) =>
-      val sizes = Settings.get.ramSizes
-      val tier = math.round(driver.amount(stack)).toInt - 1
-      sizes(tier max 0 min (sizes.length - 1)) * 1024
+  private def memoryInBytes(components: java.lang.Iterable[ItemStack]) = components.foldLeft(0.0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack)) match {
+    case Some(driver: Memory) => driver.amount(stack) * 1024
     case _ => 0
-  }))
+  })).toInt max 0 min Settings.get.maxTotalRam
 
   // ----------------------------------------------------------------------- //
 
@@ -197,8 +194,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
             if (isInnerError)
               if (results.isuserdata(3)) results.touserdata(3).toString
               else results.tojstring(3)
-            else
-            if (results.isuserdata(2)) results.touserdata(2).toString
+            else if (results.isuserdata(2)) results.touserdata(2).toString
             else results.tojstring(2)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
