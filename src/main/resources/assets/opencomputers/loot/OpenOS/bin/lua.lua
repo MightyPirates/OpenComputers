@@ -98,6 +98,22 @@ if #args == 0 or options.i then
       table.insert(r2, k)
     end
     table.sort(r2)
+    if #r2 == 1 then
+      setmetatable(r2, {
+        __index=function(tbl, key)
+          if key==2 then
+            local prev=tbl[1]
+            tbl[1]=nil
+            local next = hint(prev,#prev+1)
+            for i,v in ipairs(next) do
+              tbl[i] = v
+            end
+            setmetatable(tbl,getmetatable(next))
+            return tbl[1]
+          end
+        end,
+        __len=function()return 2 end})
+    end
     return r2
   end
 
