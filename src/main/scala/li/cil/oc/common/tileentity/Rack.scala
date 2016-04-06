@@ -105,8 +105,10 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
       mapping(0) match {
         case Some(side) if toGlobal(side) == plugSide =>
           val mountable = getMountable(slot)
-          if (mountable != null && mountable.node != null && node != mountable.node) {
-            mountable.node.connect(sidedNode(plugSide))
+          val busNode = sidedNode(plugSide)
+          if (busNode != null && mountable != null && mountable.node != null && busNode != mountable.node) {
+            api.Network.joinNewNetwork(mountable.node)
+            busNode.connect(mountable.node)
           }
         case _ => // Not connected to this side.
       }
