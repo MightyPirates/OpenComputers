@@ -263,6 +263,8 @@ function term.readKeyboard(ops)
         input:update(0)
       elseif char>=32 then
         c=unicode.char(char)
+      else
+        hints.cache = backup_cache
       end
     end
     if c then input:update(c) end
@@ -491,7 +493,8 @@ function --[[@delayloaded-start@]] term.internal.tab(input,hints)
     hints.cache.i=-1
   end
   local c=hints.cache
-  c.i=(c.i+1)%math.max(#c,1)
+  local change = kb.isShiftDown(term.keyboard().address) and -1 or 1
+  c.i=(c.i+change)%math.max(#c,1)
   local next=c[c.i+1]
   if next then
     local tail = unicode.wlen(input.data) - input.index - 1
