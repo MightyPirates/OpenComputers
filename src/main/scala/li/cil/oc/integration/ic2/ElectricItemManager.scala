@@ -1,5 +1,6 @@
 package li.cil.oc.integration.ic2
 
+import ic2.api.item.IElectricItem
 import ic2.api.item.IElectricItemManager
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.item.Chargeable
@@ -40,4 +41,14 @@ object ElectricItemManager extends IElectricItemManager {
   }
 
   override def getToolTip(stack: ItemStack): String = null
+
+  override def getMaxCharge(stack: ItemStack): Double = Option(stack).map(_.getItem) match {
+    case Some(item: IElectricItem) => item.getMaxCharge(stack)
+    case _ => 0
+  }
+
+  override def getTier(stack: ItemStack): Int = Option(stack).map(_.getItem) match {
+    case Some(item: IElectricItem) => item.getTier(stack)
+    case _ => 0
+  }
 }

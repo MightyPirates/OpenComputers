@@ -1,10 +1,15 @@
 package li.cil.oc.common.item.traits
 
+import ic2.api.item.IElectricItemManager
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
+import li.cil.oc.integration.ic2.ElectricItemManager
 import li.cil.oc.integration.util.Power
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraftforge.fml.common.Optional
 
 @Injectable.InterfaceList(Array(
   new Injectable.Interface(value = "appeng.api.implementations.items.IAEItemPowerStorage", modid = Mods.IDs.AppliedEnergistics2),
@@ -37,15 +42,13 @@ trait Chargeable extends api.driver.item.Chargeable {
     def getPowerFlow(stack: ItemStack): AccessRestriction = AccessRestriction.WRITE
   */
   // IndustrialCraft 2
-  /* TODO IC2
+
     @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
     def getManager(stack: ItemStack): IElectricItemManager = ElectricItemManager
 
-    def getMaxCharge(stack: ItemStack): Double =
-    Power.toEU(maxCharge(stack))
+    def getMaxCharge(stack: ItemStack): Double = Power.toEU(maxCharge(stack))
 
-    def getTransferLimit(stack: ItemStack): Double =
-    Power.toEU(Settings.get.chargeRateTablet)
+    def getTransferLimit(stack: ItemStack): Double = Power.toEU(Settings.get.chargeRateTablet)
 
     def getTier(stack: ItemStack): Int = 1
 
@@ -54,7 +57,7 @@ trait Chargeable extends api.driver.item.Chargeable {
     def getEmptyItem(stack: ItemStack): Item = stack.getItem
 
     def getChargedItem(stack: ItemStack): Item = stack.getItem
-  */
+
   // Mekanism
   /* TODO Mekanism
   def getEnergy(stack: ItemStack): Double =

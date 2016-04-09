@@ -21,12 +21,9 @@ object ModIndustrialCraft2 extends ModProxy {
     MinecraftForge.EVENT_BUS.register(EventHandlerIndustrialCraft2)
 
     Driver.add(new DriverEnergyConductor)
-    Driver.add(new DriverEnergySink)
-    Driver.add(new DriverEnergySource)
-    Driver.add(new DriverEnergyStorage)
+    Driver.add(new DriverEnergy)
     Driver.add(new DriverMassFab)
     Driver.add(new DriverReactor)
-    Driver.add(new DriverReactorChamber)
     Driver.add(new DriverReactorRedstonePort)
 
     Driver.add(new ConverterElectricItem)
