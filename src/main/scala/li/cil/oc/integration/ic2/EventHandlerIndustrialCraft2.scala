@@ -8,6 +8,7 @@ import li.cil.oc.api.event.RobotUsedToolEvent
 import li.cil.oc.integration.util.Power
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object EventHandlerIndustrialCraft2 {
@@ -47,7 +48,7 @@ object EventHandlerIndustrialCraft2 {
     }
   }
 
-  def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
+  def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
     player.getHeldItem.getItem match {
       case wrench: ItemToolWrench =>
         if (changeDurability) {
