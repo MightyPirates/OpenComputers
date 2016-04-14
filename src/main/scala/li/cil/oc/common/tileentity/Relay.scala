@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import com.google.common.base.Charsets
+import dan200.computercraft.api.peripheral.IComputerAccess
 import li.cil.oc.Constants
 import li.cil.oc.Localization
 import li.cil.oc.Settings
@@ -95,7 +97,6 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
   // ----------------------------------------------------------------------- //
 
   protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
-    /* TODO ComputerCraft
     for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
       val address = s"cc${computer.getID}_${computer.getAttachmentName}"
       if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
@@ -104,7 +105,6 @@ class Relay extends traits.SwitchLike with traits.ComponentInventory with traits
           case x => x
         }: _*))
     }
-    */
   }
 
   // ----------------------------------------------------------------------- //

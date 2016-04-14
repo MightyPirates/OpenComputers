@@ -1,8 +1,6 @@
 package li.cil.oc.common.tileentity.traits.power
-/* TODO IC2
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.common.eventhandler.Event
+import ic2.api.energy.tile.IEnergyEmitter
 import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.common.EventHandler
@@ -10,8 +8,10 @@ import li.cil.oc.common.asm.Injectable
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.Power
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.common.Optional
+import net.minecraftforge.fml.common.eventhandler.Event
 
 @Injectable.Interface(value = "ic2.api.energy.tile.IEnergySink", modid = Mods.IDs.IndustrialCraft2)
 trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
@@ -77,10 +77,10 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   def getSinkTier: Int = Int.MaxValue
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection): Boolean = useIndustrialCraft2Power && canConnectPower(direction)
+  def acceptsEnergyFrom(emitter: IEnergyEmitter, direction: EnumFacing): Boolean = useIndustrialCraft2Power && canConnectPower(direction)
 
   @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
-  def injectEnergy(directionFrom: ForgeDirection, amount: Double, voltage: Double): Double = {
+  def injectEnergy(directionFrom: EnumFacing, amount: Double, voltage: Double): Double = {
     conversionBuffer += amount
     0.0
   }
@@ -89,8 +89,7 @@ trait IndustrialCraft2Experimental extends Common with IndustrialCraft2Common {
   def getDemandedEnergy: Double = {
     if (!useIndustrialCraft2Power) 0.0
     else if (conversionBuffer < energyThroughput * Settings.get.tickFrequency)
-      math.min(ForgeDirection.VALID_DIRECTIONS.map(globalDemand).max, Power.toEU(energyThroughput))
+      math.min(EnumFacing.VALUES.map(globalDemand).max, Power.toEU(energyThroughput))
     else 0
   }
 }
-*/
