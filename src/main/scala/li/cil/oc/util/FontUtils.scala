@@ -1,8 +1,12 @@
 package li.cil.oc.util
 
 import java.io.IOException
+import java.io.InputStream
 
 import li.cil.oc.OpenComputers
+import li.cil.oc.Settings
+import net.minecraft.client.Minecraft
+import net.minecraft.util.ResourceLocation
 
 object FontUtils {
   // Note: we load the widths from a file (one byte per width) because the Scala
@@ -11,14 +15,14 @@ object FontUtils {
   // who would have known!
   private val widths = {
     val ba = Array.fill[Byte](0x10000)(-1)
-    val is = FontUtils.getClass.getResourceAsStream("/assets/opencomputers/wcwidth.bin")
-    if (is != null) {
-      try {
+    Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "wcwidth.bin")).getInputStream match {
+      case is: InputStream => try {
         is.read(ba)
         is.close()
       } catch {
         case e: IOException => OpenComputers.log.warn("Failed loading character widths. Font rendering will probably be derpy as all hell.", e)
       }
+      case _ => // Null.
     }
     ba
   }

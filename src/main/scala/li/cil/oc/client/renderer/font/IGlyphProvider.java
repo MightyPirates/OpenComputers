@@ -12,7 +12,7 @@ public interface IGlyphProvider {
      * <p/>
      * This should usually also be called from the implementation's constructor.
      */
-    public void initialize();
+    void initialize();
 
     /**
      * Get a byte array of RGBA data describing the specified char.
@@ -30,9 +30,9 @@ public interface IGlyphProvider {
      *
      * @param charCode the char to get the render glyph data for.
      * @return the RGBA byte array representing the char.
-     * @see li.cil.oc.client.renderer.font.FontParserUnifont#getGlyph(int) See the Unifont parser for a reference implementation.
+     * @see FontParserHex#getGlyph(int) See the hexfont parser for a reference implementation.
      */
-    public ByteBuffer getGlyph(int charCode);
+    ByteBuffer getGlyph(int charCode);
 
     /**
      * Get the single-width glyph width for this provider, in pixels.
@@ -41,12 +41,12 @@ public interface IGlyphProvider {
      * a glyphs actual width (in pixels) is expected to be this value times
      * {@link li.cil.oc.util.FontUtils#wcwidth(int)} (for a specific char).
      */
-    public int getGlyphWidth();
+    int getGlyphWidth();
 
     /**
      * Get the glyph height for this provider, in pixels.
      * <p/>
      * Each glyph provided is expected to have the same height.
      */
-    public int getGlyphHeight();
+    int getGlyphHeight();
 }
