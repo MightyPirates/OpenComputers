@@ -20,7 +20,7 @@ import scala.collection.mutable
  */
 class DynamicFontRenderer extends TextureFontRenderer with IResourceManagerReloadListener {
   private val glyphProvider: IGlyphProvider = Settings.get.fontRenderer match {
-    case _ => new FontParserUnifont()
+    case _ => new FontParserHex()
   }
 
   private val textures = mutable.ArrayBuffer.empty[CharTexture]

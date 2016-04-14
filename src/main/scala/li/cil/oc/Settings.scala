@@ -407,7 +407,7 @@ class Settings(val config: Config) {
   val logFullLibLoadErrors = config.getBoolean("debug.logFullNativeLibLoadErrors")
   val forceNativeLib = config.getString("debug.forceNativeLibWithName")
   val logOpenGLErrors = config.getBoolean("debug.logOpenGLErrors")
-  val logUnifontErrors = config.getBoolean("debug.logUnifontErrors")
+  val logHexFontErrors = config.getBoolean("debug.logHexFontErrors")
   val alwaysTryNative = config.getBoolean("debug.alwaysTryNative")
   val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")
