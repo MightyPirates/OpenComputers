@@ -64,10 +64,6 @@ class Wrench extends traits.SimpleItem with api.internal.Wrench {
 
   def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingItem()
 
-  def canWrench(player: EntityPlayer, entity: Entity): Boolean = true
-
-  def wrenchUsed(player: EntityPlayer, entity: Entity): Unit = player.swingItem()
-
   // CoFH
 
   def isUsable(stack: ItemStack, player: EntityLivingBase, pos: BlockPos): Boolean = true
