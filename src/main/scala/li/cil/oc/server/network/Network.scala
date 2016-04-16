@@ -267,12 +267,8 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
             node.address = java.util.UUID.randomUUID().toString
           } while (data.contains(node.address) || otherNetwork.data.contains(node.address))
 
-          if (neighbors.isEmpty) {
-            assert(otherNetwork.data.size == 1)
-            Network.joinNewNetwork(node)
-          } else {
-            neighbors.foreach(_.connect(node))
-          }
+          Network.joinNewNetwork(node)
+          neighbors.filter(_.network != null).foreach(_.connect(node))
         })
 
         duplicates.head.data.network.asInstanceOf[Network.Wrapper].network
@@ -568,6 +564,8 @@ object Network extends api.detail.NetworkAPI {
     new Packet(source, destination, port, data, ttl)
   }
 
+  var isServer = SideTracker.isServer _
+
   class NodeBuilder(val _host: Environment, val _reachability: Visibility) extends api.detail.Builder.NodeBuilder {
     def withComponent(name: String, visibility: Visibility) = new Network.ComponentBuilder(_host, _reachability, name, visibility)
 
@@ -577,7 +575,7 @@ object Network extends api.detail.NetworkAPI {
 
     def withConnector() = withConnector(0)
 
-    def create() = if (SideTracker.isServer) new MutableNode with NodeVarargPart {
+    def create() = if (isServer()) new MutableNode with NodeVarargPart {
       val host = _host
       val reachability = _reachability
     }
@@ -589,7 +587,7 @@ object Network extends api.detail.NetworkAPI {
 
     def withConnector() = withConnector(0)
 
-    def create() = if (SideTracker.isServer) new Component with NodeVarargPart {
+    def create() = if (isServer()) new Component with NodeVarargPart {
       val host = _host
       val reachability = _reachability
       val name = _name
@@ -603,7 +601,7 @@ object Network extends api.detail.NetworkAPI {
 
     def withComponent(name: String) = withComponent(name, _reachability)
 
-    def create() = if (SideTracker.isServer) new Connector with NodeVarargPart {
+    def create() = if (isServer()) new Connector with NodeVarargPart {
       val host = _host
       val reachability = _reachability
       localBufferSize = _bufferSize
@@ -612,7 +610,7 @@ object Network extends api.detail.NetworkAPI {
   }
 
   class ComponentConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _visibility: Visibility, val _bufferSize: Double) extends api.detail.Builder.ComponentConnectorBuilder {
-    def create() = if (SideTracker.isServer) new ComponentConnector with NodeVarargPart {
+    def create() = if (isServer()) new ComponentConnector with NodeVarargPart {
       val host = _host
       val reachability = _reachability
       val name = _name
@@ -708,9 +706,8 @@ object Network extends api.detail.NetworkAPI {
       }
       nbt.setInteger("port", port)
       nbt.setInteger("ttl", ttl)
-      val dataArray = data.toArray
-      nbt.setInteger("dataLength", dataArray.length)
-      for (i <- dataArray.indices) dataArray(i) match {
+      nbt.setInteger("dataLength", data.length)
+      for (i <- data.indices) data(i) match {
         case null | Unit | None =>
         case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
         case value: java.lang.Integer => nbt.setInteger("data" + i, value)
