@@ -1,5 +1,6 @@
 package li.cil.oc.common.nanomachines.provider
 
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.nanomachines.Behavior
 import li.cil.oc.api.prefab.AbstractBehavior
@@ -44,7 +45,7 @@ object ParticleProvider extends ScalaProvider("b48c4bbd-51bb-4915-9367-16cff3220
 
     override def update(): Unit = {
       val world = player.getEntityWorld
-      if (world.isRemote) {
+      if (world.isRemote && Settings.get.enableNanomachinePfx) {
         PlayerUtils.spawnParticleAround(player, effectName, api.Nanomachines.getController(player).getInputCount(this) * 0.25)
       }
     }

@@ -46,7 +46,7 @@ class WirelessNetworkCard(host: EnvironmentHost) extends NetworkCard(host) with 
 
   @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when sending messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = {
-    strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange))
+    strength = math.max(0, math.min(args.checkDouble(0), Settings.get.maxWirelessRange))
     result(strength)
   }
 

@@ -279,7 +279,7 @@ class ControllerImpl(val player: EntityPlayer) extends Controller with WirelessE
         }
       }
 
-      if (isClient) {
+      if (isClient && Settings.get.enableNanomachinePfx) {
         val energyRatio = getLocalBuffer / (getLocalBufferSize + 1)
         val triggerRatio = activeInputs / (configuration.triggers.length + 1)
         val intensity = (energyRatio + triggerRatio) * 0.25

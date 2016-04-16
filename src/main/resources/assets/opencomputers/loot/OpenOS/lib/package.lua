@@ -58,45 +58,18 @@ local function preloadSearcher(module)
   end
 end
 
-local function delay_index(tbl,key)
-  local z = getmetatable(tbl)
-  local method = z.methods[tbl][key]
-  if method then
-    if not z.cache[tbl][key] then
-      local file = io.open(z.path,"r")
-      if file then
-        file:seek("set", method[1])
-        local loaded = load("return function"..file:read(method[2]), "=delayed-"..key,"t",z.env)
-        assert(loaded,"failed to load "..key)
-        z.cache[tbl][key] = loaded()
-        file:close()
-        --lazy_protect(key, z.cache[key])
-      end
-    end
-    return z.cache[tbl][key]
-  end
+local delay_data = {}
+local delay_tools = setmetatable({},{__mode="v"})
+
+package.delay_data = delay_data
+
+function delay_data.__index(tbl,key)
+  local lookup = delay_tools.lookup or loadfile("/lib/tools/delayLookup.lua")
+  delay_tools.lookup = lookup
+  return lookup(delay_data, tbl, key)
 end
-local function delay_newindex(tbl,key,value)
-  local z = getmetatable(tbl)
-  z.methods[tbl][key] = nil
-  rawset(tbl,key,value)
-end
-local function delay_pairs(tbl)
-  local set,k,v = {}
-  while true do
-    k,v = next(tbl,k)
-    if not k then break end
-    set[k] = v
-  end
-  local z = getmetatable(tbl)
-  for k in pairs(z.methods[tbl]) do
-    if not set[k] then
-      set[k] = function(...)return delay_index(tbl,k)(...)end
-    end
-  end
-  return pairs(set)
-end
-local weak_cache = setmetatable({},{__mode="v"})
+delay_data.__pairs = delay_data.__index -- nil key acts like pairs
+
 function delaySearcher(module)
   if not delayed[module] then
     return "\tno field package.delayed['" .. module .. "']"
@@ -105,8 +78,9 @@ function delaySearcher(module)
   if not filepath then
     return reason
   end
-  weak_cache.parser = weak_cache.parser or loadfile("/lib/tools/delayParse.lua")
-  local loader, reason = weak_cache.parser(filepath,delay_index,delay_newindex,delay_pairs)
+  local parser = delay_tools.parser or loadfile("/lib/tools/delayParse.lua")
+  delay_tools.parser = parser
+  local loader, reason = parser(filepath,delay_data)
   return loader, reason
 end
 

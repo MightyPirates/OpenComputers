@@ -5,18 +5,19 @@ import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.prefab.DriverTileEntity;
+import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
-public final class DriverEnderFluid extends DriverTileEntity {
+public final class DriverEnderFluid extends DriverSidedTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return IEnderFluidHandler.class;
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
         return new Environment((IEnderFluidHandler) world.getTileEntity(x, y, z));
     }
 

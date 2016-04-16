@@ -19,7 +19,9 @@ import net.minecraftforge.oredict.OreDictionary;
  * any.
  *
  * @see li.cil.oc.api.network.ManagedEnvironment
+ * @deprecated Use {@link DriverSidedBlock} instead.
  */
+@Deprecated // TODO Remove in OC 1.7
 @SuppressWarnings("UnusedDeclaration")
 public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
     protected final ItemStack[] blocks;

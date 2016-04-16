@@ -3,6 +3,10 @@ package li.cil.oc.api.prefab;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
+/**
+ * @deprecated Use {@link DriverSidedTileEntity} instead.
+ */
+@Deprecated // TODO Remove in OC 1.7
 public abstract class DriverTileEntity implements li.cil.oc.api.driver.Block {
     public abstract Class<?> getTileEntityClass();
 

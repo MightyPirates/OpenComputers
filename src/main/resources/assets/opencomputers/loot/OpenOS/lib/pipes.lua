@@ -137,6 +137,7 @@ function plib.internal.create(fp)
     args = {},
     next = nil,
     create = _co.create,
+    wrap = _co.wrap,
     previous_handler = _co
   }, {__index=_co})
 
@@ -250,15 +251,6 @@ function plib.internal.create(fp)
     end
 
     return _co.status(thread)
-  end
-  function pco.wrap(f)
-    local thread = coroutine.create(f)
-    return function(...)
-      local result_pack = table.pack(pco.resume(thread, ...))
-      local result, reason = result_pack[1], result_pack[2]
-      assert(result, reason)
-      return select(2, table.unpack(result_pack))
-    end
   end
 
   if fp then

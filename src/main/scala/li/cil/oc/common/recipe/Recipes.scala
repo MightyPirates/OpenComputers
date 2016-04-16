@@ -328,6 +328,10 @@ object Recipes {
       // Hover Boot dyeing
       GameRegistry.addRecipe(new ColorizeRecipe(api.Items.get(Constants.ItemName.HoverBoots).item()))
       GameRegistry.addRecipe(new DecolorizeRecipe(api.Items.get(Constants.ItemName.HoverBoots).item()))
+
+      // Cable dyeing
+      GameRegistry.addRecipe(new ColorizeRecipe(api.Items.get(Constants.BlockName.Cable).block()))
+      GameRegistry.addRecipe(new DecolorizeRecipe(api.Items.get(Constants.BlockName.Cable).block()))
     }
     catch {
       case e: Throwable => OpenComputers.log.error("Error parsing recipes, you may not be able to craft any items from this mod!", e)

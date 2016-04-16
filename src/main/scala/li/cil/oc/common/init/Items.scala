@@ -533,6 +533,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.TerminalServer(multi), Constants.ItemName.TerminalServer, "oc:terminalServer")
     Recipes.addSubItem(new item.DiskDriveMountable(multi), Constants.ItemName.DiskDriveMountable, "oc:diskDriveMountable")
     Recipes.addSubItem(new item.UpgradeTrading(multi), Constants.ItemName.TradingUpgrade, "oc:tradingUpgrade")
+    registerItem(new item.DiamondChip(multi), Constants.ItemName.DiamondChip)
 
     // Register aliases.
     for ((k, v) <- aliases) {

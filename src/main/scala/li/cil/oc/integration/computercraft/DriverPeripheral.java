@@ -20,13 +20,14 @@ import li.cil.oc.api.network.Visibility;
 import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
+public final class DriverPeripheral implements li.cil.oc.api.driver.SidedBlock {
     private static Set<Class<?>> blacklist;
 
     private boolean isBlacklisted(final Object o) {
@@ -53,9 +54,9 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
         return false;
     }
 
-    private IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
+    private IPeripheral findPeripheral(final World world, final int x, final int y, final int z, final ForgeDirection side) {
         try {
-            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, -1);
+            final IPeripheral p = dan200.computercraft.ComputerCraft.getPeripheralAt(world, x, y, z, side.ordinal());
             if (!isBlacklisted(p)) {
                 return p;
             }
@@ -66,7 +67,7 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
     }
 
     @Override
-    public boolean worksWith(final World world, final int x, final int y, final int z) {
+    public boolean worksWith(final World world, final int x, final int y, final int z, final ForgeDirection side) {
         final TileEntity tileEntity = world.getTileEntity(x, y, z);
         return tileEntity != null
                 // This ensures we don't get duplicate components, in case the
@@ -76,12 +77,12 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 // to be incompatible with OpenComputers when used directly.
                 && !isBlacklisted(tileEntity)
                 // Actual check if it's a peripheral.
-                && findPeripheral(world, x, y, z) != null;
+                && findPeripheral(world, x, y, z, side) != null;
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment(findPeripheral(world, x, y, z));
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+        return new Environment(findPeripheral(world, x, y, z, side));
     }
 
     public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral {

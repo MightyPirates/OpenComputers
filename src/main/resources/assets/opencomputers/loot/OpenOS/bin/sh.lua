@@ -30,6 +30,7 @@ if #args == 0 and (io.stdin.tty or options.i) and not options.c then
       local foreground = gpu.setForeground(0xFF0000)
       term.write(sh.expand(os.getenv("PS1") or "$ "))
       gpu.setForeground(foreground)
+      term.setCursorBlink(true)
       local command = term.read(history, nil, sh.hintHandler)
       if not command then
         io.write("exit\n")

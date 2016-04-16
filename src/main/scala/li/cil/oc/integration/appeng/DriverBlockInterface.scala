@@ -9,17 +9,18 @@ import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.prefab.DriverTileEntity
+import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ResultWrapper._
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
-object DriverBlockInterface extends DriverTileEntity {
+object DriverBlockInterface extends DriverSidedTileEntity {
   def getTileEntityClass: Class[_] = classOf[TileInterface]
 
-  def createEnvironment(world: World, x: Int, y: Int, z: Int): ManagedEnvironment =
+  def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection): ManagedEnvironment =
     new Environment(world.getTileEntity(x, y, z).asInstanceOf[TileInterface])
 
   final class Environment(val tile: TileInterface) extends ManagedTileEntityEnvironment[TileInterface](tile, "me_interface") with NamedBlock with NetworkControl[TileInterface] {

@@ -69,7 +69,7 @@ if #args == 0 or options.i then
   local function findKeys(t, r, prefix, name)
     if type(t) ~= "table" then return end
     for k, v in pairs(t) do
-      if string.match(k, "^"..name) then
+      if type(k) == "string" and string.match(k, "^"..name) then
         local postfix = ""
         if type(v) == "function" then postfix = "()"
         elseif type(v) == "table" and getmetatable(v) and getmetatable(v).__call then postfix = "()"
@@ -98,6 +98,22 @@ if #args == 0 or options.i then
       table.insert(r2, k)
     end
     table.sort(r2)
+    if #r2 == 1 then
+      setmetatable(r2, {
+        __index=function(tbl, key)
+          if key==2 then
+            local prev=tbl[1]
+            tbl[1]=nil
+            local next = hint(prev,#prev+1)
+            for i,v in ipairs(next) do
+              tbl[i] = v
+            end
+            setmetatable(tbl,getmetatable(next))
+            return tbl[1]
+          end
+        end,
+        __len=function()return 2 end})
+    end
     return r2
   end
 

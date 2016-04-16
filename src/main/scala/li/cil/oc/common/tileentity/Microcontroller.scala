@@ -157,6 +157,7 @@ class Microcontroller extends traits.PowerAcceptor with traits.Hub with traits.C
       plug.node.connect(componentNodes(plug.side.ordinal()))
     else
       componentNodes(plug.side.ordinal).remove()
+    connectComponents()
   }
 
   override protected def onPlugDisconnect(plug: Plug, node: Node) {
