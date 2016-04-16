@@ -240,13 +240,20 @@ function buffer:read(...)
   local function readLine(chop)
     local start = 1
     while true do
-      local l = self.bufferRead:find("\n", start, true)
-      if l then
-        local result = self.bufferRead:sub(1, l + (chop and -1 or 0))
-        self.bufferRead = self.bufferRead:sub(l + 1)
+      local buf = self.bufferRead
+      local i = buf:find("[\r\n]", start)
+      local c = i and buf:sub(i,i)
+      local is_cr = c == "\r"
+      if i and (not is_cr or i < #buf) then
+        local n = buf:sub(i+1,i+1)
+        if is_cr and n == "\n" then
+          c = c .. n
+        end
+        local result = buf:sub(1, i - 1) .. (chop and "" or c)
+        self.bufferRead = buf:sub(i + #c)
         return result
       else
-        start = #self.bufferRead
+        start = #self.bufferRead - (is_cr and 1 or 0)
         local result, reason = readChunk()
         if not result then
           if reason then
