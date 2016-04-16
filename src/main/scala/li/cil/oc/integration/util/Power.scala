@@ -17,7 +17,7 @@ object Power {
 
   // Galacticraft
 
-  def fromGC(value: Float) = value * Settings.get.ratioGalacticraft
+  def fromGC(value: Double) = value * Settings.get.ratioGalacticraft
 
   def toGC(value: Double): Float = (value / Settings.get.ratioGalacticraft).toFloat
 
@@ -35,7 +35,13 @@ object Power {
 
   // Redstone Flux
 
-  def fromRF(value: Int) = value * Settings.get.ratioRedstoneFlux
+  def fromRF(value: Double) = value * Settings.get.ratioRedstoneFlux
 
   def toRF(value: Double): Int = (value / Settings.get.ratioRedstoneFlux).toInt
+
+  // RotaryCraft
+
+  def fromWA(value: Double) = value * Settings.get.ratioRotaryCraft
+
+  def toWA(value: Double): Long = (value / Settings.get.ratioRotaryCraft).toLong
 }

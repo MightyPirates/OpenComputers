@@ -1,23 +1,24 @@
 package li.cil.oc.integration.bloodmagic;
 
+import WayofTime.alchemicalWizardry.api.tile.IBloodAltar;
 import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.prefab.DriverTileEntity;
+import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import WayofTime.alchemicalWizardry.api.tile.IBloodAltar;
 
-public class DriverBloodAltar extends DriverTileEntity {
+public class DriverBloodAltar extends DriverSidedTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return IBloodAltar.class;
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(World world, int x, int y, int z) {
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z, final EnumFacing side) {
         return new Environment((IBloodAltar) world.getTileEntity(x, y, z));
     }
 

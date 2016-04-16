@@ -6,7 +6,7 @@ import li.cil.oc.api.machine.Arguments
 import li.cil.oc.api.machine.Callback
 import li.cil.oc.api.machine.Context
 import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.api.prefab.DriverTileEntity
+import li.cil.oc.api.prefab.DriverSidedTileEntity
 import li.cil.oc.integration.ManagedTileEntityEnvironment
 import li.cil.oc.util.ResultWrapper.result
 import net.minecraft.block.Block
@@ -15,12 +15,13 @@ import net.minecraft.item.ItemStack
 import net.minecraft.potion.Potion
 import net.minecraft.tileentity.TileEntityBeacon
 import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 
-object DriverBeacon extends DriverTileEntity {
+object DriverBeacon extends DriverSidedTileEntity {
   override def getTileEntityClass: Class[_] = classOf[TileEntityBeacon]
 
-  override def createEnvironment(world: World, pos: BlockPos): ManagedEnvironment =
+  override def createEnvironment(world: World, pos: BlockPos, side: EnumFacing): ManagedEnvironment =
     new Environment(world.getTileEntity(pos).asInstanceOf[TileEntityBeacon])
 
   final class Environment(tileEntity: TileEntityBeacon) extends ManagedTileEntityEnvironment[TileEntityBeacon](tileEntity, "beacon") with NamedBlock {

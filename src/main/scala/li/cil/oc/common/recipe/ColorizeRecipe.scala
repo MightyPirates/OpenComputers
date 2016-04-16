@@ -2,6 +2,7 @@ package li.cil.oc.common.recipe
 
 import li.cil.oc.util.Color
 import li.cil.oc.util.ItemColorizer
+import net.minecraft.block.Block
 import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.Item
@@ -12,6 +13,9 @@ import net.minecraft.world.World
   * @author asie, Vexatos
   */
 class ColorizeRecipe(target: Item, source: Array[Item] = null) extends ContainerItemAwareRecipe {
+  def this(target: Block, source: Array[Item]) = this(Item.getItemFromBlock(target), source)
+  def this(target: Block) = this(target, null)
+
   val targetItem = target
   val sourceItems = if (source != null) source else Array(targetItem)
 

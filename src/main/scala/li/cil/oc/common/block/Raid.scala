@@ -40,8 +40,6 @@ class Raid(protected implicit val tileTag: ClassTag[tileentity.Raid]) extends Si
 
   override def guiType = GuiType.Raid
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Raid()
 
   // ----------------------------------------------------------------------- //

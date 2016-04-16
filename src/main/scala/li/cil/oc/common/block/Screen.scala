@@ -71,8 +71,6 @@ class Screen(val tier: Int) extends RedstoneAware {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Screen(tier)
 
   // ----------------------------------------------------------------------- //

@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraft.util.Vec3
+import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.client.event.DrawBlockHighlightEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
@@ -107,7 +108,7 @@ object HighlightRenderer {
     }
 
     if (hitInfo.typeOfHit == MovingObjectType.BLOCK) e.player.getEntityWorld.getTileEntity(hitInfo.getBlockPos) match {
-      case print: common.tileentity.Print =>
+      case print: common.tileentity.Print if print.shapes.nonEmpty =>
         val pos = new Vec3(
           e.player.prevPosX + (e.player.posX - e.player.prevPosX) * e.partialTicks,
           e.player.prevPosY + (e.player.posY - e.player.prevPosY) * e.partialTicks,
@@ -116,17 +117,17 @@ object HighlightRenderer {
 
         // See RenderGlobal.drawSelectionBox.
         GlStateManager.enableBlend()
-        OpenGlHelper.glBlendFunc(770, 771, 1, 0)
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 1)
         GlStateManager.color(0, 0, 0, 0.4f)
         GL11.glLineWidth(2)
         GlStateManager.disableTexture2D()
         GlStateManager.depthMask(false)
 
-        for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
+        for (shape <- print.shapes) {
           val bounds = shape.bounds.rotateTowards(print.facing)
           RenderGlobal.drawOutlinedBoundingBox(bounds.expand(expansion, expansion, expansion)
             .offset(blockPos.x, blockPos.y, blockPos.z)
-            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0xFF, 0xFF, 0xFF, 0xFF)
+            .offset(-pos.xCoord, -pos.yCoord, -pos.zCoord), 0, 0, 0, 0x66)
         }
 
         GlStateManager.depthMask(true)

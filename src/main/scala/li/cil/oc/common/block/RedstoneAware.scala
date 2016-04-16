@@ -17,10 +17,6 @@ import powercrystals.minefactoryreloaded.api.rednet.connectivity.RedNetConnectio
 
 @Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IRedNetOmniNode", modid = Mods.IDs.MineFactoryReloaded)
 abstract class RedstoneAware extends SimpleBlock /* with IRedNetOmniNode TODO MFR */ {
-  override def hasTileEntity(state: IBlockState) = true
-
-  // ----------------------------------------------------------------------- //
-
   override def canProvidePower = true
 
   override def canConnectRedstone(world: IBlockAccess, pos: BlockPos, side: EnumFacing) =

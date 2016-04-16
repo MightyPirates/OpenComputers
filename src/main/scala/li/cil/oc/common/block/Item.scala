@@ -10,6 +10,7 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Color
+import li.cil.oc.util.ItemColorizer
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
@@ -27,6 +28,8 @@ import net.minecraft.world.World
 class Item(value: Block) extends ItemBlock(value) {
   setHasSubtypes(true)
 
+  private lazy val Cable = api.Items.get(Constants.BlockName.Cable)
+
   private lazy val Cases = Set(
     api.Items.get(Constants.BlockName.CaseTier1),
     api.Items.get(Constants.BlockName.CaseTier2),
@@ -34,19 +37,15 @@ class Item(value: Block) extends ItemBlock(value) {
     api.Items.get(Constants.BlockName.CaseCreative)
   )
 
-  private lazy val Screens = Set(
+  private lazy val DirectTint = Set(
     api.Items.get(Constants.BlockName.ScreenTier1),
     api.Items.get(Constants.BlockName.ScreenTier2),
-    api.Items.get(Constants.BlockName.ScreenTier3)
-  )
-
-  private lazy val DirectTint = Set(
+    api.Items.get(Constants.BlockName.ScreenTier3),
     api.Items.get(Constants.BlockName.Print),
     api.Items.get(Constants.BlockName.Robot)
   )
 
   private lazy val ChameliumBlock = api.Items.get(Constants.BlockName.ChameliumBlock)
-
 
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
@@ -67,13 +66,14 @@ class Item(value: Block) extends ItemBlock(value) {
   }
 
   override def getColorFromItemStack(stack: ItemStack, tintIndex: Int) = {
-    if (Screens.contains(api.Items.get(stack)))
-      Color.rgbValues(EnumDyeColor.byDyeDamage(tintIndex))
-    else if (Cases.contains(api.Items.get(stack)))
+    val descriptor = api.Items.get(stack)
+    if (descriptor == Cable)
+      if (ItemColorizer.hasColor(stack)) ItemColorizer.getColor(stack) else tintIndex
+    else if (Cases.contains(descriptor))
       Color.rgbValues(Color.byTier(ItemUtils.caseTier(stack)))
-    else if (api.Items.get(stack) == ChameliumBlock)
+    else if (descriptor == ChameliumBlock)
       Color.rgbValues(EnumDyeColor.byDyeDamage(stack.getItemDamage))
-    else if (DirectTint.contains(api.Items.get(stack)))
+    else if (DirectTint.contains(descriptor))
       tintIndex
     else super.getColorFromItemStack(stack, tintIndex)
   }
@@ -96,6 +96,16 @@ class Item(value: Block) extends ItemBlock(value) {
   override def getUnlocalizedName = block match {
     case simple: SimpleBlock => simple.getUnlocalizedName
     case _ => Settings.namespace + "tile"
+  }
+
+  override def getDamage(stack: ItemStack): Int = {
+    if (api.Items.get(stack) == api.Items.get(Constants.BlockName.Cable)) {
+      if (ItemColorizer.hasColor(stack)) {
+        ItemColorizer.getColor(stack)
+      }
+      else Color.rgbValues(EnumDyeColor.SILVER)
+    }
+    else super.getDamage(stack)
   }
 
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false

@@ -14,15 +14,15 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
   // ----------------------------------------------------------------------- //
 
   override def delete(path: String) = {
-    val file = new io.File(root, path)
+    val file = new io.File(root, FileSystem.validatePath(path))
     file == root || file.delete()
   }
 
-  override def makeDirectory(path: String) = new io.File(root, path).mkdir()
+  override def makeDirectory(path: String) = new io.File(root, FileSystem.validatePath(path)).mkdir()
 
-  override def rename(from: String, to: String) = new io.File(root, from).renameTo(new io.File(root, to))
+  override def rename(from: String, to: String) = new io.File(root, FileSystem.validatePath(from)).renameTo(new io.File(root, FileSystem.validatePath(to)))
 
-  override def setLastModified(path: String, time: Long) = new io.File(root, path).setLastModified(time)
+  override def setLastModified(path: String, time: Long) = new io.File(root, FileSystem.validatePath(path)).setLastModified(time)
 
   // ----------------------------------------------------------------------- //
 

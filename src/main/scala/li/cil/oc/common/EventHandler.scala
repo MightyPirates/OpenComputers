@@ -5,17 +5,26 @@ import java.util.Calendar
 import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.api.detail.ItemInfo
+import li.cil.oc.api.internal.Colored
 import li.cil.oc.api.internal.Rack
 import li.cil.oc.api.internal.Server
 import li.cil.oc.api.machine.MachineHost
+import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.SidedComponent
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.asm.ClassTransformer
+import li.cil.oc.common.capabilities.CapabilityColored
+import li.cil.oc.common.capabilities.CapabilityEnvironment
+import li.cil.oc.common.capabilities.CapabilitySidedComponent
+import li.cil.oc.common.capabilities.CapabilitySidedEnvironment
 import li.cil.oc.common.component.TerminalServer
 import li.cil.oc.common.item.data.MicrocontrollerData
 import li.cil.oc.common.item.data.RobotData
 import li.cil.oc.common.item.data.TabletData
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.tileentity.Robot
+import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util
 import li.cil.oc.server.component.Keyboard
@@ -30,11 +39,14 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.FakePlayer
+import net.minecraftforge.event.AttachCapabilitiesEvent
 import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.Optional
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent._
 import net.minecraftforge.fml.common.gameevent.TickEvent
@@ -48,6 +60,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EventHandler {
+  private var serverTicks = 0L
+  private val pendingServerTimed = mutable.PriorityQueue.empty[(Long, () => Unit)](Ordering.by(x => -x._1))
+
   private val pendingServer = mutable.Buffer.empty[() => Unit]
 
   private val pendingClient = mutable.Buffer.empty[() => Unit]
@@ -80,9 +95,25 @@ object EventHandler {
     }
   }
 
+  def scheduleServer(f: () => Unit, delay: Int): Unit = {
+    pendingServerTimed.synchronized {
+      pendingServerTimed += (serverTicks + (delay max 0)) -> f
+    }
+  }
+
   def scheduleClient(f: () => Unit) {
     pendingClient.synchronized {
       pendingClient += f
+    }
+  }
+
+  @Optional.Method(modid = Mods.IDs.IndustrialCraft2)
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2Experimental) {
+    if (SideTracker.isServer) pendingServer.synchronized {
+      pendingServer += (() => if (!tileEntity.addedToIC2PowerGrid && !tileEntity.isInvalid) {
+        MinecraftForge.EVENT_BUS.post(new ic2.api.energy.event.EnergyTileLoadEvent(tileEntity.asInstanceOf[ic2.api.energy.tile.IEnergyTile]))
+        tileEntity.addedToIC2PowerGrid = true
+      })
     }
   }
 
@@ -92,6 +123,29 @@ object EventHandler {
         util.WirelessRedstone.addReceiver(rs)
         util.WirelessRedstone.updateOutput(rs)
       })
+    }
+  }
+
+  @SubscribeEvent
+  def onAttachCapabilities(event: AttachCapabilitiesEvent.TileEntity): Unit = {
+    event.getTileEntity match {
+      case tileEntity: TileEntity with Environment =>
+        event.addCapability(CapabilityEnvironment.ProviderEnvironment, new CapabilityEnvironment.Provider(tileEntity))
+      case _ =>
+    }
+
+    event.getTileEntity match {
+      case tileEntity: TileEntity with Environment with SidedComponent =>
+        event.addCapability(CapabilitySidedComponent.SidedComponent, new CapabilitySidedComponent.Provider(tileEntity))
+      case tileEntity: TileEntity with SidedEnvironment =>
+        event.addCapability(CapabilitySidedEnvironment.ProviderSidedEnvironment, new CapabilitySidedEnvironment.Provider(tileEntity))
+      case _ =>
+    }
+
+    event.getTileEntity match {
+      case tileEntity: TileEntity with Colored =>
+        event.addCapability(CapabilityColored.ProviderColored, new CapabilityColored.Provider(tileEntity))
+      case _ =>
     }
   }
 
@@ -106,6 +160,14 @@ object EventHandler {
         case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
       }
     })
+
+    serverTicks += 1
+    while (pendingServerTimed.nonEmpty && pendingServerTimed.head._1 < serverTicks) {
+      val (_, callback) = pendingServerTimed.dequeue()
+      try callback() catch {
+        case t: Throwable => OpenComputers.log.warn("Error in scheduled tick action.", t)
+      }
+    }
 
     val invalid = mutable.ArrayBuffer.empty[Robot]
     runningRobots.foreach(robot => {

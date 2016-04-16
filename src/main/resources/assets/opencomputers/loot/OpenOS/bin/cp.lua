@@ -9,10 +9,13 @@ if #args < 2 then
   io.write(" -r: copy directories recursively.\n")
   io.write(" -u: copy only when the SOURCE file differs from the destination\n")
   io.write("     file or when the destination file is missing.\n")
+  io.write(" -P: preserve attributes, e.g. symbolic links.\n")
   io.write(" -v: verbose output.\n")
   io.write(" -x: stay on original source file system.\n")
   return 1
 end
+
+options.P = options.P or options.r
 
 local from = {}
 for i = 1, #args - 1 do
@@ -66,6 +69,10 @@ end
 
 local function recurse(fromPath, toPath, origin)
   status(fromPath, toPath)
+  local isLink, target = fs.isLink(fromPath)
+  if isLink and options.P then
+    return fs.link(target, toPath)
+  end
   if fs.isDirectory(fromPath) then
     if not options.r then
       io.write("omitting directory `" .. fromPath .. "'\n")

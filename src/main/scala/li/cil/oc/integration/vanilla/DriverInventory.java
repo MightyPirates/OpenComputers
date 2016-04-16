@@ -5,7 +5,7 @@ import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.prefab.DriverTileEntity;
+import li.cil.oc.api.prefab.DriverSidedTileEntity;
 import li.cil.oc.integration.ManagedTileEntityEnvironment;
 import li.cil.oc.util.BlockPosition;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,14 +21,14 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
-public final class DriverInventory extends DriverTileEntity {
+public final class DriverInventory extends DriverSidedTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return IInventory.class;
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos) {
+    public ManagedEnvironment createEnvironment(final World world, final BlockPos pos, final EnumFacing side) {
         return new Environment(world.getTileEntity(pos), world);
     }
 

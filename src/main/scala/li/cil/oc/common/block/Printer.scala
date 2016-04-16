@@ -21,7 +21,5 @@ class Printer extends SimpleBlock with traits.StateAware with traits.GUI {
 
   override def guiType = GuiType.Printer
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Printer()
 }

@@ -129,7 +129,7 @@ function new(readfs, writefs)
             if not hnd then
                 return hnd, err 
             end
-            return hnd * 2
+            return {h=hnd,w=true}
         elseif mode:sub(1, 1) == "a" then
             if readfs.exists(path) and not writefs.exists(kernel.modules.vfs.path(path)..".cfsdel."..kernel.modules.vfs.name(path)) then
                 if readfs.isDirectory(path) then
@@ -158,7 +158,7 @@ function new(readfs, writefs)
                 return nil, "Cannot open a directory"
             end
             local hnd, reason = writefs.open(path, mode)
-            return hnd and hnd * 2, reason
+            return hnd and {h=hnd,w=true}, reason
         elseif mode:sub(1, 1) == "r" then
             local fs = getFileFS(path)
             if not fs then return nil, "file not found" end
@@ -166,37 +166,35 @@ function new(readfs, writefs)
                 return nil, "Cannot open a directory"
             end
             local hnd = fs.open(path, mode)
-            hnd = hnd * 2
-            if fs == readfs then hnd = hnd + 1 end
-            return hnd
+            return hnd and {h=hnd,w=fs==writefs}
         end
     end
     proxy.seek = function(h, ...)
-        if h % 2 == 0 then
-            return writefs.seek(h / 2, ...)
+        if h.w then
+            return writefs.seek(h.h, ...)
         else
-            return readfs.seek((h - 1) / 2, ...)
+            return readfs.seek(h.h, ...)
         end
     end
     proxy.read = function(h, ...)
-        if h % 2 == 0 then
-            return writefs.read(h / 2, ...)
+        if h.w then
+            return writefs.read(h.h, ...)
         else
-            return readfs.read((h - 1) / 2, ...)
+            return readfs.read(h.h, ...)
         end
     end
     proxy.close = function(h, ...)
-        if h % 2 == 0 then
-            return writefs.close(h / 2, ...)
+        if h.w then
+            return writefs.close(h.h, ...)
         else
-            return readfs.close((h - 1) / 2, ...)
+            return readfs.close(h.h, ...)
         end
     end
     proxy.write = function(h, ...)
-        if h % 2 == 0 then
-            return writefs.write(h / 2, ...)
+        if h.w then
+            return writefs.write(h.h, ...)
         else
-            return readfs.write((h - 1) / 2, ...)
+            return readfs.write(h.h, ...)
         end
     end
     return proxy

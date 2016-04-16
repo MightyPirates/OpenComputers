@@ -45,6 +45,7 @@ class Settings(val config: Config) {
       OpenComputers.log.warn("Bad number of HUD coordiantes, ignoring.")
       (-1.0, -1.0)
   }
+  val enableNanomachinePfx = config.getBoolean("client.enableNanomachinePfx")
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -85,6 +86,7 @@ class Settings(val config: Config) {
       Array(192, 256, 384, 512, 768, 1024)
   }
   val ramScaleFor64Bit = config.getDouble("computer.lua.ramScaleFor64Bit") max 1
+  val maxTotalRam = config.getInt("computer.lua.maxTotalRam") max 0
 
   // ----------------------------------------------------------------------- //
   // robot
@@ -237,6 +239,7 @@ class Settings(val config: Config) {
   private val valueMekanism = config.getDouble("power.value.Mekanism")
   private val valuePowerAdvantage = config.getDouble("power.value.PowerAdvantage")
   private val valueRedstoneFlux = config.getDouble("power.value.RedstoneFlux")
+  private val valueRotaryCraft = config.getDouble("power.value.RotaryCraft") / 11256.0
 
   private val valueInternal = 1000
 
@@ -247,6 +250,7 @@ class Settings(val config: Config) {
   val ratioMekanism = valueMekanism / valueInternal
   val ratioPowerAdvantage = valuePowerAdvantage / valueInternal
   val ratioRedstoneFlux = valueRedstoneFlux / valueInternal
+  val ratioRotaryCraft = valueRotaryCraft / valueInternal
 
   // ----------------------------------------------------------------------- //
   // filesystem
@@ -403,7 +407,7 @@ class Settings(val config: Config) {
   val logFullLibLoadErrors = config.getBoolean("debug.logFullNativeLibLoadErrors")
   val forceNativeLib = config.getString("debug.forceNativeLibWithName")
   val logOpenGLErrors = config.getBoolean("debug.logOpenGLErrors")
-  val logUnifontErrors = config.getBoolean("debug.logUnifontErrors")
+  val logHexFontErrors = config.getBoolean("debug.logHexFontErrors")
   val alwaysTryNative = config.getBoolean("debug.alwaysTryNative")
   val debugPersistence = config.getBoolean("debug.verbosePersistenceErrors")
   val nativeInTmpDir = config.getBoolean("debug.nativeInTmpDir")

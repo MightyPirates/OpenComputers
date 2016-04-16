@@ -4,6 +4,7 @@ import java.io.File
 
 import com.google.common.base.Strings
 import li.cil.oc._
+import li.cil.oc.common.capabilities.Capabilities
 import li.cil.oc.common.entity.Drone
 import li.cil.oc.common.init.Blocks
 import li.cil.oc.common.init.Items
@@ -26,6 +27,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.convert.WrapAsScala._
+import scala.reflect.ClassTag
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -45,20 +47,8 @@ class Proxy {
     OreDictionary.registerOre("torchRedstoneActive", net.minecraft.init.Blocks.redstone_torch)
     OreDictionary.registerOre("materialEnderPearl", net.minecraft.init.Items.ender_pearl)
 
-    val nuggetIron = Items.get(Constants.ItemName.IronNugget).createItemStack(1)
-    registerExclusive("nuggetIron", nuggetIron)
-
-    Delegator.subItem(nuggetIron) match {
-      case Some(subItem: item.IronNugget) =>
-        if (OreDictionary.getOres("nuggetIron").exists(nuggetIron.isItemEqual)) {
-          Recipes.addSubItem(subItem, "nuggetIron")
-          Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
-        }
-        else {
-          subItem.showInItemList = false
-        }
-      case _ =>
-    }
+    tryRegisterNugget[item.IronNugget](Constants.ItemName.IronNugget, "nuggetIron", net.minecraft.init.Items.iron_ingot, "ingotIron")
+    tryRegisterNugget[item.DiamondChip](Constants.ItemName.DiamondChip, "chipDiamond", net.minecraft.init.Items.diamond, "gemDiamond")
 
     // Avoid issues with Extra Utilities registering colored obsidian as `obsidian`
     // oredict entry, but not normal obsidian, breaking some recipes.
@@ -102,12 +92,33 @@ class Proxy {
     OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
 
+    OpenComputers.log.info("Initializing capabilities.")
+    Capabilities.init()
+
     api.API.isPowerEnabled = !Settings.get.ignorePower
   }
 
   def postInit(e: FMLPostInitializationEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
+  }
+
+  def tryRegisterNugget[TItem <: Delegate : ClassTag](nuggetItemName: String, nuggetOredictName: String, ingotItem: Item, ingotOredictName: String): Unit = {
+    val nugget = Items.get(nuggetItemName).createItemStack(1)
+
+    registerExclusive(nuggetOredictName, nugget)
+
+    Delegator.subItem(nugget) match {
+      case Some(subItem: TItem) =>
+        if (OreDictionary.getOres(nuggetOredictName).exists(nugget.isItemEqual)) {
+          Recipes.addSubItem(subItem, nuggetItemName)
+          Recipes.addItem(ingotItem, ingotOredictName)
+        }
+        else {
+          subItem.showInItemList = false
+        }
+      case _ =>
+    }
   }
 
   def registerModel(instance: Delegate, id: String): Unit = {}

@@ -8,7 +8,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.integration.Mods
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.Tooltip
-import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -56,8 +55,6 @@ class PowerConverter extends SimpleBlock with traits.PowerAcceptor {
   // ----------------------------------------------------------------------- //
 
   override def energyThroughput = Settings.get.powerConverterRate
-
-  override def hasTileEntity(state: IBlockState) = true
 
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.PowerConverter()
 }

@@ -3,7 +3,6 @@ package li.cil.oc.common.block
 import java.util
 import java.util.Random
 
-import com.google.common.base.Strings
 import li.cil.oc.Localization
 import li.cil.oc.Settings
 import li.cil.oc.common.block.property.PropertyTile
@@ -11,7 +10,6 @@ import li.cil.oc.common.item.data.PrintData
 import li.cil.oc.common.tileentity
 import li.cil.oc.integration.util.ItemBlacklist
 import li.cil.oc.util.ExtendedAABB
-import li.cil.oc.util.ExtendedAABB._
 import li.cil.oc.util.InventoryUtils
 import net.minecraft.block.state.BlockState
 import net.minecraft.block.state.IBlockState
@@ -110,26 +108,9 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def isSideSolid(world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = {
     world.getTileEntity(pos) match {
-      case print: tileentity.Print =>
-        val shapes = if (print.state) print.data.stateOn else print.data.stateOff
-        for (shape <- shapes if !Strings.isNullOrEmpty(shape.texture)) {
-          val bounds = shape.bounds.rotateTowards(print.facing)
-          val fullX = bounds.minX == 0 && bounds.maxX == 1
-          val fullY = bounds.minY == 0 && bounds.maxY == 1
-          val fullZ = bounds.minZ == 0 && bounds.maxZ == 1
-          if (side match {
-            case EnumFacing.DOWN => bounds.minY == 0 && fullX && fullZ
-            case EnumFacing.UP => bounds.maxY == 1 && fullX && fullZ
-            case EnumFacing.NORTH => bounds.minZ == 0 && fullX && fullY
-            case EnumFacing.SOUTH => bounds.maxZ == 1 && fullX && fullY
-            case EnumFacing.WEST => bounds.minX == 0 && fullY && fullZ
-            case EnumFacing.EAST => bounds.maxX == 1 && fullY && fullZ
-            case _ => false
-          }) return true
-        }
-      case _ =>
+      case print: tileentity.Print => print.isSideSolid(side)
+      case _ => false
     }
-    false
   }
 
   override def getPickBlock(target: MovingObjectPosition, world: World, pos: BlockPos): ItemStack = {
@@ -141,45 +122,21 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def addCollisionBoxesToList(world: World, pos: BlockPos, state: IBlockState, mask: AxisAlignedBB, list: util.List[AxisAlignedBB], entity: Entity): Unit = {
     world.getTileEntity(pos) match {
-      case print: tileentity.Print =>
-        if (if (print.state) print.data.noclipOn else print.data.noclipOff) return
-
-        def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-        val shapes = if (print.state) print.data.stateOn else print.data.stateOff
-        for (shape <- shapes) {
-          val bounds = shape.bounds.rotateTowards(print.facing).offset(pos)
-          if (bounds.intersectsWith(mask)) {
-            add(list, bounds)
-          }
-        }
+      case print: tileentity.Print => print.addCollisionBoxesToList(mask, list, pos)
       case _ => super.addCollisionBoxesToList(world, pos, state, mask, list, entity)
     }
   }
 
   override def collisionRayTrace(world: World, pos: BlockPos, start: Vec3, end: Vec3): MovingObjectPosition = {
     world.getTileEntity(pos) match {
-      case print: tileentity.Print =>
-        var closestDistance = Double.PositiveInfinity
-        var closest: Option[MovingObjectPosition] = None
-        for (shape <- if (print.state) print.data.stateOn else print.data.stateOff) {
-          val bounds = shape.bounds.rotateTowards(print.facing).offset(pos)
-          val hit = bounds.calculateIntercept(start, end)
-          if (hit != null) {
-            val distance = hit.hitVec.distanceTo(start)
-            if (distance < closestDistance) {
-              closestDistance = distance
-              closest = Option(hit)
-            }
-          }
-        }
-        closest.map(hit => new MovingObjectPosition(hit.hitVec, hit.sideHit, pos)).orNull
+      case print: tileentity.Print => print.rayTrace(start, end, pos)
       case _ => super.collisionRayTrace(world, pos, start, end)
     }
   }
 
   override def setBlockBoundsBasedOnState(world: IBlockAccess, pos: BlockPos): Unit = {
     world.getTileEntity(pos) match {
-      case print: tileentity.Print => setBlockBounds(if (print.state) print.boundsOn else print.boundsOff)
+      case print: tileentity.Print => setBlockBounds(print.bounds)
       case _ => super.setBlockBoundsBasedOnState(world, pos)
     }
   }
@@ -194,7 +151,9 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
 
   override def updateTick(world: World, pos: BlockPos, state: IBlockState, rand: Random): Unit = {
     if (!world.isRemote) world.getTileEntity(pos) match {
-      case print: tileentity.Print => if (print.state) print.toggleState()
+      case print: tileentity.Print =>
+        if (print.state) print.toggleState()
+        if (print.state) world.scheduleUpdate(pos, state.getBlock, tickRate(world))
       case _ =>
     }
   }
@@ -207,8 +166,6 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def hasTileEntity(state: IBlockState) = true
 
   override def createNewTileEntity(worldIn: World, meta: Int) = new tileentity.Print()
 
@@ -225,6 +182,7 @@ class Print(protected implicit val tileTag: ClassTag[tileentity.Print]) extends 
     super.doCustomInit(tileEntity, player, stack)
     tileEntity.data.load(stack)
     tileEntity.updateBounds()
+    tileEntity.updateRedstone()
     tileEntity.world.checkLight(tileEntity.getPos)
   }
 

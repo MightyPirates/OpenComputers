@@ -364,6 +364,8 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.InkCartridgeEmpty(materials), Constants.ItemName.InkCartridgeEmpty, "oc:inkCartridgeEmpty")
     Recipes.addSubItem(new item.InkCartridge(materials), Constants.ItemName.InkCartridge, "oc:inkCartridge")
     Recipes.addSubItem(new item.Chamelium(materials), Constants.ItemName.Chamelium, "oc:chamelium")
+
+    registerItem(new item.DiamondChip(materials), Constants.ItemName.DiamondChip)
   }
 
   // All kinds of tools.
@@ -436,8 +438,7 @@ object Items extends ItemAPI {
     Recipes.addSubItem(new item.LinkedCard(cards), Constants.ItemName.LinkedCard, "oc:linkedCard")
 
     // 1.5.13
-    // TODO 1.6 Remove oc:dataCard oredict entry.
-    Recipes.addSubItem(new item.DataCard(cards, Tier.One), Constants.ItemName.DataCardTier1, "oc:dataCard", "oc:dataCard1")
+    Recipes.addSubItem(new item.DataCard(cards, Tier.One), Constants.ItemName.DataCardTier1, "oc:dataCard1")
 
     // 1.5.15
     Recipes.addSubItem(new item.DataCard(cards, Tier.Two), Constants.ItemName.DataCardTier2, "oc:dataCard2")

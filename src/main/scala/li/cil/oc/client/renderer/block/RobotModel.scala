@@ -51,7 +51,8 @@ object RobotModel extends SmartBlockModelBase with ISmartItemModel {
           (x - 0.5f) * 1.4f + 0.5f,
           (y - 0.5f) * 1.4f + 0.5f,
           (z - 0.5f) * 1.4f + 0.5f,
-          EnumFacing.UP, robotTexture, robotTexture.getInterpolatedU(u * 16), robotTexture.getInterpolatedV(v * 16))
+          EnumFacing.UP, robotTexture, robotTexture.getInterpolatedU(u * 16), robotTexture.getInterpolatedV(v * 16),
+          White)
       }.toArray
     }
 

@@ -60,8 +60,6 @@ class Rack extends RedstoneAware with traits.PowerAcceptor with traits.StateAwar
 
   override def guiType = GuiType.Rack
 
-  override def hasTileEntity(state: IBlockState) = true
-
   override def createNewTileEntity(world: World, metadata: Int) = new tileentity.Rack()
 
   // ----------------------------------------------------------------------- //

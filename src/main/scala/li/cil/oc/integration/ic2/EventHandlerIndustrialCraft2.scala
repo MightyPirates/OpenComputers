@@ -1,9 +1,15 @@
 package li.cil.oc.integration.ic2
 
+import ic2.api.item.ElectricItem
+import ic2.api.item.IElectricItem
+import ic2.api.item.ISpecialElectricItem
+import ic2.core.item.tool.ItemToolWrench
 import li.cil.oc.api.event.RobotUsedToolEvent
 import li.cil.oc.integration.util.Power
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.BlockPos
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object EventHandlerIndustrialCraft2 {
   @SubscribeEvent
@@ -42,7 +48,7 @@ object EventHandlerIndustrialCraft2 {
     }
   }
 
-  def useWrench(player: EntityPlayer, x: Int, y: Int, z: Int, changeDurability: Boolean): Boolean = {
+  def useWrench(player: EntityPlayer, pos: BlockPos, changeDurability: Boolean): Boolean = {
     player.getHeldItem.getItem match {
       case wrench: ItemToolWrench =>
         if (changeDurability) {

@@ -80,16 +80,35 @@ trait ComponentInventory extends Environment with Inventory with inventory.Compo
   override protected def onItemAdded(slot: Int, stack: ItemStack): Unit = {
     if (isServer) super.onItemAdded(slot, stack)
     else {
-      pendingAdds(slot) = Option(stack)
-      scheduleInventoryChange()
+      pendingRemovals(slot) match {
+        case Some(removed) if removed.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(removed, stack) =>
+          // Reverted to original state.
+          pendingAdds(slot) = None
+          pendingRemovals(slot) = None
+        case _ =>
+          // Got a removal and an add of *something else* in the same tick.
+          pendingAdds(slot) = Option(stack)
+          scheduleInventoryChange()
+      }
     }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack): Unit = {
     if (isServer) super.onItemRemoved(slot, stack)
-    else if (pendingRemovals(slot).isEmpty) {
-      pendingRemovals(slot) = Option(stack)
-      scheduleInventoryChange()
+    else {
+      pendingAdds(slot) match {
+        case Some(added) =>
+          // If we have a pending add and get a remove on a slot it is
+          // now either empty, or the previous remove is valid again.
+          pendingAdds(slot) = None
+        case _ =>
+          // If we have no pending add, only the first removal can be
+          // relevant (further ones should in fact be impossible).
+          if (pendingRemovals(slot).isEmpty) {
+            pendingRemovals(slot) = Option(stack)
+            scheduleInventoryChange()
+          }
+      }
     }
   }
 

@@ -24,8 +24,7 @@ public class ConverterAgebook implements Converter {
                     output.put("flags", flags);
 
                     final NBTTagCompound flagsNbt = tag.getCompoundTag("Flags");
-                    for (Object flag : flagsNbt.func_150296_c()) {
-                        final String key = (String) flag;
+                    for (String key : flagsNbt.getKeySet()) {
                         flags.put(key, flagsNbt.getBoolean(key));
                     }
                 }

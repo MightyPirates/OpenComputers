@@ -58,7 +58,7 @@ class UpgradeCrafting(val host: EnvironmentHost with internal.Robot) extends pre
                 if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
                   MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(host.player, container))
                 }
-                else if ( /* container.getItem.doesContainerItemLeaveCraftingGrid(container) || TODO */ getStackInSlot(slot) != null) {
+                else if (getStackInSlot(slot) != null) {
                   surplus += container
                 }
                 else {

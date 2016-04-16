@@ -279,11 +279,11 @@ local function test(m,p)
       write(':', COLON_COLOR)
       needs_line_num = nil
     end
-    local p=m_only and '' or m.line:sub(last_index,(i or 0)-1)
+    local s=m_only and '' or m.line:sub(last_index,(i or 0)-1)
     local g=i and m.line:sub(i,j) or ''
-    if i==1 then g=trim_front(g) elseif last_index==1 then p=trim_front(p) end
-    if j==slen then g=trim_back(g) elseif not i then p=trim_back(p) end
-    write(p)
+    if i==1 then g=trim_front(g) elseif last_index==1 then s=trim_front(s) end
+    if j==slen then g=trim_back(g) elseif not i then s=trim_back(s) end
+    write(s)
     write(g, MATCH_COLOR)
     empty_line = false
     last_index = (j or slen)+1
@@ -291,7 +291,7 @@ local function test(m,p)
       write("\n")
       empty_line = true
       needs_filename, needs_line_num = include_filename, print_line_num
-    end
+    elseif p:find("^^") then break end
   end
   if not empty_line then write("\n") end
 end

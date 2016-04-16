@@ -13,14 +13,14 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
-object DriverPartInterface extends driver.Block {
-  override def worksWith(world: World, x: Int, y: Int, z: Int) =
+object DriverPartInterface extends driver.SidedBlock {
+  override def worksWith(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
       case container: IPartHost => ForgeDirection.VALID_DIRECTIONS.map(container.getPart).exists(_.isInstanceOf[PartInterface])
       case _ => false
     }
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
+  override def createEnvironment(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = new Environment(world.getTileEntity(x, y, z).asInstanceOf[IPartHost])
 
   final class Environment(val host: IPartHost) extends ManagedTileEntityEnvironment[IPartHost](host, "me_interface") with NamedBlock with PartEnvironmentBase {
     override def preferredName = "me_interface"
