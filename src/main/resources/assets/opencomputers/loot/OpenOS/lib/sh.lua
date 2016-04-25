@@ -8,13 +8,7 @@ local tx = require("transforms")
 local unicode = require("unicode")
 
 local sh = {}
-
-sh.internal = setmetatable({},
-{
-  __tostring=function()
-    return "table of undocumented api subject to change and intended for internal use"
-  end
-})
+sh.internal = {}
 
 -- --[[@@]] are not just comments, but custom annotations for delayload methods.
 -- See package.lua and the api wiki for more information
@@ -133,29 +127,36 @@ function sh.internal.isIdentifier(key)
 end
 
 function sh.expand(value)
-  return value
+  local expanded = value
   :gsub("%$([_%w%?]+)", function(key)
     if key == "?" then
       return tostring(sh.getLastExitCode())
     end
-    return os.getenv(key) or '' end)
+    return os.getenv(key) or ''
+  end)
   :gsub("%${(.*)}", function(key)
     if sh.internal.isIdentifier(key) then
       return sh.internal.expandKey(key)
     end
     error("${" .. key .. "}: bad substitution")
   end)
+  if expanded:find('`') then
+    expanded = sh.internal.parse_sub(expanded)
+  end
+  return expanded
 end
 
 function sh.internal.expand(word)
   if #word == 0 then return {} end
-
   local result = ''
   for i=1,#word do
     local part = word[i]
-    result = result .. (not (part.qr and part.qr[3]) and sh.expand(part.txt) or part.txt)
+    -- sh.expand runs command substitution on backticks
+    -- if the entire quoted area is backtick quoted, then
+    -- we can save some checks by adding them back in
+    local q = part.qr and part.qr[1] == '`' and '`' or ''
+    result = result .. (not (part.qr and part.qr[3]) and sh.expand(q..part.txt..q) or part.txt)
   end
-
   return {result}
 end
 
@@ -205,49 +206,6 @@ function sh.hintHandler(full_line, cursor)
   return sh.internal.hintHandlerImpl(full_line, cursor)
 end
 
-function sh.internal.buildCommandRedirects(args)
-  local input, output, mode = nil, nil, "write"
-  local tokens = args
-  args = {}
-  local function smt(call) -- state metatable factory
-    local function index(_, token)
-      if token == "<" or token == ">" or token == ">>" then
-        return "parse error near " .. token
-      end
-      call(token)
-      return "args" -- default, return to normal arg parsing
-    end
-    return {__index=index}
-  end
-  local sm = { -- state machine for redirect parsing
-    args   = setmetatable({["<"]="input", [">"]="output", [">>"]="append"},
-                              smt(function(token)
-                                    table.insert(args, token)
-                                  end)),
-    input  = setmetatable({}, smt(function(token)
-                                    input = token
-                                  end)),
-    output = setmetatable({}, smt(function(token)
-                                    output = token
-                                    mode = "write"
-                                  end)),
-    append = setmetatable({}, smt(function(token)
-                                    output = token
-                                    mode = "append"
-                                  end))
-  }
-  -- Run state machine over tokens.
-  local state = "args"
-  for i = 1, #tokens do
-    local token = tokens[i]
-    state = sm[state][token]
-    if not sm[state] then
-      return nil, state
-    end
-  end
-  return args, input, output, mode
-end
-
 function sh.internal.parseCommand(words)
   checkArg(1, words, "table")
   if #words == 0 then
@@ -263,10 +221,11 @@ function sh.internal.parseCommand(words)
   if not program then
     return nil, evaluated_words[1] .. ": " .. reason
   end
-  return program, sh.internal.buildCommandRedirects(tx.sub(evaluated_words, 2))
+  evaluated_words = tx.sub(evaluated_words, 2)
+  return program, evaluated_words
 end
 
-function sh.internal.buildPipeStream(commands, env)
+function sh.internal.createThreads(commands, eargs, env)
   -- Piping data between programs works like so:
   -- program1 gets its output replaced with our custom stream.
   -- program2 gets its input replaced with our custom stream.
@@ -274,109 +233,70 @@ function sh.internal.buildPipeStream(commands, env)
   -- custom stream triggers execution of "next" program after write.
   -- custom stream triggers yield before read if buffer is empty.
   -- custom stream may have "redirect" entries for fallback/duplication.
-  local threads, pipes, inputs, outputs = {}, {}, {}, {}
+  local threads = {}
   for i = 1, #commands do
-    local program, args, input, output, mode = table.unpack(commands[i])
-    local process_name = tostring(program)
-    local reason
+    local program, args = table.unpack(commands[i])
+    local name, thread = tostring(program)
     local thread_env = type(program) == "string" and env or nil
-    threads[i], reason = process.load(program, thread_env, function()
-      os.setenv("_", program)
-      if input then
-        local file, reason = io.open(shell.resolve(input))
-        if not file then
-          error("could not open '" .. input .. "': " .. reason, 0)
-        end
-        table.insert(inputs, file)
-        if pipes[i - 1] then
-          pipes[i - 1].stream.redirect.read = file
-          io.input(pipes[i - 1])
-        else
-          io.input(file)
-        end
-      elseif pipes[i - 1] then
-        io.input(pipes[i - 1])
+    local thread, reason = process.load(program, thread_env, function()
+      os.setenv("_", name)
+      -- popen expects each process to first write an empty string
+      -- this is required for proper thread order
+      io.write('')
+    end, name)
+
+    threads[i] = thread
+    
+    if thread then
+      -- smart check if ios should be loaded
+      if tx.first(args, function(token) return token == "<" or token:find(">") end) then
+        args, reason = sh.internal.buildCommandRedirects(thread, args)
       end
-      if output then
-        local file, reason = io.open(shell.resolve(output), mode == "append" and "a" or "w")
-        if not file then
-          error("could not open '" .. output .. "': " .. reason, 0)
-        end
-        table.insert(outputs, file)
-        if pipes[i] then
-          pipes[i].stream.redirect.write = file
-          io.output(pipes[i])
-        else
-          io.output(file)
-        end
-      elseif pipes[i] then
-        io.output(pipes[i])
+    end
+    
+    if not args or not thread then
+      for i,t in ipairs(threads) do
+        process.internal.close(t)
       end
-    io.write('')
-    end, process_name)
-    if not threads[i] then
-      return false, reason
+      return nil, reason
     end
 
-    if i < #commands then
-      pipes[i] = require("buffer").new("rw", sh.internal.newMemoryStream())
-      pipes[i]:setvbuf("no")
-    end
-    if i > 1 then
-      pipes[i - 1].stream.next = threads[i]
-      pipes[i - 1].stream.args = args
-    end
+    process.info(thread).data.args = tx.concat(args, eargs or {})
   end
-  return threads, pipes, inputs, outputs
+
+  if #threads > 1 then
+    sh.internal.buildPipeChain(threads)
+  end
+
+  return threads
 end
 
-function sh.internal.executePipeStream(threads, pipes, inputs, outputs, args)
+function sh.internal.runThreads(threads)
   local result = {}
   for i = 1, #threads do
     -- Emulate CC behavior by making yields a filtered event.pull()
-    while args[1] and coroutine.status(threads[i]) ~= "dead" do
-      result = table.pack(coroutine.resume(threads[i], table.unpack(args, 2, args.n)))
-      if coroutine.status(threads[i]) ~= "dead" then
-        local action = result[2]
-        if action == nil or type(action) == "number" then
-          args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-        else
-          args = table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
-        end
+    local thread, args = threads[i]
+    while coroutine.status(thread) ~= "dead" do
+      args = args or process.info(thread).data.args
+      result = table.pack(coroutine.resume(thread, table.unpack(args)))
+      if coroutine.status(thread) ~= "dead" then
+        args = sh.internal.handleThreadYield(result)
         -- in case this was the end of the line, args is returned
         result = args
+        if table.remove(args, 1) then
+          break
+        end
       end
-    end
-    if pipes[i] then
-      pcall(pipes[i].close, pipes[i])
     end
     if not result[1] then
-      if type(result[2]) == "table" and result[2].reason == "terminated" then
-        if result[2].code then
-          result[1] = true
-          result.n = 1
-        else
-          result[2] = "terminated"
-        end
-      elseif type(result[2]) == "string" then
-        result[2] = debug.traceback(threads[i], result[2])
-      end
+      sh.internal.handleThreadCrash(thread, result)
       break
     end
   end
-  for _, input in ipairs(inputs) do input:close() end
-  for _, output in ipairs(outputs) do output:close() end
   return table.unpack(result)
 end
 
-function sh.internal.executeStatement(env, commands, eargs)
-  local threads, pipes, inputs, outputs = sh.internal.buildPipeStream(commands, env)
-  if not threads then return false, pipes end
-  local args = tx.concat({true,n=1},commands[1][2] or {}, eargs)
-  return sh.internal.executePipeStream(threads, pipes, inputs, outputs, args)
-end
-
-function sh.internal.executePipes(pipe_parts, eargs)
+function sh.internal.executePipes(pipe_parts, eargs, env)
   local commands = {}
   for i=1,#pipe_parts do
     commands[i] = table.pack(sh.internal.parseCommand(pipe_parts[i]))
@@ -388,9 +308,14 @@ function sh.internal.executePipes(pipe_parts, eargs)
       return sh.internal.ec.parseCommand
     end
   end
-  local result = table.pack(sh.internal.executeStatement(env,commands,eargs))
-  local cmd_result = result[2]
-  if not result[1] then
+  local threads, reason = sh.internal.createThreads(commands, eargs, env)  
+  if not threads then
+    io.stderr:write(reason,"\n")
+    return false
+  end
+  local result, cmd_result = sh.internal.runThreads(threads)
+
+  if not result then
     if cmd_result then
       if type(cmd_result) == "string" then
         cmd_result = cmd_result:gsub("^/lib/process%.lua:%d+: /", '/')
@@ -404,7 +329,6 @@ end
 
 function sh.execute(env, command, ...)
   checkArg(2, command, "string")
-  local eargs = {...}
   if command:find("^%s*#") then return true, 0 end
   local statements, reason = sh.internal.statements(command)
   if not statements or statements == true then
@@ -413,14 +337,104 @@ function sh.execute(env, command, ...)
     return true, 0
   end
 
+  local eargs = {...}
+
   -- simple
   if reason then
-    sh.internal.ec.last = sh.internal.command_result_as_code(sh.internal.executePipes(statements,eargs))
+    sh.internal.ec.last = sh.internal.command_result_as_code(sh.internal.executePipes(statements, eargs, env))
     return true
   end
 
-  return sh.internal.execute_complex(statements)
+  return sh.internal.execute_complex(statements, eargs, env)
 end
+
+function --[[@delayloaded-start@]] sh.internal.handleThreadYield(result)
+  local action = result[2]
+  if action == nil or type(action) == "number" then
+    return table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
+  else
+    return table.pack(coroutine.yield(table.unpack(result, 2, result.n)))
+  end
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.handleThreadCrash(thread, result)
+  if type(result[2]) == "table" and result[2].reason == "terminated" then
+    if result[2].code then
+      result[1] = true
+      result.n = 1
+    else
+      result[2] = "terminated"
+    end
+  elseif type(result[2]) == "string" then
+    result[2] = debug.traceback(thread, result[2])
+  end
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.buildCommandRedirects(thread, args)
+  local data = process.info(thread).data
+  local tokens, ios, handles = args, data.io, data.handles
+  args = {}
+  local from_io, to_io, mode
+  for i = 1, #tokens do
+    local token = tokens[i]
+    if token == "<" then
+      from_io = 0
+      mode = "r"
+    else
+      local first_index, last_index, from_io_txt, mode_txt, to_io_txt = token:find("(%d*)(>>?)(.*)")
+      if mode_txt then
+        mode = mode_txt == ">>" and "a" or "w"
+        from_io = from_io_txt and tonumber(from_io_txt) or 1
+        if to_io_txt ~= "" then
+          to_io = tonumber(to_io_txt:sub(2))
+          ios[from_io] = ios[to_io]
+          mode = nil
+        end
+      else -- just an arg
+        if not mode then
+          table.insert(args, token)
+        else
+          local file, reason = io.open(shell.resolve(token), mode)
+          if not file then
+            return nil, "could not open '" .. token .. "': " .. reason
+          end
+          table.insert(handles, file)
+          ios[from_io] = file
+        end
+        mode = nil
+      end
+    end
+  end
+
+  return args
+end --[[@delayloaded-end@]]
+
+function --[[@delayloaded-start@]] sh.internal.buildPipeChain(threads)
+  local prev_pipe
+  for i=1,#threads do
+    local thread = threads[i]
+    local data = process.info(thread).data
+    local pio = data.io
+
+    local pipe
+    if i < #threads then
+      pipe = require("buffer").new("rw", sh.internal.newMemoryStream())
+      pipe:setvbuf("no")
+      pipe.stream.redirect[1] = rawget(pio, 1)
+      pio[1] = pipe
+      table.insert(data.handles, pipe)
+    end
+
+    if prev_pipe then
+      prev_pipe.stream.redirect[0] = rawget(pio, 0)
+      prev_pipe.stream.next = thread
+      pio[0] = prev_pipe
+    end
+
+    prev_pipe = pipe
+  end
+
+end --[[@delayloaded-end@]]
 
 function --[[@delayloaded-start@]] sh.internal.glob(glob_pattern)
   local segments = text.split(glob_pattern, {"/"}, true)
@@ -549,7 +563,7 @@ function --[[@delayloaded-start@]] sh.internal.hintHandlerImpl(full_line, cursor
     return {}
   end
   local result
-  local prefix, partial = line:match("^(.*=)(.*)$")
+  local prefix, partial = line:match("^(.*[=><])(.*)$")
   if not prefix then prefix, partial = line:match("^(.+%s+)(.*)$") end
   local partialPrefix = (partial or line)
   local name = partialPrefix:gsub(".*/", "")
@@ -583,10 +597,11 @@ function --[[@delayloaded-start@]] sh.internal.hasValidPiping(words, pipes)
     return true
   end
 
-  pipes = pipes or tx.sub(text.syntax, 2) -- first text syntax is ; which CAN be repeated
+  local semi_split = tx.find(text.syntax, {";"}) -- all symbols before ; in syntax CAN be repeated
+  pipes = pipes or tx.sub(text.syntax, semi_split + 1)
 
-  local pies = tx.select(words, function(parts, i, t)
-    return (#parts == 1 and tx.first(pipes, {{parts[1].txt}}) and true or false), i
+  local pies = tx.select(words, function(parts, i)
+    return #parts == 1 and #text.split(parts[1].txt, pipes, true) == 0 and true or false
   end)
 
   local bad_pipe
@@ -718,6 +733,7 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
 
   function memoryStream:close()
     self.closed = true
+    self.redirect = {}
   end
 
   function memoryStream:seek()
@@ -728,12 +744,12 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
     if self.closed then
       return nil -- eof
     end
-    if self.redirect.read then
+    if self.redirect[0] then
       -- popen could be using this code path
       -- if that is the case, it is important to leave stream.buffer alone
-      return self.redirect.read:read(n)
+      return self.redirect[0]:read(n)
     elseif self.buffer == "" then
-      self.args = table.pack(coroutine.yield(table.unpack(self.result)))
+      process.info(self.next).data.args = table.pack(coroutine.yield(table.unpack(self.result)))
     end
     local result = string.sub(self.buffer, 1, n)
     self.buffer = string.sub(self.buffer, n + 1)
@@ -741,16 +757,17 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
   end
 
   function memoryStream:write(value)
-    if not self.redirect.write and self.closed then
+    if not self.redirect[1] and self.closed then
       -- if next is dead, ignore all writes
       if coroutine.status(self.next) ~= "dead" then
         error("attempt to use a closed stream")
       end
-    elseif self.redirect.write then
-      return self.redirect.write:write(value)
+    elseif self.redirect[1] then
+      return self.redirect[1]:write(value)
     elseif not self.closed then
       self.buffer = self.buffer .. value
-      self.result = table.pack(coroutine.resume(self.next, table.unpack(self.args)))
+      local args = process.info(self.next).data.args
+      self.result = table.pack(coroutine.resume(self.next, table.unpack(args)))
       if coroutine.status(self.next) == "dead" then
         self:close()
       end
@@ -764,26 +781,52 @@ function --[[@delayloaded-start@]] sh.internal.newMemoryStream()
   end
 
   local stream = {closed = false, buffer = "",
-                  redirect = {}, result = {}, args = {}}
+                  redirect = {}, result = {}}
   local metatable = {__index = memoryStream,
                      __metatable = "memorystream"}
   return setmetatable(stream, metatable)
 end --[[@delayloaded-end@]]
 
-function --[[@delayloaded-start@]] sh.internal.execute_complex(statements)
+function --[[@delayloaded-start@]] sh.internal.execute_complex(statements, eargs, env)
   for si=1,#statements do local s = statements[si]
     local chains = sh.internal.groupChains(s)
-    local last_code,br = sh.internal.boolean_executor(chains, function(chain, chain_index)
+    local last_code = sh.internal.boolean_executor(chains, function(chain, chain_index)
       local pipe_parts = sh.internal.splitChains(chain)
-      return sh.internal.executePipes(pipe_parts,
-        chain_index == #chains and si == #statements and eargs or {})
+      local next_args = chain_index == #chains and si == #statements and eargs or {}
+      return sh.internal.executePipes(pipe_parts, next_args, env)
     end)
-    if br then
-      io.stderr:write(br,"\n")
-    end
     sh.internal.ec.last = sh.internal.command_result_as_code(last_code)
   end
-  return true, br
+  return true
+end --[[@delayloaded-end@]]
+
+
+function --[[@delayloaded-start@]] sh.internal.parse_sub(input)
+  -- cannot use gsub here becuase it is a [C] call, and io.popen needs to yield at times
+  local packed = {}
+  -- not using for i... because i can skip ahead
+  local i, len = 1, #input
+
+  while i < len do
+
+    local fi, si, capture = input:find("`([^`]*)`", i)
+
+    if not fi then
+      table.insert(packed, input:sub(i))
+      break
+    end
+
+    local sub = io.popen(capture)
+    local result = sub:read("*a")
+    sub:close()
+    -- all whitespace is replaced by single spaces
+    -- we requote the result because tokenize will respect this as text
+    table.insert(packed, (text.trim(result):gsub("%s+"," ")))
+
+    i = si+1
+  end
+
+  return table.concat(packed)
 end --[[@delayloaded-end@]]
 
 return sh, local_env
