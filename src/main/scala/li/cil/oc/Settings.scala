@@ -214,6 +214,7 @@ class Settings(val config: Config) {
   val transposerCost = config.getDouble("power.cost.transposer") max 0
   val nanomachineCost = config.getDouble("power.cost.nanomachineInput") max 0
   val nanomachineReconfigureCost = config.getDouble("power.cost.nanomachinesReconfigure") max 0
+  val mfuCost = config.getDouble("power.cost.mfuRelay") max 0
 
   // power.rate
   val accessPointRate = config.getDouble("power.rate.accessPoint") max 0
@@ -348,6 +349,7 @@ class Settings(val config: Config) {
   val serverRackSwitchTier = (config.getInt("misc.serverRackSwitchTier") - 1) max Tier.None min Tier.Three
   val redstoneDelay = config.getDouble("misc.redstoneDelay") max 0
   val tradingRange = config.getDouble("misc.tradingRange") max 0
+  val mfuRange = config.getInt("misc.mfuRange") max 0 min 128
 
   // ----------------------------------------------------------------------- //
   // nanomachines
