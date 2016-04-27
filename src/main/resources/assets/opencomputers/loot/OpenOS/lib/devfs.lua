@@ -8,6 +8,38 @@ function proxy.getLabel()
   return "devfs"
 end
 
+function proxy.setLabel(value)
+  error("drive does not support labeling")
+end
+
+function proxy.isReadOnly()
+  return false
+end
+
+function proxy.spaceTotal()
+  return 0
+end
+
+function proxy.spaceUsed()
+  return 0
+end
+
+function proxy.exists(path)
+  return not not proxy.points[path]
+end
+
+function proxy.size(path)
+  return 0
+end
+
+function proxy.isDirectory(path)
+  return false
+end
+
+function proxy.lastModified(path)
+  return fs.lastModified("/dev/")
+end
+
 function proxy.list()
   local keys = {}
   for k,v in pairs(proxy.points) do
@@ -16,8 +48,8 @@ function proxy.list()
   return keys
 end
 
-function proxy.exists(path)
-  return not not proxy.points[path]
+function proxy.makeDirectory(path)
+  return false
 end
 
 function proxy.remove(path)
@@ -26,24 +58,8 @@ function proxy.remove(path)
   return true
 end
 
-function proxy.isDirectory(path)
+function proxy.rename(from, to)
   return false
-end
-
-function proxy.size(path)
-  return 0
-end
-
-function proxy.lastModified(path)
-  return fs.lastModified("/dev/")
-end
-
-function proxy.read(h,...)
-  return h:read(...)
-end
-
-function proxy.write(h,...)
-  return h:write(...)
 end
 
 proxy.close = nop
@@ -67,6 +83,18 @@ function proxy.open(path, mode)
   end
 
   return handle
+end
+
+function proxy.read(h,...)
+  return h:read(...)
+end
+
+function proxy.seek(h,...)
+  return h:seek(...)
+end
+
+function proxy.write(h,...)
+  return h:write(...)
 end
 
 function proxy.create(path, handle)
