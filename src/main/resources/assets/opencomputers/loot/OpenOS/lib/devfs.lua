@@ -12,10 +12,6 @@ function proxy.setLabel(value)
   error("drive does not support labeling")
 end
 
-function proxy.isReadOnly()
-  return false
-end
-
 function proxy.spaceTotal()
   return 0
 end
