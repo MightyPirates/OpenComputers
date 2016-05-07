@@ -1,13 +1,15 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.network._
-import li.cil.oc.api.{Network, prefab}
+import li.cil.oc.api.prefab
 import li.cil.oc.common.event.BlockChangeHandler
 import li.cil.oc.common.event.BlockChangeHandler.ChangeListener
+import li.cil.oc.server.network
 import li.cil.oc.util.BlockPosition
 import li.cil.oc.util.ExtendedWorld._
 import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -17,7 +19,7 @@ import net.minecraftforge.common.util.ForgeDirection
   * @author Sangar, Vexatos
   */
 class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: ForgeDirection) extends prefab.ManagedEnvironment with ChangeListener {
-  override val node = Network.newNode(this, Visibility.None).
+  override val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
 
@@ -27,11 +29,24 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
 
   override val canUpdate = true
 
+  private def otherNode(tile: TileEntity, f: (Node) => Unit) {
+    network.Network.getNetworkNode(tile, dir) match {
+      case Some(otherNode) => f(otherNode)
+      case _ => // Nothing to do here
+    }
+  }
+
   private def updateBoundState() {
     if (node != null && node.network != null && coord.world.exists(_.provider.dimensionId == host.world.provider.dimensionId)
       && coord.toVec3.distanceTo(Vec3.createVectorHelper(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
       host.world.getTileEntity(coord) match {
-        case env: api.network.Environment =>
+        case env: TileEntity with api.network.Environment =>
+          otherEnv match {
+            case Some(environment: TileEntity) =>
+              otherNode(environment, node.disconnect)
+              otherEnv = None
+            case _ => // Nothing to do here.
+          }
           otherEnv = Some(env)
           // Remove any driver that might be there.
           otherDrv match {
@@ -42,12 +57,12 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
               otherDrv = None
             case _ => // Nothing to do here.
           }
-          node.connect(env.node)
+          otherNode(env, node.connect)
         case _ =>
           // Remove any environment that might have been there.
           otherEnv match {
-            case Some(environment) =>
-              node.disconnect(environment.node)
+            case Some(environment: TileEntity) =>
+              otherNode(environment, node.disconnect)
               otherEnv = None
             case _ => // Nothing to do here.
           }
@@ -100,8 +115,8 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
 
   private def disconnect() {
     otherEnv match {
-      case Some(environment) =>
-        node.disconnect(environment.node)
+      case Some(environment: TileEntity) =>
+        otherNode(environment, node.disconnect)
         otherEnv = None
       case _ => // Nothing to do here.
     }
@@ -144,7 +159,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     otherEnv match {
-      case Some(env) if node == env.node => otherEnv = None
+      case Some(env: TileEntity) => otherNode(env, (otherNode) => if (node == otherNode) otherEnv = None)
       case _ => // No environment
     }
     otherDrv match {
