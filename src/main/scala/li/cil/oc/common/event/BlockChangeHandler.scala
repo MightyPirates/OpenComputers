@@ -1,6 +1,7 @@
 package li.cil.oc.common.event
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.common.EventHandler
 import li.cil.oc.util.BlockPosition
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -16,15 +17,11 @@ import scala.collection.mutable
 object BlockChangeHandler {
 
   def addListener(listener: ChangeListener, coord: BlockPosition) = {
-    changeListeners.synchronized {
-      changeListeners.put(listener, coord)
-    }
+    EventHandler.scheduleServer(() => changeListeners.put(listener, coord))
   }
 
   def removeListener(listener: ChangeListener) = {
-    changeListeners.synchronized {
-      changeListeners.remove(listener)
-    }
+    EventHandler.scheduleServer(() => changeListeners.remove(listener))
   }
 
   private val changeListeners = mutable.WeakHashMap.empty[ChangeListener, BlockPosition]
@@ -42,10 +39,8 @@ object BlockChangeHandler {
 
     override def markBlockForUpdate(x: Int, y: Int, z: Int): Unit = {
       val current = BlockPosition(x, y, z, world)
-      changeListeners.synchronized {
-        for ((listener, coord) <- changeListeners) if (coord.equals(current)) {
-          listener.onBlockChanged()
-        }
+      for ((listener, coord) <- changeListeners) if (coord.equals(current)) {
+        listener.onBlockChanged()
       }
     }
 

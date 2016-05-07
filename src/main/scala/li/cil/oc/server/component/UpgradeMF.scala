@@ -27,9 +27,6 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
 
   override val canUpdate = true
 
-  // Not checking for range yet because host may be a moving adapter, who knows?
-  BlockChangeHandler.addListener(this, coord)
-
   private def updateBoundState() {
     if (node != null && node.network != null && coord.world.exists(_.provider.dimensionId == host.world.provider.dimensionId)
       && coord.toVec3.distanceTo(Vec3.createVectorHelper(host.xPosition, host.yPosition, host.zPosition)) <= Settings.get.mfuRange) {
@@ -137,6 +134,9 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
+      // Not checking for range yet because host may be a moving adapter, who knows?
+      BlockChangeHandler.addListener(this, coord)
+
       updateBoundState()
     }
   }
@@ -151,7 +151,7 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
       case Some((env, drv)) if node == env.node => otherDrv = None
       case _ => // No driver
     }
-    if(node == this.node) {
+    if (node == this.node) {
       BlockChangeHandler.removeListener(this)
     }
   }
