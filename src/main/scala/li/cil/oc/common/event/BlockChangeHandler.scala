@@ -21,6 +21,12 @@ object BlockChangeHandler {
     }
   }
 
+  def removeListener(listener: ChangeListener) = {
+    changeListeners.synchronized {
+      changeListeners.remove(listener)
+    }
+  }
+
   private val changeListeners = mutable.WeakHashMap.empty[ChangeListener, BlockPosition]
 
   @SubscribeEvent

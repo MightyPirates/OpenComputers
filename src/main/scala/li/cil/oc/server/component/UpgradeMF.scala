@@ -151,6 +151,9 @@ class UpgradeMF(val host: EnvironmentHost, val coord: BlockPosition, val dir: Fo
       case Some((env, drv)) if node == env.node => otherDrv = None
       case _ => // No driver
     }
+    if(node == this.node) {
+      BlockChangeHandler.removeListener(this)
+    }
   }
 
   override def load(nbt: NBTTagCompound) {

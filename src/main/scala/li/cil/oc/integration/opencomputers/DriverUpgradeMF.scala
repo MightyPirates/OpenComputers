@@ -32,7 +32,7 @@ object DriverUpgradeMF extends Item with HostAware {
         stack.getTagCompound.getIntArray(Settings.namespace + "coord") match {
           case Array(x, y, z, dim, side) =>
             Option(DimensionManager.getWorld(dim)) match {
-              case Some(world) => return new component.UpgradeMF(host, BlockPosition(x, y, z), ForgeDirection.getOrientation(side))
+              case Some(world) => return new component.UpgradeMF(host, BlockPosition(x, y, z, world), ForgeDirection.getOrientation(side))
               case _ => // Invalid dimension ID
             }
           case _ => // Invalid tag
